@@ -25,7 +25,7 @@ public final class FlowStoreMessageSubjects {
 
     public static final  MessageSubject APPLY_BATCH_FLOWS
         = new MessageSubject("peer-forward-apply-batch");
- 
+
     public static final  MessageSubject APPLY_EXTEND_FLOWS
     = new MessageSubject("peer-forward-apply-batch-extension");
 

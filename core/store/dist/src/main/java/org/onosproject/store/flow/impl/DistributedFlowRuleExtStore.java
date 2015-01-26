@@ -93,7 +93,7 @@ import com.google.common.util.concurrent.SettableFuture;
 @Service
 public class DistributedFlowRuleExtStore extends
                 AbstractStore<FlowRuleBatchExtEvent, FlowRuleExtStoreDelegate>
-		implements FlowRuleExtStore {
+                implements FlowRuleExtStore {
 
         private final Logger log = getLogger(getClass());
 
@@ -103,7 +103,7 @@ public class DistributedFlowRuleExtStore extends
 
         // store entries as a pile of rules, no info about device tables
         private final Multimap<DeviceId, FlowRuleExtEntry> extendflowEntries = ArrayListMultimap
-                           .<DeviceId, FlowRuleExtEntry> create();
+                           .<DeviceId, FlowRuleExtEntry>create();
 
         @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
         protected ReplicaInfoService replicaInfoManager;
@@ -157,21 +157,21 @@ public class DistributedFlowRuleExtStore extends
                 }
             }
         });
-        
+
         clusterCommunicator.addSubscriber(APPLY_EXTEND_FLOWS, new ClusterMessageHandler() {
 
             @Override
             public void handle(ClusterMessage message) {
                 //here should add a decode process
-                ImmutableList<FlowRuleExtEntry> operation=storeSeialize.decode(message.payload());
-                log.info("received batch request {}",operation);
+                ImmutableList<FlowRuleExtEntry> operation = storeSeialize.decode(message.payload());
+                log.info("received batch request {}", operation);
                 final ListenableFuture<FlowExtCompletedOperation> f = storeBatchInternal(operation);
 
-                f.addListener(new Runnable(){
-                	@Override
-                        public void run(){
+                f.addListener(new Runnable() {
+                        @Override
+                        public void run() {
                             FlowExtCompletedOperation result = Futures.getUnchecked(f);
-                	try {
+                        try {
                             message.respond(storeSeialize.encode(result));
                         } catch (IOException e) {
                             log.error("Failed to respond back", e);
@@ -223,16 +223,16 @@ public class DistributedFlowRuleExtStore extends
                                       // from backup
                                       removeFromPrimary(did);
                                 }
-			        break;
-			default:
-				break;
+		                break;
+                        default:
+		                break;
                      }
                  }
         }
 
         @Override
         public Iterable<?> getExtMessages(DeviceId deviceId) {
-		
+
               ReplicaInfo replicaInfo = replicaInfoManager
                                .getReplicaInfoFor(deviceId);
 
@@ -262,8 +262,8 @@ public class DistributedFlowRuleExtStore extends
                         //common method to decode to classT
                         Iterable<?> rules = decodeFlowExt(flows);
                         return ImmutableSet.copyOf(rules);
-                  } catch (IOException| TimeoutException | ExecutionException | InterruptedException e) {
-                        log.warn("Unable to fetch flow store contents from {}",replicaInfo.master().get());
+                  } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
+                        log.warn("Unable to fetch flow store contents from {}", replicaInfo.master().get());
               }
              return null;
         }
@@ -281,12 +281,12 @@ public class DistributedFlowRuleExtStore extends
            // TODO Auto-generated method stub
            if (batchOperation.isEmpty()) {
                 return Futures.immediateFuture(new FlowExtCompletedOperation(true,
-                            Collections.<FlowRuleExtEntry> emptySet()));
+                            Collections.<FlowRuleExtEntry>emptySet()));
            }
            // here should make some changes because all the collection belongs to one deviceId
            DeviceId deviceId = getBatchDeviceId(batchOperation);
 
-           if(deviceId == null) {
+           if (deviceId == null) {
                 log.error("This Batch exists more than two deviceId");
                 return null;
            }
@@ -308,7 +308,7 @@ public class DistributedFlowRuleExtStore extends
           try {
               ListenableFuture<byte[]> responseFuture = clusterCommunicator
                            .sendAndReceive(message, replicaInfo.master().get());
-              //here should add another decode process 
+              //here should add another decode process
               return Futures.transform(responseFuture,
                            new DecodeTo<FlowExtCompletedOperation>(storeSeialize));
             } catch (IOException e) {
@@ -330,7 +330,7 @@ public class DistributedFlowRuleExtStore extends
 
     private ListenableFuture<FlowExtCompletedOperation> storeBatchInternal(
       Collection<FlowRuleExtEntry> batchOperation) {
-        for(FlowRuleExtEntry operation : batchOperation) {
+        for (FlowRuleExtEntry operation : batchOperation) {
              if (!extendflowEntries.containsEntry(operation.getDeviceId(), operation)) {
                 extendflowEntries.put(operation.getDeviceId(), operation);
              }
@@ -345,15 +345,15 @@ public class DistributedFlowRuleExtStore extends
     private DeviceId getBatchDeviceId(Collection<FlowRuleExtEntry> batchOperation) {
         Iterator<FlowRuleExtEntry> head = batchOperation.iterator();
         FlowRuleExtEntry headOp = head.next();
-        boolean sameId = true; 
-        for(FlowRuleExtEntry operation : batchOperation) {
-            if(operation.getDeviceId() != headOp.getDeviceId()) {
+        boolean sameId = true;
+        for (FlowRuleExtEntry operation : batchOperation) {
+            if (operation.getDeviceId() != headOp.getDeviceId()) {
                 log.warn("this batch does not apply on one device Id ");
                 sameId = false;
                 break;
             }
         }
-        return sameId? headOp.getDeviceId() : null;
+        return sameId ? headOp.getDeviceId() : null;
     }
 
     @Override
@@ -362,9 +362,9 @@ public class DistributedFlowRuleExtStore extends
         storeSeialize.setupKryoPool(classT, serializer);
     }
 
-    /** 
-     * decode flowExt to any ClassT type user-defined 
-     * 
+    /**
+     * decode flowExt to any ClassT type user-defined.
+     *
      * @param batchOperation object to be decoded
      * @return Collection of ClassT object
      */
@@ -372,7 +372,7 @@ public class DistributedFlowRuleExtStore extends
         Collection<?> flowExtensions = new ArrayList();
         ByteBufferOutput output = new ByteBufferOutput(10 * 1000, 4096);
         Kryo kryo = storeSeialize.serializerPool.borrow();
-        for(FlowRuleExtEntry entry : batchOperation) {
+        for (FlowRuleExtEntry entry : batchOperation) {
             kryo.writeClass(output, entry.getClassT());
             kryo.writeObject(output, entry.getFlowEntryExt());
             flowExtensions.add(storeSeialize.decode(output.toBytes()));
@@ -382,10 +382,10 @@ public class DistributedFlowRuleExtStore extends
         return flowExtensions;
     }
 
-    /** 
-     * Internal Serializer used for register self-defined serializer, this 
-     * serializer used for decoding byte Stream to object and use to show in GUI
-     * or CLI 
+    /**
+     * Internal Serializer used for register self-defined serializer.
+     * this serializer used for decoding byte Stream to object and use
+     * to show in GUI or CLI
      */
     private  class InternalKryoSerializer implements StoreSerializer {
 
