@@ -72,7 +72,13 @@ describe('factory: fw/widget/table.js', function() {
     beforeEach(inject(function (TableService, _$log_) {
         ts = TableService;
         $log = _$log_;
+        d3Elem = d3.select('body').append('div').attr('id', 'myDiv');
     }));
+
+    afterEach(function () {
+        d3.select('#myDiv').remove();
+    });
+
 
     it('should define TableService', function () {
         expect(ts).toBeDefined();
