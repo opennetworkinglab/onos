@@ -24,12 +24,13 @@
     // define core module dependencies here...
     var coreDependencies = [
         'ngRoute',
-        'onosWidget',
+        'onosMast',
+        'onosNav',
         'onosUtil',
         'onosSvg',
         'onosRemote',
-        'onosMast',
-        'onosNav'
+        'onosLayer',
+        'onosWidget'
     ];
 
     // view IDs.. note the first view listed is loaded at startup
@@ -63,9 +64,9 @@
 
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
-            'KeyService', 'ThemeService', 'GlyphService',
+            'KeyService', 'ThemeService', 'GlyphService', 'PanelService',
 
-        function ($log, $route, $routeParams, $location, ks, ts, gs) {
+        function ($log, $route, $routeParams, $location, ks, ts, gs, ps) {
             var self = this;
 
             self.$route = $route;
@@ -77,6 +78,7 @@
             ts.init();
             ks.installOn(d3.select('body'));
             gs.init();
+            ps.init();
 
             $log.log('OnosCtrl has been created');
 

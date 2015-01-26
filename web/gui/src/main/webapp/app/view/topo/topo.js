@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms, wss;
+    var $log, ks, zs, gs, ms, wss, ps;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, map;
@@ -170,11 +170,12 @@
     angular.module('ovTopo', moduleDependencies)
 
         .controller('OvTopoCtrl', [
-            '$scope', '$log', '$location',
+            '$scope', '$log', '$location', '$timeout',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
-            'WebSocketService',
+            'WebSocketService', 'PanelService',
 
-        function ($scope, _$log_, $loc, _ks_, _zs_, _gs_, _ms_, _wss_) {
+        function ($scope, _$log_, $loc, $timeout,
+                  _ks_, _zs_, _gs_, _ms_, _wss_, _ps_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
@@ -182,16 +183,18 @@
             gs = _gs_;
             ms = _ms_;
             wss = _wss_;
+            ps = _ps_;
 
             self.notifyResize = function () {
                 svgResized(svg.style('width'), svg.style('height'));
             };
 
+            // Cleanup on destroyed scope..
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
-                // TODO: cleanup when the scope is destroyed...
-                //  for example, closing the web socket.
-
+                wsock && wsock.close();
+                wsock = null;
+                ps.destroyPanel('topo-p-summary');
             });
 
             // svg layer and initialization of components
@@ -203,6 +206,12 @@
             setUpZoom();
             setUpMap();
             setUpWebSocket($loc.search().wsport);
+
+            // TODO: remove this temporary code....
+            var p = ps.createPanel('topo-p-summary');
+            p.append('h1').text('Hello World');
+            p.show();
+            $timeout(function () { p.hide(); }, 2000);
 
             $log.log('OvTopoCtrl has been created');
         }]);
