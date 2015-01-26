@@ -15,9 +15,6 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -26,6 +23,9 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -123,6 +123,7 @@ public class PathIntent extends ConnectivityIntent {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("appId", appId())
+                .add("resources", resources())
                 .add("selector", selector())
                 .add("treatment", treatment())
                 .add("constraints", constraints())

@@ -143,6 +143,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("appId", appId())
+                .add("resources", resources())
                 .add("selector", selector())
                 .add("treatment", treatment())
                 .add("links", links())

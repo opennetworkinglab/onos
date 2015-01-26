@@ -15,15 +15,14 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collection;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
 
 public class OpticalPathIntent extends Intent {
 
@@ -69,6 +68,8 @@ public class OpticalPathIntent extends Intent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
+                .add("appId", appId())
+                .add("resources", resources())
                 .add("ingressPort", src)
                 .add("egressPort", dst)
                 .add("path", path)
