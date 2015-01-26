@@ -1,0 +1,21 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Uploads ONOS Java API docs.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+user=${1:-jenkins}
+remote=$user@wiki.onosproject.org
+
+scp $ONOS_ROOT/docs/target/onos-apidocs-$ONOS_VERSION.tar.gz $remote:/tmp
+ssh $remote "
+    mkdir -p /var/www/api/$ONOS_VERSION
+    cd /var/www/api/$ONOS_VERSION
+    tar zxf /tmp/onos-apidocs-$ONOS_VERSION.tar.gz
+    mv onos-apidocs-$ONOS_VERSION/* .
+    rm -rf onos-apidocs-$ONOS_VERSION
+
+    # TODO: optionally bump /var/www/api/index.html
+"

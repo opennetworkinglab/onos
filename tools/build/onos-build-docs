@@ -1,6 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Builds the ONOS from source.
+# Builds the ONOS Java API docs.
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1

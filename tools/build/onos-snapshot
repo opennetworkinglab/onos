@@ -1,0 +1,25 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Drives the ONOS snapshot process.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+export NEW_VERSION=$1
+[ -z "$NEW_VERSION" ] && echo "New ONOS version not specified" && exit 1
+
+export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
+[ "$NEW_VERSION" = "$NEW_VERSION_SHORT" ] && echo "Version is not a SNAPSHOT" && exit 1;
+
+cd $ONOS_ROOT
+
+# TODO: Create a new branch for this activity?
+
+# Change the version
+onos-change-version $NEW_VERSION
+
+# Commit newly versioned artifacts.
+git commit -a -m"Starting snapshot $NEW_VERSION"
+
+# TODO: push?

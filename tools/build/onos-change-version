@@ -1,0 +1,36 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Changes ONOS version in POM files, and other release artifacts.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+export NEW_VERSION=$1
+[ -z "$NEW_VERSION" ] && echo "New ONOS version not specified" && exit 1
+
+export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
+
+cd $ONOS_ROOT
+
+# Augment the version of the main pom and the modules nested underneath.
+mvn versions:set -DnewVersion=$NEW_VERSION versions:commit
+
+# Augment the version of the Java API pom files and the overview.html file.
+for pom in docs/pom.xml docs/external.xml; do
+    sed -i "" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" $pom
+    sed -i "" -E "1,/<doctitle>/s/<doctitle>ONOS Java API[^<]*</<doctitle>ONOS Java API ($NEW_VERSION)</g" $pom
+done
+
+# Augment the version in envDefaults, onos.py and archetypes test
+sed -i "" -E "s/ONOS_VERSION:-[^$]*/ONOS_VERSION:-$NEW_VERSION_SHORT./" $ONOS_ROOT/tools/build/envDefaults
+sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools/test/topos/onos.py
+sed -i "" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
+
+# Augment the version in archetypes tree.
+mvn -f tools/package/archetypes/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
+for atype in api bundle cli; do
+    pom="tools/package/archetypes/$atype/src/main/resources/archetype-resources/pom.xml"
+    sed -i "" -E "1,/<onos.version>/s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $pom
+done
+
