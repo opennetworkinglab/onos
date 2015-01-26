@@ -69,16 +69,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class FlowRuleExtManager
-        extends AbstractProviderRegistry<FlowRuleExtProvider, FlowRuleExtProviderService>
+        extends
+        AbstractProviderRegistry<FlowRuleExtProvider, FlowRuleExtProviderService>
         implements FlowRuleExtService, FlowRuleExtProviderRegistry {
 
-    enum BatchState { STARTED, FINISHED, CANCELLED };
+    enum BatchState {
+        STARTED, FINISHED, CANCELLED
+    };
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<FlowRuleExtEvent, FlowRuleExtListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    private final AbstractListenerRegistry<FlowRuleExtEvent, FlowRuleExtListener> listenerRegistry = new AbstractListenerRegistry<>();
 
     private final FlowRuleExtStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -95,8 +97,9 @@ public class FlowRuleExtManager
 
     @Activate
     public void activate() {
-        futureService =
-                Executors.newFixedThreadPool(32, namedThreads("provider-future-listeners-%d"));
+        futureService = Executors
+                .newFixedThreadPool(32,
+                                    namedThreads("provider-future-listeners-%d"));
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleExtEvent.class, listenerRegistry);
         log.info("Started");
@@ -110,34 +113,39 @@ public class FlowRuleExtManager
         log.info("Stopped");
     }
 
- // Store delegate to re-post events emitted from the store.
+    // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements FlowRuleExtStoreDelegate {
-        // TODO: We assume all the batch install success when they are send to provider.
+        // TODO: We assume all the batch install success when they are send to
+        // provider.
         // It will be using transaction tactics Later.
         @Override
         public void notify(FlowRuleBatchExtEvent event) {
             // TODO Auto-generated method stub
             switch (event.type()) {
             case BATCH_OPERATION_REQUESTED:
-                   // Request has been forwarded to MASTER Node, and was
-                    for (FlowRuleExtEntry entry : event.subject().getBatch()) {
-                           eventDispatcher.post(new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADD_REQUESTED, entry));
-                    }
-                    //send it
-                    FlowRuleBatchExtRequest flowrules = event.subject();
-                    FlowRuleExtProvider flowRuleProvider =
-                                    getProvider(event.subject().getBatch().iterator().next().getDeviceId());
-                    flowRuleProvider.applyFlowRule(flowrules);
-                    //do not have transaction, assume it install success
-                    FlowExtCompletedOperation result = new FlowExtCompletedOperation(true,
-                                    Collections.<FlowRuleExtEntry>emptySet());
-                    store.batchOperationComplete(FlowRuleBatchExtEvent.completed(flowrules, result));
-                    break;
+                // Request has been forwarded to MASTER Node, and was
+                for (FlowRuleExtEntry entry : event.subject().getBatch()) {
+                    eventDispatcher
+                            .post(new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADD_REQUESTED,
+                                                       entry));
+                }
+                // send it
+                FlowRuleBatchExtRequest flowrules = event.subject();
+                FlowRuleExtProvider flowRuleProvider = getProvider(event
+                        .subject().getBatch().iterator().next().getDeviceId());
+                flowRuleProvider.applyFlowRule(flowrules);
+                // do not have transaction, assume it install success
+                // temporarily
+                FlowExtCompletedOperation result = new FlowExtCompletedOperation(true,
+                                     Collections.<FlowRuleExtEntry> emptySet());
+                store.batchOperationComplete(FlowRuleBatchExtEvent
+                        .completed(flowrules, result));
+                break;
             case BATCH_OPERATION_COMPLETED:
 
-                    break;
+                break;
             default:
-                    break;
+                break;
             }
         }
     }
@@ -151,8 +159,8 @@ public class FlowRuleExtManager
     @Override
     public Future<FlowExtCompletedOperation> applyBatch(Collection<FlowRuleExtEntry> batch) {
         // TODO group the Collection into sub-Collection by deviceId
-        Multimap<DeviceId, FlowRuleExtEntry> perDeviceBatches =
-                ArrayListMultimap.create();
+        Multimap<DeviceId, FlowRuleExtEntry> perDeviceBatches = ArrayListMultimap
+                .create();
         List<Future<FlowExtCompletedOperation>> futures = Lists.newArrayList();
         for (FlowRuleExtEntry fbe : batch) {
             perDeviceBatches.put(fbe.getDeviceId(), fbe);
@@ -169,11 +177,13 @@ public class FlowRuleExtManager
     @Override
     public void addListener(FlowRuleExtListener listener) {
         // TODO Auto-generated method stub
+        listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(FlowRuleExtListener listener) {
         // TODO Auto-generated method stub
+        listenerRegistry.removeListener(listener);
     }
 
     @Override
@@ -188,7 +198,8 @@ public class FlowRuleExtManager
         return new InternalFlowRuleProviderService(provider);
     }
 
-    private class FlowRuleBatchFuture implements Future<FlowExtCompletedOperation> {
+    private class FlowRuleBatchFuture
+            implements Future<FlowExtCompletedOperation> {
 
         private final List<Future<FlowExtCompletedOperation>> futures;
         private final Multimap<DeviceId, FlowRuleExtEntry> batches;
@@ -196,7 +207,7 @@ public class FlowRuleExtManager
         private FlowExtCompletedOperation overall;
 
         public FlowRuleBatchFuture(List<Future<FlowExtCompletedOperation>> futures,
-                Multimap<DeviceId, FlowRuleExtEntry> batches) {
+                                   Multimap<DeviceId, FlowRuleExtEntry> batches) {
             this.futures = futures;
             this.batches = batches;
             state = new AtomicReference<FlowRuleExtManager.BatchState>();
@@ -232,10 +243,9 @@ public class FlowRuleExtManager
             return state.get() == BatchState.FINISHED;
         }
 
-
         @Override
-        public FlowExtCompletedOperation get() throws InterruptedException,
-            ExecutionException {
+        public FlowExtCompletedOperation get()
+                throws InterruptedException, ExecutionException {
 
             if (isDone()) {
                 return overall;
@@ -291,9 +301,10 @@ public class FlowRuleExtManager
         }
 
         private FlowExtCompletedOperation finalizeBatchOperation(boolean success,
-                                                               Set<FlowRuleExtEntry> failed) {
+                                                                 Set<FlowRuleExtEntry> failed) {
             synchronized (this) {
-                if (!state.compareAndSet(BatchState.STARTED, BatchState.FINISHED)) {
+                if (!state.compareAndSet(BatchState.STARTED,
+                                         BatchState.FINISHED)) {
                     if (state.get() == BatchState.FINISHED) {
                         return overall;
                     }
@@ -308,8 +319,9 @@ public class FlowRuleExtManager
         }
     }
 
-    private class InternalFlowRuleProviderService extends AbstractProviderService<FlowRuleExtProvider>
-    implements FlowRuleExtProviderService {
+    private class InternalFlowRuleProviderService
+            extends AbstractProviderService<FlowRuleExtProvider>
+            implements FlowRuleExtProviderService {
 
         protected InternalFlowRuleProviderService(FlowRuleExtProvider provider) {
             super(provider);
