@@ -118,11 +118,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     // FIXME: This should be an expiring map to ensure futures that don't have
     // a future eventually get garbage collected.
-    private final Map<Long, InstallationFuture> pendingFutures =
-            new ConcurrentHashMap<Long, InstallationFuture>();
+    private final Map<Long, InstallationFuture> pendingFutures = new ConcurrentHashMap<>();
 
-    private final Map<Long, InstallationFuture> pendingFMs =
-            new ConcurrentHashMap<Long, InstallationFuture>();
+    private final Map<Long, InstallationFuture> pendingFMs = new ConcurrentHashMap<>();
 
     private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
 
