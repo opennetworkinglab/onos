@@ -43,7 +43,7 @@ public class BatchOperationTest {
     final TestEntry entry2 = new TestEntry(TestType.OP2, new TestTarget(2));
 
 
-    private static final class TestTarget implements BatchOperationTarget {
+    private static final class TestTarget {
         private int id;
 
         private TestTarget(int id) {

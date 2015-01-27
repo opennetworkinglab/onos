@@ -22,7 +22,7 @@ import org.onosproject.net.DeviceId;
  * Represents a generalized match &amp; action pair to be applied to
  * an infrastructure device.
  */
-public interface FlowRule extends BatchOperationTarget {
+public interface FlowRule {
 
     static final int MAX_TIMEOUT = 60;
     static final int MIN_PRIORITY = 0;

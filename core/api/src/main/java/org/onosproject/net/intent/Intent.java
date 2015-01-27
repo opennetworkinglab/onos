@@ -18,7 +18,6 @@ package org.onosproject.net.intent;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
-import org.onosproject.net.flow.BatchOperationTarget;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -32,7 +31,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Make sure that an Intent should be immutable when a new type is defined.
  * </p>
  */
-public abstract class Intent implements BatchOperationTarget {
+public abstract class Intent {
 
     private final IntentId id;
     private final ApplicationId appId;
