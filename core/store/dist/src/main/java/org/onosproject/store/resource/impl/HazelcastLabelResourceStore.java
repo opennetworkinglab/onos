@@ -371,7 +371,7 @@ public class HazelcastLabelResourceStore
         LabelResourcePool pool = resourcePool.get(deviceId);
         Collection<DefaultLabelResource> result = new ArrayList<DefaultLabelResource>();
         long freeNum = this.getFreeNum(deviceId);
-        if (applyNum < freeNum) {
+        if (applyNum > freeNum) {
             log.info("the free number of the label resource pool of deviceId {} is not enough.");
             resourcePoolLock.writeLock().unlock();
             return Collections.emptyList();
