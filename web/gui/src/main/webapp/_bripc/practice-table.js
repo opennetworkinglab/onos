@@ -24,8 +24,8 @@
     var config = {
         colIds: ['_iconid_available', 'id', 'mfr', 'hw', 'sw', 'serial',
             'annotations'],
-        colText: ['Availability', 'URI', 'Vendor', 'Hardware Version', 'Software Version',
-            'Serial Number', 'Protocol']
+        colText: ['Availability', 'URI', 'Vendor', 'Hardware Version',
+            'Software Version', 'Serial Number', 'Protocol']
         },
         deviceData = {
             "devices": [{
@@ -234,7 +234,7 @@
 
         .controller('showTableCtrl', ['$log', 'TableService',
             function ($log, ts) {
-                ts.renderAndLoadTable(d3.select('#tableDiv'), config, deviceData);
+                ts.renderTable(d3.select('#tableDiv'), config, deviceData);
             }])
 
         .directive('fixedHeader', ['$log', '$timeout', function ($log, $timeout) {

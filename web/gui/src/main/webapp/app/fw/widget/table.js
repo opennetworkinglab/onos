@@ -22,52 +22,40 @@
 
     var $log;
 
-    function renderTable(div, config) {
+    function renderTable(div, config, data) {
         var table = div.append('table').attr('fixed-header', ''),
-            thead, tr, numTableCols, i;
-        table.append('thead');
-        table.append('tbody');
+            colIds = config.colIds,
+            colText = config.colText,
+            dataObjects = data[Object.keys(data)[0]],
+            thead, tbody, tRows;
 
-        thead = table.select('thead');
-        tr = thead.append('tr');
-        numTableCols = config.colIds.length;
+        thead = table.append('thead');
+        tbody = table.append('tbody');
 
-        for(i = 0; i < numTableCols; i += 1) {
-            tr.append('th').html(config.colText[i]);
-        }
+        thead.append('tr').selectAll('th')
+            .data(colText)
+            .enter()
+            .append('th')
+            .text(function(d) { return d });
 
-        return config.colIds;
-    }
+        tRows = tbody.selectAll('tr')
+            .data(dataObjects)
+            .enter()
+            .append('tr');
 
-    // I can delete these comments later...
-    // loadTableData needs to know which IDs are used to create the table...
-    // Potentially, there will be some rows in the JSON that the server is
-    // sending back that will be unused. We don't want to create unneeded rows.
-        // For example, in device view, we aren't displaying "role" or
-        // "available" properties, but they would be displayed if we took it
-        // directly from the data being sent in.
-    function loadTableData(data, div, colIds) {
-        // let me know if you have suggestions for this function
+        tRows.selectAll('td')
+            .data(function(row) {
+                return colIds.map(function(headerId) {
+                    return {
+                        column: headerId, value: row[headerId]
+                    };
+                });
+            })
+            .enter()
+            .append('td')
+            .html(function(d) { return d.value });
 
-        var numTableCols = colIds.length,
-            tbody, tr, i;
-        tbody = div.select('tbody');
-
-        // get the array associated with the first object, such as "devices"
-        // loop through every object in the array, and every colId in config
-        // put the appropriate property in the td of the table
-        (data[Object.keys(data)[0]]).forEach(function (item) {
-            tr = tbody.append('tr');
-            for(i = 0; i < numTableCols; i += 1) {
-                if(item.hasOwnProperty(colIds[i])) {
-                   tr.append('td').html(item[colIds[i]]);
-                }
-            }
-        });
-    }
-
-    function renderAndLoadTable(div, config, data) {
-        loadTableData(data, div, (renderTable(div, config)));
+        return table;
     }
 
     angular.module('onosWidget')
@@ -75,9 +63,7 @@
             $log = _$log_;
 
             return {
-                renderTable: renderTable,
-                loadTableData: loadTableData,
-                renderAndLoadTable: renderAndLoadTable
+                renderTable: renderTable
             };
         }]);
 

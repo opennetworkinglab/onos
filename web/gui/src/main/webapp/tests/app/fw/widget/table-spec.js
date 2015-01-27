@@ -121,19 +121,12 @@ describe('factory: fw/widget/table.js', function() {
     }
 
     it('should create table tags', function () {
-        ts.renderTable(d3Elem, config);
+        ts.renderTable(d3Elem, config, fakeData);
         verifyTableTags(d3Elem);
     });
 
     it('should load data into table', function () {
-        var colIds = ts.renderTable(d3Elem, config);
-        ts.loadTableData(fakeData, d3Elem, colIds);
+        ts.renderTable(d3Elem, config, fakeData);
         verifyData(d3Elem);
     });
-
-    it('should render table and load data', function () {
-        ts.renderAndLoadTable(d3Elem, config, fakeData);
-        verifyData(d3Elem);
-    });
-
 });
