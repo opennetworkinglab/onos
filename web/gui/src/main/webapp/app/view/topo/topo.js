@@ -28,13 +28,13 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms, ps, wss, tes;
+    var $log, ks, zs, gs, ms, ps, tes;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, map;
 
     // Internal state
-    var zoomer, wsock, evDispatcher;
+    var zoomer, evDispatcher;
 
     // Note: "exported" state should be properties on 'self' variable
 
@@ -129,44 +129,6 @@
         //showCallibrationPoints();
     }
 
-    // --- Web Socket Connection -----------------------------------------
-    // TODO: migrate this code to be encapsulated by TopoEventService
-
-    function onWsOpen() {
-        $log.log('web socket opened...');
-        evDispatcher.sendEvent('requestSummary');
-    }
-
-    function onWsMessage(ev) {
-        evDispatcher.handleEvent(ev);
-    }
-
-    function onWsClose(reason) {
-        $log.log('web socket closed; reason=', reason);
-        wsock = null;
-        tes.bindSock(null);
-    }
-
-    // wsport indicates web-socket-server port other than the default.
-    // Used for testing with the mock-web-socket-server.
-    function setUpWebSocket(wsport) {
-        wsock = wss.createWebSocket('topology', {
-            onOpen: onWsOpen,
-            onMessage: onWsMessage,
-            onClose: onWsClose,
-            wsport: wsport
-        });
-
-        tes.bindSock(wsock);
-
-        // TODO: handle "guiSuccessor" functionality (replace host)
-        // TODO: implement retry on close functionality
-
-
-        $log.log('created web socket', wsock);
-        // TODO: complete implementation...
-
-    }
 
     // --- Controller Definition -----------------------------------------
 
@@ -175,10 +137,10 @@
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
-            'PanelService', 'WebSocketService', 'TopoEventService',
+            'PanelService', 'TopoEventService',
 
         function ($scope, _$log_, $loc, $timeout,
-                  _ks_, _zs_, _gs_, _ms_, _ps_, _wss_, _tes_) {
+                  _ks_, _zs_, _gs_, _ms_, _ps_, _tes_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
@@ -186,7 +148,6 @@
             gs = _gs_;
             ms = _ms_;
             ps = _ps_;
-            wss = _wss_;
             tes = _tes_;
 
             self.notifyResize = function () {
@@ -196,9 +157,7 @@
             // Cleanup on destroyed scope..
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
-                wsock && wsock.close();
-                wsock = null;
-                tes.bindSock(null);
+                tes.closeSock();
                 ps.destroyPanel('topo-p-summary');
             });
 
@@ -206,14 +165,16 @@
             ovtopo = d3.select('#ov-topo');
             svg = ovtopo.select('svg');
 
-            // bind to topo event service..
-            evDispatcher = tes.dispatcher;
+            // bind to topo event dispatcher..
+            evDispatcher = tes.bindDispatcher('TODO: topo-DOM-elements-here');
 
             setUpKeys();
             setUpDefs();
             setUpZoom();
             setUpMap();
-            setUpWebSocket($loc.search().wsport);
+
+            // open up a connection to the server...
+            tes.openSock();
 
             // TODO: remove this temporary code....
             var p = ps.createPanel('topo-p-summary');

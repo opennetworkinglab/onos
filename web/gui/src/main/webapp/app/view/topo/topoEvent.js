@@ -22,11 +22,17 @@
 (function () {
     'use strict';
 
-    var $log, wes;
+    // injected refs
+    var $log, wss, wes;
+
+    // internal state
+    var wsock;
 
     var evHandler = {
         showSummary: showSummary,
         addInstance: addInstance
+        // TODO: implement remaining handlers..
+
     };
 
     function unknownEvent(ev) {
@@ -43,31 +49,81 @@
         $log.log(' *** We got an ADD INSTANCE event: ', ev);
     }
 
+    // ==========================
+
+    var dispatcher = {
+        handleEvent: function (ev) {
+            (evHandler[ev.event] || unknownEvent)(ev);
+        },
+        sendEvent: function (evType, payload) {
+            if (wsock) {
+                wes.sendEvent(wsock, evType, payload);
+            } else {
+                $log.warn('sendEvent: no websocket open:', evType, payload);
+            }
+        }
+    };
+
+    // ===  Web Socket functions ===
+
+    function onWsOpen() {
+        $log.debug('web socket opened...');
+        // kick off request for periodic summary data...
+        dispatcher.sendEvent('requestSummary');
+    }
+
+    function onWsMessage(ev) {
+        dispatcher.handleEvent(ev);
+    }
+
+    function onWsClose(reason) {
+        $log.log('web socket closed; reason=', reason);
+        wsock = null;
+    }
+
+    // ==========================
+
     angular.module('ovTopo')
-        .factory('TopoEventService', ['$log', 'WsEventService',
-        function (_$log_, _wes_) {
+    .factory('TopoEventService',
+        ['$log', '$location', 'WebSocketService', 'WsEventService',
+
+        function (_$log_, $loc, _wss_, _wes_) {
             $log = _$log_;
+            wss = _wss_;
             wes = _wes_;
 
-            var wsock;
+            function bindDispatcher(TopoDomElementsPassedHere) {
+                // TODO: store refs to topo DOM elements...
+
+                return dispatcher;
+            }
+
+            // TODO: handle "guiSuccessor" functionality (replace host)
+            // TODO: implement retry on close functionality
+            function openSock() {
+                wsock = wss.createWebSocket('topology', {
+                    onOpen: onWsOpen,
+                    onMessage: onWsMessage,
+                    onClose: onWsClose,
+                    wsport: $loc.search().wsport
+                });
+                $log.debug('web socket opened:', wsock);
+            }
+
+            function closeSock() {
+                var path;
+                if (wsock) {
+                    path = wsock.meta.path;
+                    wsock.close();
+                    wsock = null;
+                    $log.debug('web socket closed. path:', path);
+                }
+            }
 
             return {
-                dispatcher: {
-                    handleEvent: function (ev) {
-                        (evHandler[ev.event] || unknownEvent)(ev);
-                    },
-                    sendEvent: function (evType, payload) {
-                        if (wsock) {
-                            wes.sendEvent(wsock, evType, payload);
-                        } else {
-                            $log.warn('sendEvent: no websocket open:',
-                                evType, payload);
-                        }
-                    }
-                },
-                bindSock: function (ws) {
-                    wsock = ws;
-                }
+                bindDispatcher: bindDispatcher,
+                openSock: openSock,
+                closeSock: closeSock
             }
         }]);
 }());
