@@ -15,25 +15,8 @@
  */
 package org.onosproject.store.device.impl;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
-import static org.onosproject.net.Device.Type.SWITCH;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.onosproject.cluster.ControllerNode.State.*;
-import static org.onosproject.net.DefaultAnnotations.union;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.easymock.Capture;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -41,6 +24,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -68,11 +53,25 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpAddress;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.Arrays.asList;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
+import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
+import static org.onosproject.net.DefaultAnnotations.union;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 
 
 // TODO add tests for remote replication
@@ -180,12 +179,8 @@ public class GossipDeviceStoreTest {
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
                         HW, swVersion, SN, CID, annotations);
         reset(clusterCommunicator);
-        try {
-            expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
-                .andReturn(true).anyTimes();
-        } catch (IOException e) {
-            fail("Should never reach here");
-        }
+        expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
+            .andReturn(true).anyTimes();
         replay(clusterCommunicator);
         deviceStore.createOrUpdateDevice(PID, deviceId, description);
         verify(clusterCommunicator);
@@ -664,11 +659,7 @@ public class GossipDeviceStoreTest {
 
         bcast.reset();
         reset(clusterCommunicator);
-        try {
-            expect(clusterCommunicator.broadcast(capture(bcast))).andReturn(true).once();
-        } catch (IOException e) {
-            fail("Should never reach here");
-        }
+        expect(clusterCommunicator.broadcast(capture(bcast))).andReturn(true).once();
         replay(clusterCommunicator);
     }
 

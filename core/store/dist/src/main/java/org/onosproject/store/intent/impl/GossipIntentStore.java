@@ -327,25 +327,14 @@ public class GossipIntentStore
     }
 
     private void notifyPeers(InternalIntentEvent event) {
-        try {
-            broadcastMessage(INTENT_UPDATED_MSG, event);
-        } catch (IOException e) {
-            // TODO this won't happen; remove from API
-            log.debug("IOException broadcasting update", e);
-        }
+        broadcastMessage(INTENT_UPDATED_MSG, event);
     }
 
     private void notifyPeers(InternalSetInstallablesEvent event) {
-        try {
-            broadcastMessage(INTENT_SET_INSTALLABLES_MSG, event);
-        } catch (IOException e) {
-            // TODO this won't happen; remove from API
-            log.debug("IOException broadcasting update", e);
-        }
+        broadcastMessage(INTENT_SET_INSTALLABLES_MSG, event);
     }
 
-    private void broadcastMessage(MessageSubject subject, Object event) throws
-            IOException {
+    private void broadcastMessage(MessageSubject subject, Object event) {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
                 subject,

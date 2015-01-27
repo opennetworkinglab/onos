@@ -15,22 +15,12 @@
  */
 package org.onosproject.store.link.impl;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -70,12 +60,21 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
@@ -289,13 +288,7 @@ public class GossipLinkStore
             log.info("Notifying peers of a link update topology event from providerId: "
                     + "{}  between src: {} and dst: {}",
                     providerId, linkDescription.src(), linkDescription.dst());
-            try {
-                notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
-            } catch (IOException e) {
-                log.debug("Failed to notify peers of a link update topology event from providerId: "
-                                 + "{}  between src: {} and dst: {}",
-                         providerId, linkDescription.src(), linkDescription.dst());
-            }
+            notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
         }
         return event;
     }
@@ -432,12 +425,7 @@ public class GossipLinkStore
         if (event != null) {
             log.info("Notifying peers of a link removed topology event for a link "
                     + "between src: {} and dst: {}", src, dst);
-            try {
-                notifyPeers(new InternalLinkRemovedEvent(key, timestamp));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a link removed topology event for a link "
-                        + "between src: {} and dst: {}", src, dst);
-            }
+            notifyPeers(new InternalLinkRemovedEvent(key, timestamp));
         }
         return event;
     }
@@ -607,7 +595,7 @@ public class GossipLinkStore
         }
     }
 
-    private void broadcastMessage(MessageSubject subject, Object event) throws IOException {
+    private void broadcastMessage(MessageSubject subject, Object event) {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
                 subject,
@@ -623,11 +611,11 @@ public class GossipLinkStore
         clusterCommunicator.unicast(message, recipient);
     }
 
-    private void notifyPeers(InternalLinkEvent event) throws IOException {
+    private void notifyPeers(InternalLinkEvent event) {
         broadcastMessage(GossipLinkStoreMessageSubjects.LINK_UPDATE, event);
     }
 
-    private void notifyPeers(InternalLinkRemovedEvent event) throws IOException {
+    private void notifyPeers(InternalLinkRemovedEvent event) {
         broadcastMessage(GossipLinkStoreMessageSubjects.LINK_REMOVED, event);
     }
 

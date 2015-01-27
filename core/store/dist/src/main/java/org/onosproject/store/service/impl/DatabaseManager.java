@@ -15,23 +15,7 @@
  */
 package org.onosproject.store.service.impl;
 
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.ImmutableList;
 import net.kuujo.copycat.Copycat;
 import net.kuujo.copycat.CopycatConfig;
 import net.kuujo.copycat.cluster.ClusterConfig;
@@ -42,13 +26,13 @@ import net.kuujo.copycat.cluster.TcpMember;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
 import net.kuujo.copycat.log.Log;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -69,10 +53,24 @@ import org.onosproject.store.service.ReadStatus;
 import org.onosproject.store.service.VersionedValue;
 import org.onosproject.store.service.WriteResult;
 import org.onosproject.store.service.WriteStatus;
-import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Strongly consistent and durable state management service based on
@@ -488,25 +486,21 @@ public class DatabaseManager implements DatabaseService, DatabaseAdminService {
     private final class RaftLeaderElectionMonitor implements EventHandler<LeaderElectEvent> {
         @Override
         public void handle(LeaderElectEvent event) {
-            try {
-                log.debug("Received LeaderElectEvent: {}", event);
-                if (clusterConfig.getLocalMember() != null && event.leader().equals(clusterConfig.getLocalMember())) {
-                    log.debug("Broadcasting RAFT_LEADER_ELECTION_EVENT");
-                    myLeaderEvent = event;
-                    // This node just became the leader.
-                    clusterCommunicator.broadcastIncludeSelf(
-                            new ClusterMessage(
-                                    clusterService.getLocalNode().id(),
-                                    RAFT_LEADER_ELECTION_EVENT,
-                                    ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
-                } else {
-                    if (myLeaderEvent != null) {
-                        log.debug("This node is no longer the Leader");
-                    }
-                    myLeaderEvent = null;
+            log.debug("Received LeaderElectEvent: {}", event);
+            if (clusterConfig.getLocalMember() != null && event.leader().equals(clusterConfig.getLocalMember())) {
+                log.debug("Broadcasting RAFT_LEADER_ELECTION_EVENT");
+                myLeaderEvent = event;
+                // This node just became the leader.
+                clusterCommunicator.broadcastIncludeSelf(
+                        new ClusterMessage(
+                                clusterService.getLocalNode().id(),
+                                RAFT_LEADER_ELECTION_EVENT,
+                                ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
+            } else {
+                if (myLeaderEvent != null) {
+                    log.debug("This node is no longer the Leader");
                 }
-            } catch (IOException e) {
-                log.error("Failed to broadcast raft leadership change event", e);
+                myLeaderEvent = null;
             }
         }
     }

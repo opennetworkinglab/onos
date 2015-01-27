@@ -263,12 +263,7 @@ public class GossipDeviceStore
         if (event != null) {
             log.info("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
                 providerId, deviceId);
-            try {
-                notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a device update topology event for providerId: "
-                        + providerId + " and deviceId: " + deviceId, e);
-            }
+            notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
         }
         return event;
     }
@@ -376,12 +371,7 @@ public class GossipDeviceStore
         if (event != null) {
             log.info("Notifying peers of a device offline topology event for deviceId: {} {}",
                     deviceId, timestamp);
-            try {
-                notifyPeers(new InternalDeviceOfflineEvent(deviceId, timestamp));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a device offline topology event for deviceId: {}",
-                     deviceId);
-            }
+            notifyPeers(new InternalDeviceOfflineEvent(deviceId, timestamp));
         }
         return event;
     }
@@ -487,12 +477,7 @@ public class GossipDeviceStore
         if (!events.isEmpty()) {
             log.info("Notifying peers of a ports update topology event for providerId: {} and deviceId: {}",
                     providerId, deviceId);
-            try {
-                notifyPeers(new InternalPortEvent(providerId, deviceId, merged));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a port update topology event or providerId: "
-                    + providerId + " and deviceId: " + deviceId, e);
-            }
+            notifyPeers(new InternalPortEvent(providerId, deviceId, merged));
         }
         return events;
     }
@@ -667,12 +652,7 @@ public class GossipDeviceStore
         if (event != null) {
             log.info("Notifying peers of a port status update topology event for providerId: {} and deviceId: {}",
                         providerId, deviceId);
-            try {
-                notifyPeers(new InternalPortStatusEvent(providerId, deviceId, mergedDesc));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a port status update topology event or providerId: "
-                        + providerId + " and deviceId: " + deviceId, e);
-            }
+            notifyPeers(new InternalPortStatusEvent(providerId, deviceId, mergedDesc));
         }
         return event;
     }
@@ -793,12 +773,7 @@ public class GossipDeviceStore
         if (event != null) {
             log.debug("Notifying peers of a device removed topology event for deviceId: {}",
                     deviceId);
-            try {
-                notifyPeers(new InternalDeviceRemovedEvent(deviceId, timestamp));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a device removed topology event for deviceId: {}",
-                     deviceId);
-            }
+            notifyPeers(new InternalDeviceRemovedEvent(deviceId, timestamp));
         }
         if (relinquishAtEnd) {
             log.debug("Relinquishing temporary role acquired for {}", deviceId);
@@ -973,7 +948,7 @@ public class GossipDeviceStore
         clusterCommunicator.unicast(message, recipient);
     }
 
-    private void broadcastMessage(MessageSubject subject, Object event) throws IOException {
+    private void broadcastMessage(MessageSubject subject, Object event) {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
                 subject,
@@ -981,23 +956,23 @@ public class GossipDeviceStore
         clusterCommunicator.broadcast(message);
     }
 
-    private void notifyPeers(InternalDeviceEvent event) throws IOException {
+    private void notifyPeers(InternalDeviceEvent event) {
         broadcastMessage(GossipDeviceStoreMessageSubjects.DEVICE_UPDATE, event);
     }
 
-    private void notifyPeers(InternalDeviceOfflineEvent event) throws IOException {
+    private void notifyPeers(InternalDeviceOfflineEvent event) {
         broadcastMessage(GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE, event);
     }
 
-    private void notifyPeers(InternalDeviceRemovedEvent event) throws IOException {
+    private void notifyPeers(InternalDeviceRemovedEvent event) {
         broadcastMessage(GossipDeviceStoreMessageSubjects.DEVICE_REMOVED, event);
     }
 
-    private void notifyPeers(InternalPortEvent event) throws IOException {
+    private void notifyPeers(InternalPortEvent event) {
         broadcastMessage(GossipDeviceStoreMessageSubjects.PORT_UPDATE, event);
     }
 
-    private void notifyPeers(InternalPortStatusEvent event) throws IOException {
+    private void notifyPeers(InternalPortStatusEvent event) {
         broadcastMessage(GossipDeviceStoreMessageSubjects.PORT_STATUS_UPDATE, event);
     }
 

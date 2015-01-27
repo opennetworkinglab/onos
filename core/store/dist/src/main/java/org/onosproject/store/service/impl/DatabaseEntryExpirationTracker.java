@@ -16,24 +16,13 @@
 
 package org.onosproject.store.service.impl;
 
-import static org.onlab.util.Tools.namedThreads;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.base.MoreObjects;
 import net.jodah.expiringmap.ExpiringMap;
 import net.jodah.expiringmap.ExpiringMap.ExpirationListener;
 import net.jodah.expiringmap.ExpiringMap.ExpirationPolicy;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.event.EventHandler;
 import net.kuujo.copycat.event.LeaderElectEvent;
-
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
@@ -44,7 +33,15 @@ import org.onosproject.store.service.impl.DatabaseStateMachine.TableMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.onlab.util.Tools.namedThreads;
 
 /**
  * Plugs into the database update stream and track the TTL of entries added to
@@ -97,14 +94,10 @@ public class DatabaseEntryExpirationTracker implements
         case ROW_DELETED:
             map.remove(row, eventVersion);
             if (isLocalMemberLeader.get()) {
-                try {
-                    log.debug("Broadcasting {} to the entire cluster", event);
-                    clusterCommunicator.broadcastIncludeSelf(new ClusterMessage(
-                            localNode.id(), DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
-                            ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
-                } catch (IOException e) {
-                    log.error("Failed to broadcast a database row deleted event.", e);
-                }
+                log.debug("Broadcasting {} to the entire cluster", event);
+                clusterCommunicator.broadcastIncludeSelf(new ClusterMessage(
+                        localNode.id(), DatabaseStateMachine.DATABASE_UPDATE_EVENTS,
+                        ClusterMessagingProtocol.DB_SERIALIZER.encode(event)));
             }
             break;
         case ROW_ADDED:

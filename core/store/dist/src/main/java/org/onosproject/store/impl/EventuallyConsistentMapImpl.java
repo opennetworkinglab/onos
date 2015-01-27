@@ -366,26 +366,14 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private void notifyPeers(InternalPutEvent event) {
-        try {
-            log.debug("sending put {}", event);
-            broadcastMessage(updateMessageSubject, event);
-        } catch (IOException e) {
-            // TODO this won't happen; remove from API
-            log.debug("IOException broadcasting update", e);
-        }
+        broadcastMessage(updateMessageSubject, event);
     }
 
     private void notifyPeers(InternalRemoveEvent event) {
-        try {
-            broadcastMessage(removeMessageSubject, event);
-        } catch (IOException e) {
-            // TODO this won't happen; remove from API
-            log.debug("IOException broadcasting update", e);
-        }
+        broadcastMessage(removeMessageSubject, event);
     }
 
-    private void broadcastMessage(MessageSubject subject, Object event) throws
-            IOException {
+    private void broadcastMessage(MessageSubject subject, Object event) {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
                 subject,

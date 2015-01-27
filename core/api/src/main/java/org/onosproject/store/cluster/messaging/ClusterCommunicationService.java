@@ -15,12 +15,11 @@
  */
 package org.onosproject.store.cluster.messaging;
 
-import java.io.IOException;
-import java.util.Set;
-
+import com.google.common.util.concurrent.ListenableFuture;
 import org.onosproject.cluster.NodeId;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.io.IOException;
+import java.util.Set;
 
 // TODO: remove IOExceptions?
 /**
@@ -33,18 +32,16 @@ public interface ClusterCommunicationService {
      *
      * @param message  message to send
      * @return true if the message was sent successfully to all nodes; false otherwise.
-     * @throws IOException when I/O exception of some sort has occurred
      */
-    boolean broadcast(ClusterMessage message) throws IOException;
+    boolean broadcast(ClusterMessage message);
 
     /**
      * Broadcast a message to all controller nodes including self.
      *
      * @param message  message to send
      * @return true if the message was sent successfully to all nodes; false otherwise.
-     * @throws IOException when I/O exception of some sort has occurred
      */
-    boolean broadcastIncludeSelf(ClusterMessage message) throws IOException;
+    boolean broadcastIncludeSelf(ClusterMessage message);
 
     /**
      * Sends a message to the specified controller node.
@@ -62,9 +59,8 @@ public interface ClusterCommunicationService {
      * @param message  message to send
      * @param nodeIds  recipient node identifiers
      * @return true if the message was sent successfully to all nodes in the group; false otherwise.
-     * @throws IOException when I/O exception of some sort has occurred
      */
-    boolean multicast(ClusterMessage message, Set<NodeId> nodeIds) throws IOException;
+    boolean multicast(ClusterMessage message, Set<NodeId> nodeIds);
 
     /**
      * Sends a message synchronously.

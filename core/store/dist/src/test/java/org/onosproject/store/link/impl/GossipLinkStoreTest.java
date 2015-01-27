@@ -16,7 +16,6 @@
 package org.onosproject.store.link.impl;
 
 import com.google.common.collect.Iterables;
-
 import org.easymock.Capture;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -24,6 +23,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -49,29 +49,24 @@ import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.device.impl.DeviceClockManager;
-import org.onlab.packet.IpAddress;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.Link.Type.*;
-import static org.onosproject.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.Link.Type.EDGE;
+import static org.onosproject.net.Link.Type.INDIRECT;
 import static org.onosproject.net.NetTestTools.assertAnnotationsEquals;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 
 /**
  * Test of the GossipLinkStoreTest implementation.
@@ -169,12 +164,8 @@ public class GossipLinkStoreTest {
         ConnectPoint src = new ConnectPoint(srcId, srcNum);
         ConnectPoint dst = new ConnectPoint(dstId, dstNum);
         reset(clusterCommunicator);
-        try {
-            expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
-                .andReturn(true).anyTimes();
-        } catch (IOException e) {
-            fail("Should never reach here");
-        }
+        expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
+            .andReturn(true).anyTimes();
         replay(clusterCommunicator);
         linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type, annotations));
         verify(clusterCommunicator);
@@ -192,11 +183,7 @@ public class GossipLinkStoreTest {
 
         bcast.reset();
         reset(clusterCommunicator);
-        try {
-            expect(clusterCommunicator.broadcast(capture(bcast))).andReturn(true).once();
-        } catch (IOException e) {
-            fail("Should never reach here");
-        }
+        expect(clusterCommunicator.broadcast(capture(bcast))).andReturn(true).once();
         replay(clusterCommunicator);
     }
 

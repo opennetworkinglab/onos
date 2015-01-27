@@ -15,11 +15,7 @@
  */
 package org.onosproject.store.cluster.messaging.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import java.io.IOException;
-import java.util.Set;
-
+import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,6 +27,7 @@ import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
 import org.onlab.netty.MessagingService;
 import org.onlab.netty.NettyMessagingService;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -42,11 +39,13 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.impl.ClusterMessageSerializer;
 import org.onosproject.store.serializers.impl.MessageSubjectSerializer;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.io.IOException;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 @Component(immediate = true)
 @Service
@@ -101,7 +100,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean broadcast(ClusterMessage message) throws IOException {
+    public boolean broadcast(ClusterMessage message) {
         boolean ok = true;
         final ControllerNode localNode = clusterService.getLocalNode();
         for (ControllerNode node : clusterService.getNodes()) {
@@ -113,7 +112,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean broadcastIncludeSelf(ClusterMessage message) throws IOException {
+    public boolean broadcastIncludeSelf(ClusterMessage message) {
         boolean ok = true;
         for (ControllerNode node : clusterService.getNodes()) {
             ok = unicastUnchecked(message, node.id()) && ok;
@@ -122,7 +121,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean multicast(ClusterMessage message, Set<NodeId> nodes) throws IOException {
+    public boolean multicast(ClusterMessage message, Set<NodeId> nodes) {
         boolean ok = true;
         final ControllerNode localNode = clusterService.getLocalNode();
         for (NodeId nodeId : nodes) {
@@ -148,7 +147,7 @@ public class ClusterCommunicationManager
         }
     }
 
-    private boolean unicastUnchecked(ClusterMessage message, NodeId toNodeId) throws IOException {
+    private boolean unicastUnchecked(ClusterMessage message, NodeId toNodeId) {
         try {
             return unicast(message, toNodeId);
         } catch (IOException e) {

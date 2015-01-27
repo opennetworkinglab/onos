@@ -15,23 +15,16 @@
  */
 package org.onosproject.store.cluster.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
@@ -47,12 +40,17 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.service.Lock;
 import org.onosproject.store.service.LockService;
 import org.onosproject.store.service.impl.DistributedLockManager;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.util.Tools.namedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Distributed implementation of LeadershipService that is based on the primitives exposed by
@@ -286,15 +284,11 @@ public class LeadershipManager implements LeadershipService {
         public void event(LeadershipEvent event) {
             // publish events originating on this host.
             if (event.subject().leader().equals(localNodeId)) {
-                try {
-                    clusterCommunicator.broadcast(
-                            new ClusterMessage(
-                                    localNodeId,
-                                    LEADERSHIP_UPDATES,
-                                    SERIALIZER.encode(event)));
-                } catch (IOException e) {
-                    log.error("Failed to broadcast leadership update message", e);
-                }
+                clusterCommunicator.broadcast(
+                        new ClusterMessage(
+                                localNodeId,
+                                LEADERSHIP_UPDATES,
+                                SERIALIZER.encode(event)));
             }
         }
     }

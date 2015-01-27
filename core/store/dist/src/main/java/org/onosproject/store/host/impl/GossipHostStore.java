@@ -15,33 +15,13 @@
  */
 package org.onosproject.store.host.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static com.google.common.collect.Multimaps.newSetMultimap;
-import static com.google.common.collect.Sets.newConcurrentHashSet;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
-import static org.onosproject.net.DefaultAnnotations.merge;
-import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.*;
-import static org.onlab.util.Tools.namedThreads;
-import static org.onlab.util.Tools.minPriority;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -49,6 +29,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -79,19 +63,36 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Multimaps.newSetMultimap;
+import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
+import static com.google.common.collect.Sets.newConcurrentHashSet;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.minPriority;
+import static org.onlab.util.Tools.namedThreads;
+import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
+import static org.onosproject.net.DefaultAnnotations.merge;
+import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT;
+import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.HOST_REMOVED_MSG;
+import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.HOST_UPDATED_MSG;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of end-station hosts in distributed data store
@@ -205,12 +206,7 @@ public class GossipHostStore
         if (event != null) {
             log.debug("Notifying peers of a host topology event for providerId: "
                     + "{}; hostId: {}; hostDescription: {}", providerId, hostId, hostDescription);
-            try {
-                notifyPeers(new InternalHostEvent(providerId, hostId, hostDescription, timestamp));
-            } catch (IOException e) {
-                log.error("Failed to notify peers of a host topology event for providerId: "
-                        + "{}; hostId: {}; hostDescription: {}", providerId, hostId, hostDescription);
-            }
+            notifyPeers(new InternalHostEvent(providerId, hostId, hostDescription, timestamp));
         }
         return event;
     }
@@ -331,11 +327,7 @@ public class GossipHostStore
         HostEvent event = removeHostInternal(hostId, timestamp);
         if (event != null) {
             log.debug("Notifying peers of a host removed topology event for hostId: {}", hostId);
-            try {
-                notifyPeers(new InternalHostRemovedEvent(hostId, timestamp));
-            } catch (IOException e) {
-                log.info("Failed to notify peers of a host removed topology event for hostId: {}", hostId);
-            }
+            notifyPeers(new InternalHostRemovedEvent(hostId, timestamp));
         }
         return event;
     }
@@ -477,15 +469,15 @@ public class GossipHostStore
         }
     }
 
-    private void notifyPeers(InternalHostRemovedEvent event) throws IOException {
+    private void notifyPeers(InternalHostRemovedEvent event) {
         broadcastMessage(HOST_REMOVED_MSG, event);
     }
 
-    private void notifyPeers(InternalHostEvent event) throws IOException {
+    private void notifyPeers(InternalHostEvent event) {
         broadcastMessage(HOST_UPDATED_MSG, event);
     }
 
-    private void broadcastMessage(MessageSubject subject, Object event) throws IOException {
+    private void broadcastMessage(MessageSubject subject, Object event) {
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
                 subject,
