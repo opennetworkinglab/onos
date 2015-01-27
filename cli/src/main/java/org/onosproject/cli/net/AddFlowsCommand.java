@@ -95,9 +95,7 @@ public class AddFlowsCommand extends AbstractShellCommand {
                     new FlowRuleBatchOperation(rules));
             try {
                 isSuccess &= op.get().isSuccess();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
             long endTime = System.currentTimeMillis();
