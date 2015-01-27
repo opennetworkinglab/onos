@@ -28,13 +28,13 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms, wss, ps;
+    var $log, ks, zs, gs, ms, ps, wss, tes;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, map;
 
     // Internal state
-    var zoomer, wsock;
+    var zoomer, wsock, evDispatcher;
 
     // Note: "exported" state should be properties on 'self' variable
 
@@ -130,20 +130,21 @@
     }
 
     // --- Web Socket Connection -----------------------------------------
+    // TODO: migrate this code to be encapsulated by TopoEventService
 
     function onWsOpen() {
         $log.log('web socket opened...');
-
+        evDispatcher.sendEvent('requestSummary');
     }
 
     function onWsMessage(ev) {
-        $log.log('got JSON event: ', ev);
-
+        evDispatcher.handleEvent(ev);
     }
 
     function onWsClose(reason) {
         $log.log('web socket closed; reason=', reason);
-
+        wsock = null;
+        tes.bindSock(null);
     }
 
     // wsport indicates web-socket-server port other than the default.
@@ -155,6 +156,8 @@
             onClose: onWsClose,
             wsport: wsport
         });
+
+        tes.bindSock(wsock);
 
         // TODO: handle "guiSuccessor" functionality (replace host)
         // TODO: implement retry on close functionality
@@ -172,18 +175,19 @@
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
-            'WebSocketService', 'PanelService',
+            'PanelService', 'WebSocketService', 'TopoEventService',
 
         function ($scope, _$log_, $loc, $timeout,
-                  _ks_, _zs_, _gs_, _ms_, _wss_, _ps_) {
+                  _ks_, _zs_, _gs_, _ms_, _ps_, _wss_, _tes_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
-            wss = _wss_;
             ps = _ps_;
+            wss = _wss_;
+            tes = _tes_;
 
             self.notifyResize = function () {
                 svgResized(svg.style('width'), svg.style('height'));
@@ -194,12 +198,16 @@
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
                 wsock && wsock.close();
                 wsock = null;
+                tes.bindSock(null);
                 ps.destroyPanel('topo-p-summary');
             });
 
             // svg layer and initialization of components
             ovtopo = d3.select('#ov-topo');
             svg = ovtopo.select('svg');
+
+            // bind to topo event service..
+            evDispatcher = tes.dispatcher;
 
             setUpKeys();
             setUpDefs();
