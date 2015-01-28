@@ -238,7 +238,7 @@
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast</artifactId>
-                <version>3.3.2</version>
+                <version>3.3.5</version>
             </dependency>
             <dependency>
                 <groupId>com.eclipsesource.minimal-json</groupId>
