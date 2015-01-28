@@ -78,7 +78,7 @@ public class EventuallyConsistentMapImpl<K, V>
     private final ScheduledExecutorService backgroundExecutor;
 
     private volatile boolean destroyed = false;
-    private static final String ERROR_DESTROYED = " is already destroyed";
+    private static final String ERROR_DESTROYED = " map is already destroyed";
 
     // TODO: Make these anti-entropy params configurable
     private long initialDelaySec = 5;
@@ -154,6 +154,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 serializerPool = builder
                         .register(WallClockTimestamp.class)
                         .register(PutEntry.class)
+                        .register(RemoveEntry.class)
                         .register(ArrayList.class)
                         .register(InternalPutEvent.class)
                         .register(InternalRemoveEvent.class)
@@ -166,25 +167,25 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public int size() {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
         return items.size();
     }
 
     @Override
     public boolean isEmpty() {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
         return items.isEmpty();
     }
 
     @Override
     public boolean containsKey(K key) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
         return items.containsKey(key);
     }
 
     @Override
     public boolean containsValue(V value) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         return items.values().stream()
                 .anyMatch(timestamped -> timestamped.value().equals(value));
@@ -192,7 +193,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public V get(K key) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         Timestamped<V> value = items.get(key);
         if (value != null) {
@@ -203,7 +204,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public void put(K key, V value) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         Timestamp timestamp = clockService.getTimestamp(key);
         if (putInternal(key, value, timestamp)) {
@@ -235,7 +236,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public void remove(K key) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         Timestamp timestamp = clockService.getTimestamp(key);
         if (removeInternal(key, timestamp)) {
@@ -261,7 +262,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         List<PutEntry<K, V>> updates = new ArrayList<>(m.size());
 
@@ -287,7 +288,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public void clear() {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         List<RemoveEntry<K>> removed = new ArrayList<>(items.size());
 
@@ -311,14 +312,14 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public Set<K> keySet() {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         return items.keySet();
     }
 
     @Override
     public Collection<V> values() {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         return items.values().stream()
                 .map(Timestamped::value)
@@ -327,7 +328,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         return items.entrySet().stream()
                 .map(e -> new Entry(e.getKey(), e.getValue().value()))
@@ -335,15 +336,15 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     @Override
-    public void addListener(EventuallyConsistentMapListener listener) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+    public void addListener(EventuallyConsistentMapListener<K, V> listener) {
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         listeners.add(checkNotNull(listener));
     }
 
     @Override
-    public void removeListener(EventuallyConsistentMapListener listener) {
-        checkState(destroyed, mapName + ERROR_DESTROYED);
+    public void removeListener(EventuallyConsistentMapListener<K, V> listener) {
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         listeners.remove(checkNotNull(listener));
     }

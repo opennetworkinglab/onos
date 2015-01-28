@@ -19,12 +19,12 @@ package org.onosproject.store.impl;
  * Listener interested in receiving modification events for an
  * EventuallyConsistentMap.
  */
-public interface EventuallyConsistentMapListener {
+public interface EventuallyConsistentMapListener<K, V> {
 
     /**
      * Reacts to the specified event.
      *
      * @param event the event
      */
-    public void event(EventuallyConsistentMapEvent event);
+    public void event(EventuallyConsistentMapEvent<K, V> event);
 }

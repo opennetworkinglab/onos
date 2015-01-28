@@ -151,7 +151,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @param listener listener to register for events
      */
-    public void addListener(EventuallyConsistentMapListener listener);
+    public void addListener(EventuallyConsistentMapListener<K, V> listener);
 
     /**
      * Removes the specified listener from the map such that it will no longer
@@ -159,7 +159,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @param listener listener to deregister for events
      */
-    public void removeListener(EventuallyConsistentMapListener listener);
+    public void removeListener(EventuallyConsistentMapListener<K, V> listener);
 
     /**
      * Shuts down the map and breaks communication between different instances.
