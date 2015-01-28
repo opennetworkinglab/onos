@@ -483,7 +483,7 @@ public class IntentManager
         }
     }
 
-    private abstract class IntentUpdate {
+    private interface IntentUpdate {
 
         /**
          * Execute the procedure represented by the instance
@@ -491,7 +491,7 @@ public class IntentManager
          *
          * @return next update
          */
-        public Optional<IntentUpdate> execute() {
+        default Optional<IntentUpdate> execute() {
             return Optional.empty();
         }
 
@@ -500,28 +500,28 @@ public class IntentManager
          *
          * @param batchWrite batchWrite
          */
-        public void writeBeforeExecution(BatchWrite batchWrite) {}
+        default void writeBeforeExecution(BatchWrite batchWrite) {}
     }
 
-    private abstract class CompletedIntentUpdate extends IntentUpdate {
+    private interface CompletedIntentUpdate extends IntentUpdate {
 
         /**
          * Write data to the specified BatchWrite after execution() is called.
          *
          * @param batchWrite batchWrite
          */
-        public void writeAfterExecution(BatchWrite batchWrite) {}
+        default void writeAfterExecution(BatchWrite batchWrite) {}
 
-        public void batchSuccess() {}
+        default void batchSuccess() {}
 
-        public void batchFailed() {}
+        default void batchFailed() {}
 
         /**
          * Returns the current FlowRuleBatchOperation.
          *
          * @return current FlowRuleBatchOperation
          */
-        public FlowRuleBatchOperation currentBatch() {
+        default FlowRuleBatchOperation currentBatch() {
             return null;
         }
 
@@ -530,12 +530,12 @@ public class IntentManager
          *
          * @return all of installable intents
          */
-        public List<Intent> allInstallables() {
+        default List<Intent> allInstallables() {
             return Collections.emptyList();
         }
     }
 
-    private class InstallRequest extends IntentUpdate {
+    private class InstallRequest implements IntentUpdate {
 
         private final Intent intent;
 
@@ -556,7 +556,7 @@ public class IntentManager
         }
     }
 
-    private class WithdrawRequest extends IntentUpdate {
+    private class WithdrawRequest implements IntentUpdate {
 
         private final Intent intent;
         private final List<Intent> installables;
@@ -577,7 +577,7 @@ public class IntentManager
         }
     }
 
-    private class ReplaceRequest extends IntentUpdate {
+    private class ReplaceRequest implements IntentUpdate {
 
         private final Intent newIntent;
         private final Intent oldIntent;
@@ -611,11 +611,11 @@ public class IntentManager
         }
     }
 
-    private class DoNothing extends CompletedIntentUpdate {
+    private class DoNothing implements CompletedIntentUpdate {
     }
 
     // TODO: better naming
-    private class WithdrawStateChange1 extends CompletedIntentUpdate {
+    private class WithdrawStateChange1 implements CompletedIntentUpdate {
 
         private final Intent intent;
 
@@ -637,7 +637,7 @@ public class IntentManager
     }
 
     // TODO: better naming
-    private class WithdrawStateChange2 extends CompletedIntentUpdate {
+    private class WithdrawStateChange2 implements CompletedIntentUpdate {
 
         private final Intent intent;
 
@@ -660,7 +660,7 @@ public class IntentManager
         }
     }
 
-    private class Compiling extends IntentUpdate {
+    private class Compiling implements IntentUpdate {
 
         private final Intent intent;
 
@@ -684,7 +684,7 @@ public class IntentManager
     }
 
     // TODO: better naming because install() method actually generate FlowRuleBatchOperations
-    private class Installing extends IntentUpdate {
+    private class Installing implements IntentUpdate {
 
         private final Intent intent;
         private final List<Intent> installables;
@@ -721,7 +721,7 @@ public class IntentManager
         }
     }
 
-    private class Withdrawing extends IntentUpdate {
+    private class Withdrawing implements IntentUpdate {
 
         private final Intent intent;
         private final List<Intent> installables;
@@ -739,7 +739,7 @@ public class IntentManager
         }
     }
 
-    private class Replacing extends IntentUpdate {
+    private class Replacing implements IntentUpdate {
 
         private final Intent newIntent;
         private final Intent oldIntent;
@@ -799,7 +799,7 @@ public class IntentManager
         }
     }
 
-    private class Installed extends CompletedIntentUpdate {
+    private class Installed implements CompletedIntentUpdate {
 
         private final Intent intent;
         private final List<Intent> installables;
@@ -859,7 +859,7 @@ public class IntentManager
         }
     }
 
-    private class Withdrawn extends CompletedIntentUpdate {
+    private class Withdrawn implements CompletedIntentUpdate {
 
         private final Intent intent;
         private final List<Intent> installables;
@@ -906,7 +906,7 @@ public class IntentManager
         }
     }
 
-    private class Replaced extends CompletedIntentUpdate {
+    private class Replaced implements CompletedIntentUpdate {
 
         private final Intent newIntent;
         private final Intent oldIntent;
@@ -971,7 +971,7 @@ public class IntentManager
         }
     }
 
-    private class CompilingFailed extends CompletedIntentUpdate {
+    private class CompilingFailed implements CompletedIntentUpdate {
 
         private final Intent intent;
         private final IntentException exception;
@@ -999,7 +999,7 @@ public class IntentManager
         }
     }
 
-    private class InstallingFailed extends CompletedIntentUpdate {
+    private class InstallingFailed implements CompletedIntentUpdate {
 
         private final Intent intent;
         private final List<Intent> installables;
@@ -1046,7 +1046,7 @@ public class IntentManager
         }
     }
 
-    private class ReplacingFailed extends CompletedIntentUpdate {
+    private class ReplacingFailed implements CompletedIntentUpdate {
 
         private final Intent newIntent;
         private final Intent oldIntent;
