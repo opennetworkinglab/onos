@@ -483,58 +483,6 @@ public class IntentManager
         }
     }
 
-    private interface IntentUpdate {
-
-        /**
-         * Execute the procedure represented by the instance
-         * and generates the next update instance.
-         *
-         * @return next update
-         */
-        default Optional<IntentUpdate> execute() {
-            return Optional.empty();
-        }
-
-        /**
-         * Write data to the specified BatchWrite before execution() is called.
-         *
-         * @param batchWrite batchWrite
-         */
-        default void writeBeforeExecution(BatchWrite batchWrite) {}
-    }
-
-    private interface CompletedIntentUpdate extends IntentUpdate {
-
-        /**
-         * Write data to the specified BatchWrite after execution() is called.
-         *
-         * @param batchWrite batchWrite
-         */
-        default void writeAfterExecution(BatchWrite batchWrite) {}
-
-        default void batchSuccess() {}
-
-        default void batchFailed() {}
-
-        /**
-         * Returns the current FlowRuleBatchOperation.
-         *
-         * @return current FlowRuleBatchOperation
-         */
-        default FlowRuleBatchOperation currentBatch() {
-            return null;
-        }
-
-        /**
-         * Returns all of installable intents this instance holds.
-         *
-         * @return all of installable intents
-         */
-        default List<Intent> allInstallables() {
-            return Collections.emptyList();
-        }
-    }
-
     private class InstallRequest implements IntentUpdate {
 
         private final Intent intent;
