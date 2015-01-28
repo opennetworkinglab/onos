@@ -28,10 +28,10 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms, ps, tes;
+    var $log, ks, zs, gs, ms, ps, tes, tfs;
 
     // DOM elements
-    var ovtopo, svg, defs, zoomLayer, map;
+    var ovtopo, svg, defs, zoomLayer, mapG, forceG;
 
     // Internal state
     var zoomer, evDispatcher;
@@ -86,7 +86,7 @@
         $log.log('ZOOM: translate = ' + tr + ', scale = ' + sc);
 
         // keep the map lines constant width while zooming
-        map.style('stroke-width', (2.0 / sc) + 'px');
+        mapG.style('stroke-width', (2.0 / sc) + 'px');
     }
 
     function setUpZoom() {
@@ -112,7 +112,7 @@
         var points = [
             [0, 0], [0, 1000], [1000, 0], [1000, 1000]
         ];
-        map.selectAll('circle')
+        mapG.selectAll('circle')
             .data(points)
             .enter()
             .append('circle')
@@ -123,10 +123,17 @@
     }
 
     function setUpMap() {
-        map = zoomLayer.append('g').attr('id', 'topo-map');
+        mapG = zoomLayer.append('g').attr('id', 'topo-map');
         //ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
-        ms.loadMapInto(map, '*continental_us');
+        ms.loadMapInto(mapG, '*continental_us');
         //showCallibrationPoints();
+    }
+
+    // --- Force Layout --------------------------------------------------
+
+    function setUpForce() {
+        forceG = zoomLayer.append('g').attr('id', 'topo-force');
+        tfs.initForce(forceG);
     }
 
 
@@ -137,10 +144,10 @@
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
-            'PanelService', 'TopoEventService',
+            'PanelService', 'TopoEventService', 'TopoForceService',
 
         function ($scope, _$log_, $loc, $timeout,
-                  _ks_, _zs_, _gs_, _ms_, _ps_, _tes_) {
+                  _ks_, _zs_, _gs_, _ms_, _ps_, _tes_, _tfs_) {
             var self = this;
             $log = _$log_;
             ks = _ks_;
@@ -149,6 +156,7 @@
             ms = _ms_;
             ps = _ps_;
             tes = _tes_;
+            tfs = _tfs_;
 
             self.notifyResize = function () {
                 svgResized(svg.style('width'), svg.style('height'));
@@ -172,6 +180,7 @@
             setUpDefs();
             setUpZoom();
             setUpMap();
+            setUpForce();
 
             // open up a connection to the server...
             tes.openSock();

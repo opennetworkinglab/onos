@@ -124,6 +124,6 @@
                 bindDispatcher: bindDispatcher,
                 openSock: openSock,
                 closeSock: closeSock
-            }
+            };
         }]);
 }());
