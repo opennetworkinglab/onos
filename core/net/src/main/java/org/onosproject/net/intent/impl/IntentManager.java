@@ -1198,10 +1198,6 @@ public class IntentManager
 
             return completed;
         }
-
-        protected void writeBatch(BatchWrite batchWrite) {
-            store.batchWrite(batchWrite);
-        }
     }
 
     // TODO: better naming
