@@ -64,12 +64,16 @@ public interface FlowRuleExtService {
     void removeListener(FlowRuleExtListener listener);
 
     /**
-     * @param deviceId the device ID
-     * @return message parsed from byte[] -> the specific serializer , lost some info
+     * Get all extended flow entry of device, using for showing in GUI or CLI.
+     *
+     * @param did DeviceId of the device role changed
+     * @return message parsed from byte[] using the specific serializer
      */
     Iterable<?> getExtMessages(DeviceId deviceId);
 
     /**
+     * Register classT and serializer which can decode byte stream to classT object.
+     *
      * @param classT the class flowEntryExtension can be decoded to.
      * @param serializer the serializer apps provide using to decode flowEntryExtension
      */

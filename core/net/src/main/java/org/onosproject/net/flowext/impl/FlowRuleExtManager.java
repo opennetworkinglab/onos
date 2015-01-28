@@ -65,6 +65,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the flow-extension NB &amp; SB APIs.
+ * 
+ * @author j00273701
  */
 @Component(immediate = true)
 @Service
@@ -123,7 +125,7 @@ public class FlowRuleExtManager
             // TODO Auto-generated method stub
             switch (event.type()) {
             case BATCH_OPERATION_REQUESTED:
-                // Request has been forwarded to MASTER Node, and was
+                // Request has been forwarded to MASTER Node
                 for (FlowRuleExtEntry entry : event.subject().getBatch()) {
                     eventDispatcher
                             .post(new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADD_REQUESTED,
@@ -150,12 +152,27 @@ public class FlowRuleExtManager
         }
     }
 
+    /**
+     * Returns the collection of flow entries applied on the specified device.
+     * This will include flow rules which may not yet have been applied to
+     * the device.
+     *
+     * @param deviceId device identifier
+     * @return collection of flow rules
+     */
     @Override
     public Iterable<FlowRuleExtEntry> getFlowEntries(DeviceId deviceId) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Applies a batch operation of FlowRules.
+     * this batch can be divided into many sub-batch by deviceId
+     *
+     * @param batch batch operation to apply
+     * @return future indicating the state of the batch operation
+     */
     @Override
     public Future<FlowExtCompletedOperation> applyBatch(Collection<FlowRuleExtEntry> batch) {
         // TODO group the Collection into sub-Collection by deviceId
@@ -174,18 +191,34 @@ public class FlowRuleExtManager
         return new FlowRuleBatchFuture(futures, perDeviceBatches);
     }
 
+    /**
+     * Adds the specified flow rule listener.
+     *
+     * @param listener flow rule listener
+     */
     @Override
     public void addListener(FlowRuleExtListener listener) {
         // TODO Auto-generated method stub
         listenerRegistry.addListener(listener);
     }
 
+    /**
+     * Removes the specified flow rule listener.
+     *
+     * @param listener flow rule listener
+     */
     @Override
     public void removeListener(FlowRuleExtListener listener) {
         // TODO Auto-generated method stub
         listenerRegistry.removeListener(listener);
     }
 
+    /**
+     * Get all extended flow entry of device, using for showing in GUI or CLI.
+     *
+     * @param did DeviceId of the device role changed
+     * @return message parsed from byte[] using the specific serializer
+     */
     @Override
     public Iterable<?> getExtMessages(DeviceId deviceId) {
         // TODO Auto-generated method stub
@@ -198,6 +231,10 @@ public class FlowRuleExtManager
         return new InternalFlowRuleProviderService(provider);
     }
 
+    /**
+     * Batch futures include all flow extension entries in one batch.
+     * Using for transaction and will use in next-step.
+     */
     private class FlowRuleBatchFuture
             implements Future<FlowExtCompletedOperation> {
 
@@ -213,7 +250,16 @@ public class FlowRuleExtManager
             state = new AtomicReference<FlowRuleExtManager.BatchState>();
             state.set(BatchState.STARTED);
         }
-
+        /**
+         * Attempts to cancel execution of this task.
+         * 
+         * @param mayInterruptIfRunning {@code true} if the thread executing this
+         * task should be interrupted; otherwise, in-progress tasks are allowed
+         * to complete
+         * @return {@code false} if the task could not be cancelled,
+         * typically because it has already completed normally;
+         * {@code true} otherwise
+         */
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
             if (state.get() == BatchState.FINISHED) {
@@ -233,16 +279,30 @@ public class FlowRuleExtManager
             return true;
         }
 
+        /**
+         * Judge whether the task cancelled completely.
+         * 
+         * @return {@code true} if this task was cancelled before it completed
+         */
         @Override
         public boolean isCancelled() {
             return state.get() == BatchState.CANCELLED;
         }
 
+        /**
+         * Judge whether the task finished completely.
+         * 
+         * @return {@code true} if this task completed
+         */
         @Override
         public boolean isDone() {
             return state.get() == BatchState.FINISHED;
         }
 
+        /**
+         * Get the result of apply flow extension rules.
+         * If the task isn't finished, the thread block here.  
+         */
         @Override
         public FlowExtCompletedOperation get()
                 throws InterruptedException, ExecutionException {
@@ -260,6 +320,21 @@ public class FlowRuleExtManager
             return finalizeBatchOperation(success, failed);
         }
 
+        /**
+         * Waits if necessary for at most the given time for the computation
+         * to complete, and then retrieves its result, if available. In here,
+         * the maximum of time out is sum of given time for every computation.
+         *
+         * @param timeout the maximum time to wait
+         * @param unit the time unit of the timeout argument
+         * @return the computed result
+         * @throws CancellationException if the computation was cancelled
+         * @throws ExecutionException if the computation threw an
+         * exception
+         * @throws InterruptedException if the current thread was interrupted
+         * while waiting
+         * @throws TimeoutException if the wait timed out
+         */
         @Override
         public FlowExtCompletedOperation get(long timeout, TimeUnit unit)
                 throws InterruptedException, ExecutionException,
@@ -278,6 +353,13 @@ public class FlowRuleExtManager
             return finalizeBatchOperation(success, failed);
         }
 
+        /**
+         * Confirm whether the batch operation success.
+         *
+         * @param failed using to populate failed entries
+         * @param completed the result of apply flow extension entries 
+         * @return {@code true} if all entries applies successful.
+         */
         private boolean validateBatchOperation(Set<FlowRuleExtEntry> failed,
                                                FlowExtCompletedOperation completed) {
 
@@ -294,12 +376,22 @@ public class FlowRuleExtManager
             return true;
         }
 
+        /**
+         * Once one subBatch failed, cancel the rest of them.
+         */
         private void cancelAllSubBatches() {
             for (Future<FlowExtCompletedOperation> f : futures) {
                 f.cancel(true);
             }
         }
 
+        /**
+         * Construct the result of batch operation. 
+         *
+         * @param success the result of batch operation
+         * @param failed the failed entries of batch operation
+         * @return FlowExtCompletedOperation of batch operation
+         */
         private FlowExtCompletedOperation finalizeBatchOperation(boolean success,
                                                                  Set<FlowRuleExtEntry> failed) {
             synchronized (this) {
@@ -319,16 +411,27 @@ public class FlowRuleExtManager
         }
     }
 
+    /**
+     * South Bound API to south plug-in.
+     */
     private class InternalFlowRuleProviderService
             extends AbstractProviderService<FlowRuleExtProvider>
             implements FlowRuleExtProviderService {
 
         protected InternalFlowRuleProviderService(FlowRuleExtProvider provider) {
             super(provider);
-            // TODO Auto-generated constructor stub
         }
+
+        // TODO Temporarily, we don't have interaction with south provider, but we will 
+        // do a lot of work here to support transaction.
     }
 
+    /**
+     * Register classT and serializer which can decode byte stream to classT object.
+     *
+     * @param classT the class flowEntryExtension can be decoded to.
+     * @param serializer the serializer apps provide using to decode flowEntryExtension
+     */
     @Override
     public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
         // TODO Auto-generated method stub
