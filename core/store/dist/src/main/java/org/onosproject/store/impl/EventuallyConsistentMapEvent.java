@@ -15,6 +15,10 @@
  */
 package org.onosproject.store.impl;
 
+import com.google.common.base.MoreObjects;
+
+import java.util.Objects;
+
 /**
  * Event object signalling that the map was modified.
  */
@@ -67,5 +71,31 @@ public class EventuallyConsistentMapEvent<K, V> {
      */
     public V value() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof EventuallyConsistentMapEvent)) {
+            return false;
+        }
+
+        EventuallyConsistentMapEvent that = (EventuallyConsistentMapEvent) o;
+        return Objects.equals(this.type, that.type) &&
+                Objects.equals(this.key, that.key) &&
+                Objects.equals(this.value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, key, value);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("type", type)
+                .add("key", key)
+                .add("value", value)
+                .toString();
     }
 }

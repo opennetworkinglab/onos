@@ -15,12 +15,13 @@
  */
 package org.onosproject.store.cluster.messaging;
 
-import java.io.IOException;
-
-import org.onosproject.cluster.NodeId;
-import org.onlab.util.ByteArraySizeHashPrinter;
-
 import com.google.common.base.MoreObjects;
+import org.onlab.util.ByteArraySizeHashPrinter;
+import org.onosproject.cluster.NodeId;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 
 // TODO: Should payload type be ByteBuffer?
 /**
@@ -79,7 +80,7 @@ public class ClusterMessage {
      * @throws IOException when I/O exception of some sort has occurred
      */
     public void respond(byte[] data) throws IOException {
-        throw new IllegalStateException("One can only repond to message recived from others.");
+        throw new IllegalStateException("One can only respond to message received from others.");
     }
 
     @Override
@@ -89,5 +90,23 @@ public class ClusterMessage {
                 .add("subject", subject)
                 .add("payload", ByteArraySizeHashPrinter.of(payload))
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ClusterMessage)) {
+            return false;
+        }
+
+        ClusterMessage that = (ClusterMessage) o;
+
+        return Objects.equals(this.sender, that.sender) &&
+                Objects.equals(this.subject, that.subject) &&
+                Arrays.equals(this.payload, that.payload);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sender, subject, payload);
     }
 }

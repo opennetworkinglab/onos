@@ -16,6 +16,7 @@
 package org.onosproject.store.impl;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.RandomUtils;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
@@ -33,11 +34,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -290,13 +291,15 @@ public class EventuallyConsistentMapImpl<K, V>
             }
         }
 
-        notifyPeers(new InternalPutEvent<>(updates));
+        if (!updates.isEmpty()) {
+            notifyPeers(new InternalPutEvent<>(updates));
 
-        for (PutEntry<K, V> entry : updates) {
-            EventuallyConsistentMapEvent<K, V> externalEvent =
-                    new EventuallyConsistentMapEvent<>(
-                    EventuallyConsistentMapEvent.Type.PUT, entry.key(), entry.value());
-            notifyListeners(externalEvent);
+            for (PutEntry<K, V> entry : updates) {
+                EventuallyConsistentMapEvent<K, V> externalEvent = new EventuallyConsistentMapEvent<>(
+                        EventuallyConsistentMapEvent.Type.PUT, entry.key(),
+                        entry.value());
+                notifyListeners(externalEvent);
+            }
         }
     }
 
@@ -314,13 +317,16 @@ public class EventuallyConsistentMapImpl<K, V>
             }
         }
 
-        notifyPeers(new InternalRemoveEvent<>(removed));
+        if (!removed.isEmpty()) {
+            notifyPeers(new InternalRemoveEvent<>(removed));
 
-        for (RemoveEntry<K> entry : removed) {
-            EventuallyConsistentMapEvent<K, V> externalEvent =
-                    new EventuallyConsistentMapEvent<>(
-                            EventuallyConsistentMapEvent.Type.REMOVE, entry.key(), null);
-            notifyListeners(externalEvent);
+            for (RemoveEntry<K> entry : removed) {
+                EventuallyConsistentMapEvent<K, V> externalEvent
+                        = new EventuallyConsistentMapEvent<>(
+                        EventuallyConsistentMapEvent.Type.REMOVE, entry.key(),
+                        null);
+                notifyListeners(externalEvent);
+            }
         }
     }
 
@@ -370,8 +376,11 @@ public class EventuallyConsistentMapImpl<K, V>
         executor.shutdown();
         backgroundExecutor.shutdown();
 
+        listeners.clear();
+
         clusterCommunicator.removeSubscriber(updateMessageSubject);
         clusterCommunicator.removeSubscriber(removeMessageSubject);
+        clusterCommunicator.removeSubscriber(antiEntropyAdvertisementSubject);
     }
 
     private void notifyListeners(EventuallyConsistentMapEvent<K, V> event) {
@@ -429,6 +438,23 @@ public class EventuallyConsistentMapImpl<K, V>
         @Override
         public V setValue(V value) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Map.Entry)) {
+                return false;
+            }
+
+            Map.Entry that = (Map.Entry) o;
+
+            return Objects.equals(this.key, that.getKey()) &&
+                    Objects.equals(this.value, that.getValue());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(key, value);
         }
     }
 
@@ -728,12 +754,11 @@ public class EventuallyConsistentMapImpl<K, V>
         }
     }
 
-    private static final class InternalPutEvent<K, V> {
+    static final class InternalPutEvent<K, V> {
         private final List<PutEntry<K, V>> entries;
 
         public InternalPutEvent(K key, V value, Timestamp timestamp) {
-            entries = Collections
-                    .singletonList(new PutEntry<>(key, value, timestamp));
+            entries = ImmutableList.of(new PutEntry<>(key, value, timestamp));
         }
 
         public InternalPutEvent(List<PutEntry<K, V>> entries) {
@@ -751,7 +776,7 @@ public class EventuallyConsistentMapImpl<K, V>
         }
     }
 
-    private static final class PutEntry<K, V> {
+    static final class PutEntry<K, V> {
         private final K key;
         private final V value;
         private final Timestamp timestamp;
@@ -791,12 +816,11 @@ public class EventuallyConsistentMapImpl<K, V>
         }
     }
 
-    private static final class InternalRemoveEvent<K> {
+    static final class InternalRemoveEvent<K> {
         private final List<RemoveEntry<K>> entries;
 
         public InternalRemoveEvent(K key, Timestamp timestamp) {
-            entries = Collections.singletonList(
-                    new RemoveEntry<>(key, timestamp));
+            entries = ImmutableList.of(new RemoveEntry<>(key, timestamp));
         }
 
         public InternalRemoveEvent(List<RemoveEntry<K>> entries) {
@@ -814,7 +838,7 @@ public class EventuallyConsistentMapImpl<K, V>
         }
     }
 
-    private static final class RemoveEntry<K> {
+    static final class RemoveEntry<K> {
         private final K key;
         private final Timestamp timestamp;
 
