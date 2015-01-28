@@ -44,7 +44,6 @@ import com.eclipsesource.json.JsonValue;
 import com.google.common.base.MoreObjects;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -60,7 +59,7 @@ import static org.junit.Assert.fail;
 /**
  * Unit tests for Intents REST APIs.
  */
-public class IntentsResourceTest extends JerseyTest {
+public class IntentsResourceTest extends ResourceTest {
     final IntentService mockIntentService = createMock(IntentService.class);
     final HashSet<Intent> intents = new HashSet<>();
     private static final ApplicationId APP_ID =
@@ -108,10 +107,6 @@ public class IntentsResourceTest extends JerseyTest {
         public String toString() {
             return "Resource " + Integer.toString(id);
         }
-    }
-
-    public IntentsResourceTest() {
-        super("org.onosproject.rest");
     }
 
     /**

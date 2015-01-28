@@ -35,7 +35,6 @@ import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -52,19 +51,12 @@ import static org.onosproject.net.NetTestTools.link;
 /**
  * Unit tests for links REST APIs.
  */
-public class LinksResourceTest extends JerseyTest {
+public class LinksResourceTest extends ResourceTest {
     LinkService mockLinkService;
 
     Link link1 = link("src1", 1, "dst1", 1);
     Link link2 = link("src2", 2, "dst2", 2);
     Link link3 = link("src3", 3, "dst3", 3);
-
-    /**
-     * Constructs the test.
-     */
-    public LinksResourceTest() {
-        super("org.onosproject.rest");
-    }
 
     /**
      * Hamcrest matcher to check that an link representation in JSON matches

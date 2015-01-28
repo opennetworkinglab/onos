@@ -43,7 +43,6 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -56,7 +55,7 @@ import static org.onosproject.net.NetTestTools.link;
 /**
  * Unit tests for Topology REST APIs.
  */
-public class TopologyResourceTest extends JerseyTest {
+public class TopologyResourceTest extends ResourceTest {
 
     private static class MockTopology implements Topology {
         @Override
@@ -171,11 +170,6 @@ public class TopologyResourceTest extends JerseyTest {
 
         }
     }
-
-    public TopologyResourceTest() {
-        super("org.onosproject.rest");
-    }
-
 
     /**
      * Initializes the test harness.

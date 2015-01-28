@@ -39,7 +39,6 @@ import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -60,15 +59,8 @@ import static org.onosproject.net.PortNumber.portNumber;
 /**
  * Unit tests for devices REST APIs.
  */
-public class DevicesResourceTest extends JerseyTest {
+public class DevicesResourceTest extends ResourceTest {
     DeviceService mockDeviceService;
-
-    /**
-     * Constructs the test.
-     */
-    public DevicesResourceTest() {
-        super("org.onosproject.rest");
-    }
 
     /**
      * Hamcrest matcher to check that an device representation in JSON matches

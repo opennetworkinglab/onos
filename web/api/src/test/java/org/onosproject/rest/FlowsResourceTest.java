@@ -52,7 +52,6 @@ import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -70,7 +69,7 @@ import static org.junit.Assert.fail;
 /**
  * Unit tests for Flows REST APIs.
  */
-public class FlowsResourceTest extends JerseyTest {
+public class FlowsResourceTest extends ResourceTest {
     final FlowRuleService mockFlowService = createMock(FlowRuleService.class);
     final HashMap<DeviceId, Set<FlowEntry>> rules = new HashMap<>();
 
@@ -187,10 +186,6 @@ public class FlowsResourceTest extends JerseyTest {
         public boolean isPermanent() {
             return false;
         }
-    }
-
-    public FlowsResourceTest() {
-        super("org.onosproject.rest");
     }
 
     /**
