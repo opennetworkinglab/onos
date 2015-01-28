@@ -91,8 +91,6 @@ public class IntentManager
 
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
-    private static final EnumSet<IntentState> NON_PARKED_OR_FAILED
-            = EnumSet.complementOf(EnumSet.of(INSTALL_REQ, INSTALLED, WITHDRAW_REQ, WITHDRAWN));
 
 
     // Collections for compiler, installer, and listener are ONOS instance local
