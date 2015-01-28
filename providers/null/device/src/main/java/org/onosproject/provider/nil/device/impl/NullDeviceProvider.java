@@ -15,16 +15,21 @@
  */
 package org.onosproject.provider.nil.device.impl;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -39,10 +44,12 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -78,13 +85,21 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
     //currently hardcoded. will be made configurable via rest/cli.
     private static final String SCHEME = "null";
-    private static final int NUMDEVICES = 10;
-    private static final int NUMPORTSPERDEVICE = 10;
+    private static final int DEF_NUMDEVICES = 10;
+    private static final int DEF_NUMPORTS = 10;
 
     //Delay between events in ms.
     private static final int EVENTINTERVAL = 5;
 
     private final Map<Integer, DeviceDescription> descriptions = Maps.newHashMap();
+
+    @Property(name = "devConfigs", value = "", label = "Instance-specific configurations")
+    private String devConfigs = "";
+
+    private int numDevices = DEF_NUMDEVICES;
+
+    @Property(name = "numPorts", intValue = DEF_NUMPORTS, label = "Number of ports per devices")
+    private int numPorts = DEF_NUMPORTS;
 
     private DeviceCreator creator;
 
@@ -99,15 +114,17 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     }
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         providerService = providerRegistry.register(this);
-        deviceBuilder.submit(new DeviceCreator(true));
+        if (modified(context)) {
+            deviceBuilder.submit(new DeviceCreator(true));
+        }
         log.info("Started");
 
     }
 
     @Deactivate
-    public void deactivate() {
+    public void deactivate(ComponentContext context) {
         deviceBuilder.submit(new DeviceCreator(false));
         try {
             deviceBuilder.awaitTermination(1000, TimeUnit.MILLISECONDS);
@@ -119,6 +136,57 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
         providerService = null;
 
         log.info("Stopped");
+    }
+
+    @Modified
+    public boolean modified(ComponentContext context) {
+        if (context == null) {
+            log.info("No configuration file, using defaults: numDevices={}, numPorts={}",
+                    numDevices, numPorts);
+            return false;
+        }
+
+        Dictionary<?, ?> properties = context.getProperties();
+
+        int newDevNum = DEF_NUMDEVICES;
+        int newPortNum = DEF_NUMPORTS;
+        try {
+            String s = (String) properties.get("devConfigs");
+            if (!isNullOrEmpty(s)) {
+                newDevNum = getDevicesConfig(s);
+            }
+            s = (String) properties.get("numPorts");
+            newPortNum = isNullOrEmpty(s) ? DEF_NUMPORTS : Integer.valueOf(s.trim());
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+
+        boolean chgd = false;
+        if (newDevNum != numDevices) {
+            numDevices = newDevNum;
+            chgd |= true;
+        }
+        if (newPortNum != numPorts) {
+            numPorts = newPortNum;
+            chgd |= true;
+        }
+        log.info("Using settings numDevices={}, numPorts={}", numDevices, numPorts);
+        return chgd;
+    }
+
+    private int getDevicesConfig(String config) {
+        for (String sub : config.split(",")) {
+            String[] params = sub.split(":");
+            if (params.length == 2) {
+                NodeId that = new NodeId(params[0].trim());
+                String nd = params[1];
+                if (clusterService.getLocalNode().id().equals(that)) {
+                    return Integer.valueOf(nd.trim());
+                }
+                continue;
+            }
+        }
+        return DEF_NUMDEVICES;
     }
 
     @Override
@@ -169,10 +237,13 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             ChassisId cid;
 
             // nodeIdHash takes into account for nodeID to avoid collisions when running multi-node providers.
-            int nodeIdHash = (clusterService.getLocalNode().hashCode() % NUMDEVICES) * NUMDEVICES;
+            long nodeIdHash = clusterService.getLocalNode().hashCode() << 16;
 
-            for (int i = nodeIdHash; i < nodeIdHash + NUMDEVICES; i++) {
-                did = DeviceId.deviceId(new URI(SCHEME, toHex(i), null));
+            for (int i = 0; i < numDevices; i++) {
+                // mark 'last' device to facilitate chaining of islands together
+                long id = (i + 1 == numDevices) ? nodeIdHash | 0xffff : nodeIdHash | i;
+
+                did = DeviceId.deviceId(new URI(SCHEME, toHex(id), null));
                 cid = new ChassisId(i);
                 DeviceDescription desc =
                         new DefaultDeviceDescription(did.uri(), Device.Type.SWITCH,
@@ -187,10 +258,10 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
         private List<PortDescription> buildPorts() {
             List<PortDescription> ports = Lists.newArrayList();
-            for (int i = 0; i < NUMPORTSPERDEVICE; i++) {
+            for (int i = 0; i < numPorts; i++) {
                 ports.add(new DefaultPortDescription(PortNumber.portNumber(i), true,
                                                      Port.Type.COPPER,
-                                                     (long) 0));
+                                                     0));
             }
             return ports;
         }

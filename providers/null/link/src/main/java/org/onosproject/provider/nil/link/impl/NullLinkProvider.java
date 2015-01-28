@@ -46,9 +46,12 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
@@ -74,6 +77,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry providerRegistry;
+    private LinkService linkService;
 
     private LinkProviderService providerService;
 
@@ -84,13 +88,16 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     private static final PortNumber DSTPORT = PortNumber.portNumber(6);
 
     private final InternalLinkProvider linkProvider = new InternalLinkProvider();
+    private final InternalLinkListener listener = new InternalLinkListener();
 
     // Link descriptions
     private final ConcurrentMap<ConnectPoint, LinkDescription> descriptions = Maps
             .newConcurrentMap();
 
-    // Device ID's that have been seen so far
+    // Local Device ID's that have been seen so far
     private final List<DeviceId> devices = Lists.newArrayList();
+    // tail ends of other islands
+    private final List<ConnectPoint> tails = Lists.newArrayList();
 
     private ExecutorService linkDriver = Executors.newFixedThreadPool(1,
             namedThreads("onos-null-link-driver"));
@@ -112,6 +119,8 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     @Activate
     public void activate(ComponentContext context) {
         providerService = providerRegistry.register(this);
+        linkService = (LinkService) providerRegistry;
+        linkService.addListener(listener);
         deviceService.addListener(linkProvider);
         modified(context);
         log.info("started");
@@ -129,7 +138,9 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         }
         deviceService.removeListener(linkProvider);
         providerRegistry.unregister(this);
+        linkService.removeListener(listener);
         deviceService = null;
+        linkService = null;
 
         log.info("stopped");
     }
@@ -170,6 +181,11 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                 eventRate);
     }
 
+    // pick out substring from Deviceid
+    private String part(String devId) {
+        return devId.split(":")[1].substring(12, 16);
+    }
+
     /**
      * Adds links as devices are found, and generates LinkEvents.
      */
@@ -178,9 +194,6 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         @Override
         public void event(DeviceEvent event) {
             Device dev = event.subject();
-            if (!MASTER.equals(roleService.getLocalRole(dev.id()))) {
-                return;
-            }
             switch (event.type()) {
             case DEVICE_ADDED:
                 addLink(dev);
@@ -194,16 +207,26 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         }
 
         private void addLink(Device current) {
-            devices.add(current.id());
-            // No link if only one device
+            DeviceId did = current.id();
+            if (!MASTER.equals(roleService.getLocalRole(did))) {
+                String part = part(did.toString());
+                if (part.equals("ffff")) {
+                    // 'tail' of an island - link us <- tail
+                    tails.add(new ConnectPoint(did, SRCPORT));
+                }
+                tryLinkTail();
+                return;
+            }
+            devices.add(did);
+
             if (devices.size() == 1) {
                 return;
             }
 
-            // Attach new device to the last-seen device
+            // Normal flow - attach new device to the last-seen device
             DeviceId prev = devices.get(devices.size() - 2);
             ConnectPoint src = new ConnectPoint(prev, SRCPORT);
-            ConnectPoint dst = new ConnectPoint(current.id(), DSTPORT);
+            ConnectPoint dst = new ConnectPoint(did, DSTPORT);
 
             LinkDescription fdesc = new DefaultLinkDescription(src, dst,
                     Link.Type.DIRECT);
@@ -216,10 +239,66 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             providerService.linkDetected(rdesc);
         }
 
+        // try to link to a tail to first element
+        private void tryLinkTail() {
+            if (tails.isEmpty() || devices.isEmpty()) {
+                return;
+            }
+            ConnectPoint first = new ConnectPoint(devices.get(0), DSTPORT);
+            boolean added = false;
+            for (ConnectPoint cp : tails) {
+                if (!linkService.getLinks(cp).isEmpty()) {
+                    continue;
+                }
+                LinkDescription ld = new DefaultLinkDescription(cp, first,
+                        Link.Type.DIRECT);
+                descriptions.put(cp, ld);
+                providerService.linkDetected(ld);
+                added = true;
+                break;
+            }
+            if (added) {
+                tails.clear();
+            }
+        }
+
         private void removeLink(Device device) {
+            if (!MASTER.equals(roleService.getLocalRole(device.id()))) {
+                return;
+            }
             providerService.linksVanished(device.id());
             devices.remove(device.id());
         }
+
+    }
+
+    private class InternalLinkListener implements LinkListener {
+
+        @Override
+        public void event(LinkEvent event) {
+            switch (event.type()) {
+            case LINK_ADDED:
+                // If a link from another island, cast one back.
+                DeviceId sdid = event.subject().src().deviceId();
+                PortNumber pn = event.subject().src().port();
+
+                if (roleService.getLocalRole(sdid).equals(MASTER)) {
+                    String part = part(sdid.toString());
+                    if (part.equals("ffff") && SRCPORT.equals(pn)) {
+                        LinkDescription ld = new DefaultLinkDescription(event
+                                .subject().dst(), event.subject().src(),
+                                Link.Type.DIRECT);
+                        descriptions.put(event.subject().dst(), ld);
+                        providerService.linkDetected(ld);
+                    }
+                    return;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+
     }
 
     /**

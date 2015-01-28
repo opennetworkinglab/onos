@@ -132,7 +132,8 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
         public void event(DeviceEvent event) {
             if (!deviceService.getRole(event.subject().id())
                     .equals(MastershipRole.MASTER)) {
-                log.info("Local node is not master for device", event.subject().id());
+                log.info("Local node is not master for device {}", event
+                        .subject().id());
                 return;
             }
             switch (event.type()) {

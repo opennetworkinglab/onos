@@ -31,4 +31,11 @@
 
     <description>ONOS Null protocol device provider</description>
 
+    <dependencies>
+      <dependency>
+        <groupId>org.osgi</groupId>
+        <artifactId>org.osgi.compendium</artifactId>
+      </dependency>
+    </dependencies>
+
 </project>
