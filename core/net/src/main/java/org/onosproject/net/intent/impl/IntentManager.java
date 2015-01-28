@@ -1151,7 +1151,7 @@ public class IntentManager
 
                 // Write batch information
                 BatchWrite batchWrite = createBatchWrite(updates);
-                writeBatch(batchWrite);
+                store.batchWrite(batchWrite);
 
                 new IntentBatchApplyFirst(ops, processIntentUpdates(updates), endTime, 0, null).run();
             } catch (Exception e) {
@@ -1200,9 +1200,7 @@ public class IntentManager
         }
 
         protected void writeBatch(BatchWrite batchWrite) {
-            if (!batchWrite.isEmpty()) {
-                store.batchWrite(batchWrite);
-            }
+            store.batchWrite(batchWrite);
         }
     }
 
@@ -1242,7 +1240,7 @@ public class IntentManager
                 // there are no flow rule batches; finalize the intent update
                 BatchWrite batchWrite = createFinalizedBatchWrite(updates);
 
-                writeBatch(batchWrite);
+                store.batchWrite(batchWrite);
                 return null;
             }
         }
