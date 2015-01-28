@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -30,9 +32,16 @@ public class ConnectPointCodec extends JsonCodec<ConnectPoint> {
     @Override
     public ObjectNode encode(ConnectPoint point, CodecContext context) {
         checkNotNull(point, "Connect point cannot be null");
-        return context.mapper().createObjectNode()
-                .put("device", point.deviceId().toString())
+        ObjectNode root = context.mapper().createObjectNode()
                 .put("port", point.port().toString());
+
+        if (point.elementId() instanceof DeviceId) {
+            root.put("device", point.deviceId().toString());
+        } else if (point.elementId() instanceof HostId) {
+            root.put("host", point.hostId().toString());
+        }
+
+        return root;
     }
 
 }

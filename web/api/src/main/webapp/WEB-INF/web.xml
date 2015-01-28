@@ -43,7 +43,8 @@
                 org.onosproject.rest.IntentsWebResource,
                 org.onosproject.rest.FlowsWebResource,
                 org.onosproject.rest.TopologyWebResource,
-                org.onosproject.rest.ConfigResource
+                org.onosproject.rest.ConfigResource,
+                org.onosproject.rest.PathsWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

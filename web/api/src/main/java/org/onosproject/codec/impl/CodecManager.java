@@ -33,6 +33,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
+import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficSelector;
@@ -86,6 +87,7 @@ public class CodecManager implements CodecService {
         registerCodec(Constraint.class, new ConstraintCodec());
         registerCodec(Topology.class, new TopologyCodec());
         registerCodec(TopologyCluster.class, new TopologyClusterCodec());
+        registerCodec(Path.class, new PathCodec());
         log.info("Started");
     }
 
