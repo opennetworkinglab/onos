@@ -70,7 +70,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netty4.version>4.0.23.Final</netty4.version>
         <copycat.version>0.3.0.onos</copycat.version>
-        <openflowj.version>0.3.8.oe</openflowj.version>
+        <openflowj.version>0.3.9.oe</openflowj.version>
     </properties>
 
     <distributionManagement>
@@ -454,6 +454,17 @@
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>2.5.3</version>
                     <extensions>true</extensions>
+                    <!--
+                        Drop following dependency when the below bug fix is published
+                        https://issues.apache.org/jira/browse/FELIX-4556
+                    -->
+                    <dependencies>
+                        <dependency>
+                            <groupId>biz.aQute.bnd</groupId>
+                            <artifactId>bndlib</artifactId>
+                            <version>2.4.0</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
 
                 <plugin>
