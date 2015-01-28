@@ -15,16 +15,19 @@
  */
 package org.onosproject.store.serializers;
 
-import java.net.URI;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Optional;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.Leadership;
@@ -84,8 +87,8 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
@@ -115,20 +118,16 @@ import org.onosproject.store.service.VersionedValue;
 import org.onosproject.store.service.WriteRequest;
 import org.onosproject.store.service.WriteResult;
 import org.onosproject.store.service.WriteStatus;
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip6Address;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.Ip6Prefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onlab.util.KryoNamespace;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Optional;
 
 public final class KryoNamespaces {
 
@@ -159,6 +158,7 @@ public final class KryoNamespaces {
             .register(Duration.class)
             .register(Collections.emptySet().getClass())
             .register(Optional.class)
+            .register(Collections.emptyList().getClass())
             .build();
 
     /**

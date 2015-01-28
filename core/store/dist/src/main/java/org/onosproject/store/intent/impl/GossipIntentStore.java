@@ -42,7 +42,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -76,9 +75,7 @@ public class GossipIntentStore
     @Activate
     public void activate() {
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                // TODO this should be in BASIC namespace
-                .register(Collections.emptyList().getClass());
+                .register(KryoNamespaces.API);
         intents = new EventuallyConsistentMapImpl<>("intents", clusterService,
                                                 clusterCommunicator,
                                                 intentSerializer,
