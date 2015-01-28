@@ -258,16 +258,16 @@ public class BgpRouteEntry extends RouteEntry {
         }
 
         // Compare the peer BGP ID: lower is better
-        Ip4Address peerBgpId = getBgpSession().getRemoteBgpId();
-        Ip4Address otherPeerBgpId = other.getBgpSession().getRemoteBgpId();
+        Ip4Address peerBgpId = getBgpSession().remoteInfo().bgpId();
+        Ip4Address otherPeerBgpId = other.getBgpSession().remoteInfo().bgpId();
         if (!peerBgpId.equals(otherPeerBgpId)) {
             return (peerBgpId.compareTo(otherPeerBgpId) < 0);
         }
 
         // Compare the peer BGP address: lower is better
-        Ip4Address peerAddress = getBgpSession().getRemoteIp4Address();
+        Ip4Address peerAddress = getBgpSession().remoteInfo().ip4Address();
         Ip4Address otherPeerAddress =
-            other.getBgpSession().getRemoteIp4Address();
+            other.getBgpSession().remoteInfo().ip4Address();
         if (!peerAddress.equals(otherPeerAddress)) {
             return (peerAddress.compareTo(otherPeerAddress) < 0);
         }
@@ -486,7 +486,7 @@ public class BgpRouteEntry extends RouteEntry {
         return MoreObjects.toStringHelper(getClass())
             .add("prefix", prefix())
             .add("nextHop", nextHop())
-            .add("bgpId", bgpSession.getRemoteBgpId())
+            .add("bgpId", bgpSession.remoteInfo().bgpId())
             .add("origin", Update.Origin.typeToString(origin))
             .add("asPath", asPath)
             .add("localPref", localPref)

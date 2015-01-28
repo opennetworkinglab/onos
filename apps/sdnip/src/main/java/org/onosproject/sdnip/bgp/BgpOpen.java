@@ -58,8 +58,8 @@ final class BgpOpen {
         if (message.readableBytes() < minLength) {
             log.debug("BGP RX OPEN Error from {}: " +
                       "Message length {} too short. Must be at least {}",
-                      bgpSession.getRemoteAddress(), message.readableBytes(),
-                      minLength);
+                      bgpSession.remoteInfo().address(),
+                      message.readableBytes(), minLength);
             //
             // ERROR: Bad Message Length
             //
@@ -80,7 +80,7 @@ final class BgpOpen {
         if (remoteBgpVersion != BgpConstants.BGP_VERSION) {
             log.debug("BGP RX OPEN Error from {}: " +
                       "Unsupported BGP version {}. Should be {}",
-                      bgpSession.getRemoteAddress(), remoteBgpVersion,
+                      bgpSession.remoteInfo().address(), remoteBgpVersion,
                       BgpConstants.BGP_VERSION);
             //
             // ERROR: Unsupported Version Number
@@ -97,7 +97,7 @@ final class BgpOpen {
             bgpSession.closeSession(ctx);
             return;
         }
-        bgpSession.setRemoteBgpVersion(remoteBgpVersion);
+        bgpSession.remoteInfo().setBgpVersion(remoteBgpVersion);
 
         // Remote AS number
         long remoteAs = message.readUnsignedShort();
@@ -107,11 +107,12 @@ final class BgpOpen {
         // sessions are iBGP.
         //
         for (BgpSession bs : bgpSession.getBgpSessionManager().getBgpSessions()) {
-            if ((bs.getRemoteAs() != 0) && (remoteAs != bs.getRemoteAs())) {
+            if ((bs.remoteInfo().asNumber() != 0) &&
+                (remoteAs != bs.remoteInfo().asNumber())) {
                 log.debug("BGP RX OPEN Error from {}: Bad Peer AS {}. " +
                           "Expected {}",
-                          bgpSession.getRemoteAddress(), remoteAs,
-                          bs.getRemoteAs());
+                          bgpSession.remoteInfo().address(), remoteAs,
+                          bs.remoteInfo().asNumber());
                 //
                 // ERROR: Bad Peer AS
                 //
@@ -126,7 +127,14 @@ final class BgpOpen {
                 return;
             }
         }
-        bgpSession.setRemoteAs(remoteAs);
+        bgpSession.remoteInfo().setAsNumber(remoteAs);
+        //
+        // NOTE: Currently, the local AS number is always set to the remote AS.
+        // This is done, because the peer setup is always iBGP.
+        // In the future, the local AS number should be configured as part
+        // of an explicit BGP peering configuration.
+        //
+        bgpSession.localInfo().setAsNumber(remoteAs);
 
         // Remote Hold Time
         long remoteHoldtime = message.readUnsignedShort();
@@ -135,7 +143,7 @@ final class BgpOpen {
             log.debug("BGP RX OPEN Error from {}: " +
                       "Unacceptable Hold Time field {}. " +
                       "Should be 0 or at least {}",
-                      bgpSession.getRemoteAddress(), remoteHoldtime,
+                      bgpSession.remoteInfo().address(), remoteHoldtime,
                       BgpConstants.BGP_KEEPALIVE_MIN_HOLDTIME);
             //
             // ERROR: Unacceptable Hold Time
@@ -150,12 +158,19 @@ final class BgpOpen {
             bgpSession.closeSession(ctx);
             return;
         }
-        bgpSession.setRemoteHoldtime(remoteHoldtime);
+        bgpSession.remoteInfo().setHoldtime(remoteHoldtime);
+        //
+        // NOTE: Currently. the local BGP Holdtime is always set to the remote
+        // BGP holdtime.
+        // In the future, the local BGP Holdtime should be configured as part
+        // of an explicit BGP peering configuration.
+        //
+        bgpSession.localInfo().setHoldtime(remoteHoldtime);
 
         // Remote BGP Identifier
         Ip4Address remoteBgpId =
             Ip4Address.valueOf((int) message.readUnsignedInt());
-        bgpSession.setRemoteBgpId(remoteBgpId);
+        bgpSession.remoteInfo().setBgpId(remoteBgpId);
 
         // Parse the Optional Parameters
         try {
@@ -164,7 +179,7 @@ final class BgpOpen {
             // ERROR: Error parsing optional parameters
             log.debug("BGP RX OPEN Error from {}: " +
                       "Exception parsing Optional Parameters: {}",
-                      bgpSession.getRemoteAddress(), e);
+                      bgpSession.remoteInfo().address(), e);
             //
             // ERROR: Invalid Optional Parameters: Unspecific
             //
@@ -181,11 +196,11 @@ final class BgpOpen {
 
         log.debug("BGP RX OPEN message from {}: " +
                   "BGPv{} AS {} BGP-ID {} Holdtime {}",
-                  bgpSession.getRemoteAddress(), remoteBgpVersion, remoteAs,
-                  remoteBgpId, remoteHoldtime);
+                  bgpSession.remoteInfo().address(), remoteBgpVersion,
+                  remoteAs, remoteBgpId, remoteHoldtime);
 
         // Send my OPEN followed by KEEPALIVE
-        ChannelBuffer txMessage = prepareBgpOpen(bgpSession);
+        ChannelBuffer txMessage = prepareBgpOpen(bgpSession.localInfo());
         ctx.getChannel().write(txMessage);
         //
         txMessage = BgpKeepalive.prepareBgpKeepalive();
@@ -201,24 +216,24 @@ final class BgpOpen {
     /**
      * Prepares BGP OPEN message.
      *
-     * @param bgpSession the BGP Session to use
+     * @param localInfo the BGP Session local information to use
      * @return the message to transmit (BGP header included)
      */
-    private static ChannelBuffer prepareBgpOpen(BgpSession bgpSession) {
+    private static ChannelBuffer prepareBgpOpen(BgpSessionInfo localInfo) {
         ChannelBuffer message =
             ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
 
         //
         // Prepare the OPEN message payload
         //
-        message.writeByte(bgpSession.getLocalBgpVersion());
-        message.writeShort((int) bgpSession.getLocalAs());
-        message.writeShort((int) bgpSession.getLocalHoldtime());
-        message.writeInt(bgpSession.getLocalBgpId().toInt());
+        message.writeByte(localInfo.bgpVersion());
+        message.writeShort((int) localInfo.asNumber());
+        message.writeShort((int) localInfo.holdtime());
+        message.writeInt(localInfo.bgpId().toInt());
 
         // Prepare the optional BGP Capabilities
         ChannelBuffer capabilitiesMessage =
-            prepareBgpOpenCapabilities(bgpSession);
+            prepareBgpOpenCapabilities(localInfo);
         message.writeByte(capabilitiesMessage.readableBytes());
         message.writeBytes(capabilitiesMessage);
 
@@ -309,18 +324,25 @@ final class BgpOpen {
                     //
                     // Setup the AFI/SAFI in the BgpSession
                     //
+                    // NOTE: For now we just copy the remote AFI/SAFI setting
+                    // to the local configuration.
+                    //
                     if (afi == MultiprotocolExtensions.AFI_IPV4 &&
                         safi == MultiprotocolExtensions.SAFI_UNICAST) {
-                        bgpSession.setRemoteIpv4Unicast();
+                        bgpSession.remoteInfo().setIpv4Unicast();
+                        bgpSession.localInfo().setIpv4Unicast();
                     } else if (afi == MultiprotocolExtensions.AFI_IPV4 &&
                                safi == MultiprotocolExtensions.SAFI_MULTICAST) {
-                        bgpSession.setRemoteIpv4Multicast();
+                        bgpSession.remoteInfo().setIpv4Multicast();
+                        bgpSession.localInfo().setIpv4Multicast();
                     } else if (afi == MultiprotocolExtensions.AFI_IPV6 &&
                                safi == MultiprotocolExtensions.SAFI_UNICAST) {
-                        bgpSession.setRemoteIpv6Unicast();
+                        bgpSession.remoteInfo().setIpv6Unicast();
+                        bgpSession.localInfo().setIpv6Unicast();
                     } else if (afi == MultiprotocolExtensions.AFI_IPV6 &&
                                safi == MultiprotocolExtensions.SAFI_MULTICAST) {
-                        bgpSession.setRemoteIpv6Multicast();
+                        bgpSession.remoteInfo().setIpv6Multicast();
+                        bgpSession.localInfo().setIpv6Multicast();
                     } else {
                         log.debug("BGP RX OPEN Capability: Unknown AFI = {} SAFI = {}",
                                   afi, safi);
@@ -336,14 +358,21 @@ final class BgpOpen {
                     }
                     long as4Number = message.readUnsignedInt();
 
-                    bgpSession.setRemoteAs4OctetCapability();
-                    bgpSession.setRemoteAs4Octet(as4Number);
+                    bgpSession.remoteInfo().setAs4OctetCapability();
+                    bgpSession.remoteInfo().setAs4Number(as4Number);
+                    // Use the 4-octet AS number in lieu of the "My AS" field
+                    // See RFC 6793, Section 4.1, second paragraph.
+                    bgpSession.remoteInfo().setAsNumber(as4Number);
 
-                    // Copy remote 4-octet AS Number Capabilities and AS Number.
-                    // This is temporary setting until local AS number configuration is supported.
-                    bgpSession.setLocalAs4OctetCapability();
-                    bgpSession.setRemoteAs(as4Number);
-                    log.debug("BGP RX OPEN Capability:  AS4 Number = {}",
+                    //
+                    // Copy remote 4-octet AS Number Capabilities and AS
+                    // Number. This is a temporary setting until local AS
+                    // number configuration is supported.
+                    //
+                    bgpSession.localInfo().setAs4OctetCapability();
+                    bgpSession.localInfo().setAs4Number(as4Number);
+                    bgpSession.localInfo().setAsNumber(as4Number);
+                    log.debug("BGP RX OPEN Capability: AS4 Number = {}",
                               as4Number);
                     break;
 
@@ -370,11 +399,11 @@ final class BgpOpen {
     /**
      * Prepares the Capabilities for the BGP OPEN message.
      *
-     * @param bgpSession the BGP Session to use
+     * @param localInfo the BGP Session local information to use
      * @return the buffer with the BGP Capabilities to transmit
      */
     private static ChannelBuffer prepareBgpOpenCapabilities(
-                                        BgpSession bgpSession) {
+                                        BgpSessionInfo localInfo) {
         ChannelBuffer message =
             ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
 
@@ -383,7 +412,7 @@ final class BgpOpen {
         //
 
         // IPv4 unicast
-        if (bgpSession.getLocalIpv4Unicast()) {
+        if (localInfo.ipv4Unicast()) {
             message.writeByte(Capabilities.TYPE);               // Param type
             message.writeByte(Capabilities.MIN_LENGTH +
                               MultiprotocolExtensions.LENGTH);  // Param len
@@ -394,7 +423,7 @@ final class BgpOpen {
             message.writeByte(MultiprotocolExtensions.SAFI_UNICAST);
         }
         // IPv4 multicast
-        if (bgpSession.getLocalIpv4Multicast()) {
+        if (localInfo.ipv4Multicast()) {
             message.writeByte(Capabilities.TYPE);               // Param type
             message.writeByte(Capabilities.MIN_LENGTH +
                               MultiprotocolExtensions.LENGTH);  // Param len
@@ -405,7 +434,7 @@ final class BgpOpen {
             message.writeByte(MultiprotocolExtensions.SAFI_MULTICAST);
         }
         // IPv6 unicast
-        if (bgpSession.getLocalIpv6Unicast()) {
+        if (localInfo.ipv6Unicast()) {
             message.writeByte(Capabilities.TYPE);               // Param type
             message.writeByte(Capabilities.MIN_LENGTH +
                               MultiprotocolExtensions.LENGTH);  // Param len
@@ -416,7 +445,7 @@ final class BgpOpen {
             message.writeByte(MultiprotocolExtensions.SAFI_UNICAST);
         }
         // IPv6 multicast
-        if (bgpSession.getLocalIpv6Multicast()) {
+        if (localInfo.ipv6Multicast()) {
             message.writeByte(Capabilities.TYPE);               // Param type
             message.writeByte(Capabilities.MIN_LENGTH +
                               MultiprotocolExtensions.LENGTH);  // Param len
@@ -428,13 +457,13 @@ final class BgpOpen {
         }
 
         // 4 octet AS path capability
-        if (bgpSession.getLocalAs4OctetCapability()) {
+        if (localInfo.as4OctetCapability()) {
             message.writeByte(Capabilities.TYPE);               // Param type
             message.writeByte(Capabilities.MIN_LENGTH +
                               As4Octet.LENGTH);                 // Param len
             message.writeByte(As4Octet.CODE);                   // Capab, code
             message.writeByte(As4Octet.LENGTH);                 // Capab, len
-            message.writeInt((int) bgpSession.getLocalAs());
+            message.writeInt((int) localInfo.as4Number());
         }
         return message;
     }

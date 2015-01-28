@@ -51,6 +51,15 @@ public class BgpRouteEntryTest {
     private static final Ip4Address BGP_SESSION_IP_ADDRESS3 =
         Ip4Address.valueOf("20.0.0.2");
 
+    private final BgpSessionInfo localInfo = new BgpSessionInfo();
+    private final BgpSessionInfo remoteInfo = new BgpSessionInfo();
+
+    private final BgpSessionInfo localInfo2 = new BgpSessionInfo();
+    private final BgpSessionInfo remoteInfo2 = new BgpSessionInfo();
+
+    private final BgpSessionInfo localInfo3 = new BgpSessionInfo();
+    private final BgpSessionInfo remoteInfo3 = new BgpSessionInfo();
+
     @Before
     public void setUp() throws Exception {
         // Mock objects for testing
@@ -59,20 +68,19 @@ public class BgpRouteEntryTest {
         bgpSession3 = createMock(BgpSession.class);
 
         // Setup the BGP Sessions
-        expect(bgpSession.getRemoteBgpId())
-            .andReturn(BGP_SESSION_BGP_ID).anyTimes();
-        expect(bgpSession.getRemoteIp4Address())
-            .andReturn(BGP_SESSION_IP_ADDRESS).anyTimes();
-        //
-        expect(bgpSession2.getRemoteBgpId())
-            .andReturn(BGP_SESSION_BGP_ID2).anyTimes();
-        expect(bgpSession2.getRemoteIp4Address())
-            .andReturn(BGP_SESSION_IP_ADDRESS2).anyTimes();
-        //
-        expect(bgpSession3.getRemoteBgpId())
-            .andReturn(BGP_SESSION_BGP_ID3).anyTimes();
-        expect(bgpSession3.getRemoteIp4Address())
-            .andReturn(BGP_SESSION_IP_ADDRESS3).anyTimes();
+        remoteInfo.setIp4Address(BGP_SESSION_IP_ADDRESS);
+        remoteInfo2.setIp4Address(BGP_SESSION_IP_ADDRESS2);
+        remoteInfo3.setIp4Address(BGP_SESSION_IP_ADDRESS3);
+        remoteInfo.setBgpId(BGP_SESSION_BGP_ID);
+        remoteInfo2.setBgpId(BGP_SESSION_BGP_ID2);
+        remoteInfo3.setBgpId(BGP_SESSION_BGP_ID3);
+
+        expect(bgpSession.localInfo()).andReturn(localInfo).anyTimes();
+        expect(bgpSession.remoteInfo()).andReturn(remoteInfo).anyTimes();
+        expect(bgpSession2.localInfo()).andReturn(localInfo2).anyTimes();
+        expect(bgpSession2.remoteInfo()).andReturn(remoteInfo2).anyTimes();
+        expect(bgpSession3.localInfo()).andReturn(localInfo3).anyTimes();
+        expect(bgpSession3.remoteInfo()).andReturn(remoteInfo3).anyTimes();
 
         replay(bgpSession);
         replay(bgpSession2);

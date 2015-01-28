@@ -189,18 +189,18 @@ public class BgpSessionManager {
     boolean peerConnected(BgpSession bgpSession) {
 
         // Test whether there is already a session from the same remote
-        if (bgpSessions.get(bgpSession.getRemoteAddress()) != null) {
+        if (bgpSessions.get(bgpSession.remoteInfo().address()) != null) {
             return false;               // Duplicate BGP session
         }
-        bgpSessions.put(bgpSession.getRemoteAddress(), bgpSession);
+        bgpSessions.put(bgpSession.remoteInfo().address(), bgpSession);
 
         //
         // If the first connection, set my BGP ID to the local address
         // of the socket.
         //
-        if (bgpSession.getLocalAddress() instanceof InetSocketAddress) {
+        if (bgpSession.localInfo().address() instanceof InetSocketAddress) {
             InetAddress inetAddr =
-                    ((InetSocketAddress) bgpSession.getLocalAddress()).getAddress();
+                ((InetSocketAddress) bgpSession.localInfo().address()).getAddress();
             Ip4Address ip4Address = Ip4Address.valueOf(inetAddr.getAddress());
             updateMyBgpId(ip4Address);
         }
@@ -213,7 +213,7 @@ public class BgpSessionManager {
      * @param bgpSession the BGP session for the peer
      */
     void peerDisconnected(BgpSession bgpSession) {
-        bgpSessions.remove(bgpSession.getRemoteAddress());
+        bgpSessions.remove(bgpSession.remoteInfo().address());
     }
 
     /**

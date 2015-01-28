@@ -68,8 +68,8 @@ final class BgpUpdate {
         if (message.readableBytes() < minLength) {
             log.debug("BGP RX UPDATE Error from {}: " +
                       "Message length {} too short. Must be at least {}",
-                      bgpSession.getRemoteAddress(), message.readableBytes(),
-                      minLength);
+                      bgpSession.remoteInfo().address(),
+                      message.readableBytes(), minLength);
             //
             // ERROR: Bad Message Length
             //
@@ -83,7 +83,7 @@ final class BgpUpdate {
         }
 
         log.debug("BGP RX UPDATE message from {}",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // Parse the UPDATE message
@@ -105,13 +105,13 @@ final class BgpUpdate {
         } catch (BgpParseException e) {
             // ERROR: Invalid Network Field
             log.debug("Exception parsing Withdrawn Prefixes from BGP peer {}: ",
-                      bgpSession.getRemoteBgpId(), e);
+                      bgpSession.remoteInfo().bgpId(), e);
             actionsBgpUpdateInvalidNetworkField(bgpSession, ctx);
             return;
         }
         for (Ip4Prefix prefix : withdrawnPrefixes) {
             log.debug("BGP RX UPDATE message WITHDRAWN from {}: {}",
-                      bgpSession.getRemoteAddress(), prefix);
+                      bgpSession.remoteInfo().address(), prefix);
             BgpRouteEntry bgpRouteEntry = bgpSession.findBgpRoute(prefix);
             if (bgpRouteEntry != null) {
                 decodedBgpRoutes.deletedUnicastRoutes4.put(prefix,
@@ -126,7 +126,7 @@ final class BgpUpdate {
             parsePathAttributes(bgpSession, ctx, message, decodedBgpRoutes);
         } catch (BgpParseException e) {
             log.debug("Exception parsing Path Attributes from BGP peer {}: ",
-                      bgpSession.getRemoteBgpId(), e);
+                      bgpSession.remoteInfo().bgpId(), e);
             // NOTE: The session was already closed, so nothing else to do
             return;
         }
@@ -366,7 +366,7 @@ final class BgpUpdate {
                 // Skip the data from the unrecognized attribute
                 log.debug("BGP RX UPDATE message from {}: " +
                           "Unrecognized Attribute Type {}",
-                          bgpSession.getRemoteAddress(), attrTypeCode);
+                          bgpSession.remoteInfo().address(), attrTypeCode);
                 message.skipBytes(attrLen);
                 break;
             }
@@ -384,7 +384,7 @@ final class BgpUpdate {
         } catch (BgpParseException e) {
             // ERROR: Invalid Network Field
             log.debug("Exception parsing NLRI from BGP peer {}: ",
-                      bgpSession.getRemoteBgpId(), e);
+                      bgpSession.remoteInfo().bgpId(), e);
             actionsBgpUpdateInvalidNetworkField(bgpSession, ctx);
             // Rethrow the exception
             throw e;
@@ -433,15 +433,15 @@ final class BgpUpdate {
                     new BgpRouteEntry(bgpSession, prefix, mpNlri.nextHop4,
                                       origin.byteValue(), asPath, localPref);
                 bgpRouteEntry.setMultiExitDisc(multiExitDisc);
-                if (bgpRouteEntry.hasAsPathLoop(bgpSession.getLocalAs())) {
+                if (bgpRouteEntry.hasAsPathLoop(bgpSession.localInfo().asNumber())) {
                     log.debug("BGP RX UPDATE message IGNORED from {}: {} " +
                               "nextHop {}: contains AS Path loop",
-                              bgpSession.getRemoteAddress(), prefix,
+                              bgpSession.remoteInfo().address(), prefix,
                               mpNlri.nextHop4);
                     continue;
                 } else {
                     log.debug("BGP RX UPDATE message ADDED from {}: {} nextHop {}",
-                              bgpSession.getRemoteAddress(), prefix,
+                              bgpSession.remoteInfo().address(), prefix,
                               mpNlri.nextHop4);
                 }
                 // Remove from the collection of deleted routes
@@ -456,15 +456,15 @@ final class BgpUpdate {
                     new BgpRouteEntry(bgpSession, prefix, mpNlri.nextHop6,
                                       origin.byteValue(), asPath, localPref);
                 bgpRouteEntry.setMultiExitDisc(multiExitDisc);
-                if (bgpRouteEntry.hasAsPathLoop(bgpSession.getLocalAs())) {
+                if (bgpRouteEntry.hasAsPathLoop(bgpSession.localInfo().asNumber())) {
                     log.debug("BGP RX UPDATE message IGNORED from {}: {} " +
                               "nextHop {}: contains AS Path loop",
-                              bgpSession.getRemoteAddress(), prefix,
+                              bgpSession.remoteInfo().address(), prefix,
                               mpNlri.nextHop6);
                     continue;
                 } else {
                     log.debug("BGP RX UPDATE message ADDED from {}: {} nextHop {}",
-                              bgpSession.getRemoteAddress(), prefix,
+                              bgpSession.remoteInfo().address(), prefix,
                               mpNlri.nextHop6);
                 }
                 // Remove from the collection of deleted routes
@@ -507,7 +507,7 @@ final class BgpUpdate {
         // Multiprotocol Extensions are not enabled, even if the UPDATE
         // message doesn't contain the legacy NLRI (per RFC 4271).
         //
-        if (!bgpSession.getMpExtensions()) {
+        if (!bgpSession.mpExtensions()) {
             hasNlri = true;
             hasLegacyNlri = true;
         } else {
@@ -838,7 +838,7 @@ final class BgpUpdate {
         // Here we check only (a), because (b) doesn't apply for us: all our
         // peers are iBGP.
         //
-        if (nextHopAddress.equals(bgpSession.getLocalIp4Address())) {
+        if (nextHopAddress.equals(bgpSession.localInfo().ip4Address())) {
             // ERROR: Invalid NEXT_HOP Attribute
             message.resetReaderIndex();
             actionsBgpUpdateInvalidNextHopAttribute(
@@ -1297,7 +1297,7 @@ final class BgpUpdate {
                                 BgpSession bgpSession,
                                 ChannelHandlerContext ctx) {
         log.debug("BGP RX UPDATE Error from {}: Invalid Network Field",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // ERROR: Invalid Network Field
@@ -1323,7 +1323,7 @@ final class BgpUpdate {
                                 BgpSession bgpSession,
                                 ChannelHandlerContext ctx) {
         log.debug("BGP RX UPDATE Error from {}: Malformed Attribute List",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // ERROR: Malformed Attribute List
@@ -1352,7 +1352,7 @@ final class BgpUpdate {
                                 ChannelHandlerContext ctx,
                                 int missingAttrTypeCode) {
         log.debug("BGP RX UPDATE Error from {}: Missing Well-known Attribute: {}",
-                  bgpSession.getRemoteAddress(), missingAttrTypeCode);
+                  bgpSession.remoteInfo().address(), missingAttrTypeCode);
 
         //
         // ERROR: Missing Well-known Attribute
@@ -1390,7 +1390,7 @@ final class BgpUpdate {
                                 ChannelBuffer message,
                                 short origin) {
         log.debug("BGP RX UPDATE Error from {}: Invalid ORIGIN Attribute",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // ERROR: Invalid ORIGIN Attribute
@@ -1427,7 +1427,7 @@ final class BgpUpdate {
                                 int attrFlags,
                                 ChannelBuffer message) {
         log.debug("BGP RX UPDATE Error from {}: Attribute Flags Error",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // ERROR: Attribute Flags Error
@@ -1467,7 +1467,7 @@ final class BgpUpdate {
                                 ChannelBuffer message,
                                 Ip4Address nextHop) {
         log.debug("BGP RX UPDATE Error from {}: Invalid NEXT_HOP Attribute {}",
-                  bgpSession.getRemoteAddress(), nextHop);
+                  bgpSession.remoteInfo().address(), nextHop);
 
         //
         // ERROR: Invalid NEXT_HOP Attribute
@@ -1506,7 +1506,7 @@ final class BgpUpdate {
                                 ChannelBuffer message) {
         log.debug("BGP RX UPDATE Error from {}: " +
                   "Unrecognized Well-known Attribute Error: {}",
-                  bgpSession.getRemoteAddress(), attrTypeCode);
+                  bgpSession.remoteInfo().address(), attrTypeCode);
 
         //
         // ERROR: Unrecognized Well-known Attribute
@@ -1545,7 +1545,7 @@ final class BgpUpdate {
                                 int attrFlags,
                                 ChannelBuffer message) {
         log.debug("BGP RX UPDATE Error from {}: Optional Attribute Error: {}",
-                  bgpSession.getRemoteAddress(), attrTypeCode);
+                  bgpSession.remoteInfo().address(), attrTypeCode);
 
         //
         // ERROR: Optional Attribute Error
@@ -1583,7 +1583,7 @@ final class BgpUpdate {
                                 int attrFlags,
                                 ChannelBuffer message) {
         log.debug("BGP RX UPDATE Error from {}: Attribute Length Error",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // ERROR: Attribute Length Error
@@ -1612,7 +1612,7 @@ final class BgpUpdate {
                                 BgpSession bgpSession,
                                 ChannelHandlerContext ctx) {
         log.debug("BGP RX UPDATE Error from {}: Malformed AS Path",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         //
         // ERROR: Malformed AS_PATH

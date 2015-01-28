@@ -179,13 +179,13 @@ public class BgpSessionManagerTest {
             assertThat(result, is(true));
 
             for (BgpSession bgpSession : bgpSessionManager.getBgpSessions()) {
-                if (bgpSession.getRemoteBgpId().equals(BGP_PEER1_ID)) {
+                if (bgpSession.remoteInfo().bgpId().equals(BGP_PEER1_ID)) {
                     bgpSession1 = bgpSession;
                 }
-                if (bgpSession.getRemoteBgpId().equals(BGP_PEER2_ID)) {
+                if (bgpSession.remoteInfo().bgpId().equals(BGP_PEER2_ID)) {
                     bgpSession2 = bgpSession;
                 }
-                if (bgpSession.getRemoteBgpId().equals(BGP_PEER3_ID)) {
+                if (bgpSession.remoteInfo().bgpId().equals(BGP_PEER3_ID)) {
                     bgpSession3 = bgpSession;
                 }
             }
@@ -394,7 +394,7 @@ public class BgpSessionManagerTest {
         assertThat(bgpSession2, notNullValue());
         assertThat(bgpSession3, notNullValue());
         for (BgpSession bgpSession : bgpSessionManager.getBgpSessions()) {
-            long sessionAs = TestUtils.getField(bgpSession, "localAs");
+            long sessionAs = bgpSession.localInfo().asNumber();
             assertThat(sessionAs, is(TestBgpPeerChannelHandler.PEER_AS));
         }
     }

@@ -51,7 +51,7 @@ final class BgpKeepalive {
             BgpConstants.BGP_KEEPALIVE_EXPECTED_LENGTH) {
             log.debug("BGP RX KEEPALIVE Error from {}: " +
                       "Invalid total message length {}. Expected {}",
-                      bgpSession.getRemoteAddress(),
+                      bgpSession.remoteInfo().address(),
                       message.readableBytes() + BgpConstants.BGP_HEADER_LENGTH,
                       BgpConstants.BGP_KEEPALIVE_EXPECTED_LENGTH);
             //
@@ -70,7 +70,7 @@ final class BgpKeepalive {
         // Parse the KEEPALIVE message: nothing to do
         //
         log.trace("BGP RX KEEPALIVE message from {}",
-                  bgpSession.getRemoteAddress());
+                  bgpSession.remoteInfo().address());
 
         // Start the Session Timeout timer
         bgpSession.restartSessionTimeoutTimer(ctx);

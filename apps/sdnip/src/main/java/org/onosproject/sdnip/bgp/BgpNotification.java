@@ -53,8 +53,8 @@ final class BgpNotification {
         if (message.readableBytes() < minLength) {
             log.debug("BGP RX NOTIFICATION Error from {}: " +
                       "Message length {} too short. Must be at least {}",
-                      bgpSession.getRemoteAddress(), message.readableBytes(),
-                      minLength);
+                      bgpSession.remoteInfo().address(),
+                      message.readableBytes(), minLength);
             //
             // ERROR: Bad Message Length
             //
@@ -71,7 +71,7 @@ final class BgpNotification {
 
         log.debug("BGP RX NOTIFICATION message from {}: Error Code {} " +
                   "Error Subcode {} Data Length {}",
-                  bgpSession.getRemoteAddress(), errorCode, errorSubcode,
+                  bgpSession.remoteInfo().address(), errorCode, errorSubcode,
                   dataLength);
 
         //

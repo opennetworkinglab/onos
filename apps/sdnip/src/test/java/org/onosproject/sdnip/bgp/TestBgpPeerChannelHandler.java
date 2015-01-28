@@ -59,7 +59,7 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
         ctx.getChannel().write(message);
 
         // Prepare and transmit BGP KEEPALIVE message
-        message = prepareBgpKeepalive();
+        message = BgpKeepalive.prepareBgpKeepalive();
         ctx.getChannel().write(message);
     }
 
@@ -82,7 +82,8 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
         message.writeShort(PEER_HOLDTIME);
         message.writeInt(bgpId.toInt());
         message.writeByte(0);                   // No Optional Parameters
-        return prepareBgpMessage(BgpConstants.BGP_TYPE_OPEN, message);
+        return BgpMessage.prepareBgpMessage(BgpConstants.BGP_TYPE_OPEN,
+                                            message);
     }
 
     /**
@@ -155,7 +156,8 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
         message.writeBytes(pathAttributes);
         message.writeBytes(encodedPrefixes);
 
-        return prepareBgpMessage(BgpConstants.BGP_TYPE_UPDATE, message);
+        return BgpMessage.prepareBgpMessage(BgpConstants.BGP_TYPE_UPDATE,
+                                            message);
     }
 
     /**
@@ -212,66 +214,6 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
             }
         }
 
-        return message;
-    }
-
-    /**
-     * Prepares BGP KEEPALIVE message.
-     *
-     * @return the message to transmit (BGP header included)
-     */
-    ChannelBuffer prepareBgpKeepalive() {
-        ChannelBuffer message =
-            ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
-        return prepareBgpMessage(BgpConstants.BGP_TYPE_KEEPALIVE, message);
-    }
-
-    /**
-     * Prepares BGP NOTIFICATION message.
-     *
-     * @param errorCode the BGP NOTIFICATION Error Code
-     * @param errorSubcode the BGP NOTIFICATION Error Subcode if applicable,
-     * otherwise BgpConstants.Notifications.ERROR_SUBCODE_UNSPECIFIC
-     * @param payload the BGP NOTIFICATION Data if applicable, otherwise null
-     * @return the message to transmit (BGP header included)
-     */
-    ChannelBuffer prepareBgpNotification(int errorCode, int errorSubcode,
-                                         ChannelBuffer data) {
-        ChannelBuffer message =
-            ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
-        // Prepare the NOTIFICATION message payload
-        message.writeByte(errorCode);
-        message.writeByte(errorSubcode);
-        if (data != null) {
-            message.writeBytes(data);
-        }
-        return prepareBgpMessage(BgpConstants.BGP_TYPE_NOTIFICATION, message);
-    }
-
-    /**
-     * Prepares BGP message.
-     *
-     * @param type the BGP message type
-     * @param payload the message payload to transmit (BGP header excluded)
-     * @return the message to transmit (BGP header included)
-     */
-    private ChannelBuffer prepareBgpMessage(int type, ChannelBuffer payload) {
-        ChannelBuffer message =
-            ChannelBuffers.buffer(BgpConstants.BGP_HEADER_LENGTH +
-                                  payload.readableBytes());
-
-        // Write the marker
-        for (int i = 0; i < BgpConstants.BGP_HEADER_MARKER_LENGTH; i++) {
-            message.writeByte(0xff);
-        }
-
-        // Write the rest of the BGP header
-        message.writeShort(BgpConstants.BGP_HEADER_LENGTH +
-                           payload.readableBytes());
-        message.writeByte(type);
-
-        // Write the payload
-        message.writeBytes(payload);
         return message;
     }
 }

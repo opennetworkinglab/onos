@@ -17,7 +17,6 @@ package org.onosproject.sdnip.bgp;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,36 +55,9 @@ public class BgpSession extends SimpleChannelHandler {
     // It is used to avoid the Netty's asynchronous closing of a channel.
     private boolean isClosed = false;
 
-    private SocketAddress remoteAddress;        // Peer IP addr/port
-    private Ip4Address remoteIp4Address;        // Peer IPv4 address
-    private int remoteBgpVersion;               // 1 octet
-    private long remoteAs;                      // 2 octets
-    private long remoteAs4Octet;                // 4 octets
-    private long remoteHoldtime;                // 2 octets
-    private Ip4Address remoteBgpId;             // 4 octets -> IPv4 address
-    private boolean remoteMpExtensions;         // Peer Multiprotocol
-                                                // Extensions enabled: RFC 4760
-    private boolean remoteIpv4Unicast;          // Peer IPv4/UNICAST AFI/SAFI
-    private boolean remoteIpv4Multicast;        // Peer IPv4/MULTICAST AFI/SAFI
-    private boolean remoteIpv6Unicast;          // Peer IPv6/UNICAST AFI/SAFI
-    private boolean remoteIpv6Multicast;        // Peer IPv6/MULTICAST AFI/SAFI
-    private boolean remoteAs4OctetCapability;   // Peer 4 octet AS path capability
-    //
-    private SocketAddress localAddress;         // Local IP addr/port
-    private Ip4Address localIp4Address;         // Local IPv4 address
-    private int localBgpVersion;                // 1 octet
-    private long localAs;                       // 2 octets
-    private long localHoldtime;                 // 2 octets
-    private Ip4Address localBgpId;              // 4 octets -> IPv4 address
-    private boolean localMpExtensions;          // Local Multiprotocol
-                                                // Extensions enabled: RFC 4760
-    private boolean localIpv4Unicast;        // Local IPv4/UNICAST AFI/SAFI
-    private boolean localIpv4Multicast;      // Local IPv4/MULTICAST AFI/SAFI
-    private boolean localIpv6Unicast;        // Local IPv6/UNICAST AFI/SAFI
-    private boolean localIpv6Multicast;      // Local IPv6/MULTICAST AFI/SAFI
-    private boolean localAs4OctetCapability;    // Local 4 octet AS path capability
-    //
-    private long localKeepaliveInterval;        // Keepalive interval
+    // BGP session info: local and remote
+    private final BgpSessionInfo localInfo;     // BGP session local info
+    private final BgpSessionInfo remoteInfo;    // BGP session remote info
 
     // Timers state
     private Timer timer = new HashedWheelTimer();
@@ -105,9 +77,11 @@ public class BgpSession extends SimpleChannelHandler {
      */
     BgpSession(BgpSessionManager bgpSessionManager) {
         this.bgpSessionManager = bgpSessionManager;
+        this.localInfo = new BgpSessionInfo();
+        this.remoteInfo = new BgpSessionInfo();
 
         // NOTE: We support only BGP4
-        this.localBgpVersion = BgpConstants.BGP_VERSION;
+        this.localInfo.setBgpVersion(BgpConstants.BGP_VERSION);
     }
 
     /**
@@ -117,6 +91,44 @@ public class BgpSession extends SimpleChannelHandler {
      */
     BgpSessionManager getBgpSessionManager() {
         return bgpSessionManager;
+    }
+
+    /**
+     * Gets the BGP Session local information.
+     *
+     * @return the BGP Session local information.
+     */
+    public BgpSessionInfo localInfo() {
+        return localInfo;
+    }
+
+    /**
+     * Gets the BGP Session remote information.
+     *
+     * @return the BGP Session remote information.
+     */
+    public BgpSessionInfo remoteInfo() {
+        return remoteInfo;
+    }
+
+    /**
+     * Gets the BGP Multiprotocol Extensions for the session.
+     *
+     * @return true if the BGP Multiprotocol Extensions are enabled for the
+     * session, otherwise false
+     */
+    public boolean mpExtensions() {
+        return remoteInfo.mpExtensions() && localInfo.mpExtensions();
+    }
+
+    /**
+     * Gets the BGP session 4 octet AS path capability.
+     *
+     * @return true when the BGP session is 4 octet AS path capable
+     */
+    public boolean isAs4OctetCapable() {
+        return remoteInfo.as4OctetCapability() &&
+            localInfo.as4OctetCapability();
     }
 
     /**
@@ -227,360 +239,6 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
-     * Gets the BGP session remote address.
-     *
-     * @return the BGP session remote address
-     */
-    public SocketAddress getRemoteAddress() {
-        return remoteAddress;
-    }
-
-    /**
-     * Gets the BGP session remote IPv4 address.
-     *
-     * @return the BGP session remote IPv4 address
-     */
-    public Ip4Address getRemoteIp4Address() {
-        return remoteIp4Address;
-    }
-
-    /**
-     * Gets the BGP session remote BGP version.
-     *
-     * @return the BGP session remote BGP version
-     */
-    public int getRemoteBgpVersion() {
-        return remoteBgpVersion;
-    }
-
-    /**
-     * Sets the BGP session remote BGP version.
-     *
-     * @param remoteBgpVersion the BGP session remote BGP version to set
-     */
-     void setRemoteBgpVersion(int remoteBgpVersion) {
-         this.remoteBgpVersion = remoteBgpVersion;
-     }
-
-    /**
-     * Gets the BGP session remote AS number.
-     *
-     * @return the BGP session remote AS number
-     */
-    public long getRemoteAs() {
-        return remoteAs;
-    }
-
-    /**
-     * Sets the BGP session remote AS number.
-     *
-     * @param remoteAs the BGP session remote AS number to set
-     */
-    void setRemoteAs(long remoteAs) {
-        this.remoteAs = remoteAs;
-
-        //
-        // NOTE: Currently, the local AS number is always set to the remote AS.
-        // This is done, because the peer setup is always iBGP.
-        // In the future the local AS number should be configured as part
-        // of an explicit BGP peering configuration.
-        //
-        setLocalAs(remoteAs);
-    }
-
-    /**
-     * Sets the BGP session remote 4 octet AS number.
-     *
-     * @param remoteAs4Octet the BGP session remote 4 octet AS number to set
-     */
-    void setRemoteAs4Octet(long remoteAs4Octet) {
-        this.remoteAs4Octet = remoteAs4Octet;
-    }
-
-    /**
-     * Gets the BGP session remote Holdtime.
-     *
-     * @return the BGP session remote Holdtime
-     */
-    public long getRemoteHoldtime() {
-        return remoteHoldtime;
-    }
-
-    /**
-     * Sets the BGP session remote Holdtime.
-     *
-     * @param remoteHoldtime the BGP session remote Holdtime to set
-     */
-    void setRemoteHoldtime(long remoteHoldtime) {
-        this.remoteHoldtime = remoteHoldtime;
-
-        //
-        // NOTE: Currently. the local BGP Holdtime is always set to the remote
-        // BGP holdtime.
-        // In the future, the local BGP Holdtime should be configured as part
-        // of an explicit BGP peering configuration.
-        //
-        this.localHoldtime = remoteHoldtime;
-
-        // Set the local Keepalive interval
-        if (localHoldtime == 0) {
-            localKeepaliveInterval = 0;
-        } else {
-            localKeepaliveInterval = Math.max(localHoldtime /
-                         BgpConstants.BGP_KEEPALIVE_PER_HOLD_INTERVAL,
-                         BgpConstants.BGP_KEEPALIVE_MIN_INTERVAL);
-        }
-    }
-
-    /**
-     * Gets the BGP session remote BGP Identifier as an IPv4 address.
-     *
-     * @return the BGP session remote BGP Identifier as an IPv4 address
-     */
-    public Ip4Address getRemoteBgpId() {
-        return remoteBgpId;
-    }
-
-    /**
-     * Sets the BGP session remote BGP Identifier as an IPv4 address.
-     *
-     * @param remoteBgpId the BGP session remote BGP Identifier to set
-     */
-    void setRemoteBgpId(Ip4Address remoteBgpId) {
-        this.remoteBgpId = remoteBgpId;
-    }
-
-    /**
-     * Gets the BGP Multiprotocol Extensions for the session.
-     *
-     * @return true if the BGP Multiprotocol Extensions are enabled for the
-     * session, otherwise false
-     */
-     public boolean getMpExtensions() {
-        return remoteMpExtensions && localMpExtensions;
-    }
-
-    /**
-     * Gets the BGP session remote AFI/SAFI configuration for IPv4 unicast.
-     *
-     * @return the BGP session remote AFI/SAFI configuration for IPv4 unicast
-     */
-    public boolean getRemoteIpv4Unicast() {
-        return remoteIpv4Unicast;
-    }
-
-    /**
-     * Sets the BGP session remote AFI/SAFI configuration for IPv4 unicast.
-     */
-    void setRemoteIpv4Unicast() {
-        this.remoteMpExtensions = true;
-        this.remoteIpv4Unicast = true;
-        // Copy the remote AFI/SAFI setting to the local configuration
-        this.localMpExtensions = true;
-        this.localIpv4Unicast = true;
-    }
-
-    /**
-     * Gets the BGP session remote AFI/SAFI configuration for IPv4 multicast.
-     *
-     * @return the BGP session remote AFI/SAFI configuration for IPv4 multicast
-     */
-    public boolean getRemoteIpv4Multicast() {
-        return remoteIpv4Multicast;
-    }
-
-    /**
-     * Sets the BGP session remote AFI/SAFI configuration for IPv4 multicast.
-     */
-    void setRemoteIpv4Multicast() {
-        this.remoteMpExtensions = true;
-        this.remoteIpv4Multicast = true;
-        // Copy the remote AFI/SAFI setting to the local configuration
-        this.localMpExtensions = true;
-        this.localIpv4Multicast = true;
-    }
-
-    /**
-     * Gets the BGP session remote AFI/SAFI configuration for IPv6 unicast.
-     *
-     * @return the BGP session remote AFI/SAFI configuration for IPv6 unicast
-     */
-    public boolean getRemoteIpv6Unicast() {
-        return remoteIpv6Unicast;
-    }
-
-    /**
-     * Sets the BGP session remote AFI/SAFI configuration for IPv6 unicast.
-     */
-    void setRemoteIpv6Unicast() {
-        this.remoteMpExtensions = true;
-        this.remoteIpv6Unicast = true;
-        // Copy the remote AFI/SAFI setting to the local configuration
-        this.localMpExtensions = true;
-        this.localIpv6Unicast = true;
-    }
-
-    /**
-     * Gets the BGP session remote AFI/SAFI configuration for IPv6 multicast.
-     *
-     * @return the BGP session remote AFI/SAFI configuration for IPv6 multicast
-     */
-    public boolean getRemoteIpv6Multicast() {
-        return remoteIpv6Multicast;
-    }
-
-    /**
-     * Sets the BGP session remote AFI/SAFI configuration for IPv6 multicast.
-     */
-    void setRemoteIpv6Multicast() {
-        this.remoteMpExtensions = true;
-        this.remoteIpv6Multicast = true;
-        // Copy the remote AFI/SAFI setting to the local configuration
-        this.localMpExtensions = true;
-        this.localIpv6Multicast = true;
-    }
-
-    /**
-     * Gets the BGP session remote 4 octet AS path capability.
-     *
-     * @return true when the BGP session remote has 4 octet AS path capability
-     */
-    public boolean getRemoteAs4OctetCapability() {
-        return remoteAs4OctetCapability;
-    }
-
-    /**
-     * Sets the BGP session remote 4 octet AS path capability.
-     */
-    void setRemoteAs4OctetCapability() {
-        this.remoteAs4OctetCapability = true;
-    }
-
-    /**
-     * Gets the BGP session local 4 octet AS path capability.
-     *
-     * @return true when the BGP session local has 4 octet AS path capability
-     */
-    public boolean getLocalAs4OctetCapability() {
-        return localAs4OctetCapability;
-    }
-
-    /**
-     * Sets the BGP session local 4 octet AS path capability.
-     */
-    void setLocalAs4OctetCapability() {
-        this.localAs4OctetCapability = true;
-    }
-
-    /**
-     * Gets the BGP session 4 octet AS path capability.
-     *
-     * @return true when the BGP session is 4 octet AS path capable
-     */
-    public boolean isAs4OctetCapable() {
-        return getRemoteAs4OctetCapability() && getLocalAs4OctetCapability();
-    }
-
-    /**
-     * Gets the BGP session local address.
-     *
-     * @return the BGP session local address
-     */
-    public SocketAddress getLocalAddress() {
-        return localAddress;
-    }
-
-    /**
-     * Gets the BGP session local IPv4 address.
-     *
-     * @return the BGP session local IPv4 address
-     */
-    public Ip4Address getLocalIp4Address() {
-        return localIp4Address;
-    }
-
-    /**
-     * Gets the BGP session local BGP version.
-     *
-     * @return the BGP session local BGP version
-     */
-    public int getLocalBgpVersion() {
-        return localBgpVersion;
-    }
-
-    /**
-     * Gets the BGP session local AS number.
-     *
-     * @return the BGP session local AS number
-     */
-    public long getLocalAs() {
-        return localAs;
-    }
-
-    /**
-     * Sets the BGP session local AS number.
-     *
-     * @param localAs the BGP session local AS number to set
-     */
-    public void setLocalAs(long localAs) {
-        this.localAs = localAs;
-    }
-
-    /**
-     * Gets the BGP session local Holdtime.
-     *
-     * @return the BGP session local Holdtime
-     */
-    public long getLocalHoldtime() {
-        return localHoldtime;
-    }
-
-    /**
-     * Gets the BGP session local BGP Identifier as an IPv4 address.
-     *
-     * @return the BGP session local BGP Identifier as an IPv4 address
-     */
-    public Ip4Address getLocalBgpId() {
-        return localBgpId;
-    }
-
-    /**
-     * Gets the BGP session local AFI/SAFI configuration for IPv4 unicast.
-     *
-     * @return the BGP session local AFI/SAFI configuration for IPv4 unicast
-     */
-    public boolean getLocalIpv4Unicast() {
-        return localIpv4Unicast;
-    }
-
-    /**
-     * Gets the BGP session local AFI/SAFI configuration for IPv4 multicast.
-     *
-     * @return the BGP session local AFI/SAFI configuration for IPv4 multicast
-     */
-    public boolean getLocalIpv4Multicast() {
-        return localIpv4Multicast;
-    }
-
-    /**
-     * Gets the BGP session local AFI/SAFI configuration for IPv6 unicast.
-     *
-     * @return the BGP session local AFI/SAFI configuration for IPv6 unicast
-     */
-    public boolean getLocalIpv6Unicast() {
-        return localIpv6Unicast;
-    }
-
-    /**
-     * Gets the BGP session local AFI/SAFI configuration for IPv6 multicast.
-     *
-     * @return the BGP session local AFI/SAFI configuration for IPv6 multicast
-     */
-    public boolean getLocalIpv6Multicast() {
-        return localIpv6Multicast;
-    }
-
-    /**
      * Tests whether the session is closed.
      * <p>
      * NOTE: We use this method to avoid the Netty's asynchronous closing
@@ -627,25 +285,25 @@ public class BgpSession extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx,
                                  ChannelStateEvent channelEvent) {
-        localAddress = ctx.getChannel().getLocalAddress();
-        remoteAddress = ctx.getChannel().getRemoteAddress();
+        localInfo.setAddress(ctx.getChannel().getLocalAddress());
+        remoteInfo.setAddress(ctx.getChannel().getRemoteAddress());
 
         // Assign the local and remote IPv4 addresses
         InetAddress inetAddr;
-        if (localAddress instanceof InetSocketAddress) {
-            inetAddr = ((InetSocketAddress) localAddress).getAddress();
-            localIp4Address = Ip4Address.valueOf(inetAddr.getAddress());
+        if (localInfo.address() instanceof InetSocketAddress) {
+            inetAddr = ((InetSocketAddress) localInfo.address()).getAddress();
+            localInfo.setIp4Address(Ip4Address.valueOf(inetAddr.getAddress()));
         }
-        if (remoteAddress instanceof InetSocketAddress) {
-            inetAddr = ((InetSocketAddress) remoteAddress).getAddress();
-            remoteIp4Address = Ip4Address.valueOf(inetAddr.getAddress());
+        if (remoteInfo.address() instanceof InetSocketAddress) {
+            inetAddr = ((InetSocketAddress) remoteInfo.address()).getAddress();
+            remoteInfo.setIp4Address(Ip4Address.valueOf(inetAddr.getAddress()));
         }
 
         log.debug("BGP Session Connected from {} on {}",
-                  remoteAddress, localAddress);
+                  remoteInfo.address(), localInfo.address());
         if (!bgpSessionManager.peerConnected(this)) {
             log.debug("Cannot setup BGP Session Connection from {}. Closing...",
-                      remoteAddress);
+                      remoteInfo.address());
             ctx.getChannel().close();
         }
 
@@ -653,7 +311,7 @@ public class BgpSession extends SimpleChannelHandler {
         // Assign the local BGP ID
         // NOTE: This should be configuration-based
         //
-        localBgpId = bgpSessionManager.getMyBgpId();
+        localInfo.setBgpId(bgpSessionManager.getMyBgpId());
     }
 
     @Override
@@ -706,6 +364,18 @@ public class BgpSession extends SimpleChannelHandler {
      * @param ctx the Channel Handler Context to use
      */
     void restartKeepaliveTimer(ChannelHandlerContext ctx) {
+        long localKeepaliveInterval = 0;
+
+        //
+        // Compute the local Keepalive interval
+        //
+        if (localInfo.holdtime() != 0) {
+            localKeepaliveInterval = Math.max(localInfo.holdtime() /
+                         BgpConstants.BGP_KEEPALIVE_PER_HOLD_INTERVAL,
+                         BgpConstants.BGP_KEEPALIVE_MIN_INTERVAL);
+        }
+
+        // Restart the Keepalive timer
         if (localKeepaliveInterval == 0) {
             return;                 // Nothing to do
         }
@@ -753,14 +423,14 @@ public class BgpSession extends SimpleChannelHandler {
      * @param ctx the Channel Handler Context to use
      */
     void restartSessionTimeoutTimer(ChannelHandlerContext ctx) {
-        if (remoteHoldtime == 0) {
+        if (remoteInfo.holdtime() == 0) {
             return;                 // Nothing to do
         }
         if (sessionTimeout != null) {
             sessionTimeout.cancel();
         }
         sessionTimeout = timer.newTimeout(new SessionTimeoutTask(ctx),
-                                          remoteHoldtime,
+                                          remoteInfo.holdtime(),
                                           TimeUnit.SECONDS);
     }
 
@@ -788,7 +458,7 @@ public class BgpSession extends SimpleChannelHandler {
                 return;
             }
 
-            log.debug("BGP Session Timeout: peer {}", remoteAddress);
+            log.debug("BGP Session Timeout: peer {}", remoteInfo.address());
             //
             // ERROR: Invalid Optional Parameter Length field: Unspecific
             //

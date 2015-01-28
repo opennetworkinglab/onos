@@ -71,7 +71,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         if (bgpNeighbor != null) {
             // Print the routes from a single neighbor (if found)
             for (BgpSession bgpSession : service.getBgpSessions()) {
-                if (bgpSession.getRemoteBgpId().toString().equals(bgpNeighbor)) {
+                if (bgpSession.remoteInfo().bgpId().toString().equals(bgpNeighbor)) {
                     foundBgpSession = bgpSession;
                     break;
                 }
@@ -152,7 +152,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
             print(FORMAT_ROUTE_LINE1, route.prefix(), route.nextHop(),
                   Update.Origin.typeToString(route.getOrigin()),
                   route.getLocalPref(), route.getMultiExitDisc(),
-                  route.getBgpSession().getRemoteBgpId());
+                  route.getBgpSession().remoteInfo().bgpId());
             print(FORMAT_ROUTE_LINE2, asPath4Cli(route.getAsPath()));
         }
     }
@@ -245,7 +245,8 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
 
         result.put("prefix", route.prefix().toString());
         result.put("nextHop", route.nextHop().toString());
-        result.put("bgpId", route.getBgpSession().getRemoteBgpId().toString());
+        result.put("bgpId",
+                   route.getBgpSession().remoteInfo().bgpId().toString());
         result.put("origin", Update.Origin.typeToString(route.getOrigin()));
         result.put("asPath", json(mapper, route.getAsPath()));
         result.put("localPref", route.getLocalPref());
