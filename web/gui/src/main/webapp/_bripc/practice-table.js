@@ -232,36 +232,77 @@
 
     angular.module('practiceTable', ['onosWidget'])
 
-        .controller('showTableCtrl', ['$log', 'TableService',
-            function ($log, ts) {
-                ts.renderTable(d3.select('#tableDiv'), config, deviceData);
+        .controller('showTableCtrl', ['$log', '$scope', '$rootScope',
+            '$timeout', 'TableService',
+            function ($log, $scope, $rootScope, $timeout, ts) {
+                var table = ts.renderTable(d3.select('#tableDiv'), config, deviceData);
+
+                // --- commented out code below were various attempts at $apply ---
+                // will delete unneeded dependencies once we have figured out which ones we need
+
+                //$timeout(function () {
+                //        $log.log('inside timeout');
+                //        //$scope.$watch('table', function (newVal, oldVal) {
+                //            $scope.$apply();
+                //        //});
+                //    }, 1000);
+
+                //$scope.$applyAsync();
+
+                //$scope.$apply(function () {
+                //    ts.renderTable(d3.select('#tableDiv'), config, deviceData);
+                //});
+
+                //$log.log($scope);
+
+                //$scope.$watch('table', function(newVal, oldVal) {
+                //    //if (newVal === oldVal) { $log.log('hello'); return; }
+                //    $scope.$apply();
+                //});
+                //
+                //$timeout(function () {
+                //    $log.log("in timeout in controller");
+                //    $rootScope.$watch(function () {
+                //            return (table);
+                //        },
+                //        function(newValue, oldValue) {
+                //            if(newValue) {
+                //                $log.log('hello??');
+                //                //$rootScope.$apply();
+                //            }
+                //        }
+                //    );
+                //    //$scope.$apply(table);
+                //    $log.log("after scope.apply")});
             }])
 
-        .directive('fixedHeader', ['$log', '$timeout', function ($log, $timeout) {
-            return {
+        .directive('fixedHeader', ['$log', '$timeout', '$compile',
+            function ($log, $timeout, $compile) {
+             return {
                 restrict: 'A',
                 scope: {
-                    tableHeight: '@'
+                    tHeight: '@'
                 },
 
                 link: function (scope, element, attrs) {
+                    $log.log("in directive");
+
                     var table = d3.select(element[0]),
                         thead = table.select('thead'),
                         tbody = table.select('tbody');
-                    $log.log('in directive function');
 
                     // wait until the table is visible
                     scope.$watch(
                         function () { return (!(table.offsetParent === null)); },
-                        function (newValue, oldValue) {
+                        function(newValue, oldValue) {
                             if (newValue === true) {
 
                                 // ensure thead and tbody have no display
                                 thead.style('display', null);
                                 tbody.style('display', null);
 
-                                $timeout(function() {
-                                    fixTable(table, thead, tbody, scope.tableHeight);
+                                $timeout(function () {
+                                    fixTable(table, thead, tbody, scope.tHeight);
                                 });
                             }
                         });

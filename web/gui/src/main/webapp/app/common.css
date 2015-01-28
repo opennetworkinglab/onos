@@ -18,37 +18,59 @@
  ONOS GUI -- common -- CSS file
  */
 
+/* ------ for summary-list tables ------ */
+
 table.summary-list {
-    margin: 4px 4px;
+    margin: 20px 50px;
     font-size: 10pt;
+    border-spacing: 0;
 }
 
-/* TODO: uncomment following lines for scrollable table */
-/* Possible CSS style for creating a scrollable table */
+/* TODO: delete overflow and block (handled by fixed-header directive) */
 table.summary-list tbody {
     height: 500px;
+    border-radius: 0 0 8px 8px;
     overflow: auto;
     display: block;
 }
 
+.light table.summary-list tr:nth-child(even) {
+    background-color: #ddd;
+}
+.light table.summary-list tr:nth-child(odd) {
+    background-color: #eee;
+}
+.dark table.summary-list tr:nth-child(even) {
+    background-color: #333;
+}
+.dark table.summary-list tr:nth-child(odd) {
+    background-color: #444;
+}
+
 table.summary-list th {
-    padding: 5px;
+    padding: 10px;
+    letter-spacing: 0.02em;
+}
+table.summary-list th:first-child {
+    border-radius: 8px 0 0 0;
+}
+table.summary-list th:last-child {
+    border-radius: 0 8px 0 0;
 }
 .light table.summary-list th {
     background-color: #bbb;
 }
 .dark table.summary-list th {
-    background-color: #444;
-    color: #ddd;
+    background-color: #222;
+    color: #ccc;
 }
 
 table.summary-list td {
     padding: 5px;
-}
-.light table.summary-list td {
-    background-color: #ddd;
+    text-align: center;
 }
 .dark table.summary-list td {
-    background-color: #666;
-    color: #ddd;
+    color: #ccc;
 }
+
+/* ------------------------------------ */
