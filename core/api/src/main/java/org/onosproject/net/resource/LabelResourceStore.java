@@ -3,15 +3,11 @@ package org.onosproject.net.resource;
 import java.util.Collection;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.resource.DefaultLabelResource;
-import org.onosproject.net.resource.LabelResourceDelegate;
-import org.onosproject.net.resource.LabelResourceEvent;
-import org.onosproject.net.resource.LabelResourcePool;
 import org.onosproject.store.Store;
 
 import com.google.common.collect.Multimap;
+
 /**
- * 
  * manages inventory of label; not intended for direct use.
  *
  */
@@ -50,7 +46,7 @@ public interface LabelResourceStore
     Collection<DefaultLabelResource> apply(DeviceId deviceId, long applyNum);
 
     /**
-     * release unused labels to pool
+     * release unused labels to pool.
      * @param release
      * @return success or fail
      */

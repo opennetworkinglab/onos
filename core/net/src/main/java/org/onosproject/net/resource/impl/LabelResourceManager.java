@@ -34,7 +34,9 @@ public class LabelResourceManager implements LabelResourceService {
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
-    private final AbstractListenerRegistry<LabelResourceEvent, LabelResourceListener> listenerRegistry = new AbstractListenerRegistry<>();
+    private final AbstractListenerRegistry<LabelResourceEvent, LabelResourceListener> listenerRegistry
+                                                                                = new AbstractListenerRegistry<>();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LabelResourceStore store;
 

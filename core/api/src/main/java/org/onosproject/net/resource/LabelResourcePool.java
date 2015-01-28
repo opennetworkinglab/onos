@@ -23,7 +23,7 @@ public class LabelResourcePool {
         this.beginLabel = beginLabel;
         this.endLabel = endLabel;
         this.totalNum = endLabel - beginLabel + 1;
-        this.usedNum = 0l;
+        this.usedNum = 0L;
         this.currentUsedMaxLabelId = beginLabel;
         this.releaseLabelId = new LinkedList<DefaultLabelResource>();
     }
@@ -88,9 +88,8 @@ public class LabelResourcePool {
     public int hashCode() {
         // TODO Auto-generated method stub
         return Objects.hashCode(this.deviceId.toString() + this.beginLabel
-                                + this.endLabel
-                                + this.totalNum
-                                + this.usedNum+this.currentUsedMaxLabelId+this.releaseLabelId.toString());
+                + this.endLabel + this.totalNum + this.usedNum
+                + this.currentUsedMaxLabelId + this.releaseLabelId.toString());
     }
 
     @Override
@@ -98,13 +97,15 @@ public class LabelResourcePool {
         if (obj instanceof LabelResourcePool) {
             LabelResourcePool that = (LabelResourcePool) obj;
             return Objects.equals(this.deviceId.toString() + this.beginLabel
-                                          + this.endLabel
-                                          + this.totalNum
-                                          + this.usedNum+this.currentUsedMaxLabelId+this.releaseLabelId.toString(),
-                                          that.deviceId.toString() + that.beginLabel
-                                          + that.endLabel
-                                          + that.totalNum
-                                          + that.usedNum+that.currentUsedMaxLabelId+that.releaseLabelId.toString());
+                                          + this.endLabel + this.totalNum
+                                          + this.usedNum
+                                          + this.currentUsedMaxLabelId
+                                          + this.releaseLabelId.toString(),
+                                  that.deviceId.toString() + that.beginLabel
+                                          + that.endLabel + that.totalNum
+                                          + that.usedNum
+                                          + that.currentUsedMaxLabelId
+                                          + that.releaseLabelId.toString());
         }
         return false;
     }
@@ -114,8 +115,8 @@ public class LabelResourcePool {
         // TODO Auto-generated method stub
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", this.deviceId.toString())
-                .add("beginLabel", this.beginLabel).add("endLabel", this.endLabel)
-                .add("totalNum", this.totalNum)
+                .add("beginLabel", this.beginLabel)
+                .add("endLabel", this.endLabel).add("totalNum", this.totalNum)
                 .add("usedNum", this.usedNum)
                 .add("currentUsedMaxLabelId", this.currentUsedMaxLabelId)
                 .add("releaseLabelId", this.releaseLabelId.toString())
