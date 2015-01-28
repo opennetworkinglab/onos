@@ -626,9 +626,11 @@ public class IntentManager
                 // intents with the top-level intent and proceed to install.
                 return Optional.of(new Installing(intent, compileIntent(intent, null)));
             } catch (PathNotFoundException e) {
-                return Optional.of(new CompilingFailed(intent, e));
+                log.debug("Path not found for intent {}", intent);
+                return Optional.of(new CompilingFailed(intent));
             } catch (IntentException e) {
-                return Optional.of(new CompilingFailed(intent, e));
+                log.warn("Unable to compile intent {} due to:", intent.id(), e);
+                return Optional.of(new CompilingFailed(intent));
             }
         }
     }
@@ -918,34 +920,6 @@ public class IntentManager
             batches.addAll(uninstallIntent(newIntent, newInstallables));
 
             // TODO we might want to try to recompile the new intent
-        }
-    }
-
-    private class CompilingFailed implements CompletedIntentUpdate {
-
-        private final Intent intent;
-        private final IntentException exception;
-
-        CompilingFailed(Intent intent, IntentException exception) {
-            this.intent = checkNotNull(intent);
-            this.exception = checkNotNull(exception);
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            if (exception instanceof PathNotFoundException) {
-                log.debug("Path not found for intent {}", intent);
-            } else {
-                log.warn("Unable to compile intent {} due to:", intent.id(), exception);
-            }
-
-            return Optional.empty();
-        }
-
-        @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, FAILED);
-            batchWrite.removeInstalledIntents(intent.id());
         }
     }
 
