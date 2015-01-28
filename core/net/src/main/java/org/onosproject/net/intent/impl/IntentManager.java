@@ -564,9 +564,6 @@ public class IntentManager
         }
     }
 
-    private class DoNothing implements CompletedIntentUpdate {
-    }
-
     // TODO: better naming
     private class WithdrawStateChange1 implements CompletedIntentUpdate {
 
