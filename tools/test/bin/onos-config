@@ -31,6 +31,9 @@ ssh $remote "
     echo "log4j.logger.net.kuujo.copycat= INFO" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 
+    # Suppress Hazelcast multicast joiner warning
+    echo "log4j.logger.com.hazelcast.cluster.impl.MulticastService= ERROR" \
+        >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 "
 
 # Generate a default tablets.json from the ON* environment variables
