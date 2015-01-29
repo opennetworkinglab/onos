@@ -96,8 +96,9 @@
             // forceG is the SVG group to display the force layout in
             // w, h are the initial dimensions of the SVG
             // opts are, well, optional :)
-            function initForce (forceG, w, h, opts) {
-                // TODO: create the force layout and initialize
+            function initForce(forceG, w, h, opts) {
+                $log.debug('initForce().. WxH = ' + w + 'x' + h);
+
                 settings = angular.extend({}, defaultSettings, opts);
 
                 linkG = forceG.append('g').attr('id', 'topo-links');
@@ -109,7 +110,7 @@
                 node = nodeG.selectAll('.node');
 
                 force = d3.layout.force()
-                    .size(w, h)
+                    .size([w, h])
                     .nodes(network.nodes)
                     .links(network.links)
                     .gravity(settings.gravity)
@@ -124,8 +125,9 @@
             }
 
             function resize(w, h) {
-                force.size(w, h);
+                force.size([w, h]);
                 // Review -- do we need to nudge the layout ?
+
             }
 
             return {

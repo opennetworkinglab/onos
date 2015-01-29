@@ -20,7 +20,11 @@
 (function () {
     'use strict';
 
+    // injected services
     var $log;
+
+    // configuration
+    var mastHeight = 36;
 
     angular.module('onosMast', ['onosNav'])
         .controller('MastCtrl', ['$log', 'NavService', function (_$log_, ns) {
@@ -37,6 +41,13 @@
             };
 
             $log.log('MastCtrl has been created');
+        }])
+
+        // also define a service to allow lookup of mast height.
+        .factory('MastService', [function () {
+            return {
+                mastHeight: function () { return mastHeight; }
+            }
         }]);
 
 }());

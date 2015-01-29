@@ -18,7 +18,8 @@
  ONOS GUI -- Util -- General Purpose Functions - Unit Tests
  */
 describe('factory: fw/util/fn.js', function() {
-    var fs,
+    var $window,
+        fs,
         someFunction = function () {},
         someArray = [1, 2, 3],
         someObject = { foo: 'bar'},
@@ -29,8 +30,12 @@ describe('factory: fw/util/fn.js', function() {
 
     beforeEach(module('onosUtil'));
 
-    beforeEach(inject(function (FnService) {
+    beforeEach(inject(function (_$window_, FnService) {
+        $window = _$window_;
         fs = FnService;
+
+        $window.innerWidth = 400;
+        $window.innerHeight = 200;
     }));
 
 
@@ -186,4 +191,28 @@ describe('factory: fw/util/fn.js', function() {
     });
 
 
+    // === Tests for windowSize()
+    it('windowSize(): noargs', function () {
+        var dim = fs.windowSize();
+        expect(dim.width).toEqual(400);
+        expect(dim.height).toEqual(200);
+    });
+
+    it('windowSize(): adjust height', function () {
+        var dim = fs.windowSize(50);
+        expect(dim.width).toEqual(400);
+        expect(dim.height).toEqual(150);
+    });
+
+    it('windowSize(): adjust width', function () {
+        var dim = fs.windowSize(0, 50);
+        expect(dim.width).toEqual(350);
+        expect(dim.height).toEqual(200);
+    });
+
+    it('windowSize(): adjust width and height', function () {
+        var dim = fs.windowSize(101, 201);
+        expect(dim.width).toEqual(199);
+        expect(dim.height).toEqual(99);
+    });
 });

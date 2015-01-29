@@ -20,6 +20,8 @@
 (function () {
     'use strict';
 
+    var $window;
+
     function isF(f) {
         return typeof f === 'function' ? f : null;
     }
@@ -58,15 +60,29 @@
         return true;
     }
 
+    // Returns width and height of window inner dimensions.
+    // offH, offW : offset width/height are subtracted, if present
+    function windowSize(offH, offW) {
+        var oh = offH || 0,
+            ow = offW || 0;
+        return {
+            height: $window.innerHeight - oh,
+            width: $window.innerWidth - ow
+        };
+    }
+
     angular.module('onosUtil')
-        .factory('FnService', [function () {
+        .factory('FnService', ['$window', function (_$window_) {
+            $window = _$window_;
+
             return {
                 isF: isF,
                 isA: isA,
                 isS: isS,
                 isO: isO,
                 contains: contains,
-                areFunctions: areFunctions
+                areFunctions: areFunctions,
+                windowSize: windowSize
             };
     }]);
 

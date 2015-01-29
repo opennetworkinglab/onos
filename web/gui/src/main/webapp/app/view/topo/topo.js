@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, ks, zs, gs, ms, ps, tes, tfs;
+    var $log, fs, ks, zs, gs, ms, ps, tes, tfs;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG;
@@ -102,7 +102,8 @@
 
     // callback invoked when the SVG view has been resized..
     function svgResized(w, h) {
-        // not used now, but may be required later...
+        $log.debug('TopoView just resized... ' + w + 'x' + h);
+        tfs.resize(w, h);
     }
 
     // --- Background Map ------------------------------------------------
@@ -133,7 +134,7 @@
 
     function setUpForce() {
         forceG = zoomLayer.append('g').attr('id', 'topo-force');
-        tfs.initForce(forceG);
+        tfs.initForce(forceG, svg.attr('width'), svg.attr('height'));
     }
 
 
@@ -143,13 +144,15 @@
 
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
+            'FnService', 'MastService',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
             'PanelService', 'TopoEventService', 'TopoForceService',
 
-        function ($scope, _$log_, $loc, $timeout,
+        function ($scope, _$log_, $loc, $timeout, _fs_, mast,
                   _ks_, _zs_, _gs_, _ms_, _ps_, _tes_, _tfs_) {
             var self = this;
             $log = _$log_;
+            fs = _fs_;
             ks = _ks_;
             zs = _zs_;
             gs = _gs_;
@@ -159,7 +162,7 @@
             tfs = _tfs_;
 
             self.notifyResize = function () {
-                svgResized(svg.style('width'), svg.style('height'));
+                svgResized(svg.attr('width'), svg.attr('height'));
             };
 
             // Cleanup on destroyed scope..
@@ -172,6 +175,8 @@
             // svg layer and initialization of components
             ovtopo = d3.select('#ov-topo');
             svg = ovtopo.select('svg');
+            // set the svg size to match that of the window, less the masthead
+            svg.attr(fs.windowSize(mast.mastHeight()));
 
             // bind to topo event dispatcher..
             evDispatcher = tes.bindDispatcher('TODO: topo-DOM-elements-here');

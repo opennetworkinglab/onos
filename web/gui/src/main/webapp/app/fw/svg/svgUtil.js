@@ -34,9 +34,99 @@
             $log = _$log_;
             fs = _fs_;
 
-            function createDragBehavior() {
-                $log.warn('SvgUtilService: createDragBehavior -- To Be Implemented');
-            }
+            function createDragBehavior(force, selectCb, atDragEnd,
+                                        dragEnabled, clickEnabled) {
+                var draggedThreshold = d3.scale.linear()
+                        .domain([0, 0.1])
+                        .range([5, 20])
+                        .clamp(true),
+                    drag,
+                    fSel = fs.isF(selectCb),
+                    fEnd = fs.isF(atDragEnd),
+                    fDEn = fs.isF(dragEnabled),
+                    fCEn = fs.isF(clickEnabled),
+                    bad = [];
+
+                function naf(what) {
+                    return 'SvgUtilService: createDragBehavior(): ' + what +
+                        ' is not a function';
+                }
+
+                if (!fSel) {
+                    bad.push(naf('selectCb'));
+                }
+                if (!fEnd) {
+                    bad.push(naf('atDragEnd'));
+                }
+                if (!fDEn) {
+                    bad.push(naf('dragEnabled'));
+                }
+                if (!fCEn) {
+                    bad.push(naf('clickEnabled'));
+                }
+
+                if (bad.length) {
+                    $log.error(bad.join('\n'));
+                    return null;
+                }
+
+
+                function dragged(d) {
+                    var threshold = draggedThreshold(force.alpha()),
+                        dx = d.oldX - d.px,
+                        dy = d.oldY - d.py;
+                    if (Math.abs(dx) >= threshold || Math.abs(dy) >= threshold) {
+                        d.dragged = true;
+                    }
+                    return d.dragged;
+                }
+
+                drag = d3.behavior.drag()
+                    .origin(function(d) { return d; })
+                    .on('dragstart', function(d) {
+                        if (clickEnabled() || dragEnabled()) {
+                            d3.event.sourceEvent.stopPropagation();
+
+                            d.oldX = d.x;
+                            d.oldY = d.y;
+                            d.dragged = false;
+                            d.fixed |= 2;
+                            d.dragStarted = true;
+                        }
+                    })
+                    .on('drag', function(d) {
+                        if (dragEnabled()) {
+                            d.px = d3.event.x;
+                            d.py = d3.event.y;
+                            if (dragged(d)) {
+                                if (!force.alpha()) {
+                                    force.alpha(.025);
+                                }
+                            }
+                        }
+                    })
+                    .on('dragend', function(d) {
+                        if (d.dragStarted) {
+                            d.dragStarted = false;
+                            if (!dragged(d)) {
+                                // consider this the same as a 'click'
+                                // (selection of a node)
+                                if (clickEnabled()) {
+                                    selectCb(d, this);
+                                    // TODO: set 'this' context instead of param
+                                }
+                            }
+                            d.fixed &= ~6;
+
+                            // hook at the end of a drag gesture
+                            if (dragEnabled()) {
+                                atDragEnd(d, this);
+                                // TODO: set 'this' context instead of param
+                            }
+                        }
+                    });
+
+                return drag;            }
 
             function loadGlow() {
                 $log.warn('SvgUtilService: loadGlow -- To Be Implemented');

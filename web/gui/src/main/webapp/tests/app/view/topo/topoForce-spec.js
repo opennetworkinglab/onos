@@ -34,7 +34,7 @@ describe('factory: view/topo/topoForce.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tfs, [
-            'initForce'
+            'initForce', 'resize'
         ])).toBeTruthy();
     });
 
