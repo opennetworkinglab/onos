@@ -11,10 +11,12 @@ import com.google.common.collect.ImmutableSet;
  * Representation of a completed flow rule batch operation.
  */
 public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleExtEntry> {
+    private final int batchId;
     private final boolean success;
     private final Set<FlowRuleExtEntry> failures;
 
-    public FlowExtCompletedOperation(boolean success, Set<FlowRuleExtEntry> failures) {
+    public FlowExtCompletedOperation(int batchId, boolean success, Set<FlowRuleExtEntry> failures) {
+        this.batchId = batchId;
         this.success = success;
         this.failures = ImmutableSet.copyOf(failures);
     }
@@ -22,6 +24,10 @@ public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleE
     @Override
     public boolean isSuccess() {
         return success;
+    }
+
+    public int getBatchId() {
+        return batchId;
     }
 
     @Override

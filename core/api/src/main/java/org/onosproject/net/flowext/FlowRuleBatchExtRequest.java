@@ -16,6 +16,8 @@
 package org.onosproject.net.flowext;
 
 import java.util.Collection;
+
+import com.google.common.collect.ImmutableList;
 public class FlowRuleBatchExtRequest {
 
     private final int batchId;
@@ -27,7 +29,7 @@ public class FlowRuleBatchExtRequest {
 
     public FlowRuleBatchExtRequest(int batchId, Collection<FlowRuleExtEntry> toAdd) {
         this.batchId = batchId;
-        this.toAdd = toAdd;
+        this.toAdd = ImmutableList.copyOf(toAdd);
     }
 
     public Collection<FlowRuleExtEntry> getBatch() {

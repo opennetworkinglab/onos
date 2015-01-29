@@ -36,7 +36,7 @@ public interface FlowRuleExtStore extends Store<FlowRuleBatchExtEvent, FlowRuleE
      * @return Future response indicating success/failure of the batch operation
      * all the way down to the device.
      */
-    Future<FlowExtCompletedOperation> storeBatch(Collection<FlowRuleExtEntry> batchOperation);
+    Future<FlowExtCompletedOperation> storeBatch(FlowRuleBatchExtRequest batchOperation);
 
     /**
      * Invoked on the completion of a storeBatch operation.

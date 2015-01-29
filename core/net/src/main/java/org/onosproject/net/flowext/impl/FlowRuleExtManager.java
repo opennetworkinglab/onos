@@ -138,8 +138,8 @@ public class FlowRuleExtManager
                 flowRuleProvider.applyFlowRule(flowrules);
                 // do not have transaction, assume it install success
                 // temporarily
-                FlowExtCompletedOperation result = new FlowExtCompletedOperation(true,
-                                     Collections.<FlowRuleExtEntry> emptySet());
+                FlowExtCompletedOperation result = new FlowExtCompletedOperation(
+                        flowrules.batchId(), true, Collections.<FlowRuleExtEntry> emptySet());
                 store.batchOperationComplete(FlowRuleBatchExtEvent
                         .completed(flowrules, result));
                 break;
@@ -174,21 +174,23 @@ public class FlowRuleExtManager
      * @return future indicating the state of the batch operation
      */
     @Override
-    public Future<FlowExtCompletedOperation> applyBatch(Collection<FlowRuleExtEntry> batch) {
+    public Future<FlowExtCompletedOperation> applyBatch(FlowRuleBatchExtRequest batch) {
         // TODO group the Collection into sub-Collection by deviceId
         Multimap<DeviceId, FlowRuleExtEntry> perDeviceBatches = ArrayListMultimap
                 .create();
         List<Future<FlowExtCompletedOperation>> futures = Lists.newArrayList();
-        for (FlowRuleExtEntry fbe : batch) {
+        Collection<FlowRuleExtEntry> entries = batch.getBatch();
+        for (FlowRuleExtEntry fbe : entries) {
             perDeviceBatches.put(fbe.getDeviceId(), fbe);
         }
 
         for (DeviceId deviceId : perDeviceBatches.keySet()) {
             Collection<FlowRuleExtEntry> flows = perDeviceBatches.get(deviceId);
-            Future<FlowExtCompletedOperation> future = store.storeBatch(flows);
+            FlowRuleBatchExtRequest subBatch = new FlowRuleBatchExtRequest(batch.batchId(), flows);
+            Future<FlowExtCompletedOperation> future = store.storeBatch(subBatch);
             futures.add(future);
         }
-        return new FlowRuleBatchFuture(futures, perDeviceBatches);
+        return new FlowRuleBatchFuture(batch.batchId(), futures, perDeviceBatches);
     }
 
     /**
@@ -240,13 +242,15 @@ public class FlowRuleExtManager
 
         private final List<Future<FlowExtCompletedOperation>> futures;
         private final Multimap<DeviceId, FlowRuleExtEntry> batches;
+        private final int batchId;
         private final AtomicReference<BatchState> state;
         private FlowExtCompletedOperation overall;
 
-        public FlowRuleBatchFuture(List<Future<FlowExtCompletedOperation>> futures,
+        public FlowRuleBatchFuture(int batchId, List<Future<FlowExtCompletedOperation>> futures,
                                    Multimap<DeviceId, FlowRuleExtEntry> batches) {
             this.futures = futures;
             this.batches = batches;
+            this.batchId = batchId;
             state = new AtomicReference<FlowRuleExtManager.BatchState>();
             state.set(BatchState.STARTED);
         }
@@ -402,7 +406,7 @@ public class FlowRuleExtManager
                     }
                     throw new CancellationException();
                 }
-                overall = new FlowExtCompletedOperation(success, failed);
+                overall = new FlowExtCompletedOperation(batchId, success, failed);
                 return overall;
             }
         }

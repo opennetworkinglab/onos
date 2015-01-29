@@ -169,7 +169,7 @@ public class DistributedFlowRuleExtStore
             @Override
             public void handle(ClusterMessage message) {
                  // decode the extended flow entry and store them in memory. 
-                 ImmutableList<FlowRuleExtEntry> operation = storeSeialize.decode(message.payload());
+                 FlowRuleBatchExtRequest operation = storeSeialize.decode(message.payload());
                  log.info("received batch request {}", operation);
                  final ListenableFuture<FlowExtCompletedOperation> f = storeBatchInternal(operation);
                  f.addListener(new Runnable() {
@@ -324,14 +324,14 @@ public class DistributedFlowRuleExtStore
      * all the way down to the device.
      */
     @Override
-    public Future<FlowExtCompletedOperation> storeBatch(Collection<FlowRuleExtEntry> batchOperation) {
+    public Future<FlowExtCompletedOperation> storeBatch(FlowRuleBatchExtRequest batchOperation) {
         // TODO Auto-generated method stub
-        if (batchOperation.isEmpty()) {
+        if (batchOperation.getBatch().isEmpty()) {
             return Futures.immediateFuture(new FlowExtCompletedOperation(
-                                      true, Collections.<FlowRuleExtEntry>emptySet()));
+                 batchOperation.batchId(), true, Collections.<FlowRuleExtEntry>emptySet()));
         }
         // get the deviceId all the collection belongs to
-        DeviceId deviceId = getBatchDeviceId(batchOperation);
+        DeviceId deviceId = getBatchDeviceId(batchOperation.getBatch());
 
         if (deviceId == null) {
             log.error("This Batch exists more than two deviceId");
@@ -348,10 +348,8 @@ public class DistributedFlowRuleExtStore
         log.trace("Forwarding storeBatch to {}, which is the primary (master) for device {}",
                   replicaInfo.master().orNull(), deviceId);
 
-        ImmutableList<FlowRuleExtEntry> flowmsgs = ImmutableList
-                .copyOf(batchOperation);
         ClusterMessage message = new ClusterMessage(clusterService
-                .getLocalNode().id(), APPLY_EXTEND_FLOWS, storeSeialize.encode(flowmsgs));
+                .getLocalNode().id(), APPLY_EXTEND_FLOWS, storeSeialize.encode(batchOperation));
 
         try {
             ListenableFuture<byte[]> responseFuture = clusterCommunicator
@@ -389,10 +387,11 @@ public class DistributedFlowRuleExtStore
      * @return  Future response indicating success/failure of the batch operation
      * all the way down to the device.
      */
-    private ListenableFuture<FlowExtCompletedOperation> storeBatchInternal(Collection<FlowRuleExtEntry> batchOperation) {
+    private ListenableFuture<FlowExtCompletedOperation> storeBatchInternal(FlowRuleBatchExtRequest batchOperation) {
+        Collection<FlowRuleExtEntry> entries = batchOperation.getBatch();
         flowEntriesLock.writeLock().lock();
         try {
-            for (FlowRuleExtEntry operation : batchOperation) {
+            for (FlowRuleExtEntry operation : entries) {
                 if (!extendFlowEntries.containsEntry(operation.getDeviceId(),
                                                      operation)) {
                     extendFlowEntries.put(operation.getDeviceId(), operation);
@@ -402,10 +401,9 @@ public class DistributedFlowRuleExtStore
             flowEntriesLock.writeLock().unlock();
         }
         SettableFuture<FlowExtCompletedOperation> r = SettableFuture.create();
-        final int batchId = localBatchIdGen.incrementAndGet();
-        pendingExtendFutures.put(batchId, r);
+        pendingExtendFutures.put(batchOperation.batchId(), r);
         delegate.notify(FlowRuleBatchExtEvent
-                .requested(new FlowRuleBatchExtRequest(batchId, batchOperation)));
+                .requested(batchOperation));
         return r;
     }
 
@@ -484,6 +482,7 @@ public class DistributedFlowRuleExtStore
                     .newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .register(FlowExtCompletedOperation.class)
+                    .register(FlowRuleBatchExtRequest.class)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(new FlowRuleExtEntrySerializer(),
                               FlowRuleExtEntry.class).build();

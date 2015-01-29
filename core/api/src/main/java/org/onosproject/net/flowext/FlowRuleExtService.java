@@ -47,7 +47,7 @@ public interface FlowRuleExtService {
      * @param batch batch operation to apply
      * @return future indicating the state of the batch operation
      */
-    Future<FlowExtCompletedOperation> applyBatch(Collection<FlowRuleExtEntry> batch);
+    Future<FlowExtCompletedOperation> applyBatch(FlowRuleBatchExtRequest batch);
 
     /**
      * Adds the specified flow rule listener.
