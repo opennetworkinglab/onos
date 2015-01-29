@@ -34,7 +34,7 @@
     var ovtopo, svg, defs, zoomLayer, mapG, forceG;
 
     // Internal state
-    var zoomer, evDispatcher;
+    var zoomer;
 
     // Note: "exported" state should be properties on 'self' variable
 
@@ -174,9 +174,6 @@
             svg = ovtopo.select('svg');
             // set the svg size to match that of the window, less the masthead
             svg.attr(fs.windowSize(mast.mastHeight()));
-
-            // bind to topo event dispatcher..
-            evDispatcher = tes.bindDispatcher('TODO: topo-DOM-elements-here');
 
             setUpKeys();
             setUpDefs();

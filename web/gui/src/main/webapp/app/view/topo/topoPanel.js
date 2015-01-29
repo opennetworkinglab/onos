@@ -70,10 +70,8 @@
     function populateSummary(data) {
         summaryPanel.empty();
 
-        var svg = summaryPanel.append('svg'); //.style('background-color', 'goldenrod'),
-            //iid = '#' + (data.type || 'unknown');
-
-        var title = summaryPanel.append('h2'),
+        var svg = summaryPanel.append('svg'),
+            title = summaryPanel.append('h2'),
             table = summaryPanel.append('table'),
             tbody = table.append('tbody');
 

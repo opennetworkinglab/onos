@@ -203,6 +203,7 @@
         });
     }
 
+    // trans can specify translation [x,y]
     function addGlyph(elem, glyphId, size, overlay, trans) {
         var sz = size || 40,
             ovr = !!overlay,
