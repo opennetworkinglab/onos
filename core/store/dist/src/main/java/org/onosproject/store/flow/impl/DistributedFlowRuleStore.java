@@ -363,7 +363,7 @@ public class DistributedFlowRuleStore
                                                                        Collections.<FlowRule>emptySet()));
         }
 
-        DeviceId deviceId = operation.getOperations().get(0).getTarget().deviceId();
+        DeviceId deviceId = operation.getOperations().get(0).target().deviceId();
 
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
 
@@ -407,8 +407,8 @@ public class DistributedFlowRuleStore
         flowEntriesLock.writeLock().lock();
         try {
             for (FlowRuleBatchEntry batchEntry : operation.getOperations()) {
-                FlowRule flowRule = batchEntry.getTarget();
-                FlowRuleOperation op = batchEntry.getOperator();
+                FlowRule flowRule = batchEntry.target();
+                FlowRuleOperation op = batchEntry.operator();
                 if (did == null) {
                     did = flowRule.deviceId();
                 }
@@ -640,13 +640,13 @@ public class DistributedFlowRuleStore
             FlowRuleBatchOperation operation = SERIALIZER.decode(message.payload());
             log.debug("received batch request {}", operation);
 
-            final DeviceId deviceId = operation.getOperations().get(0).getTarget().deviceId();
+            final DeviceId deviceId = operation.getOperations().get(0).target().deviceId();
             ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
             if (!local.equals(replicaInfo.master().orNull())) {
 
                 Set<FlowRule> failures = new HashSet<>(operation.size());
                 for (FlowRuleBatchEntry op : operation.getOperations()) {
-                    failures.add(op.getTarget());
+                    failures.add(op.target());
                 }
                 CompletedBatchOperation allFailed = new CompletedBatchOperation(false, failures);
                 // This node is no longer the master, respond as all failed.
@@ -675,7 +675,7 @@ public class DistributedFlowRuleStore
                         // create everything failed response
                         Set<FlowRule> failures = new HashSet<>(operation.size());
                         for (FlowRuleBatchEntry op : operation.getOperations()) {
-                            failures.add(op.getTarget());
+                            failures.add(op.target());
                         }
                         result = new CompletedBatchOperation(false, failures);
                     }
@@ -754,7 +754,7 @@ public class DistributedFlowRuleStore
                 final SMap<FlowId, ImmutableList<StoredFlowEntry>> backupFlowTable = smaps.get(deviceId);
                 // Following should be rewritten using async APIs
                 for (FlowRuleBatchEntry bEntry : toAdd) {
-                    final FlowRule entry = bEntry.getTarget();
+                    final FlowRule entry = bEntry.target();
                     final FlowId id = entry.id();
                     ImmutableList<StoredFlowEntry> original = backupFlowTable.get(id);
                     List<StoredFlowEntry> list = new ArrayList<>();
@@ -762,7 +762,7 @@ public class DistributedFlowRuleStore
                         list.addAll(original);
                     }
 
-                    list.remove(bEntry.getTarget());
+                    list.remove(bEntry.target());
                     list.add((StoredFlowEntry) entry);
 
                     ImmutableList<StoredFlowEntry> newValue = ImmutableList.copyOf(list);
@@ -777,7 +777,7 @@ public class DistributedFlowRuleStore
                     }
                 }
                 for (FlowRuleBatchEntry bEntry : toRemove) {
-                    final FlowRule entry = bEntry.getTarget();
+                    final FlowRule entry = bEntry.target();
                     final FlowId id = entry.id();
                     ImmutableList<StoredFlowEntry> original = backupFlowTable.get(id);
                     List<StoredFlowEntry> list = new ArrayList<>();
@@ -785,7 +785,7 @@ public class DistributedFlowRuleStore
                         list.addAll(original);
                     }
 
-                    list.remove(bEntry.getTarget());
+                    list.remove(bEntry.target());
 
                     ImmutableList<StoredFlowEntry> newValue = ImmutableList.copyOf(list);
                     boolean success;

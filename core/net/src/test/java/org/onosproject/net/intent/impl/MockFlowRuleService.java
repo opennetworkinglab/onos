@@ -56,8 +56,8 @@ public class MockFlowRuleService implements FlowRuleService {
     @Override
     public Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch) {
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
-            FlowRule fr = fbe.getTarget();
-            switch (fbe.getOperator()) {
+            FlowRule fr = fbe.target();
+            switch (fbe.operator()) {
                 case ADD:
                     flows.add(fr);
                     break;

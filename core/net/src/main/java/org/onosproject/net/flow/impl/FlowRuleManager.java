@@ -186,7 +186,7 @@ public class FlowRuleManager
                 ArrayListMultimap.create();
         List<Future<CompletedBatchOperation>> futures = Lists.newArrayList();
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
-            final FlowRule f = fbe.getTarget();
+            final FlowRule f = fbe.target();
             perDeviceBatches.put(f.deviceId(), fbe);
         }
 
@@ -400,7 +400,7 @@ public class FlowRuleManager
                 FlowRuleBatchOperation batchOperation = request.asBatchOperation();
 
                 FlowRuleProvider flowRuleProvider =
-                        getProvider(batchOperation.getOperations().get(0).getTarget().deviceId());
+                        getProvider(batchOperation.getOperations().get(0).target().deviceId());
                 final Future<CompletedBatchOperation> result =
                         flowRuleProvider.executeBatch(batchOperation);
                 futureService.submit(new Runnable() {
@@ -416,7 +416,7 @@ public class FlowRuleManager
 
                             Set<FlowRule> failures = new HashSet<>(batchOperation.size());
                             for (FlowRuleBatchEntry op : batchOperation.getOperations()) {
-                                failures.add(op.getTarget());
+                                failures.add(op.target());
                             }
                             res = new CompletedBatchOperation(false, failures);
                             store.batchOperationComplete(FlowRuleBatchEvent.completed(request, res));
@@ -565,12 +565,12 @@ public class FlowRuleManager
             log.debug("cleaning up batch");
             // TODO convert these into a batch?
             for (FlowRuleBatchEntry fbe : batches.values()) {
-                if (fbe.getOperator() == FlowRuleOperation.ADD ||
-                    fbe.getOperator() == FlowRuleOperation.MODIFY) {
-                    store.deleteFlowRule(fbe.getTarget());
-                } else if (fbe.getOperator() == FlowRuleOperation.REMOVE) {
-                    store.removeFlowRule(new DefaultFlowEntry(fbe.getTarget()));
-                    store.storeFlowRule(fbe.getTarget());
+                if (fbe.operator() == FlowRuleOperation.ADD ||
+                    fbe.operator() == FlowRuleOperation.MODIFY) {
+                    store.deleteFlowRule(fbe.target());
+                } else if (fbe.operator() == FlowRuleOperation.REMOVE) {
+                    store.removeFlowRule(new DefaultFlowEntry(fbe.target()));
+                    store.storeFlowRule(fbe.target());
                 }
             }
         }

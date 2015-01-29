@@ -201,7 +201,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
          */
         Map<OFFlowMod, OpenFlowSwitch> mods = Maps.newIdentityHashMap();
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
-            FlowRule flowRule = fbe.getTarget();
+            FlowRule flowRule = fbe.target();
             final Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
             OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
@@ -220,7 +220,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     FlowModBuilder.builder(flowRule, sw.factory(),
                                            Optional.of(flowModXid));
             OFFlowMod mod = null;
-            switch (fbe.getOperator()) {
+            switch (fbe.operator()) {
                 case ADD:
                     mod = builder.buildFlowAdd();
                     break;
@@ -231,7 +231,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     mod = builder.buildFlowMod();
                     break;
                 default:
-                    log.error("Unsupported batch operation {}", fbe.getOperator());
+                    log.error("Unsupported batch operation {}", fbe.operator());
             }
             if (mod != null) {
                 mods.put(mod, sw);
@@ -406,7 +406,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             FlowEntry fe = null;
             FlowRuleBatchEntry fbe = fms.get(msg.getXid());
             failedId = fbe.id();
-            FlowRule offending = fbe.getTarget();
+            FlowRule offending = fbe.target();
             //TODO handle specific error msgs
             switch (msg.getErrType()) {
                 case BAD_ACTION:
@@ -482,11 +482,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             this.state = BatchState.CANCELLED;
             cleanUp();
             for (FlowRuleBatchEntry fbe : fms.values()) {
-                if (fbe.getOperator() == FlowRuleOperation.ADD ||
-                        fbe.getOperator() == FlowRuleOperation.MODIFY) {
-                    removeFlowRule(fbe.getTarget());
-                } else if (fbe.getOperator() == FlowRuleOperation.REMOVE) {
-                    applyRule(fbe.getTarget());
+                if (fbe.operator() == FlowRuleOperation.ADD ||
+                        fbe.operator() == FlowRuleOperation.MODIFY) {
+                    removeFlowRule(fbe.target());
+                } else if (fbe.operator() == FlowRuleOperation.REMOVE) {
+                    applyRule(fbe.target());
                 }
 
             }
@@ -554,7 +554,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     .add("pending devices", sws)
                     .add("devices in batch",
                          fms.values().stream()
-                             .map((fbe) -> fbe.getTarget().deviceId())
+                             .map((fbe) -> fbe.target().deviceId())
                              .distinct().collect(Collectors.toList()))
                     .add("failedId", failedId)
                     .add("latchCount", countDownLatch.getCount())

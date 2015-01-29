@@ -44,7 +44,7 @@ public class FlowRuleBatchRequest {
 
             @Override
             public FlowRule apply(FlowRuleBatchEntry input) {
-                return input.getTarget();
+                return input.target();
             }
         }).toList();
     }
@@ -55,7 +55,7 @@ public class FlowRuleBatchRequest {
 
                     @Override
                     public FlowRule apply(FlowRuleBatchEntry input) {
-                        return input.getTarget();
+                        return input.target();
                     }
                 }).toList();
     }

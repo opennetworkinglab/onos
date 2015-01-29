@@ -110,16 +110,16 @@ public class NullFlowRuleProvider extends AbstractProvider implements FlowRulePr
     public Future<CompletedBatchOperation> executeBatch(
             BatchOperation<FlowRuleBatchEntry> batch) {
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
-            switch (fbe.getOperator()) {
+            switch (fbe.operator()) {
                 case ADD:
-                    applyFlowRule(fbe.getTarget());
+                    applyFlowRule(fbe.target());
                     break;
                 case REMOVE:
-                    removeFlowRule(fbe.getTarget());
+                    removeFlowRule(fbe.target());
                     break;
                 case MODIFY:
-                    removeFlowRule(fbe.getTarget());
-                    applyFlowRule(fbe.getTarget());
+                    removeFlowRule(fbe.target());
+                    applyFlowRule(fbe.target());
                     break;
                 default:
                     log.error("Unknown flow operation: {}", fbe);

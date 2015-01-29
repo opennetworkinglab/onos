@@ -147,7 +147,7 @@ public class BatchOperationTest {
     public void testEntryConstruction() {
         final TestEntry entry = new TestEntry(TestType.OP3, new TestTarget(3));
 
-        assertThat(entry.getOperator(), is(TestType.OP3));
-        assertThat(entry.getTarget().id, is(3));
+        assertThat(entry.operator(), is(TestType.OP3));
+        assertThat(entry.target().id, is(3));
     }
 }
