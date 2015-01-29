@@ -124,8 +124,8 @@
                     selectCb, atDragEnd, dragEnabled, clickEnabled);
             }
 
-            function resize(w, h) {
-                force.size([w, h]);
+            function resize(dim) {
+                force.size([dim.width, dim.height]);
                 // Review -- do we need to nudge the layout ?
 
             }

@@ -1,0 +1,28 @@
+{
+  "event": "showSummary",
+  "sid": 1,
+  "payload": {
+    "id": "ONOS Summary",
+    "type": "node",
+    "propOrder": [
+      "Devices",
+      "Links",
+      "Hosts",
+      "Topology SCCs",
+      "-",
+      "Intents",
+      "Flows",
+      "Version"
+    ],
+    "props": {
+      "Devices": "25",
+      "Links": "112",
+      "Hosts": "0",
+      "Topology SCCs": "1",
+      "-": "",
+      "Intents": "0",
+      "Flows": "125",
+      "Version": "1.0.0*"
+    }
+  }
+}

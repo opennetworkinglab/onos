@@ -34,7 +34,7 @@ server.listen(port, function() {
 });
 
 server.on('listening', function () {
-    console.log('ok, server is running');
+    console.log('OK, server is running');
 });
 
 var wsServer = new WebSocketServer({
@@ -110,6 +110,7 @@ function doCli() {
             case 'm': customMessage(str); break;
             case 's': setScenario(str); break;
             case 'n': nextEvent(); break;
+            case 'r': restartScenario(); break;
             case 'q': quit(); break;
             case '?': showHelp(); break;
             default: console.log('Say what?!  (? for help)'); break;
@@ -126,10 +127,11 @@ function doCli() {
 var helptext = '\n' +
         'c        - show connection status\n' +
         'm {text} - send custom message to client\n' +
-        's {id}   - set scenario\n' +
+        's {id}   - load scenario {id}\n' +
         's        - show scenario staus\n' +
         //'a        - auto-send events\n' +
         'n        - send next event\n' +
+        'r        - restart the scenario\n' +
         'q        - exit the server\n' +
         '?        - display this help text\n';
 
@@ -146,13 +148,13 @@ function connStatus() {
 }
 
 function quit() {
-    console.log('quitting...');
+    console.log('Quitting...');
     process.exit(0);
 }
 
 function customMessage(m) {
     if (connection) {
-        console.log('sending message: ' + m);
+        console.log('Sending message: ' + m);
         connection.sendUTF(m);
     } else {
         console.warn('No current connection.');
@@ -162,7 +164,7 @@ function customMessage(m) {
 function showScenarioStatus() {
     var msg;
     if (!scenario) {
-        console.log('No scenario selected.');
+        console.log('No scenario loaded.');
     } else {
         msg = 'Scenario: "' + scenario + '", ' +
                 (scdone ? 'DONE' : 'next event: ' + evno);
@@ -189,7 +191,7 @@ function setScenario(id) {
         } else {
             evdata = JSON.parse(data);
             console.log(); // get past prompt
-            console.log('setting scenario to "' + id + '"');
+            console.log('Loading scenario "' + id + '"');
             console.log(evdata.title);
             evdata.description.forEach(function (d) {
                 console.log('  ' + d);
@@ -201,11 +203,27 @@ function setScenario(id) {
     });
 }
 
+function restartScenario() {
+    if (!scenario) {
+        console.log('No scenario loaded.');
+    } else {
+        console.log();
+        console.log('Restarting scenario "' + scenario + '"');
+        console.log(evdata.title);
+        evdata.description.forEach(function (d) {
+            console.log('  ' + d);
+        });
+        evno = 1;
+        scdone = false;
+    }
+    rl.prompt();
+}
+
 function nextEvent() {
     var path;
 
     if (!scenario) {
-        console.log('No scenario selected.');
+        console.log('No scenario loaded.');
         rl.prompt();
     } else if (!connection) {
         console.warn('No current connection.');
@@ -220,7 +238,7 @@ function nextEvent() {
             } else {
                 evdata = JSON.parse(data);
                 console.log(); // get past prompt
-                console.log('sending event #' + evno + ' [' + evdata.event + ']');
+                console.log('Sending event #' + evno + ' [' + evdata.event + ']');
                 connection.sendUTF(data);
                 evno++;
             }

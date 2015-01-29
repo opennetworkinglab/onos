@@ -1,0 +1,12 @@
+{
+  "comments": [
+    "Used during the migration of old GUI (topo.js==3.1KLOC) to Angular"
+  ],
+  "title": "Migration Helper",
+  "params": {
+    "lastAuto": 0
+  },
+  "description": [
+    "Do what you need to..."
+  ]
+}

@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, ps, tes, tfs;
+    var $log, fs, ks, zs, gs, ms, tes, tfs, tps;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG;
@@ -101,9 +101,9 @@
 
 
     // callback invoked when the SVG view has been resized..
-    function svgResized(w, h) {
-        $log.debug('TopoView just resized... ' + w + 'x' + h);
-        tfs.resize(w, h);
+    function svgResized(dim) {
+        //$log.debug('TopoView just resized... ', dim);
+        tfs.resize(dim);
     }
 
     // --- Background Map ------------------------------------------------
@@ -137,6 +137,10 @@
         tfs.initForce(forceG, svg.attr('width'), svg.attr('height'));
     }
 
+    function setUpPanels() {
+        tps.initPanels();
+    }
+
 
     // --- Controller Definition -----------------------------------------
 
@@ -146,10 +150,10 @@
             '$scope', '$log', '$location', '$timeout',
             'FnService', 'MastService',
             'KeyService', 'ZoomService', 'GlyphService', 'MapService',
-            'PanelService', 'TopoEventService', 'TopoForceService',
+            'TopoEventService', 'TopoForceService', 'TopoPanelService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _ps_, _tes_, _tfs_) {
+                  _ks_, _zs_, _gs_, _ms_, _tes_, _tfs_, _tps_) {
             var self = this;
             $log = _$log_;
             fs = _fs_;
@@ -157,12 +161,12 @@
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
-            ps = _ps_;
             tes = _tes_;
             tfs = _tfs_;
+            tps = _tps_;
 
             self.notifyResize = function () {
-                svgResized(svg.attr('width'), svg.attr('height'));
+                svgResized(fs.windowSize(mast.mastHeight()));
             };
 
             // Cleanup on destroyed scope..
@@ -186,15 +190,10 @@
             setUpZoom();
             setUpMap();
             setUpForce();
+            setUpPanels();
 
             // open up a connection to the server...
             tes.openSock();
-
-            // TODO: remove this temporary code....
-            var p = ps.createPanel('topo-p-summary');
-            p.append('h1').text('Hello World');
-            p.show();
-            $timeout(function () { p.hide(); }, 2000);
 
             $log.log('OvTopoCtrl has been created');
         }]);

@@ -15,26 +15,26 @@
  */
 
 /*
- ONOS GUI -- Topo View -- Topo Event Service - Unit Tests
+ ONOS GUI -- Topo View -- Topo Panel Service - Unit Tests
  */
-describe('factory: view/topo/topoEvent.js', function() {
-    var $log, fs, tes;
+describe('factory: view/topo/topoPanel.js', function() {
+    var $log, fs, tps;
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoEventService) {
+    beforeEach(inject(function (_$log_, FnService, TopoPanelService) {
         $log = _$log_;
         fs = FnService;
-        tes = TopoEventService;
+        tps = TopoPanelService;
     }));
 
-    it('should define TopoEventService', function () {
-        expect(tes).toBeDefined();
+    it('should define TopoPanelService', function () {
+        expect(tps).toBeDefined();
     });
 
     it('should define api functions', function () {
-        expect(fs.areFunctions(tes, [
-            'bindDispatcher', 'openSock', 'closeSock'
+        expect(fs.areFunctions(tps, [
+            'initPanels'
         ])).toBeTruthy();
     });
 
