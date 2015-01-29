@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -25,9 +26,16 @@ import org.onosproject.net.flowext.FlowRuleExtStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import com.esotericsoftware.kryo.io.Input;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
 /**
  * Test for Managing inventory of flow rules using a distributed state management protocol.
  */
@@ -39,6 +47,15 @@ public class SimpleFlowRuleExtStore extends
     private final Logger log = getLogger(getClass());
     private final ConcurrentMap<DeviceId, Collection<FlowRuleExtEntry>> flowRuleEntries = Maps.newConcurrentMap();
     private final AtomicInteger localBatchIdGen = new AtomicInteger();
+    private int pendingFutureTimeoutMinutes = 5;
+    private final int BUFFERSIZE = 1000;
+    private final int MAXSIZE = 4096;
+    private final Kryo kryo = new Kryo();
+    private Cache<Integer, SettableFuture<FlowExtCompletedOperation>> pendingExtendFutures = CacheBuilder
+            .newBuilder()
+            .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
+            // .removalListener(new TimeoutFuture())
+            .build(); 
     @Activate
     public void activate() {
         log.info("Started");
@@ -50,6 +67,14 @@ public class SimpleFlowRuleExtStore extends
         log.info("Stopped");
     }
 
+    /**
+     * Stores a batch of flow extension rules.
+     *
+     * @param batchOperation batch of flow rules.
+     *           A batch can contain flow rules for a single device only.
+     * @return Future response indicating success/failure of the batch operation
+     * all the way down to the device.
+     */
     @Override
     public Future<FlowExtCompletedOperation> storeBatch(
             Collection<FlowRuleExtEntry> batchOperation) {
@@ -76,22 +101,77 @@ public class SimpleFlowRuleExtStore extends
         return Futures.immediateFuture(completed);
     }
 
+    /**
+     * Invoked on the completion of a storeBatch operation.
+     *
+     * @param event flow rule batch event
+     */
     @Override
     public void batchOperationComplete(FlowRuleBatchExtEvent event) {
+        final Integer batchId = event.subject().batchId();
+        SettableFuture<FlowExtCompletedOperation> future = pendingExtendFutures
+                .getIfPresent(batchId);
+        if (future != null) {
+            future.set(event.getresult());
+            pendingExtendFutures.invalidate(batchId);
+        }
         notifyDelegate(event);
     }
 
+    /**
+     * Get all extended flow entry of device, using for showing in GUI or CLI.
+     *
+     * @param did DeviceId of the device role changed
+     * @return message parsed from byte[] using the specific serializer
+     */
     @Override
-    public Iterable<FlowRuleExtEntry> getExtMessages(DeviceId deviceId) {
-        Collection<FlowRuleExtEntry> storeByDeviceId = flowRuleEntries.get(deviceId);
-        if (storeByDeviceId == null) {
-              storeByDeviceId = Collections.emptyList();
-        }
-        return storeByDeviceId;
+    public Iterable<?> getExtMessages(DeviceId deviceId) {
+        Collection<FlowRuleExtEntry> storeByDeviceId = getInternalMessage(deviceId);
+        return decodeFlowExt(storeByDeviceId);
     }
 
+    /**
+     * Register classT and serializer which can decode byte stream to classT object.
+     *
+     * @param classT the class flowEntryExtension can be decoded to.
+     * @param serializer the serializer apps provide using to decode flowEntryExtension
+     */
     @Override
     public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
+        kryo.register(classT, serializer);
     }
 
+    /**
+     * decode flowExt to any ClassT type user-defined.
+     *
+     * @param batchOperation object to be decoded
+     * @return Collection of ClassT object
+     */
+    private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
+        Collection<Object> flowExtensions = new ArrayList<Object>();
+        ByteBufferOutput output = new ByteBufferOutput(BUFFERSIZE, MAXSIZE);
+        for (FlowRuleExtEntry entry : batchOperation) {
+            kryo.writeClass(output, entry.getClassT());
+            kryo.writeObject(output, entry.getFlowEntryExt());
+            flowExtensions.add(kryo.readClassAndObject(new Input(output.toBytes())));
+            output.clear();
+        }
+        output.close();
+        return flowExtensions;
+    }
+
+    /**
+     * Get the messages stored in local memory
+     *
+     * @param did DeviceId of the device role changed
+     * @return all extended  flow rule entry belong to deviceId
+     */
+    public Set<FlowRuleExtEntry> getInternalMessage(DeviceId deviceId) {
+            Collection<FlowRuleExtEntry> rules = flowRuleEntries
+                    .get(deviceId);
+            if (rules == null) {
+                return Collections.emptySet();
+            }
+            return ImmutableSet.copyOf(rules);
+    }
 }
