@@ -85,9 +85,10 @@ public class BgpSessionManagerTest {
     private BgpSessionManager bgpSessionManager;
 
     // Remote Peer state
-    TestBgpPeer peer1 = new TestBgpPeer(BGP_PEER1_ID);
-    TestBgpPeer peer2 = new TestBgpPeer(BGP_PEER2_ID);
-    TestBgpPeer peer3 = new TestBgpPeer(BGP_PEER3_ID);
+    private final Collection<TestBgpPeer> peers = new LinkedList<>();
+    TestBgpPeer peer1;
+    TestBgpPeer peer2;
+    TestBgpPeer peer3;
 
     // Local BGP per-peer session state
     BgpSession bgpSession1;
@@ -238,6 +239,14 @@ public class BgpSessionManagerTest {
 
     @Before
     public void setUp() throws Exception {
+        peer1 = new TestBgpPeer(BGP_PEER1_ID);
+        peer2 = new TestBgpPeer(BGP_PEER2_ID);
+        peer3 = new TestBgpPeer(BGP_PEER3_ID);
+        peers.clear();
+        peers.add(peer1);
+        peers.add(peer2);
+        peers.add(peer3);
+
         //
         // Setup the BGP Session Manager to test, and start listening for BGP
         // connections.
@@ -366,24 +375,14 @@ public class BgpSessionManagerTest {
         // Test the fields from the BGP OPEN message:
         // BGP version, AS number, BGP ID
         //
-        assertThat(peer1.peerFrameDecoder.remoteBgpVersion,
-                   is(BgpConstants.BGP_VERSION));
-        assertThat(peer1.peerFrameDecoder.remoteAs,
-                   is(TestBgpPeerChannelHandler.PEER_AS));
-        assertThat(peer1.peerFrameDecoder.remoteBgpIdentifier,
-                   is(IP_LOOPBACK_ID));
-        assertThat(peer2.peerFrameDecoder.remoteBgpVersion,
-                   is(BgpConstants.BGP_VERSION));
-        assertThat(peer2.peerFrameDecoder.remoteAs,
-                   is(TestBgpPeerChannelHandler.PEER_AS));
-        assertThat(peer2.peerFrameDecoder.remoteBgpIdentifier,
-                   is(IP_LOOPBACK_ID));
-        assertThat(peer3.peerFrameDecoder.remoteBgpVersion,
-                   is(BgpConstants.BGP_VERSION));
-        assertThat(peer3.peerFrameDecoder.remoteAs,
-                   is(TestBgpPeerChannelHandler.PEER_AS));
-        assertThat(peer3.peerFrameDecoder.remoteBgpIdentifier,
-                   is(IP_LOOPBACK_ID));
+        for (TestBgpPeer peer : peers) {
+            assertThat(peer.peerFrameDecoder.remoteInfo.bgpVersion(),
+                       is(BgpConstants.BGP_VERSION));
+            assertThat(peer.peerFrameDecoder.remoteInfo.bgpId(),
+                       is(IP_LOOPBACK_ID));
+            assertThat(peer.peerFrameDecoder.remoteInfo.asNumber(),
+                       is(TestBgpPeerChannelHandler.PEER_AS));
+        }
 
         //
         // Test that the BgpSession instances have been created
@@ -396,6 +395,72 @@ public class BgpSessionManagerTest {
         for (BgpSession bgpSession : bgpSessionManager.getBgpSessions()) {
             long sessionAs = bgpSession.localInfo().asNumber();
             assertThat(sessionAs, is(TestBgpPeerChannelHandler.PEER_AS));
+        }
+    }
+
+
+    /**
+     * Tests that the BGP OPEN with Capability messages have been exchanged,
+     * followed by KEEPALIVE.
+     * <p>
+     * The BGP Peer opens the sessions and transmits OPEN Message, eventually
+     * followed by KEEPALIVE. The tested BGP listener should respond by
+     * OPEN Message, followed by KEEPALIVE.
+     *
+     * @throws TestUtilsException TestUtils error
+     */
+    @Test
+    public void testExchangedBgpOpenCapabilityMessages()
+            throws InterruptedException, TestUtilsException {
+        //
+        // Setup the BGP Capabilities for all peers
+        //
+        for (TestBgpPeer peer : peers) {
+            peer.peerChannelHandler.localInfo.setIpv4Unicast();
+            peer.peerChannelHandler.localInfo.setIpv4Multicast();
+            peer.peerChannelHandler.localInfo.setIpv6Unicast();
+            peer.peerChannelHandler.localInfo.setIpv6Multicast();
+            peer.peerChannelHandler.localInfo.setAs4OctetCapability();
+            peer.peerChannelHandler.localInfo.setAs4Number(
+                TestBgpPeerChannelHandler.PEER_AS4);
+        }
+
+        // Initiate the connections
+        peer1.connect(connectToSocket);
+        peer2.connect(connectToSocket);
+        peer3.connect(connectToSocket);
+
+        //
+        // Test the fields from the BGP OPEN message:
+        // BGP version, BGP ID
+        //
+        for (TestBgpPeer peer : peers) {
+            assertThat(peer.peerFrameDecoder.remoteInfo.bgpVersion(),
+                       is(BgpConstants.BGP_VERSION));
+            assertThat(peer.peerFrameDecoder.remoteInfo.bgpId(),
+                       is(IP_LOOPBACK_ID));
+        }
+
+        //
+        // Test that the BgpSession instances have been created,
+        // and contain the appropriate BGP session information.
+        //
+        assertThat(bgpSessionManager.getMyBgpId(), is(IP_LOOPBACK_ID));
+        assertThat(bgpSessionManager.getBgpSessions(), hasSize(3));
+        assertThat(bgpSession1, notNullValue());
+        assertThat(bgpSession2, notNullValue());
+        assertThat(bgpSession3, notNullValue());
+        for (BgpSession bgpSession : bgpSessionManager.getBgpSessions()) {
+            BgpSessionInfo localInfo = bgpSession.localInfo();
+            assertThat(localInfo.ipv4Unicast(), is(true));
+            assertThat(localInfo.ipv4Multicast(), is(true));
+            assertThat(localInfo.ipv6Unicast(), is(true));
+            assertThat(localInfo.ipv6Multicast(), is(true));
+            assertThat(localInfo.as4OctetCapability(), is(true));
+            assertThat(localInfo.asNumber(),
+                       is(TestBgpPeerChannelHandler.PEER_AS4));
+            assertThat(localInfo.as4Number(),
+                       is(TestBgpPeerChannelHandler.PEER_AS4));
         }
     }
 

@@ -28,10 +28,7 @@ import org.onlab.packet.Ip4Address;
  * BGP peer session.
  */
 class TestBgpPeerFrameDecoder extends FrameDecoder {
-    int remoteBgpVersion;               // 1 octet
-    long remoteAs;                      // 2 octets
-    long remoteHoldtime;                // 2 octets
-    Ip4Address remoteBgpIdentifier;     // 4 octets -> IPv4 address
+    final BgpSessionInfo remoteInfo = new BgpSessionInfo();
 
     final CountDownLatch receivedOpenMessageLatch = new CountDownLatch(1);
     final CountDownLatch receivedKeepaliveMessageLatch = new CountDownLatch(1);
@@ -141,11 +138,10 @@ class TestBgpPeerFrameDecoder extends FrameDecoder {
         //
         // Parse the OPEN message
         //
-        remoteBgpVersion = message.readUnsignedByte();
-        remoteAs = message.readUnsignedShort();
-        remoteHoldtime = message.readUnsignedShort();
-        remoteBgpIdentifier =
-            Ip4Address.valueOf((int) message.readUnsignedInt());
+        remoteInfo.setBgpVersion(message.readUnsignedByte());
+        remoteInfo.setAsNumber(message.readUnsignedShort());
+        remoteInfo.setHoldtime(message.readUnsignedShort());
+        remoteInfo.setBgpId(Ip4Address.valueOf((int) message.readUnsignedInt()));
         // Optional Parameters
         int optParamLen = message.readUnsignedByte();
         if (message.readableBytes() < optParamLen) {

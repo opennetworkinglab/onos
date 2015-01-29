@@ -101,32 +101,6 @@ final class BgpOpen {
 
         // Remote AS number
         long remoteAs = message.readUnsignedShort();
-        //
-        // Verify that the AS number is same for all other BGP Sessions
-        // NOTE: This check applies only for our use-case where all BGP
-        // sessions are iBGP.
-        //
-        for (BgpSession bs : bgpSession.getBgpSessionManager().getBgpSessions()) {
-            if ((bs.remoteInfo().asNumber() != 0) &&
-                (remoteAs != bs.remoteInfo().asNumber())) {
-                log.debug("BGP RX OPEN Error from {}: Bad Peer AS {}. " +
-                          "Expected {}",
-                          bgpSession.remoteInfo().address(), remoteAs,
-                          bs.remoteInfo().asNumber());
-                //
-                // ERROR: Bad Peer AS
-                //
-                // Send NOTIFICATION and close the connection
-                int errorCode = OpenMessageError.ERROR_CODE;
-                int errorSubcode = OpenMessageError.BAD_PEER_AS;
-                ChannelBuffer txMessage =
-                    BgpNotification.prepareBgpNotification(errorCode,
-                                                           errorSubcode, null);
-                ctx.getChannel().write(txMessage);
-                bgpSession.closeSession(ctx);
-                return;
-            }
-        }
         bgpSession.remoteInfo().setAsNumber(remoteAs);
         //
         // NOTE: Currently, the local AS number is always set to the remote AS.
@@ -194,16 +168,63 @@ final class BgpOpen {
             return;
         }
 
+        //
+        // NOTE: Prepare the BGP OPEN message before the original local AS
+        // is overwritten by the 4-octet AS number
+        //
+        ChannelBuffer txOpenMessage = prepareBgpOpen(bgpSession.localInfo());
+
+        //
+        // Use the 4-octet AS number in lieu of the "My AS" field
+        // See RFC 6793, Section 4.1, second paragraph.
+        //
+        if (bgpSession.remoteInfo().as4OctetCapability()) {
+            long as4Number = bgpSession.remoteInfo().as4Number();
+            bgpSession.remoteInfo().setAsNumber(as4Number);
+            bgpSession.localInfo().setAsNumber(as4Number);
+        }
+
+        //
+        // Verify that the AS number is same for all other BGP Sessions
+        // NOTE: This check applies only for our use-case where all BGP
+        // sessions are iBGP.
+        //
+        for (BgpSession bs : bgpSession.getBgpSessionManager().getBgpSessions()) {
+            if ((bs.remoteInfo().asNumber() != 0) &&
+                (bgpSession.remoteInfo().asNumber() !=
+                 bs.remoteInfo().asNumber())) {
+                log.debug("BGP RX OPEN Error from {}: Bad Peer AS {}. " +
+                          "Expected {}",
+                          bgpSession.remoteInfo().address(),
+                          bgpSession.remoteInfo().asNumber(),
+                          bs.remoteInfo().asNumber());
+                //
+                // ERROR: Bad Peer AS
+                //
+                // Send NOTIFICATION and close the connection
+                int errorCode = OpenMessageError.ERROR_CODE;
+                int errorSubcode = OpenMessageError.BAD_PEER_AS;
+                ChannelBuffer txMessage =
+                    BgpNotification.prepareBgpNotification(errorCode,
+                                                           errorSubcode, null);
+                ctx.getChannel().write(txMessage);
+                bgpSession.closeSession(ctx);
+                return;
+            }
+        }
+
         log.debug("BGP RX OPEN message from {}: " +
                   "BGPv{} AS {} BGP-ID {} Holdtime {}",
-                  bgpSession.remoteInfo().address(), remoteBgpVersion,
-                  remoteAs, remoteBgpId, remoteHoldtime);
+                  bgpSession.remoteInfo().address(),
+                  bgpSession.remoteInfo().bgpVersion(),
+                  bgpSession.remoteInfo().asNumber(),
+                  bgpSession.remoteInfo().bgpId(),
+                  bgpSession.remoteInfo().holdtime());
 
         // Send my OPEN followed by KEEPALIVE
-        ChannelBuffer txMessage = prepareBgpOpen(bgpSession.localInfo());
-        ctx.getChannel().write(txMessage);
+        ctx.getChannel().write(txOpenMessage);
         //
-        txMessage = BgpKeepalive.prepareBgpKeepalive();
+        ChannelBuffer txMessage = BgpKeepalive.prepareBgpKeepalive();
         ctx.getChannel().write(txMessage);
 
         // Start the KEEPALIVE timer
@@ -219,7 +240,7 @@ final class BgpOpen {
      * @param localInfo the BGP Session local information to use
      * @return the message to transmit (BGP header included)
      */
-    private static ChannelBuffer prepareBgpOpen(BgpSessionInfo localInfo) {
+    static ChannelBuffer prepareBgpOpen(BgpSessionInfo localInfo) {
         ChannelBuffer message =
             ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
 
@@ -360,9 +381,6 @@ final class BgpOpen {
 
                     bgpSession.remoteInfo().setAs4OctetCapability();
                     bgpSession.remoteInfo().setAs4Number(as4Number);
-                    // Use the 4-octet AS number in lieu of the "My AS" field
-                    // See RFC 6793, Section 4.1, second paragraph.
-                    bgpSession.remoteInfo().setAsNumber(as4Number);
 
                     //
                     // Copy remote 4-octet AS Number Capabilities and AS
@@ -371,7 +389,6 @@ final class BgpOpen {
                     //
                     bgpSession.localInfo().setAs4OctetCapability();
                     bgpSession.localInfo().setAs4Number(as4Number);
-                    bgpSession.localInfo().setAsNumber(as4Number);
                     log.debug("BGP RX OPEN Capability: AS4 Number = {}",
                               as4Number);
                     break;
@@ -461,8 +478,8 @@ final class BgpOpen {
             message.writeByte(Capabilities.TYPE);               // Param type
             message.writeByte(Capabilities.MIN_LENGTH +
                               As4Octet.LENGTH);                 // Param len
-            message.writeByte(As4Octet.CODE);                   // Capab, code
-            message.writeByte(As4Octet.LENGTH);                 // Capab, len
+            message.writeByte(As4Octet.CODE);                   // Capab. code
+            message.writeByte(As4Octet.LENGTH);                 // Capab. len
             message.writeInt((int) localInfo.as4Number());
         }
         return message;

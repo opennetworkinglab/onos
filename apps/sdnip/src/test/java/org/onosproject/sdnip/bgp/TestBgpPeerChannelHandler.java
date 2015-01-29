@@ -30,8 +30,10 @@ import org.onlab.packet.Ip4Prefix;
  */
 class TestBgpPeerChannelHandler extends SimpleChannelHandler {
     static final long PEER_AS = 65001;
+    static final long PEER_AS4 = 0x12345678;
     static final int PEER_HOLDTIME = 120;       // 120 seconds
-    final Ip4Address bgpId;                     // The BGP ID
+
+    final BgpSessionInfo localInfo = new BgpSessionInfo();
     ChannelHandlerContext savedCtx;
 
     /**
@@ -40,7 +42,10 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
      * @param bgpId the BGP ID to use
      */
     TestBgpPeerChannelHandler(Ip4Address bgpId) {
-        this.bgpId = bgpId;
+        this.localInfo.setBgpVersion(BgpConstants.BGP_VERSION);
+        this.localInfo.setBgpId(bgpId);
+        this.localInfo.setAsNumber(PEER_AS);
+        this.localInfo.setHoldtime(PEER_HOLDTIME);
     }
 
     /**
@@ -55,7 +60,7 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
                                  ChannelStateEvent channelEvent) {
         this.savedCtx = ctx;
         // Prepare and transmit BGP OPEN message
-        ChannelBuffer message = prepareBgpOpen();
+        ChannelBuffer message = BgpOpen.prepareBgpOpen(localInfo);
         ctx.getChannel().write(message);
 
         // Prepare and transmit BGP KEEPALIVE message
@@ -67,23 +72,6 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
     public void channelDisconnected(ChannelHandlerContext ctx,
                                     ChannelStateEvent channelEvent) {
         // Nothing to do
-    }
-
-    /**
-     * Prepares BGP OPEN message.
-     *
-     * @return the message to transmit (BGP header included)
-     */
-    ChannelBuffer prepareBgpOpen() {
-        ChannelBuffer message =
-            ChannelBuffers.buffer(BgpConstants.BGP_MESSAGE_MAX_LENGTH);
-        message.writeByte(BgpConstants.BGP_VERSION);
-        message.writeShort((int) PEER_AS);
-        message.writeShort(PEER_HOLDTIME);
-        message.writeInt(bgpId.toInt());
-        message.writeByte(0);                   // No Optional Parameters
-        return BgpMessage.prepareBgpMessage(BgpConstants.BGP_TYPE_OPEN,
-                                            message);
     }
 
     /**
