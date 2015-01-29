@@ -20,5 +20,6 @@ import org.onosproject.event.EventListener;
 /**
  * Listener for {@link org.onosproject.net.intent.IntentEvent intent events}.
  */
+@Deprecated
 public interface IntentBatchListener extends EventListener<IntentBatchLeaderEvent> {
 }

@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 /**
  * Facade for receiving notifications from the intent batch service.
  */
+@Deprecated
 public interface IntentBatchDelegate {
 
     /**

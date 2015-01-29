@@ -34,7 +34,10 @@ import static com.google.common.base.Preconditions.checkState;
 public abstract class Intent {
 
     private final IntentId id;
+
     private final ApplicationId appId;
+    private final String key;
+
     private final Collection<NetworkResource> resources;
 
     private static IdGenerator idGenerator;
@@ -45,6 +48,7 @@ public abstract class Intent {
     protected Intent() {
         this.id = null;
         this.appId = null;
+        this.key = null;
         this.resources = null;
     }
 
@@ -54,11 +58,26 @@ public abstract class Intent {
      * @param appId         application identifier
      * @param resources     required network resources (optional)
      */
+    @Deprecated
     protected Intent(ApplicationId appId,
+                     Collection<NetworkResource> resources) {
+        this(appId, null, resources);
+    }
+
+        /**
+         * Creates a new intent.
+         *
+         * @param appId         application identifier
+         * @param key           optional key
+         * @param resources     required network resources (optional)
+         */
+    protected Intent(ApplicationId appId,
+                     String key,
                      Collection<NetworkResource> resources) {
         checkState(idGenerator != null, "Id generator is not bound.");
         this.id = IntentId.valueOf(idGenerator.getNewId());
         this.appId = checkNotNull(appId, "Application ID cannot be null");
+        this.key = (key != null) ? key : id.toString(); //FIXME
         this.resources = checkNotNull(resources);
     }
 

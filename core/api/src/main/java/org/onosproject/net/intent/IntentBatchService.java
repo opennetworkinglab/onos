@@ -22,6 +22,7 @@ import java.util.Set;
 /**
  * Service for tracking and delegating batches of intent operations.
  */
+@Deprecated
 public interface IntentBatchService {
 
     /**

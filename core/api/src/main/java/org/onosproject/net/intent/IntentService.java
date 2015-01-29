@@ -48,6 +48,7 @@ public interface IntentService {
      * @param oldIntentId identifier of the old intent being replaced
      * @param newIntent new intent replacing the old one
      */
+    @Deprecated
     void replace(IntentId oldIntentId, Intent newIntent);
 
     /**
@@ -59,6 +60,7 @@ public interface IntentService {
      * </p>
      * @param operations batch of intent operations
      */
+    @Deprecated
     void execute(IntentOperations operations);
 
     /**

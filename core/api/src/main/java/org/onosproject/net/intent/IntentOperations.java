@@ -31,6 +31,7 @@ import static org.onosproject.net.intent.IntentOperation.Type.WITHDRAW;
 /**
  * Batch of intent submit/withdraw/replace operations.
  */
+@Deprecated
 public final class IntentOperations {
 
     private final List<IntentOperation> operations;

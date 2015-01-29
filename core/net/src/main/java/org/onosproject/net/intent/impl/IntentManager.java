@@ -380,6 +380,11 @@ public class IntentManager
         public void notify(IntentEvent event) {
             eventDispatcher.post(event);
         }
+
+        @Override
+        public void process(IntentOperation op) {
+            //FIXME
+        }
     }
 
     private void buildAndSubmitBatches(Iterable<IntentId> intentIds,

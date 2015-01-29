@@ -21,6 +21,7 @@ import org.onosproject.event.AbstractEvent;
 /**
  * A class to represent an intent related event.
  */
+@Deprecated
 public class IntentBatchLeaderEvent extends AbstractEvent<IntentBatchLeaderEvent.Type, ApplicationId> {
 
     public enum Type {

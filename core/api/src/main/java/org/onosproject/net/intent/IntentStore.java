@@ -73,4 +73,22 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      */
     List<Operation> batchWrite(BatchWrite batch);
 
+    /**
+     * Adds a new operation, which should be persisted and delegated.
+     *
+     * @param op operation
+     */
+    default void add(IntentOperation op) {} //FIXME remove when impl.
+
+    /**
+     * Checks to see whether the calling instance is the master for processing
+     * this intent, or more specifically, the key contained in this intent.
+     *
+     * @param intent intent to check
+     * @return true if master; false, otherwise
+     */
+    //TODO better name
+    default boolean isMaster(Intent intent) { //FIXME remove default when impl.
+        return true;
+    }
 }

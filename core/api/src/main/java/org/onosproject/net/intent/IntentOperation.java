@@ -29,6 +29,7 @@ public final class IntentOperation {
     private final Type type;
     private final IntentId intentId;
     private final Intent intent;
+    //FIXME consider pulling the key out (we will hash based on key)
 
     /**
      * Operation type.
@@ -47,11 +48,13 @@ public final class IntentOperation {
         /**
          * Indicates that an intent should be replaced with another.
          */
+        @Deprecated
         REPLACE,
 
         /**
          * Indicates that an intent should be updated (i.e. recompiled/reinstalled).
          */
+        @Deprecated
         UPDATE,
     }
 

@@ -21,4 +21,12 @@ import org.onosproject.store.StoreDelegate;
  * Intent store delegate abstraction.
  */
 public interface IntentStoreDelegate extends StoreDelegate<IntentEvent> {
+
+    /**
+     * Provides an intent operation that should be processed (compiled and
+     * installed) by this manager.
+     *
+     * @param op    intent operation
+     */
+    void process(IntentOperation op);
 }

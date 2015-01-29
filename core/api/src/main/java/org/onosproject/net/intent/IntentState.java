@@ -37,7 +37,7 @@ public enum IntentState {
      * This is a transitional state after which the intent will enter either
      * {@link #FAILED} state or {@link #INSTALLING} state.
      */
-    COMPILING,
+    COMPILING, //TODO do we really need this?
 
     /**
      * Signifies that the resulting installable intents are being installed
