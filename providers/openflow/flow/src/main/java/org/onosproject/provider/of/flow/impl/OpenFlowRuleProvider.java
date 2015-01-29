@@ -166,8 +166,13 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void applyRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                                          Optional.empty()).buildFlowAdd());
+        if (flowRule.type() == FlowRule.Type.DEFAULT) {
+            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+                    Optional.empty()).buildFlowAdd());
+        } else {
+            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+                    Optional.empty()).buildFlowAdd(), getTableType(flowRule.type()));
+        }
     }
 
 
@@ -181,8 +186,13 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                                          Optional.empty()).buildFlowDel());
+        if (flowRule.type() == FlowRule.Type.DEFAULT) {
+            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+                    Optional.empty()).buildFlowDel());
+        } else {
+            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+                    Optional.empty()).buildFlowDel(), getTableType(flowRule.type()));
+        }
     }
 
     @Override
@@ -195,11 +205,13 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
     public Future<CompletedBatchOperation> executeBatch(BatchOperation<FlowRuleBatchEntry> batch) {
         final Set<Dpid> sws = Sets.newConcurrentHashSet();
         final Map<Long, FlowRuleBatchEntry> fmXids = new HashMap<>();
+
         /*
          * Use identity hash map for reference equality as we could have equal
          * flow mods for different switches.
          */
         Map<OFFlowMod, OpenFlowSwitch> mods = Maps.newIdentityHashMap();
+        Map<OFFlowMod, OpenFlowSwitch.TableType> modTypes = Maps.newIdentityHashMap();
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             FlowRule flowRule = fbe.target();
             final Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
@@ -235,6 +247,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             }
             if (mod != null) {
                 mods.put(mod, sw);
+                modTypes.put(mod, getTableType(flowRule.type()));
                 fmXids.put(flowModXid, fbe);
             } else {
                 log.error("Conversion of flowrule {} failed.", flowRule);
@@ -249,12 +262,29 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         for (Map.Entry<OFFlowMod, OpenFlowSwitch> entry : mods.entrySet()) {
             OpenFlowSwitch sw = entry.getValue();
             OFFlowMod mod = entry.getKey();
-            sw.sendMsg(mod);
+            OpenFlowSwitch.TableType tableType = modTypes.get(mod);
+            if (tableType == OpenFlowSwitch.TableType.NONE) {
+                sw.sendMsg(mod);
+            } else {
+                sw.sendMsg(mod, tableType);
+            }
         }
         installation.verify();
         return installation;
     }
 
+    private OpenFlowSwitch.TableType getTableType(FlowRule.Type type) {
+        switch (type) {
+            case IP:
+                return OpenFlowSwitch.TableType.IP;
+            case MPLS:
+                return OpenFlowSwitch.TableType.MPLS;
+            case ACL:
+                return OpenFlowSwitch.TableType.ACL;
+            default:
+                return OpenFlowSwitch.TableType.NONE;
+        }
+    }
 
     private class InternalFlowProvider
             implements OpenFlowSwitchListener, OpenFlowEventListener {
