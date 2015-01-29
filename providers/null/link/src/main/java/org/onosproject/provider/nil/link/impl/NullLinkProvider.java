@@ -103,12 +103,12 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             namedThreads("onos-null-link-driver"));
 
     // If true, 'flickers' links by alternating link up/down events at eventRate
-    @Property(name = "flicker", boolValue = FLICKER,
+    @Property(name = "flicker", value = "false",
             label = "Setting to flap links")
     private boolean flicker = FLICKER;
 
     // For flicker = true, duration between events in msec.
-    @Property(name = "eventRate", intValue = DEFAULT_RATE,
+    @Property(name = "eventRate", value = "3000",
             label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
 

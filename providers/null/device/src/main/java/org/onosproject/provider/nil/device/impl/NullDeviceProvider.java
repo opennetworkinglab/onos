@@ -98,7 +98,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
     private int numDevices = DEF_NUMDEVICES;
 
-    @Property(name = "numPorts", intValue = DEF_NUMPORTS, label = "Number of ports per devices")
+    @Property(name = "numPorts", value = "10", label = "Number of ports per devices")
     private int numPorts = DEF_NUMPORTS;
 
     private DeviceCreator creator;
@@ -159,6 +159,8 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             newPortNum = isNullOrEmpty(s) ? DEF_NUMPORTS : Integer.valueOf(s.trim());
         } catch (Exception e) {
             log.warn(e.getMessage());
+            newDevNum = numDevices;
+            newPortNum = numPorts;
         }
 
         boolean chgd = false;

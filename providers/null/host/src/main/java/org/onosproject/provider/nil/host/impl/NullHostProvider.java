@@ -22,6 +22,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
@@ -41,6 +43,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.util.Tools.toHex;
 
 /**
  * Null provider to advertise fake hosts.
@@ -52,6 +55,12 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService roleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService nodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry providerRegistry;
@@ -90,8 +99,6 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
         log.info("Started");
     }
 
-
-
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
@@ -104,6 +111,14 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
     public void triggerProbe(Host host) {}
 
     private void addHosts(Device device) {
+        String nhash = toHex(nodeService.getLocalNode().hashCode());
+        String dhash = device.id().toString();
+        // make sure this instance owns the device.
+        if (!nhash.substring(nhash.length() - 3)
+                .equals(dhash.substring(14, 17))) {
+            log.warn("Device {} is not mine. Can't add hosts.", device.id());
+            return;
+        }
         for (int i = 0; i < HOSTSPERDEVICE; i++) {
             providerService.hostDetected(
                     HostId.hostId(MacAddress.valueOf(i + device.hashCode()),
@@ -130,8 +145,9 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
     private class InternalHostProvider implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            if (!deviceService.getRole(event.subject().id())
-                    .equals(MastershipRole.MASTER)) {
+            Device dev = event.subject();
+            if (!deviceService.getRole(event.subject().id()).equals(
+                    MastershipRole.MASTER)) {
                 log.info("Local node is not master for device {}", event
                         .subject().id());
                 return;
@@ -139,12 +155,12 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
             switch (event.type()) {
 
                 case DEVICE_ADDED:
-                    addHosts(event.subject());
+                    addHosts(dev);
                     break;
                 case DEVICE_UPDATED:
                     break;
                 case DEVICE_REMOVED:
-                    removeHosts(event.subject());
+                    removeHosts(dev);
                     break;
                 case DEVICE_SUSPENDED:
                     break;
@@ -161,6 +177,6 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
             }
         }
 
-
     }
+
 }
