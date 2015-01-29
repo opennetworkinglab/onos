@@ -18,6 +18,8 @@
  ONOS GUI -- Topology View -- CSS file
  */
 
+/* --- Topo Map --- */
+
 .light #ov-topo svg {
     background-color: #fff;
     /* For Debugging the placement of the SVG layer... */
@@ -38,4 +40,81 @@
 }
 .dark #ov-topo svg #topo-map {
     stroke: #444;
+}
+
+
+/* --- Topo Panels --- */
+
+#topo-p-summary {
+    /* Base css from panel.css */
+    
+}
+
+#topo-p-summary svg {
+    display: inline-block;
+    width: 42px;
+    height: 42px;
+}
+
+#topo-p-summary svg .glyphIcon {
+    stroke: none;
+    fill-rule: evenodd;
+}
+.light #topo-p-summary svg .glyphIcon {
+    fill: black;
+}
+.dark #topo-p-summary svg .glyphIcon {
+    fill: #ddd;
+}
+
+#topo-p-summary h2 {
+    position: absolute;
+    margin: 0 4px;
+    top: 20px;
+    left: 50px;
+}
+.light #topo-p-summary h2 {
+    color: black;
+}
+.dark #topo-p-summary h2 {
+    color: #ddd;
+}
+
+#topo-p-summary h3 {
+    margin: 0 4px;
+    top: 20px;
+    left: 50px;
+}
+.light #topo-p-summary h3 {
+    color: black;
+}
+.dark #topo-p-summary h3 {
+    color: #ddd;
+}
+
+#topo-p-summary p, table {
+    margin: 4px 4px;
+}
+
+#topo-p-summary td.label {
+    font-style: italic;
+    padding-right: 12px;
+    /* works for both light and dark themes ... */
+    color: #777;
+}
+
+#topo-p-summary td.value {
+}
+
+#topo-p-summary hr {
+    height: 1px;
+    border: 0;
+}
+.light #topo-p-summary hr {
+    background-color: #ccc;
+    color: #ccc;
+}
+.dark #topo-p-summary hr {
+    background-color: #888;
+    color: #888;
 }

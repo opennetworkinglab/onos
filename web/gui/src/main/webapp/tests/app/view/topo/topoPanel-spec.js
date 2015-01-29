@@ -34,7 +34,7 @@ describe('factory: view/topo/topoPanel.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tps, [
-            'initPanels'
+            'initPanels', 'destroyPanels', 'showSummary'
         ])).toBeTruthy();
     });
 

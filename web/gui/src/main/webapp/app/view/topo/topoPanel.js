@@ -25,6 +25,14 @@
     // injected refs
     var $log, ps;
 
+    // constants
+    var idSum = 'topo-p-summary',
+        idDet = 'topo-p-detail',
+        idIns = 'topo-p-instance',
+        panelOpts = {
+            width: 260
+        };
+
     // internal state
     var settings;
 
@@ -45,6 +53,54 @@
 
     // ==========================
 
+    function addSep(tbody) {
+        tbody.append('tr').append('td').attr('colspan', 2).append('hr');
+    }
+
+    function addProp(tbody, label, value) {
+        var tr = tbody.append('tr');
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).text(txt);
+        }
+        addCell('label', label + ' :');
+        addCell('value', value);
+    }
+
+    function populateSummary(data) {
+        summaryPanel.empty();
+
+        var svg = summaryPanel.append('svg').attr({
+                width: 40,
+                height: 40
+            }).style('background-color', 'goldenrod'),
+            iid = '#' + (data.type || 'unknown');
+
+        var title = summaryPanel.append('h2'),
+            table = summaryPanel.append('table'),
+            tbody = table.append('tbody');
+
+        // append glyph iid to SVG  // black fill
+        // append glyph bird to SVG // white fill
+
+        title.text(data.id);
+
+        data.propOrder.forEach(function(p) {
+            if (p === '-') {
+                addSep(tbody);
+            } else {
+                addProp(tbody, p, data.props[p]);
+            }
+        });
+    }
+
+    function showSummaryPanel() {
+        summaryPanel.show();
+
+    }
+
+    // ==========================
+
     angular.module('ovTopo')
     .factory('TopoPanelService',
         ['$log', 'PanelService',
@@ -54,20 +110,24 @@
             ps = _ps_;
 
             function initPanels() {
-                summaryPanel = ps.createPanel('topo-p-summary');
+                summaryPanel = ps.createPanel(idSum, panelOpts);
                 // TODO: set up detail and instance panels..
             }
 
-            function showSummary(payload) {
-                summaryPanel.empty();
-                summaryPanel.append('h2').text(payload.id);
-                // TODO: complete the formatting...
+            function destroyPanels() {
+                ps.destroyPanel(idSum);
+                summaryPanel = null;
+                // TODO: destroy detail and instance panels..
+            }
 
-                summaryPanel.show();
+            function showSummary(payload) {
+                populateSummary(payload);
+                showSummaryPanel();
             }
 
             return {
                 initPanels: initPanels,
+                destroyPanels: destroyPanels,
                 showSummary: showSummary
             };
         }]);

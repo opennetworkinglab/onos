@@ -72,7 +72,6 @@ describe('factory: fw/layer/panel.js', function () {
         expect($log.debug).toHaveBeenCalledWith('creating panel:', 'foo', {
             edge: 'right',
             width: 200,
-            height: 80,
             margin: 20,
             xtnTime: 750
         });
@@ -120,7 +119,6 @@ describe('factory: fw/layer/panel.js', function () {
         expect($log.debug).toHaveBeenCalledWith('creating panel:', 'foo', {
             edge: 'left',
             width: 250,
-            height: 80,
             margin: 20,
             xtnTime: 750
         });

@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, tes, tfs, tps;
+    var $log, fs, ks, zs, gs, ms, tfs;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG;
@@ -137,11 +137,6 @@
         tfs.initForce(forceG, svg.attr('width'), svg.attr('height'));
     }
 
-    function setUpPanels() {
-        tps.initPanels();
-    }
-
-
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
@@ -153,7 +148,7 @@
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _tes_, _tfs_, _tps_) {
+                  _ks_, _zs_, _gs_, _ms_, tes, _tfs_, tps) {
             var self = this;
             $log = _$log_;
             fs = _fs_;
@@ -161,9 +156,7 @@
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
-            tes = _tes_;
             tfs = _tfs_;
-            tps = _tps_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -173,7 +166,7 @@
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
                 tes.closeSock();
-                ps.destroyPanel('topo-p-summary');
+                tps.destroyPanels();
             });
 
             // svg layer and initialization of components
@@ -190,9 +183,8 @@
             setUpZoom();
             setUpMap();
             setUpForce();
-            setUpPanels();
 
-            // open up a connection to the server...
+            tps.initPanels();
             tes.openSock();
 
             $log.log('OvTopoCtrl has been created');

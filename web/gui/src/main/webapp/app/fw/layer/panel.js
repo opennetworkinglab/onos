@@ -25,7 +25,6 @@
     var defaultSettings = {
         edge: 'right',
         width: 200,
-        height: 80,
         margin: 20,
         xtnTime: 750
     };
@@ -87,7 +86,9 @@
         // has to be called after el is set
         p.el.style(p.settings.edge, pxHide(p));
         panelWidth(p.settings.width);
-        panelHeight(p.settings.height);
+        if (p.settings.height) {
+            panelHeight(p.settings.height);
+        }
 
         panels[id] = p;
 

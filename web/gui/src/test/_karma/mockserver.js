@@ -12,7 +12,8 @@ var lastcmd,        // last command executed
     lastargs,       // arguments to last command
     connection,     // ws connection
     origin,         // origin of connection
-    scenario,       // test scenario name
+    scid,           // scenario ID
+    scdata,         // scenario data
     scdone,         // shows when scenario is over
     evno,           // next event number
     evdata;         // event data
@@ -35,6 +36,7 @@ server.listen(port, function() {
 
 server.on('listening', function () {
     console.log('OK, server is running');
+    console.log('(? for help)');
 });
 
 var wsServer = new WebSocketServer({
@@ -163,10 +165,10 @@ function customMessage(m) {
 
 function showScenarioStatus() {
     var msg;
-    if (!scenario) {
+    if (!scid) {
         console.log('No scenario loaded.');
     } else {
-        msg = 'Scenario: "' + scenario + '", ' +
+        msg = 'Scenario: "' + scid + '", ' +
                 (scdone ? 'DONE' : 'next event: ' + evno);
         console.log(msg);
     }
@@ -174,7 +176,19 @@ function showScenarioStatus() {
 
 function scenarioPath(evno) {
     var file = evno ? ('/ev_' + evno + '_onos.json') : '/scenario.json';
-    return 'ev/' + scenario + file;
+    return 'ev/' + scid + file;
+}
+
+
+function initScenario(verb) {
+    console.log(); // get past prompt
+    console.log(verb + ' scenario "' + scid + '"');
+    console.log(scdata.title);
+    scdata.description.forEach(function (d) {
+        console.log('  ' + d);
+    });
+    evno = 1;
+    scdone = false;
 }
 
 function setScenario(id) {
@@ -183,38 +197,24 @@ function setScenario(id) {
     }
 
     evdata = null;
-    scenario = id;
+    scid = id;
     fs.readFile(scenarioPath(), 'utf8', function (err, data) {
         if (err) {
             console.warn('No scenario named "' + id + '"', err);
-            scenario = null;
+            scid = null;
         } else {
-            evdata = JSON.parse(data);
-            console.log(); // get past prompt
-            console.log('Loading scenario "' + id + '"');
-            console.log(evdata.title);
-            evdata.description.forEach(function (d) {
-                console.log('  ' + d);
-            });
-            evno = 1;
-            scdone = false;
+            scdata = JSON.parse(data);
+            initScenario('Loading');
         }
         rl.prompt();
     });
 }
 
 function restartScenario() {
-    if (!scenario) {
+    if (!scid) {
         console.log('No scenario loaded.');
     } else {
-        console.log();
-        console.log('Restarting scenario "' + scenario + '"');
-        console.log(evdata.title);
-        evdata.description.forEach(function (d) {
-            console.log('  ' + d);
-        });
-        evno = 1;
-        scdone = false;
+        initScenario('Restarting');
     }
     rl.prompt();
 }
@@ -222,7 +222,7 @@ function restartScenario() {
 function nextEvent() {
     var path;
 
-    if (!scenario) {
+    if (!scid) {
         console.log('No scenario loaded.');
         rl.prompt();
     } else if (!connection) {
