@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.MastershipRole.*;
+import static org.onosproject.net.intent.TestTools.delay;
 
 import java.util.Map;
 import java.util.Set;
@@ -121,6 +122,7 @@ public class DistributedMastershipStoreTest {
         assertTrue("wrong store state:", dms.roleMap.isEmpty());
 
         testStore.put(DID1, N1, true, false, false);
+        delay(10); //TODO there seems to be a race here.
         assertEquals("wrong master:", N1, dms.getMaster(DID1));
         assertNull("wrong master:", dms.getMaster(DID2));
     }
