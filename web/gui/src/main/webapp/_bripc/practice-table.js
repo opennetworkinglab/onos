@@ -235,45 +235,8 @@
         .controller('showTableCtrl', ['$log', '$scope', '$rootScope',
             '$timeout', 'TableService',
             function ($log, $scope, $rootScope, $timeout, ts) {
+                var self = this;
                 var table = ts.renderTable(d3.select('#tableDiv'), config, deviceData);
-
-                // --- commented out code below were various attempts at $apply ---
-                // will delete unneeded dependencies once we have figured out which ones we need
-
-                //$timeout(function () {
-                //        $log.log('inside timeout');
-                //        //$scope.$watch('table', function (newVal, oldVal) {
-                //            $scope.$apply();
-                //        //});
-                //    }, 1000);
-
-                //$scope.$applyAsync();
-
-                //$scope.$apply(function () {
-                //    ts.renderTable(d3.select('#tableDiv'), config, deviceData);
-                //});
-
-                //$log.log($scope);
-
-                //$scope.$watch('table', function(newVal, oldVal) {
-                //    //if (newVal === oldVal) { $log.log('hello'); return; }
-                //    $scope.$apply();
-                //});
-                //
-                //$timeout(function () {
-                //    $log.log("in timeout in controller");
-                //    $rootScope.$watch(function () {
-                //            return (table);
-                //        },
-                //        function(newValue, oldValue) {
-                //            if(newValue) {
-                //                $log.log('hello??');
-                //                //$rootScope.$apply();
-                //            }
-                //        }
-                //    );
-                //    //$scope.$apply(table);
-                //    $log.log("after scope.apply")});
             }])
 
         .directive('fixedHeader', ['$log', '$timeout', '$compile',
@@ -285,8 +248,6 @@
                 },
 
                 link: function (scope, element, attrs) {
-                    $log.log("in directive");
-
                     var table = d3.select(element[0]),
                         thead = table.select('thead'),
                         tbody = table.select('tbody');

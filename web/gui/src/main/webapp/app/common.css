@@ -26,12 +26,8 @@ table.summary-list {
     border-spacing: 0;
 }
 
-/* TODO: delete overflow and block (handled by fixed-header directive) */
 table.summary-list tbody {
-    height: 500px;
     border-radius: 0 0 8px 8px;
-    overflow: auto;
-    display: block;
 }
 
 .light table.summary-list tr:nth-child(even) {
@@ -66,7 +62,7 @@ table.summary-list th:last-child {
 }
 
 table.summary-list td {
-    padding: 5px;
+    padding: 10px;
     text-align: center;
 }
 .dark table.summary-list td {
