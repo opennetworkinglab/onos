@@ -20,40 +20,17 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.Port;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
-import org.onosproject.net.device.DefaultPortDescription;
-import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onlab.packet.ChassisId;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFPortConfig;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFPortFeatures;
-import org.projectfloodlight.openflow.protocol.OFPortReason;
-import org.projectfloodlight.openflow.protocol.OFPortState;
-import org.projectfloodlight.openflow.protocol.OFPortStatus;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.Port.Type.COPPER;
-import static org.onosproject.net.Port.Type.FIBER;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -64,7 +41,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class IgpDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private static final Logger LOG = getLogger(IgpDeviceProvider.class);
-    private static final long MBPS = 1_000 * 1_000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
@@ -102,7 +78,6 @@ public class IgpDeviceProvider extends AbstractProvider implements DeviceProvide
     public void deactivate() {
         providerRegistry.unregister(this);
         providerService = null;
-
         LOG.info("Stopped");
     }
 
@@ -119,6 +94,6 @@ public class IgpDeviceProvider extends AbstractProvider implements DeviceProvide
     @Override
     public boolean isReachable(DeviceId deviceId) {
         // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 }

@@ -118,8 +118,6 @@ public class DistributedFlowRuleExtStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    private final AtomicInteger localBatchIdGen = new AtomicInteger();
-
     private int pendingFutureTimeoutMinutes = 5;
 
     private final int BUFFERSIZE = 1000;

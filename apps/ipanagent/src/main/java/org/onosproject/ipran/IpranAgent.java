@@ -1,12 +1,15 @@
 package org.onosproject.ipran;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.net.DeviceId.deviceId;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -22,6 +25,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.ipran.serializers.HuaweiFlowSerializer;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
 import org.onosproject.net.flowext.FlowRuleExtService;
 import org.onosproject.net.topology.TopologyEvent;
@@ -68,8 +72,10 @@ public class IpranAgent {
     private ApplicationId appId;
     private ControllerNode localControllerNode;
     private IpranSession ipranConnector;
+    private static String hexStr =  "0123456789ABCDEF";
+    private final AtomicInteger localBatchIdGen = new AtomicInteger();
     // Stores all incoming route updates in a queue.
-    private BlockingQueue<Collection<FlowRuleExtEntry>> flowUpdatesQueue;
+    private BlockingQueue<FlowRuleBatchExtRequest> flowUpdatesQueue;
     private static final int DEFAULT_IPRAN_PORT = 2000;
     private  ExecutorService flowUpdatesExecutor;
     
@@ -90,6 +96,20 @@ public class IpranAgent {
         flowUpdatesExecutor = Executors.newSingleThreadExecutor(
                                             new ThreadFactoryBuilder()
                                             .setNameFormat("ipran-flow-updates-%d").build());
+        String buffer3 = "010e005000000021003fffee00010000000"
+                + "000000000000000000000000008000000000000000"
+                + "00000000000000000000001000015e4f1800000000"
+                + "00000007bffffffffffff000100000000000030000";
+        FlowRuleExtEntry entry1 = new FlowRuleExtEntry(deviceId("igp:00000001"),
+                 OFMessage.class, HexStringToBinary(buffer3));
+        FlowRuleExtEntry entry2 = new FlowRuleExtEntry(deviceId("igp:00000002"),
+                 OFMessage.class, HexStringToBinary(buffer3));
+        Collection<FlowRuleExtEntry> flows = new ArrayList<FlowRuleExtEntry>();
+        flows.add(entry1);
+        flows.add(entry2);
+        int batchId = localBatchIdGen.incrementAndGet();
+        FlowRuleBatchExtRequest request = new FlowRuleBatchExtRequest(batchId, flows);
+        flowUpdatesQueue.add(request);
         pocessFlowUpdate();
     }
     
@@ -117,7 +137,7 @@ public class IpranAgent {
         try {
             while (!interrupted) {
                 try {
-                    Collection<FlowRuleExtEntry> flowUpdates =
+                    FlowRuleBatchExtRequest flowUpdates =
                             flowUpdatesQueue.take();
                     /* here should make some change:
                      * first, use batch service interface
@@ -137,6 +157,23 @@ public class IpranAgent {
             }
         }
     }
+
+    public static byte[] HexStringToBinary(String hexString){  
+        //hexString的长度对2取整，作为bytes的长度  
+        int len = hexString.length()/2;  
+        byte[] bytes = new byte[len];  
+        byte high = 0;//字节高四位  
+        byte low = 0;//字节低四位  
+  
+        for(int i=0;i<len;i++){  
+             //右移四位得到高位  
+             high = (byte)((hexStr.indexOf(hexString.charAt(2*i)))<<4);  
+             low = (byte)hexStr.indexOf(hexString.charAt(2*i+1));  
+             bytes[i] = (byte) (high|low);//高地位做或运算  
+        }  
+        return bytes;  
+    }
+
   /**
    * A listener for Topology Events.
    */
@@ -192,7 +229,7 @@ public class IpranAgent {
     private class InnerSessionEventListener
         implements IpranSessionListener {
         @Override
-        public void update(Collection<FlowRuleExtEntry> flowUpdates) {
+        public void update(FlowRuleBatchExtRequest flowUpdates) {
             // TODO Auto-generated method stub
             try {
                 flowUpdatesQueue.put(flowUpdates);

@@ -32,7 +32,6 @@
     <description>ONOS IGP protocol adapters</description>
 
     <modules>
-        <module>flow</module>
         <module>device</module>
     </modules>
 
