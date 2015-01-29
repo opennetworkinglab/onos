@@ -20,9 +20,11 @@
 (function () {
     'use strict';
 
-    var $log,
-        fs,
-        glyphs = d3.map(),
+    // injected references
+    var $log, fs, sus;
+
+    // internal state
+    var glyphs = d3.map(),
         msgGS = 'GlyphService.';
 
     // ----------------------------------------------------------------------
@@ -133,78 +135,102 @@
 
     // ----------------------------------------------------------------------
 
+    function clear() {
+        // start with a fresh map
+        glyphs = d3.map();
+    }
+
+    function init() {
+        clear();
+        register(birdViewBox, birdData);
+        register(glyphViewBox, glyphData);
+        register(badgeViewBox, badgeData);
+    }
+
+    function register(viewBox, data, overwrite) {
+        var dmap = d3.map(data),
+            dups = [],
+            ok;
+
+        dmap.forEach(function (key, value) {
+            if (!overwrite && glyphs.get(key)) {
+                dups.push(key);
+            } else {
+                glyphs.set(key, {id: key, vb: viewBox, d: value});
+            }
+        });
+        ok = (dups.length == 0);
+        if (!ok) {
+            dups.forEach(function (id) {
+                $log.warn(msgGS + 'register(): ID collision: "'+id+'"');
+            });
+        }
+        return ok;
+    }
+
+    function ids() {
+        return glyphs.keys();
+    }
+
+    function glyph(id) {
+        return glyphs.get(id);
+    }
+
+    // Note: defs should be a D3 selection of a single <defs> element
+    function loadDefs(defs, glyphIds, noClear) {
+        var list = fs.isA(glyphIds) || ids(),
+            clearCache = !noClear;
+
+        if (clearCache) {
+            // remove all existing content
+            defs.html(null);
+        }
+
+        // load up the requested glyphs
+        list.forEach(function (id) {
+            var g = glyph(id);
+            if (g) {
+                if (noClear) {
+                    // quick exit if symbol is already present
+                    if (defs.select('symbol#' + g.id).size() > 0) {
+                        return;
+                    }
+                }
+                defs.append('symbol')
+                    .attr({ id: g.id, viewBox: g.vb })
+                    .append('path').attr('d', g.d);
+            }
+        });
+    }
+
+    function addGlyph(elem, glyphId, size, overlay, trans) {
+        var sz = size || 40,
+            ovr = !!overlay,
+            xns = fs.isA(trans),
+            atr = {
+                width: sz,
+                height: sz,
+                'class': 'glyph',
+                'xlink:href': '#' + glyphId
+            };
+
+        if (xns) {
+            atr.transform = sus.translate(trans);
+        }
+        elem.append('use').attr(atr).classed('overlay', ovr);
+
+    }
+
+    // ----------------------------------------------------------------------
+
     angular.module('onosSvg')
-        .factory('GlyphService', ['$log', 'FnService', function (_$log_, _fs_) {
+    .factory('GlyphService',
+        ['$log', 'FnService', 'SvgUtilService',
+
+        function (_$log_, _fs_, _sus_) {
             $log = _$log_;
             fs = _fs_;
-
-            function clear() {
-                // start with a fresh map
-                glyphs = d3.map();
-            }
-
-            function init() {
-                clear();
-                register(birdViewBox, birdData);
-                register(glyphViewBox, glyphData);
-                register(badgeViewBox, badgeData);
-            }
-
-            function register(viewBox, data, overwrite) {
-                var dmap = d3.map(data),
-                    dups = [],
-                    ok;
-
-                dmap.forEach(function (key, value) {
-                    if (!overwrite && glyphs.get(key)) {
-                        dups.push(key);
-                    } else {
-                        glyphs.set(key, {id: key, vb: viewBox, d: value});
-                    }
-                });
-                ok = (dups.length == 0);
-                if (!ok) {
-                    dups.forEach(function (id) {
-                        $log.warn(msgGS + 'register(): ID collision: "'+id+'"');
-                    });
-                }
-                return ok;
-            }
-
-            function ids() {
-                return glyphs.keys();
-            }
-
-            function glyph(id) {
-                return glyphs.get(id);
-            }
-
-            // Note: defs should be a D3 selection of a single <defs> element
-            function loadDefs(defs, glyphIds, noClear) {
-                var list = fs.isA(glyphIds) || ids(),
-                    clearCache = !noClear;
-
-                if (clearCache) {
-                    // remove all existing content
-                    defs.html(null);
-                }
-
-                // load up the requested glyphs
-                list.forEach(function (id) {
-                    var g = glyph(id);
-                    if (g) {
-                        if (noClear) {
-                            // quick exit if symbol is already present
-                            if (defs.select('symbol#' + g.id).size() > 0) {
-                                return;
-                            }
-                        }
-                        defs.append('symbol')
-                            .attr({ id: g.id, viewBox: g.vb })
-                            .append('path').attr('d', g.d);
-                    }
-                });
-            }
+            sus = _sus_;
 
             return {
                 clear: clear,
@@ -212,8 +238,10 @@
                 register: register,
                 ids: ids,
                 glyph: glyph,
-                loadDefs: loadDefs
+                loadDefs: loadDefs,
+                addGlyph: addGlyph
             };
-        }]);
+        }]
+    );
 
 }());

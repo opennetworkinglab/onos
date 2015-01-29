@@ -56,17 +56,6 @@
     height: 42px;
 }
 
-#topo-p-summary svg .glyphIcon {
-    stroke: none;
-    fill-rule: evenodd;
-}
-.light #topo-p-summary svg .glyphIcon {
-    fill: black;
-}
-.dark #topo-p-summary svg .glyphIcon {
-    fill: #ddd;
-}
-
 #topo-p-summary h2 {
     position: absolute;
     margin: 0 4px;

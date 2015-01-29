@@ -39,8 +39,18 @@ describe('factory: fw/svg/svgUtil.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(sus, [
-            'createDragBehavior', 'loadGlow', 'cat7'
+            'createDragBehavior', 'loadGlow', 'cat7', 'translate'
         ])).toBeTruthy();
+    });
+
+    // TODO: add unit tests for drag behavior etc.
+
+    it('should translate from two args', function () {
+        expect(sus.translate(1,2)).toEqual('translate(1,2)');
+    });
+
+    it('should translate from an array', function () {
+        expect(sus.translate([3,4])).toEqual('translate(3,4)');
     });
 
 });

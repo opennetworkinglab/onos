@@ -136,10 +136,18 @@
                 $log.warn('SvgUtilService: cat7 -- To Be Implemented');
             }
 
+            function translate(x, y) {
+                if (fs.isA(x) && x.length === 2 && !y) {
+                    return 'translate(' + x[0] + ',' + x[1] + ')';
+                }
+                return 'translate(' + x + ',' + y + ')';
+            }
+
             return {
                 createDragBehavior: createDragBehavior,
                 loadGlow: loadGlow,
-                cat7: cat7
+                cat7: cat7,
+                translate: translate
             };
         }]);
 }());

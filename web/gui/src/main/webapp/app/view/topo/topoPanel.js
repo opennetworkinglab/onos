@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, ps;
+    var $log, ps, gs;
 
     // constants
     var idSum = 'topo-p-summary',
@@ -70,18 +70,15 @@
     function populateSummary(data) {
         summaryPanel.empty();
 
-        var svg = summaryPanel.append('svg').attr({
-                width: 40,
-                height: 40
-            }).style('background-color', 'goldenrod'),
-            iid = '#' + (data.type || 'unknown');
+        var svg = summaryPanel.append('svg'); //.style('background-color', 'goldenrod'),
+            //iid = '#' + (data.type || 'unknown');
 
         var title = summaryPanel.append('h2'),
             table = summaryPanel.append('table'),
             tbody = table.append('tbody');
 
-        // append glyph iid to SVG  // black fill
-        // append glyph bird to SVG // white fill
+        gs.addGlyph(svg, 'node', 40);
+        gs.addGlyph(svg, 'bird', 24, true, [8,12]);
 
         title.text(data.id);
 
@@ -103,11 +100,12 @@
 
     angular.module('ovTopo')
     .factory('TopoPanelService',
-        ['$log', 'PanelService',
+        ['$log', 'PanelService', 'GlyphService',
 
-        function (_$log_, _ps_) {
+        function (_$log_, _ps_, _gs_) {
             $log = _$log_;
             ps = _ps_;
+            gs = _gs_;
 
             function initPanels() {
                 summaryPanel = ps.createPanel(idSum, panelOpts);
