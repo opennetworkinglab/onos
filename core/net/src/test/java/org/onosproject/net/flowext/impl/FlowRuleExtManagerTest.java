@@ -100,8 +100,9 @@ public class FlowRuleExtManagerTest {
         batchOperation.add(r1);
         batchOperation.add(r2);
         batchOperation.add(r3);
-        service.applyBatch(batchOperation);
-        Collection<FlowRuleExtEntry> store = (Collection<FlowRuleExtEntry>) service.getExtMessages(DID);
+        FlowRuleBatchExtRequest request = new FlowRuleBatchExtRequest(1,batchOperation);
+        service.applyBatch(request);
+        Collection<FlowRuleExtEntry> store = ((Collection<FlowRuleExtEntry>) service.getExtMessages(DID));
         assertEquals("3 rules should exist", 3, store.size());
         assertThat(store.toArray()[0], equalTo(r1));
         assertThat(store.toArray()[1], equalTo(r2));
