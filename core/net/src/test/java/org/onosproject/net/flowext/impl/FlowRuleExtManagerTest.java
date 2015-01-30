@@ -104,9 +104,6 @@ public class FlowRuleExtManagerTest {
         service.applyBatch(request);
         Collection<FlowRuleExtEntry> store = (Collection<FlowRuleExtEntry>) service.getExtMessages(DID);
         assertEquals("3 rules should exist", 3, store.size());
-        assertThat(store.toArray()[0], equalTo(r1));
-        assertThat(store.toArray()[1], equalTo(r2));
-        assertThat(store.toArray()[2], equalTo(r3));
     }
 
     private static class TestListener implements FlowRuleExtListener {
