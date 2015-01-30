@@ -32,6 +32,7 @@
             <param-value>
                 org.onosproject.rest.exceptions.EntityNotFoundMapper,
                 org.onosproject.rest.exceptions.ServiceNotFoundMapper,
+                org.onosproject.rest.exceptions.NotFoundMapper,
                 org.onosproject.rest.exceptions.ServerErrorMapper,
                 org.onosproject.rest.JsonBodyWriter,
 

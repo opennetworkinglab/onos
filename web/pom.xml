@@ -122,7 +122,7 @@
                             org.slf4j,
                             org.osgi.framework,
                             javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
-                            com.sun.jersey.api.core,
+                            com.sun.jersey.api,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,

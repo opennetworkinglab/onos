@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@ package org.onosproject.rest.exceptions;
 
 import javax.ws.rs.core.Response;
 
+import com.sun.jersey.api.NotFoundException;
+
 /**
- * Mapper for service not found exceptions to the INTERNAL_SERVER_ERROR response code.
+ * Mapper for api not found exceptions to the NOT_FOUND response code.
  */
-public class ServerErrorMapper extends AbstractMapper<RuntimeException> {
+public class NotFoundMapper extends AbstractMapper<NotFoundException> {
+
     @Override
     protected Response.Status responseStatus() {
-        return Response.Status.INTERNAL_SERVER_ERROR;
+        return Response.Status.NOT_FOUND;
     }
+
 }
