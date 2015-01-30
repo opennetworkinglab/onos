@@ -143,12 +143,13 @@
 
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
-            'FnService', 'MastService',
-            'KeyService', 'ZoomService', 'GlyphService', 'MapService',
+            'FnService', 'MastService', 'KeyService', 'ZoomService',
+            'GlyphService', 'MapService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
+            'TopoInstService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, tes, _tfs_, tps) {
+                  _ks_, _zs_, _gs_, _ms_, tes, _tfs_, tps, tis) {
             var self = this;
             $log = _$log_;
             fs = _fs_;
@@ -167,6 +168,7 @@
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
                 tes.closeSock();
                 tps.destroyPanels();
+                tis.destroyInst();
             });
 
             // svg layer and initialization of components
@@ -181,6 +183,7 @@
             setUpMap();
             setUpForce();
 
+            tis.initInst();
             tps.initPanels();
             tes.openSock();
 

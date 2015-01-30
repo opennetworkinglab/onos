@@ -43,7 +43,13 @@ describe('factory: fw/svg/svgUtil.js', function() {
         ])).toBeTruthy();
     });
 
-    // TODO: add unit tests for drag behavior etc.
+
+    // TODO: add unit tests for drag behavior
+    // TODO: add unit tests for loadGlow
+    // TODO: add unit tests for cat7
+
+
+    // === translate()
 
     it('should translate from two args', function () {
         expect(sus.translate(1,2)).toEqual('translate(1,2)');
@@ -53,4 +59,14 @@ describe('factory: fw/svg/svgUtil.js', function() {
         expect(sus.translate([3,4])).toEqual('translate(3,4)');
     });
 
+
+    // === stripPx()
+
+    it('should not affect a number', function () {
+        expect(sus.stripPx('4')).toEqual('4');
+    });
+
+    it('should remove trailing px', function () {
+        expect(sus.stripPx('4px')).toEqual('4');
+    });
 });

@@ -143,11 +143,16 @@
                 return 'translate(' + x + ',' + y + ')';
             }
 
+            function stripPx(s) {
+                return s.replace(/px$/,'');
+            }
+
             return {
                 createDragBehavior: createDragBehavior,
                 loadGlow: loadGlow,
                 cat7: cat7,
-                translate: translate
+                translate: translate,
+                stripPx: stripPx
             };
         }]);
 }());

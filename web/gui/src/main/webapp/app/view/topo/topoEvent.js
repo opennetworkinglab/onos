@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, wes, tps;
+    var $log, wss, wes, tps, tis;
 
     // internal state
     var wsock;
@@ -47,7 +47,8 @@
     }
 
     function addInstance(ev) {
-        $log.debug(' *** We got an ADD INSTANCE event: ', ev);
+        $log.debug('  **** Add Instance **** ', ev.payload);
+        tis.addInstance(ev.payload);
     }
 
     // ==========================
@@ -87,13 +88,14 @@
     angular.module('ovTopo')
     .factory('TopoEventService',
         ['$log', '$location', 'WebSocketService', 'WsEventService',
-            'TopoPanelService',
+            'TopoPanelService', 'TopoInstService',
 
-        function (_$log_, $loc, _wss_, _wes_, _tps_) {
+        function (_$log_, $loc, _wss_, _wes_, _tps_, _tis_) {
             $log = _$log_;
             wss = _wss_;
             wes = _wes_;
             tps = _tps_;
+            tis = _tis_;
 
             function bindDispatcher(TopoDomElementsPassedHere) {
                 // TODO: store refs to topo DOM elements...

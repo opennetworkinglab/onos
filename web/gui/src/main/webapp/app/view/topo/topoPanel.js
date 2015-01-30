@@ -28,43 +28,20 @@
     // constants
     var idSum = 'topo-p-summary',
         idDet = 'topo-p-detail',
-        idIns = 'topo-p-instance',
         panelOpts = {
             width: 260
         };
 
-    // internal state
-    var settings;
-
-
-    // SVG elements;
-    var fooPane;
-
-    // D3 selections;
+    // panels
     var summaryPanel,
-        detailPanel,
-        instancePanel;
-
-    // default settings for force layout
-    var defaultSettings = {
-        foo: 2
-    };
-
+        detailPanel;
 
     // ==========================
+    // *** SHOW SUMMARY ***
 
-    function addSep(tbody) {
-        tbody.append('tr').append('td').attr('colspan', 2).append('hr');
-    }
-
-    function addProp(tbody, label, value) {
-        var tr = tbody.append('tr');
-
-        function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).text(txt);
-        }
-        addCell('label', label + ' :');
-        addCell('value', value);
+    function showSummary(data) {
+        populateSummary(data);
+        showSummaryPanel();
     }
 
     function populateSummary(data) {
@@ -89,9 +66,36 @@
         });
     }
 
+    function addSep(tbody) {
+        tbody.append('tr').append('td').attr('colspan', 2).append('hr');
+    }
+
+    function addProp(tbody, label, value) {
+        var tr = tbody.append('tr');
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).text(txt);
+        }
+        addCell('label', label + ' :');
+        addCell('value', value);
+    }
+
     function showSummaryPanel() {
         summaryPanel.show();
+        // TODO: augment, once we have the details pane also
+    }
 
+    // ==========================
+
+    function initPanels() {
+        summaryPanel = ps.createPanel(idSum, panelOpts);
+        detailPanel = ps.createPanel(idDet, panelOpts);
+    }
+
+    function destroyPanels() {
+        ps.destroyPanel(idSum);
+        ps.destroyPanel(idDet);
+        summaryPanel = detailPanel = null;
     }
 
     // ==========================
@@ -104,22 +108,6 @@
             $log = _$log_;
             ps = _ps_;
             gs = _gs_;
-
-            function initPanels() {
-                summaryPanel = ps.createPanel(idSum, panelOpts);
-                // TODO: set up detail and instance panels..
-            }
-
-            function destroyPanels() {
-                ps.destroyPanel(idSum);
-                summaryPanel = null;
-                // TODO: destroy detail and instance panels..
-            }
-
-            function showSummary(payload) {
-                populateSummary(payload);
-                showSummaryPanel();
-            }
 
             return {
                 initPanels: initPanels,

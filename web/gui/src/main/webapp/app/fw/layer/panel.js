@@ -75,7 +75,8 @@
                 append: appendPanel,
                 width: panelWidth,
                 height: panelHeight,
-                isVisible: panelIsVisible
+                isVisible: panelIsVisible,
+                el: panelEl
             };
 
         p.el = panelLayer.append('div')
@@ -134,6 +135,10 @@
 
         function panelIsVisible() {
             return p.on;
+        }
+
+        function panelEl() {
+            return p.el;
         }
 
         return api;

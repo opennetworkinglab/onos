@@ -43,7 +43,7 @@
 }
 
 
-/* --- Topo Panels --- */
+/* --- Topo Summary Panel --- */
 
 #topo-p-summary {
     /* Base css from panel.css */
@@ -106,4 +106,79 @@
 .dark #topo-p-summary hr {
     background-color: #888;
     color: #888;
+}
+
+
+/* --- Topo Detail Panel --- */
+
+/* TODO: add CSS rules */
+
+
+/* --- Topo Instance Panel --- */
+
+#topo-p-instance {
+    height: 100px;
+}
+
+#topo-p-instance div.onosInst {
+    display: inline-block;
+    width: 170px;
+    height: 85px;
+    cursor: pointer;
+}
+
+#topo-p-instance svg rect {
+    fill: #ccc;
+    stroke: #aaa;
+    stroke-width: 3.5;
+}
+#topo-p-instance .online svg rect {
+    opacity: 1;
+    fill: #9cf;
+    stroke: #555;
+}
+
+#topo-p-instance svg .glyph {
+    fill: #888;
+    fill-rule: evenodd;
+}
+#topo-p-instance .online svg .glyph {
+    fill: #000;
+}
+
+#topo-p-instance svg .badgeIcon {
+    fill: #777;
+    fill-rule: evenodd;
+}
+
+#topo-p-instance .online svg .badgeIcon {
+    fill: #fff;
+}
+
+#topo-p-instance svg text {
+    text-anchor: middle;
+    fill: #777;
+}
+#topo-p-instance .online svg text {
+    fill: #eee;
+}
+
+#topo-p-instance svg text.instTitle {
+    font-size: 11pt;
+    font-weight: bold;
+}
+#topo-p-instance svg text.instLabel {
+    font-size: 9pt;
+    font-style: italic;
+}
+
+#topo-p-instance .onosInst.mastership {
+    opacity: 0.3;
+}
+#topo-p-instance .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+#topo-p-instance .onosInst.mastership.affinity svg rect {
+    /* TODO: add blue glow */
+    /*filter: url(#blue-glow);*/
 }

@@ -218,8 +218,7 @@
         if (xns) {
             atr.transform = sus.translate(trans);
         }
-        elem.append('use').attr(atr).classed('overlay', ovr);
-
+        return elem.append('use').attr(atr).classed('overlay', ovr);
     }
 
     // ----------------------------------------------------------------------

@@ -84,6 +84,13 @@ describe('factory: fw/layer/panel.js', function () {
         expect(el.style('width')).toEqual('200px');
     });
 
+    it('should provide an api of panel functions', function () {
+        var p = ps.createPanel('foo');
+        expect(fs.areFunctions(p, [
+            'show', 'hide', 'empty', 'append', 'width', 'height', 'isVisible', 'el'
+        ])).toBeTruthy();
+    });
+
     it('should complain when a duplicate ID is used', function () {
         spyOn($log, 'warn');
         var p = ps.createPanel('foo');

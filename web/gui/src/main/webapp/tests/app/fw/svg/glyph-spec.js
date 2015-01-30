@@ -252,7 +252,7 @@ describe('factory: fw/svg/glyph.js', function() {
 
     it('should add a glyph with default size', function () {
         gs.init();
-        gs.addGlyph(svg, 'crown');
+        var retval = gs.addGlyph(svg, 'crown');
         var what = svg.selectAll('use');
         expect(what.size()).toEqual(1);
         expect(what.attr('width')).toEqual('40');
@@ -260,6 +260,10 @@ describe('factory: fw/svg/glyph.js', function() {
         expect(what.attr('xlink:href')).toEqual('#crown');
         expect(what.classed('glyph')).toBeTruthy();
         expect(what.classed('overlay')).toBeFalsy();
+
+        // check a couple on retval, which should be the same thing..
+        expect(retval.attr('xlink:href')).toEqual('#crown');
+        expect(retval.classed('glyph')).toBeTruthy();
     });
 
     it('should add a glyph with given size', function () {
