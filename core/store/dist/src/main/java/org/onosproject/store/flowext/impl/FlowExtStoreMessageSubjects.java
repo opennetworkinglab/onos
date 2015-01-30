@@ -19,8 +19,6 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
 
 /**
  * MessageSubjects used by DistributedFlowRuleStore peer-peer communication.
- * 
- * @author j00273701
  */
 public final class FlowExtStoreMessageSubjects {
     private FlowExtStoreMessageSubjects() {}

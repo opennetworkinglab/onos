@@ -11,8 +11,8 @@ import com.esotericsoftware.kryo.io.Output;
 
 /**
  * FlowRuleExtEntry Serializer for {@link FlowRuleExtEntry}.
- * 
- * @author j00273701
+ *
+ * @author = jiang rui
  */
 public class FlowRuleExtEntrySerializer extends Serializer<FlowRuleExtEntry> {
 

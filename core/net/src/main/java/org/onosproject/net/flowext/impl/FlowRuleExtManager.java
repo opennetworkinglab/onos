@@ -65,8 +65,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the flow-extension NB &amp; SB APIs.
- * 
- * @author j00273701
  */
 @Component(immediate = true)
 @Service
@@ -82,7 +80,8 @@ public class FlowRuleExtManager
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<FlowRuleExtEvent, FlowRuleExtListener> listenerRegistry = new AbstractListenerRegistry<>();
+    private final AbstractListenerRegistry<FlowRuleExtEvent, FlowRuleExtListener>
+                  listenerRegistry = new AbstractListenerRegistry<>();
 
     private final FlowRuleExtStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -139,7 +138,7 @@ public class FlowRuleExtManager
                 // do not have transaction, assume it install success
                 // temporarily
                 FlowExtCompletedOperation result = new FlowExtCompletedOperation(
-                        flowrules.batchId(), true, Collections.<FlowRuleExtEntry> emptySet());
+                        flowrules.batchId(), true, Collections.<FlowRuleExtEntry>emptySet());
                 store.batchOperationComplete(FlowRuleBatchExtEvent
                         .completed(flowrules, result));
                 break;
@@ -256,7 +255,7 @@ public class FlowRuleExtManager
         }
         /**
          * Attempts to cancel execution of this task.
-         * 
+         *
          * @param mayInterruptIfRunning {@code true} if the thread executing this
          * task should be interrupted; otherwise, in-progress tasks are allowed
          * to complete
@@ -295,7 +294,7 @@ public class FlowRuleExtManager
 
         /**
          * Judge whether the task finished completely.
-         * 
+         *
          * @return {@code true} if this task completed
          */
         @Override
@@ -305,7 +304,7 @@ public class FlowRuleExtManager
 
         /**
          * Get the result of apply flow extension rules.
-         * If the task isn't finished, the thread block here.  
+         * If the task isn't finished, the thread block here.
          */
         @Override
         public FlowExtCompletedOperation get()
@@ -361,8 +360,8 @@ public class FlowRuleExtManager
          * Confirm whether the batch operation success.
          *
          * @param failed using to populate failed entries
-         * @param completed the result of apply flow extension entries 
-         * @return {@code true} if all entries applies successful.
+         * @param completed the result of apply flow extension entries
+         * @return {@code true} if all entries applies successful
          */
         private boolean validateBatchOperation(Set<FlowRuleExtEntry> failed,
                                                FlowExtCompletedOperation completed) {
@@ -390,7 +389,7 @@ public class FlowRuleExtManager
         }
 
         /**
-         * Construct the result of batch operation. 
+         * Construct the result of batch operation.
          *
          * @param success the result of batch operation
          * @param failed the failed entries of batch operation
@@ -426,7 +425,7 @@ public class FlowRuleExtManager
             super(provider);
         }
 
-        // TODO Temporarily, we don't have interaction with south provider, but we will 
+        // TODO Temporarily, we don't have interaction with south provider, but we will
         // do a lot of work here to support transaction.
     }
 

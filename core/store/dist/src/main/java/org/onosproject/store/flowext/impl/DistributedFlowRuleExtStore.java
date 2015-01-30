@@ -86,8 +86,6 @@ import com.google.common.util.concurrent.SettableFuture;
  * Manages inventory of extended flow rules using a distributed state management protocol.
  * This store does'nt support backing-up flow-rule data for now, but
  * it will be stronger in future.
- * 
- * @author j00273701
  */
 @Component(immediate = true)
 @Service
@@ -103,7 +101,7 @@ public class DistributedFlowRuleExtStore
 
     // store entries as a pile of rules, no info about device tables
     private final Multimap<DeviceId, FlowRuleExtEntry> extendFlowEntries = ArrayListMultimap
-            .<DeviceId, FlowRuleExtEntry> create();
+            .<DeviceId, FlowRuleExtEntry>create();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ReplicaInfoService replicaInfoManager;
@@ -155,7 +153,7 @@ public class DistributedFlowRuleExtStore
                   try {
                            message.respond(storeSeialize.encode(flowmsgs));
                   } catch (IOException e) {
-                           log.error("Failed to respond to peer's getFlowEntries request",e);
+                           log.error("Failed to respond to peer's getFlowEntries request", e);
                   }
           }
        });
@@ -165,7 +163,7 @@ public class DistributedFlowRuleExtStore
 
             @Override
             public void handle(ClusterMessage message) {
-                 // decode the extended flow entry and store them in memory. 
+                 // decode the extended flow entry and store them in memory.
                  FlowRuleBatchExtRequest operation = storeSeialize.decode(message.payload());
                  log.info("received batch request {}", operation);
                  final ListenableFuture<FlowExtCompletedOperation> f = storeBatchInternal(operation);
@@ -216,7 +214,7 @@ public class DistributedFlowRuleExtStore
 
     /**
      * Internal listener of master-ship event.
-     * Once master-ship changed, store should remove all entries of device.  
+     * Once master-ship changed, store should remove all entries of device. 
      */
     private final class InternalReplicaInfoEventListener
             implements ReplicaInfoEventListener {
@@ -427,8 +425,8 @@ public class DistributedFlowRuleExtStore
     }
 
     /**
-     * Register classT and serializer which can decode byte stream to classT object. 
-     * 
+     * Register classT and serializer which can decode byte stream to classT object.
+     *
      * @param classT the class flowEntryExtension can be decoded to.
      * @param serializer the serializer apps provide using to decode flowEntryExtension
      */
