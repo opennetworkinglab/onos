@@ -74,5 +74,8 @@
  * while the system determines where to perform the compilation or while it
  * performs global recomputation/optimization across all prior intents.
  * </p>
+ * <p>
+ * <img src="doc-files/intent-subsystem.png" alt="ONOS intent subsystem">
+ * </p>
  */
 package org.onosproject.net.intent;
