@@ -38,7 +38,6 @@ describe('factory: fw/util/fn.js', function() {
         $window.innerHeight = 200;
     }));
 
-
     // === Tests for isF()
     it('isF(): null for undefined', function () {
         expect(fs.isF(undefined)).toBeNull();
@@ -181,14 +180,32 @@ describe('factory: fw/util/fn.js', function() {
             b: 'not-a-function'
         }, ['b', 'a'])).toBeFalsy();
     });
-    it('areFunctions(): extraneous stuff ignored', function () {
+    it('areFunctions(): extraneous stuff NOT ignored', function () {
         expect(fs.areFunctions({
+            a: function () {},
+            b: function () {},
+            c: 1,
+            d: 'foo'
+        }, ['a', 'b'])).toBeFalsy();
+    });
+    it('areFunctions(): extraneous stuff ignored (alternate fn)', function () {
+        expect(fs.areFunctionsNonStrict({
             a: function () {},
             b: function () {},
             c: 1,
             d: 'foo'
         }, ['a', 'b'])).toBeTruthy();
     });
+
+    // == use the now-tested areFunctions on our own api:
+    it('should define api functions', function () {
+        expect(fs.areFunctions(fs, [
+            'isF', 'isA', 'isS', 'isO', 'contains',
+            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find'
+        ])).toBeTruthy();
+    });
+
+
 
 
     // === Tests for windowSize()
@@ -215,4 +232,7 @@ describe('factory: fw/util/fn.js', function() {
         expect(dim.width).toEqual(199);
         expect(dim.height).toEqual(99);
     });
+
+    // TODO: write unit tests for find()
+
 });

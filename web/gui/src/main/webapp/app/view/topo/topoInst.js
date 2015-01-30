@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, ps, sus, gs;
+    var $log, ps, sus, gs, ts, fs;
 
     // configuration
     var instCfg = {
@@ -78,6 +78,23 @@
             logicError('updateInstance: lookup fail: ID = "' + id + '"');
         }
     }
+
+    function removeInstance(data) {
+        var id = data.id,
+            d = onosInstances[id];
+        if (d) {
+            var idx = fs.find(id, onosOrder);
+            if (idx >= 0) {
+                onosOrder.splice(idx, 1);
+            }
+            delete onosInstances[id];
+            updateInstances();
+        } else {
+            logicError('removeInstance lookup fail. ID = "' + id + '"');
+        }
+    }
+
+    // ==========================
 
     function computeDim(self) {
         var css = window.getComputedStyle(self);
@@ -143,9 +160,7 @@
     }
 
     function instColor(id, online) {
-        // TODO: fix this..
-        //return cat7.get(id, !online, network.view.getTheme());
-        return '#3E5780';
+        return sus.cat7().getColor(id, !online, ts.theme());
     }
 
     // ==============================
@@ -288,17 +303,22 @@
     angular.module('ovTopo')
     .factory('TopoInstService',
         ['$log', 'PanelService', 'SvgUtilService', 'GlyphService',
+            'ThemeService', 'FnService',
 
-        function (_$log_, _ps_, _sus_, _gs_) {
+        function (_$log_, _ps_, _sus_, _gs_, _ts_, _fs_) {
             $log = _$log_;
             ps = _ps_;
             sus = _sus_;
             gs = _gs_;
+            ts = _ts_;
+            fs = _fs_;
 
             return {
                 initInst: initInst,
                 destroyInst: destroyInst,
-                addInstance: addInstance
+                addInstance: addInstance,
+                updateInstance: updateInstance,
+                removeInstance: removeInstance
             };
         }]);
 }());

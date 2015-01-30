@@ -30,7 +30,9 @@
 
     var evHandler = {
         showSummary: showSummary,
-        addInstance: addInstance
+        addInstance: addInstance,
+        updateInstance: updateInstance,
+        removeInstance: removeInstance
         // TODO: implement remaining handlers..
 
     };
@@ -49,6 +51,16 @@
     function addInstance(ev) {
         $log.debug('  **** Add Instance **** ', ev.payload);
         tis.addInstance(ev.payload);
+    }
+
+    function updateInstance(ev) {
+        $log.debug('  **** Update Instance **** ', ev.payload);
+        tis.updateInstance(ev.payload);
+    }
+
+    function removeInstance(ev) {
+        $log.debug('  **** Remove Instance **** ', ev.payload);
+        tis.removeInstance(ev.payload);
     }
 
     // ==========================

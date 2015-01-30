@@ -39,15 +39,57 @@ describe('factory: fw/svg/svgUtil.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(sus, [
-            'createDragBehavior', 'loadGlow', 'cat7', 'translate'
+            'createDragBehavior', 'loadGlow', 'cat7', 'translate', 'stripPx'
         ])).toBeTruthy();
     });
 
 
     // TODO: add unit tests for drag behavior
     // TODO: add unit tests for loadGlow
-    // TODO: add unit tests for cat7
 
+    // === cat7
+
+    it('should define two methods on the api', function () {
+        var cat7 = sus.cat7();
+        expect(fs.areFunctions(cat7, [
+            'testCard', 'getColor'
+        ])).toBeTruthy();
+    });
+
+    it('should provide a certain shade of blue', function () {
+       expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#3E5780');
+    });
+
+    it('should not matter what the ID really is for shade of blue', function () {
+       expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#3E5780');
+    });
+
+    it('should provide different shade of blue for muted', function () {
+        expect(sus.cat7().getColor('foo', true, 'light')).toEqual('#A8B8CC');
+    });
+
+
+    it('should provide an alternate (dark) shade of blue', function () {
+       expect(sus.cat7().getColor('foo', false, 'dark')).toEqual('#3E5780');
+    });
+
+    it('should provide an alternate (dark) shade of blue for muted', function () {
+        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#A8B8CC');
+    });
+
+    it('should iterate across the colors', function () {
+        expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#3E5780');
+        expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#78533B');
+        expect(sus.cat7().getColor('baz', false, 'light')).toEqual('#CB4D28');
+        expect(sus.cat7().getColor('goo', false, 'light')).toEqual('#018D61');
+        expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#8A2979');
+        expect(sus.cat7().getColor('pip', false, 'light')).toEqual('#006D73');
+        expect(sus.cat7().getColor('sdh', false, 'light')).toEqual('#56AF00');
+        // and cycle back to the first color for item #8
+        expect(sus.cat7().getColor('bri', false, 'light')).toEqual('#3E5780');
+        // and return the same color for the same ID
+        expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#8A2979');
+    });
 
     // === translate()
 

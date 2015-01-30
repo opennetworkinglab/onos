@@ -1,0 +1,14 @@
+{
+  "event": "removeInstance",
+  "payload": {
+    "id": "instB",
+    "ip": "123.22.33.241",
+    "online": false,
+    "uiAttached": false,
+    "switches": 14,
+    "labels": [
+      "instB",
+      "123.22.33.241"
+    ]
+  }
+}

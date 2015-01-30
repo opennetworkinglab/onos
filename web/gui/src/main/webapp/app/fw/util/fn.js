@@ -45,7 +45,38 @@
 
     // Returns true if all names in the array are defined as functions
     // on the given api object; false otherwise.
+    // Also returns false if there are properties on the api that are NOT
+    //  listed in the array of names.
     function areFunctions(api, fnNames) {
+        var fnLookup = {},
+            extraFound = false;
+
+        if (!isA(fnNames)) {
+            return false;
+        }
+        var n = fnNames.length,
+            i, name;
+        for (i=0; i<n; i++) {
+            name = fnNames[i];
+            if (!isF(api[name])) {
+                return false;
+            }
+            fnLookup[name] = true;
+        }
+
+        // check for properties on the API that are not listed in the array,
+        angular.forEach(api, function (value, key) {
+            if (!fnLookup[key]) {
+                extraFound = true;
+            }
+        });
+        return !extraFound;
+    }
+
+    // Returns true if all names in the array are defined as functions
+    // on the given api object; false otherwise. This is a non-strict version
+    // that does not care about other properties on the api.
+    function areFunctionsNonStrict(api, fnNames) {
         if (!isA(fnNames)) {
             return false;
         }
@@ -71,6 +102,21 @@
         };
     }
 
+    // search through an array of objects, looking for the one with the
+    // tagged property matching the given key. tag defaults to 'id'.
+    // returns the index of the matching object, or -1 for no match.
+    function find(key, array, tag) {
+        var _tag = tag || 'id',
+            idx, n, d;
+        for (idx = 0, n = array.length; idx < n; idx++) {
+            d = array[idx];
+            if (d[_tag] === key) {
+                return idx;
+            }
+        }
+        return -1;
+    }
+
     angular.module('onosUtil')
         .factory('FnService', ['$window', function (_$window_) {
             $window = _$window_;
@@ -82,7 +128,9 @@
                 isO: isO,
                 contains: contains,
                 areFunctions: areFunctions,
-                windowSize: windowSize
+                areFunctionsNonStrict: areFunctionsNonStrict,
+                windowSize: windowSize,
+                find: find
             };
     }]);
 

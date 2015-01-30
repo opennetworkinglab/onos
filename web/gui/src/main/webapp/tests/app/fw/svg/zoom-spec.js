@@ -48,7 +48,7 @@ describe('factory: fw/svg/zoom.js', function() {
 
     function verifyZoomerApi() {
         expect(fs.areFunctions(zoomer, [
-            'panZoom', 'reset', 'translate', 'scale'
+            'panZoom', 'reset', 'translate', 'scale', 'scaleExtent'
         ])).toBeTruthy();
     }
 

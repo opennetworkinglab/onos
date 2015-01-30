@@ -36,7 +36,7 @@ describe('factory: fw/remote/wsevent.js', function () {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(wse, [
-            'sendEvent'
+            'sendEvent', 'resetSid'
         ])).toBeTruthy();
     });
 
