@@ -16,7 +16,7 @@
 package org.onosproject.net.proxyarp;
 
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.packet.PacketContext;
 
@@ -27,37 +27,39 @@ import org.onosproject.net.packet.PacketContext;
 public interface ProxyArpService {
 
     /**
-     * Returns whether this particular IPv4 address is known to the system.
+     * Returns whether this particular IP address is known to the system.
      *
-     * @param addr an IPv4 address
+     * @param addr an IP address
      * @return true if know, false otherwise
      */
-    boolean isKnown(Ip4Address addr);
+    boolean isKnown(IpAddress addr);
 
     /**
-     * Sends a reply for a given request. If the host is not known then the arp
-     * will be flooded at all edge ports.
+     * Sends a reply for a given request. If the host is not known then the
+     * arp or neighbor solicitation will be flooded at all edge ports.
      *
-     * @param eth an arp request
+     * @param eth an arp or neighbor solicitation request
      * @param inPort the port the request was received on
      */
     void reply(Ethernet eth, ConnectPoint inPort);
 
     /**
-     * Forwards an ARP request to its destination. Floods at the edge the ARP request if the
-     * destination is not known.
+     * Forwards an ARP or neighbor solicitation request to its destination.
+     * Floods at the edg the request if the destination is not known.
      *
-     * @param eth an ethernet frame containing an ARP request.
+     * @param eth an ethernet frame containing an ARP or neighbor solicitation
+     * request.
      * @param inPort the port the request was received on
      */
     void forward(Ethernet eth, ConnectPoint inPort);
 
     /**
-     * Handles a arp packet.
-     * Replies to arp requests and forwards request to the  right place.
+     * Handles a arp or neighbor solicitation packet.
+     * Replies to arp or neighbor solicitation requests and forwards request
+     * to the right place.
      * @param context the packet context to handle
      * @return true if handled, false otherwise.
      */
-    boolean handleArp(PacketContext context);
+    boolean handlePacket(PacketContext context);
 
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.proxyarp;
+package org.onosproject.proxyndp;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.ICMP6;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -35,10 +37,10 @@ import org.onosproject.net.proxyarp.ProxyArpService;
 import org.slf4j.Logger;
 
 /**
- * Sample reactive proxy arp application.
+ * Sample reactive proxy ndp application.
  */
 @Component(immediate = true)
-public class ProxyArp {
+public class ProxyNdp {
 
     private final Logger log = getLogger(getClass());
 
@@ -48,7 +50,7 @@ public class ProxyArp {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ProxyArpService proxyArpService;
 
-    private ProxyArpProcessor processor = new ProxyArpProcessor();
+    private ProxyNdpProcessor processor = new ProxyNdpProcessor();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -57,12 +59,20 @@ public class ProxyArp {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onosproject.proxyarp");
+        appId = coreService.registerApplication("org.onosproject.proxyndp");
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
 
-        TrafficSelector.Builder selectorBuilder =
-                DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+        packetService.requestPackets(selectorBuilder.build(),
+                                     PacketPriority.CONTROL, appId);
+
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
         packetService.requestPackets(selectorBuilder.build(),
                                      PacketPriority.CONTROL, appId);
 
@@ -80,7 +90,7 @@ public class ProxyArp {
     /**
      * Packet processor responsible for forwarding packets along their paths.
      */
-    private class ProxyArpProcessor implements PacketProcessor {
+    private class ProxyNdpProcessor implements PacketProcessor {
 
         @Override
         public void process(PacketContext context) {
@@ -90,7 +100,7 @@ public class ProxyArp {
                 return;
             }
 
-            //handle the arp packet.
+            // Handle the neighbor discovery packet.
             proxyArpService.handlePacket(context);
         }
     }
