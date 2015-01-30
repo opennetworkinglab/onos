@@ -119,6 +119,27 @@ public interface TrafficTreatment {
         public Builder setIpDst(IpAddress addr);
 
         /**
+         * Decrease the TTL in IP header by one.
+         *
+         * @return a treatment builder
+         */
+        public Builder decNwTtl();
+
+        /**
+         * Copy the TTL to outer protocol layer.
+         *
+         * @return a treatment builder
+         */
+        public Builder copyTtlOut();
+
+        /**
+         * Copy the TTL to inner protocol layer.
+         *
+         * @return a treatment builder
+         */
+        public Builder copyTtlIn();
+
+        /**
          * Push MPLS ether type.
          *
          * @return a treatment builder.
@@ -133,12 +154,27 @@ public interface TrafficTreatment {
         public Builder popMpls();
 
         /**
+         * Pops MPLS ether type.
+         *
+         * @param ethType Ethernet type to set
+         * @return a treatment builder.
+         */
+        public Builder popMpls(short ethType);
+
+        /**
          * Sets the mpls label.
          *
          * @param mplsLabel MPLS label.
          * @return a treatment builder.
          */
         public Builder setMpls(Integer mplsLabel);
+
+        /**
+         * Decrement MPLS TTL.
+         *
+         * @return a treatment builder
+         */
+        public Builder decMplsTtl();
 
         /**
          * Sets the optical channel ID or lambda.

@@ -28,6 +28,7 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
@@ -122,6 +123,15 @@ public final class Instructions {
         checkNotNull(mplsLabel, "MPLS label cannot be null");
         return new ModMplsLabelInstruction(mplsLabel);
     }
+
+    /**
+     * Creates a MPLS TTL modification.
+     *
+     * @return a L2 Modification
+     */
+    public static L2ModificationInstruction decMplsTtl() {
+        return new ModMplsTtlInstruction();
+    }
     /**
      * Creates a L3 src modification.
      * @param addr the ip address to modify to.
@@ -143,6 +153,30 @@ public final class Instructions {
     }
 
     /**
+     * Creates a L3 TTL modification.
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction decNwTtl() {
+        return new ModTtlInstruction(L3SubType.DEC_TTL);
+    }
+
+    /**
+     * Creates a L3 TTL modification.
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction copyTtlOut() {
+        return new ModTtlInstruction(L3SubType.TTL_OUT);
+    }
+
+    /**
+     * Creates a L3 TTL modification.
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction copyTtlIn() {
+        return new ModTtlInstruction(L3SubType.TTL_IN);
+    }
+
+    /**
      * Creates a mpls header instruction.
      * @return a L2 modification.
      */
@@ -158,6 +192,18 @@ public final class Instructions {
     public static Instruction popMpls() {
         return new PushHeaderInstructions(L2SubType.MPLS_POP,
                                           new Ethernet().setEtherType(Ethernet.MPLS_UNICAST));
+    }
+
+    /**
+     * Creates a mpls header instruction.
+     *
+     * @param etherType Ethernet type to set
+     * @return a L2 modification.
+     */
+    public static Instruction popMpls(Short etherType) {
+        checkNotNull(etherType, "Ethernet type cannot be null");
+        return new PushHeaderInstructions(L2SubType.MPLS_POP,
+                new Ethernet().setEtherType(etherType));
     }
 
     /*

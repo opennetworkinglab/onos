@@ -65,7 +65,13 @@ public abstract class L2ModificationInstruction implements Instruction {
         /**
          * MPLS Pop modification.
          */
-        MPLS_POP
+        MPLS_POP,
+
+        /**
+         * MPLS TTL modification.
+         */
+        DEC_MPLS_TTL
+
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory
@@ -318,6 +324,43 @@ public abstract class L2ModificationInstruction implements Instruction {
                         Objects.equals(this.type(), that.type());
 
 
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a MPLS label modification.
+     */
+    public static final class ModMplsTtlInstruction extends
+            L2ModificationInstruction {
+
+        public ModMplsTtlInstruction() {
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return L2SubType.DEC_MPLS_TTL;
+        }
+
+        @Override
+        public String toString() {
+            return type().toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), L2SubType.DEC_MPLS_TTL);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModMplsLabelInstruction) {
+                ModMplsTtlInstruction that = (ModMplsTtlInstruction) obj;
+                return Objects.equals(this.type(), that.type());
             }
             return false;
         }

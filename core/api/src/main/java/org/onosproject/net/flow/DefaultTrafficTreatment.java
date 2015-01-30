@@ -196,6 +196,21 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder decNwTtl() {
+            return add(Instructions.decNwTtl());
+        }
+
+        @Override
+        public Builder copyTtlIn() {
+            return add(Instructions.copyTtlIn());
+        }
+
+        @Override
+        public Builder copyTtlOut() {
+            return add(Instructions.copyTtlOut());
+        }
+
+        @Override
         public Builder pushMpls() {
             return add(Instructions.pushMpls());
         }
@@ -205,10 +220,19 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.popMpls());
         }
 
+        @Override
+        public Builder popMpls(short etherType) {
+            return add(Instructions.popMpls(etherType));
+        }
 
         @Override
         public Builder setMpls(Integer mplsLabel) {
             return add(Instructions.modMplsLabel(mplsLabel));
+        }
+
+        @Override
+        public Builder decMplsTtl() {
+            return add(Instructions.decMplsTtl());
         }
 
         @Override

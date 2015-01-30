@@ -38,8 +38,14 @@ import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
+import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlIn;
+import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlOut;
+import org.projectfloodlight.openflow.protocol.action.OFActionDecMplsTtl;
+import org.projectfloodlight.openflow.protocol.action.OFActionDecNwTtl;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
+import org.projectfloodlight.openflow.protocol.action.OFActionPushMpls;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
@@ -57,6 +63,7 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
@@ -194,12 +201,34 @@ public class FlowEntryBuilder {
                 OFActionSetField setField = (OFActionSetField) act;
                 handleSetField(builder, setField.getField());
                 break;
+            case POP_MPLS:
+                OFActionPopMpls popMpls = (OFActionPopMpls) act;
+                builder.popMpls((short) popMpls.getEthertype().getValue());
+                break;
+            case PUSH_MPLS:
+                OFActionPushMpls pushMpls = (OFActionPushMpls) act;
+                builder.pushMpls();
+                break;
+            case COPY_TTL_IN:
+                OFActionCopyTtlIn copyTtlIn = (OFActionCopyTtlIn) act;
+                builder.copyTtlIn();
+                break;
+            case COPY_TTL_OUT:
+                OFActionCopyTtlOut copyTtlOut = (OFActionCopyTtlOut) act;
+                builder.copyTtlOut();
+                break;
+            case DEC_MPLS_TTL:
+                OFActionDecMplsTtl decMplsTtl = (OFActionDecMplsTtl) act;
+                builder.decMplsTtl();
+                break;
+            case DEC_NW_TTL:
+                OFActionDecNwTtl decNwTtl = (OFActionDecNwTtl) act;
+                builder.decNwTtl();
+                break;
             case SET_TP_DST:
             case SET_TP_SRC:
-            case POP_MPLS:
             case POP_PBB:
             case POP_VLAN:
-            case PUSH_MPLS:
             case PUSH_PBB:
             case PUSH_VLAN:
             case SET_MPLS_LABEL:
@@ -210,10 +239,6 @@ public class FlowEntryBuilder {
             case SET_NW_TTL:
             case SET_QUEUE:
             case STRIP_VLAN:
-            case COPY_TTL_IN:
-            case COPY_TTL_OUT:
-            case DEC_MPLS_TTL:
-            case DEC_NW_TTL:
             case ENQUEUE:
 
             case GROUP:
@@ -259,6 +284,11 @@ public class FlowEntryBuilder {
             OFOxm<IPv4Address> ip4src = (OFOxm<IPv4Address>) oxm;
             builder.setIpSrc(Ip4Address.valueOf(ip4src.getValue().getInt()));
             break;
+        case MPLS_LABEL:
+            @SuppressWarnings("unchecked")
+            OFOxm<U32> labelId = (OFOxm<U32>) oxm;
+            builder.setMpls((int) labelId.getValue().getValue());
+            break;
         case ARP_OP:
         case ARP_SHA:
         case ARP_SPA:
@@ -299,7 +329,6 @@ public class FlowEntryBuilder {
         case IP_ECN:
         case IP_PROTO:
         case METADATA:
-        case MPLS_LABEL:
         case MPLS_TC:
         case OCH_SIGID:
         case OCH_SIGID_BASIC:

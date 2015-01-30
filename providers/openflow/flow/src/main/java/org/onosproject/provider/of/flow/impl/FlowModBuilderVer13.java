@@ -241,8 +241,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                         (ModMplsLabelInstruction) l2m;
                 oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label()
                                                                   .longValue()));
-
                 break;
+            case DEC_MPLS_TTL:
+                return factory().actions().decMplsTtl();
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;
@@ -270,6 +271,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             ip4 = ip.ip().getIp4Address();
             oxm = factory().oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
             break;
+        case DEC_TTL:
+            return factory().actions().decNwTtl();
+        case TTL_IN:
+            return factory().actions().copyTtlIn();
+        case TTL_OUT:
+            return factory().actions().copyTtlOut();
         default:
             log.warn("Unimplemented action type {}.", l3m.subtype());
             break;

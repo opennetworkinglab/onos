@@ -38,7 +38,22 @@ public abstract class L3ModificationInstruction implements Instruction {
         /**
          * Ether dst modification.
          */
-        IP_DST
+        IP_DST,
+
+        /**
+         * Decrease TTL.
+         */
+        DEC_TTL,
+
+        /**
+         * Copy TTL out.
+         */
+        TTL_OUT,
+
+        /**
+         * Copy TTL in.
+         */
+        TTL_IN
 
         //TODO: remaining types
     }
@@ -102,6 +117,43 @@ public abstract class L3ModificationInstruction implements Instruction {
             }
             return false;
         }
+    }
 
+    public static final class ModTtlInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+
+        public ModTtlInstruction(L3SubType subtype) {
+            this.subtype = subtype;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModIPInstruction) {
+                ModIPInstruction that = (ModIPInstruction) obj;
+                return  Objects.equals(this.type(), that.type()) &&
+                        Objects.equals(this.subtype(), that.subtype());
+
+            }
+            return false;
+        }
     }
 }
