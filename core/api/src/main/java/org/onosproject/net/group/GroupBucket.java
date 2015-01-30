@@ -15,11 +15,12 @@
  */
 package org.onosproject.net.group;
 
+import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.core.GroupId;
 
-/* Group Bucket definition. A default group Bucket is collection of
+/**
+ * Group Bucket definition. A default group Bucket is collection of
  * Instructions that can be performed on a traffic flow. A failover
  * group bucket is associated with a specific port or group that
  * controls its liveness. A select group bucket contains optional
@@ -27,28 +28,28 @@ import org.onosproject.core.GroupId;
  */
 public interface GroupBucket {
     /**
-     * Return group type of the bucket.
+     * Returns group type of the bucket.
      *
      * @return GroupType group type
      */
     public GroupDescription.Type type();
 
     /**
-     * Return list of Traffic instructions that are part of the bucket.
+     * Returns list of Traffic instructions that are part of the bucket.
      *
      * @return TrafficTreatment traffic instruction list
      */
     public TrafficTreatment treatment();
 
     /**
-     * Return weight of select group bucket.
+     * Returns weight of select group bucket.
      *
      * @return short weight associated with a bucket
      */
     public short weight();
 
     /**
-     * Return port number used for liveness detection for a
+     * Returns port number used for liveness detection for a
      * failover bucket.
      *
      * @return PortNumber port number used for liveness detection
@@ -56,7 +57,7 @@ public interface GroupBucket {
     public PortNumber watchPort();
 
     /**
-     * Return group identifier used for liveness detection for a
+     * Returns group identifier used for liveness detection for a
      * failover bucket.
      *
      * @return GroupId group identifier to be used for liveness detection

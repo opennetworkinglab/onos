@@ -26,6 +26,11 @@ import org.onosproject.net.provider.ProviderService;
  */
 public interface GroupProviderService extends ProviderService<GroupProvider> {
 
+    /**
+     * Notifies core if any failure from data plane during group operations.
+     *
+     * @param operation offended group operation
+     */
     void groupOperationFailed(GroupOperation operation);
 
     /**

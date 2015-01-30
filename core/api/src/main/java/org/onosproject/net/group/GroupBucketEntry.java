@@ -15,20 +15,21 @@
  */
 package org.onosproject.net.group;
 
-/* Generic group bucket entry representation that is stored in a
+/**
+ * Generic group bucket entry representation that is stored in a
  * group object. A group bucket entry provides additional info of
  * group bucket like statistics...etc
  */
 public interface GroupBucketEntry extends GroupBucket {
     /**
-     * Return Number of packets processed by bucket.
+     * Returns Number of packets processed by bucket.
      *
      * @return long
      */
     public long packets();
 
     /**
-     * Return Number of bytes processed by bucket.
+     * Returns Number of bytes processed by bucket.
      *
      * @return long
      */

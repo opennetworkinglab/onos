@@ -47,35 +47,35 @@ public interface GroupDescription {
     }
 
     /**
-     * Return type of a group object.
+     * Returns type of a group object.
      *
      * @return GroupType group type
      */
     public Type type();
 
     /**
-     * Return device identifier on which this group object is created.
+     * Returns device identifier on which this group object is created.
      *
      * @return DeviceId device identifier
      */
     public DeviceId deviceId();
 
     /**
-     * Return application identifier that has created this group object.
+     * Returns application identifier that has created this group object.
      *
      * @return ApplicationId application identifier
      */
     public ApplicationId appId();
 
     /**
-     * Return application cookie associated with a group object.
+     * Returns application cookie associated with a group object.
      *
      * @return GroupKey application cookie
      */
     public GroupKey appCookie();
 
     /**
-     * Return group buckets of a group.
+     * Returns group buckets of a group.
      *
      * @return GroupBuckets immutable list of group bucket
      */

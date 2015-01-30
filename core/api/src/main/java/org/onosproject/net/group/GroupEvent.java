@@ -18,7 +18,7 @@ package org.onosproject.net.group;
 import org.onosproject.event.AbstractEvent;
 
 /**
- * Describes flow rule event.
+ * Describes group events.
  */
 public class GroupEvent extends AbstractEvent<GroupEvent.Type, Group> {
 
@@ -47,6 +47,10 @@ public class GroupEvent extends AbstractEvent<GroupEvent.Type, Group> {
          * Signifies that a request to create Group has been added to the store.
          */
         GROUP_ADD_REQUESTED,
+        /*
+         * Signifies that a request to update Group has been added to the store.
+         */
+        GROUP_UPDATE_REQUESTED,
         /*
          * Signifies that a request to delete Group has been added to the store.
          */

@@ -36,7 +36,7 @@ import org.onosproject.net.DeviceId;
 public interface GroupService {
 
     /**
-     * Create a group in the specified device with the provided buckets.
+     * Creates a group in the specified device with the provided buckets.
      * This API provides an option for application to associate a cookie
      * while creating a group, so that applications can look-up the
      * groups based on the cookies. These Groups will be retained by
@@ -55,7 +55,7 @@ public interface GroupService {
     void addGroup(GroupDescription groupDesc);
 
     /**
-     * Return a group object associated to an application cookie.
+     * Returns a group object associated to an application cookie.
      *
      * NOTE1: The presence of group object in the system does not
      * guarantee that the "group" is actually created in device.
@@ -64,14 +64,13 @@ public interface GroupService {
      *
      * @param deviceId device identifier
      * @param appCookie application cookie to be used for lookup
-     *
      * @return group associated with the application cookie or
      *               NULL if Group is not found for the provided cookie
      */
     Group getGroup(DeviceId deviceId, GroupKey appCookie);
 
     /**
-     * Append buckets to existing group. The caller can optionally
+     * Appends buckets to existing group. The caller can optionally
      * associate a new cookie during this updation. GROUP_UPDATED or
      * GROUP_UPDATE_FAILED notifications would be provided along with
      * cookie depending on the result of the operation on the device
@@ -89,7 +88,7 @@ public interface GroupService {
                            ApplicationId appId);
 
     /**
-     * Remove buckets from existing group. The caller can optionally
+     * Removes buckets from existing group. The caller can optionally
      * associate a new cookie during this updation. GROUP_UPDATED or
      * GROUP_UPDATE_FAILED notifications would be provided along with
      * cookie depending on the result of the operation on the device
@@ -107,7 +106,7 @@ public interface GroupService {
                                 ApplicationId appId);
 
     /**
-     * Delete a group associated to an application cookie.
+     * Deletes a group associated to an application cookie.
      * GROUP_DELETED or GROUP_DELETE_FAILED notifications would be
      * provided along with cookie depending on the result of the
      * operation on the device
@@ -119,12 +118,11 @@ public interface GroupService {
     void removeGroup(Device deviceId, GroupKey appCookie, ApplicationId appId);
 
     /**
-     * Retrieve all groups created by an application in the specified device
+     * Retrieves all groups created by an application in the specified device
      * as seen by current controller instance.
      *
      * @param deviceId device identifier
      * @param appId application id
-     *
      * @return collection of immutable group objects created by the application
      */
     Iterable<Group> getGroups(Device deviceId, ApplicationId appId);

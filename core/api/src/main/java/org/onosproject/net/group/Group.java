@@ -23,35 +23,43 @@ import org.onosproject.core.GroupId;
 public interface Group extends GroupDescription {
     /**
      * State of the group object in ONOS.
-     * PENDING_ADD: group create request is processed by ONOS and
-     * not yet received the confirmation from data plane
-     * ADDED: group is created in the data plane
-     * PENDING_UPDATE: group update request is processed by ONOS and
-     * not received the confirmation from data plane post which state
-     * moves to ADDED state
-     * PENDING_DELETE: group delete request is processed by ONOS and
-     * not received the confirmation from data plane
      */
     public enum GroupState {
+        /**
+         * Group create request is processed by ONOS and not yet
+         * received the confirmation from data plane.
+         */
         PENDING_ADD,
+        /**
+         * Group is created in the data plane.
+         */
         ADDED,
+        /**
+         * Group update request is processed by ONOS and not
+         * received the confirmation from data plane post which
+         * state moves to ADDED state.
+         */
         PENDING_UPDATE,
+        /**
+         * Group delete request is processed by ONOS and not
+         * received the confirmation from data plane.
+         */
         PENDING_DELETE
     }
 
     /**
-     * Return group identifier associated with a group object.
+     * Returns group identifier associated with a group object.
      *
      * @return GroupId Group Identifier
      */
-    public GroupId id();
+    GroupId id();
 
     /**
-     * Return current state of a group object.
+     * Returns current state of a group object.
      *
      * @return GroupState Group State
      */
-    public GroupState state();
+    GroupState state();
 
     /**
      * Returns the number of milliseconds this group has been alive.

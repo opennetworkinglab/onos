@@ -19,6 +19,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.core.GroupId;
 
+/**
+ * Group operation definition to be used between core and provider
+ * layers of group subsystem.
+ *
+ */
 public final class GroupOperation {
     private final Type opType;
     private final GroupId groupId;
@@ -64,7 +69,6 @@ public final class GroupOperation {
      * @param groupId group Identifier
      * @param groupType type of the group
      * @param buckets immutable list of group buckets to be part of group
-     *
      * @return add group operation object
      */
     public static GroupOperation createAddGroupOperation(GroupId groupId,
@@ -80,7 +84,6 @@ public final class GroupOperation {
      * @param groupId group Identifier
      * @param groupType type of the group
      * @param buckets immutable list of group buckets to be part of group
-     *
      * @return modify group operation object
      */
     public static GroupOperation createModifyGroupOperation(GroupId groupId,
@@ -96,7 +99,6 @@ public final class GroupOperation {
      *
      * @param groupId group Identifier
      * @param groupType type of the group
-     *
      * @return delete group operation object
      */
     public static GroupOperation createDeleteGroupOperation(GroupId groupId,
@@ -106,7 +108,7 @@ public final class GroupOperation {
     }
 
     /**
-     * Return group operation type.
+     * Returns group operation type.
      *
      * @return GroupOpType group operation type
      */
@@ -115,7 +117,7 @@ public final class GroupOperation {
     }
 
     /**
-     * Return group identifier attribute of the operation.
+     * Returns group identifier attribute of the operation.
      *
      * @return GroupId group identifier
      */
@@ -124,7 +126,7 @@ public final class GroupOperation {
     }
 
     /**
-     * Return group type attribute of the operation.
+     * Returns group type attribute of the operation.
      *
      * @return GroupType group type
      */
@@ -133,7 +135,7 @@ public final class GroupOperation {
     }
 
     /**
-     * Return group buckets associated with the operation.
+     * Returns group buckets associated with the operation.
      *
      * @return GroupBuckets group buckets
      */

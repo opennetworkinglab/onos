@@ -15,34 +15,38 @@
  */
 package org.onosproject.net.group;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
-import com.google.common.collect.ImmutableList;
-
 /**
- * Immutable collection of group bucket.
+ * Interface that defines set methods for a group entry
+ * that is stored in the system.
  */
-public final class GroupBuckets {
-    private final List<GroupBucket> buckets;
+public interface StoredGroupEntry extends Group {
 
     /**
-     * Creates a immutable list of group bucket.
+     * Sets the new state for this entry.
      *
-     * @param buckets list of group bucket
+     * @param newState new group entry state.
      */
-    public GroupBuckets(List<GroupBucket> buckets) {
-        this.buckets = ImmutableList.copyOf(checkNotNull(buckets));
-    }
+    void setState(Group.GroupState newState);
 
     /**
-     * Returns immutable list of group buckets.
+     * Sets how long this entry has been entered in the system.
      *
-     * @return list of group bucket
+     * @param life epoch time
      */
-    public List<GroupBucket> buckets() {
-        return buckets;
-    }
+    void setLife(long life);
+
+    /**
+     * Sets number of packets processed by this group entry.
+     *
+     * @param packets a long value
+     */
+    void setPackets(long packets);
+
+    /**
+     * Sets number of bytes processed by this group entry.
+     *
+     * @param bytes a long value
+     */
+    void setBytes(long bytes);
 
 }

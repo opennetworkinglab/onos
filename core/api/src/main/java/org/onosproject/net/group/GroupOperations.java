@@ -19,9 +19,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Immutable collection of group operation to be used between
+ * core and provider layers of group subsystem.
+ *
+ */
 public final class GroupOperations {
     private final List<GroupOperation> operations;
 
@@ -35,7 +39,7 @@ public final class GroupOperations {
     }
 
     /**
-     * Immutable list of group operation.
+     * Returns immutable list of group operation.
      *
      * @return list of group operation
      */

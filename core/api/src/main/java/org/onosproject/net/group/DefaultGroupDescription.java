@@ -20,6 +20,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
+/**
+ * Default implementation of group description interface.
+ */
 public class DefaultGroupDescription implements GroupDescription {
     private final GroupDescription.Type type;
     private final GroupBuckets buckets;
@@ -28,15 +31,15 @@ public class DefaultGroupDescription implements GroupDescription {
     private final DeviceId deviceId;
 
     /**
+     * Constructor to be used by north bound applications.
+     * NOTE: The caller of this subsystem MUST ensure the appCookie
+     * provided in this API is immutable
      *
      * @param deviceId device identifier
      * @param type type of the group
      * @param buckets immutable list of group bucket
      * @param appCookie immutable application cookie to be associated with the group
      * @param appId application id
-     *
-     * NOTE: The caller of this subsystem MUST ensure the appCookie
-     * provided in this API is immutable
      */
     public DefaultGroupDescription(DeviceId deviceId,
                                    GroupDescription.Type type,
@@ -51,7 +54,22 @@ public class DefaultGroupDescription implements GroupDescription {
     }
 
     /**
-     * Return type of a group object.
+     * Constructor to be used by group subsystem internal components.
+     * Creates group description object from another object of same type.
+     *
+     * @param groupDesc group description object
+     *
+     */
+    public DefaultGroupDescription(GroupDescription groupDesc) {
+        this.type = checkNotNull(groupDesc.type());
+        this.deviceId = checkNotNull(groupDesc.deviceId());
+        this.buckets = checkNotNull(groupDesc.buckets());
+        this.appCookie = checkNotNull(groupDesc.appCookie());
+        this.appId = checkNotNull(groupDesc.appId());
+    }
+
+    /**
+     * Returns type of a group object.
      *
      * @return GroupType group type
      */
@@ -61,7 +79,7 @@ public class DefaultGroupDescription implements GroupDescription {
     }
 
     /**
-     * Return device identifier on which this group object is created.
+     * Returns device identifier on which this group object is created.
      *
      * @return DeviceId device identifier
      */
@@ -71,7 +89,7 @@ public class DefaultGroupDescription implements GroupDescription {
     }
 
     /**
-     * Return application identifier that has created this group object.
+     * Returns application identifier that has created this group object.
      *
      * @return ApplicationId application identifier
      */
@@ -81,7 +99,7 @@ public class DefaultGroupDescription implements GroupDescription {
     }
 
     /**
-     * Return application cookie associated with a group object.
+     * Returns application cookie associated with a group object.
      *
      * @return GroupKey application cookie
      */
@@ -91,7 +109,7 @@ public class DefaultGroupDescription implements GroupDescription {
     }
 
     /**
-     * Return group buckets of a group.
+     * Returns group buckets of a group.
      *
      * @return GroupBuckets immutable list of group bucket
      */

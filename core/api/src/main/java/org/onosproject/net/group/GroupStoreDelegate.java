@@ -15,23 +15,10 @@
  */
 package org.onosproject.net.group;
 
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.provider.Provider;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Abstraction of group provider.
+ * Group store delegate abstraction.
  */
-public interface GroupProvider extends Provider {
-
-    /**
-     * Performs a batch of group operation in the specified device with the
-     * specified parameters.
-     *
-     * @param deviceId device identifier on which the batch of group
-     * operations to be executed
-     * @param groupOps immutable list of group operation
-     */
-    void performGroupOperation(DeviceId deviceId,
-                               GroupOperations groupOps);
-
+public interface GroupStoreDelegate extends StoreDelegate<GroupEvent> {
 }

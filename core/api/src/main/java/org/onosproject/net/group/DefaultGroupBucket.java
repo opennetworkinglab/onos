@@ -15,12 +15,12 @@
  */
 package org.onosproject.net.group;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.core.GroupId;
 
 /**
  * Group bucket implementation. A group bucket is collection of
@@ -65,7 +65,6 @@ public final class DefaultGroupBucket implements GroupBucket {
      * Creates indirect group bucket.
      *
      * @param treatment traffic treatment associated with group bucket
-     *
      * @return indirect group bucket object
      */
     public static GroupBucket createIndirectGroupBucket(
@@ -81,7 +80,6 @@ public final class DefaultGroupBucket implements GroupBucket {
      * Creates select group bucket with weight as 1.
      *
      * @param treatment traffic treatment associated with group bucket
-     *
      * @return select group bucket object
      */
     public static GroupBucket createSelectGroupBucket(
@@ -98,7 +96,6 @@ public final class DefaultGroupBucket implements GroupBucket {
      *
      * @param treatment traffic treatment associated with group bucket
      * @param weight weight associated with group bucket
-     *
      * @return select group bucket object
      */
     public static GroupBucket createSelectGroupBucket(
@@ -121,7 +118,6 @@ public final class DefaultGroupBucket implements GroupBucket {
      * @param treatment traffic treatment associated with group bucket
      * @param watchPort port that determines the liveness of group bucket
      * @param watchGroup group that determines the liveness of group bucket
-     *
      * @return failover group bucket object
      */
     public static GroupBucket createFailoverGroupBucket(
@@ -142,7 +138,7 @@ public final class DefaultGroupBucket implements GroupBucket {
     }
 
     /**
-     * Return list of Traffic instructions that are part of the bucket.
+     * Returns list of Traffic instructions that are part of the bucket.
      *
      * @return TrafficTreatment Traffic instruction list
      */
@@ -152,7 +148,7 @@ public final class DefaultGroupBucket implements GroupBucket {
     }
 
     /**
-     * Return weight of select group bucket.
+     * Returns weight of select group bucket.
      *
      * @return short weight associated with a bucket
      */
@@ -162,7 +158,7 @@ public final class DefaultGroupBucket implements GroupBucket {
     }
 
     /**
-     * Return port number used for liveness detection for a
+     * Returns port number used for liveness detection for a
      * failover bucket.
      *
      * @return PortNumber port number used for liveness detection
@@ -173,7 +169,7 @@ public final class DefaultGroupBucket implements GroupBucket {
     }
 
     /**
-     * Return group identifier used for liveness detection for a
+     * Returns group identifier used for liveness detection for a
      * failover bucket.
      *
      * @return GroupId group identifier to be used for liveness detection
