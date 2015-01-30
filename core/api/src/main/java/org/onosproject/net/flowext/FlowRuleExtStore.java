@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flowext;
 
-import java.util.Collection;
 import java.util.concurrent.Future;
 
 import org.onosproject.net.DeviceId;

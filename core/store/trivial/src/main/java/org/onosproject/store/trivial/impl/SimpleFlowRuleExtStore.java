@@ -6,12 +6,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -20,6 +18,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flowext.FlowExtCompletedOperation;
 import org.onosproject.net.flowext.FlowRuleBatchExtEvent;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.onosproject.net.flowext.FlowRuleExtEntry;
 import org.onosproject.net.flowext.FlowRuleExtStore;
 import org.onosproject.net.flowext.FlowRuleExtStoreDelegate;
@@ -46,7 +45,6 @@ public class SimpleFlowRuleExtStore extends
                                             implements FlowRuleExtStore {
     private final Logger log = getLogger(getClass());
     private final ConcurrentMap<DeviceId, Collection<FlowRuleExtEntry>> flowRuleEntries = Maps.newConcurrentMap();
-    private final AtomicInteger localBatchIdGen = new AtomicInteger();
     private int pendingFutureTimeoutMinutes = 5;
     private final int BUFFERSIZE = 1000;
     private final int MAXSIZE = 4096;
@@ -55,7 +53,7 @@ public class SimpleFlowRuleExtStore extends
             .newBuilder()
             .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
             // .removalListener(new TimeoutFuture())
-            .build(); 
+            .build();
     @Activate
     public void activate() {
         log.info("Started");
@@ -77,27 +75,27 @@ public class SimpleFlowRuleExtStore extends
      */
     @Override
     public Future<FlowExtCompletedOperation> storeBatch(
-            Collection<FlowRuleExtEntry> batchOperation) {
+            FlowRuleBatchExtRequest batchOperation) {
         Set<FlowRuleExtEntry> resultSet = new HashSet<FlowRuleExtEntry>();
         Collection<FlowRuleExtEntry> storeByDeviceId = null;
-        FlowRuleExtEntry flowRuleExtEntry = null;
-        for (Iterator<FlowRuleExtEntry> iterator = batchOperation.iterator(); iterator.hasNext();) {
-            flowRuleExtEntry = (FlowRuleExtEntry) iterator.next();
+        Collection<FlowRuleExtEntry> batch = batchOperation.getBatch();
+        for (FlowRuleExtEntry entry : batch) {
             try {
-                storeByDeviceId = flowRuleEntries.get(flowRuleExtEntry.getDeviceId());
+                storeByDeviceId = flowRuleEntries.get(entry.getDeviceId());
                 if (storeByDeviceId == null) {
                      storeByDeviceId = new ArrayList<FlowRuleExtEntry>();
                 }
-                storeByDeviceId.add(flowRuleExtEntry);
-                flowRuleEntries.put(flowRuleExtEntry.getDeviceId(), storeByDeviceId);
+                storeByDeviceId.add(entry);
+                flowRuleEntries.put(entry.getDeviceId(), storeByDeviceId);
             } catch (Exception e) {
-                resultSet.add(flowRuleExtEntry);
+                resultSet.add(entry);
             }
         }
 //        int batchId = localBatchIdGen.getAndIncrement();
 //        delegate.notify(FlowRuleBatchExtEvent.requested(new FlowRuleBatchExtRequest(batchId, batchOperation)));
         boolean success = resultSet.isEmpty() ? true : false;
-        FlowExtCompletedOperation completed = new FlowExtCompletedOperation(success, resultSet);
+        FlowExtCompletedOperation completed = new FlowExtCompletedOperation(
+                batchOperation.batchId(), success, resultSet);
         return Futures.immediateFuture(completed);
     }
 
@@ -161,7 +159,7 @@ public class SimpleFlowRuleExtStore extends
     }
 
     /**
-     * Get the messages stored in local memory
+     * Get the messages stored in local memory.
      *
      * @param did DeviceId of the device role changed
      * @return all extended  flow rule entry belong to deviceId

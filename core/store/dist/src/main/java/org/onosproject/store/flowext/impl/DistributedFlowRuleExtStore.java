@@ -35,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -120,9 +119,9 @@ public class DistributedFlowRuleExtStore
 
     private int pendingFutureTimeoutMinutes = 5;
 
-    private final int BUFFERSIZE = 1000;
+    private final int bufferSize = 1000;
 
-    private final int MAXSIZE = 4096;
+    private final int maxSize = 4096;
 
     private Cache<Integer, SettableFuture<FlowExtCompletedOperation>> pendingExtendFutures = CacheBuilder
             .newBuilder()
@@ -447,7 +446,7 @@ public class DistributedFlowRuleExtStore
      */
     private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
         Collection<?> flowExtensions = new ArrayList<Object>();
-        ByteBufferOutput output = new ByteBufferOutput(BUFFERSIZE, MAXSIZE);
+        ByteBufferOutput output = new ByteBufferOutput(bufferSize, maxSize);
         Kryo kryo = storeSeialize.serializerPool.borrow();
         for (FlowRuleExtEntry entry : batchOperation) {
             kryo.writeClass(output, entry.getClassT());

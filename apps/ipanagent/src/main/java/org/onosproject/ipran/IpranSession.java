@@ -3,7 +3,6 @@ import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -21,7 +20,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.onlab.netty.Endpoint;
 import org.onosproject.ipran.serializers.KryoSerializer;
-import org.onosproject.net.flowext.FlowRuleExtEntry;
+import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;
@@ -128,7 +127,7 @@ public class IpranSession {
         SessionListener.remove(listener);
     }
 
-    public void notify(Collection<FlowRuleExtEntry> flowUpdates) {
+    public void notify(FlowRuleBatchExtRequest flowUpdates) {
         for (IpranSessionListener listener : SessionListener) {
             listener.update(flowUpdates);
         }
