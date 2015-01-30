@@ -49,4 +49,10 @@ public interface StoredGroupEntry extends Group {
      */
     void setBytes(long bytes);
 
+    /**
+     * Sets number of flow rules or groups referencing this group entry.
+     *
+     * @param referenceCount reference count
+     */
+    void setReferenceCount(long referenceCount);
 }

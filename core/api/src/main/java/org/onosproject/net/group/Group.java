@@ -26,6 +26,10 @@ public interface Group extends GroupDescription {
      */
     public enum GroupState {
         /**
+         * Group create request is queued as group AUDIT is in progress.
+         */
+        WAITING_AUDIT_COMPLETE,
+        /**
          * Group create request is processed by ONOS and not yet
          * received the confirmation from data plane.
          */
@@ -81,4 +85,11 @@ public interface Group extends GroupDescription {
      * @return number of bytes
      */
     long bytes();
+
+    /**
+     * Returns the number of flow rules or other groups reference this group.
+     *
+     * @return number of flow rules or other groups pointing to this group
+     */
+    long referenceCount();
 }

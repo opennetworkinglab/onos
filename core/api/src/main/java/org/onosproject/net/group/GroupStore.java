@@ -73,12 +73,14 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @param deviceId the device ID
      * @param oldAppCookie the current group key
      * @param type update type
-     * @param newGroupDesc group description with updates
+     * @param newBuckets group buckets for updates
+     * @param newAppCookie optional new group key
      */
     void updateGroupDescription(DeviceId deviceId,
                                 GroupKey oldAppCookie,
                                 UpdateType type,
-                                GroupDescription newGroupDesc);
+                                GroupBuckets newBuckets,
+                                GroupKey newAppCookie);
 
     /**
      * Triggers deleting the existing group entry.
@@ -102,4 +104,43 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @param group group entry
      */
     void removeGroupEntry(Group group);
+
+    /**
+     * A group entry that is present in switch but not in the store.
+     *
+     * @param group group entry
+     */
+    void addOrUpdateExtraneousGroupEntry(Group group);
+
+    /**
+     * Remove the group entry from extraneous database.
+     *
+     * @param group group entry
+     */
+    void removeExtraneousGroupEntry(Group group);
+
+    /**
+     * Returns the extraneous groups associated with a device.
+     *
+     * @param deviceId the device ID
+     *
+     * @return the extraneous group entries
+     */
+    Iterable<Group> getExtraneousGroups(DeviceId deviceId);
+
+    /**
+     * Indicates the first group audit is completed.
+     *
+     * @param deviceId the device ID
+     */
+    void deviceInitialAuditCompleted(DeviceId deviceId);
+
+    /**
+     * Retrieves the initial group audit status for a device.
+     *
+     * @param deviceId the device ID
+     *
+     * @return initial group audit status
+     */
+    boolean deviceInitialAuditStatus(DeviceId deviceId);
 }

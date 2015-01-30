@@ -40,8 +40,10 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
-import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.group.GroupStore.UpdateType;
+import org.onosproject.net.group.GroupStoreDelegate;
+
+import com.google.common.collect.Iterables;
 
 /**
  * Test of the simple DeviceStore implementation.
@@ -135,8 +137,24 @@ public class SimpleGroupStoreTest {
         }
     }
 
+    /**
+     * Tests group store operations. The following operations are tested:
+     * a)Tests device group audit completion status change
+     * b)Tests storeGroup operation
+     * c)Tests getGroupCount operation
+     * d)Tests getGroup operation
+     * e)Tests getGroups operation
+     * f)Tests addOrUpdateGroupEntry operation from southbound
+     * g)Tests updateGroupDescription for ADD operation from northbound
+     * h)Tests updateGroupDescription for REMOVE operation from northbound
+     * i)Tests deleteGroupDescription operation from northbound
+     * j)Tests removeGroupEntry operation from southbound
+     */
     @Test
     public void testGroupStoreOperations() {
+        // Set the Device AUDIT completed in the store
+        simpleGroupStore.deviceInitialAuditCompleted(D1);
+
         ApplicationId appId =
                 new DefaultApplicationId(2, "org.groupstore.test");
         TestGroupKey key = new TestGroupKey("group1");
@@ -169,17 +187,17 @@ public class SimpleGroupStoreTest {
                                                groupBuckets,
                                                GroupEvent.Type.GROUP_ADD_REQUESTED);
         simpleGroupStore.setDelegate(checkStoreGroupDelegate);
-        /* Testing storeGroup operation */
+        // Testing storeGroup operation
         simpleGroupStore.storeGroupDescription(groupDesc);
 
-        /* Testing getGroupCount operation */
+        // Testing getGroupCount operation
         assertEquals(1, simpleGroupStore.getGroupCount(D1));
 
-        /* Testing getGroup operation */
+        // Testing getGroup operation
         Group createdGroup = simpleGroupStore.getGroup(D1, key);
         checkStoreGroupDelegate.verifyGroupId(createdGroup.id());
 
-        /* Testing getGroups operation */
+        // Testing getGroups operation
         Iterable<Group> createdGroups = simpleGroupStore.getGroups(D1);
         int groupCount = 0;
         for (Group group:createdGroups) {
@@ -189,7 +207,7 @@ public class SimpleGroupStoreTest {
         assertEquals(1, groupCount);
         simpleGroupStore.unsetDelegate(checkStoreGroupDelegate);
 
-        /* Testing addOrUpdateGroupEntry operation from southbound */
+        // Testing addOrUpdateGroupEntry operation from southbound
         InternalGroupStoreDelegate addGroupEntryDelegate =
                 new InternalGroupStoreDelegate(key,
                                                groupBuckets,
@@ -198,7 +216,7 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.addOrUpdateGroupEntry(createdGroup);
         simpleGroupStore.unsetDelegate(addGroupEntryDelegate);
 
-        /* Testing updateGroupDescription for ADD operation from northbound */
+        // Testing updateGroupDescription for ADD operation from northbound
         TestGroupKey addKey = new TestGroupKey("group1AddBuckets");
         PortNumber[] newNeighborPorts = {PortNumber.portNumber(41),
                                          PortNumber.portNumber(42)};
@@ -225,19 +243,14 @@ public class SimpleGroupStoreTest {
                                                updatedGroupBuckets,
                                                GroupEvent.Type.GROUP_UPDATE_REQUESTED);
         simpleGroupStore.setDelegate(updateGroupDescDelegate);
-        GroupDescription newGroupDesc = new DefaultGroupDescription(
-                                                 D1,
-                                                 Group.Type.SELECT,
-                                                 toAddGroupBuckets,
-                                                 addKey,
-                                                 appId);
         simpleGroupStore.updateGroupDescription(D1,
                                                 key,
                                                 UpdateType.ADD,
-                                                newGroupDesc);
+                                                toAddGroupBuckets,
+                                                addKey);
         simpleGroupStore.unsetDelegate(updateGroupDescDelegate);
 
-        /* Testing updateGroupDescription for REMOVE operation from northbound */
+        // Testing updateGroupDescription for REMOVE operation from northbound
         TestGroupKey removeKey = new TestGroupKey("group1RemoveBuckets");
         List<GroupBucket> toRemoveBuckets = new ArrayList<GroupBucket>();
         toRemoveBuckets.add(updatedGroupBuckets.buckets().get(0));
@@ -252,23 +265,18 @@ public class SimpleGroupStoreTest {
                                                remainingGroupBuckets,
                                                GroupEvent.Type.GROUP_UPDATE_REQUESTED);
         simpleGroupStore.setDelegate(removeGroupDescDelegate);
-        GroupDescription removeGroupDesc = new DefaultGroupDescription(
-                                                        D1,
-                                                        Group.Type.SELECT,
-                                                        toRemoveGroupBuckets,
-                                                        removeKey,
-                                                        appId);
         simpleGroupStore.updateGroupDescription(D1,
                                                 addKey,
                                                 UpdateType.REMOVE,
-                                                removeGroupDesc);
+                                                toRemoveGroupBuckets,
+                                                removeKey);
         simpleGroupStore.unsetDelegate(removeGroupDescDelegate);
 
-        /* Testing getGroup operation */
+        // Testing getGroup operation
         Group existingGroup = simpleGroupStore.getGroup(D1, removeKey);
         checkStoreGroupDelegate.verifyGroupId(existingGroup.id());
 
-        /* Testing addOrUpdateGroupEntry operation from southbound */
+        // Testing addOrUpdateGroupEntry operation from southbound
         InternalGroupStoreDelegate updateGroupEntryDelegate =
                 new InternalGroupStoreDelegate(removeKey,
                                                remainingGroupBuckets,
@@ -277,7 +285,7 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.addOrUpdateGroupEntry(existingGroup);
         simpleGroupStore.unsetDelegate(updateGroupEntryDelegate);
 
-        /* Testing deleteGroupDescription operation from northbound */
+        // Testing deleteGroupDescription operation from northbound
         InternalGroupStoreDelegate deleteGroupDescDelegate =
                 new InternalGroupStoreDelegate(removeKey,
                                                remainingGroupBuckets,
@@ -286,7 +294,7 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.deleteGroupDescription(D1, removeKey);
         simpleGroupStore.unsetDelegate(deleteGroupDescDelegate);
 
-        /* Testing removeGroupEntry operation from southbound */
+        // Testing removeGroupEntry operation from southbound
         InternalGroupStoreDelegate removeGroupEntryDelegate =
                 new InternalGroupStoreDelegate(removeKey,
                                                remainingGroupBuckets,
@@ -294,17 +302,10 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.setDelegate(removeGroupEntryDelegate);
         simpleGroupStore.removeGroupEntry(existingGroup);
 
-        /* Testing getGroup operation */
+        // Testing getGroup operation
         existingGroup = simpleGroupStore.getGroup(D1, removeKey);
         assertEquals(null, existingGroup);
-        Iterable<Group> existingGroups  = simpleGroupStore.getGroups(D1);
-        groupCount = 0;
-        for (Group tmp:existingGroups) {
-            /* To avoid warning */
-            assertEquals(null, tmp);
-            groupCount++;
-        }
-        assertEquals(0, groupCount);
+        assertEquals(0, Iterables.size(simpleGroupStore.getGroups(D1)));
         assertEquals(0, simpleGroupStore.getGroupCount(D1));
 
         simpleGroupStore.unsetDelegate(removeGroupEntryDelegate);

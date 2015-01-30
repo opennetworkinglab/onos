@@ -17,6 +17,8 @@ package org.onosproject.net.group;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
@@ -49,8 +51,8 @@ public class DefaultGroupDescription implements GroupDescription {
         this.type = checkNotNull(type);
         this.deviceId = checkNotNull(deviceId);
         this.buckets = checkNotNull(buckets);
-        this.appCookie = checkNotNull(appCookie);
-        this.appId = checkNotNull(appId);
+        this.appCookie = appCookie;
+        this.appId = appId;
     }
 
     /**
@@ -61,11 +63,27 @@ public class DefaultGroupDescription implements GroupDescription {
      *
      */
     public DefaultGroupDescription(GroupDescription groupDesc) {
-        this.type = checkNotNull(groupDesc.type());
-        this.deviceId = checkNotNull(groupDesc.deviceId());
-        this.buckets = checkNotNull(groupDesc.buckets());
-        this.appCookie = checkNotNull(groupDesc.appCookie());
-        this.appId = checkNotNull(groupDesc.appId());
+        this.type = groupDesc.type();
+        this.deviceId = groupDesc.deviceId();
+        this.buckets = groupDesc.buckets();
+        this.appCookie = groupDesc.appCookie();
+        this.appId = groupDesc.appId();
+    }
+
+    /**
+     * Constructor to be used by group subsystem internal components.
+     * Creates group description object from the information retrieved
+     * from data plane.
+     *
+     * @param deviceId device identifier
+     * @param type type of the group
+     * @param buckets immutable list of group bucket
+     *
+     */
+    public DefaultGroupDescription(DeviceId deviceId,
+                                   GroupDescription.Type type,
+                                   GroupBuckets buckets) {
+        this(deviceId, type, buckets, null, null);
     }
 
     /**
@@ -116,6 +134,38 @@ public class DefaultGroupDescription implements GroupDescription {
     @Override
     public GroupBuckets buckets() {
         return this.buckets;
+    }
+
+    @Override
+    /*
+     * The deviceId, type and buckets are used for hash.
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    public int hashCode() {
+        return Objects.hash(deviceId, type, buckets);
+    }
+
+    @Override
+    /*
+     * The deviceId, type and buckets should be same.
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+       if (obj instanceof DefaultGroupDescription) {
+            DefaultGroupDescription that = (DefaultGroupDescription) obj;
+            return Objects.equals(deviceId, that.deviceId) &&
+                    Objects.equals(type, that.type) &&
+                    Objects.equals(buckets, that.buckets);
+
+        }
+        return false;
     }
 
 }

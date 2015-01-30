@@ -18,6 +18,8 @@ package org.onosproject.net.group;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
+
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -178,4 +180,36 @@ public final class DefaultGroupBucket implements GroupBucket {
     public GroupId watchGroup() {
         return watchGroup;
     }
+
+    /*
+     * The type and treatment can change on a given bucket
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, treatment);
+    }
+
+    /*
+     * The priority and statistics can change on a given treatment and selector
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultGroupBucket) {
+            DefaultGroupBucket that = (DefaultGroupBucket) obj;
+            return Objects.equals(type, that.type) &&
+                   this.treatment.instructions().containsAll(that.treatment.instructions()) &&
+                   that.treatment.instructions().containsAll(this.treatment.instructions());
+        }
+        return false;
+    }
+
 }

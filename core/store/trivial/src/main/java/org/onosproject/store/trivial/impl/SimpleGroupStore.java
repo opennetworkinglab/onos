@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsent
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -62,11 +63,21 @@ public class SimpleGroupStore
 
     private final Logger log = getLogger(getClass());
 
+    private final int dummyId = 0xffffffff;
+    private final GroupId dummyGroupId = new DefaultGroupId(dummyId);
+
     // inner Map is per device group table
     private final ConcurrentMap<DeviceId, ConcurrentMap<GroupKey, StoredGroupEntry>>
             groupEntriesByKey = new ConcurrentHashMap<>();
     private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, StoredGroupEntry>>
             groupEntriesById = new ConcurrentHashMap<>();
+    private final ConcurrentMap<DeviceId, ConcurrentMap<GroupKey, StoredGroupEntry>>
+            pendingGroupEntriesByKey = new ConcurrentHashMap<>();
+    private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, Group>>
+        extraneousGroupEntriesById = new ConcurrentHashMap<>();
+
+    private final HashMap<DeviceId, Boolean> deviceAuditStatus =
+            new HashMap<DeviceId, Boolean>();
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
 
@@ -82,12 +93,24 @@ public class SimpleGroupStore
         log.info("Stopped");
     }
 
-    private static NewConcurrentHashMap<GroupKey, StoredGroupEntry> lazyEmptyGroupKeyTable() {
+    private static NewConcurrentHashMap<GroupKey, StoredGroupEntry>
+                        lazyEmptyGroupKeyTable() {
         return NewConcurrentHashMap.<GroupKey, StoredGroupEntry>ifNeeded();
     }
 
-    private static NewConcurrentHashMap<GroupId, StoredGroupEntry> lazyEmptyGroupIdTable() {
+    private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
+                        lazyEmptyGroupIdTable() {
         return NewConcurrentHashMap.<GroupId, StoredGroupEntry>ifNeeded();
+    }
+
+    private static NewConcurrentHashMap<GroupKey, StoredGroupEntry>
+                        lazyEmptyPendingGroupKeyTable() {
+        return NewConcurrentHashMap.<GroupKey, StoredGroupEntry>ifNeeded();
+    }
+
+    private static NewConcurrentHashMap<GroupId, Group>
+                        lazyEmptyExtraneousGroupIdTable() {
+        return NewConcurrentHashMap.<GroupId, Group>ifNeeded();
     }
 
     /**
@@ -113,6 +136,31 @@ public class SimpleGroupStore
     }
 
     /**
+     * Returns the pending group key table for specified device.
+     *
+     * @param deviceId identifier of the device
+     * @return Map representing group key table of given device.
+     */
+    private ConcurrentMap<GroupKey, StoredGroupEntry>
+                    getPendingGroupKeyTable(DeviceId deviceId) {
+        return createIfAbsentUnchecked(pendingGroupEntriesByKey,
+                                       deviceId, lazyEmptyPendingGroupKeyTable());
+    }
+
+    /**
+     * Returns the extraneous group id table for specified device.
+     *
+     * @param deviceId identifier of the device
+     * @return Map representing group key table of given device.
+     */
+    private ConcurrentMap<GroupId, Group>
+                getExtraneousGroupIdTable(DeviceId deviceId) {
+        return createIfAbsentUnchecked(extraneousGroupEntriesById,
+                                       deviceId,
+                                       lazyEmptyExtraneousGroupIdTable());
+    }
+
+    /**
      * Returns the number of groups for the specified device in the store.
      *
      * @return number of groups for the specified device
@@ -133,20 +181,16 @@ public class SimpleGroupStore
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
-        if (groupEntriesByKey.get(deviceId) != null) {
-            return FluentIterable.from(groupEntriesByKey.get(deviceId).values())
-                .transform(
-                        new Function<StoredGroupEntry, Group>() {
+        return FluentIterable.from(getGroupKeyTable(deviceId).values())
+            .transform(
+                    new Function<StoredGroupEntry, Group>() {
 
-                            @Override
-                            public Group apply(
-                                    StoredGroupEntry input) {
-                                return input;
-                            }
-                        });
-        } else {
-            return null;
-        }
+                        @Override
+                        public Group apply(
+                                StoredGroupEntry input) {
+                            return input;
+                        }
+                    });
     }
 
     /**
@@ -164,6 +208,30 @@ public class SimpleGroupStore
                       null;
     }
 
+    private int getFreeGroupIdValue(DeviceId deviceId) {
+        int freeId = groupIdGen.incrementAndGet();
+
+        while (true) {
+            Group existing = (
+                    groupEntriesById.get(deviceId) != null) ?
+                    groupEntriesById.get(deviceId).get(new DefaultGroupId(freeId)) :
+                    null;
+            if (existing == null) {
+                existing = (
+                        extraneousGroupEntriesById.get(deviceId) != null) ?
+                        extraneousGroupEntriesById.get(deviceId).
+                        get(new DefaultGroupId(freeId)) :
+                        null;
+            }
+            if (existing != null) {
+                freeId = groupIdGen.incrementAndGet();
+            } else {
+                break;
+            }
+        }
+        return freeId;
+    }
+
     /**
      * Stores a new group entry using the information from group description.
      *
@@ -171,16 +239,32 @@ public class SimpleGroupStore
      */
     @Override
     public void storeGroupDescription(GroupDescription groupDesc) {
-        /* Check if a group is existing with the same key */
+        // Check if a group is existing with the same key
         if (getGroup(groupDesc.deviceId(), groupDesc.appCookie()) != null) {
             return;
         }
 
-        /* Get a new group identifier */
-        GroupId id = new DefaultGroupId(groupIdGen.incrementAndGet());
-        /* Create a group entry object */
+        if (deviceAuditStatus.get(groupDesc.deviceId()) == null) {
+            // Device group audit has not completed yet
+            // Add this group description to pending group key table
+            // Create a group entry object with Dummy Group ID
+            StoredGroupEntry group = new DefaultGroup(dummyGroupId, groupDesc);
+            group.setState(GroupState.WAITING_AUDIT_COMPLETE);
+            ConcurrentMap<GroupKey, StoredGroupEntry> pendingKeyTable =
+                    getPendingGroupKeyTable(groupDesc.deviceId());
+            pendingKeyTable.put(groupDesc.appCookie(), group);
+            return;
+        }
+
+        storeGroupDescriptionInternal(groupDesc);
+    }
+
+    private void storeGroupDescriptionInternal(GroupDescription groupDesc) {
+        // Get a new group identifier
+        GroupId id = new DefaultGroupId(getFreeGroupIdValue(groupDesc.deviceId()));
+        // Create a group entry object
         StoredGroupEntry group = new DefaultGroup(id, groupDesc);
-        /* Insert the newly created group entry into concurrent key and id maps */
+        // Insert the newly created group entry into concurrent key and id maps
         ConcurrentMap<GroupKey, StoredGroupEntry> keyTable =
                 getGroupKeyTable(groupDesc.deviceId());
         keyTable.put(groupDesc.appCookie(), group);
@@ -198,14 +282,16 @@ public class SimpleGroupStore
      * @param deviceId the device ID
      * @param oldAppCookie the current group key
      * @param type update type
-     * @param newGroupDesc group description with updates
+     * @param newBuckets group buckets for updates
+     * @param newAppCookie optional new group key
      */
     @Override
     public void updateGroupDescription(DeviceId deviceId,
                                 GroupKey oldAppCookie,
                                 UpdateType type,
-                                GroupDescription newGroupDesc) {
-        /* Check if a group is existing with the provided key */
+                                GroupBuckets newBuckets,
+                                GroupKey newAppCookie) {
+        // Check if a group is existing with the provided key
         Group oldGroup = getGroup(deviceId, oldAppCookie);
         if (oldGroup == null) {
             return;
@@ -213,15 +299,16 @@ public class SimpleGroupStore
 
         List<GroupBucket> newBucketList = getUpdatedBucketList(oldGroup,
                                                                type,
-                                               newGroupDesc.buckets());
+                                                               newBuckets);
         if (newBucketList != null) {
-            /* Create a new group object from the old group */
+            // Create a new group object from the old group
             GroupBuckets updatedBuckets = new GroupBuckets(newBucketList);
+            GroupKey newCookie = (newAppCookie != null) ? newAppCookie : oldAppCookie;
             GroupDescription updatedGroupDesc = new DefaultGroupDescription(
                                                         oldGroup.deviceId(),
                                                         oldGroup.type(),
                                                         updatedBuckets,
-                                                        newGroupDesc.appCookie(),
+                                                        newCookie,
                                                         oldGroup.appId());
             StoredGroupEntry newGroup = new DefaultGroup(oldGroup.id(),
                                                      updatedGroupDesc);
@@ -229,9 +316,7 @@ public class SimpleGroupStore
             newGroup.setLife(oldGroup.life());
             newGroup.setPackets(oldGroup.packets());
             newGroup.setBytes(oldGroup.bytes());
-            /* Remove the old entry from maps and add new entry
-             * using new key
-             */
+            // Remove the old entry from maps and add new entry using new key
             ConcurrentMap<GroupKey, StoredGroupEntry> keyTable =
                     getGroupKeyTable(oldGroup.deviceId());
             ConcurrentMap<GroupId, StoredGroupEntry> idTable =
@@ -253,9 +338,8 @@ public class SimpleGroupStore
         boolean groupDescUpdated = false;
 
         if (type == UpdateType.ADD) {
-            /* Check if the any of the new buckets are part of the
-             * old bucket list
-             */
+            // Check if the any of the new buckets are part of
+            // the old bucket list
             for (GroupBucket addBucket:buckets.buckets()) {
                 if (!newBucketList.contains(addBucket)) {
                     newBucketList.add(addBucket);
@@ -263,9 +347,8 @@ public class SimpleGroupStore
                 }
             }
         } else if (type == UpdateType.REMOVE) {
-            /* Check if the to be removed buckets are part of the
-             * old bucket list
-             */
+            // Check if the to be removed buckets are part of the
+            // old bucket list
             for (GroupBucket removeBucket:buckets.buckets()) {
                 if (newBucketList.contains(removeBucket)) {
                     newBucketList.remove(removeBucket);
@@ -290,7 +373,7 @@ public class SimpleGroupStore
     @Override
     public void deleteGroupDescription(DeviceId deviceId,
                                 GroupKey appCookie) {
-        /* Check if a group is existing with the provided key */
+        // Check if a group is existing with the provided key
         StoredGroupEntry existing = (groupEntriesByKey.get(deviceId) != null) ?
                            groupEntriesByKey.get(deviceId).get(appCookie) :
                            null;
@@ -361,5 +444,57 @@ public class SimpleGroupStore
             keyTable.remove(existing.appCookie());
             notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, existing));
         }
+    }
+
+    @Override
+    public void deviceInitialAuditCompleted(DeviceId deviceId) {
+        synchronized (deviceAuditStatus) {
+            deviceAuditStatus.putIfAbsent(deviceId, true);
+            // Execute all pending group requests
+            ConcurrentMap<GroupKey, StoredGroupEntry> pendingGroupRequests =
+                    getPendingGroupKeyTable(deviceId);
+            for (Group group:pendingGroupRequests.values()) {
+                GroupDescription tmp = new DefaultGroupDescription(
+                             group.deviceId(),
+                             group.type(),
+                             group.buckets(),
+                             group.appCookie(),
+                             group.appId());
+                storeGroupDescriptionInternal(tmp);
+            }
+            getPendingGroupKeyTable(deviceId).clear();
+        }
+    }
+
+    @Override
+    public boolean deviceInitialAuditStatus(DeviceId deviceId) {
+        synchronized (deviceAuditStatus) {
+            return (deviceAuditStatus.get(deviceId) != null) ? true : false;
+        }
+    }
+
+    @Override
+    public void addOrUpdateExtraneousGroupEntry(Group group) {
+        ConcurrentMap<GroupId, Group> extraneousIdTable =
+                getExtraneousGroupIdTable(group.deviceId());
+        extraneousIdTable.put(group.id(), group);
+        // Check the reference counter
+        if (group.referenceCount() == 0) {
+            notifyDelegate(new GroupEvent(Type.GROUP_REMOVE_REQUESTED, group));
+        }
+    }
+
+    @Override
+    public void removeExtraneousGroupEntry(Group group) {
+        ConcurrentMap<GroupId, Group> extraneousIdTable =
+                getExtraneousGroupIdTable(group.deviceId());
+        extraneousIdTable.remove(group.id());
+    }
+
+    @Override
+    public Iterable<Group> getExtraneousGroups(DeviceId deviceId) {
+        // flatten and make iterator unmodifiable
+        return FluentIterable.from(
+                  getExtraneousGroupIdTable(deviceId).values());
     }
 }

@@ -17,6 +17,8 @@ package org.onosproject.net.group;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
+
 import org.onosproject.core.GroupId;
 
 /**
@@ -141,5 +143,38 @@ public final class GroupOperation {
      */
     public GroupBuckets buckets() {
         return this.buckets;
+    }
+
+    @Override
+    /*
+     * The deviceId, type and buckets are used for hash.
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    public int hashCode() {
+        return (buckets != null) ? Objects.hash(groupId, opType, buckets) :
+            Objects.hash(groupId, opType);
+    }
+
+    @Override
+    /*
+     * The deviceId, type and buckets should be same.
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+       if (obj instanceof GroupOperation) {
+           GroupOperation that = (GroupOperation) obj;
+           return Objects.equals(groupId, that.groupId) &&
+                   Objects.equals(opType, that.opType) &&
+                   Objects.equals(buckets, that.buckets);
+
+        }
+        return false;
     }
 }

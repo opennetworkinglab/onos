@@ -37,7 +37,7 @@ public class DefaultGroupId implements GroupId {
 
     @Override
     public int id() {
-        return 0;
+        return this.id;
     }
 
     @Override

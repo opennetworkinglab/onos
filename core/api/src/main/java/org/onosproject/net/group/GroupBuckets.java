@@ -45,4 +45,25 @@ public final class GroupBuckets {
         return buckets;
     }
 
+    @Override
+    public int hashCode() {
+        int result = 17;
+        int combinedHash = 0;
+        for (GroupBucket bucket:buckets) {
+            combinedHash = combinedHash + bucket.hashCode();
+        }
+        result = 31 * result + combinedHash;
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof GroupBuckets) {
+            return (this.buckets.containsAll(((GroupBuckets) obj).buckets) &&
+                    ((GroupBuckets) obj).buckets.containsAll(this.buckets));
+        }
+        return false;
+    }
+
 }

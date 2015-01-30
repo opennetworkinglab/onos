@@ -17,7 +17,10 @@ package org.onosproject.net.group;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Objects;
+
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 
 /**
@@ -32,6 +35,7 @@ public class DefaultGroup extends DefaultGroupDescription
     private long life;
     private long packets;
     private long bytes;
+    private long referenceCount;
     private GroupId id;
 
     /**
@@ -47,6 +51,29 @@ public class DefaultGroup extends DefaultGroupDescription
         this.life = 0;
         this.packets = 0;
         this.bytes = 0;
+        this.referenceCount = 0;
+    }
+
+    /**
+     * Default group object constructor with the available information
+     * from data plane.
+     *
+     * @param id group identifier
+     * @param deviceId device identifier
+     * @param type type of the group
+     * @param buckets immutable list of group bucket
+     */
+    public DefaultGroup(GroupId id,
+                        DeviceId deviceId,
+                        GroupDescription.Type type,
+                        GroupBuckets buckets) {
+        super(deviceId, type, buckets);
+        this.id = id;
+        this.state = GroupState.PENDING_ADD;
+        this.life = 0;
+        this.packets = 0;
+        this.bytes = 0;
+        this.referenceCount = 0;
     }
 
     /**
@@ -139,4 +166,43 @@ public class DefaultGroup extends DefaultGroupDescription
         this.bytes = bytes;
     }
 
+    @Override
+    public void setReferenceCount(long referenceCount) {
+        this.referenceCount = referenceCount;
+    }
+
+    @Override
+    public long referenceCount() {
+        return referenceCount;
+    }
+
+    /*
+     * The deviceId, type and buckets are used for hash.
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public int hashCode() {
+        return super.hashCode() + Objects.hash(id);
+    }
+
+    /*
+     * The deviceId, groupId, type and buckets should be same.
+     *
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+       if (obj instanceof DefaultGroup) {
+            DefaultGroup that = (DefaultGroup) obj;
+            return super.equals(obj) &&
+                    Objects.equals(id, that.id);
+        }
+        return false;
+    }
 }

@@ -16,7 +16,6 @@
 package org.onosproject.net.group;
 
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -27,7 +26,7 @@ import org.onosproject.net.DeviceId;
  * specified in a group.
  * "group" can also be used for grouping common actions of different flows,
  * so that in some scenarios only one group entry required to be modified
- * for all the referencing flow entries instead of modifying all of them
+ * for all the referencing flow entries instead of modifying all of them.
  *
  * This implements semantics of a distributed authoritative group store
  * where the master copy of the groups lies with the controller and
@@ -60,7 +59,7 @@ public interface GroupService {
      * NOTE1: The presence of group object in the system does not
      * guarantee that the "group" is actually created in device.
      * GROUP_ADDED notification would confirm the creation of
-     * this group in data plane
+     * this group in data plane.
      *
      * @param deviceId device identifier
      * @param appCookie application cookie to be used for lookup
@@ -73,7 +72,7 @@ public interface GroupService {
      * Appends buckets to existing group. The caller can optionally
      * associate a new cookie during this updation. GROUP_UPDATED or
      * GROUP_UPDATE_FAILED notifications would be provided along with
-     * cookie depending on the result of the operation on the device
+     * cookie depending on the result of the operation on the device.
      *
      * @param deviceId device identifier
      * @param oldCookie cookie to be used to retrieve the existing group
@@ -91,7 +90,7 @@ public interface GroupService {
      * Removes buckets from existing group. The caller can optionally
      * associate a new cookie during this updation. GROUP_UPDATED or
      * GROUP_UPDATE_FAILED notifications would be provided along with
-     * cookie depending on the result of the operation on the device
+     * cookie depending on the result of the operation on the device.
      *
      * @param deviceId device identifier
      * @param oldCookie cookie to be used to retrieve the existing group
@@ -99,7 +98,7 @@ public interface GroupService {
      * @param newCookie immutable cookie to be used post update operation
      * @param appId Application Id
      */
-    void removeBucketsFromGroup(Device deviceId,
+    void removeBucketsFromGroup(DeviceId deviceId,
                                 GroupKey oldCookie,
                                 GroupBuckets buckets,
                                 GroupKey newCookie,
@@ -109,13 +108,13 @@ public interface GroupService {
      * Deletes a group associated to an application cookie.
      * GROUP_DELETED or GROUP_DELETE_FAILED notifications would be
      * provided along with cookie depending on the result of the
-     * operation on the device
+     * operation on the device.
      *
      * @param deviceId device identifier
      * @param appCookie application cookie to be used for lookup
      * @param appId Application Id
      */
-    void removeGroup(Device deviceId, GroupKey appCookie, ApplicationId appId);
+    void removeGroup(DeviceId deviceId, GroupKey appCookie, ApplicationId appId);
 
     /**
      * Retrieves all groups created by an application in the specified device
@@ -125,7 +124,7 @@ public interface GroupService {
      * @param appId application id
      * @return collection of immutable group objects created by the application
      */
-    Iterable<Group> getGroups(Device deviceId, ApplicationId appId);
+    Iterable<Group> getGroups(DeviceId deviceId, ApplicationId appId);
 
     /**
      * Adds the specified group listener.
