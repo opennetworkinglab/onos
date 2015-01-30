@@ -203,7 +203,8 @@ public class DefaultFlowRule implements FlowRule {
             DefaultFlowRule that = (DefaultFlowRule) obj;
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(priority, that.priority) &&
-                    Objects.equals(selector, that.selector);
+                    Objects.equals(selector, that.selector) &&
+                    Objects.equals(id, that.id());
 
         }
         return false;
