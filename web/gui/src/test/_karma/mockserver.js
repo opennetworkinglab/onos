@@ -6,7 +6,8 @@ var fs = require('fs'),
     readline = require('readline'),
     http = require('http'),
     WebSocketServer = require('websocket').server,
-    port = 8123;
+    port = 8123,
+    scenarioRoot = 'ev/';
 
 var lastcmd,        // last command executed
     lastargs,       // arguments to last command
@@ -15,9 +16,18 @@ var lastcmd,        // last command executed
     scid,           // scenario ID
     scdata,         // scenario data
     scdone,         // shows when scenario is over
+    eventsById,     // map of event file names
+    maxEvno,        // highest loaded event number
     evno,           // next event number
     evdata;         // event data
 
+
+var scFiles = fs.readdirSync(scenarioRoot);
+console.log('Mock Server v1.0');
+console.log('================');
+console.log('Scenarios ...');
+console.log(scFiles.join(', '));
+console.log();
 
 
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -175,8 +185,8 @@ function showScenarioStatus() {
 }
 
 function scenarioPath(evno) {
-    var file = evno ? ('/ev_' + evno + '_onos.json') : '/scenario.json';
-    return 'ev/' + scid + file;
+    var file = evno ? ('/' + eventsById[evno].fname) : '/scenario.json';
+    return scenarioRoot + scid + file;
 }
 
 
@@ -189,6 +199,35 @@ function initScenario(verb) {
     });
     evno = 1;
     scdone = false;
+    readEventFilenames();
+}
+
+function readEventFilenames() {
+    var files = fs.readdirSync(scenarioRoot + scid),
+        eventCount = 0,
+        match, id, tag;
+
+    maxEvno = 0;
+
+    eventsById = {};
+    files.forEach(function (f) {
+        match = /^ev_(\d+)_(.*)\.json$/.exec(f);
+        if (match) {
+            eventCount++;
+            id = match[1];
+            tag = match[2];
+            eventsById[id] = {
+                fname: f,
+                num: id,
+                tag: tag
+            };
+            if (Number(id) > Number(maxEvno)) {
+                maxEvno = id;
+            }
+        }
+
+    });
+    console.log('[' + eventCount + ' events loaded, (max=' + maxEvno + ')]');
 }
 
 function setScenario(id) {
@@ -229,20 +268,25 @@ function nextEvent() {
         console.warn('No current connection.');
         rl.prompt();
     } else {
-        path = scenarioPath(evno);
-        fs.readFile(path, 'utf8', function (err, data) {
-            if (err) {
-                console.log('No event #' + evno);
-                scdone = true;
-                console.log('Scenario DONE');
-            } else {
-                evdata = JSON.parse(data);
-                console.log(); // get past prompt
-                console.log('Sending event #' + evno + ' [' + evdata.event + ']');
-                connection.sendUTF(data);
-                evno++;
-            }
-            rl.prompt();
-        });
+        if (Number(evno) > Number(maxEvno)) {
+            // done
+            scdone = true;
+            console.log('Scenario DONE.');
+        } else {
+            // fire next event
+            path = scenarioPath(evno);
+            fs.readFile(path, 'utf8', function (err, data) {
+                if (err) {
+                    console.log('Oops error: ' + err);
+                } else {
+                    evdata = JSON.parse(data);
+                    console.log(); // get past prompt
+                    console.log('Sending event #' + evno + ' [' + evdata.event + ']');
+                    connection.sendUTF(data);
+                    evno++;
+                }
+                rl.prompt();
+            });
+        }
     }
 }

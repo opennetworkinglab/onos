@@ -145,7 +145,7 @@
     function instColor(id, online) {
         // TODO: fix this..
         //return cat7.get(id, !online, network.view.getTheme());
-        return 'blue';
+        return '#3E5780';
     }
 
     // ==============================
