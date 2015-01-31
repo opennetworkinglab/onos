@@ -65,4 +65,11 @@ public interface LabelResourceStore
      * @return
      */
     long getFreeNum(DeviceId deviceId);
+
+    /**
+     * get the lable resource pool of a label resource by a specific device id.
+     * @param deviceId
+     * @return
+     */
+    LabelResourcePool getLabelResourcePool(DeviceId deviceId);
 }
