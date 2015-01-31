@@ -197,15 +197,13 @@ describe('factory: fw/util/fn.js', function() {
         }, ['a', 'b'])).toBeTruthy();
     });
 
-    // == use the now-tested areFunctions on our own api:
+    // == use the now-tested areFunctions() on our own api:
     it('should define api functions', function () {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
             'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find'
         ])).toBeTruthy();
     });
-
-
 
 
     // === Tests for windowSize()
@@ -233,6 +231,33 @@ describe('factory: fw/util/fn.js', function() {
         expect(dim.height).toEqual(99);
     });
 
-    // TODO: write unit tests for find()
 
+    // === Tests for find()
+    var dataset = [
+        { id: 'foo', name: 'Furby'},
+        { id: 'bar', name: 'Barbi'},
+        { id: 'baz', name: 'Basil'},
+        { id: 'goo', name: 'Gabby'},
+        { id: 'zoo', name: 'Zevvv'}
+    ];
+
+    it('should not find ooo', function () {
+        expect(fs.find('ooo', dataset)).toEqual(-1);
+    });
+    it('should find foo', function () {
+        expect(fs.find('foo', dataset)).toEqual(0);
+    });
+    it('should find zoo', function () {
+        expect(fs.find('zoo', dataset)).toEqual(4);
+    });
+
+    it('should not find Simon', function () {
+        expect(fs.find('Simon', dataset, 'name')).toEqual(-1);
+    });
+    it('should find Furby', function () {
+        expect(fs.find('Furby', dataset, 'name')).toEqual(0);
+    });
+    it('should find Zevvv', function () {
+        expect(fs.find('Zevvv', dataset, 'name')).toEqual(4);
+    });
 });
