@@ -17,13 +17,17 @@ package org.onosproject.common.app;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationDescription;
 import org.onosproject.app.ApplicationException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Random;
 import java.util.Set;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -32,13 +36,20 @@ import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 
 public class ApplicationArchiveTest {
 
-    static final String ROOT = "/tmp/app-junit";
+    static final String ROOT = "/tmp/app-junit/" + new Random().nextInt();
 
     private ApplicationArchive aar = new ApplicationArchive();
 
     @Before
     public void setUp() {
-        aar.setAppsRoot(ROOT);
+        aar.setRootPath(ROOT);
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        if (new File(aar.getRootPath()).exists()) {
+            Tools.removeDirectory(aar.getRootPath());
+        }
     }
 
     private void validate(ApplicationDescription app) {
@@ -77,7 +88,8 @@ public class ApplicationArchiveTest {
     public void purgeApp() throws IOException {
         saveApp();
         aar.purgeApplication(APP_NAME);
-        assertEquals("incorrect names", ImmutableSet.of(), aar.getApplicationNames());
+        assertEquals("incorrect names", ImmutableSet.<String>of(),
+                     aar.getApplicationNames());
     }
 
     @Test

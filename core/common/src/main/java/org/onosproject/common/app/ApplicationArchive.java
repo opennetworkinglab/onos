@@ -39,6 +39,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -63,17 +64,25 @@ public class ApplicationArchive
 
     private static Logger log = LoggerFactory.getLogger(ApplicationArchive.class);
     private static final String APP_XML = "app.xml";
+    private static final String M2_PREFIX = "m2";
+
+    private static final String KARAF_ROOT = ".";
+    private static final String M2_ROOT = "system/";
     private static final String APPS_ROOT = "data/apps/";
 
-    private File appsDir = new File(APPS_ROOT);
+    private File karafRoot = new File(KARAF_ROOT);
+    private File m2Dir = new File(karafRoot, M2_ROOT);
+    private File appsDir = new File(karafRoot, APPS_ROOT);
 
     /**
      * Sets the root directory where application artifacts are kept.
      *
      * @param appsRoot top-level applications directory path
      */
-    protected void setAppsRoot(String appsRoot) {
-        this.appsDir = new File(appsRoot);
+    protected void setRootPath(String appsRoot) {
+        this.karafRoot = new File(appsRoot);
+        this.appsDir = new File(karafRoot, APPS_ROOT);
+        this.m2Dir = new File(karafRoot, M2_ROOT);
     }
 
     /**
@@ -81,8 +90,8 @@ public class ApplicationArchive
      *
      * @return top-level applications directory path
      */
-    protected String getAppsRoot() {
-        return appsDir.getPath();
+    protected String getRootPath() {
+        return karafRoot.getPath();
     }
 
     /**
@@ -238,10 +247,20 @@ public class ApplicationArchive
     }
 
     // Installs application artifacts into M2 repository.
-    private void installArtifacts(ApplicationDescription desc) {
-        // FIXME: implement M2 repository copy
+    private void installArtifacts(ApplicationDescription desc) throws IOException {
+        try {
+            Tools.copyDirectory(appFile(desc.name(), M2_PREFIX), m2Dir);
+        } catch (NoSuchFileException e) {
+            log.debug("Application {} has no M2 artifacts", desc.name());
+        }
     }
 
+    /**
+     * Marks the app as active by creating token file in the app directory.
+     *
+     * @param appName application name
+     * @return true if file was created
+     */
     protected boolean setActive(String appName) {
         try {
             return appFile(appName, "active").createNewFile();
@@ -250,10 +269,22 @@ public class ApplicationArchive
         }
     }
 
+    /**
+     * Clears the app as active by deleting token file in the app directory.
+     *
+     * @param appName application name
+     * @return true if file was deleted
+     */
     protected boolean clearActive(String appName) {
         return appFile(appName, "active").delete();
     }
 
+    /**
+     * Indicates whether the app was marked as active by checking for token file.
+     *
+     * @param appName application name
+     * @return true if the app is marked as active
+     */
     protected boolean isActive(String appName) {
         return appFile(appName, "active").exists();
     }

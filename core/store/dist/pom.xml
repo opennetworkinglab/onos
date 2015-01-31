@@ -43,6 +43,11 @@
             <artifactId>onlab-netty</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-common</artifactId>
+        </dependency>
 <!--
        <dependency>
             <groupId>net.kuujo.copycat</groupId>

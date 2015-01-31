@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli;
+package org.onosproject.cli.app;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.Comparators;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 
@@ -30,7 +32,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists application ID information.
  */
-@Command(scope = "onos", name = "apps",
+@Command(scope = "onos", name = "app-ids",
          description = "Lists application ID information")
 public class ApplicationIdListCommand extends AbstractShellCommand {
 

@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.app.ApplicationEvent;
@@ -202,13 +203,19 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
 
     private void installAppFeatures(Application app) throws Exception {
         for (String name : app.features()) {
-            featuresService.installFeature(name);
+            Feature feature = featuresService.getFeature(name);
+            if (!featuresService.isInstalled(feature)) {
+                featuresService.installFeature(name);
+            }
         }
     }
 
     private void uninstallAppFeatures(Application app) throws Exception {
         for (String name : app.features()) {
-            featuresService.uninstallFeature(name);
+            Feature feature = featuresService.getFeature(name);
+            if (featuresService.isInstalled(feature)) {
+                featuresService.uninstallFeature(name);
+            }
         }
     }
 

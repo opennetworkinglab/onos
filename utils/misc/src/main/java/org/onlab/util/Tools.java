@@ -27,9 +27,11 @@ import java.io.InputStreamReader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -196,6 +198,62 @@ public abstract class Tools {
                 throws IOException {
             log.warn("Unable to delete file {}", file);
             log.warn("Boom", ioe);
+            return FileVisitResult.CONTINUE;
+        }
+    }
+
+
+    /**
+     * Copies the specified directory path.&nbsp;Use with great caution since
+     * no attempt is made to check for symbolic links, which could result in
+     * copy of unintended files.
+     *
+     * @param src directory to be copied
+     * @param dst destination directory to be removed
+     * @throws java.io.IOException if unable to remove contents
+     */
+    public static void copyDirectory(String src, String dst) throws IOException {
+        walkFileTree(Paths.get(src), new DirectoryCopier(src, dst));
+    }
+
+    /**
+     * Copies the specified directory path.&nbsp;Use with great caution since
+     * no attempt is made to check for symbolic links, which could result in
+     * copy of unintended files.
+     *
+     * @param src directory to be copied
+     * @param dst destination directory to be removed
+     * @throws java.io.IOException if unable to remove contents
+     */
+    public static void copyDirectory(File src, File dst) throws IOException {
+        walkFileTree(Paths.get(src.getAbsolutePath()),
+                     new DirectoryCopier(src.getAbsolutePath(),
+                                         dst.getAbsolutePath()));
+    }
+
+
+    public static class DirectoryCopier extends SimpleFileVisitor<Path> {
+        private Path src;
+        private Path dst;
+        private StandardCopyOption copyOption = StandardCopyOption.REPLACE_EXISTING;
+
+        DirectoryCopier(String src, String dst) {
+            this.src = Paths.get(src);
+            this.dst = Paths.get(dst);
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            Path targetPath = dst.resolve(src.relativize(dir));
+            if (!Files.exists(targetPath)) {
+                Files.createDirectory(targetPath);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            Files.copy(file, dst.resolve(src.relativize(file)), copyOption);
             return FileVisitResult.CONTINUE;
         }
     }
