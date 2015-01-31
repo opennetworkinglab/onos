@@ -80,19 +80,9 @@ public class IntentTestsMocks {
      * Mock traffic treatment class used for satisfying API requirements.
      */
     public static class MockTreatment implements TrafficTreatment {
-
-        private List<Instruction> instructions = new ArrayList<>();
-
-        public MockTreatment() {
-        }
-
-        public MockTreatment(Instruction... insts) {
-            this.instructions.addAll(Arrays.asList(insts));
-        }
-
         @Override
         public List<Instruction> instructions() {
-            return this.instructions;
+            return new ArrayList<>();
         }
     }
 

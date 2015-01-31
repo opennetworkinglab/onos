@@ -17,15 +17,12 @@
 package org.onosproject.net.flow;
 
 import org.junit.Test;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.intent.IntentTestsMocks;
 
 import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
@@ -36,12 +33,8 @@ import static org.onosproject.net.NetTestTools.did;
 public class DefaultFlowRuleTest {
     private static final IntentTestsMocks.MockSelector SELECTOR =
             new IntentTestsMocks.MockSelector();
-    private static final IntentTestsMocks.MockTreatment TREATMENT1 =
-            new IntentTestsMocks.MockTreatment(
-                    Instructions.createOutput(PortNumber.portNumber(1)));
-    private static final IntentTestsMocks.MockTreatment TREATMENT2 =
-            new IntentTestsMocks.MockTreatment(
-                    Instructions.createOutput(PortNumber.portNumber(2)));
+    private static final IntentTestsMocks.MockTreatment TREATMENT =
+            new IntentTestsMocks.MockTreatment();
 
     final FlowRule flowRule1 = new IntentTestsMocks.MockFlowRule(1);
     final FlowRule sameAsFlowRule1 = new IntentTestsMocks.MockFlowRule(1);
@@ -92,14 +85,14 @@ public class DefaultFlowRuleTest {
     public void testCreationWithFlowId() {
         final DefaultFlowRule rule =
                 new DefaultFlowRule(did("1"), SELECTOR,
-                TREATMENT1, 22, 33,
+                        TREATMENT, 22, 33,
                 44, false);
         assertThat(rule.deviceId(), is(did("1")));
         assertThat(rule.id().value(), is(33L));
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.priority(), is(22));
         assertThat(rule.selector(), is(SELECTOR));
-        assertThat(rule.treatment(), is(TREATMENT1));
+        assertThat(rule.treatment(), is(TREATMENT));
         assertThat(rule.timeout(), is(44));
     }
 
@@ -110,25 +103,13 @@ public class DefaultFlowRuleTest {
     public void testCreationWithAppId() {
         final DefaultFlowRule rule =
                 new DefaultFlowRule(did("1"), SELECTOR,
-                TREATMENT1, 22, APP_ID,
+                        TREATMENT, 22, APP_ID,
                         44, false);
         assertThat(rule.deviceId(), is(did("1")));
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.priority(), is(22));
         assertThat(rule.selector(), is(SELECTOR));
-        assertThat(rule.treatment(), is(TREATMENT1));
+        assertThat(rule.treatment(), is(TREATMENT));
         assertThat(rule.timeout(), is(44));
-    }
-
-    /**
-     * Tests equality that factors in TrafficTreatment through the flowId.
-     */
-    @Test
-    public void testActionEquals() {
-        final DefaultFlowRule rule1 = new DefaultFlowRule(did("1"), SELECTOR,
-                TREATMENT1, 22, APP_ID, 44, false);
-        final DefaultFlowRule rule2 = new DefaultFlowRule(did("1"), SELECTOR,
-                TREATMENT2, 22, APP_ID, 44, false);
-        assertThat(rule1, not(rule2));
     }
 }
