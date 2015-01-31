@@ -269,6 +269,26 @@
         <command>
             <action class="org.onosproject.cli.net.WipeOutCommand"/>
         </command>
+        
+        <command>
+            <action class="org.onosproject.cli.net.CreateLabelResourcePool"/>
+        </command>
+        
+        <command>
+            <action class="org.onosproject.cli.net.DestroyLabelResourcePool"/>
+        </command>
+        
+        <command>
+            <action class="org.onosproject.cli.net.ApplyLabelResource"/>
+        </command>
+        
+        <command>
+            <action class="org.onosproject.cli.net.ReleaseLabelResource"/>
+        </command>
+        
+        <command>
+            <action class="org.onosproject.cli.net.GetLabelResource"/>
+        </command>
     </command-bundle>
 
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
