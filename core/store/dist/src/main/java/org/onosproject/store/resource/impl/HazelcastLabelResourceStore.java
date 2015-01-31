@@ -498,4 +498,10 @@ public class HazelcastLabelResourceStore
         return false;
     }
 
+    @Override
+    public LabelResourcePool getLabelResourcePool(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return resourcePool.get(deviceId);
+    }
+
 }

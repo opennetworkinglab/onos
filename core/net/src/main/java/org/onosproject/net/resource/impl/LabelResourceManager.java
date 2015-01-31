@@ -104,6 +104,12 @@ public class LabelResourceManager implements LabelResourceService {
     }
 
     @Override
+    public LabelResourcePool getLabelResourcePool(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return store.getLabelResourcePool(deviceId);
+    }
+
+    @Override
     public void addListener(LabelResourceListener listener) {
         // TODO Auto-generated method stub
         listenerRegistry.addListener(listener);
