@@ -15,18 +15,20 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-public class HuaweiFlowSerializer extends Serializer<OFMessage>{
+public class HuaweiFlowSerializer extends Serializer<OFMessage> {
     private final Logger log = getLogger(getClass());
     @Override
     public void write(Kryo kryo, Output output, OFMessage object) {
         // TODO Auto-generated method stub
-        
     }
 
     @Override
     public OFMessage read(Kryo kryo, Input input,
                                  Class<OFMessage> type) {
         // TODO Auto-generated method stub
+        byte[] bytes = new byte[1024];
+        input.readByte();
+        input.read(bytes, 0, 1024);
         ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(input.getBuffer());
         OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
         OFMessage message = null;

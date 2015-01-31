@@ -46,8 +46,8 @@ public class SimpleFlowRuleExtStore extends
     private final Logger log = getLogger(getClass());
     private final ConcurrentMap<DeviceId, Collection<FlowRuleExtEntry>> flowRuleEntries = Maps.newConcurrentMap();
     private int pendingFutureTimeoutMinutes = 5;
-    private final int BUFFERSIZE = 1000;
-    private final int MAXSIZE = 4096;
+    private final int bufferSize = 1000;
+    private final int maxSize = 4096;
     private final Kryo kryo = new Kryo();
     private Cache<Integer, SettableFuture<FlowExtCompletedOperation>> pendingExtendFutures = CacheBuilder
             .newBuilder()
@@ -147,7 +147,7 @@ public class SimpleFlowRuleExtStore extends
      */
     private Iterable<?> decodeFlowExt(Collection<FlowRuleExtEntry> batchOperation) {
         Collection<Object> flowExtensions = new ArrayList<Object>();
-        ByteBufferOutput output = new ByteBufferOutput(BUFFERSIZE, MAXSIZE);
+        ByteBufferOutput output = new ByteBufferOutput(bufferSize, maxSize);
         for (FlowRuleExtEntry entry : batchOperation) {
             kryo.writeClass(output, entry.getClassT());
             kryo.writeObject(output, entry.getFlowEntryExt());

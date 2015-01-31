@@ -31,31 +31,32 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 public class FlowRuleListCommand extends AbstractShellCommand {
 
     private static final String FMT_OMSG =
-            "   deviceid:%s,  version:%s,  type:%s,  match:%s,  instruction:%s";
+            "   deviceid:%s,  version:%s,  type:%s,  match:%s";
     private static final String FMT_GMSG =
             "   deviceid:%s,  version:%s,  type:%s,  command:%s";
 
     @Override
     protected void execute() {
         FlowRuleExtService  flowRuleService = get(FlowRuleExtService.class);
-        DeviceService deviceService = get(DeviceService.class); 
+        DeviceService deviceService = get(DeviceService.class);
         Iterable<Device> devices = deviceService.getDevices();
         for (Device d: devices) {
                 Iterable<?> ofs = flowRuleService.getExtMessages(d.id());
-        	for (Object msg : ofs) {
-        		if (msg instanceof OFFlowMod) {
-	        		OFFlowMod ofMod = (OFFlowMod) msg;
-	        		String matches = "";
-	        		for (MatchField<?> field : ofMod.getMatch().getMatchFields()) {
-	        			matches = matches + field.getName();
-	        		}
-	        		print(FMT_OMSG , d.id().toString(), ofMod.getVersion(), ofMod.getType() , matches, ofMod.getInstructions().toString());
-        		} else if (msg instanceof OFGroupMod) {
-        			OFGroupMod groupMod = (OFGroupMod)msg;
-        			print(FMT_GMSG , d.id().toString(), groupMod.getVersion(), groupMod.getType() , groupMod.getCommand());
-        		}
-        		
-        	}
-        }
+                for (Object msg : ofs) {
+                        if (msg instanceof OFFlowMod) {
+                                OFFlowMod ofMod = (OFFlowMod) msg;
+                                String matches = "";
+                                for (MatchField<?> field : ofMod.getMatch().getMatchFields()) {
+                                      matches = matches + field.getName();
+                                }
+                                print(FMT_OMSG , d.id().toString(), ofMod.getVersion(),
+                                      ofMod.getType() , matches);
+                        } else if (msg instanceof OFGroupMod) {
+                                OFGroupMod groupMod = (OFGroupMod)msg;
+                                print(FMT_GMSG , d.id().toString(), groupMod.getVersion(),
+                                      groupMod.getType() , groupMod.getCommand());
+                        }
+                }
+       }
     }
 }

@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -59,7 +60,7 @@ public class IpranAgent {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
-    
+
     private LeadershipEventListener leadershipEventListener =
             new InnerLeadershipEventListener();
 
@@ -72,13 +73,12 @@ public class IpranAgent {
     private ApplicationId appId;
     private ControllerNode localControllerNode;
     private IpranSession ipranConnector;
-    private static String hexStr =  "0123456789ABCDEF";
     private final AtomicInteger localBatchIdGen = new AtomicInteger();
     // Stores all incoming route updates in a queue.
     private BlockingQueue<FlowRuleBatchExtRequest> flowUpdatesQueue;
     private static final int DEFAULT_IPRAN_PORT = 2000;
     private  ExecutorService flowUpdatesExecutor;
-    
+
     @Activate
     protected void activate() {
         log.info("IpRan started");
@@ -99,11 +99,11 @@ public class IpranAgent {
         String buffer3 = "010e005000000021003fffee00010000000"
                 + "000000000000000000000000008000000000000000"
                 + "00000000000000000000001000015e4f1800000000"
-                + "00000007bffffffffffff000100000000000030000";
+                + "00000007bffffffffffff00010000000800030000";
         FlowRuleExtEntry entry1 = new FlowRuleExtEntry(deviceId("igp:00000001"),
-                 OFMessage.class, HexStringToBinary(buffer3));
+                 OFMessage.class, hexStringToBinary(buffer3));
         FlowRuleExtEntry entry2 = new FlowRuleExtEntry(deviceId("igp:00000002"),
-                 OFMessage.class, HexStringToBinary(buffer3));
+                 OFMessage.class, hexStringToBinary(buffer3));
         Collection<FlowRuleExtEntry> flows = new ArrayList<FlowRuleExtEntry>();
         flows.add(entry1);
         flows.add(entry2);
@@ -112,7 +112,7 @@ public class IpranAgent {
         flowUpdatesQueue.add(request);
         pocessFlowUpdate();
     }
-    
+
     @Deactivate
     protected void deactivate() {
         ipranConnector.stop();
@@ -138,15 +138,12 @@ public class IpranAgent {
             while (!interrupted) {
                 try {
                     FlowRuleBatchExtRequest flowUpdates =
-                            flowUpdatesQueue.take();
+                            flowUpdatesQueue.element();
                     /* here should make some change:
                      * first, use batch service interface
                      * second, add asynchronous transaction
                      */
                     flowService.applyBatch(flowUpdates);
-                } catch (InterruptedException e) {
-                    log.debug("Interrupted while taking from updates queue", e);
-                    interrupted = true;
                 } catch (Exception e) {
                     log.debug("exception", e);
                 }
@@ -158,20 +155,20 @@ public class IpranAgent {
         }
     }
 
-    public static byte[] HexStringToBinary(String hexString){  
-        //hexString的长度对2取整，作为bytes的长度  
-        int len = hexString.length()/2;  
-        byte[] bytes = new byte[len];  
-        byte high = 0;//字节高四位  
-        byte low = 0;//字节低四位  
-  
-        for(int i=0;i<len;i++){  
-             //右移四位得到高位  
-             high = (byte)((hexStr.indexOf(hexString.charAt(2*i)))<<4);  
-             low = (byte)hexStr.indexOf(hexString.charAt(2*i+1));  
-             bytes[i] = (byte) (high|low);//高地位做或运算  
-        }  
-        return bytes;  
+    public static byte[] hexStringToBinary(String hexString) {
+        if (StringUtils.isEmpty(hexString)) {
+            throw new IllegalArgumentException("this hexString must not be empty");
+        }
+        hexString = hexString.toLowerCase();
+        final byte[] byteArray = new byte[hexString.length() /2];
+        int k = 0;
+        for (int i = 0; i< byteArray.length; i++) {
+             byte high = (byte) (Character.digit(hexString.charAt(k), 16) & 0xff);  
+             byte low = (byte) (Character.digit(hexString.charAt(k + 1), 16) & 0xff); 
+             byteArray[i] = (byte) (high << 4 | low);
+             k += 2;
+        }
+        return byteArray;
     }
 
   /**
@@ -186,7 +183,7 @@ public class IpranAgent {
                       event.time(), event.type(), event);
             Endpoint host = new Endpoint(localControllerNode.id().toString(), DEFAULT_IPRAN_PORT);
             ListenableFuture<byte[]> responseFuture = ipranConnector
-                    .sendAndRecvMsg(host, IpranSession.messageType.TOPO_CHANGED.toString(), null);
+                    .sendAndRecvMsg(host, IpranSession.MessageType.TOPO_CHANGED.toString(), null);
             Futures.transform(responseFuture, new DecodeTo<String>((StoreSerializer) IpranSession.SERIALIZER));
             return;
         }

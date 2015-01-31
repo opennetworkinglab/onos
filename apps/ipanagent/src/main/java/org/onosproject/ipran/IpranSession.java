@@ -38,7 +38,7 @@ public class IpranSession {
     private final AtomicLong messageIdGenerator = new AtomicLong(0);
     private static final int DEFAULT_IPRAN_PORT = 2000;
     InetSocketAddress listenAddress;
-    protected Set<IpranSessionListener> SessionListener = new HashSet<>();
+    protected Set<IpranSessionListener> sessionListener = new HashSet<>();
     private final Cache<Long, SettableFuture<byte[]>> responseFutures = CacheBuilder.newBuilder()
             .maximumSize(100000)
             .expireAfterWrite(10, TimeUnit.SECONDS)
@@ -49,33 +49,33 @@ public class IpranSession {
                 }
             })
             .build();
-    
+
     protected static final KryoSerializer SERIALIZER = new KryoSerializer();
-    
-    
-    public static enum messageType {
+
+
+    public static enum MessageType {
 
         /**
-         * To hand shake with ipran
+         * To hand shake with ipran.
          */
         SAY_HELLO,
 
         /**
-         * To tell ipran i'm leader
+         * To tell ipran i'm leader.
          */
         LEADER_ELECTED,
         
         /**
-         * To tell ipran i'm leader
+         * To tell ipran i'm leader.
          */
         TOPO_CHANGED,
         
         /**
-         * FlowEntryExtend downStream
+         * FlowEntryExtend downStream.
          */
         FLOWENTRY_EXTEND,
     }
-    
+
     /**
      * Starts up BGP Session Manager operation.
      *
@@ -120,22 +120,22 @@ public class IpranSession {
     }
 
     public void addListener(IpranSessionListener listener) {
-        SessionListener.add(listener);
+        sessionListener.add(listener);
     }
 
     public void removeListener(IpranSessionListener listener) {
-        SessionListener.remove(listener);
+        sessionListener.remove(listener);
     }
 
     public void notify(FlowRuleBatchExtRequest flowUpdates) {
-        for (IpranSessionListener listener : SessionListener) {
+        for (IpranSessionListener listener : sessionListener) {
             listener.update(flowUpdates);
         }
-    } 
-    
+    }
+
     /**
      * send msg to ipran, make sure the connection has been built.
-     */   
+     */
     public ListenableFuture<byte[]>  sendAndRecvMsg(Endpoint host, String type, byte[] data) {
         SettableFuture<byte[]> futureResponse = SettableFuture.create();
         Long messageId = messageIdGenerator.incrementAndGet();
@@ -146,7 +146,7 @@ public class IpranSession {
               .withType(type)
               .withPayload(data)
               .build();
-        if(ipranChannel.getChannel() !=null) {
+        if (ipranChannel.getChannel() != null) {
             ipranChannel.getChannel().write(message);
         } else {
             clientBootstrap.connect(listenAddress);

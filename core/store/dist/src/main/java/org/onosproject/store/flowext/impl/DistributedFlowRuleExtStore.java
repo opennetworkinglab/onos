@@ -214,7 +214,7 @@ public class DistributedFlowRuleExtStore
 
     /**
      * Internal listener of master-ship event.
-     * Once master-ship changed, store should remove all entries of device. 
+     * Once master-ship changed, store should remove all entries of device.
      */
     private final class InternalReplicaInfoEventListener
             implements ReplicaInfoEventListener {

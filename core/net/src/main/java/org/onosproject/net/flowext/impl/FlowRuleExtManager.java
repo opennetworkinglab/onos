@@ -98,9 +98,8 @@ public class FlowRuleExtManager
 
     @Activate
     public void activate() {
-        futureService = Executors
-                .newFixedThreadPool(32,
-                                    namedThreads("provider-future-listeners-%d"));
+        futureService = Executors.newFixedThreadPool(
+                      32, namedThreads("provider-future-listeners-%d"));
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleExtEvent.class, listenerRegistry);
         log.info("Started");
@@ -284,7 +283,7 @@ public class FlowRuleExtManager
 
         /**
          * Judge whether the task cancelled completely.
-         * 
+         *
          * @return {@code true} if this task was cancelled before it completed
          */
         @Override
