@@ -19,7 +19,8 @@ import java.util.Collection;
 
 import com.google.common.collect.ImmutableList;
 public class FlowRuleBatchExtRequest {
-
+    // the batchId is provided by application, once one flow rule of this batch failed
+    // all the batch should withdraw
     private final int batchId;
     /*
      * Concern all the entry as to add, because the bytes contains the information
