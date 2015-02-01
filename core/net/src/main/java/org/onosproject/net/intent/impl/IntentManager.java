@@ -649,7 +649,6 @@ public class IntentManager
         @Override
         public Optional<IntentUpdate> execute() {
             Exception exception = null;
-            // Indicate that the intent is entering the installing phase.
 
             List<FlowRuleBatchOperation> batches = Lists.newArrayList();
             for (Intent installable : installables) {
