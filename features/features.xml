@@ -243,7 +243,7 @@
         <bundle>mvn:org.onosproject/onos-app-demo/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-election" version="1.0.0"
+    <feature name="onos-app-election" version="@FEATURE-VERSION"
              description="ONOS app leadership election test">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-app-election/@ONOS-VERSION</bundle>
