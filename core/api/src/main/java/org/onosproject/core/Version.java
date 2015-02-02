@@ -54,7 +54,7 @@ public final class Version {
      * Creates a new version from the specified constituent numbers.
      *
      * @param major major version number
-     * @param minor minod version number
+     * @param minor minor version number
      * @param patch version patch segment
      * @param build optional build string
      * @return version descriptor
