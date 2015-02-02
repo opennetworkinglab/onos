@@ -78,7 +78,6 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
 
     private ApplicationId appId;
 
-    //final short WAVELENGTH = 80;
     static final short SIGNAL_TYPE = (short) 1;
 
     @Activate
