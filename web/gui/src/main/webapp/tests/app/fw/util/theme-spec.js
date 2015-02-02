@@ -92,6 +92,71 @@ describe('factory: fw/util/theme.js', function() {
     });
 
 
-    // TODO : Unit tests for listeners...
+    // === Unit Tests for listeners
+
+    it('should report lack of callback', function () {
+        spyOn($log, 'error');
+        var list = ts.addListener();
+        expect($log.error).toHaveBeenCalledWith(
+            'ThemeService.addListener(): callback not a function'
+        );
+        expect(list.error).toEqual('No callback defined');
+    });
+
+    it('should report non-functional callback', function () {
+        spyOn($log, 'error');
+        var list = ts.addListener(['some array']);
+        expect($log.error).toHaveBeenCalledWith(
+            'ThemeService.addListener(): callback not a function'
+        );
+        expect(list.error).toEqual('No callback defined');
+    });
+
+    it('should invoke our callback with an event', function () {
+        var event;
+
+        function cb(ev) {
+            event = ev;
+        }
+
+        expect(event).toBeUndefined();
+        ts.addListener(cb);
+        ts.theme('dark');
+        expect(event).toEqual({
+            event: 'themeChange',
+            value: 'dark'
+        });
+    });
+
+    it('should invoke our callback at appropriate times', function () {
+        var calls = [],
+            phase,
+            listener;
+
+        function cb() {
+            calls.push(phase);
+        }
+
+        expect(calls).toEqual([]);
+
+        phase = 'pre';
+        ts.toggleTheme(); // -> dark
+
+        phase = 'added';
+        listener = ts.addListener(cb);
+        ts.toggleTheme(); // -> light
+
+        phase = 'same';
+        ts.theme('light');  // (still light - no event)
+
+        phase = 'diff';
+        ts.theme('dark');   // -> dark
+
+        phase = 'post';
+        ts.removeListener(listener);
+        ts.toggleTheme();   // -> light
+
+        expect(calls).toEqual(['added', 'diff']);
+    });
 
 });
