@@ -169,6 +169,7 @@ public class InstructionCodec extends JsonCodec<Instruction> {
                 final L3ModificationInstruction l3ModificationInstruction =
                         (L3ModificationInstruction) instruction;
                 encodeL3(result, l3ModificationInstruction);
+                break;
 
             default:
                 log.info("Cannot convert instruction type of {}", instruction.type());
