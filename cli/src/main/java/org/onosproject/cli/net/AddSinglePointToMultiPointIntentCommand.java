@@ -79,6 +79,7 @@ public class AddSinglePointToMultiPointIntentCommand extends ConnectivityIntentC
                                                                                  egressPoints,
                                                                                  constraints);
         service.submit(intent);
+        print("Single point to multipoint intent submitted:\n%s", intent.toString());
     }
 
     /**

@@ -58,6 +58,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
 
         Intent intent = new OpticalConnectivityIntent(appId(), ingress, egress);
         service.submit(intent);
+        print("Optical intent submitted:\n%s", intent.toString());
     }
 
     /**
