@@ -21,7 +21,7 @@
 /* ------ for summary-list tables ------ */
 
 table.summary-list {
-    margin: 20px 50px;
+    margin: 0px 50px 50px 50px;
     font-size: 10pt;
     border-spacing: 0;
 }
