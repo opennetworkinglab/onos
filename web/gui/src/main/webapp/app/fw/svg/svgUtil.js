@@ -140,8 +140,9 @@
             var lightNorm = ['#3E5780', '#78533B', '#CB4D28', '#018D61', '#8A2979', '#006D73', '#56AF00'],
                 lightMute = ['#A8B8CC', '#CCB3A8', '#FFC2BD', '#96D6BF', '#D19FCE', '#8FCCCA', '#CAEAA4'],
 
-                darkNorm  = ['#3E5780', '#78533B', '#CB4D28', '#018D61', '#8A2979', '#006D73', '#56AF00'],
-                darkMute  = ['#A8B8CC', '#CCB3A8', '#FFC2BD', '#96D6BF', '#D19FCE', '#8FCCCA', '#CAEAA4'];
+                // let's try slightly brigher colors for dark normal..
+                darkNorm  = ['#364D7F', '#7F5236', '#A93114', '#018D61', '#7E116D', '#02747A', '#378300'],
+                darkMute  = ['#1B2645', '#432B1C', '#76220E', '#035433', '#560B4A', '#013A3E', '#2D6D00'];
 
             var colors= {
                 light: {

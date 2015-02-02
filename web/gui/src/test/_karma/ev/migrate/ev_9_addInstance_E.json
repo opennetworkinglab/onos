@@ -1,0 +1,14 @@
+{
+  "event": "addInstance",
+  "payload": {
+    "id": "instE",
+    "ip": "123.5.5.5",
+    "online": true,
+    "uiAttached": false,
+    "switches": 5,
+    "labels": [
+      "instE",
+      "123.5.5.5"
+    ]
+  }
+}

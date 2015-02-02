@@ -50,7 +50,8 @@
     var onosInstances,
         onosOrder,
         oiShowMaster,
-        oiBox;
+        oiBox,
+        themeListener;
 
 
     // ==========================
@@ -291,9 +292,15 @@
         onosInstances = {};
         onosOrder = [];
         oiShowMaster = false;
+
+        // we want to update the instances, each time the theme changes
+        themeListener = ts.addListener(updateInstances);
     }
 
     function destroyInst() {
+        ts.removeListener(themeListener);
+        themeListener = null;
+
         ps.destroyPanel(idIns);
         oiBox = null;
     }

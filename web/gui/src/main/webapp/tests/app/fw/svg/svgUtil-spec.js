@@ -70,11 +70,11 @@ describe('factory: fw/svg/svgUtil.js', function() {
 
 
     it('should provide an alternate (dark) shade of blue', function () {
-       expect(sus.cat7().getColor('foo', false, 'dark')).toEqual('#3E5780');
+       expect(sus.cat7().getColor('foo', false, 'dark')).toEqual('#364D7F');
     });
 
     it('should provide an alternate (dark) shade of blue for muted', function () {
-        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#A8B8CC');
+        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#1B2645');
     });
 
     it('should iterate across the colors', function () {

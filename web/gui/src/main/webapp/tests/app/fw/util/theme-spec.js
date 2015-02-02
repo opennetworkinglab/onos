@@ -18,15 +18,27 @@
  ONOS GUI -- Util -- Theme Service - Unit Tests
  */
 describe('factory: fw/util/theme.js', function() {
-    var ts, $log;
+    var ts, $log, fs;
 
     beforeEach(module('onosUtil'));
 
-    beforeEach(inject(function (ThemeService, _$log_) {
+    beforeEach(inject(function (ThemeService, _$log_, FnService) {
         ts = ThemeService;
         $log = _$log_;
+        fs = FnService;
         ts.init();
     }));
+
+    it('should define MapService', function () {
+        expect(ts).toBeDefined();
+    });
+
+    it('should define api functions', function () {
+        expect(fs.areFunctions(ts, [
+            'init', 'theme', 'toggleTheme', 'addListener', 'removeListener'
+        ])).toBeTruthy();
+    });
+
 
     function verifyBodyClass(yes, no) {
         function bodyHasClass(c) {
@@ -78,4 +90,8 @@ describe('factory: fw/util/theme.js', function() {
         expect($log.debug).not.toHaveBeenCalled();
         verifyBodyClass('light', 'dark');
     });
+
+
+    // TODO : Unit tests for listeners...
+
 });

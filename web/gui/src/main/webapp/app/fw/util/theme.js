@@ -20,11 +20,13 @@
 (function () {
     'use strict';
 
-    var $log;
+    var $log, fs;
 
     var themes = ['light', 'dark'],
         themeStr = themes.join(' '),
-        thidx;
+        thidx,
+        listeners = {},
+        nextListenerId = 1;
 
     function init() {
         thidx = 0;
@@ -59,16 +61,46 @@
     }
 
     function themeEvent(w) {
-        // TODO: emit a theme-changed event
-        var m = 'Theme-Change-('+w+'): ' + getTheme();
+        var t = getTheme(),
+            m = 'Theme-Change-('+w+'): ' + t;
         $log.debug(m);
+        angular.forEach(listeners, function(value) {
+            value.cb(
+                {
+                    event: 'themeChange',
+                    value: t
+                }
+            );
+        });
     }
 
-    // TODO: add hook for theme-change listener
+    function addListener(callback) {
+        var id = nextListenerId++,
+            cb = fs.isF(callback),
+            o = { id: id, cb: cb };
+
+        if (cb) {
+            listeners[id] = o;
+        } else {
+            $log.error('ThemeService.addListener(): callback not a function');
+            o.error = 'No callback defined';
+        }
+        return o;
+    }
+
+    function removeListener(lsnr) {
+        var id = lsnr && lsnr.id,
+            o = listeners[id];
+        if (o) {
+            delete listeners[id];
+        }
+    }
 
     angular.module('onosUtil')
-        .factory('ThemeService', ['$log', function (_$log_) {
+        .factory('ThemeService', ['$log', 'FnService',
+        function (_$log_, _fs_) {
             $log = _$log_;
+            fs = _fs_;
             thidx = 0;
 
             return {
@@ -80,7 +112,9 @@
                         setTheme(x);
                     }
                 },
-                toggleTheme: toggleTheme
+                toggleTheme: toggleTheme,
+                addListener: addListener,
+                removeListener: removeListener
             };
     }]);
 
