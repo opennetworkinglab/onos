@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Mock codec context for use in codec unit tests.
  */
-public final class MockCodecContext implements CodecContext {
+public class MockCodecContext implements CodecContext {
 
     private ObjectMapper mapper = new ObjectMapper();
     private CodecManager manager = new CodecManager();
