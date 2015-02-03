@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 13,
+    var numBaseGlyphs = 15,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -38,6 +38,8 @@ describe('factory: fw/svg/glyph.js', function() {
             uiAttached: 'M2,2.5a.5,.5',
             checkMark: 'M2.6,4.5c0',
             xMark: 'M9.0,7.2C8.2',
+            triangleUp: 'M0.5,6.2c0',
+            triangleDown: 'M9.5,4.2c0',
 
             // our test ones..
             triangle: 'M.5,.2',

@@ -30,7 +30,10 @@
     // note: icon id maps to a CSS class for styling that icon
     var glyphMapping = {
             deviceOnline: 'checkMark',
-            deviceOffline: 'xMark'
+            deviceOffline: 'xMark',
+            tableColSortAsc: 'triangleUp',
+            tableColSortDesc: 'triangleDown',
+            tableColSortNone: '-'
         };
 
     function ensureIconLibDefs() {
