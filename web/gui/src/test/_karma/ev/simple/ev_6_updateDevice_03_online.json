@@ -4,6 +4,7 @@
     "id": "of:0000ffffffff0003",
     "type": "switch",
     "online": true,
+    "master": "myInstB",
     "labels": [
       "",
       "switch-3",

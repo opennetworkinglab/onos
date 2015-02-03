@@ -4,6 +4,7 @@
     "id": "of:0000ffffffff0008",
     "type": "switch",
     "online": true,
+    "master": "myInstA",
     "labels": [
       "",
       "switch-8",

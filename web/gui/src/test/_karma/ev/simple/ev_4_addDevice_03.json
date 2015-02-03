@@ -4,6 +4,7 @@
     "id": "of:0000ffffffff0003",
     "type": "switch",
     "online": false,
+    "master": "myInstB",
     "location": {
       "type": "latlng",
       "lat": 40.7127,

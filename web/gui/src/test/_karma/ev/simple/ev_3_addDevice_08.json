@@ -4,6 +4,7 @@
     "id": "of:0000ffffffff0008",
     "type": "switch",
     "online": false,
+    "master": "myInstA",
     "location": {
       "type": "latlng",
       "lat": 37.7833,

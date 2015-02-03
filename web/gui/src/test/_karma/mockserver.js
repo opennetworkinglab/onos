@@ -281,7 +281,8 @@ function nextEvent() {
                 } else {
                     evdata = JSON.parse(data);
                     console.log(); // get past prompt
-                    console.log('Sending event #' + evno + ' [' + evdata.event + ']');
+                    console.log('Sending event #' + evno + ' [' + evdata.event +
+                            '] from ' + eventsById[evno].fname);
                     connection.sendUTF(data);
                     evno++;
                 }
