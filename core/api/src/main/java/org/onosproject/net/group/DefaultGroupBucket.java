@@ -22,7 +22,8 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.core.GroupId;
 
-/* Group bucket implementation. A group bucket is collection of
+/**
+ * Group bucket implementation. A group bucket is collection of
  * instructions that can be performed on a traffic flow. A select
  * Group can have one or more Buckets where traffic will be
  * processed by a single bucket in the group, based on device
@@ -46,7 +47,7 @@ public final class DefaultGroupBucket implements GroupBucket {
      * @param treatment traffic treatment associated with group bucket
      * @param weight optional weight associated with group bucket
      * @param watchPort port that determines the liveness of group bucket
-     * @param watchPort group that determines the liveness of group bucket
+     * @param watchGroup group that determines the liveness of group bucket
      */
     private DefaultGroupBucket(GroupDescription.Type type,
                                TrafficTreatment treatment,
@@ -119,7 +120,7 @@ public final class DefaultGroupBucket implements GroupBucket {
      *
      * @param treatment traffic treatment associated with group bucket
      * @param watchPort port that determines the liveness of group bucket
-     * @param watchPort group that determines the liveness of group bucket
+     * @param watchGroup group that determines the liveness of group bucket
      *
      * @return failover group bucket object
      */
