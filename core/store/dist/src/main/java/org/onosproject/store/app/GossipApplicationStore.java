@@ -18,7 +18,6 @@ package org.onosproject.store.app;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -43,10 +42,10 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.impl.EventuallyConsistentMap;
-import org.onosproject.store.impl.EventuallyConsistentMapEvent;
-import org.onosproject.store.impl.EventuallyConsistentMapImpl;
-import org.onosproject.store.impl.EventuallyConsistentMapListener;
+import org.onosproject.store.ecmap.EventuallyConsistentMap;
+import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
+import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
+import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
 import org.onosproject.store.impl.WallclockClockManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
@@ -63,9 +62,11 @@ import static com.google.common.io.ByteStreams.toByteArray;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.app.ApplicationEvent.Type.*;
-import static org.onosproject.store.app.GossipApplicationStore.InternalState.*;
-import static org.onosproject.store.impl.EventuallyConsistentMapEvent.Type.PUT;
-import static org.onosproject.store.impl.EventuallyConsistentMapEvent.Type.REMOVE;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.ACTIVATED;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.DEACTIVATED;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.INSTALLED;
+import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.PUT;
+import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

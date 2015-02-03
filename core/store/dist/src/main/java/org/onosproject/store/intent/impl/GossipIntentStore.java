@@ -32,12 +32,12 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.impl.EventuallyConsistentMap;
-import org.onosproject.store.impl.EventuallyConsistentMapEvent;
-import org.onosproject.store.impl.EventuallyConsistentMapImpl;
-import org.onosproject.store.impl.EventuallyConsistentMapListener;
 import org.onosproject.store.impl.MultiValuedTimestamp;
 import org.onosproject.store.impl.SystemClockTimestamp;
+import org.onosproject.store.ecmap.EventuallyConsistentMap;
+import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
+import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
+import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 

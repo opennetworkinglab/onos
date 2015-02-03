@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.impl;
+package org.onosproject.store.ecmap;
 
 import java.util.Collection;
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.Set;
  * API).
  * </p><p>
  * Clients are expected to register an
- * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if they
+ * {@link EventuallyConsistentMapListener} if they
  * are interested in receiving notifications of update to the map.
  * </p><p>
  * Null values are not allowed in this map.
@@ -85,7 +85,7 @@ public interface EventuallyConsistentMap<K, V> {
      * Note: this differs from the specification of {@link java.util.Map}
      * because it does not return the previous value associated with the key.
      * Clients are expected to register an
-     * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if
+     * {@link EventuallyConsistentMapListener} if
      * they are interested in receiving notification of updates to the map.
      * </p><p>
      * Null values are not allowed in the map.
@@ -102,7 +102,7 @@ public interface EventuallyConsistentMap<K, V> {
      * Note: this differs from the specification of {@link java.util.Map}
      * because it does not return the previous value associated with the key.
      * Clients are expected to register an
-     * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if
+     * {@link EventuallyConsistentMapListener} if
      * they are interested in receiving notification of updates to the map.
      * </p>
      *
@@ -122,7 +122,7 @@ public interface EventuallyConsistentMap<K, V> {
      * Note: this differs from the specification of {@link java.util.Map}
      * because it does not return a boolean indication whether a value was removed.
      * Clients are expected to register an
-     * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if
+     * {@link EventuallyConsistentMapListener} if
      * they are interested in receiving notification of updates to the map.
      * </p>
      *
