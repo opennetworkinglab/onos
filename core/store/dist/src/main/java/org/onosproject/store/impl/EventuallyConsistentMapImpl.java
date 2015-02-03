@@ -15,9 +15,8 @@
  */
 package org.onosproject.store.impl;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -38,7 +37,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -351,7 +349,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkState(!destroyed, mapName + ERROR_DESTROYED);
 
         return items.entrySet().stream()
-                .map(e -> new Entry(e.getKey(), e.getValue().value()))
+                .map(e -> Pair.of(e.getKey(), e.getValue().value()))
                 .collect(Collectors.toSet());
     }
 
@@ -413,49 +411,6 @@ public class EventuallyConsistentMapImpl<K, V>
                 subject,
                 serializer.encode(event));
         clusterCommunicator.unicast(message, peer);
-    }
-
-    private final class Entry implements Map.Entry<K, V> {
-
-        private final K key;
-        private final V value;
-
-        public Entry(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public K getKey() {
-            return key;
-        }
-
-        @Override
-        public V getValue() {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof Map.Entry)) {
-                return false;
-            }
-
-            Map.Entry that = (Map.Entry) o;
-
-            return Objects.equals(this.key, that.getKey()) &&
-                    Objects.equals(this.value, that.getValue());
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(key, value);
-        }
     }
 
     private final class SendAdvertisementTask implements Runnable {
@@ -754,112 +709,4 @@ public class EventuallyConsistentMapImpl<K, V>
         }
     }
 
-    static final class InternalPutEvent<K, V> {
-        private final List<PutEntry<K, V>> entries;
-
-        public InternalPutEvent(K key, V value, Timestamp timestamp) {
-            entries = ImmutableList.of(new PutEntry<>(key, value, timestamp));
-        }
-
-        public InternalPutEvent(List<PutEntry<K, V>> entries) {
-            this.entries = checkNotNull(entries);
-        }
-
-        // Needed for serialization.
-        @SuppressWarnings("unused")
-        private InternalPutEvent() {
-            entries = null;
-        }
-
-        public List<PutEntry<K, V>> entries() {
-            return entries;
-        }
-    }
-
-    static final class PutEntry<K, V> {
-        private final K key;
-        private final V value;
-        private final Timestamp timestamp;
-
-        public PutEntry(K key, V value, Timestamp timestamp) {
-            this.key = checkNotNull(key);
-            this.value = checkNotNull(value);
-            this.timestamp = checkNotNull(timestamp);
-        }
-
-        // Needed for serialization.
-        @SuppressWarnings("unused")
-        private PutEntry() {
-            this.key = null;
-            this.value = null;
-            this.timestamp = null;
-        }
-
-        public K key() {
-            return key;
-        }
-
-        public V value() {
-            return value;
-        }
-
-        public Timestamp timestamp() {
-            return timestamp;
-        }
-
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("key", key)
-                    .add("value", value)
-                    .add("timestamp", timestamp)
-                    .toString();
-        }
-    }
-
-    static final class InternalRemoveEvent<K> {
-        private final List<RemoveEntry<K>> entries;
-
-        public InternalRemoveEvent(K key, Timestamp timestamp) {
-            entries = ImmutableList.of(new RemoveEntry<>(key, timestamp));
-        }
-
-        public InternalRemoveEvent(List<RemoveEntry<K>> entries) {
-            this.entries = checkNotNull(entries);
-        }
-
-        // Needed for serialization.
-        @SuppressWarnings("unused")
-        private InternalRemoveEvent() {
-            entries = null;
-        }
-
-        public List<RemoveEntry<K>> entries() {
-            return entries;
-        }
-    }
-
-    static final class RemoveEntry<K> {
-        private final K key;
-        private final Timestamp timestamp;
-
-        public RemoveEntry(K key, Timestamp timestamp) {
-            this.key = checkNotNull(key);
-            this.timestamp = checkNotNull(timestamp);
-        }
-
-        // Needed for serialization.
-        @SuppressWarnings("unused")
-        private RemoveEntry() {
-            this.key = null;
-            this.timestamp = null;
-        }
-
-        public K key() {
-            return key;
-        }
-
-        public Timestamp timestamp() {
-            return timestamp;
-        }
-    }
 }

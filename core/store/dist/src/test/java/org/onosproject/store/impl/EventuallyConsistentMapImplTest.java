@@ -100,11 +100,11 @@ public class EventuallyConsistentMapImplTest {
                     .register(TestTimestamp.class)
                     // Below is the classes that the map internally registers
                     .register(WallClockTimestamp.class)
-                    .register(EventuallyConsistentMapImpl.PutEntry.class)
-                    .register(EventuallyConsistentMapImpl.RemoveEntry.class)
+                    .register(PutEntry.class)
+                    .register(RemoveEntry.class)
                     .register(ArrayList.class)
-                    .register(EventuallyConsistentMapImpl.InternalPutEvent.class)
-                    .register(EventuallyConsistentMapImpl.InternalRemoveEvent.class)
+                    .register(InternalPutEvent.class)
+                    .register(InternalRemoveEvent.class)
                     .register(AntiEntropyAdvertisement.class)
                     .register(HashMap.class)
                     .build();
@@ -586,9 +586,8 @@ public class EventuallyConsistentMapImplTest {
     }
 
     private ClusterMessage generatePutMessage(String key, String value, Timestamp timestamp) {
-        EventuallyConsistentMapImpl.InternalPutEvent<String, String> event =
-                new EventuallyConsistentMapImpl.InternalPutEvent<>(
-                        key, value, timestamp);
+        InternalPutEvent<String, String> event =
+                new InternalPutEvent<>(key, value, timestamp);
 
         return new ClusterMessage(
                 clusterService.getLocalNode().id(), PUT_MESSAGE_SUBJECT,
@@ -596,21 +595,18 @@ public class EventuallyConsistentMapImplTest {
     }
 
     private ClusterMessage generatePutMessage(String key1, String value1, String key2, String value2) {
-        ArrayList<EventuallyConsistentMapImpl.PutEntry<String, String>> list = new ArrayList<>();
+        ArrayList<PutEntry<String, String>> list = new ArrayList<>();
 
         Timestamp timestamp1 = clockService.peek(1);
         Timestamp timestamp2 = clockService.peek(2);
 
-        EventuallyConsistentMapImpl.PutEntry<String, String> pe1
-                = new EventuallyConsistentMapImpl.PutEntry<>(key1, value1, timestamp1);
-        EventuallyConsistentMapImpl.PutEntry<String, String> pe2
-                = new EventuallyConsistentMapImpl.PutEntry<>(key2, value2, timestamp2);
+        PutEntry<String, String> pe1 = new PutEntry<>(key1, value1, timestamp1);
+        PutEntry<String, String> pe2 = new PutEntry<>(key2, value2, timestamp2);
 
         list.add(pe1);
         list.add(pe2);
 
-        EventuallyConsistentMapImpl.InternalPutEvent<String, String> event
-                = new EventuallyConsistentMapImpl.InternalPutEvent<>(list);
+        InternalPutEvent<String, String> event = new InternalPutEvent<>(list);
 
         return new ClusterMessage(
                 clusterService.getLocalNode().id(), PUT_MESSAGE_SUBJECT,
@@ -618,9 +614,7 @@ public class EventuallyConsistentMapImplTest {
     }
 
     private ClusterMessage generateRemoveMessage(String key, Timestamp timestamp) {
-        EventuallyConsistentMapImpl.InternalRemoveEvent<String> event =
-                new EventuallyConsistentMapImpl.InternalRemoveEvent<>(
-                        key, timestamp);
+        InternalRemoveEvent<String> event = new InternalRemoveEvent<>(key, timestamp);
 
         return new ClusterMessage(
                 clusterService.getLocalNode().id(), REMOVE_MESSAGE_SUBJECT,
@@ -628,21 +622,18 @@ public class EventuallyConsistentMapImplTest {
     }
 
     private ClusterMessage generateRemoveMessage(String key1, String key2) {
-        ArrayList<EventuallyConsistentMapImpl.RemoveEntry<String>> list = new ArrayList<>();
+        ArrayList<RemoveEntry<String>> list = new ArrayList<>();
 
         Timestamp timestamp1 = clockService.peek(1);
         Timestamp timestamp2 = clockService.peek(2);
 
-        EventuallyConsistentMapImpl.RemoveEntry<String> re1
-                = new EventuallyConsistentMapImpl.RemoveEntry<>(key1, timestamp1);
-        EventuallyConsistentMapImpl.RemoveEntry<String> re2
-                = new EventuallyConsistentMapImpl.RemoveEntry<>(key2, timestamp2);
+        RemoveEntry<String> re1 = new RemoveEntry<>(key1, timestamp1);
+        RemoveEntry<String> re2 = new RemoveEntry<>(key2, timestamp2);
 
         list.add(re1);
         list.add(re2);
 
-        EventuallyConsistentMapImpl.InternalRemoveEvent<String> event
-                = new EventuallyConsistentMapImpl.InternalRemoveEvent<>(list);
+        InternalRemoveEvent<String> event = new InternalRemoveEvent<>(list);
 
         return new ClusterMessage(
                 clusterService.getLocalNode().id(), REMOVE_MESSAGE_SUBJECT,
