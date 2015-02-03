@@ -128,15 +128,28 @@
 }
 
 #topo-p-instance svg rect {
-    fill: #ccc;
-    stroke: #aaa;
     stroke-width: 3.5;
 }
 #topo-p-instance .online svg rect {
     opacity: 1;
+}
+.light #topo-p-instance svg rect {
+    fill: #ccc;
+    stroke: #aaa;
+}
+.light #topo-p-instance .online svg rect {
     fill: #9cf;
     stroke: #555;
 }
+.dark #topo-p-instance svg rect {
+    fill: #666;
+    stroke: #222;
+}
+.dark #topo-p-instance .online svg rect {
+    fill: #9cf;
+    stroke: #999;
+}
+
 
 #topo-p-instance svg .glyph {
     fill: #888;
@@ -147,20 +160,44 @@
 }
 
 #topo-p-instance svg .badgeIcon {
-    fill: #777;
     fill-rule: evenodd;
+    opacity: 0.4;
+}
+.light #topo-p-instance svg .badgeIcon {
+    fill: #777;
+}
+.dark #topo-p-instance svg .badgeIcon {
+    fill: #555;
 }
 
 #topo-p-instance .online svg .badgeIcon {
+    opacity: 1.0;
+}
+.light #topo-p-instance .online svg .badgeIcon {
+    fill: #fff;
+}
+.dark #topo-p-instance .online svg .badgeIcon {
     fill: #fff;
 }
 
 #topo-p-instance svg text {
     text-anchor: middle;
-    fill: #777;
+    opacity: 0.3;
 }
 #topo-p-instance .online svg text {
+    opacity: 1.0;
+}
+.light #topo-p-instance svg text {
+    fill: #444;
+}
+.light #topo-p-instance .online svg text {
     fill: #eee;
+}
+.dark #topo-p-instance svg text {
+    fill: #aaa;
+}
+.dark #topo-p-instance .online svg text {
+    fill: #ccc;
 }
 
 #topo-p-instance svg text.instTitle {
