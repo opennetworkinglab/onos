@@ -18,7 +18,7 @@ package org.onosproject.event;
 /**
  * Abstraction of an of a time-stamped event pertaining to an arbitrary subject.
  */
-public interface Event<T extends Enum, S extends Object> {
+public interface Event<T extends Enum, S> {
 
     /**
      * Returns the timestamp of when the event occurred, given in milliseconds
