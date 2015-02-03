@@ -9,7 +9,7 @@ import org.onosproject.net.resource.LabelResourceService;
 
 @Command(scope = "onos", name = "get-label-resource-pool",
       description = "get label resource pool by specific device id")
-public class GetLabelResource extends AbstractShellCommand {
+public class GetLabelResourceCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Id of device", required = true, multiValued = false)
     String deviceId = null;

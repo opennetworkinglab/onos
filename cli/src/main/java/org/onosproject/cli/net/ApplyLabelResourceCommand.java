@@ -10,9 +10,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.resource.DefaultLabelResource;
 import org.onosproject.net.resource.LabelResourceService;
 
-@Command(scope = "onos", name = "aplly-label-resource-pool",
+@Command(scope = "onos", name = "apply-label-resource-pool",
       description = "apply label resource pool by specific device id")
-public class ApplyLabelResource extends AbstractShellCommand {
+public class ApplyLabelResourceCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Id of device",
             required = true, multiValued = false)

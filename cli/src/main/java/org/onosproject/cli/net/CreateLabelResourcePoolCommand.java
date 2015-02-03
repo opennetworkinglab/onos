@@ -11,7 +11,7 @@ import org.onosproject.net.resource.LabelResourceService;
  */
 @Command(scope = "onos", name = "create-label-resource-pool",
            description = "create label resource pool by specific device id")
-public class CreateLabelResourcePool extends AbstractShellCommand {
+public class CreateLabelResourcePoolCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Id of device", required = true, multiValued = false)
     String deviceId = null;

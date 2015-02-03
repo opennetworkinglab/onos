@@ -22,7 +22,9 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.resource.DefaultLabelResource;
@@ -38,7 +40,9 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.hz.AbstractHazelcastStore;
+import org.onosproject.store.hz.SMap;
 import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Multimap;
@@ -74,7 +78,7 @@ public class HazelcastLabelResourceStore
     // read/write needs to be locked
     private final ReentrantReadWriteLock resourcePoolLock = new ReentrantReadWriteLock();
 
-    private IMap<DeviceId, LabelResourcePool> resourcePool = null;
+    private SMap<DeviceId, LabelResourcePool> resourcePool = null;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ReplicaInfoService replicaInfoManager;
@@ -87,14 +91,31 @@ public class HazelcastLabelResourceStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-    protected static final KryoSerializer SERIALIZER = new KryoSerializer();
+    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
+        @Override
+        protected void setupKryoPool() {
+            serializerPool = KryoNamespace.newBuilder()
+                    .register(DistributedStoreSerializers.STORE_COMMON)
+                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
+                    .register(LabelResourceEvent.class)
+                    .register(LabelResourcePool.class).register(DeviceId.class)
+                    .register(LabelResourceRequest.class)
+                    .register(LabelResourceEvent.Type.class)
+                    .register(DefaultLabelResource.class)
+                    .register(LabelResourceId.class).build();
+        }
+    };
+
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
     @Activate
     public void activate() {
 
         super.activate();
-        resourcePool = theInstance.getMap(POOL_MAP_NAME);
+        resourcePool = new SMap<>(
+                                  theInstance
+                                          .<byte[], byte[]> getMap(POOL_MAP_NAME),
+                                  SERIALIZER);
 
         clusterCommunicator
                 .addSubscriber(LabelResourceMessageSubjects.LABEL_POOL_CREATED,
@@ -211,7 +232,11 @@ public class HazelcastLabelResourceStore
             log.warn("beginLabel must be less than or equal to endLabel.");
             return null;
         }
-
+        Device device = (Device) deviceService.getDevice(labelResourcePool
+                .getDeviceId());
+        if (device == null) {
+            return null;
+        }
         LabelResourcePool pool = new LabelResourcePool(labelResourcePool
                 .getDeviceId().toString(), labelResourcePool.getBeginLabel(),
                                                        labelResourcePool
@@ -274,6 +299,10 @@ public class HazelcastLabelResourceStore
             log.warn("the value of device is null");
             return null;
         }
+        Device device = (Device) deviceService.getDevice(deviceId);
+        if (device == null) {
+            return null;
+        }
         ReplicaInfo replicaInfo = replicaInfoManager
                 .getReplicaInfoFor(deviceId);
 
@@ -313,7 +342,10 @@ public class HazelcastLabelResourceStore
 
     private LabelResourceEvent internalDestroy(DeviceId deviceId) {
         LabelResourcePool poolOld = resourcePool.get(deviceId);
-        poolOld = null;
+        if (poolOld != null) {
+            resourcePool.remove(deviceId);
+        }
+        ;
         log.info("success to destroy the label resource pool of device id {}",
                  deviceId);
         return new LabelResourceEvent(LabelResourceEvent.Type.POOL_DESTROYED,
@@ -323,6 +355,10 @@ public class HazelcastLabelResourceStore
     @Override
     public Collection<DefaultLabelResource> apply(DeviceId deviceId,
                                                   long applyNum) {
+        Device device = (Device) deviceService.getDevice(deviceId);
+        if (device == null) {
+            return null;
+        }
         LabelResourceRequest request = new LabelResourceRequest(
                                                                 deviceId,
                                                                 LabelResourceRequest.Type.APPLY,
@@ -385,7 +421,7 @@ public class HazelcastLabelResourceStore
             result.add(resource);
         }
         for (long j = pool.getCurrentUsedMaxLabelId(); j < pool
-                .getCurrentUsedMaxLabelId() + 1 + applyNum - tmp; j++) {
+                .getCurrentUsedMaxLabelId() + applyNum - tmp; j++) {
             resource = new DefaultLabelResource(deviceId,
                                                 LabelResourceId
                                                         .labelResourceId(j));
@@ -393,6 +429,8 @@ public class HazelcastLabelResourceStore
         }
         pool.setCurrentUsedMaxLabelId(pool.getCurrentUsedMaxLabelId()
                 + applyNum - tmp);
+        pool.setUsedNum(pool.getUsedNum() + applyNum);
+        resourcePool.put(deviceId, pool);
         log.info("success to apply label resource");
         resourcePoolLock.writeLock().unlock();
         return result;
@@ -405,6 +443,10 @@ public class HazelcastLabelResourceStore
         LabelResourceRequest request = null;
         for (Iterator<DeviceId> it = deviceIdSet.iterator(); it.hasNext();) {
             DeviceId deviceId = (DeviceId) it.next();
+            Device device = (Device) deviceService.getDevice(deviceId);
+            if (device == null) {
+                continue;
+            }
             Collection<DefaultLabelResource> collection = maps.get(deviceId);
             request = new LabelResourceRequest(
                                                deviceId,
@@ -465,8 +507,15 @@ public class HazelcastLabelResourceStore
         for (Iterator<DefaultLabelResource> it = release.iterator(); it
                 .hasNext();) {
             labelResource = it.next();
-            queue.offer(labelResource);
+            if (pool.getCurrentUsedMaxLabelId() > labelResource
+                    .getLabelResourceId().getLabelId()
+                    || !queue.contains(labelResource)) {
+                queue.offer(labelResource);
+            }
         }
+        pool.setReleaseLabelId(queue);
+        pool.setUsedNum(pool.getUsedNum() - release.size());
+        resourcePool.put(deviceId, pool);
         log.info("success to release label resource");
         resourcePoolLock.writeLock().unlock();
         return true;
