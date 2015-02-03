@@ -166,7 +166,9 @@ public class FlowRuleExtManager
 
     /**
      * Applies a batch operation of FlowRules.
-     * this batch can be divided into many sub-batch by deviceId
+     * this batch can be divided into many sub-batch by deviceId, and application
+     * gives a batchId, it means once one flowRule apply failed, all flow rules should
+     * withdraw.
      *
      * @param batch batch operation to apply
      * @return future indicating the state of the batch operation

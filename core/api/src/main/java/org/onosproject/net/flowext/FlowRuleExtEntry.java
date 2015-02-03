@@ -9,14 +9,15 @@ import org.onosproject.net.DeviceId;
  */
 public class FlowRuleExtEntry {
 
+    // DeviceId contains the information of protocol and device serial number
    private DeviceId deviceId;
 
 
-   //classT is what class the flowEntryExtension can be decode to, used for GUI or CLI
+   // ClassT is what class the flowEntryExtension can be decode to, used for GUI or CLI
    private Class<?> classT;
 
    /*
-    * Not standard OpenFlow flowEntry, maybe privacy by any device vendor.
+    * This OpenFlow flowEntry, maybe privacy by any device vendor.
     * it maybe contains other information such as this entry is to-add or to-remove
     * except the info of deviceId and flow entry.
     */

@@ -11,6 +11,8 @@ import com.google.common.collect.ImmutableSet;
  * Representation of a completed flow rule batch operation.
  */
 public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleExtEntry> {
+    // the batchId is provided by application, once one flow rule of this batch failed
+    // all the batch should withdraw
     private final int batchId;
     private final boolean success;
     private final Set<FlowRuleExtEntry> failures;
