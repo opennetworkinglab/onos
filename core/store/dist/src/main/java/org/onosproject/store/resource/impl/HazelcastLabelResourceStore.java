@@ -99,6 +99,7 @@ public class HazelcastLabelResourceStore
                     .register(LabelResourceEvent.class)
                     .register(LabelResourcePool.class).register(DeviceId.class)
                     .register(LabelResourceRequest.class)
+                    .register(LabelResourceRequest.Type.class)
                     .register(LabelResourceEvent.Type.class)
                     .register(DefaultLabelResource.class)
                     .register(LabelResourceId.class).build();
