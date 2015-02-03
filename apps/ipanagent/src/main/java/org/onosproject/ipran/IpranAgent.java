@@ -160,11 +160,11 @@ public class IpranAgent {
             throw new IllegalArgumentException("this hexString must not be empty");
         }
         hexString = hexString.toLowerCase();
-        final byte[] byteArray = new byte[hexString.length() /2];
+        final byte[] byteArray = new byte[hexString.length() / 2];
         int k = 0;
-        for (int i = 0; i< byteArray.length; i++) {
-             byte high = (byte) (Character.digit(hexString.charAt(k), 16) & 0xff);  
-             byte low = (byte) (Character.digit(hexString.charAt(k + 1), 16) & 0xff); 
+        for (int i = 0; i < byteArray.length; i++) {
+             byte high = (byte) (Character.digit(hexString.charAt(k), 16) & 0xff);
+             byte low = (byte) (Character.digit(hexString.charAt(k + 1), 16) & 0xff);
              byteArray[i] = (byte) (high << 4 | low);
              k += 2;
         }

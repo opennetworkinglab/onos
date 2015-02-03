@@ -11,11 +11,16 @@ import org.onosproject.net.resource.LabelResourceService;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-@Command(scope = "onos", name = "release-label-resource-pool", description = "release label resource pool by specific device id")
+@Command(scope = "onos", name = "release-label-resource-pool",
+description = "release label resource pool by specific device id")
 public class ReleaseLabelResourceCommand extends AbstractShellCommand {
-    @Argument(index = 0, name = "deviceId", description = "Id of device", required = true, multiValued = false)
+    @Argument(index = 0, name = "deviceId",
+            description = "Id of device",
+            required = true, multiValued = false)
     String deviceId = null;
-    @Argument(index = 1, name = "releaseLabelIds", description = "releaseLabelIds", required = true, multiValued = false)
+    @Argument(index = 1, name = "releaseLabelIds",
+            description = "releaseLabelIds",
+            required = true, multiValued = false)
     String releaseLabelIds = null;
 
     @Override
