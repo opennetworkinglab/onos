@@ -18,16 +18,42 @@
  ONOS GUI -- Topology View -- CSS file
  */
 
-/* --- Topo Map --- */
+/* --- Base SVG Layer --- */
 
 .light #ov-topo svg {
     background-color: #fff;
-    /* For Debugging the placement of the SVG layer... */
-    /*border: 1px solid red;*/
 }
 .dark #ov-topo svg {
     background-color: #2b2b2b;
 }
+
+
+/* --- "No Devices" Layer --- */
+
+#ov-topo svg #topo-noDevsLayer {
+    visibility: hidden;
+}
+
+.light #ov-topo svg .noDevsBird {
+    fill: #ecd;
+}
+.dark #ov-topo svg .noDevsBird {
+    fill: #683434;
+}
+
+#ov-topo svg #topo-noDevsLayer text {
+    font-size: 60pt;
+    font-style: italic;
+}
+.light #ov-topo svg #topo-noDevsLayer text {
+    fill: #dde;
+}
+.dark #ov-topo svg #topo-noDevsLayer text {
+    fill: #3b3b4f;
+}
+
+
+/* --- Topo Map --- */
 
 #ov-topo svg #topo-map {
     stroke-width: 2px;
@@ -35,8 +61,8 @@
 }
 
 .light #ov-topo svg #topo-map {
-    /*stroke: #eee;*/
-    stroke: #88b;
+    stroke: #ddd;
+    /*stroke: #88b;*/
 }
 .dark #ov-topo svg #topo-map {
     stroke: #444;

@@ -236,12 +236,17 @@
                 return s.replace(/px$/,'');
             }
 
+            function makeVisible(el, b) {
+                el.style('visibility', (b ? 'visible' : 'hidden'));
+            }
+
             return {
                 createDragBehavior: createDragBehavior,
                 loadGlow: loadGlow,
                 cat7: cat7,
                 translate: translate,
-                stripPx: stripPx
+                stripPx: stripPx,
+                makeVisible: makeVisible
             };
         }]);
 }());

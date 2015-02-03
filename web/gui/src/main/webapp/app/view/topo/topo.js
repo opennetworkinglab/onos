@@ -28,10 +28,10 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, tfs;
+    var $log, fs, ks, zs, gs, ms, sus, tfs;
 
     // DOM elements
-    var ovtopo, svg, defs, zoomLayer, mapG, forceG;
+    var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
 
     // Internal state
     var zoomer;
@@ -102,11 +102,36 @@
 
     // callback invoked when the SVG view has been resized..
     function svgResized(dim) {
-        //$log.debug('TopoView just resized... ', dim);
         tfs.resize(dim);
     }
 
     // --- Background Map ------------------------------------------------
+
+    function setUpNoDevs() {
+        var g, box;
+        noDevsLayer = svg.append('g').attr({
+            id: 'topo-noDevsLayer',
+            transform: sus.translate(500,500)
+        });
+        // Note, SVG viewbox is '0 0 1000 1000', defined in topo.html.
+        // We are translating this layer to have its origin at the center
+
+        g = noDevsLayer.append('g');
+        gs.addGlyph(g, 'bird', 100).attr('class', 'noDevsBird');
+        g.append('text').text('No devices are connected')
+            .attr({ x: 120, y: 80});
+
+        box = g.node().getBBox();
+        box.x -= box.width/2;
+        box.y -= box.height/2;
+        g.attr('transform', sus.translate(box.x, box.y));
+
+        showNoDevs(true);
+    }
+
+    function showNoDevs(b) {
+        sus.makeVisible(noDevsLayer, b);
+    }
 
     function showCallibrationPoints() {
         // temp code for calibration
@@ -144,12 +169,12 @@
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
             'FnService', 'MastService', 'KeyService', 'ZoomService',
-            'GlyphService', 'MapService',
+            'GlyphService', 'MapService', 'SvgUtilService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, tes, _tfs_, tps, tis) {
+                  _ks_, _zs_, _gs_, _ms_, _sus_, tes, _tfs_, tps, tis) {
             var self = this;
             $log = _$log_;
             fs = _fs_;
@@ -157,6 +182,7 @@
             zs = _zs_;
             gs = _gs_;
             ms = _ms_;
+            sus = _sus_;
             tfs = _tfs_;
 
             self.notifyResize = function () {
@@ -180,6 +206,7 @@
             setUpKeys();
             setUpDefs();
             setUpZoom();
+            setUpNoDevs();
             setUpMap();
             setUpForce();
 

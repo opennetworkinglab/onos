@@ -18,7 +18,7 @@
  ONOS GUI -- SVG -- SVG Util Service - Unit Tests
  */
 describe('factory: fw/svg/svgUtil.js', function() {
-    var $log, fs, sus, d3Elem;
+    var $log, fs, sus, svg, d3Elem;
 
     beforeEach(module('onosUtil', 'onosSvg'));
 
@@ -26,7 +26,8 @@ describe('factory: fw/svg/svgUtil.js', function() {
         $log = _$log_;
         fs = FnService;
         sus = SvgUtilService;
-        d3Elem = d3.select('body').append('svg').append('defs').attr('id', 'myDefs');
+        svg = d3.select('body').append('svg').attr('id', 'mySvg');
+        d3Elem = svg.append('defs');
     }));
 
     afterEach(function () {
@@ -39,7 +40,8 @@ describe('factory: fw/svg/svgUtil.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(sus, [
-            'createDragBehavior', 'loadGlow', 'cat7', 'translate', 'stripPx'
+            'createDragBehavior', 'loadGlow', 'cat7', 'translate', 'stripPx',
+            'makeVisible'
         ])).toBeTruthy();
     });
 
@@ -110,5 +112,17 @@ describe('factory: fw/svg/svgUtil.js', function() {
 
     it('should remove trailing px', function () {
         expect(sus.stripPx('4px')).toEqual('4');
+    });
+
+    // === makeVisible()
+
+    it('should hide and show an element', function () {
+        var r = svg.append('rect');
+
+        sus.makeVisible(r, false);
+        expect(r.style('visibility')).toEqual('hidden');
+
+        sus.makeVisible(r, true);
+        expect(r.style('visibility')).toEqual('visible');
     });
 });
