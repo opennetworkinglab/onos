@@ -19,10 +19,12 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.util.Tools.toHex;
 import static org.onosproject.net.MastershipRole.MASTER;
 
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +37,8 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -76,13 +80,15 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     protected MastershipService roleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService nodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry providerRegistry;
     private LinkService linkService;
 
     private LinkProviderService providerService;
 
-    private static final boolean FLICKER = false;
-    private static final int DEFAULT_RATE = 3000;
+    private static final int DEFAULT_RATE = 0;
     // For now, static switch port values
     private static final PortNumber SRCPORT = PortNumber.portNumber(5);
     private static final PortNumber DSTPORT = PortNumber.portNumber(6);
@@ -102,15 +108,15 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     private ExecutorService linkDriver = Executors.newFixedThreadPool(1,
             namedThreads("onos-null-link-driver"));
 
-    // If true, 'flickers' links by alternating link up/down events at eventRate
-    @Property(name = "flicker", value = "false",
-            label = "Setting to flap links")
-    private boolean flicker = FLICKER;
-
     // For flicker = true, duration between events in msec.
-    @Property(name = "eventRate", value = "3000",
+    @Property(name = "eventRate", value = "0",
             label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
+
+    // For flicker = true, duration between events in msec.
+    @Property(name = "neighbors", value = "",
+            label = "Node ID of instance for neighboring island ")
+    private String neighbor = "";
 
     public NullLinkProvider() {
         super(new ProviderId("null", "org.onosproject.provider.nil"));
@@ -128,7 +134,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Deactivate
     public void deactivate(ComponentContext context) {
-        if (flicker) {
+        if (eventRate != 0) {
             try {
                 linkDriver.awaitTermination(1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -148,42 +154,63 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            log.info("No configs, using defaults: flicker={}, eventRate={}",
-                    FLICKER, DEFAULT_RATE);
+            log.info("No configs, using defaults: eventRate={}", DEFAULT_RATE);
             return;
         }
         Dictionary<?, ?> properties = context.getProperties();
 
-        boolean flickSetting;
         int newRate;
+        String newNbor;
         try {
-            String s = (String) properties.get("flicker");
-            flickSetting = isNullOrEmpty(s) ? flicker : Boolean.valueOf(s.trim());
-            s = (String) properties.get("eventRate");
+            String s = (String) properties.get("eventRate");
             newRate = isNullOrEmpty(s) ? eventRate : Integer.valueOf(s.trim());
+            s = (String) properties.get("neighbors");
+            newNbor = isNullOrEmpty(s) ? neighbor : getNeighbor(s.trim());
         } catch (Exception e) {
             log.warn(e.getMessage());
-            flickSetting = flicker;
             newRate = eventRate;
+            newNbor = neighbor;
         }
 
-        if (flicker != flickSetting) {
-            flicker = flickSetting;
+        if (newNbor != neighbor) {
+            neighbor = newNbor;
         }
 
-        if (flicker) {
-            if (eventRate != newRate) {
-                eventRate = newRate;
-            }
+        if (newRate != 0 & eventRate != newRate) {
+            eventRate = newRate;
             linkDriver.submit(new LinkDriver());
         }
-        log.info("Using new settings: flicker={}, eventRate={}", flicker,
-                eventRate);
+
+        log.info("Using new settings: eventRate={}", eventRate);
     }
 
     // pick out substring from Deviceid
     private String part(String devId) {
         return devId.split(":")[1].substring(12, 16);
+    }
+
+    // pick out substring from Deviceid
+    private String nIdPart(String devId) {
+        return devId.split(":")[1].substring(9, 12);
+    }
+
+    // pick out the next node ID in string, return hash (i.e. what's
+    // in a Device ID
+    private String getNeighbor(String nbors) {
+        String me = nodeService.getLocalNode().id().toString();
+        String mynb = "";
+        String[] nodes = nbors.split(",");
+        for (int i = 0; i < nodes.length; i++) {
+            if (i != 0 & nodes[i].equals(me)) {
+                mynb = nodes[i - 1];
+                break;
+            }
+        }
+        // return as hash string.
+        if (!mynb.isEmpty()) {
+            return toHex((Objects.hash(new NodeId(mynb)))).substring(13, 16);
+        }
+        return "";
     }
 
     /**
@@ -209,9 +236,11 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         private void addLink(Device current) {
             DeviceId did = current.id();
             if (!MASTER.equals(roleService.getLocalRole(did))) {
+
                 String part = part(did.toString());
-                if (part.equals("ffff")) {
-                    // 'tail' of an island - link us <- tail
+                String npart = nIdPart(did.toString());
+                if (part.equals("ffff") & npart.equals(neighbor)) {
+                    // 'tail' of our neighboring island - link us <- tail
                     tails.add(new ConnectPoint(did, SRCPORT));
                 }
                 tryLinkTail();
