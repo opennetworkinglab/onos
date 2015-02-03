@@ -31,7 +31,7 @@ import static org.onosproject.net.intent.IntentOperation.Type.WITHDRAW;
 /**
  * Batch of intent submit/withdraw/replace operations.
  */
-@Deprecated
+@Deprecated //DELETEME
 public final class IntentOperations {
 
     private final List<IntentOperation> operations;
@@ -120,7 +120,7 @@ public final class IntentOperations {
          */
         public Builder addSubmitOperation(Intent intent) {
             checkNotNull(intent, "Intent cannot be null");
-            builder.add(new IntentOperation(SUBMIT, intent.id(), intent));
+            builder.add(new IntentOperation(SUBMIT, intent));
             return this;
         }
 
@@ -134,7 +134,7 @@ public final class IntentOperations {
         public Builder addReplaceOperation(IntentId oldIntentId, Intent newIntent) {
             checkNotNull(oldIntentId, "Intent ID cannot be null");
             checkNotNull(newIntent, "Intent cannot be null");
-            builder.add(new IntentOperation(REPLACE, oldIntentId, newIntent));
+            builder.add(new IntentOperation(REPLACE, newIntent)); //FIXME
             return this;
         }
 
@@ -146,7 +146,7 @@ public final class IntentOperations {
          */
         public Builder addWithdrawOperation(IntentId intentId) {
             checkNotNull(intentId, "Intent ID cannot be null");
-            builder.add(new IntentOperation(WITHDRAW, intentId, null));
+            builder.add(new IntentOperation(WITHDRAW, null)); //FIXME
             return this;
         }
 
@@ -158,7 +158,7 @@ public final class IntentOperations {
          */
         public Builder addUpdateOperation(IntentId intentId) {
             checkNotNull(intentId, "Intent ID cannot be null");
-            builder.add(new IntentOperation(UPDATE, intentId, null));
+            builder.add(new IntentOperation(UPDATE, null)); //FIXME
             return this;
         }
 

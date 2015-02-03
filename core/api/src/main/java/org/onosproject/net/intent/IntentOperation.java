@@ -27,9 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class IntentOperation {
 
     private final Type type;
-    private final IntentId intentId;
     private final Intent intent;
-    //FIXME consider pulling the key out (we will hash based on key)
 
     /**
      * Operation type.
@@ -62,12 +60,10 @@ public final class IntentOperation {
      * Creates an intent operation.
      *
      * @param type     operation type
-     * @param intentId identifier of the intent subject to the operation
      * @param intent   intent subject
      */
-    IntentOperation(Type type, IntentId intentId, Intent intent) {
+    public IntentOperation(Type type, Intent intent) {
         this.type = checkNotNull(type);
-        this.intentId = checkNotNull(intentId);
         this.intent = intent;
     }
 
@@ -86,7 +82,11 @@ public final class IntentOperation {
      * @return intent identifier
      */
     public IntentId intentId() {
-        return intentId;
+        return intent.id();
+    }
+
+    public String key() {
+        return intent.key();
     }
 
     /**
@@ -101,7 +101,7 @@ public final class IntentOperation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, intentId, intent);
+        return Objects.hash(type, intent);
     }
 
     @Override
@@ -114,7 +114,6 @@ public final class IntentOperation {
         }
         final IntentOperation other = (IntentOperation) obj;
         return Objects.equals(this.type, other.type) &&
-                Objects.equals(this.intentId, other.intentId) &&
                 Objects.equals(this.intent, other.intent);
     }
 
@@ -123,7 +122,6 @@ public final class IntentOperation {
     public String toString() {
         return toStringHelper(this)
                 .add("type", type)
-                .add("intentId", intentId)
                 .add("intent", intent)
                 .toString();
     }

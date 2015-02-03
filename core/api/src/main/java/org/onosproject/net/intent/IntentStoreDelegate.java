@@ -23,10 +23,10 @@ import org.onosproject.store.StoreDelegate;
 public interface IntentStoreDelegate extends StoreDelegate<IntentEvent> {
 
     /**
-     * Provides an intent operation that should be processed (compiled and
+     * Provides an intent data object that should be processed (compiled and
      * installed) by this manager.
      *
-     * @param op    intent operation
+     * @param intentData    intent data object
      */
-    void process(IntentOperation op);
+    void process(IntentData intentData);
 }

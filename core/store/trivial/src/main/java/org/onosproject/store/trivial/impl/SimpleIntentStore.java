@@ -17,19 +17,19 @@ package org.onosproject.store.trivial.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.intent.BatchWrite;
+import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
-import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
@@ -38,8 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -50,10 +49,13 @@ public class SimpleIntentStore
         implements IntentStore {
 
     private final Logger log = getLogger(getClass());
+
+    // current state maps FIXME.. make this a IntentData map
     private final Map<IntentId, Intent> intents = new ConcurrentHashMap<>();
     private final Map<IntentId, IntentState> states = new ConcurrentHashMap<>();
     private final Map<IntentId, List<Intent>> installable = new ConcurrentHashMap<>();
 
+    private final Map<String, IntentData> pending = new ConcurrentHashMap<>(); //String is "key"
 
     @Activate
     public void activate() {
@@ -202,5 +204,20 @@ public class SimpleIntentStore
             }
         }
         return failed;
+    }
+
+    @Override
+    public void addPending(IntentData data) {
+        //FIXME need to compare versions
+        pending.put(data.key(), data);
+        checkNotNull(delegate, "Store delegate is not set")
+                .process(data);
+    }
+    // FIXME!!! pending.remove(intent.key()); // TODO check version
+
+
+    @Override
+    public boolean isMaster(Intent intent) {
+        return true;
     }
 }

@@ -37,6 +37,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentBatchService;
 import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.IntentExtensionService;
@@ -128,6 +129,8 @@ public class IntentManager
     private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
     private IdGenerator idGenerator;
 
+    private final IntentAccumulator accumulator = new IntentAccumulator();
+
     @Activate
     public void activate() {
         store.setDelegate(delegate);
@@ -154,32 +157,41 @@ public class IntentManager
     @Override
     public void submit(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
-        execute(IntentOperations.builder(intent.appId())
-                .addSubmitOperation(intent).build());
+        IntentData data = new IntentData(intent, IntentState.INSTALL_REQ, null);
+        //FIXME timestamp?
+        store.addPending(data);
     }
 
     @Override
     public void withdraw(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
-        execute(IntentOperations.builder(intent.appId())
-                .addWithdrawOperation(intent.id()).build());
+        IntentData data = new IntentData(intent, IntentState.WITHDRAW_REQ, null);
+        //FIXME timestamp?
+        store.addPending(data);
     }
 
     @Override
     public void replace(IntentId oldIntentId, Intent newIntent) {
-        checkNotNull(oldIntentId, INTENT_ID_NULL);
-        checkNotNull(newIntent, INTENT_NULL);
-        execute(IntentOperations.builder(newIntent.appId())
-                .addReplaceOperation(oldIntentId, newIntent)
-                .build());
+        throw new UnsupportedOperationException("replace is not implemented");
     }
 
     @Override
     public void execute(IntentOperations operations) {
-        if (operations.operations().isEmpty()) {
-            return;
+        for (IntentOperation op : operations.operations()) {
+            switch (op.type()) {
+                case SUBMIT:
+                case UPDATE:
+                    submit(op.intent());
+                    break;
+                case WITHDRAW:
+                    withdraw(op.intent());
+                    break;
+                //fallthrough
+                case REPLACE:
+                default:
+                    throw new UnsupportedOperationException("replace not supported");
+            }
         }
-        batchService.addIntentOperations(operations);
     }
 
     @Override
@@ -382,8 +394,8 @@ public class IntentManager
         }
 
         @Override
-        public void process(IntentOperation op) {
-            //FIXME
+        public void process(IntentData data) {
+            accumulator.add(data);
         }
     }
 
@@ -488,6 +500,7 @@ public class IntentManager
         }
     }
 
+    // TODO pull out the IntentUpdate inner classes
     private class InstallRequest implements IntentUpdate {
 
         private final Intent intent;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.event;
+package org.onlab.util;
 
-import org.onlab.util.Accumulator;
+import java.util.List;
 
 /**
  * Abstraction of an accumulator capable of collecting events and at some
  * point in time triggers processing of all previously accumulated events.
  */
-public interface EventAccumulator extends Accumulator<Event> {
+public interface Accumulator<T> {
+
+    /**
+     * Adds an event to the current batch. This operation may, or may not
+     * trigger processing of the current batch of events.
+     *
+     * @param event event to be added to the current batch
+     */
+    void add(T event);
+
+    /**
+     * Processes the specified list of accumulated events.
+     *
+     * @param events list of accumulated events
+     */
+    void processEvents(List<T> events);
+
 }

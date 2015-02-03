@@ -76,9 +76,9 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     /**
      * Adds a new operation, which should be persisted and delegated.
      *
-     * @param op operation
+     * @param intent operation
      */
-    default void add(IntentOperation op) {} //FIXME remove when impl.
+    default void addPending(IntentData intent) {} //FIXME remove when impl.
 
     /**
      * Checks to see whether the calling instance is the master for processing

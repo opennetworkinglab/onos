@@ -36,7 +36,7 @@ public abstract class Intent {
     private final IntentId id;
 
     private final ApplicationId appId;
-    private final String key;
+    private final String key; // TODO make this a class
 
     private final Collection<NetworkResource> resources;
 
@@ -155,5 +155,9 @@ public abstract class Intent {
         if (Objects.equals(idGenerator, oldIdGenerator)) {
             idGenerator = null;
         }
+    }
+
+    public String key() {
+        return key;
     }
 }
