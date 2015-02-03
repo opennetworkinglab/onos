@@ -46,7 +46,6 @@ import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Multimap;
-import com.hazelcast.core.IMap;
 
 /**
  * Manages label resources using Hazelcast.
@@ -114,7 +113,7 @@ public class HazelcastLabelResourceStore
         super.activate();
         resourcePool = new SMap<>(
                                   theInstance
-                                          .<byte[], byte[]> getMap(POOL_MAP_NAME),
+                                          .<byte[], byte[]>getMap(POOL_MAP_NAME),
                                   SERIALIZER);
 
         clusterCommunicator
@@ -345,7 +344,6 @@ public class HazelcastLabelResourceStore
         if (poolOld != null) {
             resourcePool.remove(deviceId);
         }
-        ;
         log.info("success to destroy the label resource pool of device id {}",
                  deviceId);
         return new LabelResourceEvent(LabelResourceEvent.Type.POOL_DESTROYED,
