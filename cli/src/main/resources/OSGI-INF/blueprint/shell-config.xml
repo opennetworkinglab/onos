@@ -271,23 +271,23 @@
         </command>
         
         <command>
-            <action class="org.onosproject.cli.net.CreateLabelResourcePool"/>
+            <action class="org.onosproject.cli.net.CreateLabelResourcePoolCommand"/>
         </command>
         
         <command>
-            <action class="org.onosproject.cli.net.DestroyLabelResourcePool"/>
+            <action class="org.onosproject.cli.net.DestroyLabelResourcePoolCommand"/>
         </command>
         
         <command>
-            <action class="org.onosproject.cli.net.ApplyLabelResource"/>
+            <action class="org.onosproject.cli.net.ApplyLabelResourceCommand"/>
         </command>
         
         <command>
-            <action class="org.onosproject.cli.net.ReleaseLabelResource"/>
+            <action class="org.onosproject.cli.net.ReleaseLabelResourceCommand"/>
         </command>
         
         <command>
-            <action class="org.onosproject.cli.net.GetLabelResource"/>
+            <action class="org.onosproject.cli.net.GetLabelResourceCommand"/>
         </command>
     </command-bundle>
 
