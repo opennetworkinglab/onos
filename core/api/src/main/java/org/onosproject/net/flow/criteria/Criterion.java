@@ -24,7 +24,7 @@ public interface Criterion {
     /**
      * Types of fields to which the selection criterion may apply.
      */
-    // From page 42 of OpenFlow 1.3.x spec
+    // From page 75 of OpenFlow 1.5.0 spec
     public enum Type {
         /** Switch input port. */
         IN_PORT,
@@ -106,6 +106,21 @@ public interface Criterion {
         TUNNEL_ID,
         /** IPv6 Extension Header pseudo-field. */
         IPV6_EXTHDR,
+        /** Unassigned value: 40. */
+        UNASSIGNED_40,
+        /** PBB UCA header field. */
+        PBB_UCA,
+        /** TCP flags. */
+        TCP_FLAGS,
+        /** Output port from action set metadata. */
+        ACTSET_OUTPUT,
+        /** Packet type value. */
+        PACKET_TYPE,
+
+        //
+        // NOTE: Everything below is defined elsewhere: ONOS-specific,
+        // extensions, etc.
+        //
         /** Optical channel signal ID (lambda). */
         OCH_SIGID,
         /** Optical channel signal type (fixed or flexible). */

@@ -44,11 +44,11 @@ public class CriterionCodec extends JsonCodec<Criterion> {
 
             case IN_PORT:
                 final Criteria.PortCriterion portCriterion = (Criteria.PortCriterion) criterion;
-                result.put("tcpPort", portCriterion.port().toLong());
+                result.put("port", portCriterion.port().toLong());
                 break;
 
-            case ETH_SRC:
             case ETH_DST:
+            case ETH_SRC:
                 final Criteria.EthCriterion ethCriterion = (Criteria.EthCriterion) criterion;
                 result.put("mac", ethCriterion.mac().toString());
                 break;
@@ -59,18 +59,10 @@ public class CriterionCodec extends JsonCodec<Criterion> {
                 result.put("ethType", ethTypeCriterion.ethType());
                 break;
 
-            case IPV4_SRC:
-            case IPV6_SRC:
-            case IPV4_DST:
-            case IPV6_DST:
-                final Criteria.IPCriterion iPCriterion = (Criteria.IPCriterion) criterion;
-                result.put("ip", iPCriterion.ip().toString());
-                break;
-
-            case IP_PROTO:
-                final Criteria.IPProtocolCriterion iPProtocolCriterion =
-                        (Criteria.IPProtocolCriterion) criterion;
-                result.put("protocol", iPProtocolCriterion.protocol());
+            case VLAN_VID:
+                final Criteria.VlanIdCriterion vlanIdCriterion =
+                        (Criteria.VlanIdCriterion) criterion;
+                result.put("vlanId", vlanIdCriterion.vlanId().toShort());
                 break;
 
             case VLAN_PCP:
@@ -79,10 +71,18 @@ public class CriterionCodec extends JsonCodec<Criterion> {
                 result.put("priority", vlanPcpCriterion.priority());
                 break;
 
-            case VLAN_VID:
-                final Criteria.VlanIdCriterion vlanIdCriterion =
-                        (Criteria.VlanIdCriterion) criterion;
-                result.put("vlanId", vlanIdCriterion.vlanId().toShort());
+            case IP_PROTO:
+                final Criteria.IPProtocolCriterion iPProtocolCriterion =
+                        (Criteria.IPProtocolCriterion) criterion;
+                result.put("protocol", iPProtocolCriterion.protocol());
+                break;
+
+            case IPV4_SRC:
+            case IPV4_DST:
+            case IPV6_SRC:
+            case IPV6_DST:
+                final Criteria.IPCriterion iPCriterion = (Criteria.IPCriterion) criterion;
+                result.put("ip", iPCriterion.ip().toString());
                 break;
 
             case TCP_SRC:
@@ -90,6 +90,67 @@ public class CriterionCodec extends JsonCodec<Criterion> {
                 final Criteria.TcpPortCriterion tcpPortCriterion =
                         (Criteria.TcpPortCriterion) criterion;
                 result.put("tcpPort", tcpPortCriterion.tcpPort().byteValue());
+                break;
+
+            case UDP_SRC:
+            case UDP_DST:
+                final Criteria.UdpPortCriterion udpPortCriterion =
+                        (Criteria.UdpPortCriterion) criterion;
+                result.put("udpPort", udpPortCriterion.udpPort().byteValue());
+                break;
+
+            case SCTP_SRC:
+            case SCTP_DST:
+                final Criteria.SctpPortCriterion sctpPortCriterion =
+                        (Criteria.SctpPortCriterion) criterion;
+                result.put("sctpPort",
+                           sctpPortCriterion.sctpPort().byteValue());
+                break;
+
+            case ICMPV4_TYPE:
+                final Criteria.IcmpTypeCriterion icmpTypeCriterion =
+                        (Criteria.IcmpTypeCriterion) criterion;
+                result.put("icmpType", icmpTypeCriterion.icmpType());
+                break;
+
+            case ICMPV4_CODE:
+                final Criteria.IcmpCodeCriterion icmpCodeCriterion =
+                        (Criteria.IcmpCodeCriterion) criterion;
+                result.put("icmpCode", icmpCodeCriterion.icmpCode());
+                break;
+
+            case IPV6_FLABEL:
+                final Criteria.IPv6FlowLabelCriterion ipv6FlowLabelCriterion =
+                        (Criteria.IPv6FlowLabelCriterion) criterion;
+                result.put("flowLabel",
+                           ipv6FlowLabelCriterion.flowLabel());
+                break;
+
+            case ICMPV6_TYPE:
+                final Criteria.Icmpv6TypeCriterion icmpv6TypeCriterion =
+                        (Criteria.Icmpv6TypeCriterion) criterion;
+                result.put("icmpv6Type", icmpv6TypeCriterion.icmpv6Type());
+                break;
+
+            case ICMPV6_CODE:
+                final Criteria.Icmpv6CodeCriterion icmpv6CodeCriterion =
+                        (Criteria.Icmpv6CodeCriterion) criterion;
+                result.put("icmpv6Code", icmpv6CodeCriterion.icmpv6Code());
+                break;
+
+            case IPV6_ND_TARGET:
+                final Criteria.IPv6NDTargetAddressCriterion ipv6NDTargetAddressCriterion
+                    = (Criteria.IPv6NDTargetAddressCriterion) criterion;
+                result.put("targetAddress",
+                           ipv6NDTargetAddressCriterion.targetAddress().toString());
+                break;
+
+            case IPV6_ND_SLL:
+            case IPV6_ND_TLL:
+                final Criteria.IPv6NDLinkLayerAddressCriterion ipv6NDLinkLayerAddressCriterion
+                    = (Criteria.IPv6NDLinkLayerAddressCriterion) criterion;
+                result.put("mac",
+                           ipv6NDLinkLayerAddressCriterion.mac().toString());
                 break;
 
             case MPLS_LABEL:

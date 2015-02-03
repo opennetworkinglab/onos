@@ -127,7 +127,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
                                                        LinkResourceAllocations allocations,
                                                        FlowRuleOperation operation) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchInport(intent.src().port());
+        selectorBuilder.matchInPort(intent.src().port());
 
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
         ConnectPoint prev = intent.src();
@@ -163,7 +163,7 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             rules.add(new FlowRuleBatchEntry(operation, rule));
 
             prev = link.dst();
-            selectorBuilder.matchInport(link.dst().port());
+            selectorBuilder.matchInPort(link.dst().port());
             selectorBuilder.matchOpticalSignalType(SIGNAL_TYPE); //todo
             selectorBuilder.matchLambda((short) la.toInt());
 

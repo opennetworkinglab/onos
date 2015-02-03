@@ -24,6 +24,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -129,13 +130,8 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
-        public Builder matchInport(PortNumber port) {
+        public Builder matchInPort(PortNumber port) {
             return add(Criteria.matchInPort(port));
-        }
-
-        @Override
-        public Builder matchEthSrc(MacAddress addr) {
-            return add(Criteria.matchEthSrc(addr));
         }
 
         @Override
@@ -144,7 +140,12 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
-        public Builder matchEthType(short ethType) {
+        public Builder matchEthSrc(MacAddress addr) {
+            return add(Criteria.matchEthSrc(addr));
+        }
+
+        @Override
+        public Builder matchEthType(Short ethType) {
             return add(Criteria.matchEthType(ethType));
         }
 
@@ -184,6 +185,36 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchUdpSrc(Short udpPort) {
+            return add(Criteria.matchUdpSrc(udpPort));
+        }
+
+        @Override
+        public Builder matchUdpDst(Short udpPort) {
+            return add(Criteria.matchUdpDst(udpPort));
+        }
+
+        @Override
+        public Builder matchSctpSrc(Short sctpPort) {
+            return add(Criteria.matchSctpSrc(sctpPort));
+        }
+
+        @Override
+        public Builder matchSctpDst(Short sctpPort) {
+            return add(Criteria.matchSctpDst(sctpPort));
+        }
+
+        @Override
+        public Builder matchIcmpType(Byte icmpType) {
+            return add(Criteria.matchIcmpType(icmpType));
+        }
+
+        @Override
+        public Builder matchIcmpCode(Byte icmpCode) {
+            return add(Criteria.matchIcmpCode(icmpCode));
+        }
+
+        @Override
         public Builder matchIPv6Src(IpPrefix ip) {
             return add(Criteria.matchIPv6Src(ip));
         }
@@ -194,6 +225,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchIPv6FlowLabel(Integer flowLabel) {
+            return add(Criteria.matchIPv6FlowLabel(flowLabel));
+        }
+
+        @Override
         public Builder matchIcmpv6Type(Byte icmpv6Type) {
             return add(Criteria.matchIcmpv6Type(icmpv6Type));
         }
@@ -201,6 +237,21 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchIcmpv6Code(Byte icmpv6Code) {
             return add(Criteria.matchIcmpv6Code(icmpv6Code));
+        }
+
+        @Override
+        public Builder matchIPv6NDTargetAddress(Ip6Address targetAddress) {
+            return add(Criteria.matchIPv6NDTargetAddress(targetAddress));
+        }
+
+        @Override
+        public Builder matchIPv6NDSourceLinkLayerAddress(MacAddress mac) {
+            return add(Criteria.matchIPv6NDSourceLinkLayerAddress(mac));
+        }
+
+        @Override
+        public Builder matchIPv6NDTargetLinkLayerAddress(MacAddress mac) {
+            return add(Criteria.matchIPv6NDTargetLinkLayerAddress(mac));
         }
 
         @Override

@@ -20,6 +20,7 @@ import java.util.Set;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -64,15 +65,7 @@ public interface TrafficSelector {
          * @param port the inport
          * @return a selection builder
          */
-        public Builder matchInport(PortNumber port);
-
-        /**
-         * Matches a l2 src address.
-         *
-         * @param addr a l2 address
-         * @return a selection builder
-         */
-        public Builder matchEthSrc(MacAddress addr);
+        public Builder matchInPort(PortNumber port);
 
         /**
          * Matches a l2 dst address.
@@ -83,12 +76,20 @@ public interface TrafficSelector {
         public Builder matchEthDst(MacAddress addr);
 
         /**
+         * Matches a l2 src address.
+         *
+         * @param addr a l2 address
+         * @return a selection builder
+         */
+        public Builder matchEthSrc(MacAddress addr);
+
+        /**
          * Matches the ethernet type.
          *
          * @param ethType an ethernet type
          * @return a selection builder
          */
-        public Builder matchEthType(short ethType);
+        public Builder matchEthType(Short ethType);
 
         /**
          * Matches the vlan id.
@@ -147,6 +148,54 @@ public interface TrafficSelector {
         public Builder matchTcpDst(Short tcpPort);
 
         /**
+         * Matches an UDP source port number.
+         *
+         * @param udpPort an UDP source port number
+         * @return a selection builder
+         */
+        public Builder matchUdpSrc(Short udpPort);
+
+        /**
+         * Matches an UDP destination port number.
+         *
+         * @param udpPort an UDP destination port number
+         * @return a selection builder
+         */
+        public Builder matchUdpDst(Short udpPort);
+
+        /**
+         * Matches a SCTP source port number.
+         *
+         * @param sctpPort a SCTP source port number
+         * @return a selection builder
+         */
+        public Builder matchSctpSrc(Short sctpPort);
+
+        /**
+         * Matches a SCTP destination port number.
+         *
+         * @param sctpPort a SCTP destination port number
+         * @return a selection builder
+         */
+        public Builder matchSctpDst(Short sctpPort);
+
+        /**
+         * Matches an ICMP type.
+         *
+         * @param icmpType an ICMP type
+         * @return a selection builder
+         */
+        public Builder matchIcmpType(Byte icmpType);
+
+        /**
+         * Matches an ICMP code.
+         *
+         * @param icmpCode an ICMP code
+         * @return a selection builder
+         */
+        public Builder matchIcmpCode(Byte icmpCode);
+
+        /**
          * Matches a l3 IPv6 address.
          *
          * @param ip a l3 IPv6 address
@@ -163,23 +212,56 @@ public interface TrafficSelector {
         public Builder matchIPv6Dst(IpPrefix ip);
 
         /**
-         * Matches a ICMPv6 type.
+         * Matches an IPv6 flow label.
          *
-         * @param icmpv6Type a ICMPv6 type
+         * @param flowLabel an IPv6 flow label
+         * @return a selection builder
+         */
+        public Builder matchIPv6FlowLabel(Integer flowLabel);
+
+        /**
+         * Matches an ICMPv6 type.
+         *
+         * @param icmpv6Type an ICMPv6 type
          * @return a selection builder
          */
         public Builder matchIcmpv6Type(Byte icmpv6Type);
 
         /**
-         * Matches a ICMPv6 code.
+         * Matches an ICMPv6 code.
          *
-         * @param icmpv6Code a ICMPv6 code
+         * @param icmpv6Code an ICMPv6 code
          * @return a selection builder
          */
         public Builder matchIcmpv6Code(Byte icmpv6Code);
 
         /**
-         * Matches on a MPLS label .
+         * Matches an IPv6 Neighbor Discovery target address.
+         *
+         * @param targetAddress an IPv6 Neighbor Discovery target address
+         * @return a selection builder
+         */
+        public Builder matchIPv6NDTargetAddress(Ip6Address targetAddress);
+
+        /**
+         * Matches an IPv6 Neighbor Discovery source link-layer address.
+         *
+         * @param mac an IPv6 Neighbor Discovery source link-layer address
+         * @return a selection builder
+         */
+        public Builder matchIPv6NDSourceLinkLayerAddress(MacAddress mac);
+
+        /**
+         * Matches an IPv6 Neighbor Discovery target link-layer address.
+         *
+         * @param mac an IPv6 Neighbor Discovery target link-layer address
+         * @return a selection builder
+         */
+        public Builder matchIPv6NDTargetLinkLayerAddress(MacAddress mac);
+
+        /**
+         * Matches on a MPLS label.
+         *
          * @param mplsLabel a MPLS label.
          * @return a selection builder
          */
@@ -208,5 +290,4 @@ public interface TrafficSelector {
          */
         TrafficSelector build();
     }
-
 }

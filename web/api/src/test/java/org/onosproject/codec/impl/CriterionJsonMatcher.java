@@ -33,6 +33,7 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
         criterion = criterionValue;
     }
 
+    // CHECKSTYLE IGNORE MethodLength FOR NEXT 300 LINES
     @Override
     public boolean matchesSafely(JsonNode jsonCriterion, Description description) {
         final String type = criterion.type().name();
@@ -54,8 +55,8 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
                 }
                 break;
 
-            case ETH_SRC:
             case ETH_DST:
+            case ETH_SRC:
                 final Criteria.EthCriterion ethCriterion = (Criteria.EthCriterion) criterion;
                 final String mac = ethCriterion.mac().toString();
                 final String jsonMac = jsonCriterion.get("mac").textValue();
@@ -76,15 +77,24 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
                 }
                 break;
 
-            case IPV4_SRC:
-            case IPV6_SRC:
-            case IPV4_DST:
-            case IPV6_DST:
-                final Criteria.IPCriterion ipCriterion = (Criteria.IPCriterion) criterion;
-                final String ip = ipCriterion.ip().toString();
-                final String jsonIp = jsonCriterion.get("ip").textValue();
-                if (!ip.equals(jsonIp)) {
-                    description.appendText("ip was " + jsonIp);
+            case VLAN_VID:
+                final Criteria.VlanIdCriterion vlanIdCriterion =
+                        (Criteria.VlanIdCriterion) criterion;
+                final short vlanId = vlanIdCriterion.vlanId().toShort();
+                final short jsonVlanId = jsonCriterion.get("vlanId").shortValue();
+                if (vlanId != jsonVlanId) {
+                    description.appendText("vlanId was " + Short.toString(jsonVlanId));
+                    return false;
+                }
+                break;
+
+            case VLAN_PCP:
+                final Criteria.VlanPcpCriterion vlanPcpCriterion =
+                        (Criteria.VlanPcpCriterion) criterion;
+                final byte priority = vlanPcpCriterion.priority();
+                final byte jsonPriority = (byte) jsonCriterion.get("priority").shortValue();
+                if (priority != jsonPriority) {
+                    description.appendText("priority was " + Byte.toString(jsonPriority));
                     return false;
                 }
                 break;
@@ -100,24 +110,15 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
                 }
                 break;
 
-            case VLAN_PCP:
-                final Criteria.VlanPcpCriterion vlanPcpCriterion =
-                        (Criteria.VlanPcpCriterion) criterion;
-                final byte priority = vlanPcpCriterion.priority();
-                final byte jsonPriority = (byte) jsonCriterion.get("protocol").shortValue();
-                if (priority != jsonPriority) {
-                    description.appendText("priority was " + Byte.toString(jsonPriority));
-                    return false;
-                }
-                break;
-
-            case VLAN_VID:
-                final Criteria.VlanIdCriterion vlanIdCriterion =
-                        (Criteria.VlanIdCriterion) criterion;
-                final short vlanId = vlanIdCriterion.vlanId().toShort();
-                final short jsonvlanId = jsonCriterion.get("vlanId").shortValue();
-                if (vlanId != jsonvlanId) {
-                    description.appendText("vlanId was " + Short.toString(jsonvlanId));
+            case IPV4_SRC:
+            case IPV4_DST:
+            case IPV6_SRC:
+            case IPV6_DST:
+                final Criteria.IPCriterion ipCriterion = (Criteria.IPCriterion) criterion;
+                final String ip = ipCriterion.ip().toString();
+                final String jsonIp = jsonCriterion.get("ip").textValue();
+                if (!ip.equals(jsonIp)) {
+                    description.appendText("ip was " + jsonIp);
                     return false;
                 }
                 break;
@@ -126,10 +127,119 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case TCP_DST:
                 final Criteria.TcpPortCriterion tcpPortCriterion =
                         (Criteria.TcpPortCriterion) criterion;
-                final byte tcpPort = tcpPortCriterion.tcpPort().byteValue();
-                final byte jsonTcpPort = (byte) jsonCriterion.get("tcpPort").shortValue();
+                final short tcpPort = tcpPortCriterion.tcpPort();
+                final short jsonTcpPort = jsonCriterion.get("tcpPort").shortValue();
                 if (tcpPort != jsonTcpPort) {
-                    description.appendText("tcp port was " + Byte.toString(jsonTcpPort));
+                    description.appendText("tcp port was " + Short.toString(jsonTcpPort));
+                    return false;
+                }
+                break;
+
+            case UDP_SRC:
+            case UDP_DST:
+                final Criteria.UdpPortCriterion udpPortCriterion =
+                        (Criteria.UdpPortCriterion) criterion;
+                final short udpPort = udpPortCriterion.udpPort();
+                final short jsonUdpPort = jsonCriterion.get("udpPort").shortValue();
+                if (udpPort != jsonUdpPort) {
+                    description.appendText("udp port was " + Short.toString(jsonUdpPort));
+                    return false;
+                }
+                break;
+
+            case SCTP_SRC:
+            case SCTP_DST:
+                final Criteria.SctpPortCriterion sctpPortCriterion =
+                        (Criteria.SctpPortCriterion) criterion;
+                final short sctpPort = sctpPortCriterion.sctpPort();
+                final short jsonSctpPort = jsonCriterion.get("sctpPort").shortValue();
+                if (sctpPort != jsonSctpPort) {
+                    description.appendText("sctp port was " + Short.toString(jsonSctpPort));
+                    return false;
+                }
+                break;
+
+            case ICMPV4_TYPE:
+                final Criteria.IcmpTypeCriterion icmpTypeCriterion =
+                        (Criteria.IcmpTypeCriterion) criterion;
+                final byte icmpType = icmpTypeCriterion.icmpType();
+                final byte jsonIcmpType = (byte) jsonCriterion.get("icmpType").shortValue();
+                if (icmpType != jsonIcmpType) {
+                    description.appendText("icmp type was " + Byte.toString(jsonIcmpType));
+                    return false;
+                }
+                break;
+
+            case ICMPV4_CODE:
+                final Criteria.IcmpCodeCriterion icmpCodeCriterion =
+                        (Criteria.IcmpCodeCriterion) criterion;
+                final byte icmpCode = icmpCodeCriterion.icmpCode();
+                final byte jsonIcmpCode = (byte) jsonCriterion.get("icmpCode").shortValue();
+                if (icmpCode != jsonIcmpCode) {
+                    description.appendText("icmp code was " + Byte.toString(jsonIcmpCode));
+                    return false;
+                }
+                break;
+
+            case IPV6_FLABEL:
+                final Criteria.IPv6FlowLabelCriterion ipv6FlowLabelCriterion =
+                        (Criteria.IPv6FlowLabelCriterion) criterion;
+                final int flowLabel = ipv6FlowLabelCriterion.flowLabel();
+                final int jsonFlowLabel = jsonCriterion.get("flowLabel").intValue();
+                if (flowLabel != jsonFlowLabel) {
+                    description.appendText("IPv6 flow label was " + Integer.toString(jsonFlowLabel));
+                    return false;
+                }
+                break;
+
+            case ICMPV6_TYPE:
+                final Criteria.Icmpv6TypeCriterion icmpv6TypeCriterion =
+                        (Criteria.Icmpv6TypeCriterion) criterion;
+                final byte icmpv6Type = icmpv6TypeCriterion.icmpv6Type();
+                final byte jsonIcmpv6Type = (byte) jsonCriterion.get("icmpv6Type").shortValue();
+                if (icmpv6Type != jsonIcmpv6Type) {
+                    description.appendText("icmpv6 type was " + Byte.toString(jsonIcmpv6Type));
+                    return false;
+                }
+                break;
+
+            case ICMPV6_CODE:
+                final Criteria.Icmpv6CodeCriterion icmpv6CodeCriterion =
+                        (Criteria.Icmpv6CodeCriterion) criterion;
+                final byte icmpv6Code = icmpv6CodeCriterion.icmpv6Code();
+                final byte jsonIcmpv6Code = (byte) jsonCriterion.get("icmpv6Code").shortValue();
+                if (icmpv6Code != jsonIcmpv6Code) {
+                    description.appendText("icmpv6 code was " + Byte.toString(jsonIcmpv6Code));
+                    return false;
+                }
+                break;
+
+            case IPV6_ND_TARGET:
+                final Criteria.IPv6NDTargetAddressCriterion
+                    ipv6NDTargetAddressCriterion =
+                    (Criteria.IPv6NDTargetAddressCriterion) criterion;
+                final String targetAddress =
+                    ipv6NDTargetAddressCriterion.targetAddress().toString();
+                final String jsonTargetAddress =
+                    jsonCriterion.get("targetAddress").textValue();
+                if (!targetAddress.equals(jsonTargetAddress)) {
+                    description.appendText("target address was " +
+                                           jsonTargetAddress);
+                    return false;
+                }
+                break;
+
+            case IPV6_ND_SLL:
+            case IPV6_ND_TLL:
+                final Criteria.IPv6NDLinkLayerAddressCriterion
+                    ipv6NDLinkLayerAddressCriterion =
+                    (Criteria.IPv6NDLinkLayerAddressCriterion) criterion;
+                final String llAddress =
+                    ipv6NDLinkLayerAddressCriterion.mac().toString();
+                final String jsonLlAddress =
+                    jsonCriterion.get("mac").textValue();
+                if (!llAddress.equals(jsonLlAddress)) {
+                    description.appendText("mac was " + jsonLlAddress);
                     return false;
                 }
                 break;

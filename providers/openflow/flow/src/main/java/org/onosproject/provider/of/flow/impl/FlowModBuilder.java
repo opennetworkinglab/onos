@@ -25,13 +25,20 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.Criteria.EthTypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IcmpCodeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPv6NDLinkLayerAddressCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPv6NDTargetAddressCriterion;
 import org.onosproject.net.flow.criteria.Criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.Criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.Criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.Criteria.VlanPcpCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -43,8 +50,11 @@ import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
+import org.projectfloodlight.openflow.types.ICMPv4Code;
+import org.projectfloodlight.openflow.types.ICMPv4Type;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
+import org.projectfloodlight.openflow.types.IPv6FlowLabel;
 import org.projectfloodlight.openflow.types.IpProtocol;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.Masked;
@@ -135,68 +145,38 @@ public abstract class FlowModBuilder {
      *
      * @return the match
      */
+    // CHECKSTYLE IGNORE MethodLength FOR NEXT 300 LINES
     protected Match buildMatch() {
         Match.Builder mBuilder = factory.buildMatch();
-        EthCriterion eth;
-        IPCriterion ip;
+        Ip6Address ip6Address;
         Ip4Prefix ip4Prefix;
         Ip6Prefix ip6Prefix;
-        TcpPortCriterion tp;
+        EthCriterion ethCriterion;
+        IPCriterion ipCriterion;
+        TcpPortCriterion tcpPortCriterion;
+        UdpPortCriterion udpPortCriterion;
+        SctpPortCriterion sctpPortCriterion;
+        IPv6NDLinkLayerAddressCriterion llAddressCriterion;
+
         for (Criterion c : selector.criteria()) {
             switch (c.type()) {
             case IN_PORT:
                 PortCriterion inport = (PortCriterion) c;
                 mBuilder.setExact(MatchField.IN_PORT, OFPort.of((int) inport.port().toLong()));
                 break;
-            case ETH_SRC:
-                eth = (EthCriterion) c;
-                mBuilder.setExact(MatchField.ETH_SRC, MacAddress.of(eth.mac().toLong()));
-                break;
             case ETH_DST:
-                eth = (EthCriterion) c;
-                mBuilder.setExact(MatchField.ETH_DST, MacAddress.of(eth.mac().toLong()));
+                ethCriterion = (EthCriterion) c;
+                mBuilder.setExact(MatchField.ETH_DST,
+                                  MacAddress.of(ethCriterion.mac().toLong()));
+                break;
+            case ETH_SRC:
+                ethCriterion = (EthCriterion) c;
+                mBuilder.setExact(MatchField.ETH_SRC,
+                                  MacAddress.of(ethCriterion.mac().toLong()));
                 break;
             case ETH_TYPE:
                 EthTypeCriterion ethType = (EthTypeCriterion) c;
                 mBuilder.setExact(MatchField.ETH_TYPE, EthType.of(ethType.ethType()));
-                break;
-            case IPV4_DST:
-                ip = (IPCriterion) c;
-                ip4Prefix = ip.ip().getIp4Prefix();
-                if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
-                    Ip4Address maskAddr =
-                        Ip4Address.makeMaskPrefix(ip4Prefix.prefixLength());
-                    Masked<IPv4Address> maskedIp =
-                        Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
-                                  IPv4Address.of(maskAddr.toInt()));
-                    mBuilder.setMasked(MatchField.IPV4_DST, maskedIp);
-                } else {
-                    mBuilder.setExact(MatchField.IPV4_DST,
-                                IPv4Address.of(ip4Prefix.address().toInt()));
-                }
-                break;
-            case IPV4_SRC:
-                ip = (IPCriterion) c;
-                ip4Prefix = ip.ip().getIp4Prefix();
-                if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
-                    Ip4Address maskAddr =
-                        Ip4Address.makeMaskPrefix(ip4Prefix.prefixLength());
-                    Masked<IPv4Address> maskedIp =
-                        Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
-                                  IPv4Address.of(maskAddr.toInt()));
-                    mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
-                } else {
-                    mBuilder.setExact(MatchField.IPV4_SRC,
-                                IPv4Address.of(ip4Prefix.address().toInt()));
-                }
-                break;
-            case IP_PROTO:
-                IPProtocolCriterion p = (IPProtocolCriterion) c;
-                mBuilder.setExact(MatchField.IP_PROTO, IpProtocol.of(p.protocol()));
-                break;
-            case VLAN_PCP:
-                VlanPcpCriterion vpcp = (VlanPcpCriterion) c;
-                mBuilder.setExact(MatchField.VLAN_PCP, VlanPcp.of(vpcp.priority()));
                 break;
             case VLAN_VID:
                 VlanIdCriterion vid = (VlanIdCriterion) c;
@@ -209,13 +189,148 @@ public abstract class FlowModBuilder {
                             OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
                 }
                 break;
-            case TCP_DST:
-                tp = (TcpPortCriterion) c;
-                mBuilder.setExact(MatchField.TCP_DST, TransportPort.of(tp.tcpPort()));
+            case VLAN_PCP:
+                VlanPcpCriterion vpcp = (VlanPcpCriterion) c;
+                mBuilder.setExact(MatchField.VLAN_PCP, VlanPcp.of(vpcp.priority()));
+                break;
+            case IP_PROTO:
+                IPProtocolCriterion p = (IPProtocolCriterion) c;
+                mBuilder.setExact(MatchField.IP_PROTO, IpProtocol.of(p.protocol()));
+                break;
+            case IPV4_SRC:
+                ipCriterion = (IPCriterion) c;
+                ip4Prefix = ipCriterion.ip().getIp4Prefix();
+                if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
+                    Ip4Address maskAddr =
+                        Ip4Address.makeMaskPrefix(ip4Prefix.prefixLength());
+                    Masked<IPv4Address> maskedIp =
+                        Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
+                                  IPv4Address.of(maskAddr.toInt()));
+                    mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
+                } else {
+                    mBuilder.setExact(MatchField.IPV4_SRC,
+                                IPv4Address.of(ip4Prefix.address().toInt()));
+                }
+                break;
+            case IPV4_DST:
+                ipCriterion = (IPCriterion) c;
+                ip4Prefix = ipCriterion.ip().getIp4Prefix();
+                if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
+                    Ip4Address maskAddr =
+                        Ip4Address.makeMaskPrefix(ip4Prefix.prefixLength());
+                    Masked<IPv4Address> maskedIp =
+                        Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
+                                  IPv4Address.of(maskAddr.toInt()));
+                    mBuilder.setMasked(MatchField.IPV4_DST, maskedIp);
+                } else {
+                    mBuilder.setExact(MatchField.IPV4_DST,
+                                IPv4Address.of(ip4Prefix.address().toInt()));
+                }
                 break;
             case TCP_SRC:
-                tp = (TcpPortCriterion) c;
-                mBuilder.setExact(MatchField.TCP_SRC, TransportPort.of(tp.tcpPort()));
+                tcpPortCriterion = (TcpPortCriterion) c;
+                mBuilder.setExact(MatchField.TCP_SRC,
+                                  TransportPort.of(tcpPortCriterion.tcpPort()));
+                break;
+            case TCP_DST:
+                tcpPortCriterion = (TcpPortCriterion) c;
+                mBuilder.setExact(MatchField.TCP_DST,
+                                  TransportPort.of(tcpPortCriterion.tcpPort()));
+                break;
+            case UDP_SRC:
+                udpPortCriterion = (UdpPortCriterion) c;
+                mBuilder.setExact(MatchField.UDP_SRC,
+                                  TransportPort.of(udpPortCriterion.udpPort()));
+                break;
+            case UDP_DST:
+                udpPortCriterion = (UdpPortCriterion) c;
+                mBuilder.setExact(MatchField.UDP_DST,
+                                  TransportPort.of(udpPortCriterion.udpPort()));
+                break;
+            case SCTP_SRC:
+                sctpPortCriterion = (SctpPortCriterion) c;
+                mBuilder.setExact(MatchField.SCTP_SRC,
+                                  TransportPort.of(sctpPortCriterion.sctpPort()));
+                break;
+            case SCTP_DST:
+                sctpPortCriterion = (SctpPortCriterion) c;
+                mBuilder.setExact(MatchField.SCTP_DST,
+                                  TransportPort.of(sctpPortCriterion.sctpPort()));
+                break;
+            case ICMPV4_TYPE:
+                IcmpTypeCriterion icmpType = (IcmpTypeCriterion) c;
+                mBuilder.setExact(MatchField.ICMPV4_TYPE,
+                                  ICMPv4Type.of(icmpType.icmpType()));
+                break;
+            case ICMPV4_CODE:
+                IcmpCodeCriterion icmpCode = (IcmpCodeCriterion) c;
+                mBuilder.setExact(MatchField.ICMPV4_CODE,
+                                  ICMPv4Code.of(icmpCode.icmpCode()));
+                break;
+            case IPV6_SRC:
+                ipCriterion = (IPCriterion) c;
+                ip6Prefix = ipCriterion.ip().getIp6Prefix();
+                if (ip6Prefix.prefixLength() != Ip6Prefix.MAX_MASK_LENGTH) {
+                    Ip6Address maskAddr =
+                            Ip6Address.makeMaskPrefix(ip6Prefix.prefixLength());
+                    Masked<IPv6Address> maskedIp =
+                            Masked.of(IPv6Address.of(ip6Prefix.address().toString()),
+                                    IPv6Address.of(maskAddr.toString()));
+                    mBuilder.setMasked(MatchField.IPV6_SRC, maskedIp);
+                } else {
+                    mBuilder.setExact(MatchField.IPV6_SRC,
+                            IPv6Address.of(ip6Prefix.address().toString()));
+                }
+                break;
+            case IPV6_DST:
+                ipCriterion = (IPCriterion) c;
+                ip6Prefix = ipCriterion.ip().getIp6Prefix();
+                if (ip6Prefix.prefixLength() != Ip6Prefix.MAX_MASK_LENGTH) {
+                    Ip6Address maskAddr =
+                            Ip6Address.makeMaskPrefix(ip6Prefix.prefixLength());
+                    Masked<IPv6Address> maskedIp =
+                            Masked.of(IPv6Address.of(ip6Prefix.address().toString()),
+                                    IPv6Address.of(maskAddr.toString()));
+                    mBuilder.setMasked(MatchField.IPV6_DST, maskedIp);
+                } else {
+                    mBuilder.setExact(MatchField.IPV6_DST,
+                            IPv6Address.of(ip6Prefix.address().toString()));
+                }
+                break;
+            case IPV6_FLABEL:
+                IPv6FlowLabelCriterion flowLabelCriterion =
+                    (IPv6FlowLabelCriterion) c;
+                mBuilder.setExact(MatchField.IPV6_FLABEL,
+                                  IPv6FlowLabel.of(flowLabelCriterion.flowLabel()));
+                break;
+            case ICMPV6_TYPE:
+                Icmpv6TypeCriterion icmpv6Type = (Icmpv6TypeCriterion) c;
+                mBuilder.setExact(MatchField.ICMPV6_TYPE,
+                        U8.of(icmpv6Type.icmpv6Type().byteValue()));
+                break;
+            case ICMPV6_CODE:
+                Icmpv6CodeCriterion icmpv6Code = (Icmpv6CodeCriterion) c;
+                mBuilder.setExact(MatchField.ICMPV6_CODE,
+                        U8.of(icmpv6Code.icmpv6Code().byteValue()));
+                break;
+            case IPV6_ND_TARGET:
+                IPv6NDTargetAddressCriterion targetAddressCriterion =
+                    (IPv6NDTargetAddressCriterion) c;
+                ip6Address = targetAddressCriterion.targetAddress();
+                mBuilder.setExact(MatchField.IPV6_ND_TARGET,
+                                  IPv6Address.of(ip6Address.toOctets()));
+                break;
+            case IPV6_ND_SLL:
+                llAddressCriterion =
+                    (IPv6NDLinkLayerAddressCriterion) c;
+                mBuilder.setExact(MatchField.IPV6_ND_SLL,
+                        MacAddress.of(llAddressCriterion.mac().toLong()));
+                break;
+            case IPV6_ND_TLL:
+                llAddressCriterion =
+                    (IPv6NDLinkLayerAddressCriterion) c;
+                mBuilder.setExact(MatchField.IPV6_ND_TLL,
+                        MacAddress.of(llAddressCriterion.mac().toLong()));
                 break;
             case MPLS_LABEL:
                 Criteria.MplsCriterion mp = (Criteria.MplsCriterion) c;
@@ -233,70 +348,20 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.OCH_SIGTYPE,
                                   U8.of(sc.signalType()));
                 break;
-            case IPV6_DST:
-                ip = (IPCriterion) c;
-                ip6Prefix = ip.ip().getIp6Prefix();
-                if (ip6Prefix.prefixLength() != Ip6Prefix.MAX_MASK_LENGTH) {
-                    Ip6Address maskAddr =
-                            Ip6Address.makeMaskPrefix(ip6Prefix.prefixLength());
-                    Masked<IPv6Address> maskedIp =
-                            Masked.of(IPv6Address.of(ip6Prefix.address().toString()),
-                                    IPv6Address.of(maskAddr.toString()));
-                    mBuilder.setMasked(MatchField.IPV6_DST, maskedIp);
-                } else {
-                    mBuilder.setExact(MatchField.IPV6_DST,
-                            IPv6Address.of(ip6Prefix.address().toString()));
-                }
-                break;
-            case IPV6_SRC:
-                ip = (IPCriterion) c;
-                ip6Prefix = ip.ip().getIp6Prefix();
-                if (ip6Prefix.prefixLength() != Ip6Prefix.MAX_MASK_LENGTH) {
-                    Ip6Address maskAddr =
-                            Ip6Address.makeMaskPrefix(ip6Prefix.prefixLength());
-                    Masked<IPv6Address> maskedIp =
-                            Masked.of(IPv6Address.of(ip6Prefix.address().toString()),
-                                    IPv6Address.of(maskAddr.toString()));
-                    mBuilder.setMasked(MatchField.IPV6_SRC, maskedIp);
-                } else {
-                    mBuilder.setExact(MatchField.IPV6_SRC,
-                            IPv6Address.of(ip6Prefix.address().toString()));
-                }
-                break;
-            case ICMPV6_TYPE:
-                Icmpv6TypeCriterion icmpv6type = (Icmpv6TypeCriterion) c;
-                mBuilder.setExact(MatchField.ICMPV6_TYPE,
-                        U8.of(icmpv6type.icmpv6Type().byteValue()));
-                break;
-            case ICMPV6_CODE:
-                Icmpv6CodeCriterion icmpv6code = (Icmpv6CodeCriterion) c;
-                mBuilder.setExact(MatchField.ICMPV6_CODE,
-                        U8.of(icmpv6code.icmpv6Code().byteValue()));
-                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
             case ARP_THA:
             case ARP_TPA:
-            case ICMPV4_CODE:
-            case ICMPV4_TYPE:
             case IN_PHY_PORT:
             case IPV6_EXTHDR:
-            case IPV6_FLABEL:
-            case IPV6_ND_SLL:
-            case IPV6_ND_TARGET:
-            case IPV6_ND_TLL:
             case IP_DSCP:
             case IP_ECN:
             case METADATA:
             case MPLS_BOS:
             case MPLS_TC:
             case PBB_ISID:
-            case SCTP_DST:
-            case SCTP_SRC:
             case TUNNEL_ID:
-            case UDP_DST:
-            case UDP_SRC:
             default:
                 log.warn("Match type {} not yet implemented.", c.type());
             }

@@ -107,21 +107,21 @@ public class LambdaForwarding {
         case 1:
             inport = 10;
             outport = 20;
-            sbuilder.matchInport(PortNumber.portNumber(inport));
+            sbuilder.matchInPort(PortNumber.portNumber(inport));
             tbuilder.setOutput(PortNumber.portNumber(outport)).setLambda(lambda);
             break;
         case 2:
             inport = 21;
             outport = 11;
             sbuilder.matchLambda(lambda).
-                    matchInport(PortNumber.portNumber(inport)); // match sigtype
+                    matchInPort(PortNumber.portNumber(inport)); // match sigtype
             tbuilder.setOutput(PortNumber.portNumber(outport));
             break;
         case 3:
             inport = 30;
             outport = 31;
             sbuilder.matchLambda(lambda).
-                    matchInport(PortNumber.portNumber(inport));
+                    matchInPort(PortNumber.portNumber(inport));
             tbuilder.setOutput(PortNumber.portNumber(outport)).setLambda(lambda);
             break;
         default:

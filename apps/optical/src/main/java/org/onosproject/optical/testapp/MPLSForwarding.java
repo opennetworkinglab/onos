@@ -106,7 +106,7 @@ public class MPLSForwarding {
 
         switch (switchNumber) {
             case 1:
-                sbuilder.matchInport(PortNumber.portNumber(inport));
+                sbuilder.matchInPort(PortNumber.portNumber(inport));
                 tbuilder.setOutput(PortNumber.portNumber(outport))
                         .pushMpls()
                         .setMpls(mplsLabel);
@@ -114,13 +114,13 @@ public class MPLSForwarding {
             case 2:
                 sbuilder.matchMplsLabel(mplsLabel)
                         .matchEthType(Ethernet.MPLS_UNICAST)
-                        .matchInport(PortNumber.portNumber(inport));
+                        .matchInPort(PortNumber.portNumber(inport));
                 tbuilder.setOutput(PortNumber.portNumber(outport));
                 break;
             case 3:
                 sbuilder.matchMplsLabel(mplsLabel)
                         .matchEthType(Ethernet.MPLS_UNICAST)
-                        .matchInport(PortNumber.portNumber(inport));
+                        .matchInPort(PortNumber.portNumber(inport));
                 tbuilder.popMpls().setOutput(PortNumber.portNumber(outport));
                 break;
             default:

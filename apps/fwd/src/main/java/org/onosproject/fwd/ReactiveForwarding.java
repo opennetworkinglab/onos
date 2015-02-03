@@ -288,7 +288,7 @@ public class ReactiveForwarding {
             builder.matchEthType(inPkt.getEtherType())
                     .matchEthSrc(inPkt.getSourceMAC())
                     .matchEthDst(inPkt.getDestinationMAC())
-                    .matchInport(context.inPacket().receivedFrom().port());
+                    .matchInPort(context.inPacket().receivedFrom().port());
 
             TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
             treat.setOutput(portNumber);

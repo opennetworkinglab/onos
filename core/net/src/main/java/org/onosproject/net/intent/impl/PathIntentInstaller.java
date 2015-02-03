@@ -92,7 +92,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
         // TODO Generate multiple batches
         while (links.hasNext()) {
-            builder.matchInport(prev.port());
+            builder.matchInPort(prev.port());
             Link link = links.next();
             // if this is the last flow rule, apply the intent's treatments
             TrafficTreatment treatment =
@@ -124,7 +124,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
         // TODO Generate multiple batches
         while (links.hasNext()) {
-            builder.matchInport(prev.port());
+            builder.matchInPort(prev.port());
             Link link = links.next();
             // if this is the last flow rule, apply the intent's treatments
             TrafficTreatment treatment =
