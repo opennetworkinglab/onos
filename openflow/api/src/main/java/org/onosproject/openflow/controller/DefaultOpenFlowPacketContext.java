@@ -60,7 +60,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
         OFAction act = buildOutput(outPort.getPortNumber());
         pktout = builder.setXid(pktin.getXid())
-                .setInPort(inport())
+                .setInPort(pktinInPort())
                 .setBufferId(OFBufferId.NO_BUFFER)
                 .setData(pktin.getData())
 //                .setBufferId(pktin.getBufferId())
@@ -77,7 +77,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         OFAction act = buildOutput(outPort.getPortNumber());
         pktout = builder.setXid(pktin.getXid())
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setInPort(inport())
+                .setInPort(pktinInPort())
                 .setActions(Collections.singletonList(act))
                 .setData(ethFrame.serialize())
                 .build();
@@ -106,11 +106,10 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public Integer inPort() {
-        return inport().getPortNumber();
+        return pktinInPort().getPortNumber();
     }
 
-
-    private OFPort inport() {
+    private OFPort pktinInPort() {
         //FIXME: this has to change in loxi
         try {
             return pktin.getInPort();
