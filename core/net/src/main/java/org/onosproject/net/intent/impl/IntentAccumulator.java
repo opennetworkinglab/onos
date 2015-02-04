@@ -20,6 +20,7 @@ import org.onlab.util.AbstractAccumulator;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentData;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -50,18 +51,17 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
 
     @Override
     public void processEvents(List<IntentData> ops) {
-        Map<String, IntentData> opMap = reduce(ops);
-        delegate.execute(opMap.values());
+        delegate.execute(reduce(ops));
         // FIXME kick off the work
         //for (IntentData data : opMap.values()) {}
     }
 
-    private Map<String, IntentData> reduce(List<IntentData> ops) {
+    private Collection<IntentData> reduce(List<IntentData> ops) {
         Map<String, IntentData> map = Maps.newHashMap();
         for (IntentData op : ops) {
             map.put(op.key(), op);
         }
         //TODO check the version... or maybe store will handle this.
-        return map;
+        return map.values();
     }
 }
