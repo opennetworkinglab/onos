@@ -29,9 +29,6 @@ import org.onosproject.event.Event;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetworkResource;
-import org.onosproject.net.intent.IntentBatchLeaderEvent;
-import org.onosproject.net.intent.IntentBatchListener;
-import org.onosproject.net.intent.IntentBatchService;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
@@ -80,23 +77,18 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
     protected IntentService intentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentBatchService batchService;
-
     private ExecutorService executorService =
             newSingleThreadExecutor(namedThreads("onos-flowtracker"));
 
     private TopologyListener listener = new InternalTopologyListener();
     private LinkResourceListener linkResourceListener =
             new InternalLinkResourceListener();
-    private final LeadershipListener leaderListener = new LeadershipListener();
     private TopologyChangeDelegate delegate;
 
     @Activate
     public void activate() {
         topologyService.addListener(listener);
         resourceManager.addListener(linkResourceListener);
-        batchService.addListener(leaderListener);
         log.info("Started");
     }
 
@@ -104,7 +96,6 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     public void deactivate() {
         topologyService.removeListener(listener);
         resourceManager.removeListener(linkResourceListener);
-        batchService.removeListener(leaderListener);
         log.info("Stopped");
     }
 
@@ -264,23 +255,5 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 }
             }
         });
-    }
-
-    private class LeadershipListener implements IntentBatchListener {
-        @Override
-        public void event(IntentBatchLeaderEvent event) {
-            log.debug("leadership event: {}", event);
-            ApplicationId appId = event.subject();
-            switch (event.type()) {
-                case ELECTED:
-                    updateTrackedResources(appId, true);
-                    break;
-                case BOOTED:
-                    updateTrackedResources(appId, false);
-                    break;
-                default:
-                    break;
-            }
-        }
     }
 }

@@ -56,7 +56,6 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentBatchService;
 import org.onosproject.net.intent.IntentService;
 import org.slf4j.Logger;
 
@@ -101,9 +100,6 @@ public class DemoInstaller implements DemoAPI {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentBatchService intentBatchService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;

@@ -26,17 +26,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
 import org.onosproject.net.Link;
-import org.onosproject.net.LinkKey;
-import org.onosproject.net.NetTestTools;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentBatchLeaderEvent;
-import org.onosproject.net.intent.IntentBatchListener;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.LinkResourceEvent;
@@ -45,20 +41,15 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.SetMultimap;
 
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.onosproject.net.NetTestTools.link;
-import org.onlab.junit.TestUtils.TestUtilsException;
 
 /**
  * Tests for the objective tracker.
@@ -71,7 +62,6 @@ public class ObjectiveTrackerTest {
     private List<Event> reasons;
     private TopologyListener listener;
     private LinkResourceListener linkResourceListener;
-    private IntentBatchListener leaderListener;
     private IdGenerator mockGenerator;
 
     /**
@@ -88,7 +78,6 @@ public class ObjectiveTrackerTest {
         reasons = new LinkedList<>();
         listener = TestUtils.getField(tracker, "listener");
         linkResourceListener = TestUtils.getField(tracker, "linkResourceListener");
-        leaderListener = TestUtils.getField(tracker, "leaderListener");
         mockGenerator = new MockIdGenerator();
         Intent.bindIdGenerator(mockGenerator);
     }
@@ -120,32 +109,6 @@ public class ObjectiveTrackerTest {
             compileAllFailedFromEvent = compileAllFailed;
             latch.countDown();
         }
-    }
-
-    /**
-     * Mock compilable intent class.
-     */
-    private static class MockIntent extends Intent {
-
-        public MockIntent(Collection<NetworkResource> resources) {
-            super(NetTestTools.APP_ID, resources);
-        }
-
-    }
-
-    /**
-     * Mock installable intent class.
-     */
-    private static class MockInstallableIntent extends Intent {
-        public MockInstallableIntent(Collection<NetworkResource> resources) {
-            super(NetTestTools.APP_ID, resources);
-        }
-
-        @Override
-        public boolean isInstallable() {
-            return true;
-        }
-
     }
 
     /**
@@ -271,52 +234,4 @@ public class ObjectiveTrackerTest {
         assertThat(delegate.compileAllFailedFromEvent, is(true));
     }
 
-    /**
-     * Tests leadership events.
-     *
-     * @throws InterruptedException if the latch wait fails.
-     */
-    @Test
-    public void testLeaderEvents() throws Exception {
-
-        final Link link = link("src", 1, "dst", 2);
-        final List<NetworkResource> resources = ImmutableList.of(link);
-
-        final List<Intent> intents = new LinkedList<>();
-        final List<Intent> installableIntents = new LinkedList<>();
-        installableIntents.add(new MockInstallableIntent(resources));
-        intents.add(new MockIntent(resources));
-
-        final SetMultimap<LinkKey, IntentId> intentsByLink =
-                TestUtils.getField(tracker, "intentsByLink");
-        assertThat(intentsByLink.size(), is(0));
-
-        final IntentService mockIntentManager = createMock(IntentService.class);
-        expect(mockIntentManager
-                .getIntents())
-                .andReturn(intents)
-                .anyTimes();
-        expect(mockIntentManager
-                .getIntent(IntentId.valueOf(0x0)))
-                .andReturn(intents.get(0))
-                .anyTimes();
-        expect(mockIntentManager
-                .getInstallableIntents(IntentId.valueOf(0x1)))
-                .andReturn(installableIntents)
-                .anyTimes();
-        replay(mockIntentManager);
-        tracker.bindIntentService(mockIntentManager);
-
-        final IntentBatchLeaderEvent electedEvent = new IntentBatchLeaderEvent(
-                IntentBatchLeaderEvent.Type.ELECTED, NetTestTools.APP_ID);
-        leaderListener.event(electedEvent);
-        assertThat(intentsByLink.size(), is(1));
-
-        final IntentBatchLeaderEvent bootedEvent = new IntentBatchLeaderEvent(
-                IntentBatchLeaderEvent.Type.BOOTED, NetTestTools.APP_ID);
-        leaderListener.event(bootedEvent);
-        assertThat(intentsByLink.size(), is(0));
-
-        tracker.unbindIntentService(mockIntentManager);
-    }
 }
