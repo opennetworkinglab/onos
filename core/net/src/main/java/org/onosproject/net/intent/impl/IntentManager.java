@@ -33,9 +33,9 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
-import org.onosproject.net.intent.IntentBatchService;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -49,11 +49,11 @@ import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
-import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -72,8 +72,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onosproject.net.intent.IntentState.*;
 import static org.onlab.util.Tools.namedThreads;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -110,9 +110,6 @@ public class IntentManager
     protected IntentStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentBatchService batchService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ObjectiveTrackerService trackerService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -129,13 +126,12 @@ public class IntentManager
     private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
     private IdGenerator idGenerator;
 
-    private final IntentAccumulator accumulator = new IntentAccumulator();
+    private final IntentAccumulator accumulator = new IntentAccumulator(batchDelegate);
 
     @Activate
     public void activate() {
         store.setDelegate(delegate);
         trackerService.setDelegate(topoDelegate);
-        batchService.setDelegate(batchDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
         executor = newFixedThreadPool(NUM_THREADS, namedThreads("onos-intent-%d"));
         idGenerator = coreService.getIdGenerator("intent-ids");
@@ -147,7 +143,6 @@ public class IntentManager
     public void deactivate() {
         store.unsetDelegate(delegate);
         trackerService.unsetDelegate(topoDelegate);
-        batchService.unsetDelegate(batchDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
         executor.shutdown();
         Intent.unbindIdGenerator(idGenerator);
@@ -435,11 +430,12 @@ public class IntentManager
             }
         }
 
-        for (ApplicationId appId : batches.keySet()) {
-            if (batchService.isLocalLeader(appId)) {
-                execute(batches.get(appId).build());
-            }
-        }
+        //FIXME
+//        for (ApplicationId appId : batches.keySet()) {
+//            if (batchService.isLocalLeader(appId)) {
+//                execute(batches.get(appId).build());
+//            }
+//        }
     }
 
     // Topology change delegate
@@ -452,48 +448,21 @@ public class IntentManager
     }
 
     // TODO: simplify the branching statements
-    private IntentUpdate createIntentUpdate(IntentOperation operation) {
-        switch (operation.type()) {
-            case SUBMIT:
-                return new InstallRequest(operation.intent());
-            case WITHDRAW: {
-                Intent oldIntent = store.getIntent(operation.intentId());
-                if (oldIntent == null) {
-                    return new DoNothing();
-                }
-                List<Intent> installables = store.getInstallableIntents(oldIntent.id());
-                if (installables == null) {
-                    return new WithdrawStateChange1(oldIntent);
-                }
-                return new WithdrawRequest(oldIntent, installables);
-            }
-            case REPLACE: {
-                Intent newIntent = operation.intent();
-                Intent oldIntent = store.getIntent(operation.intentId());
-                if (oldIntent == null) {
-                    return new InstallRequest(newIntent);
-                }
-                List<Intent> installables = store.getInstallableIntents(oldIntent.id());
-                if (installables == null) {
-                    if (newIntent.equals(oldIntent)) {
-                        return new InstallRequest(newIntent);
-                    } else {
-                        return new WithdrawStateChange2(oldIntent);
-                    }
-                }
-                return new ReplaceRequest(newIntent, oldIntent, installables);
-            }
-            case UPDATE: {
-                Intent oldIntent = store.getIntent(operation.intentId());
-                if (oldIntent == null) {
-                    return new DoNothing();
-                }
-                List<Intent> installables = getInstallableIntents(oldIntent.id());
-                if (installables == null) {
-                    return new InstallRequest(oldIntent);
-                }
-                return new ReplaceRequest(oldIntent, oldIntent, installables);
-            }
+    private IntentUpdate createIntentUpdate(IntentData intentData) {
+        IntentData currentState = store.getIntentData(intentData.key());
+        switch (intentData.state()) {
+            case INSTALL_REQ:
+                return new InstallRequest(intentData.intent(), currentState);
+            case WITHDRAW_REQ:
+                return new WithdrawRequest(intentData.intent(), currentState);
+            // fallthrough
+            case COMPILING:
+            case INSTALLING:
+            case INSTALLED:
+            case RECOMPILING:
+            case WITHDRAWING:
+            case WITHDRAWN:
+            case FAILED:
             default:
                 // illegal state
                 return new DoNothing();
@@ -504,9 +473,11 @@ public class IntentManager
     private class InstallRequest implements IntentUpdate {
 
         private final Intent intent;
+        private final IntentData currentState;
 
-        InstallRequest(Intent intent) {
+        InstallRequest(Intent intent, IntentData currentState) {
             this.intent = checkNotNull(intent);
+            this.currentState = currentState;
         }
 
         @Override
@@ -518,18 +489,18 @@ public class IntentManager
 
         @Override
         public Optional<IntentUpdate> execute() {
-            return Optional.of(new Compiling(intent));
+            return Optional.of(new Compiling(intent)); //FIXME
         }
     }
 
     private class WithdrawRequest implements IntentUpdate {
 
         private final Intent intent;
-        private final List<Intent> installables;
+        private final IntentData currentState;
 
-        WithdrawRequest(Intent intent, List<Intent> installables) {
+        WithdrawRequest(Intent intent, IntentData currentState) {
             this.intent = checkNotNull(intent);
-            this.installables = ImmutableList.copyOf(checkNotNull(installables));
+            this.currentState = currentState;
         }
 
         @Override
@@ -539,7 +510,7 @@ public class IntentManager
 
         @Override
         public Optional<IntentUpdate> execute() {
-            return Optional.of(new Withdrawing(intent, installables));
+            return Optional.of(new Withdrawing(intent, currentState.installables())); //FIXME
         }
     }
 
@@ -1052,24 +1023,24 @@ public class IntentManager
         private static final int TIMEOUT_PER_OP = 500; // ms
         protected static final int MAX_ATTEMPTS = 3;
 
-        protected final IntentOperations ops;
+        protected final Collection<IntentData> ops;
 
         // future holding current FlowRuleBatch installation result
         protected final long startTime = System.currentTimeMillis();
         protected final long endTime;
 
-        private IntentBatchPreprocess(IntentOperations ops, long endTime) {
+        private IntentBatchPreprocess(Collection<IntentData> ops, long endTime) {
             this.ops = checkNotNull(ops);
             this.endTime = endTime;
         }
 
-        public IntentBatchPreprocess(IntentOperations ops) {
-            this(ops, System.currentTimeMillis() + ops.operations().size() * TIMEOUT_PER_OP);
+        public IntentBatchPreprocess(Collection<IntentData> ops) {
+            this(ops, System.currentTimeMillis() + ops.size() * TIMEOUT_PER_OP);
         }
 
         // FIXME compute reasonable timeouts
         protected long calculateTimeoutLimit() {
-            return System.currentTimeMillis() + ops.operations().size() * TIMEOUT_PER_OP;
+            return System.currentTimeMillis() + ops.size() * TIMEOUT_PER_OP;
         }
 
         @Override
@@ -1099,12 +1070,13 @@ public class IntentManager
                 // the batch has failed
                 // TODO: maybe we should do more?
                 log.error("Walk the plank, matey...");
-                batchService.removeIntentOperations(ops);
+                //FIXME
+//            batchService.removeIntentOperations(ops);
             }
         }
 
         private List<IntentUpdate> createIntentUpdates() {
-            return ops.operations().stream()
+            return ops.stream()
                     .map(IntentManager.this::createIntentUpdate)
                     .collect(Collectors.toList());
         }
@@ -1143,7 +1115,7 @@ public class IntentManager
         protected final int installAttempt;
         protected Future<CompletedBatchOperation> future;
 
-        IntentBatchApplyFirst(IntentOperations operations, List<CompletedIntentUpdate> intentUpdates,
+        IntentBatchApplyFirst(Collection<IntentData> operations, List<CompletedIntentUpdate> intentUpdates,
                               long endTime, int installAttempt, Future<CompletedBatchOperation> future) {
             super(operations, endTime);
             this.intentUpdates = ImmutableList.copyOf(intentUpdates);
@@ -1202,14 +1174,15 @@ public class IntentManager
             // TODO: maybe we should do more?
             log.error("Walk the plank, matey...");
             future = null;
-            batchService.removeIntentOperations(ops);
+            //FIXME
+//            batchService.removeIntentOperations(ops);
         }
     }
 
     // TODO: better naming
     private class IntentBatchProcessFutures extends IntentBatchApplyFirst {
 
-        IntentBatchProcessFutures(IntentOperations operations, List<CompletedIntentUpdate> intentUpdates,
+        IntentBatchProcessFutures(Collection<IntentData> operations, List<CompletedIntentUpdate> intentUpdates,
                                   long endTime, int installAttempt, Future<CompletedBatchOperation> future) {
             super(operations, intentUpdates, endTime, installAttempt, future);
         }
@@ -1228,7 +1201,9 @@ public class IntentManager
                 Future<CompletedBatchOperation> future = processFutures();
                 if (future == null) {
                     // there are no outstanding batches; we are done
-                    batchService.removeIntentOperations(ops);
+                    //FIXME
+                    return; //?
+//                    batchService.removeIntentOperations(ops);
                 } else if (System.currentTimeMillis() > endTime) {
                     // - cancel current FlowRuleBatch and resubmit again
                     retry();
@@ -1317,17 +1292,10 @@ public class IntentManager
 
     private class InternalBatchDelegate implements IntentBatchDelegate {
         @Override
-        public void execute(IntentOperations operations) {
-            log.info("Execute {} operation(s).", operations.operations().size());
-            log.debug("Execute operations: {}", operations.operations());
-            //FIXME: perhaps we want to track this task so that we can cancel it.
+        public void execute(Collection<IntentData> operations) {
+            log.info("Execute {} operation(s).", operations.size());
+            log.debug("Execute operations: {}", operations);
             executor.execute(new IntentBatchPreprocess(operations));
-        }
-
-        @Override
-        public void cancel(IntentOperations operations) {
-            //FIXME: implement this
-            log.warn("NOT IMPLEMENTED -- Cancel operations: {}", operations);
         }
     }
 }

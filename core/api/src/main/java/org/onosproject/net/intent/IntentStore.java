@@ -45,6 +45,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param intentId intent identification
      * @return intent or null if not found
      */
+    @Deprecated
     Intent getIntent(IntentId intentId);
 
     /**
@@ -53,6 +54,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param intentId intent identification
      * @return current intent state
      */
+    @Deprecated
     IntentState getIntentState(IntentId intentId);
 
     /**
@@ -62,6 +64,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param intentId original intent identifier
      * @return compiled installable intents
      */
+    @Deprecated
     List<Intent> getInstallableIntents(IntentId intentId);
 
     /**
@@ -72,6 +75,26 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return failed operations
      */
     List<Operation> batchWrite(BatchWrite batch);
+
+    /**
+     * Returns the intent with the specified identifier.
+     *
+     * @param key key
+     * @return intent or null if not found
+     */
+    default Intent getIntent(String key) { //FIXME remove when impl.
+        return null;
+    }
+
+    /**
+     * Returns the intent data object associated with the specified key.
+     *
+     * @param key key to look up
+     * @return intent data object
+     */
+    default IntentData getIntentData(String key) { //FIXME remove when impl.
+        return null;
+    }
 
     /**
      * Adds a new operation, which should be persisted and delegated.

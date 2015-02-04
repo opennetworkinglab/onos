@@ -15,10 +15,11 @@
  */
 package org.onosproject.net.intent;
 
+import java.util.Collection;
+
 /**
  * Facade for receiving notifications from the intent batch service.
  */
-@Deprecated
 public interface IntentBatchDelegate {
 
     /**
@@ -26,12 +27,6 @@ public interface IntentBatchDelegate {
      *
      * @param operations batch of operations
      */
-    void execute(IntentOperations operations);
+    void execute(Collection<IntentData> operations);
 
-    /**
-     * Cancesl the specified batch of intent operations.
-     *
-     * @param operations batch of operations to be cancelled
-     */
-    void cancel(IntentOperations operations);
 }

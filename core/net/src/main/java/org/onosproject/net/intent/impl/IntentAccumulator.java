@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.Maps;
 import org.onlab.util.AbstractAccumulator;
+import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentData;
 
 import java.util.List;
@@ -37,16 +38,20 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
     private static final Timer TIMER = new Timer("intent-op-batching");
 
+    private final IntentBatchDelegate delegate;
+
     /**
      * Creates an intent operation accumulator.
      */
-    protected IntentAccumulator() {
+    protected IntentAccumulator(IntentBatchDelegate delegate) {
         super(TIMER, DEFAULT_MAX_EVENTS, DEFAULT_MAX_BATCH_MS, DEFAULT_MAX_IDLE_MS);
+        this.delegate = delegate;
     }
 
     @Override
     public void processEvents(List<IntentData> ops) {
         Map<String, IntentData> opMap = reduce(ops);
+        delegate.execute(opMap.values());
         // FIXME kick off the work
         //for (IntentData data : opMap.values()) {}
     }
