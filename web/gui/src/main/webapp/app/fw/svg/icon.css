@@ -70,3 +70,7 @@ svg.embeddedIcon .icon rect {
 .dark svg.embeddedIcon .icon rect {
     stroke: #ccc;
 }
+
+svg .svgIcon {
+    fill-rule: evenodd;
+}

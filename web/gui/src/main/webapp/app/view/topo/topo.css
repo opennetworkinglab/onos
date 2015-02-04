@@ -245,3 +245,94 @@
     /* TODO: add blue glow */
     /*filter: url(#blue-glow);*/
 }
+
+
+/* --- Topo Nodes --- */
+
+#ov-topo svg .node {
+    cursor: pointer;
+}
+
+#ov-topo svg .node.selected rect,
+#ov-topo svg .node.selected circle {
+    fill: #f90;
+    /* TODO: add blue glow filter */
+    /*filter: url(#blue-glow);*/
+}
+
+#ov-topo svg .node text {
+    pointer-events: none;
+}
+
+/* Device Nodes */
+
+#ov-topo svg .node.device {
+}
+
+#ov-topo svg .node.device rect {
+    stroke-width: 1.5;
+}
+
+#ov-topo svg .node.device.fixed rect {
+    stroke-width: 1.5;
+    stroke: #ccc;
+}
+
+/* note: device is offline without the 'online' class */
+#ov-topo svg .node.device {
+    fill: #777;
+}
+
+#ov-topo svg .node.device.online {
+    fill: #6e7fa3;
+}
+
+/* note: device is offline without the 'online' class */
+#ov-topo svg .node.device text {
+    fill: #bbb;
+    font: 10pt sans-serif;
+}
+
+#ov-topo svg .node.device.online text {
+    fill: white;
+}
+
+#ov-topo svg .node.device .svgIcon rect {
+    fill: #aaa;
+}
+#ov-topo svg .node.device .svgIcon use {
+    fill: #777;
+}
+#ov-topo svg .node.device.selected .svgIcon rect {
+    fill: #f90;
+}
+#ov-topo svg .node.device.online .svgIcon rect {
+    fill: #ccc;
+}
+#ov-topo svg .node.device.online .svgIcon use {
+    fill: #000;
+}
+#ov-topo svg .node.device.online.selected .svgIcon rect {
+    fill: #f90;
+}
+
+
+/* Host Nodes */
+
+#ov-topo svg .node.host {
+    stroke: #000;
+}
+
+#ov-topo svg .node.host text {
+    fill: #846;
+    stroke: none;
+    font: 9pt sans-serif;
+}
+
+svg .node.host circle {
+    stroke: #000;
+    fill: #edb;
+}
+
+
+

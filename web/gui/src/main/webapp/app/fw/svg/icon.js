@@ -26,15 +26,17 @@
         cornerSize = vboxSize / 10,
         viewBox = '0 0 ' + vboxSize + ' ' + vboxSize;
 
-    // maps icon id to the glyph id it uses.
-    // note: icon id maps to a CSS class for styling that icon
+    // Maps icon ID to the glyph ID it uses.
+    // NOTE: icon ID maps to a CSS class for styling that icon
     var glyphMapping = {
-            deviceOnline: 'checkMark',
-            deviceOffline: 'xMark',
-            tableColSortAsc: 'triangleUp',
-            tableColSortDesc: 'triangleDown',
-            tableColSortNone: '-'
-        };
+        deviceOnline: 'checkMark',
+        deviceOffline: 'xMark',
+        tableColSortAsc: 'triangleUp',
+        tableColSortDesc: 'triangleDown',
+        tableColSortNone: '-'
+    };
+
+
 
     function ensureIconLibDefs() {
         var body = d3.select('body'),
@@ -48,6 +50,108 @@
         return svg.select('defs');
     }
 
+    // div is a D3 selection of the <DIV> element into which icon should load
+    // iconCls is the CSS class used to identify the icon
+    // size is dimension of icon in pixels. Defaults to 20.
+    // installGlyph, if truthy, will cause the glyph to be added to
+    //      well-known defs element. Defaults to false.
+    // svgClass is the CSS class used to identify the SVG layer.
+    //      Defaults to 'embeddedIcon'.
+    function loadIcon(div, iconCls, size, installGlyph, svgClass) {
+        var dim = size || 20,
+            svgCls = svgClass || 'embeddedIcon',
+            gid = glyphMapping[iconCls] || 'unknown',
+            svg, g;
+
+        if (installGlyph) {
+            gs.loadDefs(ensureIconLibDefs(), [gid], true);
+        }
+
+        svg = div.append('svg').attr({
+            'class': svgCls,
+            width: dim,
+            height: dim,
+            viewBox: viewBox
+        });
+
+        g = svg.append('g').attr({
+            'class': 'icon ' + iconCls
+        });
+
+        g.append('rect').attr({
+            width: vboxSize,
+            height: vboxSize,
+            rx: cornerSize
+        });
+
+        if (gid !== '-') {
+            g.append('use').attr({
+                width: vboxSize,
+                height: vboxSize,
+                'class': 'glyph',
+                'xlink:href': '#' + gid
+            });
+        }
+    }
+
+    function loadEmbeddedIcon(div, iconCls, size) {
+        loadIcon(div, iconCls, size, true);
+    }
+
+
+    // configuration for device and host icons in the topology view
+    var config = {
+        device: {
+            dim: 36,
+            rx: 4
+        },
+        host: {
+            radius: {
+                noGlyph: 9,
+                withGlyph: 14
+            },
+            glyphed: {
+                endstation: 1,
+                bgpSpeaker: 1,
+                router: 1
+            }
+        }
+    };
+
+
+    // Adds a device icon to the specified element, using the given glyph.
+    // Returns the D3 selection of the icon.
+    function addDeviceIcon(elem, glyphId) {
+        var cfg = config.device,
+            g = elem.append('g')
+                .attr('class', 'svgIcon deviceIcon');
+
+        g.append('rect').attr({
+            x: 0,
+            y: 0,
+            rx: cfg.rx,
+            width: cfg.dim,
+            height: cfg.dim
+        });
+
+        g.append('use').attr({
+            'xlink:href': '#' + glyphId,
+            width: cfg.dim,
+            height: cfg.dim
+        });
+
+        g.dim = cfg.dim;
+        return g;
+    }
+
+    function addHostIcon(elem, glyphId) {
+        // TODO:
+    }
+
+
+    // =========================
+    // === DEFINE THE MODULE
+
     angular.module('onosSvg')
         .factory('IconService', ['$log', 'FnService', 'GlyphService',
         function (_$log_, _fs_, _gs_) {
@@ -55,57 +159,12 @@
             fs = _fs_;
             gs = _gs_;
 
-            // div is a D3 selection of the <DIV> element into which icon should load
-            // iconCls is the CSS class used to identify the icon
-            // size is dimension of icon in pixels. Defaults to 20.
-            // installGlyph, if truthy, will cause the glyph to be added to
-            //      well-known defs element. Defaults to false.
-            // svgClass is the CSS class used to identify the SVG layer.
-            //      Defaults to 'embeddedIcon'.
-            function loadIcon(div, iconCls, size, installGlyph, svgClass) {
-                var dim = size || 20,
-                    svgCls = svgClass || 'embeddedIcon',
-                    gid = glyphMapping[iconCls] || 'unknown',
-                    svg, g;
-
-                if (installGlyph) {
-                    gs.loadDefs(ensureIconLibDefs(), [gid], true);
-                }
-
-                svg = div.append('svg').attr({
-                        'class': svgCls,
-                        width: dim,
-                        height: dim,
-                        viewBox: viewBox
-                    });
-
-                g = svg.append('g').attr({
-                    'class': 'icon ' + iconCls
-                });
-
-                g.append('rect').attr({
-                    width: vboxSize,
-                    height: vboxSize,
-                    rx: cornerSize
-                });
-
-                if (gid !== '-') {
-                    g.append('use').attr({
-                        width: vboxSize,
-                        height: vboxSize,
-                        'class': 'glyph',
-                        'xlink:href': '#' + gid
-                    });
-                }
-            }
-
-            function loadEmbeddedIcon(div, iconCls, size) {
-                loadIcon(div, iconCls, size, true);
-            }
-
             return {
                 loadIcon: loadIcon,
-                loadEmbeddedIcon: loadEmbeddedIcon
+                loadEmbeddedIcon: loadEmbeddedIcon,
+                addDeviceIcon: addDeviceIcon,
+                addHostIcon: addHostIcon,
+                iconConfig: function () { return config; }
             };
         }]);
 

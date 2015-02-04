@@ -240,13 +240,18 @@
                 el.style('visibility', (b ? 'visible' : 'hidden'));
             }
 
+            function safeId(s) {
+                return s.replace(/[^a-z0-9]/gi, '-');
+            }
+
             return {
                 createDragBehavior: createDragBehavior,
                 loadGlow: loadGlow,
                 cat7: cat7,
                 translate: translate,
                 stripPx: stripPx,
-                makeVisible: makeVisible
+                makeVisible: makeVisible,
+                safeId: safeId
             };
         }]);
 }());

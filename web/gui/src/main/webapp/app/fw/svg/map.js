@@ -22,44 +22,52 @@
     The Map Service provides a simple API for loading geographical maps into
     an SVG layer. For example, as a background to the Topology View.
 
-    e.g.  var ok = MapService.loadMapInto(svgLayer, '*continental-us');
+    e.g.  var promise = MapService.loadMapInto(svgLayer, '*continental-us');
 
     The Map Service makes use of the GeoDataService to load the required data
     from the server and to create the appropriate geographical projection.
 
+    A promise is returned to the caller, which is resolved with the
+    map projection once created.
 */
 
 (function () {
     'use strict';
 
     // injected references
-    var $log, fs, gds;
+    var $log, $q, fs, gds;
+
+    function loadMapInto(mapLayer, id, opts) {
+        var promise = gds.fetchTopoData(id),
+            deferredProjection = $q.defer();
+
+        if (!promise) {
+            $log.warn('Failed to load map: ' + id);
+            return false;
+        }
+
+        promise.then(function () {
+            var gen = gds.createPathGenerator(promise.topodata, opts);
+
+            deferredProjection.resolve(gen.settings.projection);
+
+            mapLayer.selectAll('path')
+                .data(gen.geodata.features)
+                .enter()
+                .append('path')
+                .attr('d', gen.pathgen);
+        });
+        return deferredProjection.promise;
+    }
+
 
     angular.module('onosSvg')
-        .factory('MapService', ['$log', 'FnService', 'GeoDataService',
-        function (_$log_, _fs_, _gds_) {
+        .factory('MapService', ['$log', '$q', 'FnService', 'GeoDataService',
+        function (_$log_, _$q_, _fs_, _gds_) {
             $log = _$log_;
+            $q = _$q_;
             fs = _fs_;
             gds = _gds_;
-
-            function loadMapInto(mapLayer, id, opts) {
-                var promise = gds.fetchTopoData(id);
-                if (!promise) {
-                    $log.warn('Failed to load map: ' + id);
-                    return false;
-                }
-
-                promise.then(function () {
-                    var gen = gds.createPathGenerator(promise.topodata, opts);
-
-                    mapLayer.selectAll('path')
-                        .data(gen.geodata.features)
-                        .enter()
-                        .append('path')
-                        .attr('d', gen.pathgen);
-                });
-                return true;
-            }
 
             return {
                 loadMapInto: loadMapInto

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, wes, tps, tis;
+    var $log, wss, wes, tps, tis, tfs;
 
     // internal state
     var wsock;
@@ -32,7 +32,9 @@
         showSummary: showSummary,
         addInstance: addInstance,
         updateInstance: updateInstance,
-        removeInstance: removeInstance
+        removeInstance: removeInstance,
+        addDevice: addDevice,
+        updateDevice: updateDevice
         // TODO: implement remaining handlers..
 
     };
@@ -61,6 +63,16 @@
     function removeInstance(ev) {
         $log.debug('  **** Remove Instance **** ', ev.payload);
         tis.removeInstance(ev.payload);
+    }
+
+    function addDevice(ev) {
+        $log.debug('  **** Add Device **** ', ev.payload);
+        tfs.addDevice(ev.payload);
+    }
+
+    function updateDevice(ev) {
+        $log.debug('  **** Update Device **** ', ev.payload);
+        tfs.updateDevice(ev.payload);
     }
 
     // ==========================
@@ -100,14 +112,15 @@
     angular.module('ovTopo')
     .factory('TopoEventService',
         ['$log', '$location', 'WebSocketService', 'WsEventService',
-            'TopoPanelService', 'TopoInstService',
+            'TopoPanelService', 'TopoInstService', 'TopoForceService',
 
-        function (_$log_, $loc, _wss_, _wes_, _tps_, _tis_) {
+        function (_$log_, $loc, _wss_, _wes_, _tps_, _tis_, _tfs_) {
             $log = _$log_;
             wss = _wss_;
             wes = _wes_;
             tps = _tps_;
             tis = _tis_;
+            tfs = _tfs_;
 
             function bindDispatcher(TopoDomElementsPassedHere) {
                 // TODO: store refs to topo DOM elements...

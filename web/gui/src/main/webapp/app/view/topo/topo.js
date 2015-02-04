@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, tfs;
+    var $log, fs, ks, zs, gs, ms, sus, tfs, tis;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -41,20 +41,61 @@
     // --- Short Cut Keys ------------------------------------------------
 
     var keyBindings = {
-        W: [logWarning, '(temp) log a warning'],
-        E: [logError, '(temp) log an error'],
-        R: [resetZoom, 'Reset pan / zoom']
+        //O: [toggleSummary, 'Toggle ONOS summary pane'],
+        I: [toggleInstances, 'Toggle ONOS instances pane'],
+        //D: [toggleDetails, 'Disable / enable details pane'],
+
+        //H: [toggleHosts, 'Toggle host visibility'],
+        //M: [toggleOffline, 'Toggle offline visibility'],
+        //B: [toggleBg, 'Toggle background image'],
+        //P: togglePorts,
+
+        //X: [toggleNodeLock, 'Lock / unlock node positions'],
+        //Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
+        L: [cycleLabels, 'Cycle device labels'],
+        //U: [unpin, 'Unpin node (hover mouse over)'],
+        R: [resetZoom, 'Reset pan / zoom'],
+
+        //V: [showRelatedIntentsAction, 'Show all related intents'],
+        //rightArrow: [showNextIntentAction, 'Show next related intent'],
+        //leftArrow: [showPrevIntentAction, 'Show previous related intent'],
+        //W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
+        //A: [showAllTrafficAction, 'Monitor all traffic'],
+        //F: [showDeviceLinkFlowsAction, 'Show device link flows'],
+
+        //E: [equalizeMasters, 'Equalize mastership roles'],
+
+        //esc: handleEscape,
+
+        _helpFormat: [
+            ['O', 'I', 'D', '-', 'H', 'M', 'B', 'P' ],
+            ['X', 'Z', 'L', 'U', 'R' ],
+            ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
+        ]
+
     };
 
-    // -----------------
-    // these functions are necessarily temporary examples....
-    function logWarning() {
-        $log.warn('You have been warned!');
+    // mouse gestures
+    var gestures = [
+        ['click', 'Select the item and show details'],
+        ['shift-click', 'Toggle selection state'],
+        ['drag', 'Reposition (and pin) device / host'],
+        ['cmd-scroll', 'Zoom in / out'],
+        ['cmd-drag', 'Pan']
+    ];
+
+    function toggleInstances() {
+        if (tis.isVisible()) {
+            tis.hide();
+        } else {
+            tis.show();
+        }
+        tfs.updateDeviceColors();
     }
-    function logError() {
-        $log.error('You are erroneous!');
+
+    function cycleLabels() {
+        $log.debug('Cycle Labels.....');
     }
-    // -----------------
 
     function resetZoom() {
         zoomer.reset();
@@ -83,7 +124,6 @@
     function zoomCallback() {
         var tr = zoomer.translate(),
             sc = zoomer.scale();
-        $log.log('ZOOM: translate = ' + tr + ', scale = ' + sc);
 
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
@@ -150,16 +190,19 @@
 
     function setUpMap() {
         mapG = zoomLayer.append('g').attr('id', 'topo-map');
-        //ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
-        ms.loadMapInto(mapG, '*continental_us');
+
         //showCallibrationPoints();
+        //return ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
+
+        // returns a promise for the projection...
+        return ms.loadMapInto(mapG, '*continental_us');
     }
 
     // --- Force Layout --------------------------------------------------
 
-    function setUpForce() {
+    function setUpForce(xlink) {
         forceG = zoomLayer.append('g').attr('id', 'topo-force');
-        tfs.initForce(forceG, svg.attr('width'), svg.attr('height'));
+        tfs.initForce(forceG, xlink, svg.attr('width'), svg.attr('height'));
     }
 
     // --- Controller Definition -----------------------------------------
@@ -174,8 +217,12 @@
             'TopoInstService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _sus_, tes, _tfs_, tps, tis) {
-            var self = this;
+                  _ks_, _zs_, _gs_, _ms_, _sus_, tes, _tfs_, tps, _tis_) {
+            var self = this,
+                xlink = {
+                    showNoDevs: showNoDevs
+                };
+
             $log = _$log_;
             fs = _fs_;
             ks = _ks_;
@@ -184,6 +231,7 @@
             ms = _ms_;
             sus = _sus_;
             tfs = _tfs_;
+            tis = _tis_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -207,8 +255,8 @@
             setUpDefs();
             setUpZoom();
             setUpNoDevs();
-            setUpMap();
-            setUpForce();
+            xlink.projectionPromise = setUpMap();
+            setUpForce(xlink);
 
             tis.initInst();
             tps.initPanels();
