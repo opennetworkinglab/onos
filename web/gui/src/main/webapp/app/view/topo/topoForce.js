@@ -164,11 +164,6 @@
     }
 
 
-    function updateNodes() {
-        $log.debug('TODO updateNodes()...');
-        // TODO...
-    }
-
     function fStart() {
         $log.debug('TODO fStart()...');
         // TODO...
@@ -428,8 +423,8 @@
             s = d.el.classed('selected'),
             c = devBaseColor(d),
             a = instColor(d.master, o),
-            g, r,
-            icon = d.el.select('g.deviceIcon');
+            icon = d.el.select('g.deviceIcon'),
+            g, r;
 
         if (s) {
             g = c.glyph;
@@ -442,10 +437,8 @@
             r = c.rect;
         }
 
-        icon.select('use')
-            .style('fill', g);
-        icon.select('rect')
-            .style('fill', r);
+        icon.select('use').style('fill', g);
+        icon.select('rect').style('fill', r);
     }
 
     function instColor(id, online) {
@@ -459,17 +452,8 @@
             .data(network.nodes, function (d) { return d.id; });
 
         // operate on existing nodes...
-        node.filter('.device').each(function (d) {
-            var node = d.el;
-            node.classed('online', d.online);
-            updateDeviceLabel(d);
-            positionNode(d, true);
-        });
-
-        node.filter('.host').each(function (d) {
-            updateHostLabel(d);
-            positionNode(d, true);
-        });
+        node.filter('.device').each(deviceExisting);
+        node.filter('.host').each(hostExisting);
 
         // operate on entering nodes:
         var entering = node.enter()
@@ -486,62 +470,11 @@
             .transition()
             .attr('opacity', 1);
 
-        // augment device nodes...
-        entering.filter('.device').each(function (d) {
-            var node = d3.select(this),
-                glyphId = d.type || 'unknown',
-                label = trimLabel(deviceLabel(d)),
-                noLabel = !label,
-                box, dx, dy, icon;
+        // augment nodes...
+        entering.filter('.device').each(deviceEnter);
+        entering.filter('.host').each(hostEnter);
 
-            // provide ref to element from backing data....
-            d.el = node;
-
-            node.append('rect').attr({ rx: 5, ry: 5 });
-            node.append('text').text(label).attr('dy', '1.1em');
-            box = adjustRectToFitText(node);
-            node.select('rect').attr(box);
-
-            icon = is.addDeviceIcon(node, glyphId);
-            d.iconDim = icon.dim;
-
-            if (noLabel) {
-                dx = -icon.dim/2;
-                dy = -icon.dim/2;
-            } else {
-                box = adjustRectToFitText(node);
-                dx = box.x + iconConfig.xoff;
-                dy = box.y + iconConfig.yoff;
-            }
-
-            icon.attr('transform', sus.translate(dx, dy));
-        });
-
-        // augment host nodes...
-        entering.filter('.host').each(function (d) {
-            var node = d3.select(this),
-                cfg = config.icons.host,
-                r = cfg.radius[d.type] || cfg.defaultRadius,
-                textDy = r + 10,
-            //TODO:     iid = iconGlyphUrl(d),
-                _dummy;
-
-            // provide ref to element from backing data....
-            d.el = node;
-
-            //TODO: showHostVis(node);
-
-            node.append('circle').attr('r', r);
-            if (iid) {
-                //TODO: addHostIcon(node, r, iid);
-            }
-            node.append('text')
-                .text(hostLabel)
-                .attr('dy', textDy)
-                .attr('text-anchor', 'middle');
-        });
-
-        // operate on both existing and new nodes, if necessary
+        // operate on both existing and new nodes:
         updateDeviceColors();
 
         // operate on exiting nodes:
@@ -553,45 +486,116 @@
             .style('opacity', 0)
             .remove();
 
-        // host node exits....
-        exiting.filter('.host').each(function (d) {
-            var node = d.el;
-            node.select('use')
-                .style('opacity', 0.5)
-                .transition()
-                .duration(800)
-                .style('opacity', 0);
+        // node specific....
+        exiting.filter('.host').each(hostExit);
+        exiting.filter('.device').each(deviceExit);
 
-            node.select('text')
-                .style('opacity', 0.5)
-                .transition()
-                .duration(800)
-                .style('opacity', 0);
-
-            node.select('circle')
-                .style('stroke-fill', '#555')
-                .style('fill', '#888')
-                .style('opacity', 0.5)
-                .transition()
-                .duration(1500)
-                .attr('r', 0);
-        });
-
-        // device node exits....
-        exiting.filter('.device').each(function (d) {
-            var node = d.el;
-            node.select('use')
-                .style('opacity', 0.5)
-                .transition()
-                .duration(800)
-                .style('opacity', 0);
-
-            node.selectAll('rect')
-                .style('stroke-fill', '#555')
-                .style('fill', '#888')
-                .style('opacity', 0.5);
-        });
+        // finally, resume the force layout
         fResume();
+    }
+
+    // ==========================
+    // updateNodes - subfunctions
+
+    function deviceExisting(d) {
+        var node = d.el;
+        node.classed('online', d.online);
+        updateDeviceLabel(d);
+        positionNode(d, true);
+    }
+
+    function hostExisting(d) {
+        updateHostLabel(d);
+        positionNode(d, true);
+    }
+
+    function deviceEnter(d) {
+        var node = d3.select(this),
+            glyphId = d.type || 'unknown',
+            label = trimLabel(deviceLabel(d)),
+            devCfg = deviceIconConfig,
+            noLabel = !label,
+            box, dx, dy, icon;
+
+        d.el = node;
+
+        node.append('rect').attr({ rx: 5, ry: 5 });
+        node.append('text').text(label).attr('dy', '1.1em');
+        box = adjustRectToFitText(node);
+        node.select('rect').attr(box);
+
+        icon = is.addDeviceIcon(node, glyphId);
+
+        if (noLabel) {
+            dx = -icon.dim/2;
+            dy = -icon.dim/2;
+        } else {
+            box = adjustRectToFitText(node);
+            dx = box.x + devCfg.xoff;
+            dy = box.y + devCfg.yoff;
+        }
+
+        icon.attr('transform', sus.translate(dx, dy));
+    }
+
+    function hostEnter(d) {
+        var node = d3.select(this);
+
+            //cfg = config.icons.host,
+            //r = cfg.radius[d.type] || cfg.defaultRadius,
+            //textDy = r + 10,
+        //TODO:     iid = iconGlyphUrl(d),
+        //    _dummy;
+
+        d.el = node;
+
+        //TODO: showHostVis(node);
+
+        node.append('circle').attr('r', r);
+        //if (iid) {
+            //TODO: addHostIcon(node, r, iid);
+        //}
+        node.append('text')
+            .text(hostLabel)
+            //.attr('dy', textDy)
+            .attr('text-anchor', 'middle');
+    }
+
+    function hostExit(d) {
+        var node = d.el;
+        node.select('use')
+            .style('opacity', 0.5)
+            .transition()
+            .duration(800)
+            .style('opacity', 0);
+
+        node.select('text')
+            .style('opacity', 0.5)
+            .transition()
+            .duration(800)
+            .style('opacity', 0);
+
+        node.select('circle')
+            .style('stroke-fill', '#555')
+            .style('fill', '#888')
+            .style('opacity', 0.5)
+            .transition()
+            .duration(1500)
+            .attr('r', 0);
+    }
+
+    function deviceExit(d) {
+        var node = d.el;
+        node.select('use')
+            .style('opacity', 0.5)
+            .transition()
+            .duration(800)
+            .style('opacity', 0);
+
+        node.selectAll('rect')
+            .style('stroke-fill', '#555')
+            .style('fill', '#888')
+            .style('opacity', 0.5);
     }
 
 
