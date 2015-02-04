@@ -85,6 +85,9 @@ public class EventuallyConsistentMapImpl<K, V>
     private volatile boolean destroyed = false;
     private static final String ERROR_DESTROYED = " map is already destroyed";
 
+    private static final String ERROR_NULL_KEY = "Key cannot be null";
+    private static final String ERROR_NULL_VALUE = "Null values are not allowed";
+
     // TODO: Make these anti-entropy params configurable
     private long initialDelaySec = 5;
     private long periodSec = 5;
@@ -193,12 +196,14 @@ public class EventuallyConsistentMapImpl<K, V>
     @Override
     public boolean containsKey(K key) {
         checkState(!destroyed, mapName + ERROR_DESTROYED);
+        checkNotNull(key, ERROR_NULL_KEY);
         return items.containsKey(key);
     }
 
     @Override
     public boolean containsValue(V value) {
         checkState(!destroyed, mapName + ERROR_DESTROYED);
+        checkNotNull(value, ERROR_NULL_VALUE);
 
         return items.values().stream()
                 .anyMatch(timestamped -> timestamped.value().equals(value));
@@ -207,6 +212,7 @@ public class EventuallyConsistentMapImpl<K, V>
     @Override
     public V get(K key) {
         checkState(!destroyed, mapName + ERROR_DESTROYED);
+        checkNotNull(key, ERROR_NULL_KEY);
 
         Timestamped<V> value = items.get(key);
         if (value != null) {
@@ -218,6 +224,8 @@ public class EventuallyConsistentMapImpl<K, V>
     @Override
     public void put(K key, V value) {
         checkState(!destroyed, mapName + ERROR_DESTROYED);
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(value, ERROR_NULL_VALUE);
 
         Timestamp timestamp = clockService.getTimestamp(key);
         if (putInternal(key, value, timestamp)) {
@@ -250,6 +258,7 @@ public class EventuallyConsistentMapImpl<K, V>
     @Override
     public void remove(K key) {
         checkState(!destroyed, mapName + ERROR_DESTROYED);
+        checkNotNull(key, ERROR_NULL_KEY);
 
         Timestamp timestamp = clockService.getTimestamp(key);
         if (removeInternal(key, timestamp)) {
@@ -282,6 +291,10 @@ public class EventuallyConsistentMapImpl<K, V>
         for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
             K key = entry.getKey();
             V value = entry.getValue();
+
+            checkNotNull(key, ERROR_NULL_KEY);
+            checkNotNull(value, ERROR_NULL_VALUE);
+
             Timestamp timestamp = clockService.getTimestamp(entry.getKey());
 
             if (putInternal(key, value, timestamp)) {

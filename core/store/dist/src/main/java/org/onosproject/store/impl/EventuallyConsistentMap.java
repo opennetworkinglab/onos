@@ -21,19 +21,22 @@ import java.util.Set;
 
 /**
  * A distributed, eventually consistent map.
- *
+ * <p>
  * This map does not offer read after writes consistency. Operations are
  * serialized via the timestamps issued by the clock service. If two updates
  * are in conflict, the update with the more recent timestamp will endure.
- *
+ * </p><p>
  * The interface is mostly similar to {@link java.util.Map} with some minor
  * semantic changes and the addition of a listener framework (because the map
  * can be mutated by clients on other instances, not only through the local Java
  * API).
- *
+ * </p><p>
  * Clients are expected to register an
  * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if they
  * are interested in receiving notifications of update to the map.
+ * </p><p>
+ * Null values are not allowed in this map.
+ * </p>
  */
 public interface EventuallyConsistentMap<K, V> {
 
@@ -84,6 +87,8 @@ public interface EventuallyConsistentMap<K, V> {
      * Clients are expected to register an
      * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if
      * they are interested in receiving notification of updates to the map.
+     * </p><p>
+     * Null values are not allowed in the map.
      * </p>
      *
      * @param key the key to add a mapping for in this map
