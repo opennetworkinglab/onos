@@ -520,52 +520,6 @@ public class IntentManager
         }
     }
 
-    // TODO: better naming
-    private class WithdrawStateChange1 implements CompletedIntentUpdate {
-
-        private final Intent intent;
-
-        WithdrawStateChange1(Intent intent) {
-            this.intent = checkNotNull(intent);
-        }
-
-        @Override
-        public void writeBeforeExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, WITHDRAW_REQ);
-        }
-
-        @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, WITHDRAWN);
-            batchWrite.removeInstalledIntents(intent.id());
-            batchWrite.removeIntent(intent.id());
-        }
-    }
-
-    // TODO: better naming
-    private class WithdrawStateChange2 implements CompletedIntentUpdate {
-
-        private final Intent intent;
-
-        WithdrawStateChange2(Intent intent) {
-            this.intent = checkNotNull(intent);
-        }
-
-        @Override
-        public void writeBeforeExecution(BatchWrite batchWrite) {
-            // TODO consider only "creating" intent if it does not exist
-            // Note: We need to set state to INSTALL_REQ regardless.
-            batchWrite.createIntent(intent);
-        }
-
-        @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, WITHDRAWN);
-            batchWrite.removeInstalledIntents(intent.id());
-            batchWrite.removeIntent(intent.id());
-        }
-    }
-
     private class Compiling implements IntentUpdate {
 
         private final Intent intent;
