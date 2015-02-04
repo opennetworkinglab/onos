@@ -38,4 +38,5 @@ public interface Accumulator<T> {
      */
     void processEvents(List<T> events);
 
+    //TODO consider a blocking version that required consumer participation
 }

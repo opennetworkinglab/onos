@@ -82,6 +82,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      */
     @Deprecated
     List<Operation> batchWrite(BatchWrite batch);
+
     default void write(IntentData newData) {}
     default void batchWrite(Iterable<IntentData> updates) {}
 
