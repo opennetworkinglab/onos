@@ -20,7 +20,7 @@
 describe('factory: view/topo/topoForce.js', function() {
     var $log, fs, tfs;
 
-    beforeEach(module('ovTopo', 'onosUtil'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
 
     beforeEach(inject(function (_$log_, FnService, TopoForceService) {
         $log = _$log_;
@@ -34,7 +34,8 @@ describe('factory: view/topo/topoForce.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tfs, [
-            'initForce', 'resize'
+            'initForce', 'resize', 'updateDeviceColors',
+            'addDevice', 'updateDevice'
         ])).toBeTruthy();
     });
 

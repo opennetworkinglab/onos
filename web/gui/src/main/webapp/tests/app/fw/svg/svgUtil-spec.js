@@ -41,7 +41,7 @@ describe('factory: fw/svg/svgUtil.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(sus, [
             'createDragBehavior', 'loadGlow', 'cat7', 'translate', 'stripPx',
-            'makeVisible'
+            'makeVisible', 'safeId'
         ])).toBeTruthy();
     });
 

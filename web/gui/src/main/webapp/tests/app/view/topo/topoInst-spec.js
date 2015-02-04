@@ -35,7 +35,8 @@ describe('factory: view/topo/topoInst.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(tis, [
             'initInst', 'destroyInst',
-            'addInstance', 'updateInstance', 'removeInstance'
+            'addInstance', 'updateInstance', 'removeInstance',
+            'isVisible', 'show', 'hide'
         ])).toBeTruthy();
     });
 
