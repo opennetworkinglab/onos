@@ -37,6 +37,7 @@
         <module>host</module>
         <module>packet</module>
         <module>flow</module>
+        <module>group</module>
     </modules>
 
     <dependencies>

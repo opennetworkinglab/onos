@@ -149,7 +149,7 @@
         <bundle>mvn:org.onosproject/onos-of-provider-device/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-of-provider-packet/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-of-provider-flow/@ONOS-VERSION</bundle>
-
+        <bundle>mvn:org.onosproject/onos-of-provider-group/@ONOS-VERSION</bundle>
     </feature>
 
     <feature name="onos-app-tvue" version="@FEATURE-VERSION"
