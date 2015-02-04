@@ -502,28 +502,29 @@ public class IntentManager
 
         @Override
         public Optional<IntentUpdate> execute() {
-            Exception exception = null;
-
-            List<FlowRuleBatchOperation> batches = Lists.newArrayList();
-            for (Intent installable : installables) {
-                registerSubclassInstallerIfNeeded(installable);
-                trackerService.addTrackedResources(intent.id(), installable.resources());
-                try {
-                    batches.addAll(getInstaller(installable).install(installable));
-                } catch (Exception e) { // TODO this should be IntentException
-                    log.warn("Unable to install intent {} due to:", intent.id(), e);
-                    trackerService.removeTrackedResources(intent.id(), installable.resources());
-                    //TODO we failed; intent should be recompiled
-                    exception = e;
-                }
+            try {
+                List<FlowRuleBatchOperation> converted = convert(installables);
+                // TODO: call FlowRuleService API to push FlowRules and track resources,
+                // which the submitted intent will use.
+                return Optional.of(new Installed(intent, installables, converted));
+            } catch (FlowRuleBatchOperationConvertionException e) {
+                log.warn("Unable to install intent {} due to:", intent.id(), e.getCause());
+                return Optional.of(new InstallingFailed(intent, installables, e.converted()));
             }
-
-            if (exception != null) {
-                return Optional.of(new InstallingFailed(intent, installables, batches));
-            }
-
-            return Optional.of(new Installed(intent, installables, batches));
         }
+    }
+
+    private List<FlowRuleBatchOperation> convert(List<Intent> installables) {
+        List<FlowRuleBatchOperation> batches = new ArrayList<>(installables.size());
+        for (Intent installable : installables) {
+            try {
+                registerSubclassInstallerIfNeeded(installable);
+                batches.addAll(getInstaller(installable).install(installable));
+            } catch (Exception e) { // TODO this should be IntentException
+                throw new FlowRuleBatchOperationConvertionException(batches, e);
+            }
+        }
+        return batches;
     }
 
     private class Withdrawing implements IntentUpdate {
