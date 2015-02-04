@@ -15,17 +15,17 @@
  */
 package org.onosproject.event;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Timer;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.TestTools.delay;
 import static org.onosproject.event.TestEvent.Type.FOO;
-
-import java.util.List;
-import java.util.Timer;
-
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
  * Tests the operation of the accumulator.
@@ -52,7 +52,7 @@ public class AbstractEventAccumulatorTest {
         accumulator.add(new TestEvent(FOO, "d"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestEvent(FOO, "e"));
-        delay(10);
+        delay(20);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcde", accumulator.batch);
     }
