@@ -65,12 +65,13 @@ describe('factory: fw/svg/icon.js', function() {
         checkElemSize(rect, gsz);
         expect(rect.attr('rx')).toEqual('5');
 
-        var use = g.select('use');
-        expect(use.classed('glyph')).toBeTruthy();
-        expect(use.attr('xlink:href')).toEqual(useHref);
-        checkElemSize(use, gsz);
+        if (useHref) {
+            var use = g.select('use');
+            expect(use.classed('glyph')).toBeTruthy();
+            expect(use.attr('xlink:href')).toEqual(useHref);
+            checkElemSize(use, gsz);
+        }
     }
-
 
     it('should load an icon into a div', function () {
         expect(d3Elem.html()).toEqual('');
@@ -82,6 +83,24 @@ describe('factory: fw/svg/icon.js', function() {
         expect(d3Elem.html()).toEqual('');
         is.loadIcon(d3Elem, 'deviceOffline', 32);
         verifyIconStructure('deviceOffline', '#xMark', '32');
+    });
+
+    it('should verify triangleUp icon', function () {
+        expect(d3Elem.html()).toEqual('');
+        is.loadIcon(d3Elem, 'tableColSortAsc', 10);
+        verifyIconStructure('tableColSortAsc', '#triangleUp', '10');
+    });
+
+    it('should verify triangleDown icon', function () {
+        expect(d3Elem.html()).toEqual('');
+        is.loadIcon(d3Elem, 'tableColSortDesc', 10);
+        verifyIconStructure('tableColSortDesc', '#triangleDown', '10');
+    });
+
+    it('should verify no icon is displayed', function () {
+        expect(d3Elem.html()).toEqual('');
+        is.loadIcon(d3Elem, 'tableColSortNone', 10);
+        verifyIconStructure('tableColSortNone', null, '10');
     });
 
 });

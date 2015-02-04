@@ -61,10 +61,12 @@
             return {
                 restrict: 'A',
                 scope: {
-                    iconId: '@'
+                    iconId: '@',
+                    iconSize: '@'
                 },
                 link: function (scope, element, attrs) {
-                    is.loadEmbeddedIcon(d3.select(element[0]), scope.iconId);
+                    is.loadEmbeddedIcon(d3.select(element[0]),
+                                        scope.iconId, scope.iconSize);
                 }
             };
 

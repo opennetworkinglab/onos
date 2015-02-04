@@ -23,20 +23,50 @@ svg#IconLibDefs {
 }
 
 svg.embeddedIcon .icon .glyph {
- stroke: none;
- fill: white;
- fill-rule: evenodd;
+    stroke: none;
+    fill: white;
+    fill-rule: evenodd;
 }
 
-svg.embeddedIcon .icon.deviceOnline {
- fill: green;
+div.inline-icon {
+    display: inline-block;
 }
 
-svg.embeddedIcon .icon.deviceOffline {
- fill: darkred;
+.light svg.embeddedIcon .icon.deviceOnline {
+    fill: green;
+}
+.light svg.embeddedIcon .icon.deviceOffline {
+    fill: darkred;
 }
 
+.dark svg.embeddedIcon .icon.deviceOnline,
+.dark svg.embeddedIcon .icon.deviceOffline {
+    fill: #ccc;
+}
+.dark svg.embeddedIcon .icon.deviceOnline .glyph {
+    fill: green;
+}
+.dark svg.embeddedIcon .icon.deviceOffline .glyph {
+    fill: darkred;
+}
+
+.light svg.embeddedIcon .icon.tableColSortAsc .glyph,
+.light svg.embeddedIcon .icon.tableColSortDesc .glyph {
+    fill: black;
+}
+.dark svg.embeddedIcon .icon.tableColSortAsc .glyph,
+.dark svg.embeddedIcon .icon.tableColSortDesc .glyph {
+    fill: #ccc;
+}
+
+svg.embeddedIcon .icon.tableColSortAsc rect {
+    stroke: none;
+    fill: none;
+}
 svg.embeddedIcon .icon rect {
- stroke: black;
- stroke-width: 1px;
+    stroke: black;
+    stroke-width: 1px;
+}
+.dark svg.embeddedIcon .icon rect {
+    stroke: #ccc;
 }

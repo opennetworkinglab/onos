@@ -89,12 +89,14 @@
                     rx: cornerSize
                 });
 
-                g.append('use').attr({
-                    width: vboxSize,
-                    height: vboxSize,
-                    'class': 'glyph',
-                    'xlink:href': '#' + gid
-                });
+                if (gid !== '-') {
+                    g.append('use').attr({
+                        width: vboxSize,
+                        height: vboxSize,
+                        'class': 'glyph',
+                        'xlink:href': '#' + gid
+                    });
+                }
             }
 
             function loadEmbeddedIcon(div, iconCls, size) {
