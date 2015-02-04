@@ -496,9 +496,6 @@ public class IntentManager
         @Override
         public Optional<IntentUpdate> execute() {
             try {
-                // Compile the intent into installable derivatives.
-                // If all went well, associate the resulting list of installable
-                // intents with the top-level intent and proceed to install.
                 return Optional.of(new Installing(intent, compileIntent(intent, null)));
             } catch (PathNotFoundException e) {
                 log.debug("Path not found for intent {}", intent);
@@ -613,8 +610,6 @@ public class IntentManager
 
         @Override
         public void batchFailed() {
-            // the current batch has failed, so recompile
-            // remove the current batch and all remaining
             for (int i = batches.size() - 1; i >= currentBatch; i--) {
                 batches.remove(i);
             }
@@ -663,8 +658,6 @@ public class IntentManager
 
         @Override
         public void batchFailed() {
-            // the current batch has failed, so recompile
-            // remove the current batch and all remaining
             for (int i = batches.size() - 1; i >= currentBatch; i--) {
                 batches.remove(i);
             }
@@ -708,8 +701,6 @@ public class IntentManager
 
         @Override
         public void batchFailed() {
-            // the current batch has failed, so recompile
-            // remove the current batch and all remaining
             for (int i = batches.size() - 1; i >= currentBatch; i--) {
                 batches.remove(i);
             }
@@ -748,14 +739,6 @@ public class IntentManager
         @Override
         public void run() {
             try {
-                // this should only be called on the first iteration
-                // note: this a "expensive", so it is not done in the constructor
-
-                // - creates per Intent installation context (IntentUpdate)
-                // - write Intents to store
-                // - process (compile, install, etc.) each Intents
-                // - generate FlowRuleBatch for this phase
-                // build IntentUpdates
                 List<IntentUpdate> updates = createIntentUpdates();
 
                 // Write batch information
@@ -768,7 +751,6 @@ public class IntentManager
                 // FIXME incomplete Intents should be cleaned up
                 //       (transition to FAILED, etc.)
 
-                // TODO: remove duplicate due to inlining
                 // the batch has failed
                 // TODO: maybe we should do more?
                 log.error("Walk the plank, matey...");
@@ -892,14 +874,6 @@ public class IntentManager
         @Override
         public void run() {
             try {
-                // - peek if current FlowRuleBatch is complete
-                // -- If complete OK:
-                //       step each IntentUpdate forward
-                //           If phase left: generate next FlowRuleBatch
-                //           If no more phase: write parking states
-                // -- If complete FAIL:
-                //       Intent which failed: transition Intent to FAILED
-                //       Other Intents: resubmit same FlowRuleBatch for this phase
                 Future<CompletedBatchOperation> future = processFutures();
                 if (future == null) {
                     // there are no outstanding batches; we are done
@@ -978,15 +952,11 @@ public class IntentManager
                 } else if (attempts > MAX_ATTEMPTS) {
                     abandonShip();
                     return;
-                } // else just resubmit the work
+                }
                 Future<CompletedBatchOperation> future = applyNextBatch(intentUpdates);
                 executor.submit(new IntentBatchProcessFutures(ops, intentUpdates, timeLimit, attempts, future));
             } else {
                 log.error("Cancelling FlowRuleBatch failed.");
-                // FIXME
-                // cancel failed... batch is broken; shouldn't happen!
-                // we could manually reverse everything
-                // ... or just core dump and send email to Ali
                 abandonShip();
             }
         }
