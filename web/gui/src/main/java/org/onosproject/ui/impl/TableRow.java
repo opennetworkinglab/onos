@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.gui;
+package org.onosproject.ui.impl;
 
 
 import com.fasterxml.jackson.databind.node.ObjectNode;

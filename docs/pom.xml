@@ -93,7 +93,7 @@
                         <group>
                             <title>GUI, REST &amp; Command-Line</title>
                             <packages>
-                                org.onosproject.gui:org.onosproject.rest:org.onosproject.cli:org.onosproject.gui.*:org.onosproject.rest.*:org.onosproject.cli.*:org.onosproject.codec.impl
+                                org.onosproject.gui:org.onosproject.rest:org.onosproject.cli:org.onosproject.ui.*:org.onosproject.rest.*:org.onosproject.cli.*:org.onosproject.codec.impl
                             </packages>
                         </group>
                         <group>

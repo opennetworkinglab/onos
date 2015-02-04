@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.gui;
+package org.onosproject.ui.impl;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;

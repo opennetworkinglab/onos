@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.gui;
+package org.onosproject.ui.impl;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;

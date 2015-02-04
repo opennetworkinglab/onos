@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="data/img/onos-logo.png">
+    <title>ONOS Angular</title>
+
+    <!-- Third party library code included here -->
+    <!--TODO: use minified versions, once debugging is complete -->
+    <script src="tp/angular.js"></script>
+    <script src="tp/angular-route.js"></script>
+
+    <script src="tp/d3.js"></script>
+    <script src="tp/topojson.v1.min.js"></script>
+
+    <!-- ONOS UI Framework included here -->
+    <!-- TODO: use a single catenated-minified file here -->
+    <script src="dyn/onos.js"></script>
+    <script src="app/directives.js"></script>
+
+    <script src="app/fw/util/util.js"></script>
+    <script src="app/fw/util/fn.js"></script>
+    <script src="app/fw/util/theme.js"></script>
+    <script src="app/fw/util/keys.js"></script>
+
+    <script src="app/fw/mast/mast.js"></script>
+    <script src="app/fw/nav/nav.js"></script>
+
+    <script src="app/fw/svg/svg.js"></script>
+    <script src="app/fw/svg/glyph.js"></script>
+    <script src="app/fw/svg/icon.js"></script>
+    <script src="app/fw/svg/geodata.js"></script>
+    <script src="app/fw/svg/map.js"></script>
+    <script src="app/fw/svg/zoom.js"></script>
+    <script src="app/fw/svg/svgUtil.js"></script>
+
+    <script src="app/fw/remote/remote.js"></script>
+    <script src="app/fw/remote/urlfn.js"></script>
+    <script src="app/fw/remote/rest.js"></script>
+    <script src="app/fw/remote/websocket.js"></script>
+    <script src="app/fw/remote/wsevent.js"></script>
+
+    <script src="app/fw/widget/widget.js"></script>
+    <script src="app/fw/widget/table.js"></script>
+
+    <script src="app/fw/layer/layer.js"></script>
+    <script src="app/fw/layer/panel.js"></script>
+
+    <!-- Framework and library stylesheets included here -->
+    <!-- TODO: use a single catenated-minified file here -->
+    <link rel="stylesheet" href="app/onos.css">
+    <link rel="stylesheet" href="app/common.css">
+    <link rel="stylesheet" href="app/fw/mast/mast.css">
+    <link rel="stylesheet" href="app/fw/svg/glyph.css">
+    <link rel="stylesheet" href="app/fw/svg/icon.css">
+    <link rel="stylesheet" href="app/fw/layer/panel.css">
+    <link rel="stylesheet" href="app/fw/nav/nav.css">
+
+    <!-- This is where contributed javascript will get injected -->
+    <!-- {INJECTED-JAVASCRIPT} -->
+
+    <!-- This is where contributed stylesheets will get injected -->
+    <!-- {INJECTED-STYLESHEETS} -->
+</head>
+<body class="light" ng-app="onosApp">
+    <div id="frame" ng-controller="OnosCtrl as onosCtrl">
+        <div id="mast"
+             ng-controller="MastCtrl as mastCtrl"
+             ng-include="'app/fw/mast/mast.html'"></div>
+
+        <div id="view" ng-view></div>
+
+        <div id="nav"
+             ng-controller="NavCtrl as navCtrl"
+             ng-include="'dyn/nav/nav.html'"></div>
+
+        <div id="floatpanels"></div>
+        <div id="alerts"></div>
+        <div id="flash"></div>
+        <div id="quickhelp"></div>
+        <div id="deathmask"></div>
+    </div>
+</body>
+</html>

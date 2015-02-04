@@ -136,6 +136,7 @@
                             com.fasterxml.jackson.databind.node,
                             com.google.common.base.*,
                             com.google.common.collect.*,
+                            com.google.common.io.*,
                             org.eclipse.jetty.websocket.*,
                             org.onlab.util.*,
                             org.onlab.osgi.*,

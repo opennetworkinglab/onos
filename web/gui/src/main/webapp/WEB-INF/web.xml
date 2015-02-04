@@ -14,8 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          id="ONOS" version="2.5">
     <display-name>ONOS GUI</display-name>
@@ -24,12 +24,78 @@
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
+    <!--
+    <servlet>
+        <servlet-name>Index Page</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-value>org.onosproject.gui.impl.MainIndexResource</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Index Page</servlet-name>
+        <url-pattern>/main.html</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Main Module</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-value>org.onosproject.gui.impl.MainExtResource</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Main Module</servlet-name>
+        <url-pattern>/dyn/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>View Module</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-value>org.onosproject.gui.impl.MainViewResource</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>View Module</servlet-name>
+        <url-pattern>/app/view/*</url-pattern>
+    </servlet-mapping>
+    -->
+
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>org.onosproject.gui</param-value>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-value>
+                org.onosproject.ui.impl.TopologyResource,
+                org.onosproject.ui.impl.DeviceGuiResource
+            </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -41,7 +107,7 @@
 
     <servlet>
         <servlet-name>Web Socket Service</servlet-name>
-        <servlet-class>org.onosproject.gui.GuiWebSocketServlet</servlet-class>
+        <servlet-class>org.onosproject.ui.impl.GuiWebSocketServlet</servlet-class>
         <load-on-startup>2</load-on-startup>
     </servlet>
 
@@ -49,6 +115,5 @@
         <servlet-name>Web Socket Service</servlet-name>
         <url-pattern>/ws/*</url-pattern>
     </servlet-mapping>
-
 
 </web-app>
