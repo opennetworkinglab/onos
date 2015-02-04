@@ -376,11 +376,10 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
      * @param tableToSend the table to send as per the GOTO_TABLE instruction it
      *        needs to be set if 'toTable' is true. Ignored of 'toTable' is
      *        false.
-     * @throws IOException
      */
     protected void populateTableMissEntry(int tableToAdd, boolean toControllerNow,
                                           boolean toControllerWrite,
-                                          boolean toTable, int tableToSend) throws IOException {
+                                          boolean toTable, int tableToSend) {
         OFOxmList oxmList = OFOxmList.EMPTY;
         OFMatchV3 match = factory.buildMatchV3()
                 .setOxmList(oxmList)
