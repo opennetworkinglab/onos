@@ -67,7 +67,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.net.intent.IntentState.FAILED;
@@ -486,40 +485,6 @@ public class IntentManager
         }
     }
 
-    private class ReplaceRequest implements IntentUpdate {
-
-        private final Intent newIntent;
-        private final Intent oldIntent;
-        private final List<Intent> oldInstallables;
-
-        ReplaceRequest(Intent newIntent, Intent oldIntent, List<Intent> oldInstallables) {
-            this.newIntent = checkNotNull(newIntent);
-            this.oldIntent = checkNotNull(oldIntent);
-            this.oldInstallables = ImmutableList.copyOf(oldInstallables);
-        }
-
-        @Override
-        public void writeBeforeExecution(BatchWrite batchWrite) {
-            // TODO consider only "creating" intent if it does not exist
-            // Note: We need to set state to INSTALL_REQ regardless.
-            batchWrite.createIntent(newIntent);
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            try {
-                List<Intent> installables = compileIntent(newIntent, oldInstallables);
-                return Optional.of(new Replacing(newIntent, oldIntent, installables, oldInstallables));
-            } catch (PathNotFoundException e) {
-                log.debug("Path not found for intent {}", newIntent);
-                return Optional.of(new Withdrawing(oldIntent, oldInstallables));
-            } catch (IntentException e) {
-                log.warn("Unable to compile intent {} due to:", newIntent.id(), e);
-                return Optional.of(new Withdrawing(oldIntent, oldInstallables));
-            }
-        }
-    }
-
     private class Compiling implements IntentUpdate {
 
         private final Intent intent;
@@ -597,66 +562,6 @@ public class IntentManager
             List<FlowRuleBatchOperation> batches = uninstallIntent(intent, installables);
 
             return Optional.of(new Withdrawn(intent, installables, batches));
-        }
-    }
-
-    private class Replacing implements IntentUpdate {
-
-        private final Intent newIntent;
-        private final Intent oldIntent;
-        private final List<Intent> newInstallables;
-        private final List<Intent> oldInstallables;
-
-        private Exception exception;
-
-        Replacing(Intent newIntent, Intent oldIntent,
-                  List<Intent> newInstallables, List<Intent> oldInstallables) {
-            this.newIntent = checkNotNull(newIntent);
-            this.oldIntent = checkNotNull(oldIntent);
-            this.newInstallables = ImmutableList.copyOf(checkNotNull(newInstallables));
-            this.oldInstallables = ImmutableList.copyOf(checkNotNull(oldInstallables));
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            List<FlowRuleBatchOperation> batches = replace();
-
-            if (exception == null) {
-                return Optional.of(
-                        new Replaced(newIntent, oldIntent, newInstallables, oldInstallables, batches));
-            }
-
-            return Optional.of(
-                    new ReplacingFailed(newIntent, oldIntent, newInstallables, oldInstallables, batches));
-        }
-
-        protected List<FlowRuleBatchOperation> replace() {
-            checkState(oldInstallables.size() == newInstallables.size(),
-                    "Old and New Intent must have equivalent installable intents.");
-
-            List<FlowRuleBatchOperation> batches = Lists.newArrayList();
-            for (int i = 0; i < oldInstallables.size(); i++) {
-                Intent oldInstallable = oldInstallables.get(i);
-                Intent newInstallable = newInstallables.get(i);
-                //FIXME revisit this
-//            if (oldInstallable.equals(newInstallable)) {
-//                continue;
-//            }
-                checkState(oldInstallable.getClass().equals(newInstallable.getClass()),
-                        "Installable Intent type mismatch.");
-                trackerService.removeTrackedResources(oldIntent.id(), oldInstallable.resources());
-                trackerService.addTrackedResources(newIntent.id(), newInstallable.resources());
-                try {
-                    batches.addAll(getInstaller(newInstallable).replace(oldInstallable, newInstallable));
-                } catch (IntentException e) {
-                    log.warn("Unable to update intent {} due to:", oldIntent.id(), e);
-                    //FIXME... we failed. need to uninstall (if same) or revert (if different)
-                    trackerService.removeTrackedResources(newIntent.id(), newInstallable.resources());
-                    exception = e;
-                    batches = uninstallIntent(oldIntent, oldInstallables);
-                }
-            }
-            return batches;
         }
     }
 
@@ -767,71 +672,6 @@ public class IntentManager
         }
     }
 
-    private class Replaced implements CompletedIntentUpdate {
-
-        private final Intent newIntent;
-        private final Intent oldIntent;
-
-        private final List<Intent> newInstallables;
-        private final List<Intent> oldInstallables;
-        private final List<FlowRuleBatchOperation> batches;
-        private int currentBatch;
-
-        Replaced(Intent newIntent, Intent oldIntent,
-                 List<Intent> newInstallables, List<Intent> oldInstallables,
-                 List<FlowRuleBatchOperation> batches) {
-            this.newIntent = checkNotNull(newIntent);
-            this.oldIntent = checkNotNull(oldIntent);
-            this.newInstallables = ImmutableList.copyOf(checkNotNull(newInstallables));
-            this.oldInstallables = ImmutableList.copyOf(checkNotNull(oldInstallables));
-            this.batches = new LinkedList<>(batches);
-            this.currentBatch = 0;
-        }
-
-        @Override
-        public List<Intent> allInstallables() {
-            LinkedList<Intent> allInstallables = new LinkedList<>();
-            allInstallables.addAll(newInstallables);
-            allInstallables.addAll(oldInstallables);
-
-            return allInstallables;
-        }
-
-        @Override
-        public void batchSuccess() {
-            currentBatch++;
-        }
-
-        @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(newIntent, INSTALLED);
-            batchWrite.setInstallableIntents(newIntent.id(), newInstallables);
-
-            batchWrite.setState(oldIntent, WITHDRAWN);
-            batchWrite.removeInstalledIntents(oldIntent.id());
-            batchWrite.removeIntent(oldIntent.id());
-        }
-
-        @Override
-        public FlowRuleBatchOperation currentBatch() {
-            return currentBatch < batches.size() ? batches.get(currentBatch) : null;
-        }
-
-        @Override
-        public void batchFailed() {
-            // the current batch has failed, so recompile
-            // remove the current batch and all remaining
-            for (int i = batches.size() - 1; i >= currentBatch; i--) {
-                batches.remove(i);
-            }
-            batches.addAll(uninstallIntent(oldIntent, oldInstallables));
-
-            batches.addAll(uninstallIntent(newIntent, newInstallables));
-
-            // TODO we might want to try to recompile the new intent
-        }
-    }
-
     private class InstallingFailed implements CompletedIntentUpdate {
 
         private final Intent intent;
@@ -874,70 +714,6 @@ public class IntentManager
                 batches.remove(i);
             }
             batches.addAll(uninstallIntent(intent, installables));
-
-            // TODO we might want to try to recompile the new intent
-        }
-    }
-
-    private class ReplacingFailed implements CompletedIntentUpdate {
-
-        private final Intent newIntent;
-        private final Intent oldIntent;
-        private final List<Intent> newInstallables;
-        private final List<Intent> oldInstallables;
-        private final List<FlowRuleBatchOperation> batches;
-        private int currentBatch;
-
-        ReplacingFailed(Intent newIntent, Intent oldIntent,
-                 List<Intent> newInstallables, List<Intent> oldInstallables,
-                 List<FlowRuleBatchOperation> batches) {
-            this.newIntent = checkNotNull(newIntent);
-            this.oldIntent = checkNotNull(oldIntent);
-            this.newInstallables = ImmutableList.copyOf(checkNotNull(newInstallables));
-            this.oldInstallables = ImmutableList.copyOf(checkNotNull(oldInstallables));
-            this.batches = new LinkedList<>(batches);
-            this.currentBatch = 0;
-        }
-
-        @Override
-        public List<Intent> allInstallables() {
-            LinkedList<Intent> allInstallables = new LinkedList<>();
-            allInstallables.addAll(newInstallables);
-            allInstallables.addAll(oldInstallables);
-
-            return allInstallables;
-        }
-
-        @Override
-        public void batchSuccess() {
-            currentBatch++;
-        }
-
-        @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(newIntent, FAILED);
-            batchWrite.removeInstalledIntents(newIntent.id());
-
-            batchWrite.setState(oldIntent, WITHDRAWN);
-            batchWrite.removeInstalledIntents(oldIntent.id());
-            batchWrite.removeIntent(oldIntent.id());
-        }
-
-        @Override
-        public FlowRuleBatchOperation currentBatch() {
-            return currentBatch < batches.size() ? batches.get(currentBatch) : null;
-        }
-
-        @Override
-        public void batchFailed() {
-            // the current batch has failed, so recompile
-            // remove the current batch and all remaining
-            for (int i = batches.size() - 1; i >= currentBatch; i--) {
-                batches.remove(i);
-            }
-            batches.addAll(uninstallIntent(oldIntent, oldInstallables));
-
-            batches.addAll(uninstallIntent(newIntent, newInstallables));
 
             // TODO we might want to try to recompile the new intent
         }
