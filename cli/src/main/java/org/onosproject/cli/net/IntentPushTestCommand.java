@@ -16,7 +16,6 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -35,7 +34,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentEvent.Type;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onlab.packet.Ethernet;
@@ -43,7 +41,6 @@ import org.onlab.packet.MacAddress;
 
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -168,21 +165,17 @@ public class IntentPushTestCommand extends AbstractShellCommand
     }
 
     private void submitIntents(ArrayListMultimap<Integer, Intent> intents) {
-        List<IntentOperations> opList = Lists.newArrayList();
+        start = System.currentTimeMillis();
         for (Integer app : intents.keySet()) {
-            IntentOperations.Builder builder = IntentOperations.builder(appId(app));
             for (Intent intent : intents.get(app)) {
                 if (add) {
-                    builder.addSubmitOperation(intent);
+                    service.submit(intent);
                 } else {
-                    builder.addWithdrawOperation(intent.id());
+                    service.withdraw(intent);
                 }
             }
-            opList.add(builder.build());
         }
 
-        start = System.currentTimeMillis();
-        opList.forEach(ops -> service.execute(ops));
         try {
             if (latch.await(100 + count * 200, TimeUnit.MILLISECONDS)) {
                 printResults(count);

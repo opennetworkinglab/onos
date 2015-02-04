@@ -52,18 +52,6 @@ public interface IntentService {
     void replace(IntentId oldIntentId, Intent newIntent);
 
     /**
-     * Submits a batch of submit &amp; withdraw operations. Such a batch is
-     * assumed to be processed together.
-     * <p>
-     * This is an asynchronous request meaning that the environment may be
-     * affected at later time.
-     * </p>
-     * @param operations batch of intent operations
-     */
-    @Deprecated
-    void execute(IntentOperations operations);
-
-    /**
      * Returns an iterable of intents currently in the system.
      *
      * @return set of intents

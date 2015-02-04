@@ -29,7 +29,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 
 import java.util.Collection;
@@ -86,22 +85,18 @@ public class RandomIntentCommand extends AbstractShellCommand {
     }
 
     private void submitIntents(Collection<Intent> intents) {
-        IntentOperations.Builder builder = IntentOperations.builder(appId());
         for (Intent intent : intents) {
-            builder.addSubmitOperation(intent);
+            service.submit(intent);
         }
-        service.execute(builder.build());
         print("Submitted %d host to host intents.", intents.size());
     }
 
     private void withdrawIntents() {
-        IntentOperations.Builder builder = IntentOperations.builder(appId());
         for (Intent intent : service.getIntents()) {
             if (appId().equals(intent.appId())) {
-                builder.addWithdrawOperation(intent.id());
+                service.withdraw(intent);
             }
         }
-        service.execute(builder.build());
         print("Withdrew all randomly generated host to host intents.");
     }
 

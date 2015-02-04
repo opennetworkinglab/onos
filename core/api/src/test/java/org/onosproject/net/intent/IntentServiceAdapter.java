@@ -38,11 +38,6 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
-    public void execute(IntentOperations operations) {
-
-    }
-
-    @Override
     public Iterable<Intent> getIntents() {
         return null;
     }

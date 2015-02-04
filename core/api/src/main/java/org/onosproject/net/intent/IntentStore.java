@@ -46,7 +46,9 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return intent or null if not found
      */
     @Deprecated
-    Intent getIntent(IntentId intentId);
+    default Intent getIntent(IntentId intentId) {
+        throw new UnsupportedOperationException("deprecated");
+    };
 
     /**
      * Returns the state of the specified intent.
@@ -55,7 +57,9 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return current intent state
      */
     @Deprecated
-    IntentState getIntentState(IntentId intentId);
+    default IntentState getIntentState(IntentId intentId) {
+        throw new UnsupportedOperationException("deprecated");
+    }
 
     /**
      * Returns the list of the installable events associated with the specified
@@ -65,7 +69,9 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return compiled installable intents
      */
     @Deprecated
-    List<Intent> getInstallableIntents(IntentId intentId);
+    default List<Intent> getInstallableIntents(IntentId intentId) {
+        throw new UnsupportedOperationException("deprecated");
+    }
 
     /**
      * Execute writes in a batch.
@@ -74,7 +80,10 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param batch BatchWrite to execute
      * @return failed operations
      */
+    @Deprecated
     List<Operation> batchWrite(BatchWrite batch);
+    default void write(IntentData newData) {}
+    default void batchWrite(Iterable<IntentData> updates) {}
 
     /**
      * Returns the intent with the specified identifier.

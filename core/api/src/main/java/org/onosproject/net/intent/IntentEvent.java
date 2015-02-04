@@ -72,6 +72,10 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
         super(type, intent);
     }
 
+    public static IntentEvent getEvent(IntentData data) {
+        return getEvent(data.state(), data.intent());
+    }
+
     public static IntentEvent getEvent(IntentState state, Intent intent) {
         Type type;
         switch (state) {

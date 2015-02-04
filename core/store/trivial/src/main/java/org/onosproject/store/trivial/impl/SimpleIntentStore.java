@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.trivial.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,19 +25,15 @@ import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -77,66 +72,11 @@ public class SimpleIntentStore
     }
 
     @Override
-    public Intent getIntent(IntentId intentId) {
-        throw new UnsupportedOperationException("deprecated");
-    }
-
-    @Override
-    public IntentState getIntentState(IntentId id) {
-        throw new UnsupportedOperationException("deprecated");
-    }
-
-    private void setState(Intent intent, IntentState state) {
-        //FIXME
-        IntentId id = intent.id();
-//        states.put(id, state);
-        IntentEvent.Type type = null;
-
-        switch (state) {
-        case INSTALL_REQ:
-            type = IntentEvent.Type.INSTALL_REQ;
-            break;
-        case INSTALLED:
-            type = IntentEvent.Type.INSTALLED;
-            break;
-        case FAILED:
-            type = IntentEvent.Type.FAILED;
-            break;
-        case WITHDRAW_REQ:
-            type = IntentEvent.Type.WITHDRAW_REQ;
-            break;
-        case WITHDRAWN:
-            type = IntentEvent.Type.WITHDRAWN;
-            break;
-        default:
-            break;
-        }
-        if (type != null) {
-            notifyDelegate(new IntentEvent(type, intent));
-        }
-    }
-
-    private void setInstallableIntents(IntentId intentId, List<Intent> result) {
-        //FIXME
-//        installable.put(intentId, result);
-    }
-
-    @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
-        throw new UnsupportedOperationException("deprecated");
-    }
-
-    @Override
     public IntentData getIntentData(String key) {
         return current.get(key);
     }
 
-    private void removeInstalledIntents(IntentId intentId) {
-        //FIXME
-//        installable.remove(intentId);
-    }
-
-    /**
+    /*
      * Execute writes in a batch.
      *
      * @param batch BatchWrite to execute
@@ -144,6 +84,8 @@ public class SimpleIntentStore
      */
     @Override
     public List<Operation> batchWrite(BatchWrite batch) {
+        throw new UnsupportedOperationException("deprecated");
+        /*
         if (batch.isEmpty()) {
             return Collections.emptyList();
         }
@@ -195,7 +137,32 @@ public class SimpleIntentStore
             }
         }
         return failed;
+        */
     }
+
+    @Override
+    public void write(IntentData newData) {
+        //FIXME need to compare the versions
+        current.put(newData.key(), newData);
+        try {
+            notifyDelegate(IntentEvent.getEvent(newData));
+        } catch (IllegalArgumentException e) {
+            //no-op
+            log.trace("ignore this exception: {}", e);
+        }
+        IntentData old = pending.get(newData.key());
+        if (old != null /* && FIXME version check */) {
+            pending.remove(newData.key());
+        }
+    }
+
+    @Override
+    public void batchWrite(Iterable<IntentData> updates) {
+        for (IntentData data : updates) {
+            write(data);
+        }
+    }
+
 
     @Override
     public void addPending(IntentData data) {
@@ -203,8 +170,8 @@ public class SimpleIntentStore
         pending.put(data.key(), data);
         checkNotNull(delegate, "Store delegate is not set")
                 .process(data);
+        notifyDelegate(IntentEvent.getEvent(data));
     }
-    // FIXME!!! pending.remove(intent.key()); // TODO check version
 
 
     @Override

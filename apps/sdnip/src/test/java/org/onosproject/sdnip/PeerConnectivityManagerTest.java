@@ -38,7 +38,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.sdnip.config.BgpPeer;
@@ -570,12 +569,9 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         reset(intentService);
 
         // Setup the expected intents
-        IntentOperations.Builder builder = IntentOperations.builder(APPID);
         for (Intent intent : intentList) {
-            builder.addSubmitOperation(intent);
+            intentService.submit(intent);
         }
-        intentService.execute(TestIntentServiceHelper.eqExceptId(
-                                builder.build()));
         replay(intentService);
 
         // Running the interface to be tested.
@@ -605,8 +601,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(configInfoService);
 
         reset(intentService);
-        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-        intentService.execute(builder.build());
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);
@@ -630,8 +624,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(configInfoService);
 
         reset(intentService);
-        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-        intentService.execute(builder.build());
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);
@@ -655,8 +647,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(configInfoService);
 
         reset(intentService);
-        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-        intentService.execute(builder.build());
         replay(intentService);
         peerConnectivityManager.start();
         verify(intentService);

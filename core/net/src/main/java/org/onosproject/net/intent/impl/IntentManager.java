@@ -15,17 +15,29 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerRegistry;
@@ -44,36 +56,26 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentOperation;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.namedThreads;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALLING;
+import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -168,25 +170,6 @@ public class IntentManager
     @Override
     public void replace(IntentId oldIntentId, Intent newIntent) {
         throw new UnsupportedOperationException("replace is not implemented");
-    }
-
-    @Override
-    public void execute(IntentOperations operations) {
-        for (IntentOperation op : operations.operations()) {
-            switch (op.type()) {
-                case SUBMIT:
-                case UPDATE:
-                    submit(op.intent());
-                    break;
-                case WITHDRAW:
-                    withdraw(op.intent());
-                    break;
-                //fallthrough
-                case REPLACE:
-                default:
-                    throw new UnsupportedOperationException("replace not supported");
-            }
-        }
     }
 
     @Override
@@ -396,19 +379,13 @@ public class IntentManager
 
     private void buildAndSubmitBatches(Iterable<IntentId> intentIds,
                                        boolean compileAllFailed) {
-        Map<ApplicationId, IntentOperations.Builder> batches = Maps.newHashMap();
         // Attempt recompilation of the specified intents first.
         for (IntentId id : intentIds) {
             Intent intent = store.getIntent(id);
             if (intent == null) {
                 continue;
             }
-            IntentOperations.Builder builder = batches.get(intent.appId());
-            if (builder == null) {
-                builder = IntentOperations.builder(intent.appId());
-                batches.put(intent.appId(), builder);
-            }
-            builder.addUpdateOperation(id);
+            submit(intent);
         }
 
         if (compileAllFailed) {
@@ -416,15 +393,10 @@ public class IntentManager
             for (Intent intent : getIntents()) {
                 IntentState state = getIntentState(intent.id());
                 if (RECOMPILE.contains(state)) {
-                    IntentOperations.Builder builder = batches.get(intent.appId());
-                    if (builder == null) {
-                        builder = IntentOperations.builder(intent.appId());
-                        batches.put(intent.appId(), builder);
-                    }
                     if (state == WITHDRAW_REQ) {
-                        builder.addWithdrawOperation(intent.id());
+                        withdraw(intent);
                     } else {
-                        builder.addUpdateOperation(intent.id());
+                        submit(intent);
                     }
                 }
             }
