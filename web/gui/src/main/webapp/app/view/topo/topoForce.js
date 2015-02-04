@@ -386,6 +386,7 @@
         black: '#000',
         paleblue: '#acf',
         offwhite: '#ddd',
+        darkgrey: '#444',
         midgrey: '#888',
         lightgrey: '#bbb',
         orange: '#f90'
@@ -394,8 +395,9 @@
     // note: these are the device icon colors without affinity
     var dColTheme = {
         light: {
+            rfill: dCol.offwhite,
             online: {
-                glyph: dCol.black,
+                glyph: dCol.darkgrey,
                 rect: dCol.paleblue
             },
             offline: {
@@ -403,15 +405,15 @@
                 rect: dCol.lightgrey
             }
         },
-        // TODO: theme
         dark: {
+            rfill: dCol.midgrey,
             online: {
-                glyph: dCol.black,
+                glyph: dCol.darkgrey,
                 rect: dCol.paleblue
             },
             offline: {
                 glyph: dCol.midgrey,
-                rect: dCol.lightgrey
+                rect: dCol.darkgrey
             }
         }
     };
@@ -434,7 +436,7 @@
             r = dCol.orange;
         } else if (tis.isVisible()) {
             g = o ? a : c.glyph;
-            r = o ? dCol.offwhite : a;
+            r = o ? c.rfill : a;
         } else {
             g = c.glyph;
             r = c.rect;

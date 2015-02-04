@@ -275,7 +275,12 @@
 
 #ov-topo svg .node.device.fixed rect {
     stroke-width: 1.5;
-    stroke: #ccc;
+}
+.light #ov-topo svg .node.device.fixed rect {
+    stroke: #aaa;
+}
+.dark #ov-topo svg .node.device.fixed rect {
+    stroke: #555;
 }
 
 /* note: device is offline without the 'online' class */
