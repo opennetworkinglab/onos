@@ -15,12 +15,14 @@
  */
 package org.onosproject.app;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -37,7 +39,7 @@ public class DefaultApplicationDescriptionTest {
     public static final String ORIGIN = "Circus";
     public static final Set<Permission> PERMS = ImmutableSet.of();
     public static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
-    public static final Set<String> FEATURES = ImmutableSet.of("foo");
+    public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
 
     @Test
     public void basics() {

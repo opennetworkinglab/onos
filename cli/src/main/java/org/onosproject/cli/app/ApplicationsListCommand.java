@@ -15,11 +15,19 @@
  */
 package org.onosproject.cli.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.Comparators;
 import org.onosproject.core.Application;
 
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 import static org.onosproject.app.ApplicationState.ACTIVE;
 
 /**
@@ -36,11 +44,44 @@ public class ApplicationsListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         ApplicationService service = get(ApplicationService.class);
-        for (Application app : service.getApplications()) {
-            print(FMT, service.getState(app.id()) == ACTIVE ? "*" : " ",
-                  app.id().id(), app.id().name(), app.version(), app.origin(),
-                  app.description(), app.features(), app.featuresRepo(), app.permissions());
+        List<Application> apps = newArrayList(service.getApplications());
+        Collections.sort(apps, Comparators.APP_COMPARATOR);
+
+        if (outputJson()) {
+            print("%s", json(service, apps));
+        } else {
+            for (Application app : apps) {
+                print(FMT, service.getState(app.id()) == ACTIVE ? "*" : " ",
+                      app.id().id(), app.id().name(), app.version(), app.origin(),
+                      app.description(), app.features(),
+                      app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
+                      app.permissions());
+            }
         }
+    }
+
+    private JsonNode json(ApplicationService service, List<Application> apps) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Application app : apps) {
+            result.add(json(service, mapper, app));
+        }
+        return result;
+    }
+
+    protected JsonNode json(ApplicationService service, ObjectMapper mapper,
+                            Application app) {
+        return mapper.createObjectNode()
+                .put("name", app.id().name())
+                .put("id", app.id().id())
+                .put("version", app.version().toString())
+                .put("description", app.description())
+                .put("origin", app.origin())
+                .put("permissions", app.permissions().toString())
+                .put("featuresRepo", app.featuresRepo().isPresent() ?
+                        app.featuresRepo().get().toString() : "")
+                .put("features", app.features().toString())
+                .put("state", service.getState(app.id()).toString());
     }
 
 }

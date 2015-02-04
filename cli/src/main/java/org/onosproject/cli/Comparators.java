@@ -18,6 +18,7 @@ package org.onosproject.cli;
 import java.util.Comparator;
 
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Element;
@@ -40,6 +41,13 @@ public final class Comparators {
         @Override
         public int compare(ApplicationId id1, ApplicationId id2) {
             return id1.id() - id2.id();
+        }
+    };
+
+    public static final Comparator<Application> APP_COMPARATOR = new Comparator<Application>() {
+        @Override
+        public int compare(Application app1, Application app2) {
+            return app1.id().id() - app2.id().id();
         }
     };
 

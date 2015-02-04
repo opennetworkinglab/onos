@@ -46,9 +46,16 @@ sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
 sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
     $ONOS_ROOT/tools/package/bin/onos > bin/onos
 
-# Stage the ONOS bundles
+# Stage the ONOS bundles, but only those that match the version
 mkdir -p $KARAF_DIST/system/org/onosproject
-cp -r $M2_REPO/org/onosproject $KARAF_DIST/system/org/
+# cp -r $M2_REPO/org/onosproject/ $KARAF_DIST/system/org/
+find $M2_REPO/org/onosproject/ -type d -name $ONOS_POM_VERSION | while read line; do
+    path=${line#*/onosproject/}
+    artifact=${path%/$ONOS_POM_VERSION}
+    mkdir -p $KARAF_DIST/system/org/onosproject/$artifact
+    cp -r $M2_REPO/org/onosproject/$artifact/$ONOS_POM_VERSION \
+        $KARAF_DIST/system/org/onosproject/$artifact/$ONOS_POM_VERSION
+done
 
 export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo}"
 

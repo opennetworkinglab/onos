@@ -16,6 +16,7 @@
 package org.onosproject.core;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -68,10 +69,10 @@ public interface Application {
     Optional<URI> featuresRepo();
 
     /**
-     * Returns the set of features comprising the application. At least one
+     * Returns the list of features comprising the application. At least one
      * feature must be given.
      *
      * @return application features
      */
-    Set<String> features();
+    List<String> features();
 }

@@ -40,7 +40,7 @@ public final class ApplicationCodec extends JsonCodec<Application> {
                 .put("origin", app.origin())
                 .put("permissions", app.permissions().toString())
                 .put("featuresRepo", app.featuresRepo().isPresent() ?
-                        app.featuresRepo().toString() : "")
+                        app.featuresRepo().get().toString() : "")
                 .put("features", app.features().toString())
                 .put("state", service.getState(app.id()).toString());
         return result;

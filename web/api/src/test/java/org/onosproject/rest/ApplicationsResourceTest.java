@@ -15,10 +15,11 @@
  */
 package org.onosproject.rest;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Optional;
-
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -40,22 +41,14 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.Version;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.WebResource;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Optional;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Unit tests for applications REST APIs.
@@ -88,20 +81,20 @@ public class ApplicationsResourceTest extends ResourceTest {
 
     private Application app1 =
             new DefaultApplication(id1, VER,
-                    "app1", "origin1", ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableSet.of("My Feature"));
+                                   "app1", "origin1", ImmutableSet.of(), Optional.of(FURL),
+                                   ImmutableList.of("My Feature"));
     private Application app2 =
             new DefaultApplication(id2, VER,
-                    "app2", "origin2", ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableSet.of("My Feature"));
+                                   "app2", "origin2", ImmutableSet.of(), Optional.of(FURL),
+                                   ImmutableList.of("My Feature"));
     private Application app3 =
             new DefaultApplication(id3, VER,
-                    "app3", "origin3", ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableSet.of("My Feature"));
+                                   "app3", "origin3", ImmutableSet.of(), Optional.of(FURL),
+                                   ImmutableList.of("My Feature"));
     private Application app4 =
             new DefaultApplication(id4, VER,
-                    "app4", "origin4", ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableSet.of("My Feature"));
+                                   "app4", "origin4", ImmutableSet.of(), Optional.of(FURL),
+                                   ImmutableList.of("My Feature"));
 
     /**
      * Hamcrest matcher to check that an device representation in JSON matches

@@ -19,6 +19,7 @@ import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,7 +38,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     private final String origin;
     private final Set<Permission> permissions;
     private final Optional<URI> featuresRepo;
-    private final Set<String> features;
+    private final List<String> features;
 
     /**
      * Creates a new application descriptor using the supplied data.
@@ -53,7 +54,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     public DefaultApplicationDescription(String name, Version version,
                                          String description, String origin,
                                          Set<Permission> permissions,
-                                         URI featuresRepo, Set<String> features) {
+                                         URI featuresRepo, List<String> features) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
@@ -95,7 +96,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     }
 
     @Override
-    public Set<String> features() {
+    public List<String> features() {
         return features;
     }
 

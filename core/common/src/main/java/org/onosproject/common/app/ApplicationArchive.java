@@ -15,6 +15,7 @@
  */
 package org.onosproject.common.app;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.NoSuchFileException;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -191,8 +193,7 @@ public class ApplicationArchive
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.getName().equals(APP_XML)) {
-                    byte[] data = new byte[(int) entry.getSize()];
-                    ByteStreams.readFully(zis, data);
+                    byte[] data = ByteStreams.toByteArray(zis);
                     XMLConfiguration cfg = new XMLConfiguration();
                     try {
                         cfg.load(new ByteArrayInputStream(data));
@@ -209,6 +210,7 @@ public class ApplicationArchive
 
     private ApplicationDescription loadAppDescription(XMLConfiguration cfg) {
         cfg.setAttributeSplittingDisabled(true);
+        cfg.setDelimiterParsingDisabled(true);
         String name = cfg.getString(NAME);
         Version version = Version.version(cfg.getString(VERSION));
         String desc = cfg.getString(DESCRIPTION);
@@ -216,7 +218,7 @@ public class ApplicationArchive
         Set<Permission> perms = ImmutableSet.of();
         String featRepo = cfg.getString(FEATURES_REPO);
         URI featuresRepo = featRepo != null ? URI.create(featRepo) : null;
-        Set<String> features = ImmutableSet.copyOf(cfg.getString(FEATURES).split(","));
+        List<String> features = ImmutableList.copyOf(cfg.getStringArray(FEATURES));
 
         return new DefaultApplicationDescription(name, version, desc, origin,
                                                  perms, featuresRepo, features);
@@ -229,13 +231,14 @@ public class ApplicationArchive
         ZipEntry entry;
         File appDir = new File(appsDir, desc.name());
         while ((entry = zis.getNextEntry()) != null) {
-            byte[] data = new byte[(int) entry.getSize()];
-            ByteStreams.readFully(zis, data);
-            zis.closeEntry();
+            if (!entry.isDirectory()) {
+                byte[] data = ByteStreams.toByteArray(zis);
+                zis.closeEntry();
 
-            File file = new File(appDir, entry.getName());
-            createParentDirs(file);
-            write(data, file);
+                File file = new File(appDir, entry.getName());
+                createParentDirs(file);
+                write(data, file);
+            }
         }
         zis.close();
     }
