@@ -17,33 +17,11 @@ package org.onosproject.net.intent;
 
 import org.onosproject.core.ApplicationId;
 
-import java.util.Set;
-
 /**
  * Service for tracking and delegating batches of intent operations.
  */
 @Deprecated
 public interface IntentBatchService {
-
-    /**
-     * Submits a batch of intent operations.
-     *
-     * @param operations batch of operations
-     */
-    void addIntentOperations(IntentOperations operations);
-
-    /**
-     * Removes the specified batch of intent operations after completion.
-     *
-     * @param operations batch of operations
-     */
-    void removeIntentOperations(IntentOperations operations);
-
-    /**
-     * Returns the set of intent batches that are pending.
-     * @return set of batches
-     */
-    Set<IntentOperations> getPendingOperations();
 
     /**
      * Return true if this instance is the local leader for batch

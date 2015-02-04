@@ -48,7 +48,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     @Deprecated
     default Intent getIntent(IntentId intentId) {
         throw new UnsupportedOperationException("deprecated");
-    };
+    }
 
     /**
      * Returns the state of the specified intent.

@@ -15,18 +15,11 @@
  */
 package org.onosproject.sdnip;
 
-import static org.easymock.EasyMock.reportMatcher;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.easymock.IArgumentMatcher;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.intent.IntentOperation;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
+
+import static org.easymock.EasyMock.reportMatcher;
 
 /**
  * Helper class for testing operations submitted to the IntentService.
@@ -54,13 +47,15 @@ public final class TestIntentServiceHelper {
      * Matcher method to set the expected intent operations to match against
      * (ignoring the intent ID for each intent).
      *
-     * @param intentOperations the expected Intent Operations
+     * param intentOperations the expected Intent Operations
      * @return the submitted Intent Operations
      */
+    /*
     static IntentOperations eqExceptId(IntentOperations intentOperations) {
         reportMatcher(new IdAgnosticIntentOperationsMatcher(intentOperations));
         return intentOperations;
     }
+    */
 
     /*
      * EasyMock matcher that matches {@link Intent} but
@@ -120,21 +115,12 @@ public final class TestIntentServiceHelper {
      * value properties of the provided intent match the expected values, but
      * ignores the intent ID when testing equality.
      */
+    /*
     private static final class IdAgnosticIntentOperationsMatcher implements
                 IArgumentMatcher {
 
-        private final IntentOperations intentOperations;
+        //private final IntentOperations intentOperations;
         private String providedString;
-
-        /**
-         * Constructor taking the expected intent operations to match against.
-         *
-         * @param intentOperations the expected intent operations
-         */
-        public IdAgnosticIntentOperationsMatcher(
-                        IntentOperations intentOperations) {
-            this.intentOperations = intentOperations;
-        }
 
         @Override
         public void appendTo(StringBuffer strBuffer) {
@@ -178,6 +164,7 @@ public final class TestIntentServiceHelper {
                                                   providedReplaceIntents);
         }
 
+
         /**
          * Extracts the intents per operation type. Each intent is encapsulated
          * in IntentKey so it can be compared by excluding the Intent ID.
@@ -189,6 +176,7 @@ public final class TestIntentServiceHelper {
          * @param replaceIntents the REPLACE intents
          * @param updateIntents the UPDATE intents
          */
+        /*
         private void extractIntents(IntentOperations intentOperations,
                                     List<IntentKey> submitIntents,
                                     List<IntentId> withdrawIntentIds,
@@ -220,4 +208,5 @@ public final class TestIntentServiceHelper {
             }
         }
     }
+    */
 }
