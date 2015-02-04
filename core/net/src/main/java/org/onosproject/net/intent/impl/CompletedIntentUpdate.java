@@ -21,6 +21,7 @@ import org.onosproject.net.intent.Intent;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a completed phase of processing an intent.
@@ -62,5 +63,10 @@ interface CompletedIntentUpdate extends IntentUpdate {
      */
     default List<Intent> allInstallables() {
         return Collections.emptyList();
+    }
+
+    @Override
+    default Optional<IntentUpdate> execute() {
+        return Optional.empty();
     }
 }

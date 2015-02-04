@@ -18,8 +18,6 @@ package org.onosproject.net.intent.impl;
 import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 
-import java.util.Optional;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.FAILED;
 
@@ -37,11 +35,6 @@ class CompilingFailed implements CompletedIntentUpdate {
      */
     CompilingFailed(Intent intent) {
         this.intent = checkNotNull(intent);
-    }
-
-    @Override
-    public Optional<IntentUpdate> execute() {
-        return Optional.empty();
     }
 
     @Override

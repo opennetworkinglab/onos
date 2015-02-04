@@ -30,9 +30,7 @@ interface IntentUpdate {
      *
      * @return next update
      */
-    default Optional<IntentUpdate> execute() {
-        return Optional.empty();
-    }
+    Optional<IntentUpdate> execute();
 
     /**
      * Write data to the specified BatchWrite before execution() is called.
