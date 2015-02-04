@@ -49,7 +49,7 @@ class Installing implements IntentUpdate {
             // TODO: call FlowRuleService API to push FlowRules and track resources,
             // which the submitted intent will use.
             return Optional.of(new Installed(intentManager, intent, installables, converted));
-        } catch (FlowRuleBatchOperationConvertionException e) {
+        } catch (FlowRuleBatchOperationConversionException e) {
             log.warn("Unable to install intent {} due to:", intent.id(), e.getCause());
             return Optional.of(new InstallingFailed(intentManager, intent, installables, e.converted()));
         }

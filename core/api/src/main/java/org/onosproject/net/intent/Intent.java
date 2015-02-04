@@ -58,7 +58,6 @@ public abstract class Intent {
      * @param appId         application identifier
      * @param resources     required network resources (optional)
      */
-    @Deprecated
     protected Intent(ApplicationId appId,
                      Collection<NetworkResource> resources) {
         this(appId, null, resources);

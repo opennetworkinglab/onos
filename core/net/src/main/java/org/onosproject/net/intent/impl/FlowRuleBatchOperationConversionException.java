@@ -24,11 +24,11 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 // TODO: Reconsider error handling and intent exception design. Otherwise, write Javadoc.
-public class FlowRuleBatchOperationConvertionException extends IntentException {
+public class FlowRuleBatchOperationConversionException extends IntentException {
 
     private final List<FlowRuleBatchOperation> converted;
 
-    public FlowRuleBatchOperationConvertionException(List<FlowRuleBatchOperation> converted, Throwable cause) {
+    public FlowRuleBatchOperationConversionException(List<FlowRuleBatchOperation> converted, Throwable cause) {
         super("exception occurred during IntentInstaller.install()", cause);
         this.converted = ImmutableList.copyOf((checkNotNull(converted)));
     }

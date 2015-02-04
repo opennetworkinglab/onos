@@ -437,7 +437,7 @@ public class IntentManager
                 registerSubclassInstallerIfNeeded(installable);
                 batches.addAll(getInstaller(installable).install(installable));
             } catch (Exception e) { // TODO this should be IntentException
-                throw new FlowRuleBatchOperationConvertionException(batches, e);
+                throw new FlowRuleBatchOperationConversionException(batches, e);
             }
         }
         return batches;
