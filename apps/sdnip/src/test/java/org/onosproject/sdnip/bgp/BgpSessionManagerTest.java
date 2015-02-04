@@ -299,9 +299,10 @@ public class BgpSessionManagerTest {
 
     /**
      * Gets BGP RIB-IN routes by waiting until they are received.
-     * <p/>
+     * <p>
      * NOTE: We keep checking once every 10ms the number of received routes,
      * up to 5 seconds.
+     * </p>
      *
      * @param bgpSession the BGP session that is expected to receive the
      * routes
@@ -328,9 +329,10 @@ public class BgpSessionManagerTest {
 
     /**
      * Gets BGP merged routes by waiting until they are received.
-     * <p/>
+     * <p>
      * NOTE: We keep checking once every 10ms the number of received routes,
      * up to 5 seconds.
+     * </p>
      *
      * @param expectedRoutes the expected number of routes
      * @return the BGP Session Manager routes as received within the expected
@@ -354,12 +356,45 @@ public class BgpSessionManagerTest {
     }
 
     /**
+     * Gets a merged BGP route by waiting until it is received.
+     * <p>
+     * NOTE: We keep checking once every 10ms whether the route is received,
+     * up to 5 seconds.
+     * </p>
+     *
+     * @param expectedRoute the expected route
+     * @return the merged BGP route if received within the expected time
+     * interval, otherwise null
+     */
+    private BgpRouteEntry waitForBgpRoute(BgpRouteEntry expectedRoute)
+        throws InterruptedException {
+        Collection<BgpRouteEntry> bgpRoutes =
+            bgpSessionManager.getBgpRoutes4();
+
+        final int maxChecks = 500;              // Max wait of 5 seconds
+        for (int i = 0; i < maxChecks; i++) {
+            for (BgpRouteEntry bgpRouteEntry : bgpRoutes) {
+                if (bgpRouteEntry.equals(expectedRoute) &&
+                    bgpRouteEntry.getBgpSession() ==
+                    expectedRoute.getBgpSession()) {
+                    return bgpRouteEntry;
+                }
+            }
+            Thread.sleep(10);
+            bgpRoutes = bgpSessionManager.getBgpRoutes4();
+        }
+
+        return null;
+    }
+
+    /**
      * Tests that the BGP OPEN messages have been exchanged, followed by
      * KEEPALIVE.
      * <p>
      * The BGP Peer opens the sessions and transmits OPEN Message, eventually
      * followed by KEEPALIVE. The tested BGP listener should respond by
      * OPEN Message, followed by KEEPALIVE.
+     * </p>
      *
      * @throws TestUtilsException TestUtils error
      */
@@ -406,6 +441,7 @@ public class BgpSessionManagerTest {
      * The BGP Peer opens the sessions and transmits OPEN Message, eventually
      * followed by KEEPALIVE. The tested BGP listener should respond by
      * OPEN Message, followed by KEEPALIVE.
+     * </p>
      *
      * @throws TestUtilsException TestUtils error
      */
@@ -523,7 +559,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession1,
@@ -534,7 +570,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession1,
@@ -545,7 +581,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession1,
@@ -556,7 +592,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession1,
@@ -567,7 +603,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
 
         //
         // Delete some routes
@@ -602,7 +638,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession1,
@@ -613,7 +649,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
         //
         bgpRouteEntry =
             new BgpRouteEntry(bgpSession1,
@@ -624,7 +660,7 @@ public class BgpSessionManagerTest {
                               DEFAULT_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
 
 
         // Close the channels and test there are no routes
@@ -703,7 +739,7 @@ public class BgpSessionManagerTest {
                               BETTER_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn2, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
 
         //
         // Add a route entry to Peer3 with a shorter AS path
@@ -737,7 +773,7 @@ public class BgpSessionManagerTest {
                               BETTER_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(DEFAULT_MULTI_EXIT_DISC);
         assertThat(bgpRibIn3, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
 
         //
         // Cleanup in preparation for next test: delete old route entry from
@@ -793,7 +829,7 @@ public class BgpSessionManagerTest {
                               BETTER_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(BETTER_MULTI_EXIT_DISC);
         assertThat(bgpRibIn2, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
 
         //
         // Add a route entry to Peer1 with a better (lower) BGP ID
@@ -828,7 +864,7 @@ public class BgpSessionManagerTest {
                               BETTER_LOCAL_PREF);
         bgpRouteEntry.setMultiExitDisc(BETTER_MULTI_EXIT_DISC);
         assertThat(bgpRibIn1, hasBgpRouteEntry(bgpRouteEntry));
-        assertThat(bgpRoutes, hasBgpRouteEntry(bgpRouteEntry));
+        assertThat(waitForBgpRoute(bgpRouteEntry), notNullValue());
 
 
         // Close the channels and test there are no routes
