@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,7 +68,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLING;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
 import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -269,7 +267,7 @@ public class IntentManager
      * @param intent intent
      * @return result of compilation
      */
-    private List<Intent> compileIntent(Intent intent, List<Intent> previousInstallables) {
+    List<Intent> compileIntent(Intent intent, List<Intent> previousInstallables) {
         if (intent.isInstallable()) {
             return ImmutableList.of(intent);
         }
@@ -290,7 +288,7 @@ public class IntentManager
      * @param installables installable intents
      * @return list of batches to uninstall intent
      */
-    private List<FlowRuleBatchOperation> uninstallIntent(Intent intent, List<Intent> installables) {
+    List<FlowRuleBatchOperation> uninstallIntent(Intent intent, List<Intent> installables) {
         List<FlowRuleBatchOperation> batches = Lists.newArrayList();
         for (Intent installable : installables) {
             trackerService.removeTrackedResources(intent.id(),
@@ -415,9 +413,9 @@ public class IntentManager
         IntentData currentState = store.getIntentData(intentData.key());
         switch (intentData.state()) {
             case INSTALL_REQ:
-                return new InstallRequest(intentData.intent(), currentState);
+                return new InstallRequest(this, intentData.intent(), currentState);
             case WITHDRAW_REQ:
-                return new WithdrawRequest(intentData.intent(), currentState);
+                return new WithdrawRequest(this, intentData.intent(), currentState);
             // fallthrough
             case COMPILING:
             case INSTALLING:
@@ -432,89 +430,7 @@ public class IntentManager
         }
     }
 
-    // TODO pull out the IntentUpdate inner classes
-    private class InstallRequest implements IntentUpdate {
-
-        private final Intent intent;
-        private final IntentData currentState;
-
-        InstallRequest(Intent intent, IntentData currentState) {
-            this.intent = checkNotNull(intent);
-            this.currentState = currentState;
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            return Optional.of(new Compiling(intent)); //FIXME
-        }
-    }
-
-    private class WithdrawRequest implements IntentUpdate {
-
-        private final Intent intent;
-        private final IntentData currentState;
-
-        WithdrawRequest(Intent intent, IntentData currentState) {
-            this.intent = checkNotNull(intent);
-            this.currentState = currentState;
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            return Optional.of(new Withdrawing(intent, currentState.installables())); //FIXME
-        }
-    }
-
-    private class Compiling implements IntentUpdate {
-
-        private final Intent intent;
-
-        Compiling(Intent intent) {
-            this.intent = checkNotNull(intent);
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            try {
-                return Optional.of(new Installing(intent, compileIntent(intent, null)));
-            } catch (PathNotFoundException e) {
-                log.debug("Path not found for intent {}", intent);
-                // TODO: revisit to implement failure handling
-                return Optional.of(new DoNothing());
-            } catch (IntentException e) {
-                log.warn("Unable to compile intent {} due to:", intent.id(), e);
-                // TODO: revisit to implement failure handling
-                return Optional.of(new DoNothing());
-            }
-        }
-    }
-
-    // TODO: better naming because install() method actually generate FlowRuleBatchOperations
-    private class Installing implements IntentUpdate {
-
-        private final Intent intent;
-        private final List<Intent> installables;
-
-        Installing(Intent intent, List<Intent> installables) {
-            this.intent = checkNotNull(intent);
-            this.installables = ImmutableList.copyOf(checkNotNull(installables));
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            try {
-                List<FlowRuleBatchOperation> converted = convert(installables);
-                // TODO: call FlowRuleService API to push FlowRules and track resources,
-                // which the submitted intent will use.
-                return Optional.of(new Installed(intent, installables, converted));
-            } catch (FlowRuleBatchOperationConvertionException e) {
-                log.warn("Unable to install intent {} due to:", intent.id(), e.getCause());
-                return Optional.of(new InstallingFailed(intent, installables, e.converted()));
-            }
-        }
-    }
-
-    private List<FlowRuleBatchOperation> convert(List<Intent> installables) {
+    List<FlowRuleBatchOperation> convert(List<Intent> installables) {
         List<FlowRuleBatchOperation> batches = new ArrayList<>(installables.size());
         for (Intent installable : installables) {
             try {
@@ -525,143 +441,6 @@ public class IntentManager
             }
         }
         return batches;
-    }
-
-    private class Withdrawing implements IntentUpdate {
-
-        private final Intent intent;
-        private final List<Intent> installables;
-
-        Withdrawing(Intent intent, List<Intent> installables) {
-            this.intent = checkNotNull(intent);
-            this.installables = ImmutableList.copyOf(installables);
-        }
-
-        @Override
-        public Optional<IntentUpdate> execute() {
-            List<FlowRuleBatchOperation> batches = uninstallIntent(intent, installables);
-
-            return Optional.of(new Withdrawn(intent, installables, batches));
-        }
-    }
-
-    private class Installed implements CompletedIntentUpdate {
-
-        private final Intent intent;
-        private final List<Intent> installables;
-        private IntentState intentState;
-        private final List<FlowRuleBatchOperation> batches;
-        private int currentBatch = 0;
-
-        Installed(Intent intent, List<Intent> installables, List<FlowRuleBatchOperation> batches) {
-            this.intent = checkNotNull(intent);
-            this.installables = ImmutableList.copyOf(checkNotNull(installables));
-            this.batches = new LinkedList<>(checkNotNull(batches));
-            this.intentState = INSTALLING;
-        }
-
-        @Override
-        public void batchSuccess() {
-            currentBatch++;
-        }
-
-        @Override
-        public List<Intent> allInstallables() {
-            return installables;
-        }
-
-        @Override
-        public FlowRuleBatchOperation currentBatch() {
-            return currentBatch < batches.size() ? batches.get(currentBatch) : null;
-        }
-
-        @Override
-        public void batchFailed() {
-            for (int i = batches.size() - 1; i >= currentBatch; i--) {
-                batches.remove(i);
-            }
-            intentState = FAILED;
-            batches.addAll(uninstallIntent(intent, installables));
-
-            // TODO we might want to try to recompile the new intent
-        }
-    }
-
-    private class Withdrawn implements CompletedIntentUpdate {
-
-        private final Intent intent;
-        private final List<Intent> installables;
-        private final List<FlowRuleBatchOperation> batches;
-        private int currentBatch;
-
-        Withdrawn(Intent intent, List<Intent> installables, List<FlowRuleBatchOperation> batches) {
-            this.intent = checkNotNull(intent);
-            this.installables = ImmutableList.copyOf(installables);
-            this.batches = new LinkedList<>(batches);
-            this.currentBatch = 0;
-        }
-
-        @Override
-        public List<Intent> allInstallables() {
-            return installables;
-        }
-
-        @Override
-        public void batchSuccess() {
-            currentBatch++;
-        }
-
-        @Override
-        public FlowRuleBatchOperation currentBatch() {
-            return currentBatch < batches.size() ? batches.get(currentBatch) : null;
-        }
-
-        @Override
-        public void batchFailed() {
-            for (int i = batches.size() - 1; i >= currentBatch; i--) {
-                batches.remove(i);
-            }
-            batches.addAll(uninstallIntent(intent, installables));
-        }
-    }
-
-    private class InstallingFailed implements CompletedIntentUpdate {
-
-        private final Intent intent;
-        private final List<Intent> installables;
-        private final List<FlowRuleBatchOperation> batches;
-        private int currentBatch = 0;
-
-        InstallingFailed(Intent intent, List<Intent> installables, List<FlowRuleBatchOperation> batches) {
-            this.intent = checkNotNull(intent);
-            this.installables = ImmutableList.copyOf(checkNotNull(installables));
-            this.batches = new LinkedList<>(checkNotNull(batches));
-        }
-
-        @Override
-        public List<Intent> allInstallables() {
-            return installables;
-        }
-
-        @Override
-        public void batchSuccess() {
-            currentBatch++;
-        }
-
-        @Override
-        public FlowRuleBatchOperation currentBatch() {
-            return currentBatch < batches.size() ? batches.get(currentBatch) : null;
-        }
-
-        @Override
-        public void batchFailed() {
-            for (int i = batches.size() - 1; i >= currentBatch; i--) {
-                batches.remove(i);
-            }
-            batches.addAll(uninstallIntent(intent, installables));
-
-            // TODO we might want to try to recompile the new intent
-        }
     }
 
     private class IntentBatchPreprocess implements Runnable {
