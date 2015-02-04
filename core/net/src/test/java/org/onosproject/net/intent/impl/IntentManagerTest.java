@@ -50,7 +50,6 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.resource.LinkResourceAllocations;
-import org.onosproject.store.trivial.impl.SimpleIntentBatchQueue;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
 import com.google.common.collect.HashMultimap;
@@ -278,7 +277,6 @@ public class IntentManagerTest {
         manager = new IntentManager();
         flowRuleService = new MockFlowRuleService();
         manager.store = new SimpleIntentStore();
-        manager.batchService = new SimpleIntentBatchQueue();
         manager.eventDispatcher = new TestEventDispatcher();
         manager.trackerService = new TestIntentTracker();
         manager.flowRuleService = flowRuleService;

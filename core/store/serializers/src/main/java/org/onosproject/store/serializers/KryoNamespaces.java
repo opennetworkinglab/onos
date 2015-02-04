@@ -84,7 +84,6 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentOperation;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
@@ -316,8 +315,7 @@ public final class KryoNamespaces {
                     ObstacleConstraint.class,
                     AnnotationConstraint.class,
                     BooleanConstraint.class,
-                    IntentOperation.class,
-                    IntentOperations.class
+                    IntentOperation.class
                     )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)
