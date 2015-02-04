@@ -59,16 +59,22 @@ div.inline-icon {
     fill: #ccc;
 }
 
-svg.embeddedIcon .icon.tableColSortAsc rect {
+svg.embeddedIcon .icon.tableColSortAsc rect,
+svg.embeddedIcon .icon.tableColSortDesc rect {
     stroke: none;
     fill: none;
 }
+
 svg.embeddedIcon .icon rect {
     stroke: black;
     stroke-width: 1px;
 }
 .dark svg.embeddedIcon .icon rect {
     stroke: #ccc;
+}
+.dark svg.embeddedIcon .icon.tableColSortAsc rect,
+.dark svg.embeddedIcon .icon.tableColSortDesc rect {
+    stroke: none;
 }
 
 svg .svgIcon {

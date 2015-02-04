@@ -15,11 +15,14 @@
  */
 
 /*
- ONOS GUI -- Sample View Module
+ ONOS GUI -- Device View Module
  */
 
 (function () {
     'use strict';
+    var currCol = {},
+        prevCol = {};
+
 
     angular.module('ovDevice', [])
         .controller('OvDeviceCtrl', ['$log', '$location', 'RestService',
@@ -33,6 +36,31 @@
 
             rs.get(url, function (data) {
                 self.deviceData = data.devices;
+            });
+
+            d3.selectAll('th').on('click', function(d) {
+                var thElem = d3.select(this);
+                currCol.colId = thElem.attr('colId');
+
+                if(currCol.colId === prevCol.colId) {
+                    (currCol.icon === 'tableColSortDesc') ?
+                        currCol.icon = 'tableColSortAsc' :
+                        currCol.icon = 'tableColSortDesc';
+                    prevCol.icon = currCol.icon;
+                } else {
+                    currCol.icon = 'tableColSortAsc';
+                    prevCol.icon = 'tableColSortNone';
+                }
+
+                $log.debug('currCol clicked: ' + currCol.colId +
+                ', with sorting icon: ' + currCol.icon);
+                $log.debug('prevCol clicked: ' + prevCol.colId +
+                ', with its current sorting icon as ' + prevCol.icon);
+
+                // TODO: send the prev and currCol info to the server to use in sorting table here
+
+                prevCol.colId = currCol.colId;
+
             });
 
             $log.log('OvDeviceCtrl has been created');

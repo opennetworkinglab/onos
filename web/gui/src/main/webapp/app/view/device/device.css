@@ -15,9 +15,9 @@
  */
 
 /*
- ONOS GUI -- Sample View -- CSS file
+ ONOS GUI -- Device View -- CSS file
  */
 
-#ov-device {
-    /* placeholder */
+#ov-device th {
+    cursor: pointer;
 }
