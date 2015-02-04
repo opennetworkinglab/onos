@@ -42,18 +42,6 @@ public final class IntentOperation {
          * Indicates that an intent should be removed.
          */
         WITHDRAW,
-
-        /**
-         * Indicates that an intent should be replaced with another.
-         */
-        @Deprecated
-        REPLACE,
-
-        /**
-         * Indicates that an intent should be updated (i.e. recompiled/reinstalled).
-         */
-        @Deprecated
-        UPDATE,
     }
 
     /**

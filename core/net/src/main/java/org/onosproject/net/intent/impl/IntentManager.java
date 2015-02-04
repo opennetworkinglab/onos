@@ -167,11 +167,6 @@ public class IntentManager
     }
 
     @Override
-    public void replace(IntentId oldIntentId, Intent newIntent) {
-        throw new UnsupportedOperationException("replace is not implemented");
-    }
-
-    @Override
     public Iterable<Intent> getIntents() {
         return store.getIntents();
     }

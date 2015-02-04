@@ -373,31 +373,6 @@ public class IntentManagerTest {
         assertEquals(0L, flowRuleService.getFlowRuleCount());
     }
 
-    @Test
-    public void replaceIntent() {
-        flowRuleService.setFuture(true);
-
-        MockIntent intent = new MockIntent(MockIntent.nextId());
-        listener.setLatch(1, Type.INSTALLED);
-        service.submit(intent);
-        listener.await(Type.INSTALLED);
-        assertEquals(1L, service.getIntentCount());
-        assertEquals(1L, manager.flowRuleService.getFlowRuleCount());
-
-        MockIntent intent2 = new MockIntent(MockIntent.nextId());
-        listener.setLatch(1, Type.WITHDRAWN);
-        listener.setLatch(1, Type.INSTALL_REQ);
-        listener.setLatch(1, Type.INSTALLED);
-        service.replace(intent.id(), intent2);
-        listener.await(Type.WITHDRAWN);
-        listener.await(Type.INSTALLED);
-        delay(10); //FIXME this is a race
-        assertEquals(1L, service.getIntentCount());
-        assertEquals(1L, manager.flowRuleService.getFlowRuleCount());
-        assertEquals(intent2.number().intValue(),
-                     flowRuleService.flows.iterator().next().priority());
-    }
-
     /**
      * Tests for proper behavior of installation of an intent that triggers
      * a compilation error.

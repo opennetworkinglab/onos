@@ -33,11 +33,6 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
-    public void replace(IntentId oldIntentId, Intent newIntent) {
-
-    }
-
-    @Override
     public Iterable<Intent> getIntents() {
         return null;
     }

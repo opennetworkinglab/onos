@@ -43,15 +43,6 @@ public interface IntentService {
     void withdraw(Intent intent);
 
     /**
-     * Replaces the specified intent with a new one.
-     *
-     * @param oldIntentId identifier of the old intent being replaced
-     * @param newIntent new intent replacing the old one
-     */
-    @Deprecated
-    void replace(IntentId oldIntentId, Intent newIntent);
-
-    /**
      * Returns an iterable of intents currently in the system.
      *
      * @return set of intents

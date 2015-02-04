@@ -186,11 +186,6 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public void replace(IntentId oldIntentId, Intent newIntent) {
-        // TODO: implement later
-    }
-
-    @Override
     public Set<Intent> getIntents() {
         return Collections.unmodifiableSet(new HashSet<>(intents.values()));
     }
