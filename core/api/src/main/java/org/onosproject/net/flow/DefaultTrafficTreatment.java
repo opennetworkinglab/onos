@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -238,6 +239,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public Builder setLambda(short lambda) {
             return add(Instructions.modL0Lambda(lambda));
+        }
+
+        @Override
+        public Builder group(GroupId groupId) {
+            return add(Instructions.createGroup(groupId));
         }
 
         @Override

@@ -21,6 +21,7 @@ import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
 
 import java.util.Objects;
 
+import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
@@ -62,6 +63,17 @@ public final class Instructions {
      */
     public static DropInstruction createDrop() {
         return new DropInstruction();
+    }
+
+    /**
+     * Creates a group instruction.
+     *
+     * @param groupId Group Id
+     * @return group instruction
+     */
+    public static GroupInstruction createGroup(final GroupId groupId) {
+        checkNotNull(groupId, "GroupId cannot be null");
+        return new GroupInstruction(groupId);
     }
 
     /**
@@ -207,7 +219,7 @@ public final class Instructions {
     }
 
     /*
-     *  Output instructions
+     *  Drop instructions
      */
 
     public static final class DropInstruction implements Instruction {
@@ -241,6 +253,9 @@ public final class Instructions {
         }
     }
 
+    /*
+     *  Output Instruction
+     */
 
     public static final class OutputInstruction implements Instruction {
         private final PortNumber port;
@@ -276,6 +291,50 @@ public final class Instructions {
             if (obj instanceof OutputInstruction) {
                 OutputInstruction that = (OutputInstruction) obj;
                 return Objects.equals(port, that.port);
+
+            }
+            return false;
+        }
+    }
+
+    /*
+     *  Group Instruction
+     */
+
+    public static final class GroupInstruction implements Instruction {
+        private final GroupId groupId;
+
+        private GroupInstruction(GroupId groupId) {
+            this.groupId = groupId;
+        }
+
+        public GroupId groupId() {
+            return groupId;
+        }
+
+        @Override
+        public Type type() {
+            return Type.GROUP;
+        }
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("group ID", groupId.id()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), groupId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof GroupInstruction) {
+                GroupInstruction that = (GroupInstruction) obj;
+                return Objects.equals(groupId, that.groupId);
 
             }
             return false;

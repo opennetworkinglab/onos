@@ -17,6 +17,7 @@ package org.onosproject.net.flow;
 
 import java.util.List;
 
+import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onlab.packet.IpAddress;
@@ -183,6 +184,14 @@ public interface TrafficTreatment {
          * @return a treatment builder
          */
         public Builder setLambda(short lambda);
+
+        /**
+         * Sets the group ID.
+         *
+         * @param groupId group ID
+         * @return a treatment builder
+         */
+        public Builder group(GroupId groupId);
 
         /**
          * Builds an immutable traffic treatment descriptor.

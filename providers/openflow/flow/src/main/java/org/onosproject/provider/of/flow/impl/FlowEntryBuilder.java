@@ -22,6 +22,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -39,14 +40,10 @@ import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
-import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlIn;
-import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlOut;
-import org.projectfloodlight.openflow.protocol.action.OFActionDecMplsTtl;
-import org.projectfloodlight.openflow.protocol.action.OFActionDecNwTtl;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
+import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
-import org.projectfloodlight.openflow.protocol.action.OFActionPushMpls;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
@@ -207,24 +204,23 @@ public class FlowEntryBuilder {
                 builder.popMpls((short) popMpls.getEthertype().getValue());
                 break;
             case PUSH_MPLS:
-                OFActionPushMpls pushMpls = (OFActionPushMpls) act;
                 builder.pushMpls();
                 break;
             case COPY_TTL_IN:
-                OFActionCopyTtlIn copyTtlIn = (OFActionCopyTtlIn) act;
                 builder.copyTtlIn();
                 break;
             case COPY_TTL_OUT:
-                OFActionCopyTtlOut copyTtlOut = (OFActionCopyTtlOut) act;
                 builder.copyTtlOut();
                 break;
             case DEC_MPLS_TTL:
-                OFActionDecMplsTtl decMplsTtl = (OFActionDecMplsTtl) act;
                 builder.decMplsTtl();
                 break;
             case DEC_NW_TTL:
-                OFActionDecNwTtl decNwTtl = (OFActionDecNwTtl) act;
                 builder.decNwTtl();
+                break;
+            case GROUP:
+                OFActionGroup group = (OFActionGroup) act;
+                builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
                 break;
             case SET_TP_DST:
             case SET_TP_SRC:
@@ -241,8 +237,6 @@ public class FlowEntryBuilder {
             case SET_QUEUE:
             case STRIP_VLAN:
             case ENQUEUE:
-
-            case GROUP:
             default:
                 log.warn("Action type {} not yet implemented.", act.getType());
             }
