@@ -479,10 +479,12 @@ public class IntentManager
                 return Optional.of(new Installing(intent, compileIntent(intent, null)));
             } catch (PathNotFoundException e) {
                 log.debug("Path not found for intent {}", intent);
-                return Optional.of(new CompilingFailed(intent));
+                // TODO: revisit to implement failure handling
+                return Optional.of(new DoNothing());
             } catch (IntentException e) {
                 log.warn("Unable to compile intent {} due to:", intent.id(), e);
-                return Optional.of(new CompilingFailed(intent));
+                // TODO: revisit to implement failure handling
+                return Optional.of(new DoNothing());
             }
         }
     }
