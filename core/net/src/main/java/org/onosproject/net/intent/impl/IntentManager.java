@@ -453,24 +453,24 @@ public class IntentManager
         private static final int TIMEOUT_PER_OP = 500; // ms
         protected static final int MAX_ATTEMPTS = 3;
 
-        protected final Collection<IntentData> ops;
+        protected final Collection<IntentData> data;
 
         // future holding current FlowRuleBatch installation result
         protected final long startTime = System.currentTimeMillis();
         protected final long endTime;
 
-        private IntentBatchPreprocess(Collection<IntentData> ops, long endTime) {
-            this.ops = checkNotNull(ops);
+        private IntentBatchPreprocess(Collection<IntentData> data, long endTime) {
+            this.data = checkNotNull(data);
             this.endTime = endTime;
         }
 
-        public IntentBatchPreprocess(Collection<IntentData> ops) {
-            this(ops, System.currentTimeMillis() + ops.size() * TIMEOUT_PER_OP);
+        public IntentBatchPreprocess(Collection<IntentData> data) {
+            this(data, System.currentTimeMillis() + data.size() * TIMEOUT_PER_OP);
         }
 
         // FIXME compute reasonable timeouts
         protected long calculateTimeoutLimit() {
-            return System.currentTimeMillis() + ops.size() * TIMEOUT_PER_OP;
+            return System.currentTimeMillis() + data.size() * TIMEOUT_PER_OP;
         }
 
         @Override
@@ -484,7 +484,7 @@ public class IntentManager
                 //    (we can also try to update these individually)
 
 
-                //new IntentBatchApplyFirst(ops, processIntentUpdates(updates), endTime, 0, null).run();
+                //new IntentBatchApplyFirst(data, processIntentUpdates(updates), endTime, 0, null).run();
             } catch (Exception e) {
                 log.error("Error submitting batches:", e);
                 // FIXME incomplete Intents should be cleaned up
@@ -494,12 +494,12 @@ public class IntentManager
                 // TODO: maybe we should do more?
                 log.error("Walk the plank, matey...");
                 //FIXME
-//            batchService.removeIntentOperations(ops);
+//            batchService.removeIntentOperations(data);
             }
         }
 
         private List<Future<IntentUpdate>> createIntentUpdates() {
-            return ops.stream()
+            return data.stream()
                       .map(IntentManager.this::submitIntentData)
                       .collect(Collectors.toList());
         }
@@ -550,7 +550,7 @@ public class IntentManager
         @Override
         public void run() {
             Future<CompletedBatchOperation> future = applyNextBatch(intentUpdates);
-            new IntentBatchProcessFutures(ops, intentUpdates, endTime, installAttempt, future).run();
+            new IntentBatchProcessFutures(data, intentUpdates, endTime, installAttempt, future).run();
         }
 
         /**
@@ -587,7 +587,7 @@ public class IntentManager
             log.error("Walk the plank, matey...");
             future = null;
             //FIXME
-//            batchService.removeIntentOperations(ops);
+//            batchService.removeIntentOperations(data);
         }
     }
 
@@ -607,13 +607,14 @@ public class IntentManager
                     // there are no outstanding batches; we are done
                     //FIXME
                     return; //?
-//                    batchService.removeIntentOperations(ops);
+//                    batchService.removeIntentOperations(data);
                 } else if (System.currentTimeMillis() > endTime) {
                     // - cancel current FlowRuleBatch and resubmit again
                     retry();
                 } else {
                     // we are not done yet, yield the thread by resubmitting ourselves
-                    batchExecutor.submit(new IntentBatchProcessFutures(ops, intentUpdates, endTime, installAttempt, future));
+                    batchExecutor.submit(new IntentBatchProcessFutures(data, intentUpdates, endTime,
+                            installAttempt, future));
                 }
             } catch (Exception e) {
                 log.error("Error submitting batches:", e);
@@ -632,10 +633,10 @@ public class IntentManager
                 updateBatches(completed);
                 return applyNextBatch(intentUpdates);
             } catch (TimeoutException | InterruptedException te) {
-                log.trace("Installation of intents are still pending: {}", ops);
+                log.trace("Installation of intents are still pending: {}", data);
                 return future;
             } catch (ExecutionException e) {
-                log.warn("Execution of batch failed: {}", ops, e);
+                log.warn("Execution of batch failed: {}", data, e);
                 abandonShip();
                 return future;
             }
@@ -673,7 +674,7 @@ public class IntentManager
                 long timeLimit = calculateTimeoutLimit();
                 int attempts = installAttempt + 1;
                 if (attempts == MAX_ATTEMPTS) {
-                    log.warn("Install request timed out: {}", ops);
+                    log.warn("Install request timed out: {}", data);
                     for (CompletedIntentUpdate update : intentUpdates) {
                         update.batchFailed();
                     }
@@ -682,7 +683,7 @@ public class IntentManager
                     return;
                 }
                 Future<CompletedBatchOperation> future = applyNextBatch(intentUpdates);
-                batchExecutor.submit(new IntentBatchProcessFutures(ops, intentUpdates, timeLimit, attempts, future));
+                batchExecutor.submit(new IntentBatchProcessFutures(data, intentUpdates, timeLimit, attempts, future));
             } else {
                 log.error("Cancelling FlowRuleBatch failed.");
                 abandonShip();
