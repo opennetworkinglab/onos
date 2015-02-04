@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 
 import java.util.Collections;
@@ -27,13 +26,6 @@ import java.util.Optional;
  * Represents a completed phase of processing an intent.
  */
 interface CompletedIntentUpdate extends IntentUpdate {
-
-    /**
-     * Write data to the specified BatchWrite after execution() is called.
-     *
-     * @param batchWrite batchWrite
-     */
-    default void writeAfterExecution(BatchWrite batchWrite) {}
 
     /**
      * Moves forward with the contained current batch.

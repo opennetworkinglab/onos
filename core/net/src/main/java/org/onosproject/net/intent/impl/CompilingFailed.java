@@ -15,11 +15,9 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.FAILED;
 
 /**
  * A processing phase after compilation failure.
@@ -35,11 +33,5 @@ class CompilingFailed implements CompletedIntentUpdate {
      */
     CompilingFailed(Intent intent) {
         this.intent = checkNotNull(intent);
-    }
-
-    @Override
-    public void writeAfterExecution(BatchWrite batchWrite) {
-        batchWrite.setState(intent, FAILED);
-        batchWrite.removeInstalledIntents(intent.id());
     }
 }

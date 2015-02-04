@@ -45,7 +45,6 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
@@ -70,10 +69,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
 import static org.onosproject.net.intent.IntentState.INSTALLING;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -447,13 +444,6 @@ public class IntentManager
         }
 
         @Override
-        public void writeBeforeExecution(BatchWrite batchWrite) {
-            // TODO consider only "creating" intent if it does not exist
-            // Note: We need to set state to INSTALL_REQ regardless.
-            batchWrite.createIntent(intent);
-        }
-
-        @Override
         public Optional<IntentUpdate> execute() {
             return Optional.of(new Compiling(intent)); //FIXME
         }
@@ -467,11 +457,6 @@ public class IntentManager
         WithdrawRequest(Intent intent, IntentData currentState) {
             this.intent = checkNotNull(intent);
             this.currentState = currentState;
-        }
-
-        @Override
-        public void writeBeforeExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, WITHDRAW_REQ);
         }
 
         @Override
@@ -583,22 +568,6 @@ public class IntentManager
         }
 
         @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            switch (intentState) {
-                case INSTALLING:
-                    batchWrite.setState(intent, INSTALLED);
-                    batchWrite.setInstallableIntents(intent.id(), this.installables);
-                    break;
-                case FAILED:
-                    batchWrite.setState(intent, FAILED);
-                    batchWrite.removeInstalledIntents(intent.id());
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        @Override
         public FlowRuleBatchOperation currentBatch() {
             return currentBatch < batches.size() ? batches.get(currentBatch) : null;
         }
@@ -640,13 +609,6 @@ public class IntentManager
         }
 
         @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, WITHDRAWN);
-            batchWrite.removeInstalledIntents(intent.id());
-            batchWrite.removeIntent(intent.id());
-        }
-
-        @Override
         public FlowRuleBatchOperation currentBatch() {
             return currentBatch < batches.size() ? batches.get(currentBatch) : null;
         }
@@ -681,12 +643,6 @@ public class IntentManager
         @Override
         public void batchSuccess() {
             currentBatch++;
-        }
-
-        @Override
-        public void writeAfterExecution(BatchWrite batchWrite) {
-            batchWrite.setState(intent, FAILED);
-            batchWrite.removeInstalledIntents(intent.id());
         }
 
         @Override
@@ -736,10 +692,6 @@ public class IntentManager
             try {
                 List<IntentUpdate> updates = createIntentUpdates();
 
-                // Write batch information
-                BatchWrite batchWrite = createBatchWrite(updates);
-                store.batchWrite(batchWrite);
-
                 new IntentBatchApplyFirst(ops, processIntentUpdates(updates), endTime, 0, null).run();
             } catch (Exception e) {
                 log.error("Error submitting batches:", e);
@@ -758,12 +710,6 @@ public class IntentManager
             return ops.stream()
                     .map(IntentManager.this::createIntentUpdate)
                     .collect(Collectors.toList());
-        }
-
-        private BatchWrite createBatchWrite(List<IntentUpdate> updates) {
-            BatchWrite batchWrite = BatchWrite.newInstance();
-            updates.forEach(update -> update.writeBeforeExecution(batchWrite));
-            return batchWrite;
         }
 
         private List<CompletedIntentUpdate> processIntentUpdates(List<IntentUpdate> updates) {
@@ -821,10 +767,6 @@ public class IntentManager
                 //FIXME apply batch might throw an exception
                 return flowRuleService.applyBatch(batch);
             } else {
-                // there are no flow rule batches; finalize the intent update
-                BatchWrite batchWrite = createFinalizedBatchWrite(updates);
-
-                store.batchWrite(batchWrite);
                 return null;
             }
         }
@@ -838,14 +780,6 @@ public class IntentManager
                 }
             }
             return batch;
-        }
-
-        private BatchWrite createFinalizedBatchWrite(List<CompletedIntentUpdate> intentUpdates) {
-            BatchWrite batchWrite = BatchWrite.newInstance();
-            for (CompletedIntentUpdate update : intentUpdates) {
-                update.writeAfterExecution(batchWrite);
-            }
-            return batchWrite;
         }
 
         protected void abandonShip() {

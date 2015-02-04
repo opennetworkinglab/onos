@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.intent.BatchWrite;
-
 import java.util.Optional;
 
 /**
@@ -31,11 +29,4 @@ interface IntentUpdate {
      * @return next update
      */
     Optional<IntentUpdate> execute();
-
-    /**
-     * Write data to the specified BatchWrite before execution() is called.
-     *
-     * @param batchWrite batchWrite
-     */
-    default void writeBeforeExecution(BatchWrite batchWrite) {}
 }
