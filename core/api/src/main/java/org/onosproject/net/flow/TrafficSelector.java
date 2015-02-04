@@ -68,6 +68,22 @@ public interface TrafficSelector {
         public Builder matchInPort(PortNumber port);
 
         /**
+         * Matches a physical inport.
+         *
+         * @param port the physical inport
+         * @return a selection builder
+         */
+        public Builder matchInPhyPort(PortNumber port);
+
+        /**
+         * Matches a metadata.
+         *
+         * @param metadata the metadata
+         * @return a selection builder
+         */
+        public Builder matchMetadata(Long metadata);
+
+        /**
          * Matches a l2 dst address.
          *
          * @param addr a l2 address
@@ -106,6 +122,22 @@ public interface TrafficSelector {
          * @return a selection builder
          */
         public Builder matchVlanPcp(Byte vlanPcp);
+
+        /**
+         * Matches an IP DSCP (6 bits in ToS field).
+         *
+         * @param ipDscp an IP DSCP value
+         * @return a selection builder
+         */
+        public Builder matchIPDscp(Byte ipDscp);
+
+        /**
+         * Matches an IP ECN (2 bits in ToS field).
+         *
+         * @param ipEcn an IP ECN value
+         * @return a selection builder
+         */
+        public Builder matchIPEcn(Byte ipEcn);
 
         /**
          * Matches the l3 protocol.

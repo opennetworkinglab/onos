@@ -135,6 +135,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchInPhyPort(PortNumber port) {
+            return add(Criteria.matchInPhyPort(port));
+        }
+
+        @Override
+        public Builder matchMetadata(Long metadata) {
+            return add(Criteria.matchMetadata(metadata));
+        }
+
+        @Override
         public Builder matchEthDst(MacAddress addr) {
             return add(Criteria.matchEthDst(addr));
         }
@@ -157,6 +167,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchVlanPcp(Byte vlanPcp) {
             return add(Criteria.matchVlanPcp(vlanPcp));
+        }
+
+        @Override
+        public Builder matchIPDscp(Byte ipDscp) {
+            return add(Criteria.matchIPDscp(ipDscp));
+        }
+
+        @Override
+        public Builder matchIPEcn(Byte ipEcn) {
+            return add(Criteria.matchIPEcn(ipEcn));
         }
 
         @Override
@@ -273,7 +293,5 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         public TrafficSelector build() {
             return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
         }
-
     }
-
 }

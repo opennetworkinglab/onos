@@ -45,6 +45,16 @@ public class CriteriaTest {
     Criterion sameAsMatchInPort1 = Criteria.matchInPort(port1);
     Criterion matchInPort2 = Criteria.matchInPort(port2);
 
+    Criterion matchInPhyPort1 = Criteria.matchInPhyPort(port1);
+    Criterion sameAsMatchInPhyPort1 = Criteria.matchInPhyPort(port1);
+    Criterion matchInPhyPort2 = Criteria.matchInPhyPort(port2);
+
+    long metadata1 = 1;
+    long metadata2 = 2;
+    Criterion matchMetadata1 = Criteria.matchMetadata(metadata1);
+    Criterion sameAsMatchMetadata1 = Criteria.matchMetadata(metadata1);
+    Criterion matchMetadata2 = Criteria.matchMetadata(metadata2);
+
     private static final String MAC1 = "00:00:00:00:00:01";
     private static final String MAC2 = "00:00:00:00:00:02";
     private MacAddress mac1 = MacAddress.valueOf(MAC1);
@@ -72,6 +82,18 @@ public class CriteriaTest {
     Criterion matchVlanPcp1 = Criteria.matchVlanPcp(vlanPcp1);
     Criterion sameAsMatchVlanPcp1 = Criteria.matchVlanPcp(vlanPcp1);
     Criterion matchVlanPcp2 = Criteria.matchVlanPcp(vlanPcp2);
+
+    byte ipDscp1 = 1;
+    byte ipDscp2 = 2;
+    Criterion matchIpDscp1 = Criteria.matchIPDscp(ipDscp1);
+    Criterion sameAsMatchIpDscp1 = Criteria.matchIPDscp(ipDscp1);
+    Criterion matchIpDscp2 = Criteria.matchIPDscp(ipDscp2);
+
+    byte ipEcn1 = 1;
+    byte ipEcn2 = 2;
+    Criterion matchIpEcn1 = Criteria.matchIPEcn(ipEcn1);
+    Criterion sameAsMatchIpEcn1 = Criteria.matchIPEcn(ipEcn1);
+    Criterion matchIpEcn2 = Criteria.matchIPEcn(ipEcn2);
 
     byte protocol1 = 1;
     byte protocol2 = 2;
@@ -214,10 +236,13 @@ public class CriteriaTest {
     @Test
     public void testCriteriaImmutability() {
         assertThatClassIsImmutable(Criteria.PortCriterion.class);
+        assertThatClassIsImmutable(Criteria.MetadataCriterion.class);
         assertThatClassIsImmutable(Criteria.EthCriterion.class);
         assertThatClassIsImmutable(Criteria.EthTypeCriterion.class);
         assertThatClassIsImmutable(Criteria.VlanIdCriterion.class);
         assertThatClassIsImmutable(Criteria.VlanPcpCriterion.class);
+        assertThatClassIsImmutable(Criteria.IPDscpCriterion.class);
+        assertThatClassIsImmutable(Criteria.IPEcnCriterion.class);
         assertThatClassIsImmutable(Criteria.IPProtocolCriterion.class);
         assertThatClassIsImmutable(Criteria.IPCriterion.class);
         assertThatClassIsImmutable(Criteria.TcpPortCriterion.class);
@@ -252,6 +277,20 @@ public class CriteriaTest {
     }
 
     /**
+     * Test the matchInPhyPort method.
+     */
+    @Test
+    public void testMatchInPhyPortMethod() {
+        PortNumber p1 = portNumber(1);
+        Criterion matchInPhyPort = Criteria.matchInPhyPort(p1);
+        Criteria.PortCriterion portCriterion =
+                checkAndConvert(matchInPhyPort,
+                                Criterion.Type.IN_PHY_PORT,
+                                Criteria.PortCriterion.class);
+        assertThat(portCriterion.port(), is(equalTo(p1)));
+    }
+
+    /**
      * Test the equals() method of the PortCriterion class.
      */
     @Test
@@ -259,6 +298,38 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchInPort1, sameAsMatchInPort1)
                 .addEqualityGroup(matchInPort2)
+                .testEquals();
+
+        new EqualsTester()
+                .addEqualityGroup(matchInPhyPort1, sameAsMatchInPhyPort1)
+                .addEqualityGroup(matchInPhyPort2)
+                .testEquals();
+    }
+
+    // MetadataCriterion class
+
+    /**
+     * Test the matchMetadata method.
+     */
+    @Test
+    public void testMatchMetadataMethod() {
+        Long metadata = 12L;
+        Criterion matchMetadata = Criteria.matchMetadata(metadata);
+        Criteria.MetadataCriterion metadataCriterion =
+                checkAndConvert(matchMetadata,
+                                Criterion.Type.METADATA,
+                                Criteria.MetadataCriterion.class);
+        assertThat(metadataCriterion.metadata(), is(equalTo(metadata)));
+    }
+
+    /**
+     * Test the equals() method of the MetadataCriterion class.
+     */
+    @Test
+    public void testMetadataCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchMetadata1, sameAsMatchMetadata1)
+                .addEqualityGroup(matchMetadata2)
                 .testEquals();
     }
 
@@ -377,6 +448,58 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchVlanPcp1, sameAsMatchVlanPcp1)
                 .addEqualityGroup(matchVlanPcp2)
+                .testEquals();
+    }
+
+    // IPDscpCriterion class
+
+    /**
+     * Test the matchIPDscp method.
+     */
+    @Test
+    public void testMatchIPDscpMethod() {
+        Criterion matchIPDscp = Criteria.matchIPDscp(ipDscp1);
+        Criteria.IPDscpCriterion ipDscpCriterion =
+                checkAndConvert(matchIPDscp,
+                        Criterion.Type.IP_DSCP,
+                        Criteria.IPDscpCriterion.class);
+        assertThat(ipDscpCriterion.ipDscp(), is(equalTo(ipDscp1)));
+    }
+
+    /**
+     * Test the equals() method of the IPDscpCriterion class.
+     */
+    @Test
+    public void testIPDscpCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchIpDscp1, sameAsMatchIpDscp1)
+                .addEqualityGroup(matchIpDscp2)
+                .testEquals();
+    }
+
+    // IPEcnCriterion class
+
+    /**
+     * Test the matchIPEcn method.
+     */
+    @Test
+    public void testMatchIPEcnMethod() {
+        Criterion matchIPEcn = Criteria.matchIPEcn(ipEcn1);
+        Criteria.IPEcnCriterion ipEcnCriterion =
+                checkAndConvert(matchIPEcn,
+                        Criterion.Type.IP_ECN,
+                        Criteria.IPEcnCriterion.class);
+        assertThat(ipEcnCriterion.ipEcn(), is(equalTo(ipEcn1)));
+    }
+
+    /**
+     * Test the equals() method of the IPEcnCriterion class.
+     */
+    @Test
+    public void testIPEcnCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchIpEcn1, sameAsMatchIpEcn1)
+                .addEqualityGroup(matchIpEcn2)
                 .testEquals();
     }
 

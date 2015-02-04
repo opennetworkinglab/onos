@@ -43,8 +43,15 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         switch (criterion.type()) {
 
             case IN_PORT:
+            case IN_PHY_PORT:
                 final Criteria.PortCriterion portCriterion = (Criteria.PortCriterion) criterion;
                 result.put("port", portCriterion.port().toLong());
+                break;
+
+            case METADATA:
+                final Criteria.MetadataCriterion metadataCriterion =
+                        (Criteria.MetadataCriterion) criterion;
+                result.put("metadata", metadataCriterion.metadata());
                 break;
 
             case ETH_DST:
@@ -69,6 +76,18 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
                 final Criteria.VlanPcpCriterion vlanPcpCriterion =
                         (Criteria.VlanPcpCriterion) criterion;
                 result.put("priority", vlanPcpCriterion.priority());
+                break;
+
+            case IP_DSCP:
+                final Criteria.IPDscpCriterion ipDscpCriterion =
+                        (Criteria.IPDscpCriterion) criterion;
+                result.put("ipDscp", ipDscpCriterion.ipDscp());
+                break;
+
+            case IP_ECN:
+                final Criteria.IPEcnCriterion ipEcnCriterion =
+                        (Criteria.IPEcnCriterion) criterion;
+                result.put("ipEcn", ipEcnCriterion.ipEcn());
                 break;
 
             case IP_PROTO:

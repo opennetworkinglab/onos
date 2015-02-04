@@ -355,6 +355,15 @@ public class FlowEntryBuilder {
                 builder.matchInPort(PortNumber
                         .portNumber(match.get(MatchField.IN_PORT).getPortNumber()));
                 break;
+            case IN_PHY_PORT:
+                builder.matchInPhyPort(PortNumber
+                        .portNumber(match.get(MatchField.IN_PHY_PORT).getPortNumber()));
+                break;
+            case METADATA:
+                long metadata =
+                    match.get(MatchField.METADATA).getValue().getValue();
+                builder.matchMetadata(metadata);
+                break;
             case ETH_DST:
                 mac = MacAddress.valueOf(match.get(MatchField.ETH_DST).getLong());
                 builder.matchEthDst(mac);
@@ -385,6 +394,14 @@ public class FlowEntryBuilder {
             case VLAN_PCP:
                 byte vlanPcp = match.get(MatchField.VLAN_PCP).getValue();
                 builder.matchVlanPcp(vlanPcp);
+                break;
+            case IP_DSCP:
+                byte ipDscp = match.get(MatchField.IP_DSCP).getDscpValue();
+                builder.matchIPDscp(ipDscp);
+                break;
+            case IP_ECN:
+                byte ipEcn = match.get(MatchField.IP_ECN).getEcnValue();
+                builder.matchIPEcn(ipEcn);
                 break;
             case IP_PROTO:
                 short proto = match.get(MatchField.IP_PROTO).getIpProtocolNumber();
@@ -514,10 +531,6 @@ public class FlowEntryBuilder {
             case ARP_SPA:
             case ARP_THA:
             case ARP_TPA:
-            case IN_PHY_PORT:
-            case IP_DSCP:
-            case IP_ECN:
-            case METADATA:
             case MPLS_TC:
             case TUNNEL_ID:
             default:

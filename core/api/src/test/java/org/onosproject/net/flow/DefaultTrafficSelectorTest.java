@@ -127,9 +127,12 @@ public class DefaultTrafficSelectorTest {
     public void testCriteriaCreation() {
         TrafficSelector selector;
 
+        final long longValue = 0x12345678;
         final int intValue = 22;
         final short shortValue = 33;
         final byte byteValue = 44;
+        final byte dscpValue = 0xf;
+        final byte ecnValue = 3;
         final MacAddress macValue = MacAddress.valueOf("11:22:33:44:55:66");
         final IpPrefix ipPrefixValue = IpPrefix.valueOf("192.168.1.0/24");
         final IpPrefix ipv6PrefixValue = IpPrefix.valueOf("fe80::1/64");
@@ -138,6 +141,14 @@ public class DefaultTrafficSelectorTest {
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.portNumber(11)).build();
         assertThat(selector, hasCriterionWithType(Type.IN_PORT));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchInPhyPort(PortNumber.portNumber(11)).build();
+        assertThat(selector, hasCriterionWithType(Type.IN_PHY_PORT));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchMetadata(longValue).build();
+        assertThat(selector, hasCriterionWithType(Type.METADATA));
 
         selector = DefaultTrafficSelector.builder()
                 .matchEthDst(macValue).build();
@@ -158,6 +169,14 @@ public class DefaultTrafficSelectorTest {
         selector = DefaultTrafficSelector.builder()
                 .matchVlanPcp(byteValue).build();
         assertThat(selector, hasCriterionWithType(Type.VLAN_PCP));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchIPDscp(dscpValue).build();
+        assertThat(selector, hasCriterionWithType(Type.IP_DSCP));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchIPEcn(ecnValue).build();
+        assertThat(selector, hasCriterionWithType(Type.IP_ECN));
 
         selector = DefaultTrafficSelector.builder()
                 .matchIPProtocol(byteValue).build();

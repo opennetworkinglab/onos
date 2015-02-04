@@ -30,11 +30,14 @@ import org.onosproject.net.flow.criteria.Criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IPEcnCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPv6FlowLabelCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPv6NDLinkLayerAddressCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPv6NDTargetAddressCriterion;
 import org.onosproject.net.flow.criteria.Criteria.LambdaCriterion;
+import org.onosproject.net.flow.criteria.Criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.Criteria.TcpPortCriterion;
@@ -55,9 +58,12 @@ import org.projectfloodlight.openflow.types.ICMPv4Type;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.IPv6FlowLabel;
+import org.projectfloodlight.openflow.types.IpDscp;
+import org.projectfloodlight.openflow.types.IpEcn;
 import org.projectfloodlight.openflow.types.IpProtocol;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.Masked;
+import org.projectfloodlight.openflow.types.OFMetadata;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TransportPort;
@@ -161,8 +167,19 @@ public abstract class FlowModBuilder {
         for (Criterion c : selector.criteria()) {
             switch (c.type()) {
             case IN_PORT:
-                PortCriterion inport = (PortCriterion) c;
-                mBuilder.setExact(MatchField.IN_PORT, OFPort.of((int) inport.port().toLong()));
+                PortCriterion inPort = (PortCriterion) c;
+                mBuilder.setExact(MatchField.IN_PORT,
+                                  OFPort.of((int) inPort.port().toLong()));
+                break;
+            case IN_PHY_PORT:
+                PortCriterion inPhyPort = (PortCriterion) c;
+                mBuilder.setExact(MatchField.IN_PORT,
+                                  OFPort.of((int) inPhyPort.port().toLong()));
+                break;
+            case METADATA:
+                MetadataCriterion metadata = (MetadataCriterion) c;
+                mBuilder.setExact(MatchField.METADATA,
+                                  OFMetadata.ofRaw(metadata.metadata()));
                 break;
             case ETH_DST:
                 ethCriterion = (EthCriterion) c;
@@ -192,6 +209,16 @@ public abstract class FlowModBuilder {
             case VLAN_PCP:
                 VlanPcpCriterion vpcp = (VlanPcpCriterion) c;
                 mBuilder.setExact(MatchField.VLAN_PCP, VlanPcp.of(vpcp.priority()));
+                break;
+            case IP_DSCP:
+                IPDscpCriterion ipDscpCriterion = (IPDscpCriterion) c;
+                mBuilder.setExact(MatchField.IP_DSCP,
+                                  IpDscp.of(ipDscpCriterion.ipDscp()));
+                break;
+            case IP_ECN:
+                IPEcnCriterion ipEcnCriterion = (IPEcnCriterion) c;
+                mBuilder.setExact(MatchField.IP_ECN,
+                                  IpEcn.of(ipEcnCriterion.ipEcn()));
                 break;
             case IP_PROTO:
                 IPProtocolCriterion p = (IPProtocolCriterion) c;
@@ -353,11 +380,7 @@ public abstract class FlowModBuilder {
             case ARP_SPA:
             case ARP_THA:
             case ARP_TPA:
-            case IN_PHY_PORT:
             case IPV6_EXTHDR:
-            case IP_DSCP:
-            case IP_ECN:
-            case METADATA:
             case MPLS_BOS:
             case MPLS_TC:
             case PBB_ISID:

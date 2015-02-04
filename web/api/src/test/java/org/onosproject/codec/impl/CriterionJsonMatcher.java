@@ -35,7 +35,8 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
 
     // CHECKSTYLE IGNORE MethodLength FOR NEXT 300 LINES
     @Override
-    public boolean matchesSafely(JsonNode jsonCriterion, Description description) {
+    public boolean matchesSafely(JsonNode jsonCriterion,
+                                 Description description) {
         final String type = criterion.type().name();
         final String jsonType = jsonCriterion.get("type").asText();
         if (!type.equals(jsonType)) {
@@ -46,7 +47,9 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
         switch (criterion.type()) {
 
             case IN_PORT:
-                final Criteria.PortCriterion portCriterion = (Criteria.PortCriterion) criterion;
+            case IN_PHY_PORT:
+                final Criteria.PortCriterion portCriterion =
+                        (Criteria.PortCriterion) criterion;
                 final long port = portCriterion.port().toLong();
                 final long jsonPort = jsonCriterion.get("port").asLong();
                 if (port != jsonPort) {
@@ -55,9 +58,21 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
                 }
                 break;
 
+            case METADATA:
+                final Criteria.MetadataCriterion metadataCriterion =
+                        (Criteria.MetadataCriterion) criterion;
+                final long metadata = metadataCriterion.metadata();
+                final long jsonMetadata = jsonCriterion.get("metadata").asLong();
+                if (metadata != jsonMetadata) {
+                    description.appendText("metadata was " + Long.toString(jsonMetadata));
+                    return false;
+                }
+                break;
+
             case ETH_DST:
             case ETH_SRC:
-                final Criteria.EthCriterion ethCriterion = (Criteria.EthCriterion) criterion;
+                final Criteria.EthCriterion ethCriterion =
+                    (Criteria.EthCriterion) criterion;
                 final String mac = ethCriterion.mac().toString();
                 final String jsonMac = jsonCriterion.get("mac").textValue();
                 if (!mac.equals(jsonMac)) {
@@ -99,6 +114,28 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
                 }
                 break;
 
+            case IP_DSCP:
+                final Criteria.IPDscpCriterion ipDscpCriterion =
+                        (Criteria.IPDscpCriterion) criterion;
+                final byte ipDscp = ipDscpCriterion.ipDscp();
+                final byte jsonIpDscp = (byte) jsonCriterion.get("ipDscp").shortValue();
+                if (ipDscp != jsonIpDscp) {
+                    description.appendText("IP DSCP was " + Byte.toString(jsonIpDscp));
+                    return false;
+                }
+                break;
+
+            case IP_ECN:
+                final Criteria.IPEcnCriterion ipEcnCriterion =
+                        (Criteria.IPEcnCriterion) criterion;
+                final byte ipEcn = ipEcnCriterion.ipEcn();
+                final byte jsonIpEcn = (byte) jsonCriterion.get("ipEcn").shortValue();
+                if (ipEcn != jsonIpEcn) {
+                    description.appendText("IP ECN was " + Byte.toString(jsonIpEcn));
+                    return false;
+                }
+                break;
+
             case IP_PROTO:
                 final Criteria.IPProtocolCriterion iPProtocolCriterion =
                         (Criteria.IPProtocolCriterion) criterion;
@@ -114,7 +151,8 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case IPV4_DST:
             case IPV6_SRC:
             case IPV6_DST:
-                final Criteria.IPCriterion ipCriterion = (Criteria.IPCriterion) criterion;
+                final Criteria.IPCriterion ipCriterion =
+                    (Criteria.IPCriterion) criterion;
                 final String ip = ipCriterion.ip().toString();
                 final String jsonIp = jsonCriterion.get("ip").textValue();
                 if (!ip.equals(jsonIp)) {
@@ -217,7 +255,7 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case IPV6_ND_TARGET:
                 final Criteria.IPv6NDTargetAddressCriterion
                     ipv6NDTargetAddressCriterion =
-                    (Criteria.IPv6NDTargetAddressCriterion) criterion;
+                        (Criteria.IPv6NDTargetAddressCriterion) criterion;
                 final String targetAddress =
                     ipv6NDTargetAddressCriterion.targetAddress().toString();
                 final String jsonTargetAddress =
@@ -233,7 +271,7 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case IPV6_ND_TLL:
                 final Criteria.IPv6NDLinkLayerAddressCriterion
                     ipv6NDLinkLayerAddressCriterion =
-                    (Criteria.IPv6NDLinkLayerAddressCriterion) criterion;
+                        (Criteria.IPv6NDLinkLayerAddressCriterion) criterion;
                 final String llAddress =
                     ipv6NDLinkLayerAddressCriterion.mac().toString();
                 final String jsonLlAddress =

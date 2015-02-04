@@ -43,7 +43,27 @@ public final class Criteria {
      * @return match criterion
      */
     public static Criterion matchInPort(PortNumber port) {
-        return new PortCriterion(port);
+        return new PortCriterion(port, Type.IN_PORT);
+    }
+
+    /**
+     * Creates a match on IN_PHY_PORT field using the specified value.
+     *
+     * @param port inport value
+     * @return match criterion
+     */
+    public static Criterion matchInPhyPort(PortNumber port) {
+        return new PortCriterion(port, Type.IN_PHY_PORT);
+    }
+
+    /**
+     * Creates a match on METADATA field using the specified value.
+     *
+     * @param metadata metadata value
+     * @return match criterion
+     */
+    public static Criterion matchMetadata(Long metadata) {
+        return new MetadataCriterion(metadata);
     }
 
     /**
@@ -96,6 +116,26 @@ public final class Criteria {
      */
     public static Criterion matchVlanPcp(Byte vlanPcp) {
         return new VlanPcpCriterion(vlanPcp);
+    }
+
+    /**
+     * Creates a match on IP DSCP field using the specified value.
+     *
+     * @param ipDscp ip dscp value
+     * @return match criterion
+     */
+    public static Criterion matchIPDscp(Byte ipDscp) {
+        return new IPDscpCriterion(ipDscp);
+    }
+
+    /**
+     * Creates a match on IP ECN field using the specified value.
+     *
+     * @param ipEcn ip ecn value
+     * @return match criterion
+     */
+    public static Criterion matchIPEcn(Byte ipEcn) {
+        return new IPEcnCriterion(ipEcn);
     }
 
     /**
@@ -327,19 +367,23 @@ public final class Criteria {
      */
     public static final class PortCriterion implements Criterion {
         private final PortNumber port;
+        private final Type type;
 
         /**
          * Constructor.
          *
          * @param port the input port number to match
+         * @param type the match type. Should be either Type.IN_PORT or
+         * Type.IN_PHY_PORT
          */
-        public PortCriterion(PortNumber port) {
+        public PortCriterion(PortNumber port, Type type) {
             this.port = port;
+            this.type = type;
         }
 
         @Override
         public Type type() {
-            return Type.IN_PORT;
+            return this.type;
         }
 
         /**
@@ -371,7 +415,61 @@ public final class Criteria {
                 PortCriterion that = (PortCriterion) obj;
                 return Objects.equals(port, that.port) &&
                         Objects.equals(this.type(), that.type());
+            }
+            return false;
+        }
+    }
 
+    /**
+     * Implementation of Metadata criterion.
+     */
+    public static final class MetadataCriterion implements Criterion {
+        private final Long metadata;
+
+        /**
+         * Constructor.
+         *
+         * @param metadata the metadata to match
+         */
+        public MetadataCriterion(Long metadata) {
+            this.metadata = metadata;
+        }
+
+        @Override
+        public Type type() {
+            return Type.METADATA;
+        }
+
+        /**
+         * Gets the metadata to match.
+         *
+         * @return the metadata to match
+         */
+        public Long metadata() {
+            return metadata;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("metadata", Long.toHexString(metadata))
+                    .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), metadata);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof MetadataCriterion) {
+                MetadataCriterion that = (MetadataCriterion) obj;
+                return Objects.equals(metadata, that.metadata) &&
+                        Objects.equals(this.type(), that.type());
             }
             return false;
         }
@@ -594,6 +692,118 @@ public final class Criteria {
             if (obj instanceof VlanPcpCriterion) {
                 VlanPcpCriterion that = (VlanPcpCriterion) obj;
                 return Objects.equals(vlanPcp, that.vlanPcp) &&
+                        Objects.equals(this.type(), that.type());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Implementation of IP DSCP criterion (6-bit Differentiated Services
+     * Code Point).
+     */
+    public static final class IPDscpCriterion implements Criterion {
+        private static final byte DSCP_MASK = 0x3f;
+        private final Byte ipDscp;              // IP DSCP value: 6 bits
+
+        /**
+         * Constructor.
+         *
+         * @param ipDscp the IP DSCP value to match
+         */
+        public IPDscpCriterion(Byte ipDscp) {
+            this.ipDscp = (byte) (ipDscp & DSCP_MASK);
+        }
+
+        @Override
+        public Type type() {
+            return Type.IP_DSCP;
+        }
+
+        /**
+         * Gets the IP DSCP value to match.
+         *
+         * @return the IP DSCP value to match
+         */
+        public Byte ipDscp() {
+            return ipDscp;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("ipDscp", ipDscp).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), ipDscp);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof IPDscpCriterion) {
+                IPDscpCriterion that = (IPDscpCriterion) obj;
+                return Objects.equals(ipDscp, that.ipDscp) &&
+                        Objects.equals(this.type(), that.type());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Implementation of IP ECN criterion (3-bit Explicit Congestion
+     * Notification).
+     */
+    public static final class IPEcnCriterion implements Criterion {
+        private static final byte ECN_MASK = 0x3;
+        private final Byte ipEcn;               // IP ECN value: 3 bits
+
+        /**
+         * Constructor.
+         *
+         * @param ipEcn the IP ECN value to match
+         */
+        public IPEcnCriterion(Byte ipEcn) {
+            this.ipEcn = (byte) (ipEcn & ECN_MASK);
+        }
+
+        @Override
+        public Type type() {
+            return Type.IP_ECN;
+        }
+
+        /**
+         * Gets the IP ECN value to match.
+         *
+         * @return the IP ECN value to match
+         */
+        public Byte ipEcn() {
+            return ipEcn;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("ipEcn", ipEcn).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), ipEcn);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof IPEcnCriterion) {
+                IPEcnCriterion that = (IPEcnCriterion) obj;
+                return Objects.equals(ipEcn, that.ipEcn) &&
                         Objects.equals(this.type(), that.type());
             }
             return false;
