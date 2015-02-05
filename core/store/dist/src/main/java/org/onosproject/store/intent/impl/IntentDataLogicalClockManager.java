@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.impl;
+package org.onosproject.store.intent.impl;
 
+import org.onosproject.net.intent.IntentData;
 import org.onosproject.store.Timestamp;
+import org.onosproject.store.impl.ClockService;
+import org.onosproject.store.impl.MultiValuedTimestamp;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Clock service that can generate timestamps based off of two input objects.
- * Implementations are free to only take one or none of the objects into account
- * when generating timestamps.
+ * ClockService that generates logical timestamps based on IntentData versions.
  */
-public interface ClockService<T, U> {
+public class IntentDataLogicalClockManager<K> implements ClockService<K, IntentData> {
 
-    /**
-     * Gets a new timestamp for the given objects.
-     *
-     * @param object1 First object to use when generating timestamps
-     * @param object2 Second object to use when generating timestamps
-     * @return the new timestamp
-     */
-    public Timestamp getTimestamp(T object1, U object2);
+    private final AtomicLong sequenceNumber = new AtomicLong(0);
+
+    @Override
+    public Timestamp getTimestamp(K key, IntentData intentData) {
+        return new MultiValuedTimestamp(intentData.version(), sequenceNumber.getAndIncrement());
+    }
 }

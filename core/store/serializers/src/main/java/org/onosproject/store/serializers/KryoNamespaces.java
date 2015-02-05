@@ -85,6 +85,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentOperation;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
@@ -285,6 +286,9 @@ public final class KryoNamespaces {
                     FlowRuleBatchEntry.FlowRuleOperation.class,
                     IntentId.class,
                     IntentState.class,
+                    Key.class,
+                    Key.LongKey.class,
+                    Key.StringKey.class,
                     Intent.class,
                     ConnectivityIntent.class,
                     PathIntent.class,

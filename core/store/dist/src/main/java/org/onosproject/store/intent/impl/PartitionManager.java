@@ -26,14 +26,13 @@ import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Manages the assignment of intent keyspace partitions to instances.
@@ -75,14 +74,15 @@ public class PartitionManager implements PartitionService {
         leadershipService.removeListener(leaderListener);
     }
 
-    private PartitionId getPartitionForKey(String intentKey) {
-        return new PartitionId(intentKey.hashCode() % NUM_PARTITIONS);
+    private PartitionId getPartitionForKey(Key intentKey) {
+        log.debug("Getting partition for {}: {}", intentKey,
+                  new PartitionId(Math.abs(intentKey.hash()) % NUM_PARTITIONS));
+        return new PartitionId(Math.abs(intentKey.hash()) % NUM_PARTITIONS);
     }
 
     @Override
-    public boolean isMine(String intentKey) {
-        return checkNotNull(
-                myPartitions.contains(getPartitionForKey(intentKey)));
+    public boolean isMine(Key intentKey) {
+        return myPartitions.contains(getPartitionForKey(intentKey));
     }
 
     private final class InternalLeadershipListener implements LeadershipEventListener {
@@ -115,7 +115,6 @@ public class PartitionManager implements PartitionService {
                     myPartitions.remove(new PartitionId(partitionId));
                 }
             }
-
         }
     }
 }

@@ -69,7 +69,7 @@ public class EventuallyConsistentMapImpl<K, V>
     private final ClusterCommunicationService clusterCommunicator;
     private final KryoSerializer serializer;
 
-    private final ClockService<K> clockService;
+    private final ClockService<K, V> clockService;
 
     private final MessageSubject updateMessageSubject;
     private final MessageSubject removeMessageSubject;
@@ -126,7 +126,7 @@ public class EventuallyConsistentMapImpl<K, V>
                                        ClusterService clusterService,
                                        ClusterCommunicationService clusterCommunicator,
                                        KryoNamespace.Builder serializerBuilder,
-                                       ClockService<K> clockService) {
+                                       ClockService<K, V> clockService) {
 
         this.mapName = checkNotNull(mapName);
         this.clusterService = checkNotNull(clusterService);
@@ -227,7 +227,8 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
 
-        Timestamp timestamp = clockService.getTimestamp(key);
+        Timestamp timestamp = clockService.getTimestamp(key, value);
+
         if (putInternal(key, value, timestamp)) {
             notifyPeers(new InternalPutEvent<>(key, value, timestamp));
             EventuallyConsistentMapEvent<K, V> externalEvent
@@ -260,7 +261,9 @@ public class EventuallyConsistentMapImpl<K, V>
         checkState(!destroyed, mapName + ERROR_DESTROYED);
         checkNotNull(key, ERROR_NULL_KEY);
 
-        Timestamp timestamp = clockService.getTimestamp(key);
+        // TODO prevent calls here if value is important for timestamp
+        Timestamp timestamp = clockService.getTimestamp(key, null);
+
         if (removeInternal(key, timestamp)) {
             notifyPeers(new InternalRemoveEvent<>(key, timestamp));
             EventuallyConsistentMapEvent<K, V> externalEvent
@@ -283,6 +286,23 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     @Override
+    public void remove(K key, V value) {
+        checkState(!destroyed, mapName + ERROR_DESTROYED);
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(value, ERROR_NULL_VALUE);
+
+        Timestamp timestamp = clockService.getTimestamp(key, value);
+
+        if (removeInternal(key, timestamp)) {
+            notifyPeers(new InternalRemoveEvent<>(key, timestamp));
+            EventuallyConsistentMapEvent<K, V> externalEvent
+                    = new EventuallyConsistentMapEvent<>(
+                    EventuallyConsistentMapEvent.Type.REMOVE, key, value);
+            notifyListeners(externalEvent);
+        }
+    }
+
+    @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         checkState(!destroyed, mapName + ERROR_DESTROYED);
 
@@ -295,7 +315,7 @@ public class EventuallyConsistentMapImpl<K, V>
             checkNotNull(key, ERROR_NULL_KEY);
             checkNotNull(value, ERROR_NULL_VALUE);
 
-            Timestamp timestamp = clockService.getTimestamp(entry.getKey());
+            Timestamp timestamp = clockService.getTimestamp(key, value);
 
             if (putInternal(key, value, timestamp)) {
                 updates.add(new PutEntry<>(key, value, timestamp));
@@ -306,7 +326,8 @@ public class EventuallyConsistentMapImpl<K, V>
             notifyPeers(new InternalPutEvent<>(updates));
 
             for (PutEntry<K, V> entry : updates) {
-                EventuallyConsistentMapEvent<K, V> externalEvent = new EventuallyConsistentMapEvent<>(
+                EventuallyConsistentMapEvent<K, V> externalEvent =
+                        new EventuallyConsistentMapEvent<>(
                         EventuallyConsistentMapEvent.Type.PUT, entry.key(),
                         entry.value());
                 notifyListeners(externalEvent);
@@ -321,7 +342,8 @@ public class EventuallyConsistentMapImpl<K, V>
         List<RemoveEntry<K>> removed = new ArrayList<>(items.size());
 
         for (K key : items.keySet()) {
-            Timestamp timestamp = clockService.getTimestamp(key);
+            // TODO also this is not applicable if value is important for timestamp?
+            Timestamp timestamp = clockService.getTimestamp(key, null);
 
             if (removeInternal(key, timestamp)) {
                 removed.add(new RemoveEntry<>(key, timestamp));
@@ -565,7 +587,8 @@ public class EventuallyConsistentMapImpl<K, V>
         // Send all updates to the peer at once
         if (!updatesToSend.isEmpty()) {
             try {
-                unicastMessage(sender, updateMessageSubject, new InternalPutEvent<>(updatesToSend));
+                unicastMessage(sender, updateMessageSubject,
+                               new InternalPutEvent<>(updatesToSend));
             } catch (IOException e) {
                 log.warn("Failed to send advertisement response", e);
             }
@@ -603,7 +626,8 @@ public class EventuallyConsistentMapImpl<K, V>
         // Send all removes to the peer at once
         if (!removesToSend.isEmpty()) {
             try {
-                unicastMessage(sender, removeMessageSubject, new InternalRemoveEvent<>(removesToSend));
+                unicastMessage(sender, removeMessageSubject,
+                               new InternalRemoveEvent<>(removesToSend));
             } catch (IOException e) {
                 log.warn("Failed to send advertisement response", e);
             }

@@ -48,7 +48,7 @@ public class Key {
         return new LongKey(key, appId);
     }
 
-    private static final class StringKey extends Key {
+    public static final class StringKey extends Key {
 
         private final ApplicationId appId;
         private final String key;
@@ -87,7 +87,7 @@ public class Key {
         }
     }
 
-    private static final class LongKey extends Key {
+    public static final class LongKey extends Key {
 
         private final ApplicationId appId;
         private final long key;

@@ -62,7 +62,7 @@ public class EventuallyConsistentMapImplTest {
 
     private ClusterService clusterService;
     private ClusterCommunicationService clusterCommunicator;
-    private SequentialClockService<String> clockService;
+    private SequentialClockService<String, String> clockService;
 
     private static final String MAP_NAME = "test";
     private static final MessageSubject PUT_MESSAGE_SUBJECT
@@ -222,7 +222,7 @@ public class EventuallyConsistentMapImplTest {
 
         // Remote put
         ClusterMessage message
-                = generatePutMessage(KEY2, VALUE2, clockService.getTimestamp(KEY2));
+                = generatePutMessage(KEY2, VALUE2, clockService.getTimestamp(KEY2, VALUE2));
 
         // Create a latch so we know when the put operation has finished
         latch = new CountDownLatch(1);
@@ -240,7 +240,7 @@ public class EventuallyConsistentMapImplTest {
 
         // Remote remove
         ClusterMessage removeMessage
-                = generateRemoveMessage(KEY1, clockService.getTimestamp(KEY1));
+                = generateRemoveMessage(KEY1, clockService.getTimestamp(KEY1, VALUE1));
 
         // Create a latch so we know when the remove operation has finished
         latch = new CountDownLatch(1);
@@ -731,14 +731,15 @@ public class EventuallyConsistentMapImplTest {
      * to give out timestamps from the past.
      *
      * @param <T> Type that the clock service will give out timestamps for
+     * @param <U> Second type that the clock service will give out values for
      */
-    private class SequentialClockService<T> implements ClockService<T> {
+    private class SequentialClockService<T, U> implements ClockService<T, U> {
 
         private static final long INITIAL_VALUE = 1;
         private final AtomicLong counter = new AtomicLong(INITIAL_VALUE);
 
         @Override
-        public Timestamp getTimestamp(T object) {
+        public Timestamp getTimestamp(T object, U object2) {
             return new TestTimestamp(counter.getAndIncrement());
         }
 
@@ -748,7 +749,7 @@ public class EventuallyConsistentMapImplTest {
          * still allowing the CUT to get the same timestamp.
          *
          * @return timestamp equal to the timestamp that will be returned by the
-         * next call to {@link #getTimestamp(T)}.
+         * next call to {@link #getTimestamp(T, U)}.
          */
         public Timestamp peekAtNextTimestamp() {
             return peek(1);

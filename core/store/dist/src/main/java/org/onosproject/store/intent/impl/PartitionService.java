@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.intent.impl;
 
+import org.onosproject.net.intent.Key;
+
 /**
  * Service for interacting with the partition-to-instance assignments.
  */
@@ -27,7 +29,7 @@ public interface PartitionService {
      * @param intentKey intent key to query
      * @return true if the key is owned by this instance, otherwise false
      */
-    boolean isMine(String intentKey);
+    boolean isMine(Key intentKey);
 
     // TODO add API for rebalancing partitions
 }

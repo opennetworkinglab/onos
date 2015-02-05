@@ -20,11 +20,11 @@ import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.ClockService;
 
 /**
- * ClockService that generates timestamps based on IntentData versions.
+ * ClockService that uses IntentData versions as timestamps.
  */
-public class IntentDataClockManager implements ClockService<IntentData> {
+public class IntentDataClockManager<K> implements ClockService<K, IntentData> {
     @Override
-    public Timestamp getTimestamp(IntentData data) {
-        return null;
+    public Timestamp getTimestamp(K key, IntentData intentData) {
+        return intentData.version();
     }
 }

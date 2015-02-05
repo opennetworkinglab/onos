@@ -111,6 +111,27 @@ public interface EventuallyConsistentMap<K, V> {
     public void remove(K key);
 
     /**
+     * Removes the given key-value mapping from the map, if it exists.
+     * <p>
+     * This actually means remove any values up to and including the timestamp
+     * given by {@link org.onosproject.store.impl.ClockService#getTimestamp(Object, Object)}.
+     * Any mappings that produce an earlier timestamp than this given key-value
+     * pair will be removed, and any mappings that produce a later timestamp
+     * will supersede this remove.
+     * </p><p>
+     * Note: this differs from the specification of {@link java.util.Map}
+     * because it does not return a boolean indication whether a value was removed.
+     * Clients are expected to register an
+     * {@link org.onosproject.store.impl.EventuallyConsistentMapListener} if
+     * they are interested in receiving notification of updates to the map.
+     * </p>
+     *
+     * @param key the key to remove the mapping for
+     * @param value the value mapped to the key
+     */
+    public void remove(K key, V value);
+
+    /**
      * Adds mappings for all key-value pairs in the specified map to this map.
      * <p>
      * This will be more efficient in communication than calling individual put

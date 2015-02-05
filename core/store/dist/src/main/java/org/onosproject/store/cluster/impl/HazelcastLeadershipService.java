@@ -199,7 +199,7 @@ public class HazelcastLeadershipService implements LeadershipService,
         LeadershipEvent leadershipEvent =
             SERIALIZER.decode(message.getMessageObject());
 
-        log.debug("Leadership Event: time = {} type = {} event = {}",
+        log.trace("Leadership Event: time = {} type = {} event = {}",
                   leadershipEvent.time(), leadershipEvent.type(),
                   leadershipEvent);
 

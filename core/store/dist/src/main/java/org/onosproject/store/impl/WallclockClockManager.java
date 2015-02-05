@@ -20,9 +20,9 @@ import org.onosproject.store.Timestamp;
 /**
  * A clock service which hands out wallclock-based timestamps.
  */
-public class WallclockClockManager<T> implements ClockService<T> {
+public class WallclockClockManager<T, U> implements ClockService<T, U> {
     @Override
-    public Timestamp getTimestamp(T object) {
+    public Timestamp getTimestamp(T object1, U object2) {
         return new WallClockTimestamp();
     }
 }
