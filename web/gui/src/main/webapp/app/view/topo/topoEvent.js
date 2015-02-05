@@ -16,7 +16,11 @@
 
 /*
  ONOS GUI -- Topology Event Module.
- Defines event handling for events received from the server.
+
+ Defines the conduit between the client and the server:
+    - provides a clean API for sending events to the server
+    - dispatches incoming events from the server to the appropriate submodule
+
  */
 
 (function () {
@@ -26,107 +30,44 @@
     var $log, wss, wes, tps, tis, tfs;
 
     // internal state
-    var wsock;
-
-    var evHandler = {
-        showSummary: showSummary,
-        addInstance: addInstance,
-        updateInstance: updateInstance,
-        removeInstance: removeInstance,
-        addDevice: addDevice,
-        updateDevice: updateDevice,
-        removeDevice: removeDevice,
-        addHost: addHost,
-        updateHost: updateHost,
-        removeHost: removeHost,
-        addLink: addLink,
-        updateLink: updateLink,
-        removeLink: removeLink
-
-        // TODO: implement remaining handlers..
-    };
-
-    function unknownEvent(ev) {
-        $log.warn('Unknown event (ignored):', ev);
-    }
-
-    // === Event Handlers ===
-
-    // NOTE: --- once these are done, we will collapse them into
-    // a more compact data structure... but for now, write in full..
-
-    function showSummary(ev) {
-        $log.debug('  **** Show Summary ****  ', ev.payload);
-        tps.showSummary(ev.payload);
-    }
-
-    function addInstance(ev) {
-        $log.debug('  **** Add Instance **** ', ev.payload);
-        tis.addInstance(ev.payload);
-    }
-
-    function updateInstance(ev) {
-        $log.debug('  **** Update Instance **** ', ev.payload);
-        tis.updateInstance(ev.payload);
-    }
-
-    function removeInstance(ev) {
-        $log.debug('  **** Remove Instance **** ', ev.payload);
-        tis.removeInstance(ev.payload);
-    }
-
-    function addDevice(ev) {
-        $log.debug('  **** Add Device **** ', ev.payload);
-        tfs.addDevice(ev.payload);
-    }
-
-    function updateDevice(ev) {
-        $log.debug('  **** Update Device **** ', ev.payload);
-        tfs.updateDevice(ev.payload);
-    }
-
-    function removeDevice(ev) {
-        $log.debug('  **** Remove Device **** ', ev.payload);
-        tfs.removeDevice(ev.payload);
-    }
-
-    function addHost(ev) {
-        $log.debug('  **** Add Host **** ', ev.payload);
-        tfs.addHost(ev.payload);
-    }
-
-    function updateHost(ev) {
-        $log.debug('  **** Update Host **** ', ev.payload);
-        tfs.updateHost(ev.payload);
-    }
-
-    function removeHost(ev) {
-        $log.debug('  **** Remove Host **** ', ev.payload);
-        tfs.removeHost(ev.payload);
-    }
-
-    function addLink(ev) {
-        $log.debug('  **** Add Link **** ', ev.payload);
-        tfs.addLink(ev.payload);
-    }
-
-    function updateLink(ev) {
-        $log.debug('  **** Update Link **** ', ev.payload);
-        tfs.updateLink(ev.payload);
-    }
-
-    function removeLink(ev) {
-        $log.debug('  **** Remove Link **** ', ev.payload);
-        tfs.removeLink(ev.payload);
-    }
-
+    var wsock, evApis;
 
     // ==========================
 
+    function bindApis() {
+        evApis = {
+            showSummary: tps,
+            addInstance: tis,
+            updateInstance: tis,
+            removeInstance: tis,
+            addDevice: tfs,
+            updateDevice: tfs,
+            removeDevice: tfs,
+            addHost: tfs,
+            updateHost: tfs,
+            removeHost: tfs,
+            addLink: tfs,
+            updateLink: tfs,
+            removeLink: tfs
+
+            // TODO: add remaining event api vectors
+        };
+    }
+
     var dispatcher = {
         handleEvent: function (ev) {
-            (evHandler[ev.event] || unknownEvent)(ev);
+            var eid = ev.event,
+                api = evApis[eid] || {},
+                eh = api[eid];
+
+            if (eh) {
+                $log.debug('  *EVENT* ', ev.payload);
+                eh(ev.payload);
+            } else {
+                $log.warn('Unknown event (ignored):', ev);
+            }
         },
+
         sendEvent: function (evType, payload) {
             if (wsock) {
                 wes.sendEvent(wsock, evType, payload);
@@ -167,6 +108,8 @@
             tps = _tps_;
             tis = _tis_;
             tfs = _tfs_;
+
+            bindApis();
 
             // TODO: handle "guiSuccessor" functionality (replace host)
             // TODO: implement retry on close functionality
