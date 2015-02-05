@@ -46,9 +46,11 @@ import java.net.URI;
 import java.util.Optional;
 
 import static org.easymock.EasyMock.*;
-import static org.easymock.EasyMock.isA;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Unit tests for applications REST APIs.
@@ -151,6 +153,7 @@ public class ApplicationsResourceTest extends ResourceTest {
     }
 
 
+    @Override
     @Before
     public void setUp() {
         service = createMock(ApplicationAdminService.class);
