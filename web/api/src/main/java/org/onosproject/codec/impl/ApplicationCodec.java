@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Application JSON codec.
  */
-public class ApplicationCodec extends JsonCodec<Application> {
+public final class ApplicationCodec extends JsonCodec<Application> {
 
     @Override
     public ObjectNode encode(Application app, CodecContext context) {

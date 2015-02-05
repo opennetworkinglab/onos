@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Connectivity intent codec.
  */
-public class ConnectivityIntentCodec extends JsonCodec<ConnectivityIntent> {
+public final class ConnectivityIntentCodec extends JsonCodec<ConnectivityIntent> {
 
     @Override
     public ObjectNode encode(ConnectivityIntent intent, CodecContext context) {

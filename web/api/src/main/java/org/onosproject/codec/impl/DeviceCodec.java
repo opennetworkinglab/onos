@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Device JSON codec.
  */
-public class DeviceCodec extends AnnotatedCodec<Device> {
+public final class DeviceCodec extends AnnotatedCodec<Device> {
 
     @Override
     public ObjectNode encode(Device device, CodecContext context) {

@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Device port JSON codec.
  */
-public class PortCodec extends AnnotatedCodec<Port> {
+public final class PortCodec extends AnnotatedCodec<Port> {
 
     @Override
     public ObjectNode encode(Port port, CodecContext context) {

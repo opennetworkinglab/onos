@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Flow entry JSON codec.
  */
-public class FlowEntryCodec extends JsonCodec<FlowEntry> {
+public final class FlowEntryCodec extends JsonCodec<FlowEntry> {
 
     @Override
     public ObjectNode encode(FlowEntry flowEntry, CodecContext context) {

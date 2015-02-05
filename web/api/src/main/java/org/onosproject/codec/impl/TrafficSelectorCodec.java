@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Traffic selector codec.
  */
-public class TrafficSelectorCodec extends JsonCodec<TrafficSelector> {
+public final class TrafficSelectorCodec extends JsonCodec<TrafficSelector> {
     @Override
     public ObjectNode encode(TrafficSelector selector, CodecContext context) {
         checkNotNull(selector, "Traffic selector cannot be null");

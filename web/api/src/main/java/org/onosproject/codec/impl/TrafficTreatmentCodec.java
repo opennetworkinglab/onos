@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Traffic treatment codec.
  */
-public class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
+public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
     @Override
     public ObjectNode encode(TrafficTreatment treatment, CodecContext context) {
         checkNotNull(treatment, "Traffic treatment cannot be null");

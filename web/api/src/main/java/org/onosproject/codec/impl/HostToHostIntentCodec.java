@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Host to host intent codec.
  */
-public class HostToHostIntentCodec extends JsonCodec<HostToHostIntent> {
+public final class HostToHostIntentCodec extends JsonCodec<HostToHostIntent> {
 
     @Override
     public ObjectNode encode(HostToHostIntent intent, CodecContext context) {

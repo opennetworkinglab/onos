@@ -23,7 +23,7 @@ import org.onosproject.net.Annotations;
 /**
  * Annotations JSON codec.
  */
-public class AnnotationsCodec extends JsonCodec<Annotations> {
+public final class AnnotationsCodec extends JsonCodec<Annotations> {
 
     @Override
     public ObjectNode encode(Annotations annotations, CodecContext context) {

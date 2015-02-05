@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Path JSON codec.
  */
-public class PathCodec extends AnnotatedCodec<Path> {
+public final class PathCodec extends AnnotatedCodec<Path> {
     @Override
     public ObjectNode encode(Path path, CodecContext context) {
         checkNotNull(path, "Path cannot be null");

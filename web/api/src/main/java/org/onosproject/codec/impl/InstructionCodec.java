@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Instruction codec.
  */
-public class InstructionCodec extends JsonCodec<Instruction> {
+public final class InstructionCodec extends JsonCodec<Instruction> {
 
     protected static final Logger log = LoggerFactory.getLogger(InstructionCodec.class);
 

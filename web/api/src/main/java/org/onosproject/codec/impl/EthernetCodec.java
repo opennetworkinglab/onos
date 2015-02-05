@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Ethernet codec.
  */
-public class EthernetCodec extends JsonCodec<Ethernet> {
+public final class EthernetCodec extends JsonCodec<Ethernet> {
 
     protected static final Logger log = LoggerFactory.getLogger(CriterionCodec.class);
 

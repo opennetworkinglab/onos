@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Connection point JSON codec.
  */
-public class ConnectPointCodec extends JsonCodec<ConnectPoint> {
+public final class ConnectPointCodec extends JsonCodec<ConnectPoint> {
 
     @Override
     public ObjectNode encode(ConnectPoint point, CodecContext context) {

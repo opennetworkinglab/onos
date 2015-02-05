@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Host JSON codec.
  */
-public class HostLocationCodec extends JsonCodec<HostLocation> {
+public final class HostLocationCodec extends JsonCodec<HostLocation> {
 
     @Override
     public ObjectNode encode(HostLocation hostLocation, CodecContext context) {

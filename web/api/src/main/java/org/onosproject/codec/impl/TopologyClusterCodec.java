@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Topology cluster JSON codec.
  */
-public class TopologyClusterCodec extends JsonCodec<TopologyCluster> {
+public final class TopologyClusterCodec extends JsonCodec<TopologyCluster> {
 
     @Override
     public ObjectNode encode(TopologyCluster cluster, CodecContext context) {

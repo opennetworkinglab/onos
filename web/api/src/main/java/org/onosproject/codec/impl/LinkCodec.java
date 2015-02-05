@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Link JSON codec.
  */
-public class LinkCodec extends AnnotatedCodec<Link> {
+public final class LinkCodec extends AnnotatedCodec<Link> {
 
     @Override
     public ObjectNode encode(Link link, CodecContext context) {

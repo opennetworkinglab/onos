@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Criterion codec.
  */
-public class CriterionCodec extends JsonCodec<Criterion> {
+public final class CriterionCodec extends JsonCodec<Criterion> {
 
     protected static final Logger log = LoggerFactory.getLogger(CriterionCodec.class);
 

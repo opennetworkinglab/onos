@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Host JSON codec.
  */
-public class HostCodec extends AnnotatedCodec<Host> {
+public final class HostCodec extends AnnotatedCodec<Host> {
 
     @Override
     public ObjectNode encode(Host host, CodecContext context) {

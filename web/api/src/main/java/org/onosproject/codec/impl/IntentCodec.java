@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Intent JSON codec.
  */
-public class IntentCodec extends JsonCodec<Intent> {
+public final class IntentCodec extends JsonCodec<Intent> {
 
     @Override
     public ObjectNode encode(Intent intent, CodecContext context) {

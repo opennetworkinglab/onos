@@ -36,7 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Constraint JSON codec.
  */
-public class ConstraintCodec extends JsonCodec<Constraint> {
+public final class ConstraintCodec extends JsonCodec<Constraint> {
 
     /**
      * Encodes a latency constraint.

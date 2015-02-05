@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Point to point intent codec.
  */
-public class PointToPointIntentCodec extends JsonCodec<PointToPointIntent> {
+public final class PointToPointIntentCodec extends JsonCodec<PointToPointIntent> {
 
     @Override
     public ObjectNode encode(PointToPointIntent intent, CodecContext context) {
