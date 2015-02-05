@@ -46,13 +46,16 @@ import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
+import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
+import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFGroupStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
-import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +93,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     protected Set<OpenFlowEventListener> ofEventListener = Sets.newHashSet();
 
-    protected Multimap<Dpid, OFFlowStatsEntry> fullStats =
+    protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
+            ArrayListMultimap.create();
+
+    protected Multimap<Dpid, OFGroupStatsEntry> fullGroupStats =
+            ArrayListMultimap.create();
+
+    protected Multimap<Dpid, OFGroupDescStatsEntry> fullGroupDescStats =
             ArrayListMultimap.create();
 
     private final Controller ctrl = new Controller();
@@ -174,7 +183,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Override
     public void processPacket(Dpid dpid, OFMessage msg) {
-        Collection<OFFlowStatsEntry> stats;
+        Collection<OFFlowStatsEntry> flowStats;
+        Collection<OFGroupStatsEntry> groupStats;
+        Collection<OFGroupDescStatsEntry> groupDescStats;
+
         switch (msg.getType()) {
         case PORT_STATUS:
             for (OpenFlowSwitchListener l : ofSwitchListener) {
@@ -202,17 +214,44 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             break;
         case STATS_REPLY:
             OFStatsReply reply = (OFStatsReply) msg;
-            if (reply.getStatsType().equals(OFStatsType.PORT_DESC)) {
-                for (OpenFlowSwitchListener l : ofSwitchListener) {
-                    l.switchChanged(dpid);
-                }
-            }
-            stats = publishStats(dpid, reply);
-            if (stats != null) {
-                OFFlowStatsReply.Builder rep =
-                        OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
-                rep.setEntries(Lists.newLinkedList(stats));
-                executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+            switch (reply.getStatsType()) {
+                case PORT_DESC:
+                    for (OpenFlowSwitchListener l : ofSwitchListener) {
+                        l.switchChanged(dpid);
+                    }
+                    break;
+                case FLOW:
+                    flowStats = publishFlowStats(dpid, (OFFlowStatsReply) reply);
+                    if (flowStats != null) {
+                        OFFlowStatsReply.Builder rep =
+                                OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
+                        rep.setEntries(Lists.newLinkedList(flowStats));
+                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                    }
+                    break;
+                case GROUP:
+                    groupStats = publishGroupStats(dpid, (OFGroupStatsReply) reply);
+                    if (groupStats != null) {
+                        OFGroupStatsReply.Builder rep =
+                                OFFactories.getFactory(msg.getVersion()).buildGroupStatsReply();
+                        rep.setEntries(Lists.newLinkedList(groupStats));
+                        rep.setXid(reply.getXid());
+                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                    }
+                    break;
+                case GROUP_DESC:
+                    groupDescStats = publishGroupDescStats(dpid,
+                            (OFGroupDescStatsReply) reply);
+                    if (groupDescStats != null) {
+                        OFGroupDescStatsReply.Builder rep =
+                            OFFactories.getFactory(msg.getVersion()).buildGroupDescStatsReply();
+                        rep.setEntries(Lists.newLinkedList(groupDescStats));
+                        rep.setXid(reply.getXid());
+                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                    }
+                    break;
+                default:
+                    log.warn("Unsupported stats type : {}", reply.getStatsType());
             }
             break;
         case BARRIER_REPLY:
@@ -244,16 +283,32 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
     }
 
-    private synchronized Collection<OFFlowStatsEntry> publishStats(Dpid dpid,
-                                                                   OFStatsReply reply) {
+    private synchronized Collection<OFFlowStatsEntry> publishFlowStats(Dpid dpid,
+                                                                       OFFlowStatsReply reply) {
         //TODO: Get rid of synchronized
-        if (reply.getStatsType() != OFStatsType.FLOW) {
-            return null;
-        }
-        final OFFlowStatsReply replies = (OFFlowStatsReply) reply;
-        fullStats.putAll(dpid, replies.getEntries());
+        fullFlowStats.putAll(dpid, reply.getEntries());
         if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
-            return fullStats.removeAll(dpid);
+            return fullFlowStats.removeAll(dpid);
+        }
+        return null;
+    }
+
+    private synchronized Collection<OFGroupStatsEntry> publishGroupStats(Dpid dpid,
+                                                                      OFGroupStatsReply reply) {
+        //TODO: Get rid of synchronized
+        fullGroupStats.putAll(dpid, reply.getEntries());
+        if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+            return fullGroupStats.removeAll(dpid);
+        }
+        return null;
+    }
+
+    private synchronized Collection<OFGroupDescStatsEntry> publishGroupDescStats(Dpid dpid,
+                                                                  OFGroupDescStatsReply reply) {
+        //TODO: Get rid of synchronized
+        fullGroupDescStats.putAll(dpid, reply.getEntries());
+        if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+            return fullGroupDescStats.removeAll(dpid);
         }
         return null;
     }
