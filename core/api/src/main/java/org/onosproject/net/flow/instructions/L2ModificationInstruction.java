@@ -304,13 +304,13 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
+            return toStringHelper(subtype().toString())
                     .add("mpls", mplsLabel.intValue()).toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(mplsLabel);
+            return Objects.hash(type(), subtype(), mplsLabel);
         }
 
         @Override
@@ -330,7 +330,7 @@ public abstract class L2ModificationInstruction implements Instruction {
     }
 
     /**
-     * Represents a MPLS label modification.
+     * Represents a MPLS TTL modification.
      */
     public static final class ModMplsTtlInstruction extends
             L2ModificationInstruction {
@@ -345,12 +345,13 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return type().toString();
+            return toStringHelper(subtype().toString())
+                    .toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), L2SubType.DEC_MPLS_TTL);
+            return Objects.hash(type(), subtype());
         }
 
         @Override
@@ -358,9 +359,8 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof ModMplsLabelInstruction) {
-                ModMplsTtlInstruction that = (ModMplsTtlInstruction) obj;
-                return Objects.equals(this.type(), that.type());
+            if (obj instanceof ModMplsTtlInstruction) {
+                return true;
             }
             return false;
         }

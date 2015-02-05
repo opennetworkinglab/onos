@@ -119,6 +119,9 @@ public abstract class L3ModificationInstruction implements Instruction {
         }
     }
 
+    /**
+     * Represents a L3 TTL modification instruction.
+     */
     public static final class ModTtlInstruction extends L3ModificationInstruction {
 
         private final L3SubType subtype;
@@ -134,7 +137,8 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return subtype().toString();
+            return toStringHelper(subtype().toString())
+                    .toString();
         }
 
         @Override
@@ -147,10 +151,10 @@ public abstract class L3ModificationInstruction implements Instruction {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof ModIPInstruction) {
-                ModIPInstruction that = (ModIPInstruction) obj;
-                return  Objects.equals(this.type(), that.type()) &&
-                        Objects.equals(this.subtype(), that.subtype());
+            if (obj instanceof ModTtlInstruction) {
+                ModTtlInstruction that = (ModTtlInstruction) obj;
+                return  Objects.equals(this.subtype(), that.subtype()) &&
+                        Objects.equals(this.type(), that.type());
 
             }
             return false;
