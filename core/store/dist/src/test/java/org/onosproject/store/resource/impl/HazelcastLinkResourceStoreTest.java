@@ -46,9 +46,6 @@ import org.onosproject.store.hz.TestStoreManager;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -92,9 +89,9 @@ public class HazelcastLinkResourceStoreTest {
     @Before
     public void setUp() throws Exception {
 
-        Config config = TestStoreManager.getTestConfig();
-
-        storeMgr = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
+        TestStoreManager testStoreMgr = new TestStoreManager();
+        testStoreMgr.setHazelcastInstance(testStoreMgr.initSingleInstance());
+        storeMgr = testStoreMgr;
         storeMgr.activate();
 
 

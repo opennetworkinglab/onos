@@ -19,8 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.MastershipRole.*;
-import static org.onosproject.net.intent.TestTools.delay;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -51,8 +49,6 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
 
 /**
  * Test of the Hazelcast-based distributed MastershipStore implementation.
@@ -87,9 +83,9 @@ public class DistributedMastershipStoreTest {
     @Before
     public void setUp() throws Exception {
         // TODO should find a way to clean Hazelcast instance without shutdown.
-        Config config = TestStoreManager.getTestConfig();
-
-        storeMgr = new TestStoreManager(Hazelcast.newHazelcastInstance(config));
+        TestStoreManager testStoreMgr = new TestStoreManager();
+        testStoreMgr.setHazelcastInstance(testStoreMgr.initSingleInstance());
+        storeMgr = testStoreMgr;
         storeMgr.activate();
 
         serializationMgr = new KryoSerializer();
@@ -122,7 +118,6 @@ public class DistributedMastershipStoreTest {
         assertTrue("wrong store state:", dms.roleMap.isEmpty());
 
         testStore.put(DID1, N1, true, false, false);
-        delay(10); //TODO there seems to be a race here.
         assertEquals("wrong master:", N1, dms.getMaster(DID1));
         assertNull("wrong master:", dms.getMaster(DID2));
     }
