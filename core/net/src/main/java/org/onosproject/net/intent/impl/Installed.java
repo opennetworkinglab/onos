@@ -29,6 +29,7 @@ class Installed implements CompletedIntentUpdate {
         this.intentData.setState(INSTALLING);
     }
 
+    @Override
     public IntentData data() {
         return intentData;
     }
