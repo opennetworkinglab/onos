@@ -15,13 +15,6 @@
  */
 package org.onosproject.cli.net;
 
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
@@ -34,6 +27,13 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
+
 /**
  * Installs point-to-point connectivity intents.
  */
@@ -41,8 +41,8 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
          description = "Installs point-to-point connectivity intent")
 public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentCommand {
 
-    @Argument(index = 0, name = "ingressDevices",
-              description = "Ingress Device/Port Description",
+    @Argument(index = 0, name = "ingressDevices egressDevice",
+              description = "ingressDevice/Port..ingressDevice/Port egressDevice/Port",
               required = true, multiValued = true)
     String[] deviceStrings = null;
 
