@@ -65,8 +65,9 @@
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'PanelService',
+            'FlashService',
 
-        function ($log, $route, $routeParams, $location, ks, ts, gs, ps) {
+        function ($log, $route, $routeParams, $location, ks, ts, gs, ps, flash) {
             var self = this;
 
             self.$route = $route;
@@ -79,6 +80,7 @@
             ks.installOn(d3.select('body'));
             gs.init();
             ps.init();
+            flash.initFlash();
 
             $log.log('OnosCtrl has been created');
 
