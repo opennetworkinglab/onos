@@ -232,7 +232,7 @@ public class FlowsResourceTest extends ResourceTest {
      * Sets up the global values for all the tests.
      */
     @Before
-    public void setUp() {
+    public void setUpTest() {
         // Mock device service
         expect(mockDeviceService.getDevice(deviceId1))
                 .andReturn(device1);
@@ -255,12 +255,9 @@ public class FlowsResourceTest extends ResourceTest {
 
     /**
      * Cleans up and verifies the mocks.
-     *
-     * @throws Exception if the super teardown fails.
      */
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDownTest() {
         verify(mockFlowService);
     }
 

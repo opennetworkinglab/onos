@@ -252,8 +252,11 @@ public class IntentsResourceTest extends ResourceTest {
         return new IntentJsonArrayMatcher(intent);
     }
 
+    /**
+     * Initializes test mocks and environment.
+     */
     @Before
-    public void setUp() {
+    public void setUpTest() {
         expect(mockIntentService.getIntents()).andReturn(intents).anyTimes();
 
         // Register the services needed for the test
@@ -270,9 +273,11 @@ public class IntentsResourceTest extends ResourceTest {
         Intent.bindIdGenerator(mockGenerator);
     }
 
+    /**
+     * Tears down and verifies test mocks and environment.
+     */
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDownTest() {
         verify(mockIntentService);
         Intent.unbindIdGenerator(mockGenerator);
     }

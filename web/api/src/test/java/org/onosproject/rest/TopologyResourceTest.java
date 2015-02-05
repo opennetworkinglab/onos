@@ -175,7 +175,7 @@ public class TopologyResourceTest extends ResourceTest {
      * Initializes the test harness.
      */
     @Before
-    public void setUp() {
+    public void setUpTest() {
         TopologyService topologyService =  new MockTopologyService();
         CodecManager codecService =  new CodecManager();
         codecService.activate();

@@ -67,8 +67,11 @@ public class HostResourceTest extends ResourceTest {
     final HostService mockHostService = createMock(HostService.class);
     final HashSet<Host> hosts = new HashSet<>();
 
+    /**
+     * Initializes test mocks and environment.
+     */
     @Before
-    public void setUp() {
+    public void setUpTest() {
         expect(mockHostService.getHosts()).andReturn(hosts).anyTimes();
 
         // Register the services needed for the test
@@ -82,9 +85,11 @@ public class HostResourceTest extends ResourceTest {
         BaseResource.setServiceDirectory(testDirectory);
     }
 
+    /**
+     * Verifies mocks.
+     */
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDownTest() {
         verify(mockHostService);
     }
 

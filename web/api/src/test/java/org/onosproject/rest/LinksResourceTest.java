@@ -151,9 +151,11 @@ public class LinksResourceTest extends ResourceTest {
         return new LinkJsonArrayMatcher(link);
     }
 
-
+    /**
+     * Initializes test mocks and environment.
+     */
     @Before
-    public void setUp() {
+    public void setUpTest() {
         mockLinkService = createMock(LinkService.class);
 
         // Register the services needed for the test
@@ -167,9 +169,11 @@ public class LinksResourceTest extends ResourceTest {
         BaseResource.setServiceDirectory(testDirectory);
     }
 
+    /**
+     * Tears down and verifies test mocks and environment.
+     */
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDownTest() {
         verify(mockLinkService);
     }
 

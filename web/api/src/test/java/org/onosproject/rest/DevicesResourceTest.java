@@ -206,8 +206,11 @@ public class DevicesResourceTest extends ResourceTest {
         return new DeviceJsonArrayMatcher(device);
     }
 
+    /**
+     * Initializes test mocks and environment.
+     */
     @Before
-    public void setUp() {
+    public void setUpMocks() {
         mockDeviceService = createMock(DeviceService.class);
 
         expect(mockDeviceService.isAvailable(isA(DeviceId.class)))
@@ -226,13 +229,13 @@ public class DevicesResourceTest extends ResourceTest {
                         .add(CodecService.class, codecService);
 
         BaseResource.setServiceDirectory(testDirectory);
-
-
     }
 
+    /**
+     * Verifies test mocks.
+     */
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDownMocks() {
         verify(mockDeviceService);
     }
 

@@ -129,8 +129,11 @@ public class PathsResourceTest extends ResourceTest {
         return new PathJsonMatcher(path);
     }
 
+    /**
+     * Initializes test mocks and environment.
+     */
     @Before
-    public void setUp() {
+    public void setUpTest() {
 
         // Register the services needed for the test
         CodecManager codecService =  new CodecManager();
@@ -143,9 +146,11 @@ public class PathsResourceTest extends ResourceTest {
         BaseResource.setServiceDirectory(testDirectory);
     }
 
+    /**
+     * Tears down test mocks and environment.
+     */
     @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+    public void tearDownTest() {
         verify(mockPathService);
     }
 

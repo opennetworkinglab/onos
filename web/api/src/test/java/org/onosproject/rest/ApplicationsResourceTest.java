@@ -99,7 +99,7 @@ public class ApplicationsResourceTest extends ResourceTest {
                                    ImmutableList.of("My Feature"));
 
     /**
-     * Hamcrest matcher to check that an device representation in JSON matches
+     * Hamcrest matcher to check that an application representation in JSON matches
      * the actual device.
      */
     private static class AppJsonMatcher extends TypeSafeMatcher<JsonObject> {
@@ -143,7 +143,7 @@ public class ApplicationsResourceTest extends ResourceTest {
     }
 
     /**
-     * Factory to allocate an device matcher.
+     * Factory to allocate an application matcher.
      *
      * @param app application object we are looking for
      * @return matcher
@@ -152,10 +152,11 @@ public class ApplicationsResourceTest extends ResourceTest {
         return new AppJsonMatcher(app);
     }
 
-
-    @Override
+    /**
+     * Initializes test mocks and environment.
+     */
     @Before
-    public void setUp() {
+    public void setUpMocks() {
         service = createMock(ApplicationAdminService.class);
 
         expect(service.getId("one"))
@@ -190,8 +191,11 @@ public class ApplicationsResourceTest extends ResourceTest {
         BaseResource.setServiceDirectory(testDirectory);
     }
 
+    /**
+     * Verifies test mocks.
+     */
     @After
-    public void shutDown() {
+    public void tearDownMocks() {
         verify(service);
     }
 
