@@ -22,12 +22,12 @@ import java.util.Optional;
 /**
  * Represents a completed phase of processing an intent.
  */
-interface CompletedIntentUpdate extends IntentUpdate {
+abstract class CompletedIntentUpdate implements IntentUpdate {
 
     @Override
-    default Optional<IntentUpdate> execute() {
+    public final Optional<IntentUpdate> execute() {
         return Optional.empty();
     }
 
-    IntentData data();
+    public abstract IntentData data();
 }

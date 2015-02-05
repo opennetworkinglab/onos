@@ -20,7 +20,7 @@ import org.onosproject.net.intent.IntentData;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.FAILED;
 
-class InstallingFailed implements CompletedIntentUpdate {
+class InstallingFailed extends CompletedIntentUpdate {
 
     private final IntentData intentData;
 

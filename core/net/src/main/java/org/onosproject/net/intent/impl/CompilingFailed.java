@@ -22,7 +22,7 @@ import static org.onosproject.net.intent.IntentState.FAILED;
 /**
  * Represents a phase where the compile has failed.
  */
-class CompilingFailed implements CompletedIntentUpdate {
+class CompilingFailed extends CompletedIntentUpdate {
 
     private final IntentData intentData;
 

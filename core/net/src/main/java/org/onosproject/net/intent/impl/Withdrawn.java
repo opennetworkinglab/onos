@@ -20,7 +20,7 @@ import org.onosproject.net.intent.IntentData;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 
-class Withdrawn implements CompletedIntentUpdate {
+class Withdrawn extends CompletedIntentUpdate {
 
     private final IntentData intentData;
 
