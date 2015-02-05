@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
@@ -55,6 +56,7 @@ import static org.onosproject.net.NetTestTools.link;
 /**
  * Tests for the objective tracker.
  */
+@Ignore
 public class ObjectiveTrackerTest {
     private static final int WAIT_TIMEOUT_SECONDS = 2;
     private Topology topology;

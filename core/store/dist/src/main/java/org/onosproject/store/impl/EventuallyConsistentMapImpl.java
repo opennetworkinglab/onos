@@ -653,7 +653,8 @@ public class EventuallyConsistentMapImpl<K, V>
 
         @Override
         public void handle(ClusterMessage message) {
-            log.trace("Received anti-entropy advertisement from peer: {}", message.sender());
+            log.trace("Received anti-entropy advertisement from peer: {}",
+                      message.sender());
             AntiEntropyAdvertisement<K> advertisement = serializer.decode(message.payload());
             backgroundExecutor.submit(() -> {
                 try {

@@ -58,6 +58,7 @@ import static org.easymock.EasyMock.*;
 /**
  * Unit tests for PeerConnectivityManager.
  */
+@Ignore
 public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new ApplicationId() {
