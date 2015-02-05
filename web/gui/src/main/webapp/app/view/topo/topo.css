@@ -325,19 +325,121 @@
 /* Host Nodes */
 
 #ov-topo svg .node.host {
-    stroke: #000;
 }
 
 #ov-topo svg .node.host text {
-    fill: #846;
     stroke: none;
     font: 9pt sans-serif;
 }
+.light #ov-topo svg .node.host text {
+    fill: #846;
+}
+.dark #ov-topo svg .node.host text {
+    fill: #BB809D;
+}
 
-svg .node.host circle {
+.light svg .node.host circle {
     stroke: #000;
     fill: #edb;
 }
+.dark svg .node.host circle {
+    stroke: #eee;
+    fill: #B2A180;
+}
 
+.light svg .node.host .svgIcon {
+    fill: #444;
+}
+.dark svg .node.host .svgIcon {
+    fill: #222;
+}
 
+/* --- Topo Links --- */
 
+#ov-topo svg .link {
+    opacity: .9;
+}
+
+#ov-topo svg .link.inactive {
+    opacity: .5;
+    stroke-dasharray: 8 4;
+}
+
+#ov-topo svg .link.secondary {
+    stroke-width: 3px;
+}
+.light #ov-topo svg .link.secondary {
+    stroke: rgba(0,153,51,0.5);
+}
+.dark #ov-topo svg .link.secondary {
+    stroke: rgba(121,231,158,0.5);
+}
+
+#ov-topo svg .link.primary {
+    stroke-width: 4px;
+}
+.light #ov-topo svg .link.primary {
+    stroke: #ffA300;
+}
+.dark #ov-topo svg .link.primary {
+    stroke: #D58E0F;
+}
+
+.light #ov-topo svg .link.animated {
+    stroke: #ffA300;
+}
+.dark #ov-topo svg .link.animated {
+    stroke: #D58E0F;
+}
+
+#ov-topo svg .link.secondary.optical {
+    stroke-width: 4px;
+}
+.light #ov-topo svg .link.secondary.optical {
+    stroke: rgba(128,64,255,0.5);
+}
+.dark #ov-topo svg .link.secondary.optical {
+    stroke: rgba(164,139,215,0.5);
+}
+
+#ov-topo svg .link.primary.optical {
+    stroke-width: 6px;
+}
+.light #ov-topo svg .link.primary.optical {
+    stroke: #74f;
+}
+.dark #ov-topo svg .link.primary.optical {
+    stroke: #7352CD;
+}
+
+#ov-topo svg .link.animated.optical {
+    stroke-width: 10px;
+}
+.light #ov-topo svg .link.animated.optical {
+    stroke: #74f;
+}
+.dark #ov-topo svg .link.animated.optical {
+    stroke: #7352CD;
+}
+
+#ov-topo svg .linkLabel rect {
+    stroke: none;
+}
+.light #ov-topo svg .linkLabel rect {
+    fill: #eee;
+}
+.dark #ov-topo svg .linkLabel rect {
+    fill: #eee;
+}
+
+#ov-topo svg .linkLabel text {
+    text-anchor: middle;
+    stroke-width: 0.1;
+    font-size: 9pt;
+}
+.light #ov-topo svg .linkLabel text {
+    stroke: #777;
+}
+.dark #ov-topo svg .linkLabel text {
+    stroke: #777;
+}

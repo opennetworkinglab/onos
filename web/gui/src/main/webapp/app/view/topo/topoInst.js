@@ -323,9 +323,11 @@
             return {
                 initInst: initInst,
                 destroyInst: destroyInst,
+
                 addInstance: addInstance,
                 updateInstance: updateInstance,
                 removeInstance: removeInstance,
+
                 isVisible: function () { return oiBox.isVisible(); },
                 show: function () { oiBox.show(); },
                 hide: function () { oiBox.hide(); }

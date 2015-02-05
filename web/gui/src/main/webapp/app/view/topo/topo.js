@@ -198,12 +198,6 @@
         return ms.loadMapInto(mapG, '*continental_us');
     }
 
-    // --- Force Layout --------------------------------------------------
-
-    function setUpForce(xlink) {
-        forceG = zoomLayer.append('g').attr('id', 'topo-force');
-        tfs.initForce(forceG, xlink, svg.attr('width'), svg.attr('height'));
-    }
 
     // --- Controller Definition -----------------------------------------
 
@@ -219,8 +213,12 @@
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
                   _ks_, _zs_, _gs_, _ms_, _sus_, tes, _tfs_, tps, _tis_) {
             var self = this,
-                xlink = {
-                    showNoDevs: showNoDevs
+                projection,
+                uplink = {
+                    // provides function calls back into this space
+                    showNoDevs: showNoDevs,
+                    projection: function () { return projection; },
+                    sendEvent: tes.sendEvent
                 };
 
             $log = _$log_;
@@ -255,9 +253,15 @@
             setUpDefs();
             setUpZoom();
             setUpNoDevs();
-            xlink.projectionPromise = setUpMap();
-            setUpForce(xlink);
+            setUpMap().then(
+                function (proj) {
+                    projection = proj;
+                    $log.debug('** We installed the projection: ', proj);
+                }
+            );
 
+            forceG = zoomLayer.append('g').attr('id', 'topo-force');
+            tfs.initForce(forceG, uplink, svg.attr('width'), svg.attr('height'));
             tis.initInst();
             tps.initPanels();
             tes.openSock();

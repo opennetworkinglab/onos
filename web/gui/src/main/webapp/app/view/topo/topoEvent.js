@@ -34,9 +34,16 @@
         updateInstance: updateInstance,
         removeInstance: removeInstance,
         addDevice: addDevice,
-        updateDevice: updateDevice
-        // TODO: implement remaining handlers..
+        updateDevice: updateDevice,
+        removeDevice: removeDevice,
+        addHost: addHost,
+        updateHost: updateHost,
+        removeHost: removeHost,
+        addLink: addLink,
+        updateLink: updateLink,
+        removeLink: removeLink
 
+        // TODO: implement remaining handlers..
     };
 
     function unknownEvent(ev) {
@@ -44,6 +51,9 @@
     }
 
     // === Event Handlers ===
+
+    // NOTE: --- once these are done, we will collapse them into
+    // a more compact data structure... but for now, write in full..
 
     function showSummary(ev) {
         $log.debug('  **** Show Summary ****  ', ev.payload);
@@ -74,6 +84,42 @@
         $log.debug('  **** Update Device **** ', ev.payload);
         tfs.updateDevice(ev.payload);
     }
+
+    function removeDevice(ev) {
+        $log.debug('  **** Remove Device **** ', ev.payload);
+        tfs.removeDevice(ev.payload);
+    }
+
+    function addHost(ev) {
+        $log.debug('  **** Add Host **** ', ev.payload);
+        tfs.addHost(ev.payload);
+    }
+
+    function updateHost(ev) {
+        $log.debug('  **** Update Host **** ', ev.payload);
+        tfs.updateHost(ev.payload);
+    }
+
+    function removeHost(ev) {
+        $log.debug('  **** Remove Host **** ', ev.payload);
+        tfs.removeHost(ev.payload);
+    }
+
+    function addLink(ev) {
+        $log.debug('  **** Add Link **** ', ev.payload);
+        tfs.addLink(ev.payload);
+    }
+
+    function updateLink(ev) {
+        $log.debug('  **** Update Link **** ', ev.payload);
+        tfs.updateLink(ev.payload);
+    }
+
+    function removeLink(ev) {
+        $log.debug('  **** Remove Link **** ', ev.payload);
+        tfs.removeLink(ev.payload);
+    }
+
 
     // ==========================
 
@@ -122,14 +168,9 @@
             tis = _tis_;
             tfs = _tfs_;
 
-            function bindDispatcher(TopoDomElementsPassedHere) {
-                // TODO: store refs to topo DOM elements...
-
-                return dispatcher;
-            }
-
             // TODO: handle "guiSuccessor" functionality (replace host)
             // TODO: implement retry on close functionality
+
             function openSock() {
                 wsock = wss.createWebSocket('topology', {
                     onOpen: onWsOpen,
@@ -151,9 +192,9 @@
             }
 
             return {
-                bindDispatcher: bindDispatcher,
                 openSock: openSock,
-                closeSock: closeSock
+                closeSock: closeSock,
+                sendEvent: dispatcher.sendEvent
             };
         }]);
 }());

@@ -20,7 +20,7 @@
 (function () {
     'use strict';
 
-    var $log, fs, gs;
+    var $log, fs, gs, sus;
 
     var vboxSize = 50,
         cornerSize = vboxSize / 10,
@@ -144,8 +144,21 @@
         return g;
     }
 
-    function addHostIcon(elem, glyphId) {
-        // TODO:
+    function addHostIcon(elem, radius, glyphId) {
+        var dim = radius * 1.5,
+            xlate = -dim / 2,
+            g = elem.append('g')
+                .attr('class', 'svgIcon hostIcon');
+
+        g.append('circle').attr('r', radius);
+
+        g.append('use').attr({
+            'xlink:href': '#' + glyphId,
+            width: dim,
+            height: dim,
+            transform: sus.translate(xlate,xlate)
+        });
+        return g;
     }
 
 
@@ -154,10 +167,13 @@
 
     angular.module('onosSvg')
         .factory('IconService', ['$log', 'FnService', 'GlyphService',
-        function (_$log_, _fs_, _gs_) {
+            'SvgUtilService',
+
+        function (_$log_, _fs_, _gs_, _sus_) {
             $log = _$log_;
             fs = _fs_;
             gs = _gs_;
+            sus = _sus_;
 
             return {
                 loadIcon: loadIcon,
