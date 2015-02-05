@@ -15,11 +15,9 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.intent.Intent;
+import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.intent.IntentData;
 
-import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,19 +26,21 @@ class Withdrawing implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
-    private final Intent intent;
-    private final List<Intent> installables;
+    private final IntentData pending;
+    private final IntentData current;
 
-    Withdrawing(IntentManager intentManager, Intent intent, List<Intent> installables) {
+    Withdrawing(IntentManager intentManager, IntentData pending, IntentData current) {
         this.intentManager = checkNotNull(intentManager);
-        this.intent = checkNotNull(intent);
-        this.installables = ImmutableList.copyOf(installables);
+        this.pending = checkNotNull(pending);
+        this.current = checkNotNull(current);
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        List<FlowRuleBatchOperation> batches = intentManager.uninstallIntent(intent, installables);
+        FlowRuleOperations flowRules
+                = intentManager.uninstallIntent(current.intent(), current.installables());
+        intentManager.flowRuleService.apply(flowRules); //FIXME
 
-        return Optional.of(new Withdrawn(intentManager, intent, installables, batches));
+        return Optional.of(new Withdrawn(pending));
     }
 }

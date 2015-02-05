@@ -15,8 +15,26 @@
  */
 package org.onosproject.net.intent.impl;
 
+import org.onosproject.net.intent.IntentData;
+
+import static org.onosproject.net.intent.IntentState.FAILED;
+
 /**
- * Represents a phase doing nothing.
+ * Represents a phase where the compile has failed.
  */
-class DoNothing implements CompletedIntentUpdate {
+class CompilingFailed implements CompletedIntentUpdate {
+
+    private final IntentData intentData;
+
+    CompilingFailed(IntentData intentData) {
+        this.intentData = intentData;
+        this.intentData.setState(FAILED);
+    }
+
+    @Override
+    public IntentData data() {
+        return intentData;
+    }
+
+    //FIXME we also need to decide what to do with the current intent's resources i.e. cleanup or revert
 }

@@ -15,53 +15,22 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.intent.Intent;
-
-import java.util.LinkedList;
-import java.util.List;
+import org.onosproject.net.intent.IntentData;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 
 class Withdrawn implements CompletedIntentUpdate {
 
-    // TODO: define an interface and use it, instead of IntentManager
-    private final IntentManager intentManager;
-    private final Intent intent;
-    private final List<Intent> installables;
-    private final List<FlowRuleBatchOperation> batches;
-    private int currentBatch;
+    private final IntentData intentData;
 
-    Withdrawn(IntentManager intentManager,
-              Intent intent, List<Intent> installables, List<FlowRuleBatchOperation> batches) {
-        this.intentManager = checkNotNull(intentManager);
-        this.intent = checkNotNull(intent);
-        this.installables = ImmutableList.copyOf(installables);
-        this.batches = new LinkedList<>(batches);
-        this.currentBatch = 0;
+    Withdrawn(IntentData intentData) {
+        this.intentData = checkNotNull(intentData);
+        this.intentData.setState(WITHDRAWING);
     }
 
     @Override
-    public List<Intent> allInstallables() {
-        return installables;
-    }
-
-    @Override
-    public void batchSuccess() {
-        currentBatch++;
-    }
-
-    @Override
-    public FlowRuleBatchOperation currentBatch() {
-        return currentBatch < batches.size() ? batches.get(currentBatch) : null;
-    }
-
-    @Override
-    public void batchFailed() {
-        for (int i = batches.size() - 1; i >= currentBatch; i--) {
-            batches.remove(i);
-        }
-        batches.addAll(intentManager.uninstallIntent(intent, installables));
+    public IntentData data() {
+        return intentData;
     }
 }

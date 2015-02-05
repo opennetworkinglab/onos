@@ -15,7 +15,10 @@
  */
 package org.onosproject.net.intent;
 
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperations;
 
 import java.util.List;
 
@@ -30,7 +33,32 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete install
      * @throws IntentException if issues are encountered while installing the intent
      */
+    @Deprecated
     List<FlowRuleBatchOperation> install(T intent);
+    // FIXME
+    default FlowRuleOperations.Builder install2(T intent) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        for (FlowRuleBatchOperation batch : install(intent)) {
+            for (FlowRuleBatchEntry entry : batch.getOperations()) {
+                FlowRule rule = entry.target();
+                switch (entry.operator()) {
+                    case ADD:
+                        builder.add(rule);
+                        break;
+                    case REMOVE:
+                        builder.remove(rule);
+                        break;
+                    case MODIFY:
+                        builder.modify(rule);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            builder.newStage();
+        }
+        return builder;
+    }
 
     /**
      * Uninstalls the specified intent from the environment.
@@ -39,7 +67,32 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete uninstall
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
+    @Deprecated
     List<FlowRuleBatchOperation> uninstall(T intent);
+    // FIXME
+    default FlowRuleOperations.Builder uninstall2(T intent) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        for (FlowRuleBatchOperation batch : uninstall(intent)) {
+            for (FlowRuleBatchEntry entry : batch.getOperations()) {
+                FlowRule rule = entry.target();
+                switch (entry.operator()) {
+                    case ADD:
+                        builder.add(rule);
+                        break;
+                    case REMOVE:
+                        builder.remove(rule);
+                        break;
+                    case MODIFY:
+                        builder.modify(rule);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            builder.newStage();
+        }
+        return builder;
+    }
 
     /**
      * Replaces the specified intent with a new one in the environment.
@@ -49,6 +102,31 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete the replace
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
+    @Deprecated
     List<FlowRuleBatchOperation> replace(T oldIntent, T newIntent);
+    // FIXME
+    default FlowRuleOperations.Builder replace2(T oldIntent, T newIntent) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        for (FlowRuleBatchOperation batch : replace(oldIntent, newIntent)) {
+            for (FlowRuleBatchEntry entry : batch.getOperations()) {
+                FlowRule rule = entry.target();
+                switch (entry.operator()) {
+                    case ADD:
+                        builder.add(rule);
+                        break;
+                    case REMOVE:
+                        builder.remove(rule);
+                        break;
+                    case MODIFY:
+                        builder.modify(rule);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            builder.newStage();
+        }
+        return builder;
+    }
 
 }

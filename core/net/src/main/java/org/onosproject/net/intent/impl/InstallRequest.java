@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 
 import java.util.Optional;
@@ -27,17 +26,17 @@ class InstallRequest implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
-    private final Intent intent;
-    private final IntentData currentState;
+    private final IntentData pending;
 
-    InstallRequest(IntentManager intentManager, Intent intent, IntentData currentState) {
+    InstallRequest(IntentManager intentManager, IntentData intentData) {
         this.intentManager = checkNotNull(intentManager);
-        this.intent = checkNotNull(intent);
-        this.currentState = currentState;
+        this.pending = checkNotNull(intentData);
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        return Optional.of(new Compiling(intentManager, intent)); //FIXME
+        //FIXME... store hack
+        IntentData current = intentManager.store.getIntentData(pending.key());
+        return Optional.of(new Compiling(intentManager, pending, current));
     }
 }

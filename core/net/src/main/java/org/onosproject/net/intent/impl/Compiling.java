@@ -16,10 +16,12 @@
 package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -30,25 +32,29 @@ class Compiling implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
-    private final Intent intent;
+    private final IntentData pending;
+    private final IntentData current;
 
-    Compiling(IntentManager intentManager, Intent intent) {
+    Compiling(IntentManager intentManager, IntentData pending, IntentData current) {
         this.intentManager = checkNotNull(intentManager);
-        this.intent = checkNotNull(intent);
+        this.pending = checkNotNull(pending);
+        this.current = current;
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
         try {
-            return Optional.of(new Installing(intentManager, intent, intentManager.compileIntent(intent, null)));
+            List<Intent> installables = (current != null) ? current.installables() : null;
+            pending.setInstallables(intentManager.compileIntent(pending.intent(), installables));
+            return Optional.of(new Installing(intentManager, pending, current));
         } catch (PathNotFoundException e) {
-            log.debug("Path not found for intent {}", intent);
+            log.debug("Path not found for intent {}", pending.intent());
             // TODO: revisit to implement failure handling
-            return Optional.of(new DoNothing());
+            return Optional.of(new CompilingFailed(pending)); //FIXME failed state transition
         } catch (IntentException e) {
-            log.warn("Unable to compile intent {} due to:", intent.id(), e);
+            log.warn("Unable to compile intent {} due to:", pending.intent().id(), e);
             // TODO: revisit to implement failure handling
-            return Optional.of(new DoNothing());
+            return Optional.of(new CompilingFailed(pending)); //FIXME failed state transition
         }
     }
 }

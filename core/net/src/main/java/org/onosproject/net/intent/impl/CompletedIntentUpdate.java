@@ -15,11 +15,8 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentData;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,38 +24,10 @@ import java.util.Optional;
  */
 interface CompletedIntentUpdate extends IntentUpdate {
 
-    /**
-     * Moves forward with the contained current batch.
-     * This method is invoked when the batch is successfully completed.
-     */
-    default void batchSuccess() {}
-
-    /**
-     * Reverts the contained batches.
-     * This method is invoked when the batch results in failure.
-     */
-    default void batchFailed() {}
-
-    /**
-     * Returns the current FlowRuleBatchOperation.
-     *
-     * @return current FlowRuleBatchOperation
-     */
-    default FlowRuleBatchOperation currentBatch() {
-        return null;
-    }
-
-    /**
-     * Returns all of installable intents this instance holds.
-     *
-     * @return all of installable intents
-     */
-    default List<Intent> allInstallables() {
-        return Collections.emptyList();
-    }
-
     @Override
     default Optional<IntentUpdate> execute() {
         return Optional.empty();
     }
+
+    IntentData data();
 }

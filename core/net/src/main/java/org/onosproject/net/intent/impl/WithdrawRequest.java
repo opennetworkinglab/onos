@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 
 import java.util.Optional;
@@ -26,17 +25,20 @@ class WithdrawRequest implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
-    private final Intent intent;
-    private final IntentData currentState;
+    private final IntentData pending;
 
-    WithdrawRequest(IntentManager intentManager, Intent intent, IntentData currentState) {
+    WithdrawRequest(IntentManager intentManager, IntentData intentData) {
         this.intentManager = checkNotNull(intentManager);
-        this.intent = checkNotNull(intent);
-        this.currentState = currentState;
+        this.pending = checkNotNull(intentData);
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        return Optional.of(new Withdrawing(intentManager, intent, currentState.installables())); //FIXME
+        //FIXME... store hack
+        IntentData current = intentManager.store.getIntentData(pending.key());
+        //TODO perhaps we want to validate that the pending and current are the
+        // same version i.e. they are the same
+        // Note: this call is not just the symmetric version of submit
+        return Optional.of(new Withdrawing(intentManager, pending, current));
     }
 }
