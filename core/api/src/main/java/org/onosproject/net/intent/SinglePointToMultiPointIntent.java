@@ -54,13 +54,14 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
     public SinglePointToMultiPointIntent(ApplicationId appId,
             TrafficSelector selector, TrafficTreatment treatment,
             ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints) {
-        this(appId, selector, treatment, ingressPoint, egressPoints, Collections.emptyList());
+        this(appId, null, selector, treatment, ingressPoint, egressPoints, Collections.emptyList());
     }
 
     /**
      * Creates a new single-to-multi point connectivity intent.
      *
      * @param appId application identifier
+     * @param key intent key
      * @param selector traffic selector
      * @param treatment treatment
      * @param ingressPoint port on which traffic will ingress
@@ -72,10 +73,11 @@ public class SinglePointToMultiPointIntent extends ConnectivityIntent {
      *             not more than 1
      */
     public SinglePointToMultiPointIntent(ApplicationId appId,
+            Key key,
             TrafficSelector selector, TrafficTreatment treatment,
             ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints,
             List<Constraint> constraints) {
-        super(appId, Collections.emptyList(), selector, treatment, constraints);
+        super(appId, key, Collections.emptyList(), selector, treatment, constraints);
         checkNotNull(egressPoints);
         checkNotNull(ingressPoint);
         checkArgument(!egressPoints.isEmpty(), "Egress point set cannot be empty");

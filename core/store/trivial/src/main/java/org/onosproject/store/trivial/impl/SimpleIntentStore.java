@@ -27,6 +27,7 @@ import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
+import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
@@ -46,8 +47,8 @@ public class SimpleIntentStore
     private final Logger log = getLogger(getClass());
 
     // current state maps FIXME.. make this a IntentData map
-    private final Map<String, IntentData> current = Maps.newConcurrentMap();
-    private final Map<String, IntentData> pending = Maps.newConcurrentMap(); //String is "key"
+    private final Map<Key, IntentData> current = Maps.newConcurrentMap();
+    private final Map<Key, IntentData> pending = Maps.newConcurrentMap(); //String is "key"
 
     @Activate
     public void activate() {
@@ -72,7 +73,7 @@ public class SimpleIntentStore
     }
 
     @Override
-    public IntentData getIntentData(String key) {
+    public IntentData getIntentData(Key key) {
         return current.get(key);
     }
 

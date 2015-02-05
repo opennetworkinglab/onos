@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.onlab.util.AbstractAccumulator;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.Key;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,7 +58,7 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
     }
 
     private Collection<IntentData> reduce(List<IntentData> ops) {
-        Map<String, IntentData> map = Maps.newHashMap();
+        Map<Key, IntentData> map = Maps.newHashMap();
         for (IntentData op : ops) {
             map.put(op.key(), op);
         }

@@ -61,7 +61,57 @@ public abstract class ConnectivityIntent extends Intent {
                                  Collection<NetworkResource> resources,
                                  TrafficSelector selector,
                                  TrafficTreatment treatment) {
-        this(appId, resources, selector, treatment, Collections.emptyList());
+        this(appId, null, resources, selector, treatment, Collections.emptyList());
+    }
+
+    /**
+     * Creates a connectivity intent that matches on the specified selector
+     * and applies the specified treatment.
+     * <p>
+     * Path will be chosen without any constraints.
+     * </p>
+     *
+     * @param appId     application identifier
+     * @param key       intent key
+     * @param resources required network resources (optional)
+     * @param selector  traffic selector
+     * @param treatment treatment
+     * @throws NullPointerException if the selector or treatment is null
+     */
+    protected ConnectivityIntent(ApplicationId appId,
+                                 Key key,
+                                 Collection<NetworkResource> resources,
+                                 TrafficSelector selector,
+                                 TrafficTreatment treatment) {
+        this(appId, key, resources, selector, treatment, Collections.emptyList());
+    }
+
+    /**
+     * Creates a connectivity intent that matches on the specified selector
+     * and applies the specified treatment.
+     * <p>
+     * Path will be optimized based on the first constraint if one is given.
+     * </p>
+     *
+     * @param appId       application identifier
+     * @param key         explicit key to use for intent
+     * @param resources   required network resources (optional)
+     * @param selector    traffic selector
+     * @param treatment   treatment
+     * @param constraints optional prioritized list of constraints
+     * @throws NullPointerException if the selector or treatment is null
+     */
+
+    protected ConnectivityIntent(ApplicationId appId,
+                                 Key key,
+                                 Collection<NetworkResource> resources,
+                                 TrafficSelector selector,
+                                 TrafficTreatment treatment,
+                                 List<Constraint> constraints) {
+        super(appId, key, resources);
+        this.selector = checkNotNull(selector);
+        this.treatment = checkNotNull(treatment);
+        this.constraints = checkNotNull(constraints);
     }
 
     /**
@@ -78,12 +128,13 @@ public abstract class ConnectivityIntent extends Intent {
      * @param constraints optional prioritized list of constraints
      * @throws NullPointerException if the selector or treatment is null
      */
+
     protected ConnectivityIntent(ApplicationId appId,
                                  Collection<NetworkResource> resources,
                                  TrafficSelector selector,
                                  TrafficTreatment treatment,
                                  List<Constraint> constraints) {
-        super(appId, resources);
+        super(appId, null, resources);
         this.selector = checkNotNull(selector);
         this.treatment = checkNotNull(treatment);
         this.constraints = checkNotNull(constraints);

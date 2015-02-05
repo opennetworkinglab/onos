@@ -36,7 +36,7 @@ public abstract class Intent {
     private final IntentId id;
 
     private final ApplicationId appId;
-    private final String key; // TODO make this a class
+    private final Key key;
 
     private final Collection<NetworkResource> resources;
 
@@ -71,12 +71,12 @@ public abstract class Intent {
          * @param resources     required network resources (optional)
          */
     protected Intent(ApplicationId appId,
-                     String key,
+                     Key key,
                      Collection<NetworkResource> resources) {
         checkState(idGenerator != null, "Id generator is not bound.");
         this.id = IntentId.valueOf(idGenerator.getNewId());
         this.appId = checkNotNull(appId, "Application ID cannot be null");
-        this.key = (key != null) ? key : id.toString(); //FIXME
+        this.key = (key != null) ? key : Key.of(id.fingerprint(), appId);
         this.resources = checkNotNull(resources);
     }
 
@@ -156,7 +156,7 @@ public abstract class Intent {
         }
     }
 
-    public String key() {
+    public Key key() {
         return key;
     }
 }

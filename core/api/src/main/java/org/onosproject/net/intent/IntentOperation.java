@@ -73,7 +73,12 @@ public final class IntentOperation {
         return intent.id();
     }
 
-    public String key() {
+    /**
+     * Returns the key for this intent.
+     *
+     * @return key value
+     */
+    public Key key() {
         return intent.key();
     }
 

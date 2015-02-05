@@ -28,6 +28,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
@@ -80,6 +81,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-l", aliases = "--lambda", description = "Lambda",
             required = false, multiValued = false)
     private boolean lambda = false;
+
+    @Option(name = "-k", aliases = "--key", description = "Intent Key",
+            required = false, multiValued = false)
+    private String intentKey = null;
 
 
     // Treatments
@@ -179,5 +184,20 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
 
         return constraints;
+    }
+
+    /**
+     * Creates a key for an intent based on command line arguments.  If a key
+     * has been specified, it is returned.  If no key is specified, null
+     * is returned.
+     *
+     * @return intent key if specified, null otherwise
+     */
+    protected Key key() {
+        Key key = null;
+        if (intentKey != null) {
+            key = Key.of(intentKey, appId());
+        }
+        return key;
     }
 }

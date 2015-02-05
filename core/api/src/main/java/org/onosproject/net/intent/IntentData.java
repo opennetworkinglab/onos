@@ -52,7 +52,7 @@ public class IntentData { //FIXME need to make this "immutable"
         return state;
     }
 
-    public String key() {
+    public Key key() {
         return intent.key();
     }
 

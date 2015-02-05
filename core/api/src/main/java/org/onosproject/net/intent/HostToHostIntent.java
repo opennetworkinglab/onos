@@ -87,7 +87,26 @@ public final class HostToHostIntent extends ConnectivityIntent {
                             TrafficSelector selector,
                             TrafficTreatment treatment,
                             List<Constraint> constraints) {
-        super(appId, Collections.emptyList(), selector, treatment, constraints);
+        this(appId, null, one, two, selector, treatment, constraints);
+    }
+    /**
+     * Creates a new host-to-host intent with the supplied host pair.
+     *
+     * @param appId       application identifier
+     * @param key       intent key
+     * @param one         first host
+     * @param two         second host
+     * @param selector    action
+     * @param treatment   ingress port
+     * @param constraints optional prioritized list of path selection constraints
+     * @throws NullPointerException if {@code one} or {@code two} is null.
+     */
+    public HostToHostIntent(ApplicationId appId, Key key,
+                            HostId one, HostId two,
+                            TrafficSelector selector,
+                            TrafficTreatment treatment,
+                            List<Constraint> constraints) {
+        super(appId, key, Collections.emptyList(), selector, treatment, constraints);
 
         // TODO: consider whether the case one and two are same is allowed
         this.one = checkNotNull(one);

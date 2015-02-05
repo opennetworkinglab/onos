@@ -38,10 +38,27 @@ public class OpticalConnectivityIntent extends Intent {
      */
     public OpticalConnectivityIntent(ApplicationId appId,
                                      ConnectPoint src, ConnectPoint dst) {
-        super(appId, Collections.emptyList());
+
+        this(appId, null, src, dst);
+    }
+
+    /**
+     * Creates an optical connectivity intent between the specified
+     * connection points.
+     *
+     * @param appId application identification
+     * @param key intent key
+     * @param src the source transponder port
+     * @param dst the destination transponder port
+     */
+    public OpticalConnectivityIntent(ApplicationId appId,
+                                     Key key,
+                                     ConnectPoint src, ConnectPoint dst) {
+        super(appId, key, Collections.emptyList());
         this.src = src;
         this.dst = dst;
     }
+
 
     /**
      * Constructor for serializer.

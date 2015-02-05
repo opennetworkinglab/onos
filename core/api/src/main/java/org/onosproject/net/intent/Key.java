@@ -32,7 +32,7 @@ public class Key {
     private final long hash;
     private static final HashFunction HASH_FN = Hashing.md5();
 
-    private Key(long hash) {
+    protected Key(long hash) {
         this.hash = hash;
     }
 
@@ -48,7 +48,7 @@ public class Key {
         return new LongKey(key, appId);
     }
 
-    private final static class StringKey extends Key {
+    private static final class StringKey extends Key {
 
         private final ApplicationId appId;
         private final String key;
@@ -87,7 +87,7 @@ public class Key {
         }
     }
 
-    private final static class LongKey extends Key {
+    private static final class LongKey extends Key {
 
         private final ApplicationId appId;
         private static long key;

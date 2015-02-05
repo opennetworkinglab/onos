@@ -15,9 +15,6 @@
  */
 package org.onosproject.cli.net;
 
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-
 import java.util.List;
 
 import org.apache.karaf.shell.commands.Argument;
@@ -31,6 +28,9 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
+
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -67,8 +67,10 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
 
         List<Constraint> constraints = buildConstraints();
 
-        Intent intent = new PointToPointIntent(appId(), selector, treatment,
-                                               ingress, egress, constraints);
+        Intent intent = new PointToPointIntent(appId(),
+                key(),
+                selector, treatment,
+                ingress, egress, constraints);
         service.submit(intent);
         print("Point to point intent submitted:\n%s", intent.toString());
     }

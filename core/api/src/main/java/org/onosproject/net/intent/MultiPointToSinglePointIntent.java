@@ -75,12 +75,13 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
      *                                  not more than 1
      */
     public MultiPointToSinglePointIntent(ApplicationId appId,
+                                         Key key,
                                          TrafficSelector selector,
                                          TrafficTreatment treatment,
                                          Set<ConnectPoint> ingressPoints,
                                          ConnectPoint egressPoint,
                                          List<Constraint> constraints) {
-        super(appId, Collections.emptyList(), selector, treatment, constraints);
+        super(appId, key, Collections.emptyList(), selector, treatment, constraints);
 
         checkNotNull(ingressPoints);
         checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");
@@ -90,6 +91,30 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
 
         this.ingressPoints = Sets.newHashSet(ingressPoints);
         this.egressPoint = egressPoint;
+    }
+
+    /**
+     * Creates a new multi-to-single point connectivity intent for the specified
+     * traffic selector and treatment.
+     *
+     * @param appId         application identifier
+     * @param selector      traffic selector
+     * @param treatment     treatment
+     * @param ingressPoints set of ports from which ingress traffic originates
+     * @param egressPoint   port to which traffic will egress
+     * @param constraints   constraints to apply to the intent
+     * @throws NullPointerException     if {@code ingressPoints} or
+     *                                  {@code egressPoint} is null.
+     * @throws IllegalArgumentException if the size of {@code ingressPoints} is
+     *                                  not more than 1
+     */
+    public MultiPointToSinglePointIntent(ApplicationId appId,
+                                         TrafficSelector selector,
+                                         TrafficTreatment treatment,
+                                         Set<ConnectPoint> ingressPoints,
+                                         ConnectPoint egressPoint,
+                                         List<Constraint> constraints) {
+        this(appId, null, selector, treatment, ingressPoints, egressPoint, constraints);
     }
 
     /**

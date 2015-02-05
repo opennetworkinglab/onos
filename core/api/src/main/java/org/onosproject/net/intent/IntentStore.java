@@ -92,7 +92,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param key key
      * @return intent or null if not found
      */
-    default Intent getIntent(String key) { //FIXME remove when impl.
+    default Intent getIntent(Key key) { //FIXME remove when impl.
         return null;
     }
 
@@ -102,7 +102,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param key key to look up
      * @return intent data object
      */
-    default IntentData getIntentData(String key) { //FIXME remove when impl.
+    default IntentData getIntentData(Key key) { //FIXME remove when impl.
         return null;
     }
 

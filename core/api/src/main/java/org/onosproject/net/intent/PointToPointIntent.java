@@ -40,6 +40,37 @@ public class PointToPointIntent extends ConnectivityIntent {
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
+     * ports and constraints.
+     *
+     * @param appId        application identifier
+     * @param key          key of the intent
+     * @param selector     traffic selector
+     * @param treatment    treatment
+     * @param ingressPoint ingress port
+     * @param egressPoint  egress port
+     * @param constraints  optional list of constraints
+     * @throws NullPointerException if {@code ingressPoint} or {@code egressPoints} is null.
+     */
+    public PointToPointIntent(ApplicationId appId,
+                              Key key,
+                              TrafficSelector selector,
+                              TrafficTreatment treatment,
+                              ConnectPoint ingressPoint,
+                              ConnectPoint egressPoint,
+                              List<Constraint> constraints) {
+        super(appId, key, Collections.emptyList(), selector, treatment, constraints);
+
+        checkNotNull(ingressPoint);
+        checkNotNull(egressPoint);
+        checkArgument(!ingressPoint.equals(egressPoint),
+                "ingress and egress should be different (ingress: %s, egress: %s)", ingressPoint, egressPoint);
+
+        this.ingressPoint = ingressPoint;
+        this.egressPoint = egressPoint;
+    }
+
+    /**
+     * Creates a new point-to-point intent with the supplied ingress/egress
      * ports and with built-in link type constraint to avoid optical links.
      *
      * @param appId        application identifier
@@ -53,7 +84,7 @@ public class PointToPointIntent extends ConnectivityIntent {
                               TrafficTreatment treatment,
                               ConnectPoint ingressPoint,
                               ConnectPoint egressPoint) {
-        this(appId, selector, treatment, ingressPoint, egressPoint,
+        this(appId, null, selector, treatment, ingressPoint, egressPoint,
              ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)));
     }
 
@@ -74,7 +105,7 @@ public class PointToPointIntent extends ConnectivityIntent {
                               ConnectPoint ingressPoint,
                               ConnectPoint egressPoint,
                               List<Constraint> constraints) {
-        super(appId, Collections.emptyList(), selector, treatment, constraints);
+        super(appId, null, Collections.emptyList(), selector, treatment, constraints);
 
         checkNotNull(ingressPoint);
         checkNotNull(egressPoint);
