@@ -333,12 +333,12 @@ public abstract class FlowModBuilder {
             case ICMPV6_TYPE:
                 Icmpv6TypeCriterion icmpv6Type = (Icmpv6TypeCriterion) c;
                 mBuilder.setExact(MatchField.ICMPV6_TYPE,
-                        U8.of(icmpv6Type.icmpv6Type().byteValue()));
+                                  U8.of(icmpv6Type.icmpv6Type()));
                 break;
             case ICMPV6_CODE:
                 Icmpv6CodeCriterion icmpv6Code = (Icmpv6CodeCriterion) c;
                 mBuilder.setExact(MatchField.ICMPV6_CODE,
-                        U8.of(icmpv6Code.icmpv6Code().byteValue()));
+                                  U8.of(icmpv6Code.icmpv6Code()));
                 break;
             case IPV6_ND_TARGET:
                 IPv6NDTargetAddressCriterion targetAddressCriterion =
@@ -361,19 +361,19 @@ public abstract class FlowModBuilder {
                 break;
             case MPLS_LABEL:
                 Criteria.MplsCriterion mp = (Criteria.MplsCriterion) c;
-                mBuilder.setExact(MatchField.MPLS_LABEL,
-                                  U32.of(mp.label().intValue()));
+                mBuilder.setExact(MatchField.MPLS_LABEL, U32.of(mp.label()));
                 break;
             case OCH_SIGID:
                 LambdaCriterion lc = (LambdaCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGID,
-                        new CircuitSignalID((byte) 1, (byte) 2, lc.lambda(), (short) 1));
+                        new CircuitSignalID((byte) 1, (byte) 2,
+                                            (short) lc.lambda(), (short) 1));
                 break;
             case OCH_SIGTYPE:
                 Criteria.OpticalSignalTypeCriterion sc =
                         (Criteria.OpticalSignalTypeCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGTYPE,
-                                  U8.of(sc.signalType()));
+                                  U8.of((short) sc.signalType()));
                 break;
             case ARP_OP:
             case ARP_SHA:

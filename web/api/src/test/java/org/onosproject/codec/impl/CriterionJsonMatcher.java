@@ -84,7 +84,8 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case ETH_TYPE:
                 final Criteria.EthTypeCriterion ethTypeCriterion =
                         (Criteria.EthTypeCriterion) criterion;
-                final String ethType = ethTypeCriterion.ethType().toString();
+                final String ethType =
+                    Long.toHexString(ethTypeCriterion.ethType());
                 final String jsonEthType = jsonCriterion.get("ethType").textValue();
                 if (!ethType.equals(jsonEthType)) {
                     description.appendText("ethType was " + jsonEthType);
@@ -139,10 +140,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case IP_PROTO:
                 final Criteria.IPProtocolCriterion iPProtocolCriterion =
                         (Criteria.IPProtocolCriterion) criterion;
-                final byte protocol = iPProtocolCriterion.protocol();
-                final byte jsonProtocol = (byte) jsonCriterion.get("protocol").shortValue();
+                final short protocol = iPProtocolCriterion.protocol();
+                final short jsonProtocol = jsonCriterion.get("protocol").shortValue();
                 if (protocol != jsonProtocol) {
-                    description.appendText("protocol was " + Byte.toString(jsonProtocol));
+                    description.appendText("protocol was " + Short.toString(jsonProtocol));
                     return false;
                 }
                 break;
@@ -165,10 +166,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case TCP_DST:
                 final Criteria.TcpPortCriterion tcpPortCriterion =
                         (Criteria.TcpPortCriterion) criterion;
-                final short tcpPort = tcpPortCriterion.tcpPort();
-                final short jsonTcpPort = jsonCriterion.get("tcpPort").shortValue();
+                final int tcpPort = tcpPortCriterion.tcpPort();
+                final int jsonTcpPort = jsonCriterion.get("tcpPort").intValue();
                 if (tcpPort != jsonTcpPort) {
-                    description.appendText("tcp port was " + Short.toString(jsonTcpPort));
+                    description.appendText("tcp port was " + Integer.toString(jsonTcpPort));
                     return false;
                 }
                 break;
@@ -177,10 +178,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case UDP_DST:
                 final Criteria.UdpPortCriterion udpPortCriterion =
                         (Criteria.UdpPortCriterion) criterion;
-                final short udpPort = udpPortCriterion.udpPort();
-                final short jsonUdpPort = jsonCriterion.get("udpPort").shortValue();
+                final int udpPort = udpPortCriterion.udpPort();
+                final int jsonUdpPort = jsonCriterion.get("udpPort").intValue();
                 if (udpPort != jsonUdpPort) {
-                    description.appendText("udp port was " + Short.toString(jsonUdpPort));
+                    description.appendText("udp port was " + Integer.toString(jsonUdpPort));
                     return false;
                 }
                 break;
@@ -189,10 +190,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case SCTP_DST:
                 final Criteria.SctpPortCriterion sctpPortCriterion =
                         (Criteria.SctpPortCriterion) criterion;
-                final short sctpPort = sctpPortCriterion.sctpPort();
-                final short jsonSctpPort = jsonCriterion.get("sctpPort").shortValue();
+                final int sctpPort = sctpPortCriterion.sctpPort();
+                final int jsonSctpPort = jsonCriterion.get("sctpPort").intValue();
                 if (sctpPort != jsonSctpPort) {
-                    description.appendText("sctp port was " + Short.toString(jsonSctpPort));
+                    description.appendText("sctp port was " + Integer.toString(jsonSctpPort));
                     return false;
                 }
                 break;
@@ -200,10 +201,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case ICMPV4_TYPE:
                 final Criteria.IcmpTypeCriterion icmpTypeCriterion =
                         (Criteria.IcmpTypeCriterion) criterion;
-                final byte icmpType = icmpTypeCriterion.icmpType();
-                final byte jsonIcmpType = (byte) jsonCriterion.get("icmpType").shortValue();
+                final short icmpType = icmpTypeCriterion.icmpType();
+                final short jsonIcmpType = jsonCriterion.get("icmpType").shortValue();
                 if (icmpType != jsonIcmpType) {
-                    description.appendText("icmp type was " + Byte.toString(jsonIcmpType));
+                    description.appendText("icmp type was " + Short.toString(jsonIcmpType));
                     return false;
                 }
                 break;
@@ -211,10 +212,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case ICMPV4_CODE:
                 final Criteria.IcmpCodeCriterion icmpCodeCriterion =
                         (Criteria.IcmpCodeCriterion) criterion;
-                final byte icmpCode = icmpCodeCriterion.icmpCode();
-                final byte jsonIcmpCode = (byte) jsonCriterion.get("icmpCode").shortValue();
+                final short icmpCode = icmpCodeCriterion.icmpCode();
+                final short jsonIcmpCode = jsonCriterion.get("icmpCode").shortValue();
                 if (icmpCode != jsonIcmpCode) {
-                    description.appendText("icmp code was " + Byte.toString(jsonIcmpCode));
+                    description.appendText("icmp code was " + Short.toString(jsonIcmpCode));
                     return false;
                 }
                 break;
@@ -233,10 +234,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case ICMPV6_TYPE:
                 final Criteria.Icmpv6TypeCriterion icmpv6TypeCriterion =
                         (Criteria.Icmpv6TypeCriterion) criterion;
-                final byte icmpv6Type = icmpv6TypeCriterion.icmpv6Type();
-                final byte jsonIcmpv6Type = (byte) jsonCriterion.get("icmpv6Type").shortValue();
+                final short icmpv6Type = icmpv6TypeCriterion.icmpv6Type();
+                final short jsonIcmpv6Type = jsonCriterion.get("icmpv6Type").shortValue();
                 if (icmpv6Type != jsonIcmpv6Type) {
-                    description.appendText("icmpv6 type was " + Byte.toString(jsonIcmpv6Type));
+                    description.appendText("icmpv6 type was " + Short.toString(jsonIcmpv6Type));
                     return false;
                 }
                 break;
@@ -244,10 +245,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case ICMPV6_CODE:
                 final Criteria.Icmpv6CodeCriterion icmpv6CodeCriterion =
                         (Criteria.Icmpv6CodeCriterion) criterion;
-                final byte icmpv6Code = icmpv6CodeCriterion.icmpv6Code();
-                final byte jsonIcmpv6Code = (byte) jsonCriterion.get("icmpv6Code").shortValue();
+                final short icmpv6Code = icmpv6CodeCriterion.icmpv6Code();
+                final short jsonIcmpv6Code = jsonCriterion.get("icmpv6Code").shortValue();
                 if (icmpv6Code != jsonIcmpv6Code) {
-                    description.appendText("icmpv6 code was " + Byte.toString(jsonIcmpv6Code));
+                    description.appendText("icmpv6 code was " + Short.toString(jsonIcmpv6Code));
                     return false;
                 }
                 break;
@@ -296,10 +297,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case OCH_SIGID:
                 final Criteria.LambdaCriterion lambdaCriterion =
                         (Criteria.LambdaCriterion) criterion;
-                final short lambda = lambdaCriterion.lambda();
-                final short jsonLambda = jsonCriterion.get("lambda").shortValue();
+                final int lambda = lambdaCriterion.lambda();
+                final int jsonLambda = jsonCriterion.get("lambda").intValue();
                 if (lambda != jsonLambda) {
-                    description.appendText("lambda was " + Short.toString(lambda));
+                    description.appendText("lambda was " + Integer.toString(lambda));
                     return false;
                 }
                 break;
@@ -307,10 +308,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case OCH_SIGTYPE:
                 final Criteria.OpticalSignalTypeCriterion opticalSignalTypeCriterion =
                         (Criteria.OpticalSignalTypeCriterion) criterion;
-                final short signalType = opticalSignalTypeCriterion.signalType();
-                final short jsonSignalType = jsonCriterion.get("signalType").shortValue();
+                final int signalType = opticalSignalTypeCriterion.signalType();
+                final int jsonSignalType = jsonCriterion.get("signalType").intValue();
                 if (signalType != jsonSignalType) {
-                    description.appendText("signal type was " + Short.toString(signalType));
+                    description.appendText("signal type was " + Integer.toString(signalType));
                     return false;
                 }
                 break;

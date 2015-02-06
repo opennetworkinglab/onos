@@ -59,7 +59,7 @@ public final class Criteria {
     /**
      * Creates a match on METADATA field using the specified value.
      *
-     * @param metadata metadata value
+     * @param metadata metadata value (64 bits data)
      * @return match criterion
      */
     public static Criterion matchMetadata(Long metadata) {
@@ -91,10 +91,10 @@ public final class Criteria {
     /**
      * Creates a match on ETH_TYPE field using the specified value.
      *
-     * @param ethType eth type value
+     * @param ethType eth type value (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchEthType(Short ethType) {
+    public static Criterion matchEthType(int ethType) {
         return new EthTypeCriterion(ethType);
     }
 
@@ -111,40 +111,40 @@ public final class Criteria {
     /**
      * Creates a match on VLAN PCP field using the specified value.
      *
-     * @param vlanPcp vlan pcp value
+     * @param vlanPcp vlan pcp value (3 bits)
      * @return match criterion
      */
-    public static Criterion matchVlanPcp(Byte vlanPcp) {
+    public static Criterion matchVlanPcp(byte vlanPcp) {
         return new VlanPcpCriterion(vlanPcp);
     }
 
     /**
      * Creates a match on IP DSCP field using the specified value.
      *
-     * @param ipDscp ip dscp value
+     * @param ipDscp ip dscp value (6 bits)
      * @return match criterion
      */
-    public static Criterion matchIPDscp(Byte ipDscp) {
+    public static Criterion matchIPDscp(byte ipDscp) {
         return new IPDscpCriterion(ipDscp);
     }
 
     /**
      * Creates a match on IP ECN field using the specified value.
      *
-     * @param ipEcn ip ecn value
+     * @param ipEcn ip ecn value (3 bits)
      * @return match criterion
      */
-    public static Criterion matchIPEcn(Byte ipEcn) {
+    public static Criterion matchIPEcn(byte ipEcn) {
         return new IPEcnCriterion(ipEcn);
     }
 
     /**
      * Creates a match on IP proto field using the specified value.
      *
-     * @param proto ip protocol value
+     * @param proto ip protocol value (8 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchIPProtocol(Byte proto) {
+    public static Criterion matchIPProtocol(short proto) {
         return new IPProtocolCriterion(proto);
     }
 
@@ -171,50 +171,50 @@ public final class Criteria {
     /**
      * Creates a match on TCP source port field using the specified value.
      *
-     * @param tcpPort TCP source port
+     * @param tcpPort TCP source port (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchTcpSrc(Short tcpPort) {
+    public static Criterion matchTcpSrc(int tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_SRC);
     }
 
     /**
      * Creates a match on TCP destination port field using the specified value.
      *
-     * @param tcpPort TCP destination port
+     * @param tcpPort TCP destination port (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchTcpDst(Short tcpPort) {
+    public static Criterion matchTcpDst(int tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_DST);
     }
 
     /**
      * Creates a match on UDP source port field using the specified value.
      *
-     * @param udpPort UDP source port
+     * @param udpPort UDP source port (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchUdpSrc(Short udpPort) {
+    public static Criterion matchUdpSrc(int udpPort) {
         return new UdpPortCriterion(udpPort, Type.UDP_SRC);
     }
 
     /**
      * Creates a match on UDP destination port field using the specified value.
      *
-     * @param udpPort UDP destination port
+     * @param udpPort UDP destination port (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchUdpDst(Short udpPort) {
+    public static Criterion matchUdpDst(int udpPort) {
         return new UdpPortCriterion(udpPort, Type.UDP_DST);
     }
 
     /**
      * Creates a match on SCTP source port field using the specified value.
      *
-     * @param sctpPort SCTP source port
+     * @param sctpPort SCTP source port (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchSctpSrc(Short sctpPort) {
+    public static Criterion matchSctpSrc(int sctpPort) {
         return new SctpPortCriterion(sctpPort, Type.SCTP_SRC);
     }
 
@@ -222,30 +222,30 @@ public final class Criteria {
      * Creates a match on SCTP destination port field using the specified
      * value.
      *
-     * @param sctpPort SCTP destination port
+     * @param sctpPort SCTP destination port (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchSctpDst(Short sctpPort) {
+    public static Criterion matchSctpDst(int sctpPort) {
         return new SctpPortCriterion(sctpPort, Type.SCTP_DST);
     }
 
     /**
      * Creates a match on ICMP type field using the specified value.
      *
-     * @param icmpType ICMP type
+     * @param icmpType ICMP type (8 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchIcmpType(Byte icmpType) {
+    public static Criterion matchIcmpType(short icmpType) {
         return new IcmpTypeCriterion(icmpType);
     }
 
     /**
      * Creates a match on ICMP code field using the specified value.
      *
-     * @param icmpCode ICMP code
+     * @param icmpCode ICMP code (8 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchIcmpCode(Byte icmpCode) {
+    public static Criterion matchIcmpCode(short icmpCode) {
         return new IcmpCodeCriterion(icmpCode);
     }
 
@@ -272,30 +272,30 @@ public final class Criteria {
     /**
      * Creates a match on IPv6 flow label field using the specified value.
      *
-     * @param flowLabel IPv6 flow label
+     * @param flowLabel IPv6 flow label (20 bits)
      * @return match criterion
      */
-    public static Criterion matchIPv6FlowLabel(Integer flowLabel) {
+    public static Criterion matchIPv6FlowLabel(int flowLabel) {
         return new IPv6FlowLabelCriterion(flowLabel);
     }
 
     /**
      * Creates a match on ICMPv6 type field using the specified value.
      *
-     * @param icmpv6Type ICMPv6 type
+     * @param icmpv6Type ICMPv6 type (8 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchIcmpv6Type(Byte icmpv6Type) {
+    public static Criterion matchIcmpv6Type(short icmpv6Type) {
         return new Icmpv6TypeCriterion(icmpv6Type);
     }
 
     /**
      * Creates a match on ICMPv6 code field using the specified value.
      *
-     * @param icmpv6Code ICMPv6 code
+     * @param icmpv6Code ICMPv6 code (8 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchIcmpv6Code(Byte icmpv6Code) {
+    public static Criterion matchIcmpv6Code(short icmpv6Code) {
         return new Icmpv6CodeCriterion(icmpv6Code);
     }
 
@@ -335,7 +335,7 @@ public final class Criteria {
     /**
      * Creates a match on MPLS label.
      *
-     * @param mplsLabel MPLS label
+     * @param mplsLabel MPLS label (20 bits)
      * @return match criterion
      */
     public static Criterion matchMplsLabel(Integer mplsLabel) {
@@ -345,20 +345,20 @@ public final class Criteria {
     /**
      * Creates a match on lambda field using the specified value.
      *
-     * @param lambda lambda to match on
+     * @param lambda lambda to match on (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchLambda(Short lambda) {
+    public static Criterion matchLambda(int lambda) {
         return new LambdaCriterion(lambda, Type.OCH_SIGID);
     }
 
     /**
      * Creates a match on optical signal type using the specified value.
      *
-     * @param sigType optical signal type
+     * @param sigType optical signal type (16 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchOpticalSignalType(Short sigType) {
+    public static Criterion matchOpticalSignalType(int sigType) {
         return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }
 
@@ -424,14 +424,14 @@ public final class Criteria {
      * Implementation of Metadata criterion.
      */
     public static final class MetadataCriterion implements Criterion {
-        private final Long metadata;
+        private final long metadata;
 
         /**
          * Constructor.
          *
-         * @param metadata the metadata to match
+         * @param metadata the metadata to match (64 bits data)
          */
-        public MetadataCriterion(Long metadata) {
+        public MetadataCriterion(long metadata) {
             this.metadata = metadata;
         }
 
@@ -443,9 +443,9 @@ public final class Criteria {
         /**
          * Gets the metadata to match.
          *
-         * @return the metadata to match
+         * @return the metadata to match (64 bits data)
          */
-        public Long metadata() {
+        public long metadata() {
             return metadata;
         }
 
@@ -534,18 +534,20 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of Ethernet type criterion.
+     * Implementation of Ethernet type criterion (16 bits unsigned integer).
      */
     public static final class EthTypeCriterion implements Criterion {
-        private final Short ethType;
+        private static final int MASK = 0xffff;
+        private final int ethType;              // Ethernet type value: 16 bits
 
         /**
          * Constructor.
          *
-         * @param ethType the Ethernet frame type to match
+         * @param ethType the Ethernet frame type to match (16 bits unsigned
+         * integer)
          */
-        public EthTypeCriterion(Short ethType) {
-            this.ethType = ethType;
+        public EthTypeCriterion(int ethType) {
+            this.ethType = ethType & MASK;
         }
 
         @Override
@@ -556,16 +558,16 @@ public final class Criteria {
         /**
          * Gets the Ethernet frame type to match.
          *
-         * @return the Ethernet frame type to match
+         * @return the Ethernet frame type to match (16 bits unsigned integer)
          */
-        public Short ethType() {
+        public int ethType() {
             return ethType;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("ethType", Long.toHexString(ethType & 0xffff))
+                    .add("ethType", Long.toHexString(ethType))
                     .toString();
         }
 
@@ -583,8 +585,6 @@ public final class Criteria {
                 EthTypeCriterion that = (EthTypeCriterion) obj;
                 return Objects.equals(ethType, that.ethType) &&
                         Objects.equals(this.type(), that.type());
-
-
             }
             return false;
         }
@@ -645,18 +645,19 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of VLAN priority criterion.
+     * Implementation of VLAN priority criterion (3 bits).
      */
     public static final class VlanPcpCriterion implements Criterion {
-        private final Byte vlanPcp;
+        private static final byte MASK = 0x7;
+        private final byte vlanPcp;             // VLAN pcp value: 3 bits
 
         /**
          * Constructor.
          *
-         * @param vlanPcp the VLAN priority to match
+         * @param vlanPcp the VLAN priority to match (3 bits)
          */
-        public VlanPcpCriterion(Byte vlanPcp) {
-            this.vlanPcp = vlanPcp;
+        public VlanPcpCriterion(byte vlanPcp) {
+            this.vlanPcp = (byte) (vlanPcp & MASK);
         }
 
         @Override
@@ -667,16 +668,16 @@ public final class Criteria {
         /**
          * Gets the VLAN priority to match.
          *
-         * @return the VLAN priority to match
+         * @return the VLAN priority to match (3 bits)
          */
-        public Byte priority() {
+        public byte priority() {
             return vlanPcp;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("priority", Long.toHexString(vlanPcp)).toString();
+                .add("priority", Long.toHexString(vlanPcp)).toString();
         }
 
         @Override
@@ -699,20 +700,20 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of IP DSCP criterion (6-bit Differentiated Services
-     * Code Point).
+     * Implementation of IP DSCP (Differentiated Services Code Point)
+     * criterion (6 bits).
      */
     public static final class IPDscpCriterion implements Criterion {
-        private static final byte DSCP_MASK = 0x3f;
-        private final Byte ipDscp;              // IP DSCP value: 6 bits
+        private static final byte MASK = 0x3f;
+        private final byte ipDscp;              // IP DSCP value: 6 bits
 
         /**
          * Constructor.
          *
          * @param ipDscp the IP DSCP value to match
          */
-        public IPDscpCriterion(Byte ipDscp) {
-            this.ipDscp = (byte) (ipDscp & DSCP_MASK);
+        public IPDscpCriterion(byte ipDscp) {
+            this.ipDscp = (byte) (ipDscp & MASK);
         }
 
         @Override
@@ -725,14 +726,14 @@ public final class Criteria {
          *
          * @return the IP DSCP value to match
          */
-        public Byte ipDscp() {
+        public byte ipDscp() {
             return ipDscp;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("ipDscp", ipDscp).toString();
+                .add("ipDscp", Long.toHexString(ipDscp)).toString();
         }
 
         @Override
@@ -755,20 +756,20 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of IP ECN criterion (3-bit Explicit Congestion
-     * Notification).
+     * Implementation of IP ECN (Explicit Congestion Notification) criterion
+     * (3 bits).
      */
     public static final class IPEcnCriterion implements Criterion {
-        private static final byte ECN_MASK = 0x3;
-        private final Byte ipEcn;               // IP ECN value: 3 bits
+        private static final byte MASK = 0x7;
+        private final byte ipEcn;               // IP ECN value: 3 bits
 
         /**
          * Constructor.
          *
-         * @param ipEcn the IP ECN value to match
+         * @param ipEcn the IP ECN value to match (3 bits)
          */
-        public IPEcnCriterion(Byte ipEcn) {
-            this.ipEcn = (byte) (ipEcn & ECN_MASK);
+        public IPEcnCriterion(byte ipEcn) {
+            this.ipEcn = (byte) (ipEcn & MASK);
         }
 
         @Override
@@ -779,16 +780,16 @@ public final class Criteria {
         /**
          * Gets the IP ECN value to match.
          *
-         * @return the IP ECN value to match
+         * @return the IP ECN value to match (3 bits)
          */
-        public Byte ipEcn() {
+        public byte ipEcn() {
             return ipEcn;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("ipEcn", ipEcn).toString();
+                .add("ipEcn", Long.toHexString(ipEcn)).toString();
         }
 
         @Override
@@ -811,18 +812,21 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of Internet Protocol Number criterion.
+     * Implementation of Internet Protocol Number criterion (8 bits unsigned)
+     * integer.
      */
     public static final class IPProtocolCriterion implements Criterion {
-        private final Byte proto;
+        private static final short MASK = 0xff;
+        private final short proto;      // IP protocol number: 8 bits
 
         /**
          * Constructor.
          *
-         * @param protocol the IP protocol to match (e.g., TCP=6, UDP=17).
+         * @param protocol the IP protocol (e.g., TCP=6, UDP=17) to match
+         * (8 bits unsigned integer)
          */
-        public IPProtocolCriterion(Byte protocol) {
-            this.proto = protocol;
+        public IPProtocolCriterion(short protocol) {
+            this.proto = (short) (protocol & MASK);
         }
 
         @Override
@@ -833,17 +837,16 @@ public final class Criteria {
         /**
          * Gets the IP protocol to match.
          *
-         * @return the IP protocol to match
+         * @return the IP protocol to match (8 bits unsigned integer)
          */
-        public Byte protocol() {
+        public short protocol() {
             return proto;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("protocol", Long.toHexString(proto & 0xff))
-                    .toString();
+                    .add("protocol", proto).toString();
         }
 
         @Override
@@ -923,21 +926,22 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of TCP port criterion.
+     * Implementation of TCP port criterion (16 bits unsigned integer).
      */
     public static final class TcpPortCriterion implements Criterion {
-        private final Short tcpPort;
+        private static final int MASK = 0xffff;
+        private final int tcpPort;              // Port value: 16 bits
         private final Type type;
 
         /**
          * Constructor.
          *
-         * @param tcpPort the TCP port to match
+         * @param tcpPort the TCP port to match (16 bits unsigned integer)
          * @param type the match type. Should be either Type.TCP_SRC or
          * Type.TCP_DST
          */
-        public TcpPortCriterion(Short tcpPort, Type type) {
-            this.tcpPort = tcpPort;
+        public TcpPortCriterion(int tcpPort, Type type) {
+            this.tcpPort = tcpPort & MASK;
             this.type = type;
         }
 
@@ -949,16 +953,16 @@ public final class Criteria {
         /**
          * Gets the TCP port to match.
          *
-         * @return the TCP port to match
+         * @return the TCP port to match (16 bits unsigned integer)
          */
-        public Short tcpPort() {
+        public int tcpPort() {
             return this.tcpPort;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("tcpPort", tcpPort & 0xffff).toString();
+                .add("tcpPort", tcpPort).toString();
         }
 
         @Override
@@ -981,21 +985,22 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of UDP port criterion.
+     * Implementation of UDP port criterion (16 bits unsigned integer).
      */
     public static final class UdpPortCriterion implements Criterion {
-        private final Short udpPort;
+        private static final int MASK = 0xffff;
+        private final int udpPort;              // Port value: 16 bits
         private final Type type;
 
         /**
          * Constructor.
          *
-         * @param udpPort the UDP port to match
+         * @param udpPort the UDP port to match (16 bits unsigned integer)
          * @param type the match type. Should be either Type.UDP_SRC or
          * Type.UDP_DST
          */
-        public UdpPortCriterion(Short udpPort, Type type) {
-            this.udpPort = udpPort;
+        public UdpPortCriterion(int udpPort, Type type) {
+            this.udpPort = udpPort & MASK;
             this.type = type;
         }
 
@@ -1007,16 +1012,16 @@ public final class Criteria {
         /**
          * Gets the UDP port to match.
          *
-         * @return the UDP port to match
+         * @return the UDP port to match (16 bits unsigned integer)
          */
-        public Short udpPort() {
+        public int udpPort() {
             return this.udpPort;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("udpPort", udpPort & 0xffff).toString();
+                .add("udpPort", udpPort).toString();
         }
 
         @Override
@@ -1039,21 +1044,22 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of SCTP port criterion.
+     * Implementation of SCTP port criterion (16 bits unsigned integer).
      */
     public static final class SctpPortCriterion implements Criterion {
-        private final Short sctpPort;
+        private static final int MASK = 0xffff;
+        private final int sctpPort;             // Port value: 16 bits
         private final Type type;
 
         /**
          * Constructor.
          *
-         * @param sctpPort the SCTP port to match
+         * @param sctpPort the SCTP port to match (16 bits unsigned integer)
          * @param type the match type. Should be either Type.SCTP_SRC or
          * Type.SCTP_DST
          */
-        public SctpPortCriterion(Short sctpPort, Type type) {
-            this.sctpPort = sctpPort;
+        public SctpPortCriterion(int sctpPort, Type type) {
+            this.sctpPort = sctpPort & MASK;
             this.type = type;
         }
 
@@ -1065,16 +1071,16 @@ public final class Criteria {
         /**
          * Gets the SCTP port to match.
          *
-         * @return the SCTP port to match
+         * @return the SCTP port to match (16 bits unsigned integer)
          */
-        public Short sctpPort() {
+        public int sctpPort() {
             return this.sctpPort;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("sctpPort", sctpPort & 0xffff).toString();
+                .add("sctpPort", sctpPort).toString();
         }
 
         @Override
@@ -1097,18 +1103,19 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of ICMP type criterion.
+     * Implementation of ICMP type criterion (8 bits unsigned integer).
      */
     public static final class IcmpTypeCriterion implements Criterion {
-        private final Byte icmpType;
+        private static final short MASK = 0xff;
+        private final short icmpType;           // The ICMP type: 8 bits
 
         /**
          * Constructor.
          *
-         * @param icmpType the ICMP type to match
+         * @param icmpType the ICMP type to match (8 bits unsigned integer)
          */
-        public IcmpTypeCriterion(Byte icmpType) {
-            this.icmpType = icmpType;
+        public IcmpTypeCriterion(short icmpType) {
+            this.icmpType = (short) (icmpType & MASK);
         }
 
         @Override
@@ -1119,16 +1126,16 @@ public final class Criteria {
         /**
          * Gets the ICMP type to match.
          *
-         * @return the ICMP type to match
+         * @return the ICMP type to match (8 bits unsigned integer)
          */
-        public Byte icmpType() {
+        public short icmpType() {
             return icmpType;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("icmpType", icmpType & 0xff).toString();
+                .add("icmpType", icmpType).toString();
         }
 
         @Override
@@ -1151,18 +1158,19 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of ICMP code criterion.
+     * Implementation of ICMP code criterion (8 bits unsigned integer).
      */
     public static final class IcmpCodeCriterion implements Criterion {
-        private final Byte icmpCode;
+        private static final short MASK = 0xff;
+        private final short icmpCode;           // The ICMP code: 8 bits
 
         /**
          * Constructor.
          *
-         * @param icmpCode the ICMP code to match
+         * @param icmpCode the ICMP code to match (8 bits unsigned integer)
          */
-        public IcmpCodeCriterion(Byte icmpCode) {
-            this.icmpCode = icmpCode;
+        public IcmpCodeCriterion(short icmpCode) {
+            this.icmpCode = (short) (icmpCode & MASK);
         }
 
         @Override
@@ -1173,16 +1181,16 @@ public final class Criteria {
         /**
          * Gets the ICMP code to match.
          *
-         * @return the ICMP code to match
+         * @return the ICMP code to match (8 bits unsigned integer)
          */
-        public Byte icmpCode() {
+        public short icmpCode() {
             return icmpCode;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("icmpCode", icmpCode & 0xff).toString();
+                .add("icmpCode", icmpCode).toString();
         }
 
         @Override
@@ -1205,19 +1213,20 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of IPv6 Flow Label criterion (RFC 6437).
+     * Implementation of IPv6 Flow Label (RFC 6437) criterion (20 bits unsigned
+     * integer).
      */
     public static final class IPv6FlowLabelCriterion implements Criterion {
-        private static final int FLOW_LABEL_MASK = 0xfffff;
-        private final Integer flowLabel;        // IPv6 flow label: 20 bits
+        private static final int MASK = 0xfffff;
+        private final int flowLabel;            // IPv6 flow label: 20 bits
 
         /**
          * Constructor.
          *
-         * @param flowLabel the IPv6 flow label to match
+         * @param flowLabel the IPv6 flow label to match (20 bits)
          */
-        public IPv6FlowLabelCriterion(Integer flowLabel) {
-            this.flowLabel = flowLabel & FLOW_LABEL_MASK;
+        public IPv6FlowLabelCriterion(int flowLabel) {
+            this.flowLabel = flowLabel & MASK;
         }
 
         @Override
@@ -1228,16 +1237,16 @@ public final class Criteria {
         /**
          * Gets the IPv6 flow label to match.
          *
-         * @return the IPv6 flow label to match
+         * @return the IPv6 flow label to match (20 bits)
          */
-        public Integer flowLabel() {
+        public int flowLabel() {
             return flowLabel;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("flowLabel", flowLabel).toString();
+                .add("flowLabel", Long.toHexString(flowLabel)).toString();
         }
 
         @Override
@@ -1260,18 +1269,19 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of ICMPv6 type criterion.
+     * Implementation of ICMPv6 type criterion (8 bits unsigned integer).
      */
     public static final class Icmpv6TypeCriterion implements Criterion {
-        private final Byte icmpv6Type;
+        private static final short MASK = 0xff;
+        private final short icmpv6Type;         // ICMPv6 type: 8 bits
 
         /**
          * Constructor.
          *
-         * @param icmpv6Type the ICMPv6 type to match
+         * @param icmpv6Type the ICMPv6 type to match (8 bits unsigned integer)
          */
-        public Icmpv6TypeCriterion(Byte icmpv6Type) {
-            this.icmpv6Type = icmpv6Type;
+        public Icmpv6TypeCriterion(short icmpv6Type) {
+            this.icmpv6Type = (short) (icmpv6Type & MASK);
         }
 
         @Override
@@ -1282,16 +1292,16 @@ public final class Criteria {
         /**
          * Gets the ICMPv6 type to match.
          *
-         * @return the ICMPv6 type to match
+         * @return the ICMPv6 type to match (8 bits unsigned integer)
          */
-        public Byte icmpv6Type() {
+        public short icmpv6Type() {
             return icmpv6Type;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("icmpv6Type", icmpv6Type & 0xff).toString();
+                .add("icmpv6Type", icmpv6Type).toString();
         }
 
         @Override
@@ -1314,18 +1324,19 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of ICMPv6 code criterion.
+     * Implementation of ICMPv6 code criterion (8 bits unsigned integer).
      */
     public static final class Icmpv6CodeCriterion implements Criterion {
-        private final Byte icmpv6Code;
+        private static final short MASK = 0xff;
+        private final short icmpv6Code;         // ICMPv6 code: 8 bits
 
         /**
          * Constructor.
          *
-         * @param icmpv6Code the ICMPv6 code to match
+         * @param icmpv6Code the ICMPv6 code to match (8 bits unsigned integer)
          */
-        public Icmpv6CodeCriterion(Byte icmpv6Code) {
-            this.icmpv6Code = icmpv6Code;
+        public Icmpv6CodeCriterion(short icmpv6Code) {
+            this.icmpv6Code = (short) (icmpv6Code & MASK);
         }
 
         @Override
@@ -1336,16 +1347,16 @@ public final class Criteria {
         /**
          * Gets the ICMPv6 code to match.
          *
-         * @return the ICMPv6 code to match
+         * @return the ICMPv6 code to match (8 bits unsigned integer)
          */
-        public Byte icmpv6Code() {
+        public short icmpv6Code() {
             return icmpv6Code;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("icmpv6Code", icmpv6Code & 0xff).toString();
+                .add("icmpv6Code", icmpv6Code).toString();
         }
 
         @Override
@@ -1484,18 +1495,19 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of MPLS tag criterion.
+     * Implementation of MPLS tag criterion (20 bits).
      */
     public static final class MplsCriterion implements Criterion {
-        private final Integer mplsLabel;
+        private static final int MASK = 0xfffff;
+        private final int mplsLabel;            // MPLS label: 20 bits
 
         /**
          * Constructor.
          *
-         * @param mplsLabel the MPLS label to match
+         * @param mplsLabel the MPLS label to match (20 bits)
          */
-        public MplsCriterion(Integer mplsLabel) {
-            this.mplsLabel = mplsLabel;
+        public MplsCriterion(int mplsLabel) {
+            this.mplsLabel = mplsLabel & MASK;
         }
 
         @Override
@@ -1506,16 +1518,16 @@ public final class Criteria {
         /**
          * Gets the MPLS label to match.
          *
-         * @return the MPLS label to match
+         * @return the MPLS label to match (20 bits)
          */
-        public Integer label() {
+        public int label() {
             return mplsLabel;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("label", mplsLabel & 0xffffffffL).toString();
+                .add("label", Long.toHexString(mplsLabel)).toString();
         }
 
         @Override
@@ -1535,24 +1547,26 @@ public final class Criteria {
             }
             return false;
         }
-
     }
 
     /**
-     * Implementation of lambda (wavelength) criterion.
+     * Implementation of lambda (wavelength) criterion (16 bits unsigned
+     * integer).
      */
     public static final class LambdaCriterion implements Criterion {
-        private final short lambda;
+        private static final int MASK = 0xffff;
+        private final int lambda;               // Lambda value: 16 bits
         private final Type type;
 
         /**
          * Constructor.
          *
-         * @param lambda the lambda (wavelength) to match
+         * @param lambda the lambda (wavelength) to match (16 bits unsigned
+         * integer)
          * @param type the match type. Should be Type.OCH_SIGID
          */
-        public LambdaCriterion(short lambda, Type type) {
-            this.lambda = lambda;
+        public LambdaCriterion(int lambda, Type type) {
+            this.lambda = lambda & MASK;
             this.type = type;
         }
 
@@ -1564,16 +1578,16 @@ public final class Criteria {
         /**
          * Gets the lambda (wavelength) to match.
          *
-         * @return the lambda (wavelength) to match.
+         * @return the lambda (wavelength) to match (16 bits unsigned integer)
          */
-        public Short lambda() {
-            return this.lambda;
+        public int lambda() {
+            return lambda;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("lambda", lambda & 0xffff).toString();
+                .add("lambda", lambda).toString();
         }
 
         @Override
@@ -1596,20 +1610,23 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of optical signal type criterion.
+     * Implementation of optical signal type criterion (16 bits unsigned
+     * integer).
      */
     public static final class OpticalSignalTypeCriterion implements Criterion {
-        private final Short signalType;
+        private static final int MASK = 0xffff;
+        private final int signalType;           // Signal type value: 16 bits
         private final Type type;
 
         /**
          * Constructor.
          *
-         * @param signalType the optical signal type to match
+         * @param signalType the optical signal type to match (16 bits unsigned
+         * integer)
          * @param type the match type. Should be Type.OCH_SIGTYPE
          */
-        public OpticalSignalTypeCriterion(Short signalType, Type type) {
-            this.signalType = signalType;
+        public OpticalSignalTypeCriterion(int signalType, Type type) {
+            this.signalType = signalType & MASK;
             this.type = type;
         }
 
@@ -1623,14 +1640,14 @@ public final class Criteria {
          *
          * @return the optical signal type to match
          */
-        public Short signalType() {
-            return this.signalType;
+        public int signalType() {
+            return signalType;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("signalType", signalType & 0xffff).toString();
+                .add("signalType", signalType).toString();
         }
 
         @Override

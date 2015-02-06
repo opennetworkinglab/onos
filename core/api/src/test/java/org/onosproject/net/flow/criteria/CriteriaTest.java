@@ -63,8 +63,8 @@ public class CriteriaTest {
     Criterion sameAsMatchEth1 = Criteria.matchEthSrc(mac1);
     Criterion matchEth2 = Criteria.matchEthDst(mac2);
 
-    short ethType1 = 1;
-    short ethType2 = 2;
+    int ethType1 = 1;
+    int ethType2 = 2;
     Criterion matchEthType1 = Criteria.matchEthType(ethType1);
     Criterion sameAsMatchEthType1 = Criteria.matchEthType(ethType1);
     Criterion matchEthType2 = Criteria.matchEthType(ethType2);
@@ -95,8 +95,8 @@ public class CriteriaTest {
     Criterion sameAsMatchIpEcn1 = Criteria.matchIPEcn(ipEcn1);
     Criterion matchIpEcn2 = Criteria.matchIPEcn(ipEcn2);
 
-    byte protocol1 = 1;
-    byte protocol2 = 2;
+    short protocol1 = 1;
+    short protocol2 = 2;
     Criterion matchIpProtocol1 = Criteria.matchIPProtocol(protocol1);
     Criterion sameAsMatchIpProtocol1 = Criteria.matchIPProtocol(protocol1);
     Criterion matchIpProtocol2 = Criteria.matchIPProtocol(protocol2);
@@ -116,26 +116,26 @@ public class CriteriaTest {
     Criterion sameAsMatchIpv61 = Criteria.matchIPSrc(ipv61);
     Criterion matchIpv62 = Criteria.matchIPSrc(ipv62);
 
-    Criterion matchTcpPort1 = Criteria.matchTcpSrc((short) 1);
-    Criterion sameAsMatchTcpPort1 = Criteria.matchTcpSrc((short) 1);
-    Criterion matchTcpPort2 = Criteria.matchTcpDst((short) 2);
+    Criterion matchTcpPort1 = Criteria.matchTcpSrc(1);
+    Criterion sameAsMatchTcpPort1 = Criteria.matchTcpSrc(1);
+    Criterion matchTcpPort2 = Criteria.matchTcpDst(2);
 
-    Criterion matchUdpPort1 = Criteria.matchUdpSrc((short) 1);
-    Criterion sameAsMatchUdpPort1 = Criteria.matchUdpSrc((short) 1);
-    Criterion matchUdpPort2 = Criteria.matchUdpDst((short) 2);
+    Criterion matchUdpPort1 = Criteria.matchUdpSrc(1);
+    Criterion sameAsMatchUdpPort1 = Criteria.matchUdpSrc(1);
+    Criterion matchUdpPort2 = Criteria.matchUdpDst(2);
 
-    Criterion matchSctpPort1 = Criteria.matchSctpSrc((short) 1);
-    Criterion sameAsMatchSctpPort1 = Criteria.matchSctpSrc((short) 1);
-    Criterion matchSctpPort2 = Criteria.matchSctpDst((short) 2);
+    Criterion matchSctpPort1 = Criteria.matchSctpSrc(1);
+    Criterion sameAsMatchSctpPort1 = Criteria.matchSctpSrc(1);
+    Criterion matchSctpPort2 = Criteria.matchSctpDst(2);
 
-    byte icmpType1 = 1;
-    byte icmpType2 = 2;
+    short icmpType1 = 1;
+    short icmpType2 = 2;
     Criterion matchIcmpType1 = Criteria.matchIcmpType(icmpType1);
     Criterion sameAsMatchIcmpType1 = Criteria.matchIcmpType(icmpType1);
     Criterion matchIcmpType2 = Criteria.matchIcmpType(icmpType2);
 
-    byte icmpCode1 = 1;
-    byte icmpCode2 = 2;
+    short icmpCode1 = 1;
+    short icmpCode2 = 2;
     Criterion matchIcmpCode1 = Criteria.matchIcmpCode(icmpCode1);
     Criterion sameAsMatchIcmpCode1 = Criteria.matchIcmpCode(icmpCode1);
     Criterion matchIcmpCode2 = Criteria.matchIcmpCode(icmpCode2);
@@ -146,14 +146,14 @@ public class CriteriaTest {
     Criterion sameAsMatchFlowLabel1 = Criteria.matchIPv6FlowLabel(flowLabel1);
     Criterion matchFlowLabel2 = Criteria.matchIPv6FlowLabel(flowLabel2);
 
-    byte icmpv6Type1 = 1;
-    byte icmpv6Type2 = 2;
+    short icmpv6Type1 = 1;
+    short icmpv6Type2 = 2;
     Criterion matchIcmpv6Type1 = Criteria.matchIcmpv6Type(icmpv6Type1);
     Criterion sameAsMatchIcmpv6Type1 = Criteria.matchIcmpv6Type(icmpv6Type1);
     Criterion matchIcmpv6Type2 = Criteria.matchIcmpv6Type(icmpv6Type2);
 
-    byte icmpv6Code1 = 1;
-    byte icmpv6Code2 = 2;
+    short icmpv6Code1 = 1;
+    short icmpv6Code2 = 2;
     Criterion matchIcmpv6Code1 = Criteria.matchIcmpv6Code(icmpv6Code1);
     Criterion sameAsMatchIcmpv6Code1 = Criteria.matchIcmpv6Code(icmpv6Code1);
     Criterion matchIcmpv6Code2 = Criteria.matchIcmpv6Code(icmpv6Code2);
@@ -192,14 +192,14 @@ public class CriteriaTest {
     Criterion sameAsMatchMpls1 = Criteria.matchMplsLabel(mpls1);
     Criterion matchMpls2 = Criteria.matchMplsLabel(mpls2);
 
-    short lambda1 = 1;
-    short lambda2 = 2;
+    int lambda1 = 1;
+    int lambda2 = 2;
     Criterion matchLambda1 = Criteria.matchLambda(lambda1);
     Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
     Criterion matchLambda2 = Criteria.matchLambda(lambda2);
 
-    short signalLambda1 = 1;
-    short signalLambda2 = 2;
+    int signalLambda1 = 1;
+    int signalLambda2 = 2;
     Criterion matchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion sameAsMatchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion matchSignalLambda2 = Criteria.matchOpticalSignalType(signalLambda2);
@@ -379,7 +379,7 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchEthTypeMethod() {
-        Short ethType = 12;
+        int ethType = 12;
         Criterion matchEthType = Criteria.matchEthType(ethType);
         Criteria.EthTypeCriterion ethTypeCriterion =
                 checkAndConvert(matchEthType,
@@ -606,12 +606,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchTcpSrcMethod() {
-        Criterion matchTcpSrc = Criteria.matchTcpSrc((short) 1);
+        Criterion matchTcpSrc = Criteria.matchTcpSrc(1);
         Criteria.TcpPortCriterion tcpPortCriterion =
                 checkAndConvert(matchTcpSrc,
                                 Criterion.Type.TCP_SRC,
                                 Criteria.TcpPortCriterion.class);
-        assertThat(tcpPortCriterion.tcpPort(), is(equalTo((short) 1)));
+        assertThat(tcpPortCriterion.tcpPort(), is(equalTo(1)));
     }
 
     /**
@@ -619,12 +619,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchTcpDstMethod() {
-        Criterion matchTcpDst = Criteria.matchTcpDst((short) 1);
+        Criterion matchTcpDst = Criteria.matchTcpDst(1);
         Criteria.TcpPortCriterion tcpPortCriterion =
                 checkAndConvert(matchTcpDst,
                         Criterion.Type.TCP_DST,
                         Criteria.TcpPortCriterion.class);
-        assertThat(tcpPortCriterion.tcpPort(), is(equalTo((short) 1)));
+        assertThat(tcpPortCriterion.tcpPort(), is(equalTo(1)));
     }
 
     /**
@@ -645,12 +645,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchUdpSrcMethod() {
-        Criterion matchUdpSrc = Criteria.matchUdpSrc((short) 1);
+        Criterion matchUdpSrc = Criteria.matchUdpSrc(1);
         Criteria.UdpPortCriterion udpPortCriterion =
                 checkAndConvert(matchUdpSrc,
                                 Criterion.Type.UDP_SRC,
                                 Criteria.UdpPortCriterion.class);
-        assertThat(udpPortCriterion.udpPort(), is(equalTo((short) 1)));
+        assertThat(udpPortCriterion.udpPort(), is(equalTo(1)));
     }
 
     /**
@@ -658,12 +658,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchUdpDstMethod() {
-        Criterion matchUdpDst = Criteria.matchUdpDst((short) 1);
+        Criterion matchUdpDst = Criteria.matchUdpDst(1);
         Criteria.UdpPortCriterion udpPortCriterion =
                 checkAndConvert(matchUdpDst,
                         Criterion.Type.UDP_DST,
                         Criteria.UdpPortCriterion.class);
-        assertThat(udpPortCriterion.udpPort(), is(equalTo((short) 1)));
+        assertThat(udpPortCriterion.udpPort(), is(equalTo(1)));
     }
 
     /**
@@ -684,12 +684,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchSctpSrcMethod() {
-        Criterion matchSctpSrc = Criteria.matchSctpSrc((short) 1);
+        Criterion matchSctpSrc = Criteria.matchSctpSrc(1);
         Criteria.SctpPortCriterion sctpPortCriterion =
                 checkAndConvert(matchSctpSrc,
                                 Criterion.Type.SCTP_SRC,
                                 Criteria.SctpPortCriterion.class);
-        assertThat(sctpPortCriterion.sctpPort(), is(equalTo((short) 1)));
+        assertThat(sctpPortCriterion.sctpPort(), is(equalTo(1)));
     }
 
     /**
@@ -697,12 +697,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchSctpDstMethod() {
-        Criterion matchSctpDst = Criteria.matchSctpDst((short) 1);
+        Criterion matchSctpDst = Criteria.matchSctpDst(1);
         Criteria.SctpPortCriterion sctpPortCriterion =
                 checkAndConvert(matchSctpDst,
                         Criterion.Type.SCTP_DST,
                         Criteria.SctpPortCriterion.class);
-        assertThat(sctpPortCriterion.sctpPort(), is(equalTo((short) 1)));
+        assertThat(sctpPortCriterion.sctpPort(), is(equalTo(1)));
     }
 
     /**
@@ -723,7 +723,7 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchIcmpTypeMethod() {
-        Byte icmpType = 12;
+        short icmpType = 12;
         Criterion matchIcmpType = Criteria.matchIcmpType(icmpType);
         Criteria.IcmpTypeCriterion icmpTypeCriterion =
                 checkAndConvert(matchIcmpType,
@@ -750,7 +750,7 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchIcmpCodeMethod() {
-        Byte icmpCode = 12;
+        short icmpCode = 12;
         Criterion matchIcmpCode = Criteria.matchIcmpCode(icmpCode);
         Criteria.IcmpCodeCriterion icmpCodeCriterion =
                 checkAndConvert(matchIcmpCode,
@@ -777,7 +777,7 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchIPv6FlowLabelMethod() {
-        Integer flowLabel = 12;
+        int flowLabel = 12;
         Criterion matchFlowLabel = Criteria.matchIPv6FlowLabel(flowLabel);
         Criteria.IPv6FlowLabelCriterion flowLabelCriterion =
                 checkAndConvert(matchFlowLabel,
@@ -804,7 +804,7 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchIcmpv6TypeMethod() {
-        Byte icmpv6Type = 12;
+        short icmpv6Type = 12;
         Criterion matchIcmpv6Type = Criteria.matchIcmpv6Type(icmpv6Type);
         Criteria.Icmpv6TypeCriterion icmpv6TypeCriterion =
                 checkAndConvert(matchIcmpv6Type,
@@ -831,7 +831,7 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchIcmpv6CodeMethod() {
-        Byte icmpv6Code = 12;
+        short icmpv6Code = 12;
         Criterion matchIcmpv6Code = Criteria.matchIcmpv6Code(icmpv6Code);
         Criteria.Icmpv6CodeCriterion icmpv6CodeCriterion =
                 checkAndConvert(matchIcmpv6Code,

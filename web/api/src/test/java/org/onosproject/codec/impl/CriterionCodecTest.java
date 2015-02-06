@@ -134,10 +134,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchEthTypeTest() {
-        Criterion criterion = Criteria.matchEthType((short) 3);
+        Criterion criterion = Criteria.matchEthType((short) 0x8844);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("ethType").asInt(), is(3));
+        assertThat(result.get("ethType").asInt(), is(0x8844));
     }
 
     /**
@@ -156,10 +156,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchVlanPcpTest() {
-        Criterion criterion = Criteria.matchVlanPcp((byte) 4);
+        Criterion criterion = Criteria.matchVlanPcp((byte) 7);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("priority").asInt(), is(4));
+        assertThat(result.get("priority").asInt(), is(7));
     }
 
     /**
@@ -167,10 +167,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIPDscpTest() {
-        Criterion criterion = Criteria.matchIPDscp((byte) 5);
+        Criterion criterion = Criteria.matchIPDscp((byte) 63);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("ipDscp").asInt(), is(5));
+        assertThat(result.get("ipDscp").asInt(), is(63));
     }
 
     /**
@@ -178,10 +178,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIPEcnTest() {
-        Criterion criterion = Criteria.matchIPEcn((byte) 2);
+        Criterion criterion = Criteria.matchIPEcn((byte) 7);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("ipEcn").asInt(), is(2));
+        assertThat(result.get("ipEcn").asInt(), is(7));
     }
 
     /**
@@ -189,10 +189,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIPProtocolTest() {
-        Criterion criterion = Criteria.matchIPProtocol((byte) 7);
+        Criterion criterion = Criteria.matchIPProtocol((byte) 250);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("protocol").asInt(), is(7));
+        assertThat(result.get("protocol").asInt(), is(250));
     }
 
     /**
@@ -222,10 +222,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchTcpSrcTest() {
-        Criterion criterion = Criteria.matchTcpSrc((short) 22);
+        Criterion criterion = Criteria.matchTcpSrc((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("tcpPort").asInt(), is(22));
+        assertThat(result.get("tcpPort").asInt(), is(40000));
     }
 
     /**
@@ -233,10 +233,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchTcpDstTest() {
-        Criterion criterion = Criteria.matchTcpDst((short) 22);
+        Criterion criterion = Criteria.matchTcpDst((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("tcpPort").asInt(), is(22));
+        assertThat(result.get("tcpPort").asInt(), is(40000));
     }
 
     /**
@@ -244,10 +244,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchUdpSrcTest() {
-        Criterion criterion = Criteria.matchUdpSrc((short) 22);
+        Criterion criterion = Criteria.matchUdpSrc((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("udpPort").asInt(), is(22));
+        assertThat(result.get("udpPort").asInt(), is(40000));
     }
 
     /**
@@ -255,10 +255,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchUdpDstTest() {
-        Criterion criterion = Criteria.matchUdpDst((short) 22);
+        Criterion criterion = Criteria.matchUdpDst((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("udpPort").asInt(), is(22));
+        assertThat(result.get("udpPort").asInt(), is(40000));
     }
 
     /**
@@ -266,10 +266,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchSctpSrcTest() {
-        Criterion criterion = Criteria.matchSctpSrc((short) 22);
+        Criterion criterion = Criteria.matchSctpSrc((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("sctpPort").asInt(), is(22));
+        assertThat(result.get("sctpPort").asInt(), is(40000));
     }
 
     /**
@@ -277,10 +277,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchSctpDstTest() {
-        Criterion criterion = Criteria.matchSctpDst((short) 22);
+        Criterion criterion = Criteria.matchSctpDst((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("sctpPort").asInt(), is(22));
+        assertThat(result.get("sctpPort").asInt(), is(40000));
     }
 
     /**
@@ -288,10 +288,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIcmpTypeTest() {
-        Criterion criterion = Criteria.matchIcmpType((byte) 6);
+        Criterion criterion = Criteria.matchIcmpType((byte) 250);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("icmpType").asInt(), is(6));
+        assertThat(result.get("icmpType").asInt(), is(250));
     }
 
     /**
@@ -299,10 +299,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIcmpCodeTest() {
-        Criterion criterion = Criteria.matchIcmpCode((byte) 6);
+        Criterion criterion = Criteria.matchIcmpCode((byte) 250);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("icmpCode").asInt(), is(6));
+        assertThat(result.get("icmpCode").asInt(), is(250));
     }
 
     /**
@@ -332,10 +332,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIPv6FlowLabelTest() {
-        Criterion criterion = Criteria.matchIPv6FlowLabel(7);
+        Criterion criterion = Criteria.matchIPv6FlowLabel(0xffffe);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("flowLabel").asInt(), is(7));
+        assertThat(result.get("flowLabel").asInt(), is(0xffffe));
     }
 
     /**
@@ -343,10 +343,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIcmpv6TypeTest() {
-        Criterion criterion = Criteria.matchIcmpv6Type((byte) 15);
+        Criterion criterion = Criteria.matchIcmpv6Type((byte) 250);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("icmpv6Type").asInt(), is(15));
+        assertThat(result.get("icmpv6Type").asInt(), is(250));
     }
 
     /**
@@ -354,10 +354,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIcmpv6CodeTest() {
-        Criterion criterion = Criteria.matchIcmpv6Code((byte) 17);
+        Criterion criterion = Criteria.matchIcmpv6Code((byte) 250);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("icmpv6Code").asInt(), is(17));
+        assertThat(result.get("icmpv6Code").asInt(), is(250));
     }
 
     /**
@@ -400,10 +400,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchMplsLabelTest() {
-        Criterion criterion = Criteria.matchMplsLabel(88);
+        Criterion criterion = Criteria.matchMplsLabel(0xffffe);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("label").asInt(), is(88));
+        assertThat(result.get("label").asInt(), is(0xffffe));
     }
 
     /**
@@ -411,10 +411,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchLambdaTest() {
-        Criterion criterion = Criteria.matchLambda((short) 9);
+        Criterion criterion = Criteria.matchLambda((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("lambda").asInt(), is(9));
+        assertThat(result.get("lambda").asInt(), is(40000));
     }
 
     /**
@@ -422,10 +422,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchOpticalSignalTypeTest() {
-        Criterion criterion = Criteria.matchOpticalSignalType((short) 11);
+        Criterion criterion = Criteria.matchOpticalSignalType((short) 40000);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("signalType").asInt(), is(11));
+        assertThat(result.get("signalType").asInt(), is(40000));
     }
 
 }
