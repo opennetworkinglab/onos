@@ -75,7 +75,9 @@
         showHosts = true,       // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         oblique = false,        // whether we are in the oblique view
-        width, height;
+        nodeLock = false,       // whether nodes can be dragged or not (locked)
+        width, height,          // the width and height of the force layout
+        hovered;                // the node over which the mouse is hovering
 
     // SVG elements;
     var linkG, linkLabelG, nodeG;
@@ -146,7 +148,7 @@
             wasOnline = d.online;
             angular.extend(d, data);
             if (positionNode(d, true)) {
-                sendUpdateMeta(d, true);
+                sendUpdateMeta(d);
             }
             updateNodes();
             if (wasOnline !== d.online) {
@@ -210,7 +212,7 @@
         if (d) {
             angular.extend(d, data);
             if (positionNode(d, true)) {
-                sendUpdateMeta(d, true);
+                sendUpdateMeta(d);
             }
             updateNodes();
         } else {
@@ -557,11 +559,13 @@
     }
 
 
-    function sendUpdateMeta(d, store) {
+    function sendUpdateMeta(d, clearPos) {
         var metaUi = {},
             ll;
 
-        if (store) {
+        // if we are not clearing the position data (unpinning),
+        // attach the x, y, longitude, latitude...
+        if (!clearPos) {
             ll = lngLatFromCoord([d.x, d.y]);
             metaUi = {
                 x: d.x,
@@ -578,6 +582,9 @@
         });
     }
 
+    function requestTrafficForMode() {
+        $log.debug('TODO: requestTrafficForMode()...');
+    }
 
     // ==========================
     // === Devices and hosts - helper functions
@@ -589,7 +596,7 @@
 
     function lngLatFromCoord(coord) {
         var p = uplink.projection();
-        return p ? p.invert([coord.x, coord.y]) : [0, 0];
+        return p ? p.invert(coord) : [0, 0];
     }
 
     function positionNode(node, forUpdate) {
@@ -744,12 +751,24 @@
 
     function nodeMouseOver(m) {
         // TODO
-        $log.debug("TODO nodeMouseOver()...", m);
+        if (!m.dragStarted) {
+            $log.debug("MouseOver()...", m);
+            if (hovered != m) {
+                hovered = m;
+                requestTrafficForMode();
+            }
+        }
     }
 
     function nodeMouseOut(m) {
         // TODO
-        $log.debug("TODO nodeMouseOut()...", m);
+        if (!m.dragStarted) {
+            if (hovered) {
+                hovered = null;
+                requestTrafficForMode();
+            }
+            $log.debug("MouseOut()...", m);
+        }
     }
 
 
@@ -872,6 +891,16 @@
             updateDeviceLabel(d);
         });
     }
+
+    function unpin() {
+        if (hovered) {
+            sendUpdateMeta(hovered, true);
+            hovered.fixed = false;
+            hovered.el.classed('fixed', false);
+            fResume();
+        }
+    }
+
 
     // ==========================================
 
@@ -1297,11 +1326,33 @@
     // ==========================
     // === MOUSE GESTURE HANDLERS
 
-    // FIXME:
-    function selectCb() { }
-    function atDragEnd() {}
-    function dragEnabled() {}
-    function clickEnabled() {}
+    function selectCb(d) {
+        // this is the selected node
+        $log.debug("\n\n\nSelect Object: ");
+        $log.debug("d is ", d);
+        $log.debug("this is ", this);
+        $log.debug('\n\n');
+    }
+
+    function atDragEnd(d) {
+        // once we've finished moving, pin the node in position
+        d.fixed = true;
+        d3.select(this).classed('fixed', true);
+        sendUpdateMeta(d);
+    }
+
+    // predicate that indicates when dragging is active
+    function dragEnabled() {
+        var ev = d3.event.sourceEvent;
+        // nodeLock means we aren't allowing nodes to be dragged...
+        // meta or alt key pressed means we are zooming/panning...
+        return !nodeLock && !(ev.metaKey || ev.altKey);
+    }
+
+    // predicate that indicates when clicking is active
+    function clickEnabled() {
+        return true;
+    }
 
 
     // ==========================
@@ -1373,6 +1424,7 @@
                 toggleHosts: toggleHosts,
                 toggleOffline: toggleOffline,
                 cycleDeviceLabels: cycleDeviceLabels,
+                unpin: unpin,
 
                 addDevice: addDevice,
                 updateDevice: updateDevice,

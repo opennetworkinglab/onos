@@ -112,16 +112,14 @@
                                 // consider this the same as a 'click'
                                 // (selection of a node)
                                 if (clickEnabled()) {
-                                    selectCb(d, this);
-                                    // TODO: set 'this' context instead of param
+                                    selectCb.call(this, d);
                                 }
                             }
                             d.fixed &= ~6;
 
                             // hook at the end of a drag gesture
                             if (dragEnabled()) {
-                                atDragEnd(d, this);
-                                // TODO: set 'this' context instead of param
+                                atDragEnd.call(this, d);
                             }
                         }
                     });

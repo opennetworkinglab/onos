@@ -35,7 +35,7 @@ describe('factory: view/topo/topoForce.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(tfs, [
             'initForce', 'resize', 'updateDeviceColors',
-            'toggleHosts', 'toggleOffline','cycleDeviceLabels',
+            'toggleHosts', 'toggleOffline','cycleDeviceLabels', 'unpin',
             'addDevice', 'updateDevice', 'removeDevice',
             'addHost', 'updateHost', 'removeHost',
             'addLink', 'updateLink', 'removeLink'

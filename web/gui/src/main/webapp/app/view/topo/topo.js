@@ -54,7 +54,7 @@
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
             //Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
             L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
-            //U: [unpin, 'Unpin node (hover mouse over)'],
+            U: [tfs.unpin, 'Unpin node (hover mouse over)'],
             R: [resetZoom, 'Reset pan / zoom'],
 
             //V: [showRelatedIntentsAction, 'Show all related intents'],
