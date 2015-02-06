@@ -31,14 +31,6 @@
 
   <description>ONLab third-party dependencies</description>
 
-  <!-- TODO: Needed for copycat snapshot. Remove before official release -->
-  <repositories>
-    <repository>
-      <id>snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
-
   <dependencies>
     <dependency>
       <groupId>com.googlecode.concurrent-trees</groupId>
@@ -56,6 +48,13 @@
           <!-- FIXME once fixes get merged to upstream -->
           <groupId>org.onosproject</groupId>
             <artifactId>copycat-api</artifactId>
+            <version>${copycat.version}</version>
+        </dependency>
+
+        <dependency>
+          <!-- FIXME once fixes get merged to upstream -->
+          <groupId>org.onosproject</groupId>
+            <artifactId>copycat-core</artifactId>
             <version>${copycat.version}</version>
         </dependency>
 
@@ -99,7 +98,7 @@
             </filter>
 
             <filter>
-              <artifact>net.kuujo.copycat:*</artifact>
+              <artifact>org.onosproject:copycat*</artifact>
               <includes>
                 <include>net/kuujo/copycat/**</include>
               </includes>

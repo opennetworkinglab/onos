@@ -48,25 +48,6 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
         </dependency>
-<!--
-       <dependency>
-            <groupId>net.kuujo.copycat</groupId>
-            <artifactId>copycat</artifactId>
-            <version>${copycat.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.kuujo.copycat</groupId>
-            <artifactId>copycat-chronicle</artifactId>
-            <version>${copycat.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.kuujo.copycat</groupId>
-            <artifactId>copycat-tcp</artifactId>
-            <version>${copycat.version}</version>
-        </dependency>
--->
 
         <dependency>
             <groupId>org.mapdb</groupId>
