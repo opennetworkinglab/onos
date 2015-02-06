@@ -15,22 +15,10 @@
  */
 package org.onosproject.sdnip;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.common.collect.Sets;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
@@ -69,10 +57,16 @@ import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
 
-import com.google.common.collect.Sets;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class tests adding a route, updating a route, deleting a route, and
@@ -122,9 +116,10 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
         hostService = createMock(HostService.class);
         intentService = createMock(IntentService.class);
 
-        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
-        router = new Router(APPID, intentSynchronizer,
-                            sdnIpConfigService, interfaceService, hostService);
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService,
+                                                    sdnIpConfigService,
+                                                    interfaceService);
+        router = new Router(intentSynchronizer, hostService);
         internalHostListener = router.new InternalHostListener();
     }
 

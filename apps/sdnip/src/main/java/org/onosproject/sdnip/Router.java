@@ -15,8 +15,27 @@
  */
 package org.onosproject.sdnip;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.googlecode.concurrenttrees.common.KeyValuePair;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onosproject.net.Host;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,48 +47,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Host;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostListener;
-import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.sdnip.config.BgpPeer;
-import org.onosproject.sdnip.config.Interface;
-import org.onosproject.sdnip.config.SdnIpConfigurationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.googlecode.concurrenttrees.common.KeyValuePair;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
-
 /**
- * This class processes BGP route update, translates each update into a intent
- * and submits the intent.
+ * This class processes route updates and maintains a Routing Information Base
+ * (RIB). After route updates have been processed and next hops have been
+ * resolved, FIB updates are sent to any listening FIB components.
  */
 public class Router implements RouteListener {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
-    // Store all route updates in a radix tree.
+    // Route entries are stored in a radix tree.
     // The key in this tree is the binary string of prefix of the route.
     private InvertedRadixTree<RouteEntry> ribTable4;
     private InvertedRadixTree<RouteEntry> ribTable6;
@@ -77,37 +64,26 @@ public class Router implements RouteListener {
     // Stores all incoming route updates in a queue.
     private final BlockingQueue<Collection<RouteUpdate>> routeUpdatesQueue;
 
-    // The IpAddress is the next hop address of each route update.
+    // Next-hop IP address to route entry mapping for next hops pending MAC resolution
     private final SetMultimap<IpAddress, RouteEntry> routesWaitingOnArp;
 
     // The IPv4 address to MAC address mapping
     private final Map<IpAddress, MacAddress> ip2Mac;
 
-    private final ApplicationId appId;
-    private final IntentSynchronizer intentSynchronizer;
+    private final FibListener fibComponent;
     private final HostService hostService;
-    private final SdnIpConfigurationService configService;
-    private final InterfaceService interfaceService;
     private final ExecutorService bgpUpdatesExecutor;
     private final HostListener hostListener;
 
     /**
      * Class constructor.
      *
-     * @param appId             the application ID
-     * @param intentSynchronizer the intent synchronizer
-     * @param configService     the configuration service
-     * @param interfaceService  the interface service
+     * @param fibComponent the intent synchronizer
      * @param hostService       the host service
      */
-    public Router(ApplicationId appId, IntentSynchronizer intentSynchronizer,
-                  SdnIpConfigurationService configService,
-                  InterfaceService interfaceService,
-                  HostService hostService) {
-        this.appId = appId;
-        this.intentSynchronizer = intentSynchronizer;
-        this.configService = configService;
-        this.interfaceService = interfaceService;
+    public Router(FibListener fibComponent, HostService hostService) {
+        // TODO move to a listener model for adding fib listeners
+        this.fibComponent = fibComponent;
         this.hostService = hostService;
 
         this.hostListener = new InternalHostListener();
@@ -291,23 +267,23 @@ public class Router implements RouteListener {
      */
     void processRouteUpdates(Collection<RouteUpdate> routeUpdates) {
         synchronized (this) {
-            Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
-                submitIntents = new LinkedList<>();
             Collection<IpPrefix> withdrawPrefixes = new LinkedList<>();
-            MultiPointToSinglePointIntent intent;
+            Collection<FibUpdate> fibUpdates = new LinkedList<>();
+            Collection<FibUpdate> fibWithdraws = new LinkedList<>();
 
             for (RouteUpdate update : routeUpdates) {
                 switch (update.type()) {
                 case UPDATE:
-                    intent = processRouteAdd(update.routeEntry(),
-                                             withdrawPrefixes);
-                    if (intent != null) {
-                        submitIntents.add(Pair.of(update.routeEntry().prefix(),
-                                                  intent));
+                    FibEntry fib = processRouteAdd(update.routeEntry(),
+                                                    withdrawPrefixes);
+                    if (fib != null) {
+                        fibUpdates.add(new FibUpdate(FibUpdate.Type.UPDATE, fib));
                     }
+
                     break;
                 case DELETE:
                     processRouteDelete(update.routeEntry(), withdrawPrefixes);
+
                     break;
                 default:
                     log.error("Unknown update Type: {}", update.type());
@@ -315,8 +291,10 @@ public class Router implements RouteListener {
                 }
             }
 
-            intentSynchronizer.updateRouteIntents(submitIntents,
-                                                  withdrawPrefixes);
+            withdrawPrefixes.forEach(p -> fibWithdraws.add(new FibUpdate(
+                    FibUpdate.Type.DELETE, new FibEntry(p, null, null))));
+
+            fibComponent.update(fibUpdates, fibWithdraws);
         }
     }
 
@@ -335,9 +313,9 @@ public class Router implements RouteListener {
      * @param routeEntry the route entry to add
      * @param withdrawPrefixes the collection of accumulated prefixes whose
      * intents will be withdrawn
-     * @return the corresponding intent that should be submitted, or null
+     * @return the corresponding FIB entry change, or null
      */
-    private MultiPointToSinglePointIntent processRouteAdd(
+    private FibEntry processRouteAdd(
                 RouteEntry routeEntry,
                 Collection<IpPrefix> withdrawPrefixes) {
         log.debug("Processing route add: {}", routeEntry);
@@ -397,86 +375,8 @@ public class Router implements RouteListener {
             routesWaitingOnArp.put(routeEntry.nextHop(), routeEntry);
             return null;
         }
-        return generateRouteIntent(routeEntry.prefix(), routeEntry.nextHop(),
-                                   nextHopMacAddress);
-    }
-
-    /**
-     * Generates a route intent for a prefix, the next hop IP address, and
-     * the next hop MAC address.
-     * <p/>
-     * This method will find the egress interface for the intent.
-     * Intent will match dst IP prefix and rewrite dst MAC address at all other
-     * border switches, then forward packets according to dst MAC address.
-     *
-     * @param prefix            IP prefix of the route to add
-     * @param nextHopIpAddress  IP address of the next hop
-     * @param nextHopMacAddress MAC address of the next hop
-     * @return the generated intent, or null if no intent should be submitted
-     */
-    private MultiPointToSinglePointIntent generateRouteIntent(
-                IpPrefix prefix,
-                IpAddress nextHopIpAddress,
-                MacAddress nextHopMacAddress) {
-
-        // Find the attachment point (egress interface) of the next hop
-        Interface egressInterface;
-        if (configService.getBgpPeers().containsKey(nextHopIpAddress)) {
-            // Route to a peer
-            log.debug("Route to peer {}", nextHopIpAddress);
-            BgpPeer peer =
-                    configService.getBgpPeers().get(nextHopIpAddress);
-            egressInterface =
-                    interfaceService.getInterface(peer.connectPoint());
-        } else {
-            // Route to non-peer
-            log.debug("Route to non-peer {}", nextHopIpAddress);
-            egressInterface =
-                    interfaceService.getMatchingInterface(nextHopIpAddress);
-            if (egressInterface == null) {
-                log.warn("No outgoing interface found for {}",
-                         nextHopIpAddress);
-                return null;
-            }
-        }
-
-        //
-        // Generate the intent itself
-        //
-        Set<ConnectPoint> ingressPorts = new HashSet<>();
-        ConnectPoint egressPort = egressInterface.connectPoint();
-        log.debug("Generating intent for prefix {}, next hop mac {}",
-                  prefix, nextHopMacAddress);
-
-        for (Interface intf : interfaceService.getInterfaces()) {
-            if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
-                ConnectPoint srcPort = intf.connectPoint();
-                ingressPorts.add(srcPort);
-            }
-        }
-
-        // Match the destination IP prefix at the first hop
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        if (prefix.version() == Ip4Address.VERSION) {
-            selector.matchEthType(Ethernet.TYPE_IPV4);
-        } else {
-            selector.matchEthType(Ethernet.TYPE_IPV6);
-        }
-        selector.matchIPDst(prefix);
-
-        // Rewrite the destination MAC address
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
-                .setEthDst(nextHopMacAddress);
-        if (!egressInterface.vlan().equals(VlanId.NONE)) {
-            treatment.setVlanId(egressInterface.vlan());
-            // If we set VLAN ID, we have to make sure a VLAN tag exists.
-            // TODO support no VLAN -> VLAN routing
-            selector.matchVlanId(VlanId.ANY);
-        }
-
-        return new MultiPointToSinglePointIntent(appId, selector.build(),
-                                                 treatment.build(),
-                                                 ingressPorts, egressPort);
+        return new FibEntry(routeEntry.prefix(), routeEntry.nextHop(),
+                             nextHopMacAddress);
     }
 
     /**
@@ -528,9 +428,7 @@ public class Router implements RouteListener {
         // tree and the intents could get out of sync.
         //
         synchronized (this) {
-            Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>>
-                submitIntents = new LinkedList<>();
-            MultiPointToSinglePointIntent intent;
+            Collection<FibUpdate> submitFibEntries = new LinkedList<>();
 
             Set<RouteEntry> routesToPush =
                 routesWaitingOnArp.removeAll(ipAddress);
@@ -540,27 +438,21 @@ public class Router implements RouteListener {
                 RouteEntry foundRouteEntry = findRibRoute(routeEntry.prefix());
                 if (foundRouteEntry != null &&
                     foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
-                    // We only push prefix flows if the prefix is still in the
-                    // radix tree and the next hop is the same as our
-                    // update.
+                    // We only push FIB updates if the prefix is still in the
+                    // radix tree and the next hop is the same as our entry.
                     // The prefix could have been removed while we were waiting
                     // for the ARP, or the next hop could have changed.
-                    intent = generateRouteIntent(routeEntry.prefix(),
-                                                 ipAddress, macAddress);
-                    if (intent != null) {
-                        submitIntents.add(Pair.of(routeEntry.prefix(),
-                                                  intent));
-                    }
+                    submitFibEntries.add(new FibUpdate(FibUpdate.Type.UPDATE,
+                                                       new FibEntry(routeEntry.prefix(),
+                                                       ipAddress, macAddress)));
                 } else {
                     log.debug("{} has been revoked before the MAC was resolved",
                               routeEntry);
                 }
             }
 
-            if (!submitIntents.isEmpty()) {
-                Collection<IpPrefix> withdrawPrefixes = new LinkedList<>();
-                intentSynchronizer.updateRouteIntents(submitIntents,
-                                                      withdrawPrefixes);
+            if (!submitFibEntries.isEmpty()) {
+                fibComponent.update(submitFibEntries, Collections.emptyList());
             }
 
             ip2Mac.put(ipAddress, macAddress);

@@ -15,19 +15,7 @@
  */
 package org.onosproject.sdnip;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -60,7 +48,14 @@ import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.InterfaceAddress;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import static org.easymock.EasyMock.*;
 
 /**
  * Unit tests for PeerConnectivityManager.
@@ -552,7 +547,9 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         intentService = createMock(IntentService.class);
         replay(intentService);
 
-        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService,
+                                                    configInfoService,
+                                                    interfaceService);
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 

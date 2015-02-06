@@ -15,22 +15,19 @@
  */
 package org.onosproject.sdnip;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-
-import org.apache.commons.lang3.tuple.Pair;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.intent.Intent;
@@ -39,16 +36,32 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.sdnip.config.BgpPeer;
+import org.onosproject.sdnip.config.Interface;
+import org.onosproject.sdnip.config.SdnIpConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Synchronizes intents between the in-memory intent store and the
  * IntentService.
  */
-public class IntentSynchronizer {
+public class IntentSynchronizer implements FibListener {
     private static final Logger log =
         LoggerFactory.getLogger(IntentSynchronizer.class);
 
@@ -65,17 +78,27 @@ public class IntentSynchronizer {
     private volatile boolean isElectedLeader = false;
     private volatile boolean isActivatedLeader = false;
 
+    private final SdnIpConfigurationService configService;
+    private final InterfaceService interfaceService;
+
     /**
      * Class constructor.
      *
      * @param appId the Application ID
      * @param intentService the intent service
+     * @param configService the SDN-IP configuration service
+     * @param interfaceService the interface service
      */
-    IntentSynchronizer(ApplicationId appId, IntentService intentService) {
+    IntentSynchronizer(ApplicationId appId, IntentService intentService,
+                       SdnIpConfigurationService configService,
+                       InterfaceService interfaceService) {
         this.appId = appId;
         this.intentService = intentService;
         peerIntents = new ConcurrentHashMap<>();
         routeIntents = new ConcurrentHashMap<>();
+
+        this.configService = configService;
+        this.interfaceService = interfaceService;
 
         bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
@@ -244,16 +267,85 @@ public class IntentSynchronizer {
     }
 
     /**
-     * Updates multi-point-to-single-point route intents.
+     * Generates a route intent for a prefix, the next hop IP address, and
+     * the next hop MAC address.
+     * <p/>
+     * This method will find the egress interface for the intent.
+     * Intent will match dst IP prefix and rewrite dst MAC address at all other
+     * border switches, then forward packets according to dst MAC address.
      *
-     * @param submitIntents the intents to submit
-     * @param withdrawPrefixes the IPv4 or IPv6 matching prefixes for the
-     * intents to withdraw
+     * @param prefix            IP prefix of the route to add
+     * @param nextHopIpAddress  IP address of the next hop
+     * @param nextHopMacAddress MAC address of the next hop
+     * @return the generated intent, or null if no intent should be submitted
      */
-    void updateRouteIntents(
-                Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>> submitIntents,
-                Collection<IpPrefix> withdrawPrefixes) {
+    private MultiPointToSinglePointIntent generateRouteIntent(
+            IpPrefix prefix,
+            IpAddress nextHopIpAddress,
+            MacAddress nextHopMacAddress) {
 
+        // Find the attachment point (egress interface) of the next hop
+        Interface egressInterface;
+        if (configService.getBgpPeers().containsKey(nextHopIpAddress)) {
+            // Route to a peer
+            log.debug("Route to peer {}", nextHopIpAddress);
+            BgpPeer peer =
+                    configService.getBgpPeers().get(nextHopIpAddress);
+            egressInterface =
+                    interfaceService.getInterface(peer.connectPoint());
+        } else {
+            // Route to non-peer
+            log.debug("Route to non-peer {}", nextHopIpAddress);
+            egressInterface =
+                    interfaceService.getMatchingInterface(nextHopIpAddress);
+            if (egressInterface == null) {
+                log.warn("No outgoing interface found for {}",
+                         nextHopIpAddress);
+                return null;
+            }
+        }
+
+        //
+        // Generate the intent itself
+        //
+        Set<ConnectPoint> ingressPorts = new HashSet<>();
+        ConnectPoint egressPort = egressInterface.connectPoint();
+        log.debug("Generating intent for prefix {}, next hop mac {}",
+                  prefix, nextHopMacAddress);
+
+        for (Interface intf : interfaceService.getInterfaces()) {
+            if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
+                ConnectPoint srcPort = intf.connectPoint();
+                ingressPorts.add(srcPort);
+            }
+        }
+
+        // Match the destination IP prefix at the first hop
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        if (prefix.version() == Ip4Address.VERSION) {
+            selector.matchEthType(Ethernet.TYPE_IPV4);
+        } else {
+            selector.matchEthType(Ethernet.TYPE_IPV6);
+        }
+        selector.matchIPDst(prefix);
+
+        // Rewrite the destination MAC address
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
+                .setEthDst(nextHopMacAddress);
+        if (!egressInterface.vlan().equals(VlanId.NONE)) {
+            treatment.setVlanId(egressInterface.vlan());
+            // If we set VLAN ID, we have to make sure a VLAN tag exists.
+            // TODO support no VLAN -> VLAN routing
+            selector.matchVlanId(VlanId.ANY);
+        }
+
+        return new MultiPointToSinglePointIntent(appId, selector.build(),
+                                                 treatment.build(),
+                                                 ingressPorts, egressPort);
+    }
+
+    @Override
+    public void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
         //
         // NOTE: Semantically, we MUST withdraw existing intents before
         // submitting new intents.
@@ -262,14 +354,19 @@ public class IntentSynchronizer {
             MultiPointToSinglePointIntent intent;
 
             log.debug("SDN-IP submitting intents = {} withdrawing = {}",
-                     submitIntents.size(), withdrawPrefixes.size());
+                     updates.size(), withdraws.size());
 
             //
             // Prepare the Intent batch operations for the intents to withdraw
             //
             IntentOperations.Builder withdrawBuilder =
                 IntentOperations.builder(appId);
-            for (IpPrefix prefix : withdrawPrefixes) {
+            for (FibUpdate withdraw : withdraws) {
+                checkArgument(withdraw.type() == FibUpdate.Type.DELETE,
+                              "FibUpdate with wrong type in withdraws list");
+
+                IpPrefix prefix = withdraw.entry().prefix();
+
                 intent = routeIntents.remove(prefix);
                 if (intent == null) {
                     log.trace("SDN-IP No intent in routeIntents to delete " +
@@ -287,10 +384,21 @@ public class IntentSynchronizer {
             //
             IntentOperations.Builder submitBuilder =
                 IntentOperations.builder(appId);
-            for (Pair<IpPrefix, MultiPointToSinglePointIntent> pair :
-                     submitIntents) {
-                IpPrefix prefix = pair.getLeft();
-                intent = pair.getRight();
+            for (FibUpdate update : updates) {
+                checkArgument(update.type() == FibUpdate.Type.UPDATE,
+                              "FibUpdate with wrong type in updates list");
+
+                IpPrefix prefix = update.entry().prefix();
+                intent = generateRouteIntent(prefix, update.entry().nextHopIp(),
+                                             update.entry().nextHopMac());
+
+                if (intent == null) {
+                    // This preserves the old semantics - if an intent can't be
+                    // generated, we don't do anything with that prefix. But
+                    // perhaps we should withdraw the old intent anyway?
+                    continue;
+                }
+
                 MultiPointToSinglePointIntent oldIntent =
                     routeIntents.put(prefix, intent);
                 if (isElectedLeader && isActivatedLeader) {

@@ -15,23 +15,10 @@
  */
 package org.onosproject.sdnip;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.common.collect.Sets;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
@@ -67,10 +54,16 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.sdnip.config.Interface;
 
-import com.google.common.collect.Sets;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.easymock.EasyMock.*;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class tests the intent synchronization function in the
@@ -116,9 +109,9 @@ public class IntentSyncTest extends AbstractIntentTest {
         setUpHostService();
         intentService = createMock(IntentService.class);
 
-        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
-        router = new Router(APPID, intentSynchronizer, null, interfaceService,
-                            hostService);
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService,
+                                                    null, interfaceService);
+        router = new Router(intentSynchronizer, hostService);
     }
 
     /**

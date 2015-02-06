@@ -15,11 +15,6 @@
  */
 package org.onosproject.sdnip;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Dictionary;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -43,6 +38,11 @@ import org.onosproject.sdnip.bgp.BgpSessionManager;
 import org.onosproject.sdnip.config.SdnIpConfigurationReader;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.Dictionary;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Component for the SDN-IP peering application.
@@ -104,7 +104,8 @@ public class SdnIp implements SdnIpService {
         InterfaceService interfaceService =
             new HostToInterfaceAdaptor(hostService);
 
-        intentSynchronizer = new IntentSynchronizer(appId, intentService);
+        intentSynchronizer = new IntentSynchronizer(appId, intentService,
+                                                    config, interfaceService);
         intentSynchronizer.start();
 
         peerConnectivity = new PeerConnectivityManager(appId,
@@ -113,8 +114,7 @@ public class SdnIp implements SdnIpService {
                                                        interfaceService);
         peerConnectivity.start();
 
-        router = new Router(appId, intentSynchronizer, config,
-                            interfaceService, hostService);
+        router = new Router(intentSynchronizer, hostService);
         router.start();
 
         leadershipService.addListener(leadershipEventListener);

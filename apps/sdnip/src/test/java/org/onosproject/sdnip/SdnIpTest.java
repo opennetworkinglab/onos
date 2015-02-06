@@ -15,26 +15,7 @@
  */
 package org.onosproject.sdnip;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Sets;
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +47,20 @@ import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
 
-import com.google.common.collect.Sets;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Integration tests for the SDN-IP application.
@@ -130,9 +124,10 @@ public class SdnIpTest extends AbstractIntentTest {
         intentService = createMock(IntentService.class);
         random = new Random();
 
-        intentSynchronizer = new IntentSynchronizer(APPID, intentService);
-        router = new Router(APPID, intentSynchronizer, sdnIpConfigService,
-                            interfaceService, hostService);
+        intentSynchronizer = new IntentSynchronizer(APPID, intentService,
+                                                    sdnIpConfigService,
+                                                    interfaceService);
+        router = new Router(intentSynchronizer, hostService);
     }
 
     /**
