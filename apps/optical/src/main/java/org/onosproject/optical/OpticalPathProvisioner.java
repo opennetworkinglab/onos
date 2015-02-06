@@ -179,7 +179,7 @@ public class OpticalPathProvisioner {
 
             if (!IntentState.FAILED.equals(intentService.getIntentState(intent.key()))) {
                    return;
-             }
+            }
 
             List<Intent> intents = Lists.newArrayList();
             if (intent instanceof HostToHostIntent) {

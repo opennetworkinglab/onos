@@ -306,17 +306,15 @@ public class DeviceManager
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is not the MASTER
                 applyRole(deviceId, MastershipRole.STANDBY);
-                return;
+            } else {
+                log.info("Role of this node is MASTER for {}", deviceId);
+                // tell clock provider if this instance is the master
+                deviceClockProviderService.setMastershipTerm(deviceId, term);
+                applyRole(deviceId, MastershipRole.MASTER);
             }
-            log.info("Role of this node is MASTER for {}", deviceId);
-
-            // tell clock provider if this instance is the master
-            deviceClockProviderService.setMastershipTerm(deviceId, term);
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
-
-            applyRole(deviceId, MastershipRole.MASTER);
 
             // If there was a change of any kind, tell the provider
             // that this instance is the master.

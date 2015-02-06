@@ -27,6 +27,8 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -115,7 +117,7 @@ public class GossipLinkStoreTest {
     private DeviceClockManager deviceClockManager;
     private DeviceClockService deviceClockService;
     private ClusterCommunicationService clusterCommunicator;
-
+    private MastershipService mastershipService;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -146,11 +148,13 @@ public class GossipLinkStoreTest {
         linkStoreImpl.deviceClockService = deviceClockService;
         linkStoreImpl.clusterCommunicator = clusterCommunicator;
         linkStoreImpl.clusterService = new TestClusterService();
+        linkStoreImpl.mastershipService = new TestMastershipService();
         linkStoreImpl.activate();
         linkStore = linkStoreImpl;
 
         verify(clusterCommunicator);
         reset(clusterCommunicator);
+
     }
 
     @After
@@ -600,6 +604,13 @@ public class GossipLinkStoreTest {
 
             nodes.put(NID2, ONOS2);
             nodeStates.put(NID2, ACTIVE);
+        }
+    }
+
+    private final class TestMastershipService extends MastershipServiceAdapter {
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return NID1;
         }
     }
 }

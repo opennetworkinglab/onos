@@ -15,9 +15,9 @@
  */
 package org.onosproject.event;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 import org.joda.time.LocalDateTime;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Base event implementation.
@@ -75,5 +75,4 @@ public class AbstractEvent<T extends Enum, S> implements Event<T, S> {
                 .add("subject", subject())
                 .toString();
     }
-
 }

@@ -15,7 +15,7 @@
  */
 package org.onosproject.store.link.impl;
 
-import org.onosproject.store.cluster.messaging.MessageSubject;
+        import org.onosproject.store.cluster.messaging.MessageSubject;
 
 /**
  * MessageSubjects used by GossipLinkStore peer-peer communication.
@@ -30,4 +30,6 @@ public final class GossipLinkStoreMessageSubjects {
             new MessageSubject("peer-link-removed");
     public static final MessageSubject LINK_ANTI_ENTROPY_ADVERTISEMENT =
             new MessageSubject("link-enti-entropy-advertisement");
+    public static final MessageSubject LINK_INJECTED =
+            new MessageSubject("peer-link-injected");
 }
