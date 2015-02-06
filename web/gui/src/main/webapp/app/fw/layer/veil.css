@@ -24,26 +24,27 @@
     position: absolute;
     top: 0;
     left: 0;
-    padding: 60px;
 }
 
 .light #veil {
     background-color: rgba(0,0,0,0.75);
 }
 .dark #veil {
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(64,64,64,0.75);
 }
 
-#veil p {
+#veil .msg {
+    position: absolute;
+    padding: 60px;
+}
+
+#veil .msg p {
     display: block;
-    margin: 8px 20px;
     font-size: 14pt;
     font-style: italic;
-}
-
-.light #veil p {
     color: #ddd;
 }
-.dark #veil p {
-    color: #404040;
+
+#veil svg .glyph {
+    fill: #222;
 }

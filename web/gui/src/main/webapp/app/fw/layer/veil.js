@@ -26,15 +26,13 @@
     // injected references
     var $log, fs;
 
-    var veil, svg;
+    var veil, pdiv, svg;
 
     function show(msg) {
-        veil.selectAll('p').remove();
-
-        //veil.data(msg).enter().append('p').text(function (d) { return d; });
+        pdiv.selectAll('p').remove();
 
         msg.forEach(function (line) {
-            veil.insert('p').text(line);
+            pdiv.append('p').text(line);
         });
 
         veil.style('display', 'block');
@@ -53,15 +51,24 @@
                 $log = _$log_;
                 fs = _fs_;
 
+                var wSize = fs.windowSize(),
+                    ww = wSize.width,
+                    wh = wSize.height,
+                    shrinkConst = wh-(wh * 0.7),
+                    birdDim = wh-shrinkConst,
+                    birdCenter = (ww / 2) - (birdDim / 2);
+
                 veil = d3.select('#veil');
+                pdiv = veil.append('div').classed('msg', true);
 
                 svg = veil.append('svg').attr({
-                    width: 500,
-                    height: 500,
-                    viewBox: '0 0 500 500'
-                });
+                    width: (ww + 'px'),
+                    height: (wh + 'px'),
+                    viewBox: '0 0 ' + ww + ' ' +  wh
+                }).style('opacity', 0.2);
 
-                gs.addGlyph(svg, 'bird', 400);
+                gs.addGlyph(svg, 'bird', (birdDim + 'px'),
+                    false, [birdCenter, shrinkConst/2]);
 
                 return {
                     show: show,

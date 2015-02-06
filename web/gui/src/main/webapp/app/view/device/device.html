@@ -3,21 +3,17 @@
     <h2>Devices</h2>
     <table class="summary-list"
            onos-fixed-header
-           ng-style="setTableHW()">
+           ng-style="setTableHW()"
+           sort-callback="ctrl.sortCallback()">
         <thead>
             <tr>
                 <th colId="available"></th>
-                <th colId="id">URI
-                    <div class="inline-icon"
-                         icon icon-id="tableColSortAsc"
-                         icon-size="10">
-                    </div>
-                </th>
-                <th colId="mfr">Vendor</th>
-                <th colId="hw">Hardware Version</th>
-                <th colId="sw">Software Version</th>
-                <th colId="serial">Serial Number</th>
-                <th colId="protocol">Protocol</th>
+                <th colId="id" sortable>URI</th>
+                <th colId="mfr" sortable>Vendor</th>
+                <th colId="hw" sortable>Hardware Version</th>
+                <th colId="sw" sortable>Software Version</th>
+                <th colId="serial" sortable>Serial Number</th>
+                <th colId="protocol" sortable>Protocol</th>
             </tr>
         </thead>
 

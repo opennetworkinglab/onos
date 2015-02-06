@@ -38,7 +38,7 @@
                 self.deviceData = data.devices;
             });
 
-            d3.selectAll('th').on('click', function(d) {
+            d3.selectAll('th').on('click', function () {
                 var thElem = d3.select(this);
                 currCol.colId = thElem.attr('colId');
 
