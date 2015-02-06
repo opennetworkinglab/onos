@@ -31,8 +31,6 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
-import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
@@ -312,6 +310,8 @@ public class IntentManager
             @Override
             public void onError(FlowRuleOperations ops) {
                 //FIXME store.write(pending.setState(BROKEN));
+                log.warn("Failed installation: {} {} on {}", pending.key(),
+                         pending.intent(), ops);
             }
         });
     }
