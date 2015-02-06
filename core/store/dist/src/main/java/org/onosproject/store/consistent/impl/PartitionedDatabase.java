@@ -9,8 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -188,8 +186,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
                                                         .values()
                                                         .stream()
                                                         .map(Database::open)
-                                                        .collect(Collectors.toList())
-                                                        .toArray(new CompletableFuture[partitions.size()]))
+                                                        .toArray(CompletableFuture[]::new))
                                  .thenApply(v -> this));
 
     }
@@ -200,8 +197,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
                 .values()
                 .stream()
                 .map(database -> database.close())
-                .collect(Collectors.toList())
-                .toArray(new CompletableFuture[partitions.size()]));
+                .toArray(CompletableFuture[]::new));
         CompletableFuture<Void> closeCoordinator = coordinator.close();
         return closePartitions.thenCompose(v -> closeCoordinator);
     }

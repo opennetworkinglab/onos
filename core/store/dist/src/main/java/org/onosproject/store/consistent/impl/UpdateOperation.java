@@ -1,5 +1,7 @@
 package org.onosproject.store.consistent.impl;
 
+import static com.google.common.base.Preconditions.*;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -28,7 +30,7 @@ public class UpdateOperation<K, V> {
     private K key;
     private V value;
     private V currentValue;
-    private long currentVersion;
+    private long currentVersion = -1;
 
     /**
      * Returns the type of update operation.
@@ -91,6 +93,17 @@ public class UpdateOperation<K, V> {
     }
 
     /**
+     * Creates a new builder instance.
+     * @param <K> key type.
+     * @param <V> value type.
+     *
+     * @return builder.
+     */
+    public static <K, V> Builder<K, V> newBuilder() {
+        return new Builder<>();
+    }
+
+    /**
      * UpdatOperation builder.
      *
      * @param <K> key type.
@@ -100,52 +113,70 @@ public class UpdateOperation<K, V> {
 
         private UpdateOperation<K, V> operation = new UpdateOperation<>();
 
-        /**
-         * Creates a new builder instance.
-         * @param <K> key type.
-         * @param <V> value type.
-         *
-         * @return builder.
-         */
-        public static <K, V> Builder<K, V> builder() {
-            return new Builder<>();
-        }
-
-        private Builder() {
-        }
-
         public UpdateOperation<K, V> build() {
+            validateInputs();
             return operation;
         }
 
         public Builder<K, V> withType(Type type) {
-            operation.type = type;
+            operation.type = checkNotNull(type, "type cannot be null");
             return this;
         }
 
         public Builder<K, V> withTableName(String tableName) {
-            operation.tableName = tableName;
+            operation.tableName = checkNotNull(tableName, "tableName cannot be null");
             return this;
         }
 
         public Builder<K, V> withKey(K key) {
-            operation.key = key;
+            operation.key = checkNotNull(key, "key cannot be null");
             return this;
         }
 
         public Builder<K, V> withCurrentValue(V value) {
-            operation.currentValue = value;
+            operation.currentValue = checkNotNull(value, "currentValue cannot be null");
             return this;
         }
 
         public Builder<K, V> withValue(V value) {
-            operation.value = value;
+            operation.value = checkNotNull(value, "value cannot be null");
             return this;
         }
 
         public Builder<K, V> withCurrentVersion(long version) {
+            checkArgument(version >= 0, "version cannot be negative");
             operation.currentVersion = version;
             return this;
+        }
+
+        private void validateInputs() {
+            checkNotNull(operation.type, "type must be specified");
+            checkNotNull(operation.tableName, "table name must be specified");
+            checkNotNull(operation.key, "key must be specified");
+            switch (operation.type) {
+            case PUT:
+            case PUT_IF_ABSENT:
+                checkNotNull(operation.value, "value must be specified.");
+                break;
+            case PUT_IF_VERSION_MATCH:
+                checkNotNull(operation.value, "value must be specified.");
+                checkState(operation.currentVersion >= 0, "current version must be specified");
+                break;
+            case PUT_IF_VALUE_MATCH:
+                checkNotNull(operation.value, "value must be specified.");
+                checkNotNull(operation.currentValue, "currentValue must be specified.");
+                break;
+            case REMOVE:
+                break;
+            case REMOVE_IF_VERSION_MATCH:
+                checkState(operation.currentVersion >= 0, "current version must be specified");
+                break;
+            case REMOVE_IF_VALUE_MATCH:
+                checkNotNull(operation.currentValue, "currentValue must be specified.");
+                break;
+            default:
+                throw new IllegalStateException("Unknown operation type");
+            }
         }
     }
 }

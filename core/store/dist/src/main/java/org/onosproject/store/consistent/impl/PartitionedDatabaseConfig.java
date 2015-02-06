@@ -24,7 +24,7 @@ public class PartitionedDatabaseConfig {
      * @param config partition config
      * @return this instance
      */
-    public PartitionedDatabaseConfig withPartition(String name, DatabaseConfig config) {
+    public PartitionedDatabaseConfig addPartition(String name, DatabaseConfig config) {
         partitions.put(name, config);
         return this;
     }

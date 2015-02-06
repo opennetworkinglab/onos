@@ -100,7 +100,7 @@
             <filter>
               <artifact>org.onosproject:copycat*</artifact>
               <includes>
-                <include>net/kuujo/copycat/**</include>
+                <include>**</include>
               </includes>
             </filter>
 

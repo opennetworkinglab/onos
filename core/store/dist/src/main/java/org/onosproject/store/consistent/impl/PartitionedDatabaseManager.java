@@ -10,6 +10,9 @@ import net.kuujo.copycat.cluster.internal.coordinator.ClusterCoordinator;
 import net.kuujo.copycat.cluster.internal.coordinator.DefaultClusterCoordinator;
 import net.kuujo.copycat.util.concurrent.NamedThreadFactory;
 
+/**
+ * Manages a PartitionedDatabase.
+ */
 public interface PartitionedDatabaseManager {
     /**
      * Opens the database.
@@ -73,7 +76,7 @@ public interface PartitionedDatabaseManager {
                         .withDefaultSerializer(copycatConfig.getDefaultSerializer().copy())
                         .withDefaultExecutor(copycatConfig.getDefaultExecutor()))));
         partitionedDatabase.setPartitioner(
-                new SimpleKeyHashPartitioner<>(partitionedDatabase.getRegisteredPartitions()));
+                new SimpleKeyHashPartitioner(partitionedDatabase.getRegisteredPartitions()));
         return partitionedDatabase;
     }
 }
