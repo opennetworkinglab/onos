@@ -61,6 +61,7 @@
     <script src="fw/layer/layer.js"></script>
     <script src="fw/layer/panel.js"></script>
     <script src="fw/layer/flash.js"></script>
+    <script src="fw/layer/veil.js"></script>
 
     <!-- Framework and library stylesheets included here -->
     <!-- TODO: use a single catenated-minified file here -->
@@ -71,6 +72,7 @@
     <link rel="stylesheet" href="fw/svg/icon.css">
     <link rel="stylesheet" href="fw/layer/panel.css">
     <link rel="stylesheet" href="fw/layer/flash.css">
+    <link rel="stylesheet" href="fw/layer/veil.css">
     <link rel="stylesheet" href="fw/nav/nav.css">
 
     <!-- This is where contributed javascript will get injected -->
@@ -107,7 +109,10 @@
         <div id="alerts"></div>
         <div id="flash"></div>
         <div id="quickhelp"></div>
-        <div id="deathmask"></div>
+        <div id="veil"
+             resize
+             ng-style="resizeWithOffset(0, 0)"
+                ></div>
     </div>
 </body>
 </html>
