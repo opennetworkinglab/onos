@@ -39,7 +39,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.service.Lock;
 import org.onosproject.store.service.LockService;
-import org.onosproject.store.service.impl.DistributedLockManager;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -62,9 +61,7 @@ public class LeadershipManager implements LeadershipService {
 
     private final Logger log = getLogger(getClass());
 
-    // TODO: Remove this dependency
-    private static final int TERM_DURATION_MS =
-            DistributedLockManager.DEAD_LOCK_TIMEOUT_MS;
+    private static final int TERM_DURATION_MS = 2000;
 
     // Time to wait before retrying leadership after
     // a unexpected error.
