@@ -83,11 +83,14 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     private final InternalGroupProvider listener = new InternalGroupProvider();
 
-    private final AtomicLong xidCounter = new AtomicLong(1);
+    private static final AtomicLong XID_COUNTER = new AtomicLong(1);
     private final Map<Dpid, GroupStatsCollector> collectors = Maps.newHashMap();
-    private final Map<Long, OFStatsReply> groupStats = Maps.newHashMap();
-    private final Map<Long, GroupOperation> pendingGroupOperations =
+    private final Map<Long, OFStatsReply> groupStats = Maps.newConcurrentMap();
+    private final Map<Integer, GroupOperation> pendingGroupOperations =
             Maps.newConcurrentMap();
+
+    /* Map<Group ID, Transaction ID> */
+    private final Map<Integer, Long> pendingXidMaps = Maps.newConcurrentMap();
 
     /**
      * Creates a OpenFlow group provider.
@@ -126,10 +129,10 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         OpenFlowSwitch sw = controller.getSwitch(dpid);
         for (GroupOperation groupOperation: groupOps.operations()) {
             if (sw == null) {
-                log.error("SW {} is not found", sw.getStringId());
+                log.error("SW {} is not found", dpid);
                 return;
             }
-            final Long groupModXid = xidCounter.getAndIncrement();
+            final Long groupModXid = XID_COUNTER.getAndIncrement();
             GroupModBuilder builder =
                     GroupModBuilder.builder(groupOperation.buckets(),
                             groupOperation.groupId(),
@@ -151,7 +154,9 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                     log.error("Unsupported Group operation");
             }
             sw.sendMsg(groupMod);
-            pendingGroupOperations.put(groupModXid, groupOperation);
+            pendingGroupOperations.put(groupMod.getGroup().getGroupNumber(),
+                    groupOperation);
+            pendingXidMaps.put(groupMod.getGroup().getGroupNumber(), groupModXid);
         }
      }
 
@@ -161,23 +166,25 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         OFGroupStatsReply groupStatsReply = null;
         OFGroupDescStatsReply groupDescStatsReply = null;
 
-        if (statsReply.getStatsType() == OFStatsType.GROUP) {
-            OFStatsReply reply = groupStats.get(statsReply.getXid() + 1);
-            if (reply != null) {
-                groupStatsReply = (OFGroupStatsReply) statsReply;
-                groupDescStatsReply = (OFGroupDescStatsReply) reply;
-                groupStats.remove(statsReply.getXid() + 1);
-            } else {
-                groupStats.put(statsReply.getXid(), statsReply);
-            }
-        } else if (statsReply.getStatsType() == OFStatsType.GROUP_DESC) {
-            OFStatsReply reply = groupStats.get(statsReply.getXid() - 1);
-            if (reply != null) {
-                groupStatsReply = (OFGroupStatsReply) reply;
-                groupDescStatsReply = (OFGroupDescStatsReply) statsReply;
-                groupStats.remove(statsReply.getXid() - 1);
-            } else {
-                groupStats.put(statsReply.getXid(), statsReply);
+        synchronized (groupStats) {
+            if (statsReply.getStatsType() == OFStatsType.GROUP) {
+                OFStatsReply reply = groupStats.get(statsReply.getXid() + 1);
+                if (reply != null) {
+                    groupStatsReply = (OFGroupStatsReply) statsReply;
+                    groupDescStatsReply = (OFGroupDescStatsReply) reply;
+                    groupStats.remove(statsReply.getXid() + 1);
+                } else {
+                    groupStats.put(statsReply.getXid(), statsReply);
+                }
+            } else if (statsReply.getStatsType() == OFStatsType.GROUP_DESC) {
+                OFStatsReply reply = groupStats.get(statsReply.getXid() - 1);
+                if (reply != null) {
+                    groupStatsReply = (OFGroupStatsReply) reply;
+                    groupDescStatsReply = (OFGroupDescStatsReply) statsReply;
+                    groupStats.remove(statsReply.getXid() - 1);
+                } else {
+                    groupStats.put(statsReply.getXid(), statsReply);
+                }
             }
         }
 
@@ -187,6 +194,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             providerService.pushGroupMetrics(deviceId, groups);
             for (Group group: groups) {
                 pendingGroupOperations.remove(group.id());
+                pendingXidMaps.remove(group.id());
             }
         }
     }
@@ -238,6 +246,17 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         return null;
     }
 
+    /**
+     * Returns a transaction ID for entire group operations and increases
+     * the counter by the number given.
+     *
+     * @param increase the amount to increase the counter by
+     * @return a transaction ID
+     */
+    public static long getXidAndAdd(int increase) {
+        return XID_COUNTER.getAndAdd(increase);
+    }
+
     private class InternalGroupProvider
             implements OpenFlowSwitchListener, OpenFlowEventListener {
 
@@ -250,11 +269,28 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                 case ERROR:
                     OFErrorMsg errorMsg = (OFErrorMsg) msg;
                     if (errorMsg.getErrType() == OFErrorType.GROUP_MOD_FAILED) {
-                        GroupOperation operation =
-                                pendingGroupOperations.get(errorMsg.getXid());
-                        if (operation != null) {
-                            providerService.groupOperationFailed(operation);
-                            log.warn("received Error message {} from {}", msg, dpid);
+                        int pendingGroupId = -1;
+                        for (Map.Entry<Integer, Long> entry: pendingXidMaps.entrySet()) {
+                            if (entry.getValue() == errorMsg.getXid()) {
+                                pendingGroupId = entry.getKey();
+                                break;
+                            }
+                        }
+                        if (pendingGroupId == -1) {
+                            log.warn("Error for unknown group operation: {}",
+                                    errorMsg.getXid());
+                        } else {
+                            GroupOperation operation =
+                                    pendingGroupOperations.get(pendingGroupId);
+                            if (operation != null) {
+                                providerService.groupOperationFailed(operation);
+                                pendingGroupOperations.remove(pendingGroupId);
+                                pendingXidMaps.remove(pendingGroupId);
+                                log.warn("Received an group mod error {}", msg);
+                            } else {
+                                log.error("Cannot find pending group operation with group ID: {}",
+                                        pendingGroupId);
+                            }
                         }
                         break;
                     }

@@ -28,7 +28,6 @@ import org.projectfloodlight.openflow.types.OFGroup;
 import org.slf4j.Logger;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -43,7 +42,6 @@ public class GroupStatsCollector implements TimerTask {
     private final int refreshInterval;
 
     private Timeout timeout;
-    private final AtomicLong xidCounter = new AtomicLong(1);
 
     private boolean stopTimer = false;
 
@@ -79,7 +77,7 @@ public class GroupStatsCollector implements TimerTask {
         if (sw.getRole() != RoleState.MASTER) {
             return;
         }
-        Long statsXid = xidCounter.getAndAdd(2);
+        Long statsXid = OpenFlowGroupProvider.getXidAndAdd(2);
         OFGroupStatsRequest statsRequest = sw.factory().buildGroupStatsRequest()
                 .setGroup(OFGroup.ALL)
                 .setXid(statsXid)
