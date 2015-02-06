@@ -425,7 +425,6 @@ public class IntentManager
         }
     }
 
-    // TODO: simplify the branching statements
     private IntentUpdate createIntentUpdate(IntentData intentData) {
         switch (intentData.state()) {
             case INSTALL_REQ:
