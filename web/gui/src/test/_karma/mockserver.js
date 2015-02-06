@@ -25,10 +25,7 @@ var lastcmd,        // last command executed
 var scFiles = fs.readdirSync(scenarioRoot);
 console.log('Mock Server v1.0');
 console.log('================');
-console.log('Scenarios ...');
-console.log(scFiles.join(', '));
-console.log();
-
+listScenarios();
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('ws> ');
@@ -118,6 +115,7 @@ function doCli() {
         }
 
         switch(cmd) {
+            case 'l': listScenarios(); break;
             case 'c': connStatus(); break;
             case 'm': customMessage(str); break;
             case 's': setScenario(str); break;
@@ -137,10 +135,11 @@ function doCli() {
 }
 
 var helptext = '\n' +
+        'l        - list scenarios\n' +
         'c        - show connection status\n' +
         'm {text} - send custom message to client\n' +
         's {id}   - load scenario {id}\n' +
-        's        - show scenario staus\n' +
+        's        - show scenario status\n' +
         //'a        - auto-send events\n' +
         'n        - send next event\n' +
         'r        - restart the scenario\n' +
@@ -149,6 +148,12 @@ var helptext = '\n' +
 
 function showHelp() {
     console.log(helptext);
+}
+
+function listScenarios() {
+    console.log('Scenarios ...');
+    console.log(scFiles.join(', '));
+    console.log();
 }
 
 function connStatus() {

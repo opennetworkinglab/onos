@@ -23,9 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, tis, uplink;
-
-    var icfg;
+    var $log, fs, sus, is, ts, flash, tis, icfg, uplink;
 
     // configuration
     var labelConfig = {
@@ -53,9 +51,9 @@
             outColor: '#f00',
         },
         dark: {
-            baseColor: '#666',
+            baseColor: '#aaa',
             inColor: '#66f',
-            outColor: '#f00',
+            outColor: '#f66'
         },
         inWidth: 12,
         outWidth: 10
@@ -74,7 +72,9 @@
         lu = network.lookup,    // shorthand
         deviceLabelIndex = 0,   // for device label cycling
         hostLabelIndex = 0,     // for host label cycling
-        showHosts = 1,          // whether hosts are displayed
+        showHosts = true,       // whether hosts are displayed
+        showOffline = true,     // whether offline devices are displayed
+        oblique = false,        // whether we are in the oblique view
         width, height;
 
     // SVG elements;
@@ -150,9 +150,8 @@
             }
             updateNodes();
             if (wasOnline !== d.online) {
-                // TODO: re-instate link update, and offline visibility
-                //findAttachedLinks(d.id).forEach(restyleLinkElement);
-                //updateOfflineVisibility(d);
+                findAttachedLinks(d.id).forEach(restyleLinkElement);
+                updateOfflineVisibility(d);
             }
         } else {
             // TODO: decide whether we want to capture logic errors
@@ -338,9 +337,8 @@
         linkScale = d3.scale.linear()
             .domain([1, 12])
             .range([widthRatio, 12 * widthRatio])
-            .clamp(true);
-
-    var allLinkTypes = 'direct indirect optical tunnel',
+            .clamp(true),
+        allLinkTypes = 'direct indirect optical tunnel',
         defaultLinkType = 'direct';
 
     function restyleLinkElement(ldata) {
@@ -362,6 +360,12 @@
             .duration(1000)
             .attr('stroke-width', linkScale(lw))
             .attr('stroke', linkConfig[th].baseColor);
+    }
+
+    function findLinkById(id) {
+        // check to see if this is a reverse lookup, else default to given id
+        var key = network.revLinkToKey[id] || id;
+        return key && lu[key];
     }
 
     function findLink(linkData, op) {
@@ -436,6 +440,15 @@
         return result;
     }
 
+    function findOfflineNodes() {
+        var a = [];
+        network.nodes.forEach(function (d) {
+            if (d.class === 'device' && !d.online) {
+                a.push(d);
+            }
+        });
+        return a;
+    }
 
     function findAttachedHosts(devId) {
         var hosts = [];
@@ -513,6 +526,36 @@
         fResume();
     }
 
+    function updateHostVisibility() {
+        sus.makeVisible(nodeG.selectAll('.host'), showHosts);
+        sus.makeVisible(linkG.selectAll('.hostLink'), showHosts);
+    }
+
+    function updateOfflineVisibility(dev) {
+        function updDev(d, show) {
+            sus.makeVisible(d.el, show);
+
+            findAttachedLinks(d.id).forEach(function (link) {
+                b = show && ((link.type() !== 'hostLink') || showHosts);
+                sus.makeVisible(link.el, b);
+            });
+            findAttachedHosts(d.id).forEach(function (host) {
+                b = show && showHosts;
+                sus.makeVisible(host.el, b);
+            });
+        }
+
+        if (dev) {
+            // updating a specific device that just toggled off/on-line
+            updDev(dev, dev.online || showOffline);
+        } else {
+            // updating all offline devices
+            findOfflineNodes().forEach(function (d) {
+                updDev(d, showOffline);
+            });
+        }
+    }
+
 
     function sendUpdateMeta(d, store) {
         var metaUi = {},
@@ -535,16 +578,6 @@
         });
     }
 
-
-    function fStart() {
-        $log.debug('TODO fStart()...');
-        // TODO...
-    }
-
-    function fResume() {
-        $log.debug('TODO fResume()...');
-        // TODO...
-    }
 
     // ==========================
     // === Devices and hosts - helper functions
@@ -817,6 +850,28 @@
         }
     }
 
+    function vis(b) {
+        return b ? 'visible' : 'hidden';
+    }
+
+    function toggleHosts() {
+        showHosts = !showHosts;
+        updateHostVisibility();
+        flash.flash('Hosts ' + vis(showHosts));
+    }
+
+    function toggleOffline() {
+        showOffline = !showOffline;
+        updateOfflineVisibility();
+        flash.flash('Offline devices ' + vis(showOffline));
+    }
+
+    function cycleDeviceLabels() {
+        // TODO cycle device labels
+    }
+
+    // ==========================================
+
     var dCol = {
         black: '#000',
         paleblue: '#acf',
@@ -1070,12 +1125,12 @@
         // operate on exiting links:
         link.exit()
             .attr('stroke-dasharray', '3 3')
+            .attr('stroke', linkConfig[th].outColor)
             .style('opacity', 0.5)
             .transition()
             .duration(1500)
             .attr({
                 'stroke-dasharray': '3 12',
-                stroke: linkConfig[th].outColor,
                 'stroke-width': linkConfig.outWidth
             })
             .style('opacity', 0.0)
@@ -1084,7 +1139,7 @@
         // NOTE: invoke a single tick to force the labels to position
         //        onto their links.
         tick();
-        // FIXME: this is a bug when in oblique view
+        // TODO: this causes undesirable behavior when in oblique view
         // It causes the nodes to jump into "overhead" view positions, even
         //  though the oblique planes are still showing...
     }
@@ -1191,14 +1246,55 @@
 
     // ==========================
     // force layout tick function
-    function tick() {
 
+    function fResume() {
+        if (!oblique) {
+            force.resume();
+        }
+    }
+
+    function fStart() {
+        if (!oblique) {
+            force.start();
+        }
+    }
+
+    var tickStuff = {
+        nodeAttr: {
+            transform: function (d) { return sus.translate(d.x, d.y); }
+        },
+        linkAttr: {
+            x1: function (d) { return d.source.x; },
+            y1: function (d) { return d.source.y; },
+            x2: function (d) { return d.target.x; },
+            y2: function (d) { return d.target.y; }
+        },
+        linkLabelAttr: {
+            transform: function (d) {
+                var lnk = findLinkById(d.key);
+                if (lnk) {
+                    return transformLabel({
+                        x1: lnk.source.x,
+                        y1: lnk.source.y,
+                        x2: lnk.target.x,
+                        y2: lnk.target.y
+                    });
+                }
+            }
+        }
+    };
+
+    function tick() {
+        node.attr(tickStuff.nodeAttr);
+        link.attr(tickStuff.linkAttr);
+        linkLabel.attr(tickStuff.linkLabelAttr);
     }
 
 
     // ==========================
     // === MOUSE GESTURE HANDLERS
 
+    // FIXME:
     function selectCb() { }
     function atDragEnd() {}
     function dragEnabled() {}
@@ -1211,14 +1307,15 @@
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
-            'TopoInstService',
+            'FlashService', 'TopoInstService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_, _tis_) {
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _tis_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
             is = _is_;
             ts = _ts_;
+            flash = _flash_;
             tis = _tis_;
 
             icfg = is.iconConfig();
@@ -1270,6 +1367,9 @@
                 resize: resize,
 
                 updateDeviceColors: updateDeviceColors,
+                toggleHosts: toggleHosts,
+                toggleOffline: toggleOffline,
+                cycleDeviceLabels: cycleDeviceLabels,
 
                 addDevice: addDevice,
                 updateDevice: updateDevice,

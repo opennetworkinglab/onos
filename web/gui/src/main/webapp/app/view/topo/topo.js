@@ -36,73 +36,59 @@
     // Internal state
     var zoomer;
 
-    // Note: "exported" state should be properties on 'self' variable
-
     // --- Short Cut Keys ------------------------------------------------
 
-    var keyBindings = {
-        //O: [toggleSummary, 'Toggle ONOS summary pane'],
-        I: [toggleInstances, 'Toggle ONOS instances pane'],
-        //D: [toggleDetails, 'Disable / enable details pane'],
+    function setUpKeys() {
+        // key bindings need to be made after the services have been injected
+        // thus, deferred to here...
+        ks.keyBindings({
+            //O: [toggleSummary, 'Toggle ONOS summary pane'],
+            I: [toggleInstances, 'Toggle ONOS instances pane'],
+            //D: [toggleDetails, 'Disable / enable details pane'],
 
-        //H: [toggleHosts, 'Toggle host visibility'],
-        //M: [toggleOffline, 'Toggle offline visibility'],
-        //B: [toggleBg, 'Toggle background image'],
-        //P: togglePorts,
+            H: [tfs.toggleHosts, 'Toggle host visibility'],
+            M: [tfs.toggleOffline, 'Toggle offline visibility'],
+            //B: [toggleBg, 'Toggle background image'],
+            //P: togglePorts,
 
-        //X: [toggleNodeLock, 'Lock / unlock node positions'],
-        //Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
-        L: [cycleLabels, 'Cycle device labels'],
-        //U: [unpin, 'Unpin node (hover mouse over)'],
-        R: [resetZoom, 'Reset pan / zoom'],
+            //X: [toggleNodeLock, 'Lock / unlock node positions'],
+            //Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
+            L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
+            //U: [unpin, 'Unpin node (hover mouse over)'],
+            R: [resetZoom, 'Reset pan / zoom'],
 
-        //V: [showRelatedIntentsAction, 'Show all related intents'],
-        //rightArrow: [showNextIntentAction, 'Show next related intent'],
-        //leftArrow: [showPrevIntentAction, 'Show previous related intent'],
-        //W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
-        //A: [showAllTrafficAction, 'Monitor all traffic'],
-        //F: [showDeviceLinkFlowsAction, 'Show device link flows'],
+            //V: [showRelatedIntentsAction, 'Show all related intents'],
+            //rightArrow: [showNextIntentAction, 'Show next related intent'],
+            //leftArrow: [showPrevIntentAction, 'Show previous related intent'],
+            //W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
+            //A: [showAllTrafficAction, 'Monitor all traffic'],
+            //F: [showDeviceLinkFlowsAction, 'Show device link flows'],
 
-        //E: [equalizeMasters, 'Equalize mastership roles'],
+            //E: [equalizeMasters, 'Equalize mastership roles'],
 
-        //esc: handleEscape,
+            //esc: handleEscape,
 
-        _helpFormat: [
-            ['O', 'I', 'D', '-', 'H', 'M', 'B', 'P' ],
-            ['X', 'Z', 'L', 'U', 'R' ],
-            ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
-        ]
+            _helpFormat: [
+                ['O', 'I', 'D', '-', 'H', 'M', 'B', 'P' ],
+                ['X', 'Z', 'L', 'U', 'R' ],
+                ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
+            ]
+        });
 
-    };
+        // TODO:         // mouse gestures
+        var gestures = [
+            ['click', 'Select the item and show details'],
+            ['shift-click', 'Toggle selection state'],
+            ['drag', 'Reposition (and pin) device / host'],
+            ['cmd-scroll', 'Zoom in / out'],
+            ['cmd-drag', 'Pan']
+        ];
+    }
 
-    // mouse gestures
-    var gestures = [
-        ['click', 'Select the item and show details'],
-        ['shift-click', 'Toggle selection state'],
-        ['drag', 'Reposition (and pin) device / host'],
-        ['cmd-scroll', 'Zoom in / out'],
-        ['cmd-drag', 'Pan']
-    ];
 
     function toggleInstances() {
-        if (tis.isVisible()) {
-            tis.hide();
-        } else {
-            tis.show();
-        }
+        tis.toggle();
         tfs.updateDeviceColors();
-    }
-
-    function cycleLabels() {
-        $log.debug('Cycle Labels.....');
-    }
-
-    function resetZoom() {
-        zoomer.reset();
-    }
-
-    function setUpKeys() {
-        ks.keyBindings(keyBindings);
     }
 
 
@@ -122,8 +108,7 @@
     }
 
     function zoomCallback() {
-        var tr = zoomer.translate(),
-            sc = zoomer.scale();
+        var sc = zoomer.scale();
 
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
@@ -137,6 +122,10 @@
             zoomEnabled: zoomEnabled,
             zoomCallback: zoomCallback
         });
+    }
+
+    function resetZoom() {
+        zoomer.reset();
     }
 
 

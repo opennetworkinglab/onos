@@ -71,6 +71,7 @@
             api = {
                 show: showPanel,
                 hide: hidePanel,
+                toggle: togglePanel,
                 empty: emptyPanel,
                 append: appendPanel,
                 width: panelWidth,
@@ -109,6 +110,14 @@
                 .each('end', endCb)
                 .style(p.settings.edge, pxHide(p))
                 .style('opacity', 0);
+        }
+
+        function togglePanel(cb) {
+            if (p.on) {
+                hidePanel(cb);
+            } else {
+                showPanel(cb);
+            }
         }
 
         function emptyPanel() {

@@ -55,7 +55,6 @@
 
 
     // ==========================
-    // *** ADD INSTANCE ***
 
     function addInstance(data) {
         var id = data.id;
@@ -330,7 +329,8 @@
 
                 isVisible: function () { return oiBox.isVisible(); },
                 show: function () { oiBox.show(); },
-                hide: function () { oiBox.hide(); }
+                hide: function () { oiBox.hide(); },
+                toggle: function () { oiBox.toggle(); }
             };
         }]);
 }());

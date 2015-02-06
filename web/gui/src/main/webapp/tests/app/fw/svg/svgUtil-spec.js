@@ -76,7 +76,7 @@ describe('factory: fw/svg/svgUtil.js', function() {
     });
 
     it('should provide an alternate (dark) shade of blue for muted', function () {
-        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#16203A');
+        expect(sus.cat7().getColor('foo', true, 'dark')).toEqual('#304860');
     });
 
     it('should iterate across the colors', function () {

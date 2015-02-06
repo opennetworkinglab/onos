@@ -87,7 +87,8 @@ describe('factory: fw/layer/panel.js', function () {
     it('should provide an api of panel functions', function () {
         var p = ps.createPanel('foo');
         expect(fs.areFunctions(p, [
-            'show', 'hide', 'empty', 'append', 'width', 'height', 'isVisible', 'el'
+            'show', 'hide', 'toggle', 'empty', 'append',
+            'width', 'height', 'isVisible', 'el'
         ])).toBeTruthy();
     });
 
