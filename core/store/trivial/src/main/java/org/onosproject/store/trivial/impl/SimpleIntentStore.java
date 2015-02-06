@@ -25,6 +25,8 @@ import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
@@ -33,6 +35,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -70,6 +73,36 @@ public class SimpleIntentStore
         return current.values().stream()
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Intent getIntent(IntentId intentId) {
+        for (IntentData data : current.values()) {
+            if (Objects.equals(data.intent().id(), intentId)) {
+                return data.intent();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public IntentState getIntentState(IntentId intentId) {
+        for (IntentData data : current.values()) {
+            if (Objects.equals(data.intent().id(), intentId)) {
+                return data.state();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<Intent> getInstallableIntents(IntentId intentId) {
+        for (IntentData data : current.values()) {
+            if (Objects.equals(data.intent().id(), intentId)) {
+                return data.installables();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -162,6 +195,12 @@ public class SimpleIntentStore
         for (IntentData data : updates) {
             write(data);
         }
+    }
+
+    @Override
+    public Intent getIntent(Key key) {
+        IntentData data = current.get(key);
+        return (data != null) ? data.intent() : null;
     }
 
 

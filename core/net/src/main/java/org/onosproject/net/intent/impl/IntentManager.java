@@ -28,8 +28,13 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
@@ -50,6 +55,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -281,19 +287,74 @@ public class IntentManager
 
     //TODO javadoc
     //FIXME
-    FlowRuleOperations coordinate(List<Intent> installables) {
-        //List<FlowRuleBatchOperation> batches = new ArrayList<>(installables.size());
+    FlowRuleOperations coordinate(IntentData pending) {
+        List<Intent> installables = pending.installables();
+        List<List<FlowRuleBatchOperation>> plans = new ArrayList<>(installables.size());
         for (Intent installable : installables) {
             try {
                 registerSubclassInstallerIfNeeded(installable);
                 //FIXME need to migrate installers to FlowRuleOperations
                 // FIXME need to aggregate the FlowRuleOperations across installables
-                getInstaller(installable).install2(installable).build(null/*FIXME*/);
+                plans.add(getInstaller(installable).install(installable));
             } catch (Exception e) { // TODO this should be IntentException
                 throw new FlowRuleBatchOperationConversionException(null/*FIXME*/, e);
             }
         }
-        return null;
+
+        return merge(plans).build(new FlowRuleOperationsContext() { // FIXME move this out
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Completed installing: {}", pending.key());
+                pending.setState(INSTALLED);
+                store.write(pending);
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                //FIXME store.write(pending.setState(BROKEN));
+            }
+        });
+    }
+
+    // FIXME... needs tests... or maybe it's just perfect
+    private FlowRuleOperations.Builder merge(List<List<FlowRuleBatchOperation>> plans) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        // Build a batch one stage at a time
+        for (int stageNumber = 0;; stageNumber++) {
+            // Get the sub-stage from each plan (List<FlowRuleBatchOperation>)
+            for (Iterator<List<FlowRuleBatchOperation>> itr = plans.iterator(); itr.hasNext();) {
+                List<FlowRuleBatchOperation> plan = itr.next();
+                if (plan.size() <= stageNumber) {
+                    // we have consumed all stages from this plan, so remove it
+                    itr.remove();
+                    continue;
+                }
+                // write operations from this sub-stage into the builder
+                FlowRuleBatchOperation stage = plan.get(stageNumber);
+                for (FlowRuleBatchEntry entry : stage.getOperations()) {
+                    FlowRule rule = entry.target();
+                    switch (entry.operator()) {
+                        case ADD:
+                            builder.add(rule);
+                            break;
+                        case REMOVE:
+                            builder.remove(rule);
+                            break;
+                        case MODIFY:
+                            builder.modify(rule);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            // we are done with the stage, start the next one...
+            if (plans.isEmpty()) {
+                break; // we don't need to start a new stage, we are done.
+            }
+            builder.newStage();
+        }
+        return builder;
     }
 
     /**
@@ -311,7 +372,7 @@ public class IntentManager
                     installable.resources());
             try {
                 // FIXME need to aggregate the FlowRuleOperations across installables
-                getInstaller(installable).uninstall2(installable).build(null/*FIXME*/);
+                getInstaller(installable).uninstall(installable); //.build(null/*FIXME*/);
             } catch (IntentException e) {
                 log.warn("Unable to uninstall intent {} due to:", intent.id(), e);
                 // TODO: this should never happen. but what if it does?
