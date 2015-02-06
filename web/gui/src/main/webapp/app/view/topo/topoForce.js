@@ -440,10 +440,10 @@
         return result;
     }
 
-    function findOfflineNodes() {
+    function findDevices(offlineOnly) {
         var a = [];
         network.nodes.forEach(function (d) {
-            if (d.class === 'device' && !d.online) {
+            if (d.class === 'device' && !(offlineOnly && d.online)) {
                 a.push(d);
             }
         });
@@ -550,7 +550,7 @@
             updDev(dev, dev.online || showOffline);
         } else {
             // updating all offline devices
-            findOfflineNodes().forEach(function (d) {
+            findDevices(true).forEach(function (d) {
                 updDev(d, showOffline);
             });
         }
@@ -867,7 +867,10 @@
     }
 
     function cycleDeviceLabels() {
-        // TODO cycle device labels
+        deviceLabelIndex = (deviceLabelIndex+1) % 3;
+        findDevices().forEach(function (d) {
+            updateDeviceLabel(d);
+        });
     }
 
     // ==========================================
