@@ -117,6 +117,32 @@
         return -1;
     }
 
+    // search through array to find (the first occurrence of) item,
+    // returning its index if found; otherwise returning -1.
+    function inArray(item, array) {
+        var i;
+        if (isA(array)) {
+            for (i=0; i<array.length; i++) {
+                if (array[i] === item) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    // remove (the first occurrence of) the specified item from the given
+    // array, if any. Return true if the removal was made; false otherwise.
+    function removeFromArray(item, array) {
+        var found = false,
+            i = inArray(item, array);
+        if (i >= 0) {
+            array.splice(i, 1);
+            found = true;
+        }
+        return found;
+    }
+
     angular.module('onosUtil')
         .factory('FnService', ['$window', function (_$window_) {
             $window = _$window_;
@@ -130,7 +156,9 @@
                 areFunctions: areFunctions,
                 areFunctionsNonStrict: areFunctionsNonStrict,
                 windowSize: windowSize,
-                find: find
+                find: find,
+                inArray: inArray,
+                removeFromArray: removeFromArray
             };
     }]);
 

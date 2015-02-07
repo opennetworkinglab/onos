@@ -201,7 +201,8 @@ describe('factory: fw/util/fn.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
-            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find'
+            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find',
+            'inArray', 'removeFromArray'
         ])).toBeTruthy();
     });
 
@@ -260,4 +261,68 @@ describe('factory: fw/util/fn.js', function() {
     it('should find Zevvv', function () {
         expect(fs.find('Zevvv', dataset, 'name')).toEqual(4);
     });
+
+
+    // === Tests for inArray()
+    var objRef = { x:1, y:2 },
+        array = [1, 3.14, 'hey', objRef, 'there', true],
+        array2 = ['b', 'a', 'd', 'a', 's', 's'];
+
+    it('should return -1 on non-arrays', function () {
+        expect(fs.inArray(1, {x:1})).toEqual(-1);
+    });
+    it('should not find HOO', function () {
+        expect(fs.inArray('HOO', array)).toEqual(-1);
+    });
+    it('should find 1', function () {
+        expect(fs.inArray(1, array)).toEqual(0);
+    });
+    it('should find pi', function () {
+        expect(fs.inArray(3.14, array)).toEqual(1);
+    });
+    it('should find hey', function () {
+        expect(fs.inArray('hey', array)).toEqual(2);
+    });
+    it('should find the object', function () {
+        expect(fs.inArray(objRef, array)).toEqual(3);
+    });
+    it('should find there', function () {
+        expect(fs.inArray('there', array)).toEqual(4);
+    });
+    it('should find true', function () {
+        expect(fs.inArray(true, array)).toEqual(5);
+    });
+
+    it('should find the first occurrence A', function () {
+        expect(fs.inArray('a', array2)).toEqual(1);
+    });
+    it('should find the first occurrence S', function () {
+        expect(fs.inArray('s', array2)).toEqual(4);
+    });
+    it('should not find X', function () {
+        expect(fs.inArray('x', array2)).toEqual(-1);
+    });
+
+    // === Tests for removeFromArray()
+    it('should ignore non-arrays', function () {
+        expect(fs.removeFromArray(1, {x:1})).toBe(false);
+    });
+    it('should keep the array the same, for non-match', function () {
+        var array = [1, 2, 3];
+        expect(fs.removeFromArray(4, array)).toBe(false);
+        expect(array).toEqual([1, 2, 3]);
+    });
+    it('should remove a value', function () {
+        var array = [1, 2, 3];
+        expect(fs.removeFromArray(2, array)).toBe(true);
+        expect(array).toEqual([1, 3]);
+    });
+    it('should remove the first occurrence', function () {
+        var array = ['x', 'y', 'z', 'z', 'y'];
+        expect(fs.removeFromArray('y', array)).toBe(true);
+        expect(array).toEqual(['x', 'z', 'z', 'y']);
+        expect(fs.removeFromArray('x', array)).toBe(true);
+        expect(array).toEqual(['z', 'z', 'y']);
+    });
+
 });

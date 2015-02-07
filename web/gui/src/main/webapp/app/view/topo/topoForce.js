@@ -77,7 +77,9 @@
         oblique = false,        // whether we are in the oblique view
         nodeLock = false,       // whether nodes can be dragged or not (locked)
         width, height,          // the width and height of the force layout
-        hovered;                // the node over which the mouse is hovering
+        hovered,                // the node over which the mouse is hovering
+        selections = {},        // what is currently selected
+        selectOrder = [];       // the order in which we made selections
 
     // SVG elements;
     var linkG, linkLabelG, nodeG;
@@ -1323,15 +1325,77 @@
     }
 
 
+    function updateDetailPanel() {
+        // TODO update detail panel
+        $log.debug("TODO: updateDetailPanel() ...");
+    }
+
+
+    // ==========================
+    // === SELECTION / DESELECTION
+
+    function selectObject(obj) {
+        var el = this,
+            ev = d3.event.sourceEvent,
+            n;
+
+        if (zoomingOrPanning(ev)) {
+            return;
+        }
+
+        if (el) {
+            n = d3.select(el);
+        } else {
+            node.each(function (d) {
+                if (d == obj) {
+                    n = d3.select(el = this);
+                }
+            });
+        }
+        if (!n) return;
+
+        if (ev.shiftKey && n.classed('selected')) {
+            deselectObject(obj.id);
+            updateDetailPanel();
+            return;
+        }
+
+        if (!ev.shiftKey) {
+            deselectAll();
+        }
+
+        selections[obj.id] = { obj: obj, el: el };
+        selectOrder.push(obj.id);
+
+        n.classed('selected', true);
+        updateDeviceColors(obj);
+        updateDetailPanel();
+    }
+
+    function deselectObject(id) {
+        var obj = selections[id];
+        if (obj) {
+            d3.select(obj.el).classed('selected', false);
+            delete selections[id];
+            fs.removeFromArray(id, selectOrder);
+            updateDeviceColors(obj.obj);
+        }
+    }
+
+    function deselectAll() {
+        // deselect all nodes in the network...
+        node.classed('selected', false);
+        selections = {};
+        selectOrder = [];
+        updateDeviceColors();
+        updateDetailPanel();
+    }
+
     // ==========================
     // === MOUSE GESTURE HANDLERS
 
-    function selectCb(d) {
-        // this is the selected node
-        $log.debug("\n\n\nSelect Object: ");
-        $log.debug("d is ", d);
-        $log.debug("this is ", this);
-        $log.debug('\n\n');
+    function zoomingOrPanning(ev) {
+        return ev.metaKey || ev.altKey;
     }
 
     function atDragEnd(d) {
@@ -1345,8 +1409,7 @@
     function dragEnabled() {
         var ev = d3.event.sourceEvent;
         // nodeLock means we aren't allowing nodes to be dragged...
-        // meta or alt key pressed means we are zooming/panning...
-        return !nodeLock && !(ev.metaKey || ev.altKey);
+        return !nodeLock && !zoomingOrPanning(ev);
     }
 
     // predicate that indicates when clicking is active
@@ -1406,7 +1469,7 @@
                     .on('tick', tick);
 
                 drag = sus.createDragBehavior(force,
-                    selectCb, atDragEnd, dragEnabled, clickEnabled);
+                    selectObject, atDragEnd, dragEnabled, clickEnabled);
             }
 
             function resize(dim) {
