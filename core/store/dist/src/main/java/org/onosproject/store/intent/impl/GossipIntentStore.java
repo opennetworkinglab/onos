@@ -52,7 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of Intents in a distributed data store that uses optimistic
  * replication and gossip based techniques.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = false, enabled = false)
 @Service
 public class GossipIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
