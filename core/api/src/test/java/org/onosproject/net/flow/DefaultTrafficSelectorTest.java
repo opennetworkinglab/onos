@@ -255,6 +255,10 @@ public class DefaultTrafficSelectorTest {
         assertThat(selector, hasCriterionWithType(Type.MPLS_LABEL));
 
         selector = DefaultTrafficSelector.builder()
+                .matchIPv6ExthdrFlags(Criterion.IPv6ExthdrFlags.NONEXT.getValue()).build();
+        assertThat(selector, hasCriterionWithType(Type.IPV6_EXTHDR));
+
+        selector = DefaultTrafficSelector.builder()
                 .matchLambda(shortValue).build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
 

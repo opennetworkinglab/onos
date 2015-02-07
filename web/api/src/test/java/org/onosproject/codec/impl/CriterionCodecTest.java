@@ -407,6 +407,27 @@ public class CriterionCodecTest {
     }
 
     /**
+     * Tests IPv6 Extension Header pseudo-field flags criterion.
+     */
+    @Test
+    public void matchIPv6ExthdrFlagsTest() {
+        int exthdrFlags =
+            Criterion.IPv6ExthdrFlags.NONEXT.getValue() |
+            Criterion.IPv6ExthdrFlags.ESP.getValue() |
+            Criterion.IPv6ExthdrFlags.AUTH.getValue() |
+            Criterion.IPv6ExthdrFlags.DEST.getValue() |
+            Criterion.IPv6ExthdrFlags.FRAG.getValue() |
+            Criterion.IPv6ExthdrFlags.ROUTER.getValue() |
+            Criterion.IPv6ExthdrFlags.HOP.getValue() |
+            Criterion.IPv6ExthdrFlags.UNREP.getValue() |
+            Criterion.IPv6ExthdrFlags.UNSEQ.getValue();
+        Criterion criterion = Criteria.matchIPv6ExthdrFlags(exthdrFlags);
+        ObjectNode result = criterionCodec.encode(criterion, context);
+        assertThat(result.get("type").textValue(), is(criterion.type().toString()));
+        assertThat(result.get("exthdrFlags").asInt(), is(exthdrFlags));
+    }
+
+    /**
      * Tests lambda criterion.
      */
     @Test
@@ -422,10 +443,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchOpticalSignalTypeTest() {
-        Criterion criterion = Criteria.matchOpticalSignalType((short) 40000);
+        Criterion criterion = Criteria.matchOpticalSignalType((byte) 250);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.get("signalType").asInt(), is(40000));
+        assertThat(result.get("signalType").asInt(), is(250));
     }
 
 }

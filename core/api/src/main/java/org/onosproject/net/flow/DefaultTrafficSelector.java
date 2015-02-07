@@ -280,6 +280,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchIPv6ExthdrFlags(Integer exthdrFlags) {
+            return add(Criteria.matchIPv6ExthdrFlags(exthdrFlags));
+        }
+
+        @Override
         public Builder matchLambda(Short lambda) {
             return add(Criteria.matchLambda(lambda));
         }

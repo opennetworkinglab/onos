@@ -62,7 +62,7 @@ public final class Criteria {
      * @param metadata metadata value (64 bits data)
      * @return match criterion
      */
-    public static Criterion matchMetadata(Long metadata) {
+    public static Criterion matchMetadata(long metadata) {
         return new MetadataCriterion(metadata);
     }
 
@@ -338,8 +338,19 @@ public final class Criteria {
      * @param mplsLabel MPLS label (20 bits)
      * @return match criterion
      */
-    public static Criterion matchMplsLabel(Integer mplsLabel) {
+    public static Criterion matchMplsLabel(int mplsLabel) {
         return new MplsCriterion(mplsLabel);
+    }
+
+    /**
+     * Creates a match on IPv6 Extension Header pseudo-field fiags.
+     * Those are defined in Criterion.IPv6ExthdrFlags.
+     *
+     * @param exthdrFlags IPv6 Extension Header pseudo-field flags (16 bits)
+     * @return match criterion
+     */
+    public static Criterion matchIPv6ExthdrFlags(int exthdrFlags) {
+        return new IPv6ExthdrFlagsCriterion(exthdrFlags);
     }
 
     /**
@@ -355,10 +366,10 @@ public final class Criteria {
     /**
      * Creates a match on optical signal type using the specified value.
      *
-     * @param sigType optical signal type (16 bits unsigned integer)
+     * @param sigType optical signal type (8 bits unsigned integer)
      * @return match criterion
      */
-    public static Criterion matchOpticalSignalType(int sigType) {
+    public static Criterion matchOpticalSignalType(short sigType) {
         return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }
 
@@ -1550,6 +1561,64 @@ public final class Criteria {
     }
 
     /**
+     * Implementation of IPv6 Extension Header pseudo-field criterion
+     * (16 bits). Those are defined in Criterion.IPv6ExthdrFlags.
+     */
+    public static final class IPv6ExthdrFlagsCriterion implements Criterion {
+        private static final int MASK = 0xffff;
+        private final int exthdrFlags;          // IPv6 Exthdr flags: 16 bits
+
+        /**
+         * Constructor.
+         *
+         * @param exthdrFlags the IPv6 Extension Header pseudo-field flags
+         * to match (16 bits). Those are defined in Criterion.IPv6ExthdrFlags
+         */
+        public IPv6ExthdrFlagsCriterion(int exthdrFlags) {
+            this.exthdrFlags = exthdrFlags & MASK;
+        }
+
+        @Override
+        public Type type() {
+            return Type.IPV6_EXTHDR;
+        }
+
+        /**
+         * Gets the IPv6 Extension Header pseudo-field flags to match.
+         *
+         * @return the IPv6 Extension Header pseudo-field flags to match
+         * (16 bits). Those are defined in Criterion.IPv6ExthdrFlags
+         */
+        public int exthdrFlags() {
+            return exthdrFlags;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                .add("exthdrFlags", Long.toHexString(exthdrFlags)).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), exthdrFlags);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof IPv6ExthdrFlagsCriterion) {
+                IPv6ExthdrFlagsCriterion that = (IPv6ExthdrFlagsCriterion) obj;
+                return Objects.equals(exthdrFlags, that.exthdrFlags) &&
+                        Objects.equals(this.type(), that.type());
+            }
+            return false;
+        }
+    }
+
+    /**
      * Implementation of lambda (wavelength) criterion (16 bits unsigned
      * integer).
      */
@@ -1610,23 +1679,23 @@ public final class Criteria {
     }
 
     /**
-     * Implementation of optical signal type criterion (16 bits unsigned
+     * Implementation of optical signal type criterion (8 bits unsigned
      * integer).
      */
     public static final class OpticalSignalTypeCriterion implements Criterion {
-        private static final int MASK = 0xffff;
-        private final int signalType;           // Signal type value: 16 bits
+        private static final short MASK = 0xff;
+        private final short signalType;         // Signal type value: 8 bits
         private final Type type;
 
         /**
          * Constructor.
          *
-         * @param signalType the optical signal type to match (16 bits unsigned
+         * @param signalType the optical signal type to match (8 bits unsigned
          * integer)
          * @param type the match type. Should be Type.OCH_SIGTYPE
          */
-        public OpticalSignalTypeCriterion(int signalType, Type type) {
-            this.signalType = signalType & MASK;
+        public OpticalSignalTypeCriterion(short signalType, Type type) {
+            this.signalType = (short) (signalType & MASK);
             this.type = type;
         }
 
@@ -1638,9 +1707,9 @@ public final class Criteria {
         /**
          * Gets the optical signal type to match.
          *
-         * @return the optical signal type to match
+         * @return the optical signal type to match (8 bits unsigned integer)
          */
-        public int signalType() {
+        public short signalType() {
             return signalType;
         }
 

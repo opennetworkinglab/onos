@@ -192,14 +192,32 @@ public class CriteriaTest {
     Criterion sameAsMatchMpls1 = Criteria.matchMplsLabel(mpls1);
     Criterion matchMpls2 = Criteria.matchMplsLabel(mpls2);
 
+    int ipv6ExthdrFlags1 =
+        Criterion.IPv6ExthdrFlags.NONEXT.getValue() |
+        Criterion.IPv6ExthdrFlags.ESP.getValue() |
+        Criterion.IPv6ExthdrFlags.AUTH.getValue() |
+        Criterion.IPv6ExthdrFlags.DEST.getValue() |
+        Criterion.IPv6ExthdrFlags.FRAG.getValue() |
+        Criterion.IPv6ExthdrFlags.ROUTER.getValue() |
+        Criterion.IPv6ExthdrFlags.HOP.getValue() |
+        Criterion.IPv6ExthdrFlags.UNREP.getValue();
+    int ipv6ExthdrFlags2 = ipv6ExthdrFlags1 |
+        Criterion.IPv6ExthdrFlags.UNSEQ.getValue();
+    Criterion matchIpv6ExthdrFlags1 =
+        Criteria.matchIPv6ExthdrFlags(ipv6ExthdrFlags1);
+    Criterion sameAsMatchIpv6ExthdrFlags1 =
+        Criteria.matchIPv6ExthdrFlags(ipv6ExthdrFlags1);
+    Criterion matchIpv6ExthdrFlags2 =
+        Criteria.matchIPv6ExthdrFlags(ipv6ExthdrFlags2);
+
     int lambda1 = 1;
     int lambda2 = 2;
     Criterion matchLambda1 = Criteria.matchLambda(lambda1);
     Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
     Criterion matchLambda2 = Criteria.matchLambda(lambda2);
 
-    int signalLambda1 = 1;
-    int signalLambda2 = 2;
+    short signalLambda1 = 1;
+    short signalLambda2 = 2;
     Criterion matchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion sameAsMatchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion matchSignalLambda2 = Criteria.matchOpticalSignalType(signalLambda2);
@@ -256,6 +274,7 @@ public class CriteriaTest {
         assertThatClassIsImmutable(Criteria.IPv6NDTargetAddressCriterion.class);
         assertThatClassIsImmutable(Criteria.IPv6NDLinkLayerAddressCriterion.class);
         assertThatClassIsImmutable(Criteria.MplsCriterion.class);
+        assertThatClassIsImmutable(Criteria.IPv6ExthdrFlagsCriterion.class);
         assertThatClassIsImmutable(Criteria.LambdaCriterion.class);
         assertThatClassIsImmutable(Criteria.OpticalSignalTypeCriterion.class);
     }
@@ -949,6 +968,35 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchMpls1, sameAsMatchMpls1)
                 .addEqualityGroup(matchMpls2)
+                .testEquals();
+    }
+
+    // IPv6ExthdrFlagsCriterion class
+
+    /**
+     * Test the matchIPv6ExthdrFlags method.
+     */
+    @Test
+    public void testMatchIPv6ExthdrFlagsMethod() {
+        Criterion matchExthdrFlags =
+            Criteria.matchIPv6ExthdrFlags(ipv6ExthdrFlags1);
+        Criteria.IPv6ExthdrFlagsCriterion exthdrFlagsCriterion =
+                checkAndConvert(matchExthdrFlags,
+                        Criterion.Type.IPV6_EXTHDR,
+                        Criteria.IPv6ExthdrFlagsCriterion.class);
+        assertThat(exthdrFlagsCriterion.exthdrFlags(),
+                   is(equalTo(ipv6ExthdrFlags1)));
+    }
+
+    /**
+     * Test the equals() method of the IPv6ExthdrFlagsCriterion class.
+     */
+    @Test
+    public void testIPv6ExthdrFlagsCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchIpv6ExthdrFlags1,
+                                  sameAsMatchIpv6ExthdrFlags1)
+                .addEqualityGroup(matchIpv6ExthdrFlags2)
                 .testEquals();
     }
 

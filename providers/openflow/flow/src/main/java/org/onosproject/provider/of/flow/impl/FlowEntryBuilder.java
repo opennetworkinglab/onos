@@ -410,7 +410,6 @@ public class FlowEntryBuilder {
             case IPV4_SRC:
                 if (match.isPartiallyMasked(MatchField.IPV4_SRC)) {
                     Masked<IPv4Address> maskedIp = match.getMasked(MatchField.IPV4_SRC);
-
                     ip4Prefix = Ip4Prefix.valueOf(
                             maskedIp.getValue().getInt(),
                             maskedIp.getMask().asCidrMaskLength());
@@ -419,13 +418,11 @@ public class FlowEntryBuilder {
                             match.get(MatchField.IPV4_SRC).getInt(),
                             Ip4Prefix.MAX_MASK_LENGTH);
                 }
-
                 builder.matchIPSrc(ip4Prefix);
                 break;
             case IPV4_DST:
                 if (match.isPartiallyMasked(MatchField.IPV4_DST)) {
                     Masked<IPv4Address> maskedIp = match.getMasked(MatchField.IPV4_DST);
-
                     ip4Prefix = Ip4Prefix.valueOf(
                             maskedIp.getValue().getInt(),
                             maskedIp.getMask().asCidrMaskLength());
@@ -434,7 +431,6 @@ public class FlowEntryBuilder {
                             match.get(MatchField.IPV4_DST).getInt(),
                             Ip4Prefix.MAX_MASK_LENGTH);
                 }
-
                 builder.matchIPDst(ip4Prefix);
                 break;
             case TCP_SRC:
@@ -519,6 +515,10 @@ public class FlowEntryBuilder {
                 builder.matchMplsLabel((int) match.get(MatchField.MPLS_LABEL)
                                             .getValue());
                 break;
+            case IPV6_EXTHDR:
+                builder.matchIPv6ExthdrFlags((int) match.get(MatchField.IPV6_EXTHDR)
+                                            .getValue());
+                break;
             case OCH_SIGID:
                 builder.matchLambda(match.get(MatchField.OCH_SIGID).getChannelNumber());
                 break;
@@ -539,5 +539,4 @@ public class FlowEntryBuilder {
         }
         return builder.build();
     }
-
 }

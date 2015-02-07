@@ -67,6 +67,7 @@ import org.projectfloodlight.openflow.types.OFMetadata;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TransportPort;
+import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
@@ -363,6 +364,12 @@ public abstract class FlowModBuilder {
                 Criteria.MplsCriterion mp = (Criteria.MplsCriterion) c;
                 mBuilder.setExact(MatchField.MPLS_LABEL, U32.of(mp.label()));
                 break;
+            case IPV6_EXTHDR:
+                Criteria.IPv6ExthdrFlagsCriterion exthdrFlagsCriterion =
+                    (Criteria.IPv6ExthdrFlagsCriterion) c;
+                mBuilder.setExact(MatchField.IPV6_EXTHDR,
+                                  U16.of(exthdrFlagsCriterion.exthdrFlags()));
+                break;
             case OCH_SIGID:
                 LambdaCriterion lc = (LambdaCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGID,
@@ -373,14 +380,13 @@ public abstract class FlowModBuilder {
                 Criteria.OpticalSignalTypeCriterion sc =
                         (Criteria.OpticalSignalTypeCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGTYPE,
-                                  U8.of((short) sc.signalType()));
+                                  U8.of(sc.signalType()));
                 break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
             case ARP_THA:
             case ARP_TPA:
-            case IPV6_EXTHDR:
             case MPLS_BOS:
             case MPLS_TC:
             case PBB_ISID:

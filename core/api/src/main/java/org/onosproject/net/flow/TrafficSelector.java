@@ -300,6 +300,14 @@ public interface TrafficSelector {
         public Builder matchMplsLabel(Integer mplsLabel);
 
         /**
+         * Matches on IPv6 Extension Header pseudo-field fiags.
+         *
+         * @param exthdrFlags the IPv6 Extension Header pseudo-field fiags
+         * @return a selection builder
+         */
+        public Builder matchIPv6ExthdrFlags(Integer exthdrFlags);
+
+        /**
          * Matches an optical signal ID or lambda.
          *
          * @param lambda lamda

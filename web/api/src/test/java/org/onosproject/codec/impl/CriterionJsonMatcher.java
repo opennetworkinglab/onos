@@ -294,6 +294,18 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
                 }
                 break;
 
+            case IPV6_EXTHDR:
+                final Criteria.IPv6ExthdrFlagsCriterion exthdrCriterion =
+                        (Criteria.IPv6ExthdrFlagsCriterion) criterion;
+                final int exthdrFlags = exthdrCriterion.exthdrFlags();
+                final int jsonExthdrFlags =
+                    jsonCriterion.get("exthdrFlags").intValue();
+                if (exthdrFlags != jsonExthdrFlags) {
+                    description.appendText("exthdrFlags was " + Long.toHexString(jsonExthdrFlags));
+                    return false;
+                }
+                break;
+
             case OCH_SIGID:
                 final Criteria.LambdaCriterion lambdaCriterion =
                         (Criteria.LambdaCriterion) criterion;
@@ -308,10 +320,10 @@ public final class CriterionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNo
             case OCH_SIGTYPE:
                 final Criteria.OpticalSignalTypeCriterion opticalSignalTypeCriterion =
                         (Criteria.OpticalSignalTypeCriterion) criterion;
-                final int signalType = opticalSignalTypeCriterion.signalType();
-                final int jsonSignalType = jsonCriterion.get("signalType").intValue();
+                final short signalType = opticalSignalTypeCriterion.signalType();
+                final short jsonSignalType = jsonCriterion.get("signalType").shortValue();
                 if (signalType != jsonSignalType) {
-                    description.appendText("signal type was " + Integer.toString(signalType));
+                    description.appendText("signal type was " + Short.toString(signalType));
                     return false;
                 }
                 break;

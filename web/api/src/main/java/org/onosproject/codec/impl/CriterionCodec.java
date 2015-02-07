@@ -71,6 +71,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         formatMap.put(Criterion.Type.IPV6_ND_SLL, new FormatV6NDTll());
         formatMap.put(Criterion.Type.IPV6_ND_TLL, new FormatV6NDTll());
         formatMap.put(Criterion.Type.MPLS_LABEL, new FormatMplsLabel());
+        formatMap.put(Criterion.Type.IPV6_EXTHDR, new FormatIpV6Exthdr());
         formatMap.put(Criterion.Type.OCH_SIGID, new FormatOchSigId());
         formatMap.put(Criterion.Type.OCH_SIGTYPE, new FormatOchSigType());
 
@@ -84,7 +85,6 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         formatMap.put(Criterion.Type.MPLS_BOS, new FormatUnknown());
         formatMap.put(Criterion.Type.PBB_ISID, new FormatUnknown());
         formatMap.put(Criterion.Type.TUNNEL_ID, new FormatUnknown());
-        formatMap.put(Criterion.Type.IPV6_EXTHDR, new FormatUnknown());
         formatMap.put(Criterion.Type.UNASSIGNED_40, new FormatUnknown());
         formatMap.put(Criterion.Type.PBB_UCA, new FormatUnknown());
         formatMap.put(Criterion.Type.TCP_FLAGS, new FormatUnknown());
@@ -286,6 +286,15 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
             final Criteria.MplsCriterion mplsCriterion =
                     (Criteria.MplsCriterion) criterion;
             return root.put("label", mplsCriterion.label());
+        }
+    }
+
+    private static class FormatIpV6Exthdr implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
+            final Criteria.IPv6ExthdrFlagsCriterion exthdrCriterion =
+                    (Criteria.IPv6ExthdrFlagsCriterion) criterion;
+            return root.put("exthdrFlags", exthdrCriterion.exthdrFlags());
         }
     }
 
