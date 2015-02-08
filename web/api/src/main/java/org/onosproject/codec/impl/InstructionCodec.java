@@ -15,7 +15,6 @@
  */
 package org.onosproject.codec.impl;
 
-import org.onlab.packet.Ethernet;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -100,11 +99,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
                 final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) instruction;
 
-                final JsonCodec<Ethernet> ethernetCodec =
-                        context.codec(Ethernet.class);
-                result.set("ethernetType",
-                        ethernetCodec.encode(pushHeaderInstructions.ethernetType(),
-                                context));
+                result.put("ethernetType", pushHeaderInstructions.ethernetType());
                 break;
 
             default:

@@ -194,7 +194,7 @@ public final class Instructions {
      */
     public static Instruction pushMpls() {
         return new PushHeaderInstructions(L2SubType.MPLS_PUSH,
-                                          new Ethernet().setEtherType(Ethernet.MPLS_UNICAST));
+                                          Ethernet.MPLS_UNICAST);
     }
 
     /**
@@ -203,7 +203,7 @@ public final class Instructions {
      */
     public static Instruction popMpls() {
         return new PushHeaderInstructions(L2SubType.MPLS_POP,
-                                          new Ethernet().setEtherType(Ethernet.MPLS_UNICAST));
+                                          Ethernet.MPLS_UNICAST);
     }
 
     /**
@@ -214,8 +214,7 @@ public final class Instructions {
      */
     public static Instruction popMpls(Short etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
-        return new PushHeaderInstructions(L2SubType.MPLS_POP,
-                new Ethernet().setEtherType(etherType));
+        return new PushHeaderInstructions(L2SubType.MPLS_POP, etherType);
     }
 
     /*

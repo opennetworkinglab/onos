@@ -255,12 +255,12 @@ public final class GroupModBuilder {
                 L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) l2m;
                 return factory.actions().pushMpls(EthType.of(pushHeaderInstructions
-                        .ethernetType().getEtherType()));
+                                                             .ethernetType()));
             case MPLS_POP:
                 L2ModificationInstruction.PushHeaderInstructions popHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) l2m;
                 return factory.actions().popMpls(EthType.of(popHeaderInstructions
-                        .ethernetType().getEtherType()));
+                                                            .ethernetType()));
             case MPLS_LABEL:
                 L2ModificationInstruction.ModMplsLabelInstruction mplsLabel =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2m;

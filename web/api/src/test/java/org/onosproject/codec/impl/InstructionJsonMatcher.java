@@ -16,13 +16,11 @@
 package org.onosproject.codec.impl;
 
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.net.flow.instructions.Instruction;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import static org.onosproject.codec.impl.EthernetJsonMatcher.matchesEthernet;
 import static org.onosproject.net.flow.instructions.Instructions.*;
 import static org.onosproject.net.flow.instructions.L0ModificationInstruction.*;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
@@ -67,13 +65,11 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             return false;
         }
 
-        final Matcher ethernetMatcher =
-                matchesEthernet(instructionToMatch.ethernetType());
-        final boolean ethernetMatches = ethernetMatcher.matches(ethJson);
-        if (!ethernetMatches) {
-            ethernetMatcher.describeMismatch(ethernetMatcher, description);
+        if (instructionToMatch.ethernetType() != ethJson.asInt()) {
+            description.appendText("ethernetType was " + ethJson);
             return false;
         }
+
         return true;
     }
 

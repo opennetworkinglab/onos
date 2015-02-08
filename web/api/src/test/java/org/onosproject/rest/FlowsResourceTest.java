@@ -45,8 +45,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction;
-
+import org.onosproject.net.flow.instructions.Instructions;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
@@ -187,6 +186,7 @@ public class FlowsResourceTest extends ResourceTest {
             return false;
         }
 
+        @Override
         public Type type() {
             return Type.DEFAULT;
         }
@@ -197,10 +197,8 @@ public class FlowsResourceTest extends ResourceTest {
      */
     private void setupMockFlows() {
         flow2.treatment = DefaultTrafficTreatment.builder()
-                .add(new L0ModificationInstruction.ModLambdaInstruction(
-                        L0ModificationInstruction.L0SubType.LAMBDA, (short) 4))
-                .add(new L0ModificationInstruction.ModLambdaInstruction(
-                        L0ModificationInstruction.L0SubType.LAMBDA, (short) 5))
+                .add(Instructions.modL0Lambda((short) 4))
+                .add(Instructions.modL0Lambda((short) 5))
                 .setEthDst(MacAddress.BROADCAST)
                 .build();
         flow2.selector = DefaultTrafficSelector.builder()
@@ -208,8 +206,7 @@ public class FlowsResourceTest extends ResourceTest {
                 .matchIPProtocol((byte) 9)
                 .build();
         flow4.treatment = DefaultTrafficTreatment.builder()
-                .add(new L0ModificationInstruction.ModLambdaInstruction(
-                L0ModificationInstruction.L0SubType.LAMBDA, (short) 6))
+                .add(Instructions.modL0Lambda((short) 6))
                 .build();
         final Set<FlowEntry> flows1 = new HashSet<>();
         flows1.add(flow1);
