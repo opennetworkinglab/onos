@@ -37,6 +37,18 @@ import java.util.Optional;
 public class DemoResource extends BaseResource {
 
 
+
+    @POST
+    @Path("flowTest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response flowTest(InputStream input) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode cfg = mapper.readTree(input);
+        DemoAPI demo = get(DemoAPI.class);
+        return Response.ok(demo.flowTest(Optional.ofNullable(cfg)).toString()).build();
+    }
+
     @POST
     @Path("setup")
     @Consumes(MediaType.APPLICATION_JSON)

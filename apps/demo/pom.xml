@@ -106,6 +106,7 @@
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
+                            org.apache.commons.lang.math.*,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
