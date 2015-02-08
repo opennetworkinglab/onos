@@ -20,6 +20,7 @@ import java.util.List;
 import org.junit.Test;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -30,8 +31,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
-import static org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 
 /**
  * Unit tests for the DefaultTrafficTreatment class.
@@ -48,7 +47,7 @@ public class DefaultTrafficTreatmentTest {
     public void testTreatmentBuilderConstructors() {
         final TrafficTreatment treatment1 =
                 DefaultTrafficTreatment.builder()
-                        .add(new ModLambdaInstruction(L0SubType.LAMBDA, (short) 4))
+                        .add(Instructions.modL0Lambda((short) 4))
                         .build();
         final TrafficTreatment treatment2 =
                 DefaultTrafficTreatment.builder(treatment1).build();
@@ -61,7 +60,7 @@ public class DefaultTrafficTreatmentTest {
     @Test
     public void testBuilderMethods() {
         final Instruction instruction1 =
-                new ModLambdaInstruction(L0SubType.LAMBDA, (short) 4);
+                Instructions.modL0Lambda((short) 4);
 
         final TrafficTreatment.Builder builder1 =
                 DefaultTrafficTreatment.builder()
@@ -95,15 +94,15 @@ public class DefaultTrafficTreatmentTest {
     public void testEquals() {
         final TrafficTreatment treatment1 =
                 DefaultTrafficTreatment.builder()
-                        .add(new ModLambdaInstruction(L0SubType.LAMBDA, (short) 4))
+                        .add(Instructions.modL0Lambda((short) 4))
                         .build();
         final TrafficTreatment sameAsTreatment1 =
                 DefaultTrafficTreatment.builder()
-                        .add(new ModLambdaInstruction(L0SubType.LAMBDA, (short) 4))
+                        .add(Instructions.modL0Lambda((short) 4))
                         .build();
         final TrafficTreatment treatment2 =
                 DefaultTrafficTreatment.builder()
-                        .add(new ModLambdaInstruction(L0SubType.LAMBDA, (short) 2))
+                        .add(Instructions.modL0Lambda((short) 2))
                         .build();
         new EqualsTester()
                 .addEqualityGroup(treatment1, sameAsTreatment1)

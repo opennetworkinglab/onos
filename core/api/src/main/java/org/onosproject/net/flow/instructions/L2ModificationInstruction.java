@@ -19,7 +19,6 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
-import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -134,15 +133,15 @@ public abstract class L2ModificationInstruction implements Instruction {
             L2ModificationInstruction {
 
         private final L2SubType subtype;
-        private final Ethernet ethernetType;
+        private final short ethernetType; // uint16_t
 
-        public PushHeaderInstructions(L2SubType subType, Ethernet ethernetType) {
+        PushHeaderInstructions(L2SubType subType, short ethernetType) {
             this.subtype = subType;
             this.ethernetType = ethernetType;
         }
 
-        public Ethernet ethernetType() {
-            return ethernetType;
+        public int ethernetType() {
+            return Short.toUnsignedInt(ethernetType);
         }
 
         @Override
@@ -152,12 +151,14 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString()).toString();
+            return toStringHelper(subtype().toString())
+                    .add("ethernetType", String.format("0x%04x", ethernetType()))
+                    .toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), subtype);
+            return Objects.hash(type(), subtype, ethernetType);
         }
 
         @Override
@@ -167,9 +168,8 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof PushHeaderInstructions) {
                 PushHeaderInstructions that = (PushHeaderInstructions) obj;
-                return  Objects.equals(this.type(), that.type()) &&
-                        Objects.equals(subtype, that.subtype);
-
+                return  Objects.equals(subtype, that.subtype) &&
+                        Objects.equals(this.ethernetType, that.ethernetType);
             }
             return false;
         }
