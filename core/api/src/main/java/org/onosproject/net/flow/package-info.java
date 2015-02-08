@@ -16,5 +16,11 @@
 
 /**
  * Flow rule model &amp; related services API definitions.
+ *
+ * <p>
+ * The figure below depicts the general interactions between different
+ * components of the intent subsystem.<br>
+ * <img src="doc-files/flowrule-design.png" alt="ONOS flow rule subsystem design">
+ * </p>
  */
 package org.onosproject.net.flow;

@@ -75,7 +75,9 @@
  * performs global recomputation/optimization across all prior intents.
  * </p>
  * <p>
- * <img src="doc-files/intent-subsystem.png" alt="ONOS intent subsystem">
+ * The figure below depicts the general interactions between different
+ * components of the intent subsystem.<br>
+ * <img src="doc-files/intent-design.png" alt="ONOS intent subsystem design">
  * </p>
  */
 package org.onosproject.net.intent;

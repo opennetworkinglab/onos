@@ -15,6 +15,6 @@
  */
 
 /**
- * Null Provider that advertises fake hosts.
+ * Provider that advertises fake hosts.
  */
 package org.onosproject.provider.nil.host.impl;

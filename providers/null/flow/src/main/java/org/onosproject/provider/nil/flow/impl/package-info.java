@@ -15,6 +15,6 @@
  */
 
 /**
- * Null provider that will accept any flow.
+ * Provider that will accept any flow rules.
  */
 package org.onosproject.provider.nil.flow.impl;

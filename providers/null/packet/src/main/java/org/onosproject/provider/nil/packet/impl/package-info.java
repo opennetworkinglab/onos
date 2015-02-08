@@ -15,6 +15,6 @@
  */
 
 /**
- * Provider that takes and brings to/from oblivion.
+ * Provider that sends and brings packets to &amp; from oblivion.
  */
 package org.onosproject.provider.nil.packet.impl;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 /**
- * Provider that advertises fake devices.
+ * Implementation of partitioned and distributed store facility capable of
+ * providing consistent update semantics.
  */
-package org.onosproject.provider.nil.device.impl;
+package org.onosproject.store.consistent.impl;
