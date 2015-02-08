@@ -80,7 +80,7 @@ public abstract class L2ModificationInstruction implements Instruction {
     public abstract L2SubType subtype();
 
     @Override
-    public Type type() {
+    public final Type type() {
         return Type.L2MODIFICATION;
     }
 
@@ -92,7 +92,7 @@ public abstract class L2ModificationInstruction implements Instruction {
         private final L2SubType subtype;
         private final MacAddress mac;
 
-        public ModEtherInstruction(L2SubType subType, MacAddress addr) {
+        ModEtherInstruction(L2SubType subType, MacAddress addr) {
 
             this.subtype = subType;
             this.mac = addr;
@@ -126,16 +126,13 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (obj instanceof ModEtherInstruction) {
                 ModEtherInstruction that = (ModEtherInstruction) obj;
                 return  Objects.equals(mac, that.mac) &&
-                        Objects.equals(this.type(), that.type()) &&
                         Objects.equals(subtype, that.subtype);
-
             }
             return false;
         }
-
-
     }
 
+    // TODO This instruction is reused for Pop-Mpls. Consider renaming.
     public static final class PushHeaderInstructions extends
             L2ModificationInstruction {
 
@@ -191,7 +188,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         private final VlanId vlanId;
 
-        public ModVlanIdInstruction(VlanId vlanId) {
+        ModVlanIdInstruction(VlanId vlanId) {
             this.vlanId = vlanId;
         }
 
@@ -222,15 +219,10 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModVlanIdInstruction) {
                 ModVlanIdInstruction that = (ModVlanIdInstruction) obj;
-                return  Objects.equals(vlanId, that.vlanId) &&
-                        Objects.equals(this.type(), that.type()) &&
-                        Objects.equals(this.subtype(), that.subtype());
-
+                return  Objects.equals(vlanId, that.vlanId);
             }
             return false;
         }
-
-
     }
 
     /**
@@ -240,7 +232,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         private final Byte vlanPcp;
 
-        public ModVlanPcpInstruction(Byte vlanPcp) {
+        ModVlanPcpInstruction(Byte vlanPcp) {
             this.vlanPcp = vlanPcp;
         }
 
@@ -271,26 +263,22 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModVlanPcpInstruction) {
                 ModVlanPcpInstruction that = (ModVlanPcpInstruction) obj;
-                return  Objects.equals(vlanPcp, that.vlanPcp) &&
-                        Objects.equals(this.type(), that.type()) &&
-                        Objects.equals(this.subtype(), that.subtype());
-
+                return  Objects.equals(vlanPcp, that.vlanPcp);
             }
             return false;
         }
-
     }
 
 
     /**
      * Represents a MPLS label modification.
      */
-    public static final class ModMplsLabelInstruction extends
-    L2ModificationInstruction {
+    public static final class ModMplsLabelInstruction
+            extends L2ModificationInstruction {
 
         private final MplsLabel mplsLabel;
 
-        public ModMplsLabelInstruction(MplsLabel mplsLabel) {
+        ModMplsLabelInstruction(MplsLabel mplsLabel) {
             this.mplsLabel = mplsLabel;
         }
 
@@ -321,10 +309,7 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModMplsLabelInstruction) {
                 ModMplsLabelInstruction that = (ModMplsLabelInstruction) obj;
-                return Objects.equals(mplsLabel, that.mplsLabel) &&
-                        Objects.equals(this.type(), that.type());
-
-
+                return Objects.equals(mplsLabel, that.mplsLabel);
             }
             return false;
         }
@@ -333,10 +318,10 @@ public abstract class L2ModificationInstruction implements Instruction {
     /**
      * Represents a MPLS TTL modification.
      */
-    public static final class ModMplsTtlInstruction extends
-            L2ModificationInstruction {
+    public static final class ModMplsTtlInstruction
+            extends L2ModificationInstruction {
 
-        public ModMplsTtlInstruction() {
+        ModMplsTtlInstruction() {
         }
 
         @Override

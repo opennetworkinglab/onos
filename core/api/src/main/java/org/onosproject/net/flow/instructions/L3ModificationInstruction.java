@@ -80,7 +80,7 @@ public abstract class L3ModificationInstruction implements Instruction {
     public abstract L3SubType subtype();
 
     @Override
-    public Type type() {
+    public final Type type() {
         return Type.L3MODIFICATION;
     }
 
@@ -92,7 +92,7 @@ public abstract class L3ModificationInstruction implements Instruction {
         private final L3SubType subtype;
         private final IpAddress ip;
 
-        public ModIPInstruction(L3SubType subType, IpAddress addr) {
+        ModIPInstruction(L3SubType subType, IpAddress addr) {
 
             this.subtype = subType;
             this.ip = addr;
@@ -126,9 +126,7 @@ public abstract class L3ModificationInstruction implements Instruction {
             if (obj instanceof ModIPInstruction) {
                 ModIPInstruction that = (ModIPInstruction) obj;
                 return  Objects.equals(ip, that.ip) &&
-                        Objects.equals(this.type(), that.type()) &&
                         Objects.equals(this.subtype(), that.subtype());
-
             }
             return false;
         }
@@ -148,7 +146,7 @@ public abstract class L3ModificationInstruction implements Instruction {
          *
          * @param flowLabel the IPv6 flow label to set in the treatment (20 bits)
          */
-        public ModIPv6FlowLabelInstruction(int flowLabel) {
+        ModIPv6FlowLabelInstruction(int flowLabel) {
             this.flowLabel = flowLabel & MASK;
         }
 
@@ -185,9 +183,7 @@ public abstract class L3ModificationInstruction implements Instruction {
             if (obj instanceof ModIPv6FlowLabelInstruction) {
                 ModIPv6FlowLabelInstruction that =
                     (ModIPv6FlowLabelInstruction) obj;
-                return  Objects.equals(flowLabel, that.flowLabel) &&
-                        Objects.equals(this.type(), that.type()) &&
-                        Objects.equals(this.subtype(), that.subtype());
+                return  Objects.equals(flowLabel, that.flowLabel);
             }
             return false;
         }
@@ -200,7 +196,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         private final L3SubType subtype;
 
-        public ModTtlInstruction(L3SubType subtype) {
+        ModTtlInstruction(L3SubType subtype) {
             this.subtype = subtype;
         }
 
@@ -227,9 +223,7 @@ public abstract class L3ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModTtlInstruction) {
                 ModTtlInstruction that = (ModTtlInstruction) obj;
-                return  Objects.equals(this.subtype(), that.subtype()) &&
-                        Objects.equals(this.type(), that.type());
-
+                return  Objects.equals(this.subtype(), that.subtype());
             }
             return false;
         }

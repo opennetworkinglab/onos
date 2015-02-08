@@ -73,7 +73,7 @@ public class InstructionCodecTest {
     @Test
     public void dropInstructionTest() {
         final Instructions.DropInstruction instruction =
-                new Instructions.DropInstruction();
+                Instructions.createDrop();
         final ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));

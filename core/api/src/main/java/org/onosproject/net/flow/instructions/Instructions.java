@@ -260,11 +260,13 @@ public final class Instructions {
         return new TableTypeTransition(type);
     }
 
-    /*
-     *  Drop instructions
+    /**
+     *  Drop instruction.
      */
-
     public static final class DropInstruction implements Instruction {
+
+        private DropInstruction() {}
+
         @Override
         public Type type() {
             return Type.DROP;
@@ -287,18 +289,15 @@ public final class Instructions {
                 return true;
             }
             if (obj instanceof DropInstruction) {
-                DropInstruction that = (DropInstruction) obj;
-                return Objects.equals(type(), that.type());
-
+                return true;
             }
             return false;
         }
     }
 
-    /*
-     *  Output Instruction
+    /**
+     *  Output Instruction.
      */
-
     public static final class OutputInstruction implements Instruction {
         private final PortNumber port;
 
@@ -339,10 +338,9 @@ public final class Instructions {
         }
     }
 
-    /*
-     *  Group Instruction
+    /**
+     *  Group Instruction.
      */
-
     public static final class GroupInstruction implements Instruction {
         private final GroupId groupId;
 
@@ -389,7 +387,7 @@ public final class Instructions {
     public static class TableTypeTransition implements Instruction {
         private final FlowRule.Type tableType;
 
-        public TableTypeTransition(FlowRule.Type type) {
+        TableTypeTransition(FlowRule.Type type) {
             this.tableType = type;
         }
 
@@ -405,7 +403,7 @@ public final class Instructions {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("group ID", this.tableType).toString();
+                    .add("tableType", this.tableType).toString();
         }
 
         @Override

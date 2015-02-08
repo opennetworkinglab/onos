@@ -36,7 +36,7 @@ public abstract class L0ModificationInstruction implements Instruction {
     public abstract L0SubType subtype();
 
     @Override
-    public Type type() {
+    public final Type type() {
         return Type.L0MODIFICATION;
     }
 
@@ -48,7 +48,7 @@ public abstract class L0ModificationInstruction implements Instruction {
         private final L0SubType subtype;
         private final short lambda;
 
-        public ModLambdaInstruction(L0SubType subType, short lambda) {
+        ModLambdaInstruction(L0SubType subType, short lambda) {
             this.subtype = subType;
             this.lambda = lambda;
         }
@@ -81,7 +81,6 @@ public abstract class L0ModificationInstruction implements Instruction {
             if (obj instanceof ModLambdaInstruction) {
                 ModLambdaInstruction that = (ModLambdaInstruction) obj;
                 return  Objects.equals(lambda, that.lambda) &&
-                        Objects.equals(this.type(), that.type()) &&
                         Objects.equals(subtype, that.subtype);
             }
             return false;
