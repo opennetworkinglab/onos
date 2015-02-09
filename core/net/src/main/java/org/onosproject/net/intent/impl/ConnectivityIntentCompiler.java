@@ -105,7 +105,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
                     }
                 }).toList();
         if (filtered.isEmpty()) {
-            throw new PathNotFoundException("No packet path from " + one + " to " + two);
+            throw new PathNotFoundException(one, two);
         }
         // TODO: let's be more intelligent about this eventually
         return filtered.iterator().next();

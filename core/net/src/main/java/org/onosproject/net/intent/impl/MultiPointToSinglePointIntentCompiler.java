@@ -101,7 +101,7 @@ public class MultiPointToSinglePointIntentCompiler
     private Path getPath(ConnectPoint one, ConnectPoint two) {
         Set<Path> paths = pathService.getPaths(one.deviceId(), two.deviceId());
         if (paths.isEmpty()) {
-            throw new PathNotFoundException("No path from " + one + " to " + two);
+            throw new PathNotFoundException(one.elementId(), two.elementId());
         }
         // TODO: let's be more intelligent about this eventually
         return paths.iterator().next();

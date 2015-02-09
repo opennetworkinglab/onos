@@ -89,8 +89,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Set<Path> paths = topologyService.getPaths(topology, start.deviceId(),
                                                    end.deviceId(), weight);
         if (paths.isEmpty()) {
-            throw new PathNotFoundException("No Optical path found from " +
-                                                    start + " to " + end);
+            throw new PathNotFoundException(start.elementId(), end.elementId());
         }
 
         // TODO: let's be more intelligent about this eventually

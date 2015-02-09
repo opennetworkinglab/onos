@@ -138,7 +138,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
             fail("Point to Point compilation with insufficient bandwidth does "
                     + "not throw exception.");
         } catch (PathNotFoundException noPath) {
-            assertThat(noPath.getMessage(), containsString("No packet path"));
+            assertThat(noPath.getMessage(), containsString("No path"));
         }
     }
 
@@ -173,7 +173,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
             fail("Point to Point compilation with no available lambda does "
                     + "not throw exception.");
         } catch (PathNotFoundException noPath) {
-            assertThat(noPath.getMessage(), containsString("No packet path"));
+            assertThat(noPath.getMessage(), containsString("No path"));
         }
     }
 

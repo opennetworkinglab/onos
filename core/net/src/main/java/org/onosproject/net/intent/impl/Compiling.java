@@ -47,14 +47,9 @@ class Compiling implements IntentUpdate {
             List<Intent> installables = (current != null) ? current.installables() : null;
             pending.setInstallables(intentManager.compileIntent(pending.intent(), installables));
             return Optional.of(new InstallCoordinating(intentManager, pending, current));
-        } catch (PathNotFoundException e) {
-            log.debug("Path not found for intent {}", pending.intent());
-            // TODO: revisit to implement failure handling
-            return Optional.of(new CompilingFailed(pending)); //FIXME failed state transition
         } catch (IntentException e) {
-            log.warn("Unable to compile intent {} due to:", pending.intent().id(), e);
-            // TODO: revisit to implement failure handling
-            return Optional.of(new CompilingFailed(pending)); //FIXME failed state transition
+            log.debug("Unable to compile intent {} due to: {}", pending.intent(), e);
+            return Optional.of(new CompilingFailed(pending));
         }
     }
 }

@@ -15,7 +15,11 @@
  */
 package org.onosproject.net.intent.impl;
 
+import com.google.common.base.MoreObjects;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.intent.IntentException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An exception thrown when a path is not found.
@@ -23,15 +27,20 @@ import org.onosproject.net.intent.IntentException;
 public class PathNotFoundException extends IntentException {
     private static final long serialVersionUID = -2087045731049914733L;
 
-    public PathNotFoundException() {
-        super();
+    private final ElementId source;
+    private final ElementId destination;
+
+    public PathNotFoundException(ElementId source, ElementId destination) {
+        super(String.format("No path from %s to %s", source, destination));
+        this.source = checkNotNull(source);
+        this.destination = checkNotNull(destination);
     }
 
-    public PathNotFoundException(String message) {
-        super(message);
-    }
-
-    public PathNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("source", source)
+                .add("destination", destination)
+                .toString();
     }
 }
