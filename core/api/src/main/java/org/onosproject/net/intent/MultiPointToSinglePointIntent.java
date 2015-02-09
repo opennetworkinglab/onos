@@ -149,6 +149,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
+                .add("key", key())
                 .add("appId", appId())
                 .add("resources", resources())
                 .add("selector", selector())
