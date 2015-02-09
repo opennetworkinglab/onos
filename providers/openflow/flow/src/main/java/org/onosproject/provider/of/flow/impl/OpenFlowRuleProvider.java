@@ -71,6 +71,7 @@ import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
@@ -328,7 +329,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     providerService.flowRemoved(fr);
                     break;
                 case STATS_REPLY:
-                    pushFlowMetrics(dpid, (OFStatsReply) msg);
+                    if (((OFStatsReply) msg).getStatsType() != OFStatsType.FLOW) {
+                        pushFlowMetrics(dpid, (OFFlowStatsReply) msg);
+                    }
                     break;
                 case BARRIER_REPLY:
                     future = pendingFutures.get(msg.getXid());
@@ -359,10 +362,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             // Do nothing here for now.
         }
 
-        private void pushFlowMetrics(Dpid dpid, OFStatsReply stats) {
+        private void pushFlowMetrics(Dpid dpid, OFFlowStatsReply replies) {
 
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
-            final OFFlowStatsReply replies = (OFFlowStatsReply) stats;
 
             List<FlowEntry> flowEntries = replies.getEntries().stream()
                     .filter(entry -> !tableMissRule(dpid, entry))
