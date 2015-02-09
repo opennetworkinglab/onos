@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +49,10 @@ class Installing implements IntentUpdate {
         try {
             intentManager.flowRuleService.apply(flowRules); // FIXME we need to provide a context
             return Optional.of(new Installed(pending));
-        } catch (FlowRuleBatchOperationConversionException e) {
-            log.warn("Unable to install intent {} due to:", pending.intent().id(), e.getCause());
+        // What kinds of exceptions are thrown by FlowRuleService.apply()?
+        // Is IntentException a correct exception abstraction?
+        } catch (IntentException e) {
+            log.warn("Unable to install intent {} due to: {}", pending.intent().id(), e);
             return Optional.of(new InstallingFailed(pending));
         }
     }

@@ -288,14 +288,10 @@ public class IntentManager
         List<Intent> installables = pending.installables();
         List<List<FlowRuleBatchOperation>> plans = new ArrayList<>(installables.size());
         for (Intent installable : installables) {
-            try {
-                registerSubclassInstallerIfNeeded(installable);
-                //FIXME need to migrate installers to FlowRuleOperations
-                // FIXME need to aggregate the FlowRuleOperations across installables
-                plans.add(getInstaller(installable).install(installable));
-            } catch (Exception e) { // TODO this should be IntentException
-                throw new FlowRuleBatchOperationConversionException(null/*FIXME*/, e);
-            }
+            registerSubclassInstallerIfNeeded(installable);
+            //FIXME need to migrate installers to FlowRuleOperations
+            // FIXME need to aggregate the FlowRuleOperations across installables
+            plans.add(getInstaller(installable).install(installable));
         }
 
         return merge(plans).build(new FlowRuleOperationsContext() { // FIXME move this out
@@ -325,12 +321,7 @@ public class IntentManager
         List<Intent> installables = current.installables();
         List<List<FlowRuleBatchOperation>> plans = new ArrayList<>();
         for (Intent installable : installables) {
-            try {
-                plans.add(getInstaller(installable).uninstall(installable));
-            } catch (IntentException e) {
-                log.warn("Unable to uninstall intent {} due to:", current.intent().id(), e);
-                throw new FlowRuleBatchOperationConversionException(null/*FIXME*/, e);
-            }
+            plans.add(getInstaller(installable).uninstall(installable));
         }
 
         return merge(plans).build(new FlowRuleOperationsContext() {

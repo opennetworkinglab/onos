@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +49,9 @@ class InstallCoordinating implements IntentUpdate {
         try {
             FlowRuleOperations flowRules = intentManager.coordinate(pending);
             return Optional.of(new Installing(intentManager, pending, flowRules));
-        } catch (FlowRuleBatchOperationConversionException e) {
-            log.warn("Unable to install intent {} due to:", pending.intent().id(), e.getCause());
-            return Optional.of(new InstallingFailed(pending)); //FIXME
+        } catch (IntentException e) {
+            log.warn("Unable to generate a FlowRuleOperations from intent {} due to:", pending.intent().id(), e);
+            return Optional.of(new InstallingFailed(pending));
         }
     }
 }
