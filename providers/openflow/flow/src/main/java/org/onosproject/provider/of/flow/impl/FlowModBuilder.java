@@ -25,10 +25,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.Criteria.EthTypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IcmpCodeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IcmpTypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPDscpCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPEcnCriterion;
@@ -36,6 +32,10 @@ import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPv6FlowLabelCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPv6NDLinkLayerAddressCriterion;
 import org.onosproject.net.flow.criteria.Criteria.IPv6NDTargetAddressCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IcmpCodeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.IcmpTypeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.Criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.Criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
@@ -99,7 +99,8 @@ public abstract class FlowModBuilder {
      * @return the new flow mod builder
      */
     public static FlowModBuilder builder(FlowRule flowRule,
-                                         OFFactory factory, Optional<Long> xid) {
+                                         OFFactory factory,
+                                         Optional<Long> xid) {
         switch (factory.getVersion()) {
         case OF_10:
             return new FlowModBuilderVer10(flowRule, factory, xid);

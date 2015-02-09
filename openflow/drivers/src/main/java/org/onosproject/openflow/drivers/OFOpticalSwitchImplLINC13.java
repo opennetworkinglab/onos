@@ -87,7 +87,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
     @Override
     public void processDriverHandshakeMessage(OFMessage m) {
-         if (!startDriverHandshakeCalled) {
+        if (!startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeNotStarted();
         }
         if (driverHandshakeComplete.get()) {

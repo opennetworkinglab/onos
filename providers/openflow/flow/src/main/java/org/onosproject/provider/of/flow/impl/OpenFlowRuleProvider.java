@@ -159,8 +159,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowAdd());
         } else {
+            OpenFlowSwitch.TableType type = getTableType(flowRule.type());
             sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                    Optional.empty()).buildFlowAdd(), getTableType(flowRule.type()));
+                                              Optional.empty()).buildFlowAdd(),
+                                              type);
         }
     }
 
@@ -230,12 +232,23 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private OpenFlowSwitch.TableType getTableType(FlowRule.Type type) {
         switch (type) {
+
+            case DEFAULT:
+                return OpenFlowSwitch.TableType.NONE;
             case IP:
                 return OpenFlowSwitch.TableType.IP;
             case MPLS:
                 return OpenFlowSwitch.TableType.MPLS;
             case ACL:
                 return OpenFlowSwitch.TableType.ACL;
+            case VLAN_MPLS:
+                return OpenFlowSwitch.TableType.VLAN_MPLS;
+            case VLAN:
+                return OpenFlowSwitch.TableType.VLAN;
+            case ETHER:
+                return OpenFlowSwitch.TableType.ETHER;
+            case COS:
+                return OpenFlowSwitch.TableType.COS;
             default:
                 return OpenFlowSwitch.TableType.NONE;
         }

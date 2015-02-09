@@ -40,7 +40,19 @@ public interface FlowRule {
         /* Used in flow entry for MPLS table */
         MPLS,
         /* Used in flow entry for ACL table */
-        ACL
+        ACL,
+
+        /* VLAN-to-MPLS table */
+        VLAN_MPLS,
+
+        /* VLAN table */
+        VLAN,
+
+        /* L2 table */
+        ETHER,
+
+        /* Class of Service table */
+        COS,
     }
 
     //TODO: build cookie value

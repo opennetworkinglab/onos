@@ -195,6 +195,15 @@ public interface TrafficTreatment {
          */
         public Builder group(GroupId groupId);
 
+
+        /**
+         * Sets the next table type to transition to.
+         *
+         * @param type the table type
+         * @return a treatement builder
+         */
+        public Builder transition(FlowRule.Type type);
+
         /**
          * Builds an immutable traffic treatment descriptor.
          *

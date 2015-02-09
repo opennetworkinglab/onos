@@ -23,6 +23,7 @@ import java.util.Objects;
 
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
@@ -254,6 +255,11 @@ public final class Instructions {
         return new PushHeaderInstructions(L2SubType.MPLS_POP, etherType);
     }
 
+    public static Instruction transition(FlowRule.Type type) {
+        checkNotNull(type, "Table type cannot be null");
+        return new TableTypeTransition(type);
+    }
+
     /*
      *  Drop instructions
      */
@@ -352,6 +358,7 @@ public final class Instructions {
         public Type type() {
             return Type.GROUP;
         }
+
         @Override
         public String toString() {
             return toStringHelper(type().toString())
@@ -377,6 +384,49 @@ public final class Instructions {
         }
     }
 
+    // FIXME: Temporary support for this. This should probably become it's own
+    // type like other instructions.
+    public static class TableTypeTransition implements Instruction {
+        private final FlowRule.Type tableType;
+
+        public TableTypeTransition(FlowRule.Type type) {
+            this.tableType = type;
+        }
+
+        @Override
+        public Type type() {
+            return Type.TABLE;
+        }
+
+        public FlowRule.Type tableType() {
+            return this.tableType;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("group ID", this.tableType).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), tableType);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof TableTypeTransition) {
+                TableTypeTransition that = (TableTypeTransition) obj;
+                return Objects.equals(tableType, that.tableType);
+
+            }
+            return false;
+        }
+
+    }
 }
 
 

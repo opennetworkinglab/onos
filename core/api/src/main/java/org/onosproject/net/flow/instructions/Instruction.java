@@ -50,6 +50,11 @@ public interface Instruction {
         L2MODIFICATION,
 
         /**
+         * Signifies that the traffic should be passed to another table.
+         */
+        TABLE,
+
+        /**
          * Signifies that the traffic should be modified in L3 way.
          */
         L3MODIFICATION

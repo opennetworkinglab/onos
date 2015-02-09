@@ -32,6 +32,18 @@ public interface OpenFlowSwitch {
      * It is used only for multi-table support switch.
      */
     public static enum TableType {
+        /* VLAN-to-MPLS table */
+        VLAN_MPLS,
+
+        /* VLAN table */
+        VLAN,
+
+        /* L2 table */
+        ETHER,
+
+        /* Class of Service table */
+        COS,
+
         /* IP table */
         IP,
         /* MPLS table */
@@ -40,6 +52,8 @@ public interface OpenFlowSwitch {
         ACL,
         /* Single table */
         NONE,
+
+
     }
 
     /**

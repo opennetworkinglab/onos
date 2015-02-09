@@ -249,6 +249,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public TrafficTreatment.Builder transition(FlowRule.Type type) {
+            return add(Instructions.transition(type));
+        }
+
+        @Override
         public TrafficTreatment build() {
 
             //If we are dropping should we just return an empty list?
