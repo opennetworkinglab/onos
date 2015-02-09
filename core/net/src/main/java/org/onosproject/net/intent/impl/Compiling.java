@@ -46,7 +46,7 @@ class Compiling implements IntentUpdate {
         try {
             List<Intent> installables = (current != null) ? current.installables() : null;
             pending.setInstallables(intentManager.compileIntent(pending.intent(), installables));
-            return Optional.of(new Coordinating(intentManager, pending, current));
+            return Optional.of(new InstallCoordinating(intentManager, pending, current));
         } catch (PathNotFoundException e) {
             log.debug("Path not found for intent {}", pending.intent());
             // TODO: revisit to implement failure handling

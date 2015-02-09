@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -316,6 +315,42 @@ public class IntentManager
         });
     }
 
+    /**
+     * Generate a {@link FlowRuleOperations} instance from the specified intent data.
+     *
+     * @param current intent data stored in the store
+     * @return flow rule operations
+     */
+    FlowRuleOperations uninstallCoordinate(IntentData current) {
+        List<Intent> installables = current.installables();
+        List<List<FlowRuleBatchOperation>> plans = new ArrayList<>();
+        for (Intent installable : installables) {
+            try {
+                plans.add(getInstaller(installable).uninstall(installable));
+            } catch (IntentException e) {
+                log.warn("Unable to uninstall intent {} due to:", current.intent().id(), e);
+                throw new FlowRuleBatchOperationConversionException(null/*FIXME*/, e);
+            }
+        }
+
+        return merge(plans).build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Completed withdrawing: {}", current.key());
+                current.setState(WITHDRAWN);
+                store.write(current);
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.warn("Failed withdraw: {}", current.key());
+                current.setState(FAILED);
+                store.write(current);
+            }
+        });
+    }
+
+
     // FIXME... needs tests... or maybe it's just perfect
     private FlowRuleOperations.Builder merge(List<List<FlowRuleBatchOperation>> plans) {
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
@@ -355,30 +390,6 @@ public class IntentManager
             builder.newStage();
         }
         return builder;
-    }
-
-    /**
-     * Uninstalls all installable intents associated with the given intent.
-     *
-     * @param intent intent
-     * @param installables installable intents
-     * @return list of batches to uninstall intent
-     */
-    //FIXME
-    FlowRuleOperations uninstallIntent(Intent intent, List<Intent> installables) {
-        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
-        for (Intent installable : installables) {
-            trackerService.removeTrackedResources(intent.id(),
-                    installable.resources());
-            try {
-                // FIXME need to aggregate the FlowRuleOperations across installables
-                getInstaller(installable).uninstall(installable); //.build(null/*FIXME*/);
-            } catch (IntentException e) {
-                log.warn("Unable to uninstall intent {} due to:", intent.id(), e);
-                // TODO: this should never happen. but what if it does?
-            }
-        }
-        return null; //FIXME
     }
 
     /**

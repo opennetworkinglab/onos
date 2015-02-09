@@ -22,25 +22,26 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Represents a phase of withdrawing an intent with calling
+ * {@link import org.onosproject.net.flow.FlowRuleService}.
+ */
 class Withdrawing implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
     private final IntentData pending;
-    private final IntentData current;
+    private final FlowRuleOperations flowRules;
 
-    Withdrawing(IntentManager intentManager, IntentData pending, IntentData current) {
+    Withdrawing(IntentManager intentManager, IntentData pending, FlowRuleOperations flowRules) {
         this.intentManager = checkNotNull(intentManager);
         this.pending = checkNotNull(pending);
-        this.current = checkNotNull(current);
+        this.flowRules = checkNotNull(flowRules);
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        FlowRuleOperations flowRules
-                = intentManager.uninstallIntent(current.intent(), current.installables());
-        intentManager.flowRuleService.apply(flowRules); //FIXME
-
+        intentManager.flowRuleService.apply(flowRules);
         return Optional.of(new Withdrawn(pending));
     }
 }

@@ -17,37 +17,31 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-// TODO: better naming because install() method actually generate FlowRuleBatchOperations
-class Coordinating implements IntentUpdate {
+/**
+ * Represents a phase to create a {@link FlowRuleOperations} instance
+ * with using registered intent installers.
+ */
+class WithdrawCoordinating implements IntentUpdate {
 
-    private static final Logger log = LoggerFactory.getLogger(Coordinating.class);
-
+    // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
     private final IntentData pending;
     private final IntentData current;
 
-    // TODO: define an interface and use it, instead of IntentManager
-    Coordinating(IntentManager intentManager, IntentData pending, IntentData current) {
+    WithdrawCoordinating(IntentManager intentManager, IntentData pending, IntentData current) {
         this.intentManager = checkNotNull(intentManager);
         this.pending = checkNotNull(pending);
-        this.current = current;
+        this.current = checkNotNull(current);
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        try {
-            FlowRuleOperations flowRules = intentManager.coordinate(pending);
-            return Optional.of(new Installing(intentManager, pending, flowRules));
-        } catch (FlowRuleBatchOperationConversionException e) {
-            log.warn("Unable to install intent {} due to:", pending.intent().id(), e.getCause());
-            return Optional.of(new InstallingFailed(pending)); //FIXME
-        }
+        FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current);
+        return Optional.of(new Withdrawing(intentManager, pending, flowRules));
     }
 }

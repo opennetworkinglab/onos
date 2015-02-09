@@ -21,6 +21,9 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Represents a phase of requesting a withdraw of an intent.
+ */
 class WithdrawRequest implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager
@@ -39,6 +42,6 @@ class WithdrawRequest implements IntentUpdate {
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
         // Note: this call is not just the symmetric version of submit
-        return Optional.of(new Withdrawing(intentManager, pending, current));
+        return Optional.of(new WithdrawCoordinating(intentManager, pending, current));
     }
 }

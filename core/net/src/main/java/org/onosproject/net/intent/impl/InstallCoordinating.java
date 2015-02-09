@@ -25,32 +25,32 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Represents a phase of installing an intent with calling
- * {@link org.onosproject.net.flow.FlowRuleService}.
+ * Represents a phase to create a {@link FlowRuleOperations} instance
+ * with using registered intent installers.
  */
-class Installing implements IntentUpdate {
+class InstallCoordinating implements IntentUpdate {
 
-    private static final Logger log = LoggerFactory.getLogger(Installing.class);
+    private static final Logger log = LoggerFactory.getLogger(InstallCoordinating.class);
 
     private final IntentManager intentManager;
     private final IntentData pending;
-    private final FlowRuleOperations flowRules;
+    private final IntentData current;
 
     // TODO: define an interface and use it, instead of IntentManager
-    Installing(IntentManager intentManager, IntentData pending, FlowRuleOperations flowRules) {
+    InstallCoordinating(IntentManager intentManager, IntentData pending, IntentData current) {
         this.intentManager = checkNotNull(intentManager);
         this.pending = checkNotNull(pending);
-        this.flowRules = flowRules;
+        this.current = current;
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
         try {
-            intentManager.flowRuleService.apply(flowRules); // FIXME we need to provide a context
-            return Optional.of(new Installed(pending));
+            FlowRuleOperations flowRules = intentManager.coordinate(pending);
+            return Optional.of(new Installing(intentManager, pending, flowRules));
         } catch (FlowRuleBatchOperationConversionException e) {
             log.warn("Unable to install intent {} due to:", pending.intent().id(), e.getCause());
-            return Optional.of(new InstallingFailed(pending));
+            return Optional.of(new InstallingFailed(pending)); //FIXME
         }
     }
 }
