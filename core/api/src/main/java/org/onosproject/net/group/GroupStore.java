@@ -132,8 +132,9 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * Indicates the first group audit is completed.
      *
      * @param deviceId the device ID
+     * @param completed initial audit status
      */
-    void deviceInitialAuditCompleted(DeviceId deviceId);
+    void deviceInitialAuditCompleted(DeviceId deviceId, boolean completed);
 
     /**
      * Retrieves the initial group audit status for a device.

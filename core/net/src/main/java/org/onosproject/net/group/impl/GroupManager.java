@@ -32,6 +32,9 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
@@ -67,9 +70,13 @@ public class GroupManager
     private final AbstractListenerRegistry<GroupEvent, GroupListener>
                 listenerRegistry = new AbstractListenerRegistry<>();
     private final GroupStoreDelegate delegate = new InternalGroupStoreDelegate();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GroupStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -78,6 +85,7 @@ public class GroupManager
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(GroupEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
         log.info("Started");
     }
 
@@ -232,6 +240,8 @@ public class GroupManager
             GroupOperations groupOps = null;
             switch (event.type()) {
             case GROUP_ADD_REQUESTED:
+                log.debug("GROUP_ADD_REQUESTED for Group {} on device {}",
+                          group.id(), group.deviceId());
                 GroupOperation groupAddOp = GroupOperation.
                         createAddGroupOperation(group.id(),
                                                 group.type(),
@@ -242,6 +252,8 @@ public class GroupManager
                 break;
 
             case GROUP_UPDATE_REQUESTED:
+                log.debug("GROUP_UPDATE_REQUESTED for Group {} on device {}",
+                          group.id(), group.deviceId());
                 GroupOperation groupModifyOp = GroupOperation.
                         createModifyGroupOperation(group.id(),
                                                 group.type(),
@@ -252,6 +264,8 @@ public class GroupManager
                 break;
 
             case GROUP_REMOVE_REQUESTED:
+                log.debug("GROUP_REMOVE_REQUESTED for Group {} on device {}",
+                          group.id(), group.deviceId());
                 GroupOperation groupDeleteOp = GroupOperation.
                         createDeleteGroupOperation(group.id(),
                                                 group.type());
@@ -294,10 +308,14 @@ public class GroupManager
             GroupProvider gp = getProvider(group.deviceId());
             switch (group.state()) {
                 case PENDING_DELETE:
+                    log.debug("Group {} delete confirmation from device {}",
+                              group, group.deviceId());
                     store.removeGroupEntry(group);
                     break;
                 case ADDED:
                 case PENDING_ADD:
+                    log.debug("Group {} is in store but not on device {}",
+                              group, group.deviceId());
                     GroupOperation groupAddOp = GroupOperation.
                                     createAddGroupOperation(group.id(),
                                                             group.type(),
@@ -314,7 +332,8 @@ public class GroupManager
 
 
         private void extraneousGroup(Group group) {
-            log.debug("Group {} is on switch but not in store.", group);
+            log.debug("Group {} is on device {} but not in store.",
+                      group, group.deviceId());
             checkValidity();
             store.addOrUpdateExtraneousGroupEntry(group);
         }
@@ -322,13 +341,16 @@ public class GroupManager
         private void groupAdded(Group group) {
             checkValidity();
 
-            log.trace("Group {}", group);
+            log.trace("Group {} Added or Updated in device {}",
+                      group, group.deviceId());
             store.addOrUpdateGroupEntry(group);
         }
 
         @Override
         public void pushGroupMetrics(DeviceId deviceId,
                                      Collection<Group> groupEntries) {
+            log.trace("Received group metrics from device {}",
+                    deviceId);
             boolean deviceInitialAuditStatus =
                     store.deviceInitialAuditStatus(deviceId);
             Set<Group> southboundGroupEntries =
@@ -338,31 +360,75 @@ public class GroupManager
             Set<Group> extraneousStoredEntries =
                     Sets.newHashSet(store.getExtraneousGroups(deviceId));
 
+            log.trace("Displaying all southboundGroupEntries for device {}", deviceId);
+            for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
+                Group group = it.next();
+                log.trace("Group {} in device {}", group, deviceId);
+            }
+
+            log.trace("Displaying all stored group entries for device {}", deviceId);
+            for (Iterator<Group> it = storedGroupEntries.iterator(); it.hasNext();) {
+                Group group = it.next();
+                log.trace("Stored Group {} for device {}", group, deviceId);
+            }
+
             for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
                 Group group = it.next();
                 if (storedGroupEntries.remove(group)) {
                     // we both have the group, let's update some info then.
+                    log.trace("Group AUDIT: group {} exists "
+                            + "in both planes for device {}",
+                            group.id(), deviceId);
                     groupAdded(group);
                     it.remove();
                 }
             }
             for (Group group : southboundGroupEntries) {
                 // there are groups in the switch that aren't in the store
+                log.trace("Group AUDIT: extraneous group {} exists "
+                        + "in data plane for device {}",
+                        group.id(), deviceId);
                 extraneousStoredEntries.remove(group);
                 extraneousGroup(group);
             }
             for (Group group : storedGroupEntries) {
                 // there are groups in the store that aren't in the switch
+                log.trace("Group AUDIT: group {} missing "
+                        + "in data plane for device {}",
+                        group.id(), deviceId);
                 groupMissing(group);
             }
             for (Group group : extraneousStoredEntries) {
                 // there are groups in the extraneous store that
                 // aren't in the switch
+                log.trace("Group AUDIT: clearing extransoeus group {} "
+                        + "from store for device {}",
+                        group.id(), deviceId);
                 store.removeExtraneousGroupEntry(group);
             }
 
             if (!deviceInitialAuditStatus) {
-                store.deviceInitialAuditCompleted(deviceId);
+                log.debug("Group AUDIT: Setting device {} initial "
+                        + "AUDIT completed", deviceId);
+                store.deviceInitialAuditCompleted(deviceId, true);
+            }
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+            case DEVICE_REMOVED:
+                log.debug("Clearing device {} initial "
+                        + "AUDIT completed status as device is going down",
+                        event.subject().id());
+                store.deviceInitialAuditCompleted(event.subject().id(), false);
+                break;
+
+            default:
+                break;
             }
         }
     }

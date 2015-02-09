@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.group;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
@@ -168,4 +169,13 @@ public class DefaultGroupDescription implements GroupDescription {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("deviceId", deviceId)
+                .add("type", type)
+                .add("buckets", buckets)
+                .add("appId", appId)
+                .toString();
+    }
 }

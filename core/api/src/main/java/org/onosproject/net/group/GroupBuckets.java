@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.group;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
@@ -66,4 +67,10 @@ public final class GroupBuckets {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("buckets", buckets)
+                .toString();
+    }
 }

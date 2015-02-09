@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.group;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -212,4 +213,11 @@ public final class DefaultGroupBucket implements GroupBucket {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", type)
+                .add("treatment", treatment)
+                .toString();
+    }
 }

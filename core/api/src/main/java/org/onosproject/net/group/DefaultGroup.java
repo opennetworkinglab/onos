@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.group;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Objects;
@@ -204,5 +205,14 @@ public class DefaultGroup extends DefaultGroupDescription
                     Objects.equals(id, that.id);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("description", super.toString())
+                .add("groupid", id)
+                .add("state", state)
+                .toString();
     }
 }

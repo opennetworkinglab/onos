@@ -261,6 +261,11 @@ public class SimpleGroupStore
     }
 
     private void storeGroupDescriptionInternal(GroupDescription groupDesc) {
+        // Check if a group is existing with the same key
+        if (getGroup(groupDesc.deviceId(), groupDesc.appCookie()) != null) {
+            return;
+        }
+
         // Get a new group identifier
         GroupId id = new DefaultGroupId(getFreeGroupIdValue(groupDesc.deviceId()));
         // Create a group entry object
@@ -448,29 +453,41 @@ public class SimpleGroupStore
     }
 
     @Override
-    public void deviceInitialAuditCompleted(DeviceId deviceId) {
+    public void deviceInitialAuditCompleted(DeviceId deviceId,
+                                            boolean completed) {
         synchronized (deviceAuditStatus) {
-            deviceAuditStatus.putIfAbsent(deviceId, true);
-            // Execute all pending group requests
-            ConcurrentMap<GroupKey, StoredGroupEntry> pendingGroupRequests =
-                    getPendingGroupKeyTable(deviceId);
-            for (Group group:pendingGroupRequests.values()) {
-                GroupDescription tmp = new DefaultGroupDescription(
-                             group.deviceId(),
-                             group.type(),
-                             group.buckets(),
-                             group.appCookie(),
-                             group.appId());
-                storeGroupDescriptionInternal(tmp);
+            if (completed) {
+                log.debug("deviceInitialAuditCompleted: AUDIT "
+                        + "completed for device {}", deviceId);
+                deviceAuditStatus.put(deviceId, true);
+                // Execute all pending group requests
+                ConcurrentMap<GroupKey, StoredGroupEntry> pendingGroupRequests =
+                        getPendingGroupKeyTable(deviceId);
+                for (Group group:pendingGroupRequests.values()) {
+                    GroupDescription tmp = new DefaultGroupDescription(
+                                                                       group.deviceId(),
+                                                                       group.type(),
+                                                                       group.buckets(),
+                                                                       group.appCookie(),
+                                                                       group.appId());
+                    storeGroupDescriptionInternal(tmp);
+                }
+                getPendingGroupKeyTable(deviceId).clear();
+            } else {
+                if (deviceAuditStatus.get(deviceId)) {
+                    log.debug("deviceInitialAuditCompleted: Clearing AUDIT "
+                            + "status for device {}", deviceId);
+                    deviceAuditStatus.put(deviceId, false);
+                }
             }
-            getPendingGroupKeyTable(deviceId).clear();
         }
     }
 
     @Override
     public boolean deviceInitialAuditStatus(DeviceId deviceId) {
         synchronized (deviceAuditStatus) {
-            return (deviceAuditStatus.get(deviceId) != null) ? true : false;
+            return (deviceAuditStatus.get(deviceId) != null)
+                    ? deviceAuditStatus.get(deviceId) : false;
         }
     }
 

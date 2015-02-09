@@ -1,0 +1,177 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.grouphandler;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupService;
+import org.onosproject.net.link.LinkService;
+
+/**
+ * Default ECMP group handler creation module for a transit device.
+ * This component creates a set of ECMP groups for every neighbor
+ * that this device is connected to.
+ * For example, consider a network of 4 devices: D0 (Segment ID: 100),
+ * D1 (Segment ID: 101), D2 (Segment ID: 102) and D3 (Segment ID: 103),
+ * where D0 and D3 are edge devices and D1 and D2 are transit devices.
+ * Assume transit device D1 is connected to 2 neighbors (D0 and D3 ).
+ * The following groups will be created in D1:
+ * 1) all ports to D0 + with no label push,
+ * 2) all ports to D3 + with no label push,
+ */
+public class DefaultTransitGroupHandler extends DefaultGroupHandler {
+
+    protected DefaultTransitGroupHandler(DeviceId deviceId,
+                                  ApplicationId appId,
+                                  DeviceProperties config,
+                                  LinkService linkService,
+                                  GroupService groupService) {
+        super(deviceId, appId, config, linkService, groupService);
+    }
+
+    @Override
+    public void createGroups() {
+        Set<DeviceId> neighbors = devicePortMap.keySet();
+        if (neighbors == null || neighbors.isEmpty()) {
+            return;
+        }
+
+        // Create all possible Neighbor sets from this router
+        // NOTE: Avoid any pairings of edge routers only
+        Set<Set<DeviceId>> sets = getPowerSetOfNeighbors(neighbors);
+        sets = filterEdgeRouterOnlyPairings(sets);
+        log.debug("createGroupsAtTransitRouter: The size of neighbor powerset "
+                + "for sw {} is {}", deviceId, sets.size());
+        Set<NeighborSet> nsSet = new HashSet<NeighborSet>();
+        for (Set<DeviceId> combo : sets) {
+            if (combo.isEmpty()) {
+                continue;
+            }
+            NeighborSet ns = new NeighborSet(combo);
+            log.debug("createGroupsAtTransitRouter: sw {} combo {} ns {}",
+                      deviceId, combo, ns);
+            nsSet.add(ns);
+        }
+        log.debug("createGroupsAtTransitRouter: The neighborset with label "
+                + "for sw {} is {}", deviceId, nsSet);
+
+        createGroupsFromNeighborsets(nsSet);
+    }
+
+    @Override
+    protected void newNeighbor(Link newNeighborLink) {
+        log.debug("New Neighbor: Updating groups for "
+                + "transit device {}", deviceId);
+        // Recompute neighbor power set
+        addNeighborAtPort(newNeighborLink.dst().deviceId(),
+                          newNeighborLink.src().port());
+        // Compute new neighbor sets due to the addition of new neighbor
+        Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(
+                                             newNeighborLink.dst().deviceId(),
+                                             devicePortMap.keySet());
+        createGroupsFromNeighborsets(nsSet);
+    }
+
+    @Override
+    protected void newPortToExistingNeighbor(Link newNeighborLink) {
+        log.debug("New port to existing neighbor: Updating "
+                + "groups for transit device {}", deviceId);
+        addNeighborAtPort(newNeighborLink.dst().deviceId(),
+                          newNeighborLink.src().port());
+        Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(
+                                              newNeighborLink.dst().deviceId(),
+                                              devicePortMap.keySet());
+        for (NeighborSet ns : nsSet) {
+            // Create the new bucket to be updated
+            TrafficTreatment.Builder tBuilder =
+                    DefaultTrafficTreatment.builder();
+            tBuilder.setOutput(newNeighborLink.src().port())
+                    .setEthDst(deviceConfig.getDeviceMac(
+                          newNeighborLink.dst().deviceId()))
+                    .setEthSrc(nodeMacAddr)
+                    .pushMpls()
+                    .setMpls(ns.getEdgeLabel());
+            GroupBucket updatedBucket = DefaultGroupBucket.
+                    createSelectGroupBucket(tBuilder.build());
+            GroupBuckets updatedBuckets = new GroupBuckets(
+                                        Arrays.asList(updatedBucket));
+            log.debug("newPortToExistingNeighborAtEdgeRouter: "
+                    + "groupService.addBucketsToGroup for neighborset{}", ns);
+            groupService.addBucketsToGroup(deviceId, ns, updatedBuckets, ns, appId);
+        }
+    }
+
+    @Override
+    protected Set<NeighborSet> computeImpactedNeighborsetForPortEvent(
+                                            DeviceId impactedNeighbor,
+                                            Set<DeviceId> updatedNeighbors) {
+        Set<Set<DeviceId>> powerSet = getPowerSetOfNeighbors(updatedNeighbors);
+
+        Set<DeviceId> tmp = updatedNeighbors;
+        tmp.remove(impactedNeighbor);
+        Set<Set<DeviceId>> tmpPowerSet = getPowerSetOfNeighbors(tmp);
+
+        // Compute the impacted neighbor sets
+        powerSet.removeAll(tmpPowerSet);
+
+        powerSet = filterEdgeRouterOnlyPairings(powerSet);
+        Set<NeighborSet> nsSet = new HashSet<NeighborSet>();
+        for (Set<DeviceId> combo : powerSet) {
+            if (combo.isEmpty()) {
+                continue;
+            }
+            NeighborSet ns = new NeighborSet(combo);
+            log.debug("createGroupsAtTransitRouter: sw {} combo {} ns {}",
+                      deviceId, combo, ns);
+            nsSet.add(ns);
+        }
+        log.debug("computeImpactedNeighborsetForPortEvent: The neighborset with label "
+                + "for sw {} is {}", deviceId, nsSet);
+
+        return nsSet;
+    }
+
+    private Set<Set<DeviceId>> filterEdgeRouterOnlyPairings(Set<Set<DeviceId>> sets) {
+        Set<Set<DeviceId>> fiteredSets = new HashSet<Set<DeviceId>>();
+        for (Set<DeviceId> deviceSubSet : sets) {
+            if (deviceSubSet.size() > 1) {
+                boolean avoidEdgeRouterPairing = true;
+                for (DeviceId device : deviceSubSet) {
+                    if (!deviceConfig.isEdgeDevice(device)) {
+                        avoidEdgeRouterPairing = false;
+                        break;
+                    }
+                }
+                if (!avoidEdgeRouterPairing) {
+                    fiteredSets.add(deviceSubSet);
+                }
+            } else {
+                fiteredSets.add(deviceSubSet);
+            }
+        }
+        return fiteredSets;
+    }
+}

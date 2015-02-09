@@ -32,6 +32,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.event.impl.TestEventDispatcher;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.impl.DeviceManager;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.DefaultGroup;
@@ -81,6 +82,7 @@ public class GroupManagerTest {
     public void setUp() {
         mgr = new GroupManager();
         groupService = mgr;
+        mgr.deviceService = new DeviceManager();
         mgr.store = new SimpleGroupStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         providerRegistry = mgr;
@@ -147,11 +149,34 @@ public class GroupManagerTest {
      */
     @Test
     public void testGroupService() {
+        // Test Group creation before AUDIT process
+        testGroupCreationBeforeAudit();
+
+        // Test initial group audit process
+        testInitialAuditWithPendingGroupRequests();
+
+        // Test audit with extraneous and missing groups
+        testAuditWithExtraneousMissingGroups();
+
+        // Test audit with confirmed groups
+        testAuditWithConfirmedGroups();
+
+        // Test group add bucket operations
+        testAddBuckets();
+
+        // Test group remove bucket operations
+        testRemoveBuckets();
+
+        // Test group remove operations
+        testRemoveGroup();
+    }
+
+    // Test Group creation before AUDIT process
+    private void testGroupCreationBeforeAudit() {
         PortNumber[] ports1 = {PortNumber.portNumber(31),
                                PortNumber.portNumber(32)};
         PortNumber[] ports2 = {PortNumber.portNumber(41),
                                PortNumber.portNumber(42)};
-        // Test Group creation before AUDIT process
         TestGroupKey key = new TestGroupKey("group1BeforeAudit");
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         List<PortNumber> outPorts = new ArrayList<PortNumber>();
@@ -177,8 +202,14 @@ public class GroupManagerTest {
         internalProvider.validate(DID, null);
         assertEquals(null, groupService.getGroup(DID, key));
         assertEquals(0, Iterables.size(groupService.getGroups(DID, appId)));
+    }
 
-        // Test initial group audit process
+    // Test initial AUDIT process with pending group requests
+    private void testInitialAuditWithPendingGroupRequests() {
+        PortNumber[] ports1 = {PortNumber.portNumber(31),
+                               PortNumber.portNumber(32)};
+        PortNumber[] ports2 = {PortNumber.portNumber(41),
+                               PortNumber.portNumber(42)};
         GroupId gId1 = new DefaultGroupId(1);
         Group group1 = createSouthboundGroupEntry(gId1,
                                                   Arrays.asList(ports1),
@@ -193,50 +224,76 @@ public class GroupManagerTest {
         providerService.pushGroupMetrics(DID, groupEntries);
         // First group metrics would trigger the device audit completion
         // post which all pending group requests are also executed.
+        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
         Group createdGroup = groupService.getGroup(DID, key);
         int createdGroupId = createdGroup.id().id();
         assertNotEquals(gId1.id(), createdGroupId);
         assertNotEquals(gId2.id(), createdGroupId);
+
         List<GroupOperation> expectedGroupOps = Arrays.asList(
                             GroupOperation.createDeleteGroupOperation(gId1,
                                                           Group.Type.SELECT),
                             GroupOperation.createAddGroupOperation(
                                            createdGroup.id(),
                                            Group.Type.SELECT,
-                                           groupBuckets));
+                                           createdGroup.buckets()));
         internalProvider.validate(DID, expectedGroupOps);
+    }
 
-        group1 = createSouthboundGroupEntry(gId1,
+    // Test AUDIT process with extraneous groups and missing groups
+    private void testAuditWithExtraneousMissingGroups() {
+        PortNumber[] ports1 = {PortNumber.portNumber(31),
+                               PortNumber.portNumber(32)};
+        PortNumber[] ports2 = {PortNumber.portNumber(41),
+                               PortNumber.portNumber(42)};
+        GroupId gId1 = new DefaultGroupId(1);
+        Group group1 = createSouthboundGroupEntry(gId1,
                                             Arrays.asList(ports1),
                                             0);
-        group2 = createSouthboundGroupEntry(gId2,
+        GroupId gId2 = new DefaultGroupId(2);
+        Group group2 = createSouthboundGroupEntry(gId2,
                                             Arrays.asList(ports2),
                                             0);
-        groupEntries = Arrays.asList(group1, group2);
+        List<Group> groupEntries = Arrays.asList(group1, group2);
         providerService.pushGroupMetrics(DID, groupEntries);
-        expectedGroupOps = Arrays.asList(
+        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        Group createdGroup = groupService.getGroup(DID, key);
+        List<GroupOperation> expectedGroupOps = Arrays.asList(
                 GroupOperation.createDeleteGroupOperation(gId1,
                                                           Group.Type.SELECT),
                 GroupOperation.createDeleteGroupOperation(gId2,
                                                           Group.Type.SELECT),
                 GroupOperation.createAddGroupOperation(createdGroup.id(),
                                                        Group.Type.SELECT,
-                                                       groupBuckets));
+                                                       createdGroup.buckets()));
         internalProvider.validate(DID, expectedGroupOps);
+    }
 
+    // Test AUDIT with confirmed groups
+    private void testAuditWithConfirmedGroups() {
+        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        Group createdGroup = groupService.getGroup(DID, key);
         createdGroup = new DefaultGroup(createdGroup.id(),
                                         DID,
                                         Group.Type.SELECT,
-                                        groupBuckets);
-        groupEntries = Arrays.asList(createdGroup);
+                                        createdGroup.buckets());
+        List<Group> groupEntries = Arrays.asList(createdGroup);
         providerService.pushGroupMetrics(DID, groupEntries);
         internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_ADDED));
+    }
 
-        // Test group add bucket operations
+    // Test group add bucket operations
+    private void testAddBuckets() {
         TestGroupKey addKey = new TestGroupKey("group1AddBuckets");
+
+        TestGroupKey prevKey = new TestGroupKey("group1BeforeAudit");
+        Group createdGroup = groupService.getGroup(DID, prevKey);
+        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        buckets.addAll(createdGroup.buckets().buckets());
+
         PortNumber[] addPorts = {PortNumber.portNumber(51),
                                  PortNumber.portNumber(52)};
-        outPorts.clear();
+        List<PortNumber> outPorts = new ArrayList<PortNumber>();
         outPorts.addAll(Arrays.asList(addPorts));
         List<GroupBucket> addBuckets = new ArrayList<GroupBucket>();
         for (PortNumber portNumber: outPorts) {
@@ -253,26 +310,34 @@ public class GroupManagerTest {
         }
         GroupBuckets groupAddBuckets = new GroupBuckets(addBuckets);
         groupService.addBucketsToGroup(DID,
-                                       key,
+                                       prevKey,
                                        groupAddBuckets,
                                        addKey,
                                        appId);
         GroupBuckets updatedBuckets = new GroupBuckets(buckets);
-        expectedGroupOps = Arrays.asList(
+        List<GroupOperation> expectedGroupOps = Arrays.asList(
                GroupOperation.createModifyGroupOperation(createdGroup.id(),
                                                          Group.Type.SELECT,
                                                          updatedBuckets));
         internalProvider.validate(DID, expectedGroupOps);
         Group existingGroup = groupService.getGroup(DID, addKey);
-        groupEntries = Arrays.asList(existingGroup);
+        List<Group> groupEntries = Arrays.asList(existingGroup);
         providerService.pushGroupMetrics(DID, groupEntries);
         internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_UPDATED));
+    }
 
-        // Test group remove bucket operations
+    // Test group remove bucket operations
+    private void testRemoveBuckets() {
         TestGroupKey removeKey = new TestGroupKey("group1RemoveBuckets");
+
+        TestGroupKey prevKey = new TestGroupKey("group1AddBuckets");
+        Group createdGroup = groupService.getGroup(DID, prevKey);
+        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        buckets.addAll(createdGroup.buckets().buckets());
+
         PortNumber[] removePorts = {PortNumber.portNumber(31),
                                  PortNumber.portNumber(32)};
-        outPorts.clear();
+        List<PortNumber> outPorts = new ArrayList<PortNumber>();
         outPorts.addAll(Arrays.asList(removePorts));
         List<GroupBucket> removeBuckets = new ArrayList<GroupBucket>();
         for (PortNumber portNumber: outPorts) {
@@ -289,28 +354,32 @@ public class GroupManagerTest {
         }
         GroupBuckets groupRemoveBuckets = new GroupBuckets(removeBuckets);
         groupService.removeBucketsFromGroup(DID,
-                                            addKey,
+                                            prevKey,
                                             groupRemoveBuckets,
                                             removeKey,
                                             appId);
-        updatedBuckets = new GroupBuckets(buckets);
-        expectedGroupOps = Arrays.asList(
+        GroupBuckets updatedBuckets = new GroupBuckets(buckets);
+        List<GroupOperation> expectedGroupOps = Arrays.asList(
                GroupOperation.createModifyGroupOperation(createdGroup.id(),
                                                          Group.Type.SELECT,
                                                          updatedBuckets));
         internalProvider.validate(DID, expectedGroupOps);
-        existingGroup = groupService.getGroup(DID, removeKey);
-        groupEntries = Arrays.asList(existingGroup);
+        Group existingGroup = groupService.getGroup(DID, removeKey);
+        List<Group> groupEntries = Arrays.asList(existingGroup);
         providerService.pushGroupMetrics(DID, groupEntries);
         internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_UPDATED));
+    }
 
-        // Test group remove operations
-        groupService.removeGroup(DID, removeKey, appId);
-        expectedGroupOps = Arrays.asList(
-             GroupOperation.createDeleteGroupOperation(createdGroup.id(),
+    // Test group remove operations
+    private void testRemoveGroup() {
+        TestGroupKey currKey = new TestGroupKey("group1RemoveBuckets");
+        Group existingGroup = groupService.getGroup(DID, currKey);
+        groupService.removeGroup(DID, currKey, appId);
+        List<GroupOperation> expectedGroupOps = Arrays.asList(
+             GroupOperation.createDeleteGroupOperation(existingGroup.id(),
                                                        Group.Type.SELECT));
         internalProvider.validate(DID, expectedGroupOps);
-        groupEntries = Collections.emptyList();
+        List<Group> groupEntries = Collections.emptyList();
         providerService.pushGroupMetrics(DID, groupEntries);
         internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_REMOVED));
     }
