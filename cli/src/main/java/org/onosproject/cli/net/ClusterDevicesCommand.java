@@ -37,7 +37,7 @@ import static org.onosproject.net.topology.ClusterId.clusterId;
 public class ClusterDevicesCommand extends ClustersListCommand {
 
     @Argument(index = 0, name = "id", description = "Cluster ID",
-              required = false, multiValued = false)
+              required = true, multiValued = false)
     String id = null;
 
     @Override
