@@ -36,6 +36,8 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.routingapi.FibListener;
+import org.onosproject.routingapi.FibUpdate;
 import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;

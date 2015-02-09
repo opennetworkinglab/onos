@@ -46,6 +46,8 @@
         <module>oecfg</module>
         <module>demo</module>
         <module>election</module>
+        <module>routing</module>
+        <module>routing-api</module>
     </modules>
 
     <properties>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
+package org.onosproject.routingapi;
 
 /**
- * Service interface exported by SDN-IP.
+ * Provides a way of interacting with the BGP protocol component.
  */
-public interface SdnIpService {
+public interface BgpService {
 
     /**
-     * Changes whether this SDN-IP instance is the primary or not based on the
-     * boolean parameter.
+     * Starts the BGP service.
      *
-     * @param isPrimary true if the instance is primary, false if it is not
+     * @param routeListener listener to send route updates to
+     * @param bgpPort port number to listen on
      */
-    public void modifyPrimary(boolean isPrimary);
+    void start(RouteListener routeListener, int bgpPort);
+
+    /**
+     * Stops the BGP service.
+     */
+    void stop();
 }

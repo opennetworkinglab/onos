@@ -16,9 +16,8 @@
 package org.onosproject.sdnip;
 
 import com.google.common.collect.Sets;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
@@ -32,18 +31,12 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.host.HostListener;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
@@ -51,10 +44,18 @@ import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.provider.ProviderId;
+import org.onosproject.routingapi.FibEntry;
+import org.onosproject.routingapi.FibUpdate;
+import org.onosproject.routingapi.RouteEntry;
+import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
+import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.Interface;
+import org.onosproject.sdnip.config.SdnIpConfigurationService;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -71,9 +72,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class IntentSyncTest extends AbstractIntentTest {
 
+    private SdnIpConfigurationService sdnIpConfigService;
     private InterfaceService interfaceService;
     private IntentService intentService;
-    private HostService hostService;
 
     private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
             DeviceId.deviceId("of:0000000000000001"),
@@ -87,8 +88,11 @@ public class IntentSyncTest extends AbstractIntentTest {
             DeviceId.deviceId("of:0000000000000003"),
             PortNumber.portNumber(1));
 
+    private static final ConnectPoint SW4_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000004"),
+            PortNumber.portNumber(1));
+
     private IntentSynchronizer intentSynchronizer;
-    private Router router;
 
     private static final ApplicationId APPID = new ApplicationId() {
         @Override
@@ -106,12 +110,42 @@ public class IntentSyncTest extends AbstractIntentTest {
     public void setUp() throws Exception {
         super.setUp();
         setUpInterfaceService();
-        setUpHostService();
+
+        setUpBgpPeers();
         intentService = createMock(IntentService.class);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    null, interfaceService);
-        router = new Router(intentSynchronizer, hostService);
+                                                    sdnIpConfigService, interfaceService);
+    }
+
+    /**
+     * Sets up BGP peers in external networks.
+     */
+    private void setUpBgpPeers() {
+
+        Map<IpAddress, BgpPeer> peers = new HashMap<>();
+
+        String peerSw1Eth1 = "192.168.10.1";
+        peers.put(IpAddress.valueOf(peerSw1Eth1),
+                  new BgpPeer("00:00:00:00:00:00:00:01", 1, peerSw1Eth1));
+
+        // Two BGP peers are connected to switch 2 port 1.
+        String peer1Sw2Eth1 = "192.168.20.1";
+        peers.put(IpAddress.valueOf(peer1Sw2Eth1),
+                  new BgpPeer("00:00:00:00:00:00:00:02", 1, peer1Sw2Eth1));
+
+        String peer2Sw2Eth1 = "192.168.20.2";
+        peers.put(IpAddress.valueOf(peer2Sw2Eth1),
+                  new BgpPeer("00:00:00:00:00:00:00:02", 1, peer2Sw2Eth1));
+
+        String peer1Sw4Eth1 = "192.168.40.1";
+        peers.put(IpAddress.valueOf(peer1Sw4Eth1),
+                  new BgpPeer("00:00:00:00:00:00:00:04", 1, peer1Sw4Eth1));
+
+        sdnIpConfigService = createMock(SdnIpConfigurationService.class);
+        expect(sdnIpConfigService.getBgpPeers()).andReturn(peers).anyTimes();
+        EasyMock.replay(sdnIpConfigService);
+
     }
 
     /**
@@ -133,22 +167,33 @@ public class IntentSyncTest extends AbstractIntentTest {
         interfaces.add(sw1Eth1);
 
         Set<InterfaceIpAddress> interfaceIpAddresses2 = Sets.newHashSet();
-        interfaceIpAddresses2.add(new InterfaceIpAddress(
-                IpAddress.valueOf("192.168.20.101"),
-                IpPrefix.valueOf("192.168.20.0/24")));
+        interfaceIpAddresses2.add(
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
+                                       IpPrefix.valueOf("192.168.20.0/24")));
         Interface sw2Eth1 = new Interface(SW2_ETH1,
                 interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"),
                 VlanId.NONE);
         interfaces.add(sw2Eth1);
 
         Set<InterfaceIpAddress> interfaceIpAddresses3 = Sets.newHashSet();
-        interfaceIpAddresses3.add(new InterfaceIpAddress(
-                IpAddress.valueOf("192.168.30.101"),
-                IpPrefix.valueOf("192.168.30.0/24")));
+        interfaceIpAddresses3.add(
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
+                                       IpPrefix.valueOf("192.168.30.0/24")));
         Interface sw3Eth1 = new Interface(SW3_ETH1,
                 interfaceIpAddresses3, MacAddress.valueOf("00:00:00:00:00:03"),
                 VlanId.NONE);
         interfaces.add(sw3Eth1);
+
+        InterfaceIpAddress interfaceIpAddress4 =
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
+                                       IpPrefix.valueOf("192.168.40.0/24"));
+        Interface sw4Eth1 = new Interface(SW4_ETH1,
+                                          Sets.newHashSet(interfaceIpAddress4),
+                                          MacAddress.valueOf("00:00:00:00:00:04"),
+                                          VlanId.vlanId((short) 1));
+
+        expect(interfaceService.getInterface(SW4_ETH1)).andReturn(sw4Eth1).anyTimes();
+        interfaces.add(sw4Eth1);
 
         expect(interfaceService.getInterface(SW1_ETH1)).andReturn(
                 sw1Eth1).anyTimes();
@@ -156,57 +201,245 @@ public class IntentSyncTest extends AbstractIntentTest {
                 sw2Eth1).anyTimes();
         expect(interfaceService.getInterface(SW3_ETH1)).andReturn(
                 sw3Eth1).anyTimes();
-        expect(interfaceService.getInterfaces()).andReturn(
-                interfaces).anyTimes();
+        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
         replay(interfaceService);
     }
 
     /**
-     * Sets up the host service with details of hosts.
+     * Tests adding a FIB entry to the IntentSynchronizer.
+     *
+     * We verify that the synchronizer records the correct state and that the
+     * correct intent is submitted to the IntentService.
+     *
+     * @throws TestUtilsException
      */
-    private void setUpHostService() {
-        hostService = createMock(HostService.class);
+    @Test
+    public void testFibAdd() throws TestUtilsException {
+        FibEntry fibEntry = new FibEntry(
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.10.1"),
+                MacAddress.valueOf("00:00:00:00:00:01"));
 
-        hostService.addListener(anyObject(HostListener.class));
-        expectLastCall().anyTimes();
+        // Construct a MultiPointToSinglePointIntent intent
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
+                fibEntry.prefix());
 
-        IpAddress host1Address = IpAddress.valueOf("192.168.10.1");
-        Host host1 = new DefaultHost(ProviderId.NONE, HostId.NONE,
-                MacAddress.valueOf("00:00:00:00:00:01"), VlanId.NONE,
-                new HostLocation(SW1_ETH1, 1),
-                        Sets.newHashSet(host1Address));
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder();
+        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
 
-        expect(hostService.getHostsByIp(host1Address))
-                .andReturn(Sets.newHashSet(host1)).anyTimes();
-        hostService.startMonitoringIp(host1Address);
-        expectLastCall().anyTimes();
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
+        ingressPoints.add(SW4_ETH1);
+
+        MultiPointToSinglePointIntent intent =
+                new MultiPointToSinglePointIntent(APPID,
+                                                  selectorBuilder.build(), treatmentBuilder.build(),
+                                                  ingressPoints, SW1_ETH1);
+
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intent);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                builder.build()));
+        replay(intentService);
+
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+
+        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE,
+                                            fibEntry);
+        intentSynchronizer.update(Collections.singleton(fibUpdate),
+                                  Collections.emptyList());
+
+        Assert.assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
+        Intent firstIntent =
+                intentSynchronizer.getRouteIntents().iterator().next();
+        IntentKey firstIntentKey = new IntentKey(firstIntent);
+        IntentKey intentKey = new IntentKey(intent);
+        assertTrue(firstIntentKey.equals(intentKey));
+        verify(intentService);
+    }
+
+    /**
+     * Tests adding a FIB entry with to a next hop in a VLAN.
+     *
+     * We verify that the synchronizer records the correct state and that the
+     * correct intent is submitted to the IntentService.
+     *
+     * @throws TestUtilsException
+     */
+    @Test
+    public void testFibAddWithVlan() throws TestUtilsException {
+        FibEntry fibEntry = new FibEntry(
+                Ip4Prefix.valueOf("3.3.3.0/24"),
+                Ip4Address.valueOf("192.168.40.1"),
+                MacAddress.valueOf("00:00:00:00:00:04"));
+
+        // Construct a MultiPointToSinglePointIntent intent
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                       .matchIPDst(fibEntry.prefix())
+                       .matchVlanId(VlanId.ANY);
+
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder();
+        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:04"))
+                        .setVlanId(VlanId.vlanId((short) 1));
+
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        ingressPoints.add(SW1_ETH1);
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
+
+        MultiPointToSinglePointIntent intent =
+                new MultiPointToSinglePointIntent(APPID,
+                        selectorBuilder.build(), treatmentBuilder.build(),
+                        ingressPoints, SW4_ETH1);
+
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intent);
+        intentService.execute(
+                TestIntentServiceHelper.eqExceptId(builder.build()));
+        replay(intentService);
+
+        // Run the test
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
+
+        intentSynchronizer.update(Collections.singleton(fibUpdate),
+                                  Collections.emptyList());
+
+        // Verify
+        Assert.assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
+        Intent firstIntent =
+            intentSynchronizer.getRouteIntents().iterator().next();
+        IntentKey firstIntentKey = new IntentKey(firstIntent);
+        IntentKey intentKey = new IntentKey(intent);
+        assertTrue(firstIntentKey.equals(intentKey));
+        verify(intentService);
+    }
+
+    /**
+     * Tests updating a FIB entry.
+     *
+     * We verify that the synchronizer records the correct state and that the
+     * correct intent is submitted to the IntentService.
+     *
+     * @throws TestUtilsException
+     */
+    @Test
+    public void testFibUpdate() throws TestUtilsException {
+        // Firstly add a route
+        testFibAdd();
+
+        Intent addedIntent =
+                intentSynchronizer.getRouteIntents().iterator().next();
+
+        // Start to construct a new route entry and new intent
+        FibEntry fibEntryUpdate = new FibEntry(
+                Ip4Prefix.valueOf("1.1.1.0/24"),
+                Ip4Address.valueOf("192.168.20.1"),
+                MacAddress.valueOf("00:00:00:00:00:02"));
+
+        // Construct a new MultiPointToSinglePointIntent intent
+        TrafficSelector.Builder selectorBuilderNew =
+                DefaultTrafficSelector.builder();
+        selectorBuilderNew.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
+                fibEntryUpdate.prefix());
+
+        TrafficTreatment.Builder treatmentBuilderNew =
+                DefaultTrafficTreatment.builder();
+        treatmentBuilderNew.setEthDst(MacAddress.valueOf("00:00:00:00:00:02"));
 
 
-        IpAddress host2Address = IpAddress.valueOf("192.168.20.1");
-        Host host2 = new DefaultHost(ProviderId.NONE, HostId.NONE,
-                MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE,
-                new HostLocation(SW2_ETH1, 1),
-                        Sets.newHashSet(host2Address));
+        Set<ConnectPoint> ingressPointsNew = new HashSet<>();
+        ingressPointsNew.add(SW1_ETH1);
+        ingressPointsNew.add(SW3_ETH1);
+        ingressPointsNew.add(SW4_ETH1);
 
-        expect(hostService.getHostsByIp(host2Address))
-                .andReturn(Sets.newHashSet(host2)).anyTimes();
-        hostService.startMonitoringIp(host2Address);
-        expectLastCall().anyTimes();
+        MultiPointToSinglePointIntent intentNew =
+                new MultiPointToSinglePointIntent(APPID,
+                                                  selectorBuilderNew.build(),
+                                                  treatmentBuilderNew.build(),
+                                                  ingressPointsNew, SW2_ETH1);
 
+        // Set up test expectation
+        reset(intentService);
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addWithdrawOperation(addedIntent.id());
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                builder.build()));
+        builder = IntentOperations.builder(APPID);
+        builder.addSubmitOperation(intentNew);
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                builder.build()));
+        replay(intentService);
 
-        IpAddress host3Address = IpAddress.valueOf("192.168.30.1");
-        Host host3 = new DefaultHost(ProviderId.NONE, HostId.NONE,
-                MacAddress.valueOf("00:00:00:00:00:03"), VlanId.NONE,
-                new HostLocation(SW3_ETH1, 1),
-                        Sets.newHashSet(host3Address));
+        // Call the update() method in IntentSynchronizer class
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE,
+                                                  fibEntryUpdate);
+        intentSynchronizer.update(Collections.singletonList(fibUpdate),
+                                  Collections.emptyList());
 
-        expect(hostService.getHostsByIp(host3Address))
-                .andReturn(Sets.newHashSet(host3)).anyTimes();
-        hostService.startMonitoringIp(host3Address);
-        expectLastCall().anyTimes();
+        // Verify
+        Assert.assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
+        Intent firstIntent =
+                intentSynchronizer.getRouteIntents().iterator().next();
+        IntentKey firstIntentKey = new IntentKey(firstIntent);
+        IntentKey intentNewKey = new IntentKey(intentNew);
+        assertTrue(firstIntentKey.equals(intentNewKey));
+        verify(intentService);
+    }
 
+    /**
+     * Tests deleting a FIB entry.
+     *
+     * We verify that the synchronizer records the correct state and that the
+     * correct intent is withdrawn from the IntentService.
+     *
+     * @throws TestUtilsException
+     */
+    @Test
+    public void testFibDelete() throws TestUtilsException {
+        // Firstly add a route
+        testFibAdd();
 
-        replay(hostService);
+        Intent addedIntent =
+                intentSynchronizer.getRouteIntents().iterator().next();
+
+        // Construct the existing route entry
+        FibEntry fibEntry = new FibEntry(
+                Ip4Prefix.valueOf("1.1.1.0/24"), null, null);
+
+        // Set up expectation
+        reset(intentService);
+        // Setup the expected intents
+        IntentOperations.Builder builder = IntentOperations.builder(APPID);
+        builder.addWithdrawOperation(addedIntent.id());
+        intentService.execute(TestIntentServiceHelper.eqExceptId(
+                builder.build()));
+        replay(intentService);
+
+        // Call the update() method in IntentSynchronizer class
+        intentSynchronizer.leaderChanged(true);
+        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.DELETE, fibEntry);
+        intentSynchronizer.update(Collections.emptyList(),
+                                  Collections.singletonList(fibUpdate));
+
+        // Verify
+        Assert.assertEquals(intentSynchronizer.getRouteIntents().size(), 0);
+        verify(intentService);
     }
 
     /**
@@ -287,25 +520,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         MultiPointToSinglePointIntent intent6 = intentBuilder(
                 routeEntry6.prefix(), "00:00:00:00:00:01",  SW1_ETH1);
 
-        // Set up the ribTable field in Router class and routeIntents fields
-        // in IntentSynchronizer class
-        InvertedRadixTree<RouteEntry> ribTable =
-                new ConcurrentInvertedRadixTree<>(
-                new DefaultByteArrayNodeFactory());
-        ribTable.put(RouteEntry.createBinaryString(routeEntry1.prefix()),
-                     routeEntry1);
-        ribTable.put(RouteEntry.createBinaryString(routeEntry3.prefix()),
-                     routeEntry3);
-        ribTable.put(RouteEntry.createBinaryString(routeEntry4Update.prefix()),
-                     routeEntry4Update);
-        ribTable.put(RouteEntry.createBinaryString(routeEntry5.prefix()),
-                     routeEntry5);
-        ribTable.put(RouteEntry.createBinaryString(routeEntry6.prefix()),
-                     routeEntry6);
-        ribTable.put(RouteEntry.createBinaryString(routeEntry7.prefix()),
-                     routeEntry7);
-        TestUtils.setField(router, "ribTable4", ribTable);
-
+        // Set up the routeIntents field in IntentSynchronizer class
         ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent>
             routeIntents =  new ConcurrentHashMap<>();
         routeIntents.put(routeEntry1.prefix(), intent1);
@@ -353,20 +568,9 @@ public class IntentSyncTest extends AbstractIntentTest {
 
         // Start the test
         intentSynchronizer.leaderChanged(true);
-        /*
-        TestUtils.callMethod(intentSynchronizer, "synchronizeIntents",
-                             new Class<?>[] {});
-        */
         intentSynchronizer.synchronizeIntents();
 
         // Verify
-        assertEquals(router.getRoutes4().size(), 6);
-        assertTrue(router.getRoutes4().contains(routeEntry1));
-        assertTrue(router.getRoutes4().contains(routeEntry3));
-        assertTrue(router.getRoutes4().contains(routeEntry4Update));
-        assertTrue(router.getRoutes4().contains(routeEntry5));
-        assertTrue(router.getRoutes4().contains(routeEntry6));
-
         assertEquals(intentSynchronizer.getRouteIntents().size(), 6);
         assertTrue(intentSynchronizer.getRouteIntents().contains(intent1));
         assertTrue(intentSynchronizer.getRouteIntents().contains(intent3));

@@ -41,7 +41,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.sdnip.bgp.BgpConstants;
 import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.BgpSpeaker;
 import org.onosproject.sdnip.config.Interface;
@@ -302,7 +301,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     private void setUpBgpIntents() {
 
-        Short bgpPort = Short.valueOf((short) BgpConstants.BGP_PORT);
+        Short bgpPort = 179;
 
         // Start to build intents between BGP speaker1 and BGP peer1
         bgpPathintentConstructor(

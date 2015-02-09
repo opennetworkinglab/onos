@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
+package org.onosproject.routingapi;
+
+import java.util.Collection;
 
 /**
- * Service interface exported by SDN-IP.
+ * A component that is able to process Forwarding Information Base (FIB) updates.
  */
-public interface SdnIpService {
+public interface FibListener {
 
     /**
-     * Changes whether this SDN-IP instance is the primary or not based on the
-     * boolean parameter.
+     * Signals the FIB component of changes to the FIB.
      *
-     * @param isPrimary true if the instance is primary, false if it is not
+     * @param updates FIB updates of the UDPATE type
+     * @param withdraws FIB updates of the WITHDRAW type
      */
-    public void modifyPrimary(boolean isPrimary);
+    // TODO this interface should use only one collection when we have the new
+    // intent key API
+    void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws);
+
 }

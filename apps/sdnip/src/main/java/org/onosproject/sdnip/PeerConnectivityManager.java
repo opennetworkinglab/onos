@@ -15,15 +15,11 @@
  */
 package org.onosproject.sdnip;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -32,7 +28,6 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.sdnip.bgp.BgpConstants;
 import org.onosproject.sdnip.config.BgpPeer;
 import org.onosproject.sdnip.config.BgpSpeaker;
 import org.onosproject.sdnip.config.Interface;
@@ -41,6 +36,10 @@ import org.onosproject.sdnip.config.SdnIpConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Manages the connectivity requirements between peers.
  */
@@ -48,6 +47,8 @@ public class PeerConnectivityManager {
 
     private static final Logger log = LoggerFactory.getLogger(
             PeerConnectivityManager.class);
+
+    private static final short BGP_PORT = 179;
 
     private final IntentSynchronizer intentSynchronizer;
     private final SdnIpConfigurationService configService;
@@ -191,7 +192,7 @@ public class PeerConnectivityManager {
                                  bgpdAddress,
                                  bgpdPeerAddress,
                                  null,
-                                 (short) BgpConstants.BGP_PORT);
+                                 BGP_PORT);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdConnectPoint, bgpdPeerConnectPoint));
@@ -200,7 +201,7 @@ public class PeerConnectivityManager {
         selector = buildSelector(tcpProtocol,
                                  bgpdAddress,
                                  bgpdPeerAddress,
-                                 (short) BgpConstants.BGP_PORT,
+                                 BGP_PORT,
                                  null);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
@@ -211,7 +212,7 @@ public class PeerConnectivityManager {
                                  bgpdPeerAddress,
                                  bgpdAddress,
                                  null,
-                                 (short) BgpConstants.BGP_PORT);
+                                 BGP_PORT);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
                                bgpdPeerConnectPoint, bgpdConnectPoint));
@@ -220,7 +221,7 @@ public class PeerConnectivityManager {
         selector = buildSelector(tcpProtocol,
                                  bgpdPeerAddress,
                                  bgpdAddress,
-                                 (short) BgpConstants.BGP_PORT,
+                                 BGP_PORT,
                                  null);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,

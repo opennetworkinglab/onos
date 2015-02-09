@@ -32,14 +32,11 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.sdnip.bgp.BgpRouteEntry;
-import org.onosproject.sdnip.bgp.BgpSession;
-import org.onosproject.sdnip.bgp.BgpSessionManager;
+import org.onosproject.routingapi.RoutingService;
 import org.onosproject.sdnip.config.SdnIpConfigurationReader;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.Dictionary;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -69,8 +66,11 @@ public class SdnIp implements SdnIpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingService routingService;
+
     //
-    // NOTE: Unused reference - needed to guarentee that the
+    // NOTE: Unused reference - needed to guarantee that the
     // NetworkConfigReader component is activated and the network configuration
     // is read.
     //
@@ -83,8 +83,7 @@ public class SdnIp implements SdnIpService {
     private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigurationReader config;
     private PeerConnectivityManager peerConnectivity;
-    private Router router;
-    private BgpSessionManager bgpSessionManager;
+
     private LeadershipEventListener leadershipEventListener =
         new InnerLeadershipEventListener();
     private ApplicationId appId;
@@ -114,23 +113,18 @@ public class SdnIp implements SdnIpService {
                                                        interfaceService);
         peerConnectivity.start();
 
-        router = new Router(intentSynchronizer, hostService);
-        router.start();
+        routingService.start(intentSynchronizer);
 
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());
 
         log.info("Starting BGP with port {}", bgpPort);
-
-        bgpSessionManager = new BgpSessionManager(router);
-        bgpSessionManager.start(bgpPort);
+        // TODO feed port information through to the BgpService
     }
 
     @Deactivate
     protected void deactivate() {
-
-        bgpSessionManager.stop();
-        router.stop();
+        routingService.stop();
         peerConnectivity.stop();
         intentSynchronizer.stop();
 
@@ -165,31 +159,6 @@ public class SdnIp implements SdnIpService {
         // Blank @Modified method to catch modifications to the context.
         // If no @Modified method exists, it seems @Activate is called again
         // when the context is modified.
-    }
-
-    @Override
-    public Collection<BgpSession> getBgpSessions() {
-        return bgpSessionManager.getBgpSessions();
-    }
-
-    @Override
-    public Collection<BgpRouteEntry> getBgpRoutes4() {
-        return bgpSessionManager.getBgpRoutes4();
-    }
-
-    @Override
-    public Collection<BgpRouteEntry> getBgpRoutes6() {
-        return bgpSessionManager.getBgpRoutes6();
-    }
-
-    @Override
-    public Collection<RouteEntry> getRoutes4() {
-        return router.getRoutes4();
-    }
-
-    @Override
-    public Collection<RouteEntry> getRoutes6() {
-        return router.getRoutes6();
     }
 
     @Override

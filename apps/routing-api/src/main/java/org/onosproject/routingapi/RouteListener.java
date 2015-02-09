@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
+package org.onosproject.routingapi;
+
+import java.util.Collection;
 
 /**
- * Service interface exported by SDN-IP.
+ * An interface to receive route updates from route providers.
  */
-public interface SdnIpService {
-
+public interface RouteListener {
     /**
-     * Changes whether this SDN-IP instance is the primary or not based on the
-     * boolean parameter.
+     * Receives a route update from a route provider.
      *
-     * @param isPrimary true if the instance is primary, false if it is not
+     * @param routeUpdates the collection with updated route information
      */
-    public void modifyPrimary(boolean isPrimary);
+    public void update(Collection<RouteUpdate> routeUpdates);
 }
