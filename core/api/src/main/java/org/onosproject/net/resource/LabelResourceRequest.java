@@ -11,12 +11,12 @@ public class LabelResourceRequest {
 
     private DeviceId deviceId;
     private Type type;
-    private long applyNum;
+    private ApplyLabelNumber applyNum;
     private Collection<DefaultLabelResource> releaseCollection;
 
     public LabelResourceRequest(DeviceId deviceId,
                                 Type type,
-                                long applyNum,
+                                ApplyLabelNumber applyNum,
                                 Collection<DefaultLabelResource> releaseCollection) {
         this.deviceId = deviceId;
         this.type = type;
@@ -40,11 +40,11 @@ public class LabelResourceRequest {
         this.type = type;
     }
 
-    public long getApplyNum() {
+    public ApplyLabelNumber getApplyNum() {
         return applyNum;
     }
 
-    public void setApplyNum(long applyNum) {
+    public void setApplyNum(ApplyLabelNumber applyNum) {
         this.applyNum = applyNum;
     }
 

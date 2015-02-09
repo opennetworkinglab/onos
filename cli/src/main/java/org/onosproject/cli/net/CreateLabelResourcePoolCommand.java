@@ -4,6 +4,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.resource.LabelResourceId;
 import org.onosproject.net.resource.LabelResourceService;
 
 /**
@@ -26,7 +27,9 @@ public class CreateLabelResourcePoolCommand extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        lrs.create(DeviceId.deviceId(deviceId), Long.parseLong(beginLabel), Long.parseLong(endLabel));
+        lrs.create(DeviceId.deviceId(deviceId),
+                   LabelResourceId.labelResourceId(Long.parseLong(beginLabel)),
+                   LabelResourceId.labelResourceId(Long.parseLong(endLabel)));
     }
 
 }

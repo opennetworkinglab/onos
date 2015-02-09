@@ -13,9 +13,11 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.resource.ApplyLabelNumber;
 import org.onosproject.net.resource.DefaultLabelResource;
 import org.onosproject.net.resource.LabelResourceDelegate;
 import org.onosproject.net.resource.LabelResourceEvent;
+import org.onosproject.net.resource.LabelResourceId;
 import org.onosproject.net.resource.LabelResourceListener;
 import org.onosproject.net.resource.LabelResourcePool;
 import org.onosproject.net.resource.LabelResourceService;
@@ -59,16 +61,18 @@ public class LabelResourceManager implements LabelResourceService {
     }
 
     @Override
-    public void create(DeviceId deviceId, long beginLabel, long endLabel) {
+    public void create(DeviceId deviceId, LabelResourceId beginLabel,
+                       LabelResourceId endLabel) {
         // TODO Auto-generated method stub
         LabelResourceEvent event = store.create(deviceId, beginLabel, endLabel);
         post(event);
     }
 
     @Override
-    public void create(LabelResourcePool labelResourcePool) {
+    public void createGlobal(LabelResourceId beginLabel,
+                       LabelResourceId endLabel) {
         // TODO Auto-generated method stub
-        LabelResourceEvent event = store.create(labelResourcePool);
+        LabelResourceEvent event = store.createGlobal(beginLabel, endLabel);
         post(event);
     }
 
@@ -79,8 +83,14 @@ public class LabelResourceManager implements LabelResourceService {
     }
 
     @Override
+    public void destroyGlobal() {
+        LabelResourceEvent event = store.destroyGlobal();
+        post(event);
+    }
+
+    @Override
     public Collection<DefaultLabelResource> apply(DeviceId deviceId,
-                                                  long applyNum) {
+                                                  ApplyLabelNumber applyNum) {
         // TODO Auto-generated method stub
         return store.apply(deviceId, applyNum);
     }
