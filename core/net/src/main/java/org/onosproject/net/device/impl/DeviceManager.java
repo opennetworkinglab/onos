@@ -614,7 +614,11 @@ public class DeviceManager
             }
 
             // device is connected to this node:
-            reassertRole(did, myNextRole);
+            if (store.getDevice(did) != null) {
+                reassertRole(did, myNextRole);
+            } else {
+                log.warn("Device is not yet/no longer in the store: {}", did);
+            }
         }
     }
 
