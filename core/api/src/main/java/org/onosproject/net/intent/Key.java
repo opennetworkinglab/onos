@@ -90,7 +90,7 @@ public class Key {
     private static final class LongKey extends Key {
 
         private final ApplicationId appId;
-        private static long key;
+        private final long key;
 
         private LongKey(long key, ApplicationId appId) {
             super(HASH_FN.newHasher()

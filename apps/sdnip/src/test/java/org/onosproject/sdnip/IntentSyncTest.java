@@ -17,7 +17,6 @@ package org.onosproject.sdnip;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
