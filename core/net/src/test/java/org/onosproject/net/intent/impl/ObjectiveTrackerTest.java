@@ -56,7 +56,6 @@ import static org.onosproject.net.NetTestTools.link;
 /**
  * Tests for the objective tracker.
  */
-@Ignore
 public class ObjectiveTrackerTest {
     private static final int WAIT_TIMEOUT_SECONDS = 2;
     private Topology topology;

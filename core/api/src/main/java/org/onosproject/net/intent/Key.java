@@ -103,7 +103,7 @@ public class Key {
 
         @Override
         public String toString() {
-            return Long.toString(key);
+            return "0x" + Long.toHexString(key);
         }
 
         @Override
