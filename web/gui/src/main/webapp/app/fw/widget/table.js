@@ -113,7 +113,6 @@
             };
         }])
 
-        // TODO: find another solution other than timeout for waiting for ng-repeat to end
         .directive('onosFixedHeader', ['$window', '$timeout',
             'MastService', 'FnService',
             function (_$window_, $timeout, mast, _fs_) {
@@ -121,7 +120,8 @@
                 $window = _$window_;
                 fs = _fs_;
                 var w = angular.element($window),
-                    table = d3.select(element[0]);
+                    table = d3.select(element[0]),
+                    shouldResize = false;
 
                 scope.$watch(function () {
                     return {
@@ -136,10 +136,16 @@
                     scope.windowWidth = newVal.w;
 
                     scope.setTableHW = function () {
-                        $timeout(function () {
+                        scope.$on('LastElement', function (event) {
                             fixTable(table, thead, tbody);
-                        }, 250);
+                            shouldResize = true;
+                        });
                     };
+
+                    if (shouldResize) {
+                        fixTable(table, thead, tbody);
+                    }
+
                 }, true);
 
                 w.bind('onos-fixed-header', function () {

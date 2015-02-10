@@ -70,5 +70,14 @@
                 }
             };
 
+        }])
+
+        // create a general ng-repeat complete notifier directive
+        .directive('ngRepeatDone', [function () {
+            return function (scope, element, attrs) {
+                if(scope.$last) {
+                    scope.$emit('LastElement');
+                }
+            }
         }]);
 }());
