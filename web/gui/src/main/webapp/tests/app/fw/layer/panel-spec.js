@@ -88,7 +88,7 @@ describe('factory: fw/layer/panel.js', function () {
         var p = ps.createPanel('foo');
         expect(fs.areFunctions(p, [
             'show', 'hide', 'toggle', 'empty', 'append',
-            'width', 'height', 'isVisible', 'el'
+            'width', 'height', 'isVisible', 'classed', 'el'
         ])).toBeTruthy();
     });
 

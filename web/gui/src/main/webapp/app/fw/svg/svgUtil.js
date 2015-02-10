@@ -34,6 +34,7 @@
             $log = _$log_;
             fs = _fs_;
 
+            // TODO: change 'force' ref to be 'force.alpha' ref.
             function createDragBehavior(force, selectCb, atDragEnd,
                                         dragEnabled, clickEnabled) {
                 var draggedThreshold = d3.scale.linear()

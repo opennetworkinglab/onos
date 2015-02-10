@@ -27,7 +27,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, wes, tps, tis, tfs;
+    var $log, wss, wes, tps, tis, tfs, tss;
 
     // internal state
     var wsock, evApis;
@@ -37,9 +37,13 @@
     function bindApis() {
         evApis = {
             showSummary: tps,
+
+            showDetails: tss,
+
             addInstance: tis,
             updateInstance: tis,
             removeInstance: tis,
+
             addDevice: tfs,
             updateDevice: tfs,
             removeDevice: tfs,
@@ -100,14 +104,16 @@
     .factory('TopoEventService',
         ['$log', '$location', 'WebSocketService', 'WsEventService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
+            'TopoSelectService',
 
-        function (_$log_, $loc, _wss_, _wes_, _tps_, _tis_, _tfs_) {
+        function (_$log_, $loc, _wss_, _wes_, _tps_, _tis_, _tfs_, _tss_) {
             $log = _$log_;
             wss = _wss_;
             wes = _wes_;
             tps = _tps_;
             tis = _tis_;
             tfs = _tfs_;
+            tss = _tss_;
 
             bindApis();
 

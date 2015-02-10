@@ -66,7 +66,7 @@
 
             //E: [equalizeMasters, 'Equalize mastership roles'],
 
-            //esc: handleEscape,
+            esc: handleEscape,
 
             _helpFormat: [
                 ['O', 'I', 'D', '-', 'H', 'M', 'B', 'P' ],
@@ -85,12 +85,29 @@
         ];
     }
 
+    // --- Keystroke functions -------------------------------------------
 
     function toggleInstances() {
         tis.toggle();
         tfs.updateDeviceColors();
     }
 
+    function resetZoom() {
+        zoomer.reset();
+    }
+
+    function handleEscape() {
+        $log.debug("TODO: handle-ESCAPE...");
+        // if showingAffinity: cancelAffinity
+
+        // else if showingDetails: deselectAll
+
+        // else if oiBox visible: hide oiBox
+
+        // else if summary panel visible: cancel Summary
+
+        // else: hoverMode = hoverModeNone
+    }
 
     // --- Glyphs, Icons, and the like -----------------------------------
 
@@ -122,10 +139,6 @@
             zoomEnabled: zoomEnabled,
             zoomCallback: zoomCallback
         });
-    }
-
-    function resetZoom() {
-        zoomer.reset();
     }
 
 

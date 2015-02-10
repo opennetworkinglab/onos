@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, tms, icfg, uplink;
+    var $log, fs, sus, is, ts, flash, tis, tms, tss, icfg, uplink;
 
     // configuration
     var labelConfig = {
@@ -77,10 +77,7 @@
         showOffline = true,     // whether offline devices are displayed
         oblique = false,        // whether we are in the oblique view
         nodeLock = false,       // whether nodes can be dragged or not (locked)
-        dim,                    // the dimensions of the force layout [w,h]
-        hovered,                // the node over which the mouse is hovering
-        selections = {},        // what is currently selected
-        selectOrder = [];       // the order in which we made selections
+        dim;                    // the dimensions of the force layout [w,h]
 
     // SVG elements;
     var linkG, linkLabelG, nodeG;
@@ -311,8 +308,6 @@
             .attr('stroke', linkConfig[th].baseColor);
     }
 
-
-
     function removeLinkElement(d) {
         var idx = fs.find(d.key, network.links, 'key'),
             removed;
@@ -418,33 +413,9 @@
         });
     }
 
-    function requestTrafficForMode() {
-        $log.debug('TODO: requestTrafficForMode()...');
-    }
-
 
     // ==========================
     // === Devices and hosts - D3 rendering
-
-    function nodeMouseOver(m) {
-        if (!m.dragStarted) {
-            $log.debug("MouseOver()...", m);
-            if (hovered != m) {
-                hovered = m;
-                requestTrafficForMode();
-            }
-        }
-    }
-
-    function nodeMouseOut(m) {
-        if (!m.dragStarted) {
-            if (hovered) {
-                hovered = null;
-                requestTrafficForMode();
-            }
-            $log.debug("MouseOut()...", m);
-        }
-    }
 
 
     // Returns the newly computed bounding box of the rectangle
@@ -568,10 +539,11 @@
     }
 
     function unpin() {
-        if (hovered) {
-            sendUpdateMeta(hovered, true);
-            hovered.fixed = false;
-            hovered.el.classed('fixed', false);
+        var hov = tss.hovered();
+        if (hov) {
+            sendUpdateMeta(hov, true);
+            hov.fixed = false;
+            hov.el.classed('fixed', false);
             fResume();
         }
     }
@@ -668,8 +640,8 @@
                 opacity: 0
             })
             .call(drag)
-            .on('mouseover', nodeMouseOver)
-            .on('mouseout', nodeMouseOut)
+            .on('mouseover', tss.nodeMouseOver)
+            .on('mouseout', tss.nodeMouseOut)
             .transition()
             .attr('opacity', 1);
 
@@ -998,72 +970,6 @@
     }
 
 
-    function updateDetailPanel() {
-        // TODO update detail panel
-        $log.debug("TODO: updateDetailPanel() ...");
-    }
-
-
-    // ==========================
-    // === SELECTION / DESELECTION
-
-    function selectObject(obj) {
-        var el = this,
-            ev = d3.event.sourceEvent,
-            n;
-
-        if (zoomingOrPanning(ev)) {
-            return;
-        }
-
-        if (el) {
-            n = d3.select(el);
-        } else {
-            node.each(function (d) {
-                if (d == obj) {
-                    n = d3.select(el = this);
-                }
-            });
-        }
-        if (!n) return;
-
-        if (ev.shiftKey && n.classed('selected')) {
-            deselectObject(obj.id);
-            updateDetailPanel();
-            return;
-        }
-
-        if (!ev.shiftKey) {
-            deselectAll();
-        }
-
-        selections[obj.id] = { obj: obj, el: el };
-        selectOrder.push(obj.id);
-
-        n.classed('selected', true);
-        updateDeviceColors(obj);
-        updateDetailPanel();
-    }
-
-    function deselectObject(id) {
-        var obj = selections[id];
-        if (obj) {
-            d3.select(obj.el).classed('selected', false);
-            delete selections[id];
-            fs.removeFromArray(id, selectOrder);
-            updateDeviceColors(obj.obj);
-        }
-    }
-
-    function deselectAll() {
-        // deselect all nodes in the network...
-        node.classed('selected', false);
-        selections = {};
-        selectOrder = [];
-        updateDeviceColors();
-        updateDetailPanel();
-    }
-
     // ==========================
     // === MOUSE GESTURE HANDLERS
 
@@ -1103,12 +1009,22 @@
         };
     }
 
+    function mkSelectApi(uplink) {
+        return {
+            node: function () { return node; },
+            zoomingOrPanning: zoomingOrPanning,
+            updateDeviceColors: updateDeviceColors,
+            sendEvent: uplink.sendEvent
+        };
+    }
+
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
             'FlashService', 'TopoInstService', 'TopoModelService',
+            'TopoSelectService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _tis_, _tms_) {
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _tis_, _tms_, _tss_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -1117,6 +1033,7 @@
             flash = _flash_;
             tis = _tis_;
             tms = _tms_;
+            tss = _tss_;
 
             icfg = is.iconConfig();
 
@@ -1131,6 +1048,7 @@
                 $log.debug('initForce().. dim = ' + dim);
 
                 tms.initModel(mkModelApi(uplink), dim);
+                tss.initSelect(mkSelectApi(uplink));
 
                 settings = angular.extend({}, defaultSettings, opts);
 
@@ -1154,7 +1072,7 @@
                     .on('tick', tick);
 
                 drag = sus.createDragBehavior(force,
-                    selectObject, atDragEnd, dragEnabled, clickEnabled);
+                    tss.selectObject, atDragEnd, dragEnabled, clickEnabled);
             }
 
             function newDim(_dim_) {

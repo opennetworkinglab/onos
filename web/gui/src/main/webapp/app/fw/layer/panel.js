@@ -77,6 +77,7 @@
                 width: panelWidth,
                 height: panelHeight,
                 isVisible: panelIsVisible,
+                classed: classed,
                 el: panelEl
             };
 
@@ -144,6 +145,10 @@
 
         function panelIsVisible() {
             return p.on;
+        }
+
+        function classed(cls, bool) {
+            return p.el.classed(cls, bool);
         }
 
         function panelEl() {

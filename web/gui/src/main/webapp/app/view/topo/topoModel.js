@@ -24,18 +24,21 @@
     'use strict';
 
     // injected refs
-    var $log, fs, rnd, api;
+    var $log, fs, rnd;
+
+    // api to topoForce
+    var api;
+    /*
+       projection()
+       network {...}
+       restyleLinkElement( ldata )
+       removeLinkElement( ldata )
+     */
 
     // shorthand
     var lu, rlk, nodes, links;
 
-    // api:
-    //   projection: func()
-    //   network {...}
-    //   restyleLinkElement: func(ldata)
-    //   removeLinkElement: func(ldata)
-
-    var dim;    // dimensions of layout, as [w,h]
+    var dim;    // dimensions of layout [w,h]
 
     // configuration 'constants'
     var defaultLinkType = 'direct',

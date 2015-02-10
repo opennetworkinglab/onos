@@ -72,71 +72,121 @@
 
 #topo-p-summary {
     /* Base css from panel.css */
-    
 }
 
-#topo-p-summary svg {
+/* --- Topo Detail Panel --- */
+
+#topo-p-detail {
+    /* Base css from panel.css */
+    top: 320px;
+}
+
+/* --- general topo-panel styling --- */
+
+.topo-p svg {
     display: inline-block;
     width: 42px;
     height: 42px;
 }
 
-#topo-p-summary h2 {
+.light .topo-p svg .glyph {
+    fill: #222;
+}
+
+.dark .topo-p svg .glyph.overlay {
+    fill: #222;
+}
+
+.dark .topo-p svg .glyph {
+    fill: #ddd;
+}
+.light .topo-p svg .glyph.overlay {
+    fill: #fff;
+}
+
+
+.topo-p h2 {
     position: absolute;
     margin: 0 4px;
     top: 20px;
     left: 50px;
 }
-.light #topo-p-summary h2 {
+.light .topo-p h2 {
     color: black;
 }
-.dark #topo-p-summary h2 {
+.dark .topo-p h2 {
     color: #ddd;
 }
 
-#topo-p-summary h3 {
+.topo-p h3 {
     margin: 0 4px;
     top: 20px;
     left: 50px;
 }
-.light #topo-p-summary h3 {
+.light .topo-p h3 {
     color: black;
 }
-.dark #topo-p-summary h3 {
+.dark .topo-p h3 {
     color: #ddd;
 }
 
-#topo-p-summary p, table {
+.topo-p p, table {
     margin: 4px 4px;
 }
 
-#topo-p-summary td.label {
+.topo-p td.label {
     font-style: italic;
     padding-right: 12px;
     /* works for both light and dark themes ... */
     color: #777;
 }
 
-#topo-p-summary td.value {
+.topo-p td.value {
 }
 
-#topo-p-summary hr {
+.topo-p hr {
     height: 1px;
     border: 0;
 }
-.light #topo-p-summary hr {
+.light .topo-p hr {
     background-color: #ccc;
     color: #ccc;
 }
-.dark #topo-p-summary hr {
+.dark .topo-p hr {
     background-color: #888;
     color: #888;
 }
 
 
-/* --- Topo Detail Panel --- */
+.topo-p .actionBtn {
+    margin: 6px 12px;
+    padding: 2px 6px;
+    font-size: 9pt;
+    cursor: pointer;
+    width: 200px;
+    text-align: center;
+    border-radius: 4px;
+}
+.light .topo-p .actionBtn {
+    border: 2px solid #ddd;
+    color: #eee;
+    background: #888;
+}
+.dark .topo-p .actionBtn {
+    border: 2px solid #222;
+    color: #888;
+    background: #444;
+}
 
-/* TODO: add CSS rules */
+.light .topo-p .actionBtn:hover {
+    color: #eee;
+    background: #444;
+}
+.dark .topo-p .actionBtn:hover {
+    color: #eee;
+    background: #666;
+}
+
 
 
 /* --- Topo Instance Panel --- */

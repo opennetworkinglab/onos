@@ -15,35 +15,28 @@
  */
 
 /*
- ONOS GUI -- Topo View -- Topo Panel Service - Unit Tests
+ ONOS GUI -- Topo View -- Topo Selection Service - Unit Tests
  */
-describe('factory: view/topo/topoPanel.js', function() {
-    var $log, fs, tps;
+describe('factory: view/topo/topoSelect.js', function() {
+    var $log, fs, tss;
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoPanelService) {
+    beforeEach(inject(function (_$log_, FnService, TopoSelectService) {
         $log = _$log_;
         fs = FnService;
-        tps = TopoPanelService;
+        tss = TopoSelectService;
     }));
 
-    it('should define TopoPanelService', function () {
-        expect(tps).toBeDefined();
+    it('should define TopoSelectService', function () {
+        expect(tss).toBeDefined();
     });
 
     it('should define api functions', function () {
-        expect(fs.areFunctions(tps, [
-            'initPanels',
-            'destroyPanels',
-            'showSummary',
-            'displaySingle',
-            'displayMulti',
-            'addAction',
-            'showDetailPanel',
-            'hideDetailPanel',
-            'detailVisible',
-            'summaryVisible'
+        expect(fs.areFunctions(tss, [
+            'initSelect', 'destroySelect', 'showDetails',
+            'nodeMouseOver', 'nodeMouseOut', 'selectObject', 'deselectObject',
+            'deselectAll', 'hovered'
         ])).toBeTruthy();
     });
 

@@ -26,7 +26,8 @@
     var $log, ps, gs;
 
     // constants
-    var idSum = 'topo-p-summary',
+    var pCls = 'topo-p',
+        idSum = 'topo-p-summary',
         idDet = 'topo-p-detail',
         panelOpts = {
             width: 260
@@ -36,35 +37,9 @@
     var summaryPanel,
         detailPanel;
 
-    // ==========================
-    // *** SHOW SUMMARY ***
 
-    function showSummary(data) {
-        populateSummary(data);
-        showSummaryPanel();
-    }
-
-    function populateSummary(data) {
-        summaryPanel.empty();
-
-        var svg = summaryPanel.append('svg'),
-            title = summaryPanel.append('h2'),
-            table = summaryPanel.append('table'),
-            tbody = table.append('tbody');
-
-        gs.addGlyph(svg, 'node', 40);
-        gs.addGlyph(svg, 'bird', 24, true, [8,12]);
-
-        title.text(data.id);
-
-        data.propOrder.forEach(function(p) {
-            if (p === '-') {
-                addSep(tbody);
-            } else {
-                addProp(tbody, p, data.props[p]);
-            }
-        });
-    }
+    // === -----------------------------------------------------
+    // Utility functions
 
     function addSep(tbody) {
         tbody.append('tr').append('td').attr('colspan', 2).append('hr');
@@ -80,16 +55,116 @@
         addCell('value', value);
     }
 
+    function listProps(tbody, data) {
+        data.propOrder.forEach(function(p) {
+            if (p === '-') {
+                addSep(tbody);
+            } else {
+                addProp(tbody, p, data.props[p]);
+            }
+        });
+    }
+
+    function dpa(x) {
+        return detailPanel.append(x);
+    }
+
+    function spa(x) {
+        return summaryPanel.append(x);
+    }
+
+    // === -----------------------------------------------------
+    //  Functions for populating the summary panel
+
+    function populateSummary(data) {
+        summaryPanel.empty();
+
+        var svg = spa('svg'),
+            title = spa('h2'),
+            table = spa('table'),
+            tbody = table.append('tbody');
+
+        gs.addGlyph(svg, 'node', 40);
+        gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+
+        title.text(data.id);
+        listProps(tbody, data);
+    }
+
+    // === -----------------------------------------------------
+    //  Functions for populating the detail panel
+
+    function displaySingle(data) {
+        detailPanel.empty();
+
+        var svg = dpa('svg'),
+            title = dpa('h2'),
+            table = dpa('table'),
+            tbody = table.append('tbody');
+
+        gs.addGlyph(svg, (data.type || 'unknown'), 40);
+        title.text(data.id);
+        listProps(tbody, data);
+        dpa('hr');
+    }
+
+    function displayMulti(ids) {
+        detailPanel.empty();
+
+        var title = dpa('h3'),
+            table = dpa('table'),
+            tbody = table.append('tbody');
+
+        title.text('Selected Nodes');
+        ids.forEach(function (d, i) {
+            addProp(tbody, i+1, d);
+        });
+        dpa('hr');
+    }
+
+    function addAction(text, cb) {
+        dpa('div')
+            .classed('actionBtn', true)
+            .text(text)
+            .on('click', cb);
+    }
+
+    // === -----------------------------------------------------
+    //  Event Handlers
+
+    function showSummary(data) {
+        populateSummary(data);
+        showSummaryPanel();
+    }
+
+
+    // === -----------------------------------------------------
+    // === LOGIC For showing/hiding summary and detail panels...
+
     function showSummaryPanel() {
         summaryPanel.show();
         // TODO: augment, once we have the details pane also
     }
+
+    function showDetailPanel() {
+        // TODO: augment with summary-accomodation-logic
+        detailPanel.show();
+    }
+
+    function hideDetailPanel() {
+        detailPanel.hide();
+    }
+
+
 
     // ==========================
 
     function initPanels() {
         summaryPanel = ps.createPanel(idSum, panelOpts);
         detailPanel = ps.createPanel(idDet, panelOpts);
+
+        summaryPanel.classed(pCls, true);
+        detailPanel.classed(pCls, true);
     }
 
     function destroyPanels() {
@@ -112,7 +187,18 @@
             return {
                 initPanels: initPanels,
                 destroyPanels: destroyPanels,
-                showSummary: showSummary
+
+                showSummary: showSummary,
+
+                displaySingle: displaySingle,
+                displayMulti: displayMulti,
+                addAction: addAction,
+
+                showDetailPanel: showDetailPanel,
+                hideDetailPanel: hideDetailPanel,
+
+                detailVisible: function () { return detailPanel.isVisible(); },
+                summaryVisible: function () { return summaryPanel.isVisible(); }
             };
         }]);
 }());
