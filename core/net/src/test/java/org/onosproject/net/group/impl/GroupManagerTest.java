@@ -15,11 +15,6 @@
  */
 package org.onosproject.net.group.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +55,8 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.impl.SimpleGroupStore;
 
 import com.google.common.collect.Iterables;
+
+import static org.junit.Assert.*;
 
 /**
  * Test codifying the group service & group provider service contracts.
@@ -315,6 +312,90 @@ public class GroupManagerTest {
         groupEntries = Collections.emptyList();
         providerService.pushGroupMetrics(DID, groupEntries);
         internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_REMOVED));
+    }
+
+    /**
+     * Test GroupOperationFailure function in Group Manager.
+     * a)GroupAddFailure
+     * b)GroupUpdateFailure
+     * c)GroupRemoteFailure
+     */
+    @Test
+    public void testGroupOperationFailure() {
+        PortNumber[] ports1 = {PortNumber.portNumber(31),
+                PortNumber.portNumber(32)};
+        PortNumber[] ports2 = {PortNumber.portNumber(41),
+                PortNumber.portNumber(42)};
+        // Test Group creation before AUDIT process
+        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        outPorts.addAll(Arrays.asList(ports1));
+        outPorts.addAll(Arrays.asList(ports2));
+        for (PortNumber portNumber: outPorts) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.setOutput(portNumber)
+                    .setEthDst(MacAddress.valueOf("00:00:00:00:00:02"))
+                    .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
+                    .pushMpls()
+                    .setMpls(106);
+            buckets.add(DefaultGroupBucket.createSelectGroupBucket(
+                    tBuilder.build()));
+        }
+        GroupBuckets groupBuckets = new GroupBuckets(buckets);
+        GroupDescription newGroupDesc = new DefaultGroupDescription(DID,
+                Group.Type.SELECT,
+                groupBuckets,
+                key,
+                appId);
+        groupService.addGroup(newGroupDesc);
+
+        // Test initial group audit process
+        GroupId gId1 = new DefaultGroupId(1);
+        Group group1 = createSouthboundGroupEntry(gId1,
+                Arrays.asList(ports1),
+                0);
+        GroupId gId2 = new DefaultGroupId(2);
+        // Non zero reference count will make the group manager to queue
+        // the extraneous groups until reference count is zero.
+        Group group2 = createSouthboundGroupEntry(gId2,
+                Arrays.asList(ports2),
+                2);
+        List<Group> groupEntries = Arrays.asList(group1, group2);
+        providerService.pushGroupMetrics(DID, groupEntries);
+        Group createdGroup = groupService.getGroup(DID, key);
+
+        // Group Add failure test
+        GroupOperation groupAddOp = GroupOperation.
+                createAddGroupOperation(createdGroup.id(),
+                        createdGroup.type(),
+                        createdGroup.buckets());
+        providerService.groupOperationFailed(DID, groupAddOp);
+        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_ADD_FAILED));
+
+        // Group Mod failure test
+        groupService.addGroup(newGroupDesc);
+        createdGroup = groupService.getGroup(DID, key);
+        assertNotNull(createdGroup);
+
+        GroupOperation groupModOp = GroupOperation.
+                createModifyGroupOperation(createdGroup.id(),
+                        createdGroup.type(),
+                        createdGroup.buckets());
+        providerService.groupOperationFailed(DID, groupModOp);
+        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_UPDATE_FAILED));
+
+        // Group Delete failure test
+        groupService.addGroup(newGroupDesc);
+        createdGroup = groupService.getGroup(DID, key);
+        assertNotNull(createdGroup);
+
+        GroupOperation groupDelOp = GroupOperation.
+                createDeleteGroupOperation(createdGroup.id(),
+                        createdGroup.type());
+        providerService.groupOperationFailed(DID, groupDelOp);
+        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_REMOVE_FAILED));
+
     }
 
     private Group createSouthboundGroupEntry(GroupId gId,

@@ -263,6 +263,9 @@ public class GroupManager
             case GROUP_ADDED:
             case GROUP_UPDATED:
             case GROUP_REMOVED:
+            case GROUP_ADD_FAILED:
+            case GROUP_UPDATE_FAILED:
+            case GROUP_REMOVE_FAILED:
                 eventDispatcher.post(event);
                 break;
 
@@ -281,9 +284,9 @@ public class GroupManager
         }
 
         @Override
-        public void groupOperationFailed(GroupOperation operation) {
-            // TODO Auto-generated method stub
-
+        public void groupOperationFailed(DeviceId deviceId,
+                                         GroupOperation operation) {
+            store.groupOperationFailed(deviceId, operation);
         }
 
         private void groupMissing(Group group) {

@@ -29,9 +29,10 @@ public interface GroupProviderService extends ProviderService<GroupProvider> {
     /**
      * Notifies core if any failure from data plane during group operations.
      *
+     * @param deviceId the device ID
      * @param operation offended group operation
      */
-    void groupOperationFailed(GroupOperation operation);
+    void groupOperationFailed(DeviceId deviceId, GroupOperation operation);
 
     /**
      * Pushes the collection of group detected in the data plane along

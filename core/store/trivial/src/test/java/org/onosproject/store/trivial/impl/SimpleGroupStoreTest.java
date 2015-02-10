@@ -40,6 +40,7 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore.UpdateType;
 import org.onosproject.net.group.GroupStoreDelegate;
 
@@ -129,6 +130,18 @@ public class SimpleGroupStoreTest {
                 createdGroupId = event.subject().id();
                 assertEquals(Group.GroupState.PENDING_DELETE,
                              event.subject().state());
+            } else if (expectedEvent == GroupEvent.Type.GROUP_ADD_FAILED) {
+                createdGroupId = event.subject().id();
+                assertEquals(Group.GroupState.PENDING_ADD,
+                        event.subject().state());
+            } else if (expectedEvent == GroupEvent.Type.GROUP_UPDATE_FAILED) {
+                createdGroupId = event.subject().id();
+                assertEquals(Group.GroupState.PENDING_UPDATE,
+                        event.subject().state());
+            } else if (expectedEvent == GroupEvent.Type.GROUP_REMOVE_FAILED) {
+                createdGroupId = event.subject().id();
+                assertEquals(Group.GroupState.PENDING_DELETE,
+                        event.subject().state());
             }
         }
 
@@ -309,6 +322,92 @@ public class SimpleGroupStoreTest {
         assertEquals(0, simpleGroupStore.getGroupCount(D1));
 
         simpleGroupStore.unsetDelegate(removeGroupEntryDelegate);
+
+
+    }
+
+    @Test
+    public void testGroupOperationFailure() {
+
+        simpleGroupStore.deviceInitialAuditCompleted(D1);
+
+        ApplicationId appId =
+                new DefaultApplicationId(2, "org.groupstore.test");
+        TestGroupKey key = new TestGroupKey("group1");
+        PortNumber[] ports = {PortNumber.portNumber(31),
+                PortNumber.portNumber(32)};
+        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        outPorts.add(ports[0]);
+        outPorts.add(ports[1]);
+
+        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        for (PortNumber portNumber: outPorts) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.setOutput(portNumber)
+                    .setEthDst(MacAddress.valueOf("00:00:00:00:00:02"))
+                    .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
+                    .pushMpls()
+                    .setMpls(106);
+            buckets.add(DefaultGroupBucket.createSelectGroupBucket(
+                    tBuilder.build()));
+        }
+        GroupBuckets groupBuckets = new GroupBuckets(buckets);
+        GroupDescription groupDesc = new DefaultGroupDescription(
+                D1,
+                Group.Type.SELECT,
+                groupBuckets,
+                key,
+                appId);
+        InternalGroupStoreDelegate checkStoreGroupDelegate =
+                new InternalGroupStoreDelegate(key,
+                        groupBuckets,
+                        GroupEvent.Type.GROUP_ADD_REQUESTED);
+        simpleGroupStore.setDelegate(checkStoreGroupDelegate);
+        // Testing storeGroup operation
+        simpleGroupStore.storeGroupDescription(groupDesc);
+        simpleGroupStore.unsetDelegate(checkStoreGroupDelegate);
+
+        // Testing Group add operation failure
+        Group createdGroup = simpleGroupStore.getGroup(D1, key);
+        checkStoreGroupDelegate.verifyGroupId(createdGroup.id());
+
+        GroupOperation groupAddOp = GroupOperation.
+                createAddGroupOperation(createdGroup.id(),
+                        createdGroup.type(),
+                        createdGroup.buckets());
+        InternalGroupStoreDelegate checkGroupAddFailureDelegate =
+                new InternalGroupStoreDelegate(key,
+                        groupBuckets,
+                        GroupEvent.Type.GROUP_ADD_FAILED);
+        simpleGroupStore.setDelegate(checkGroupAddFailureDelegate);
+        simpleGroupStore.groupOperationFailed(D1, groupAddOp);
+
+
+        // Testing Group modify operation failure
+        simpleGroupStore.unsetDelegate(checkGroupAddFailureDelegate);
+        GroupOperation groupModOp = GroupOperation.
+                createModifyGroupOperation(createdGroup.id(),
+                        createdGroup.type(),
+                        createdGroup.buckets());
+        InternalGroupStoreDelegate checkGroupModFailureDelegate =
+                new InternalGroupStoreDelegate(key,
+                        groupBuckets,
+                        GroupEvent.Type.GROUP_UPDATE_FAILED);
+        simpleGroupStore.setDelegate(checkGroupModFailureDelegate);
+        simpleGroupStore.groupOperationFailed(D1, groupModOp);
+
+        // Testing Group modify operation failure
+        simpleGroupStore.unsetDelegate(checkGroupModFailureDelegate);
+        GroupOperation groupDelOp = GroupOperation.
+                createDeleteGroupOperation(createdGroup.id(),
+                        createdGroup.type());
+        InternalGroupStoreDelegate checkGroupDelFailureDelegate =
+                new InternalGroupStoreDelegate(key,
+                        groupBuckets,
+                        GroupEvent.Type.GROUP_REMOVE_FAILED);
+        simpleGroupStore.setDelegate(checkGroupDelFailureDelegate);
+        simpleGroupStore.groupOperationFailed(D1, groupDelOp);
+
 
     }
 }

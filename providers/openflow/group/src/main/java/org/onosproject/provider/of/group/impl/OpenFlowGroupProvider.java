@@ -282,8 +282,10 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                         } else {
                             GroupOperation operation =
                                     pendingGroupOperations.get(pendingGroupId);
+                            DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
                             if (operation != null) {
-                                providerService.groupOperationFailed(operation);
+                                providerService.groupOperationFailed(deviceId,
+                                        operation);
                                 pendingGroupOperations.remove(pendingGroupId);
                                 pendingXidMaps.remove(pendingGroupId);
                                 log.warn("Received an group mod error {}", msg);

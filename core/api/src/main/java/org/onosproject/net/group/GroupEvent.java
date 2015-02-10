@@ -41,6 +41,21 @@ public class GroupEvent extends AbstractEvent<GroupEvent.Type, Group> {
          */
         GROUP_UPDATED,
 
+        /**
+         * Signifies that a request to create Group has failed.
+         */
+        GROUP_ADD_FAILED,
+
+        /**
+         * Signifies that a request to remove Group has failed.
+         */
+        GROUP_REMOVE_FAILED,
+
+        /**
+         * Signifies that a request to update Group has failed.
+         */
+        GROUP_UPDATE_FAILED,
+
         // internal event between Manager <-> Store
 
         /*
@@ -55,6 +70,8 @@ public class GroupEvent extends AbstractEvent<GroupEvent.Type, Group> {
          * Signifies that a request to delete Group has been added to the store.
          */
         GROUP_REMOVE_REQUESTED,
+
+
     }
 
     /**

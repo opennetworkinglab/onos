@@ -177,7 +177,7 @@ public class OpenFlowGroupProviderTest {
         }
 
         @Override
-        public void groupOperationFailed(GroupOperation operation) {
+        public void groupOperationFailed(DeviceId deviceId, GroupOperation operation) {
             this.failedOperation = operation;
         }
 

@@ -143,4 +143,12 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @return initial group audit status
      */
     boolean deviceInitialAuditStatus(DeviceId deviceId);
+
+    /**
+     * Indicates the group operations failed.
+     *
+     * @param deviceId the device ID
+     * @param operation the group operation failed
+     */
+    void groupOperationFailed(DeviceId deviceId, GroupOperation operation);
 }

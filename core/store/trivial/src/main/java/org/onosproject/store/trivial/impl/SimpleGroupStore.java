@@ -43,6 +43,7 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupEvent.Type;
 import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.group.StoredGroupEntry;
@@ -474,6 +475,41 @@ public class SimpleGroupStore
     }
 
     @Override
+    public void groupOperationFailed(DeviceId deviceId, GroupOperation operation) {
+
+        StoredGroupEntry existing = (groupEntriesById.get(
+                deviceId) != null) ?
+                groupEntriesById.get(deviceId).get(operation.groupId()) :
+                null;
+
+        if (existing == null) {
+            log.warn("No group entry with ID {} found ", operation.groupId());
+            return;
+        }
+
+        switch (operation.opType()) {
+        case ADD:
+            notifyDelegate(new GroupEvent(Type.GROUP_ADD_FAILED, existing));
+            break;
+        case MODIFY:
+            notifyDelegate(new GroupEvent(Type.GROUP_UPDATE_FAILED, existing));
+            break;
+        case DELETE:
+            notifyDelegate(new GroupEvent(Type.GROUP_REMOVE_FAILED, existing));
+            break;
+        default:
+            log.warn("Unknown group operation type {}", operation.opType());
+        }
+
+        ConcurrentMap<GroupKey, StoredGroupEntry> keyTable =
+                getGroupKeyTable(existing.deviceId());
+        ConcurrentMap<GroupId, StoredGroupEntry> idTable =
+                getGroupIdTable(existing.deviceId());
+        idTable.remove(existing.id());
+        keyTable.remove(existing.appCookie());
+    }
+
+    @Override
     public void addOrUpdateExtraneousGroupEntry(Group group) {
         ConcurrentMap<GroupId, Group> extraneousIdTable =
                 getExtraneousGroupIdTable(group.deviceId());
@@ -497,4 +533,6 @@ public class SimpleGroupStore
         return FluentIterable.from(
                   getExtraneousGroupIdTable(deviceId).values());
     }
+
+
 }
