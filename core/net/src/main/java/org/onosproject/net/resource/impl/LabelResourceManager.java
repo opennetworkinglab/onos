@@ -14,6 +14,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.resource.ApplyLabelNumber;
 import org.onosproject.net.resource.DefaultLabelResource;
 import org.onosproject.net.resource.LabelResourceDelegate;
@@ -21,6 +22,9 @@ import org.onosproject.net.resource.LabelResourceEvent;
 import org.onosproject.net.resource.LabelResourceId;
 import org.onosproject.net.resource.LabelResourceListener;
 import org.onosproject.net.resource.LabelResourcePool;
+import org.onosproject.net.resource.LabelResourceProvider;
+import org.onosproject.net.resource.LabelResourceProviderRegistry;
+import org.onosproject.net.resource.LabelResourceProviderService;
 import org.onosproject.net.resource.LabelResourceService;
 import org.onosproject.net.resource.LabelResourceStore;
 import org.slf4j.Logger;
@@ -33,7 +37,7 @@ import com.google.common.collect.Multimap;
  */
 @Component(immediate = true)
 @Service
-public class LabelResourceManager implements LabelResourceService {
+public class LabelResourceManager extends AbstractProviderRegistry<LabelResourceProvider, LabelResourceProviderService> implements LabelResourceService, LabelResourceProviderRegistry {
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
@@ -176,5 +180,11 @@ public class LabelResourceManager implements LabelResourceService {
             post(event);
         }
 
+    }
+
+    @Override
+    protected LabelResourceProviderService createProviderService(LabelResourceProvider provider) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

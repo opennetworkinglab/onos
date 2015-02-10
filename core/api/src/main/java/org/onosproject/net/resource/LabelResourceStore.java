@@ -18,9 +18,9 @@ public interface LabelResourceStore
     /**
      * create a label resource of some device id from begin label to end label.
      *
-     * @param deviceId
-     * @param beginLabel
-     * @param endLabel
+     * @param deviceId device identifier
+     * @param beginLabel the begin label number of resource
+     * @param endLabel the end label number of resource
      * @return LabelResourceEvent
      */
     LabelResourceEvent createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
@@ -29,7 +29,9 @@ public interface LabelResourceStore
     /**
      * create the global label resource pool.
      *
-     * @param labelResourcePool
+     * @param deviceId device identifier
+     * @param beginLabel the begin label number of resource
+     * @param endLabel the end label number of resource
      * @return LabelResourceEvent
      */
     LabelResourceEvent createGlobalPool(LabelResourceId beginLabel,
@@ -38,7 +40,7 @@ public interface LabelResourceStore
     /**
      * destroy a label resource pool of a specific device id.
      *
-     * @param deviceId
+     * @param deviceId device identifier
      * @return LabelResourceEvent
      */
     LabelResourceEvent destroyDevicePool(DeviceId deviceId);
@@ -46,7 +48,8 @@ public interface LabelResourceStore
     /**
      * destroy a the global label resource pool.
      *
-     * @param deviceId
+     * @param deviceId device identifier
+     * @param applyNum the applying number
      * @return LabelResourceEvent
      */
     LabelResourceEvent destroyGlobalPool();
@@ -54,9 +57,9 @@ public interface LabelResourceStore
     /**
      * get labels from resource pool by a specific device id.
      *
-     * @param deviceId
-     * @param applyNum
-     * @return collection of labels
+     * @param deviceId device identifier
+     * @param applyNum the applying number
+     * @return collection of applying labels
      */
     Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
                                            ApplyLabelNumber applyNum);
@@ -64,8 +67,7 @@ public interface LabelResourceStore
     /**
      * get labels from the global label resource pool.
      *
-     * @param deviceId
-     * @param applyNum
+     * @param applyNum the applying number
      * @return collection of labels
      */
     Collection<DefaultLabelResource> applyFromGlobalPool(ApplyLabelNumber applyNum);
@@ -73,7 +75,7 @@ public interface LabelResourceStore
     /**
      * release unused labels to device pools  .
      *
-     * @param release
+     * @param release the collection of releasing labels
      * @return success or fail
      */
     boolean releaseToDevicePool(Multimap<DeviceId, DefaultLabelResource> release);
@@ -81,14 +83,14 @@ public interface LabelResourceStore
     /**
      * release unused labels to the global resource pool.
      *
-     * @param release
+     * @param release release the collection of releasing labels
      * @return success or fail
      */
     boolean releaseToGlobalPool(Set<DefaultLabelResource> release);
 
     /**
      * judge if the pool of a specific device id is full.
-     * @param deviceId
+     * @param deviceId device identifier
      * @return yes or no
      */
     boolean isDevicePoolFull(DeviceId deviceId);
@@ -102,29 +104,28 @@ public interface LabelResourceStore
 
     /**
      * get the unused number of a label resource pool by a specific device id.
-     * @param deviceId
-     * @return
+     * @param deviceId device identifier
+     * @return the free number
      */
     long getFreeNumOfDevicePool(DeviceId deviceId);
 
     /**
      * get the unused number of a global label resource pool.
-     * @param deviceId
-     * @return
+     * @return the free number of global resource pool
      */
     long getFreeNumOfGlobalPool();
 
     /**
      * get the label resource pool of a label resource by a specific device id.
      * @param deviceId
-     * @return
+     * @return the device label resource pool
      */
     LabelResourcePool getDeviceLabelResourcePool(DeviceId deviceId);
 
     /**
      * get the global label resource pool.
      * @param deviceId
-     * @return
+     * @return the global label resource pool
      */
     LabelResourcePool getGlobalLabelResourcePool();
 }
