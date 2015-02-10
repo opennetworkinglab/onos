@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.store.Timestamp;
 
@@ -103,4 +104,13 @@ public class IntentData { //FIXME need to make this "immutable"
         return Objects.equals(this.intent, other.intent)
                 && Objects.equals(this.version, other.version);
     }
+
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("key", key())
+                .add("state", state())
+                .add("version", version())
+                .toString();
+    }
+
 }
