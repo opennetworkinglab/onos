@@ -23,19 +23,19 @@ public interface LabelResourceStore
      * @param endLabel the end label number of resource
      * @return LabelResourceEvent
      */
-    LabelResourceEvent createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
-                              LabelResourceId endLabel);
+    LabelResourceEvent createDevicePool(DeviceId deviceId,
+                                        LabelResourceId beginLabel,
+                                        LabelResourceId endLabel);
 
     /**
      * create the global label resource pool.
      *
-     * @param deviceId device identifier
      * @param beginLabel the begin label number of resource
      * @param endLabel the end label number of resource
      * @return LabelResourceEvent
      */
     LabelResourceEvent createGlobalPool(LabelResourceId beginLabel,
-                                    LabelResourceId endLabel);
+                                        LabelResourceId endLabel);
 
     /**
      * destroy a label resource pool of a specific device id.
@@ -48,8 +48,6 @@ public interface LabelResourceStore
     /**
      * destroy a the global label resource pool.
      *
-     * @param deviceId device identifier
-     * @param applyNum the applying number
      * @return LabelResourceEvent
      */
     LabelResourceEvent destroyGlobalPool();
@@ -62,7 +60,7 @@ public interface LabelResourceStore
      * @return collection of applying labels
      */
     Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
-                                           ApplyLabelNumber applyNum);
+                                                         ApplyLabelNumber applyNum);
 
     /**
      * get labels from the global label resource pool.
@@ -70,7 +68,8 @@ public interface LabelResourceStore
      * @param applyNum the applying number
      * @return collection of labels
      */
-    Collection<DefaultLabelResource> applyFromGlobalPool(ApplyLabelNumber applyNum);
+    Collection<DefaultLabelResource> applyFromGlobalPool(
+            ApplyLabelNumber applyNum);
 
     /**
      * release unused labels to device pools  .
@@ -78,7 +77,8 @@ public interface LabelResourceStore
      * @param release the collection of releasing labels
      * @return success or fail
      */
-    boolean releaseToDevicePool(Multimap<DeviceId, DefaultLabelResource> release);
+    boolean releaseToDevicePool(
+            Multimap<DeviceId, DefaultLabelResource> release);
 
     /**
      * release unused labels to the global resource pool.
@@ -97,7 +97,6 @@ public interface LabelResourceStore
 
     /**
      * judge if the global resource pool is full.
-     * @param deviceId
      * @return yes or no
      */
     boolean isGlobalPoolFull();
@@ -117,14 +116,13 @@ public interface LabelResourceStore
 
     /**
      * get the label resource pool of a label resource by a specific device id.
-     * @param deviceId
+     * @param deviceId device identifier
      * @return the device label resource pool
      */
     LabelResourcePool getDeviceLabelResourcePool(DeviceId deviceId);
 
     /**
      * get the global label resource pool.
-     * @param deviceId
      * @return the global label resource pool
      */
     LabelResourcePool getGlobalLabelResourcePool();

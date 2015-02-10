@@ -20,17 +20,15 @@ public interface LabelResourceService {
      * @param endLabel the end label number of resource
      */
     void createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
-                LabelResourceId endLabel);
+                          LabelResourceId endLabel);
 
     /**
      * create the global label resource pool.
      *
-     * @param deviceId device identifier
      * @param beginLabel the begin label number of resource
      * @param endLabel the end label number of resource
      */
-    void createGlobalPool(LabelResourceId beginLabel,
-                                    LabelResourceId endLabel);
+    void createGlobalPool(LabelResourceId beginLabel, LabelResourceId endLabel);
 
     /**
      * destroy a label resource pool of a specific device id.
@@ -50,7 +48,8 @@ public interface LabelResourceService {
      * @param applyNum the applying number
      * @return collection of applying labels
      */
-    Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId, ApplyLabelNumber applyNum);
+    Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
+                                                         ApplyLabelNumber applyNum);
 
     /**
      * get labels from the global label resource pool.
@@ -58,7 +57,8 @@ public interface LabelResourceService {
      * @param applyNum the applying number
      * @return collection of applying labels
      */
-    Collection<DefaultLabelResource> applyFromGlobalPool(ApplyLabelNumber applyNum);
+    Collection<DefaultLabelResource> applyFromGlobalPool(
+            ApplyLabelNumber applyNum);
 
     /**
      * release unused labels to device pools  .
@@ -66,7 +66,8 @@ public interface LabelResourceService {
      * @param release the collection of releasing labels
      * @return success or fail
      */
-    boolean releaseToDevicePool(Multimap<DeviceId, DefaultLabelResource> release);
+    boolean releaseToDevicePool(
+            Multimap<DeviceId, DefaultLabelResource> release);
 
     /**
      * release unused labels to the global resource pool.
@@ -98,7 +99,6 @@ public interface LabelResourceService {
 
     /**
      * get the unused number of a global label resource pool.
-     * @param deviceId device identifier
      * @return the free number of global resource pool
      */
     long getFreeNumOfGlobalPool();

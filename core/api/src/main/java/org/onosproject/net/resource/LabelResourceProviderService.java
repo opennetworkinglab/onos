@@ -14,7 +14,9 @@ public interface LabelResourceProviderService extends ProviderService<LabelResou
      * @param beginLabel the begin label number of resource
      * @param endLabel the end label number of resource
      */
-    void deviceLabelResourcePoolDetected(DeviceId deviceId, LabelResourceId beginLabel, LabelResourceId endLabel);
+    void deviceLabelResourcePoolDetected(DeviceId deviceId,
+                                         LabelResourceId beginLabel,
+                                         LabelResourceId endLabel);
 
     /**
      * Signals that an label resource pool has been destroyed.
