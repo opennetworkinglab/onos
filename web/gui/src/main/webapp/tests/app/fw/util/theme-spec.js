@@ -29,7 +29,7 @@ describe('factory: fw/util/theme.js', function() {
         ts.init();
     }));
 
-    it('should define MapService', function () {
+    it('should define ThemeService', function () {
         expect(ts).toBeDefined();
     });
 

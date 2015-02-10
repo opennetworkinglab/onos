@@ -130,8 +130,8 @@
 
 
     // callback invoked when the SVG view has been resized..
-    function svgResized(dim) {
-        tfs.resize(dim);
+    function svgResized(s) {
+        tfs.newDim([s.width, s.height]);
     }
 
     // --- Background Map ------------------------------------------------
@@ -203,6 +203,7 @@
                   _ks_, _zs_, _gs_, _ms_, _sus_, tes, _tfs_, tps, _tis_) {
             var self = this,
                 projection,
+                dim,
                 uplink = {
                     // provides function calls back into this space
                     showNoDevs: showNoDevs,
@@ -230,6 +231,7 @@
                 tes.closeSock();
                 tps.destroyPanels();
                 tis.destroyInst();
+                tfs.destroyForce();
             });
 
             // svg layer and initialization of components
@@ -237,6 +239,7 @@
             svg = ovtopo.select('svg');
             // set the svg size to match that of the window, less the masthead
             svg.attr(fs.windowSize(mast.mastHeight()));
+            dim = [svg.attr('width'), svg.attr('height')];
 
             setUpKeys();
             setUpDefs();
@@ -250,7 +253,7 @@
             );
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
-            tfs.initForce(forceG, uplink, svg.attr('width'), svg.attr('height'));
+            tfs.initForce(forceG, uplink, dim);
             tis.initInst();
             tps.initPanels();
             tes.openSock();

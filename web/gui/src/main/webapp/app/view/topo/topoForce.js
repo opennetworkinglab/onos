@@ -15,15 +15,15 @@
  */
 
 /*
- ONOS GUI -- Topology Event Module.
- Defines event handling for events received from the server.
+ ONOS GUI -- Topology Force Module.
+ Visualization of the topology in an SVG layer, using a D3 Force Layout.
  */
 
 (function () {
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, icfg, uplink;
+    var $log, fs, sus, is, ts, flash, tis, tms, icfg, uplink;
 
     // configuration
     var labelConfig = {
@@ -48,7 +48,7 @@
         light: {
             baseColor: '#666',
             inColor: '#66f',
-            outColor: '#f00',
+            outColor: '#f00'
         },
         dark: {
             baseColor: '#aaa',
@@ -76,7 +76,7 @@
         showOffline = true,     // whether offline devices are displayed
         oblique = false,        // whether we are in the oblique view
         nodeLock = false,       // whether nodes can be dragged or not (locked)
-        width, height,          // the width and height of the force layout
+        dim,                    // the dimensions of the force layout [w,h]
         hovered,                // the node over which the mouse is hovering
         selections = {},        // what is currently selected
         selectOrder = [];       // the order in which we made selections
@@ -131,7 +131,7 @@
             return;
         }
 
-        d = createDeviceNode(data);
+        d = tms.createDeviceNode(data);
         network.nodes.push(d);
         lu[id] = d;
 
@@ -149,7 +149,7 @@
         if (d) {
             wasOnline = d.online;
             angular.extend(d, data);
-            if (positionNode(d, true)) {
+            if (tms.positionNode(d, true)) {
                 sendUpdateMeta(d);
             }
             updateNodes();
@@ -185,7 +185,7 @@
             return;
         }
 
-        d = createHostNode(data);
+        d = tms.createHostNode(data);
         network.nodes.push(d);
         lu[id] = d;
 
@@ -193,7 +193,7 @@
 
         updateNodes();
 
-        lnk = createHostLink(data);
+        lnk = tms.createHostLink(data);
         if (lnk) {
 
             $log.debug("Created new host-link.. ", lnk.key);
@@ -213,7 +213,7 @@
             d = lu[id];
         if (d) {
             angular.extend(d, data);
-            if (positionNode(d, true)) {
+            if (tms.positionNode(d, true)) {
                 sendUpdateMeta(d);
             }
             updateNodes();
@@ -251,7 +251,7 @@
         }
 
         // no backing store link yet
-        d = createLink(data);
+        d = tms.createLink(data);
         if (d) {
             network.links.push(d);
             lu[d.key] = d;
@@ -290,42 +290,6 @@
         restyleLinkElement(ldata);
     }
 
-    function createLink(link) {
-        var lnk = linkEndPoints(link.src, link.dst);
-
-        if (!lnk) {
-            return null;
-        }
-
-        angular.extend(lnk, {
-            key: link.id,
-            class: 'link',
-            fromSource: link,
-
-            // functions to aggregate dual link state
-            type: function () {
-                var s = lnk.fromSource,
-                    t = lnk.fromTarget;
-                return (s && s.type) || (t && t.type) || defaultLinkType;
-            },
-            online: function () {
-                var s = lnk.fromSource,
-                    t = lnk.fromTarget,
-                    both = lnk.source.online && lnk.target.online;
-                return both && ((s && s.online) || (t && t.online));
-            },
-            linkWidth: function () {
-                var s = lnk.fromSource,
-                    t = lnk.fromTarget,
-                    ws = (s && s.linkWidth) || 0,
-                    wt = (t && t.linkWidth) || 0;
-                return Math.max(ws, wt);
-            }
-        });
-        return lnk;
-    }
-
-
     function makeNodeKey(d, what) {
         var port = what + 'Port';
         return d[what] + '/' + d[port];
@@ -342,8 +306,7 @@
             .domain([1, 12])
             .range([widthRatio, 12 * widthRatio])
             .clamp(true),
-        allLinkTypes = 'direct indirect optical tunnel',
-        defaultLinkType = 'direct';
+        allLinkTypes = 'direct indirect optical tunnel';
 
     function restyleLinkElement(ldata) {
         // this fn's job is to look at raw links and decide what svg classes
@@ -568,7 +531,7 @@
         // if we are not clearing the position data (unpinning),
         // attach the x, y, longitude, latitude...
         if (!clearPos) {
-            ll = lngLatFromCoord([d.x, d.y]);
+            ll = tms.lngLatFromCoord([d.x, d.y]);
             metaUi = {
                 x: d.x,
                 y: d.y,
@@ -588,171 +551,11 @@
         $log.debug('TODO: requestTrafficForMode()...');
     }
 
-    // ==========================
-    // === Devices and hosts - helper functions
-
-    function coordFromLngLat(loc) {
-        var p = uplink.projection();
-        return p ? p([loc.lng, loc.lat]) : [0, 0];
-    }
-
-    function lngLatFromCoord(coord) {
-        var p = uplink.projection();
-        return p ? p.invert(coord) : [0, 0];
-    }
-
-    function positionNode(node, forUpdate) {
-        var meta = node.metaUi,
-            x = meta && meta.x,
-            y = meta && meta.y,
-            xy;
-
-        // If we have [x,y] already, use that...
-        if (x && y) {
-            node.fixed = true;
-            node.px = node.x = x;
-            node.py = node.y = y;
-            return;
-        }
-
-        var location = node.location,
-            coord;
-
-        if (location && location.type === 'latlng') {
-            coord = coordFromLngLat(location);
-            node.fixed = true;
-            node.px = node.x = coord[0];
-            node.py = node.y = coord[1];
-            return true;
-        }
-
-        // if this is a node update (not a node add).. skip randomizer
-        if (forUpdate) {
-            return;
-        }
-
-        // Note: Placing incoming unpinned nodes at exactly the same point
-        //        (center of the view) causes them to explode outwards when
-        //        the force layout kicks in. So, we spread them out a bit
-        //        initially, to provide a more serene layout convergence.
-        //       Additionally, if the node is a host, we place it near
-        //        the device it is connected to.
-
-        function spread(s) {
-            return Math.floor((Math.random() * s) - s/2);
-        }
-
-        function randDim(dim) {
-            return dim / 2 + spread(dim * 0.7071);
-        }
-
-        function rand() {
-            return {
-                x: randDim(width),
-                y: randDim(height)
-            };
-        }
-
-        function near(node) {
-            var min = 12,
-                dx = spread(12),
-                dy = spread(12);
-            return {
-                x: node.x + min + dx,
-                y: node.y + min + dy
-            };
-        }
-
-        function getDevice(cp) {
-            var d = lu[cp.device];
-            return d || rand();
-        }
-
-        xy = (node.class === 'host') ? near(getDevice(node.cp)) : rand();
-        angular.extend(node, xy);
-    }
-
-    function createDeviceNode(device) {
-        // start with the object as is
-        var node = device,
-            type = device.type,
-            svgCls = type ? 'node device ' + type : 'node device';
-
-        // Augment as needed...
-        node.class = 'device';
-        node.svgClass = device.online ? svgCls + ' online' : svgCls;
-        positionNode(node);
-        return node;
-    }
-
-    function createHostNode(host) {
-        var node = host;
-
-        // Augment as needed...
-        node.class = 'host';
-        if (!node.type) {
-            node.type = 'endstation';
-        }
-        node.svgClass = 'node host ' + node.type;
-        positionNode(node);
-        return node;
-    }
-
-    function createHostLink(host) {
-        var src = host.id,
-            dst = host.cp.device,
-            id = host.ingress,
-            lnk = linkEndPoints(src, dst);
-
-        if (!lnk) {
-            return null;
-        }
-
-        // Synthesize link ...
-        angular.extend(lnk, {
-            key: id,
-            class: 'link',
-
-            type: function () { return 'hostLink'; },
-            online: function () {
-                // hostlink target is edge switch
-                return lnk.target.online;
-            },
-            linkWidth: function () { return 1; }
-        });
-        return lnk;
-    }
-
-    function linkEndPoints(srcId, dstId) {
-        var srcNode = lu[srcId],
-            dstNode = lu[dstId],
-            sMiss = !srcNode ? missMsg('src', srcId) : '',
-            dMiss = !dstNode ? missMsg('dst', dstId) : '';
-
-        if (sMiss || dMiss) {
-            $log.error('Node(s) not on map for link:\n' + sMiss + dMiss);
-            //logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
-            return null;
-        }
-        return {
-            source: srcNode,
-            target: dstNode,
-            x1: srcNode.x,
-            y1: srcNode.y,
-            x2: dstNode.x,
-            y2: dstNode.y
-        };
-    }
-
-    function missMsg(what, id) {
-        return '\n[' + what + '] "' + id + '" missing ';
-    }
 
     // ==========================
     // === Devices and hosts - D3 rendering
 
     function nodeMouseOver(m) {
-        // TODO
         if (!m.dragStarted) {
             $log.debug("MouseOver()...", m);
             if (hovered != m) {
@@ -763,7 +566,6 @@
     }
 
     function nodeMouseOut(m) {
-        // TODO
         if (!m.dragStarted) {
             if (hovered) {
                 hovered = null;
@@ -1031,12 +833,12 @@
         var node = d.el;
         node.classed('online', d.online);
         updateDeviceLabel(d);
-        positionNode(d, true);
+        tms.positionNode(d, true);
     }
 
     function hostExisting(d) {
         updateHostLabel(d);
-        positionNode(d, true);
+        tms.positionNode(d, true);
     }
 
     function deviceEnter(d) {
@@ -1424,9 +1226,9 @@
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
-            'FlashService', 'TopoInstService',
+            'FlashService', 'TopoInstService', 'TopoModelService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _tis_) {
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _tis_, _tms_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -1434,18 +1236,24 @@
             ts = _ts_;
             flash = _flash_;
             tis = _tis_;
+            tms = _tms_;
 
             icfg = is.iconConfig();
 
             // forceG is the SVG group to display the force layout in
             // xlink is the cross-link api from the main topo source file
-            // w, h are the initial dimensions of the SVG
+            // dim is the initial dimensions of the SVG as [w,h]
             // opts are, well, optional :)
-            function initForce(forceG, _uplink_, w, h, opts) {
-                $log.debug('initForce().. WxH = ' + w + 'x' + h);
+            function initForce(forceG, _uplink_, _dim_, opts) {
                 uplink = _uplink_;
-                width = w;
-                height = h;
+                dim = _dim_;
+
+                $log.debug('initForce().. dim = ' + dim);
+
+                tms.initModel({
+                    projection: uplink.projection,
+                    lookup: network.lookup
+                }, dim);
 
                 settings = angular.extend({}, defaultSettings, opts);
 
@@ -1458,7 +1266,7 @@
                 node = nodeG.selectAll('.node');
 
                 force = d3.layout.force()
-                    .size([w, h])
+                    .size(dim)
                     .nodes(network.nodes)
                     .links(network.links)
                     .gravity(settings.gravity)
@@ -1472,16 +1280,21 @@
                     selectObject, atDragEnd, dragEnabled, clickEnabled);
             }
 
-            function resize(dim) {
-                width = dim.width;
-                height = dim.height;
-                force.size([width, height]);
+            function newDim(_dim_) {
+                dim = _dim_;
+                force.size(dim);
+                tms.newDim(dim);
                 // Review -- do we need to nudge the layout ?
+            }
+
+            function destroyForce() {
+
             }
 
             return {
                 initForce: initForce,
-                resize: resize,
+                newDim: newDim,
+                destroyForce: destroyForce,
 
                 updateDeviceColors: updateDeviceColors,
                 toggleHosts: toggleHosts,
