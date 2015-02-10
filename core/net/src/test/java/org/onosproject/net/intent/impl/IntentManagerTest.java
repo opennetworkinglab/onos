@@ -396,14 +396,14 @@ public class IntentManagerTest {
     @Test
     public void errorIntentInstallFromFlows() {
         final Long id = MockIntent.nextId();
-        flowRuleService.setFuture(false, 1);
+        flowRuleService.setFuture(false);
         MockIntent intent = new MockIntent(id);
         listener.setLatch(1, Type.FAILED);
         listener.setLatch(1, Type.INSTALL_REQ);
         service.submit(intent);
         listener.await(Type.INSTALL_REQ);
         delay(10); // need to make sure we have some failed futures returned first
-        flowRuleService.setFuture(true, 0);
+        flowRuleService.setFuture(true);
         listener.await(Type.FAILED);
     }
 
@@ -429,7 +429,7 @@ public class IntentManagerTest {
     @Test
     public void errorIntentInstallNeverTrue() {
         final Long id = MockIntent.nextId();
-        flowRuleService.setFuture(false, 1);
+        flowRuleService.setFuture(false);
         MockIntent intent = new MockIntent(id);
         listener.setLatch(1, Type.WITHDRAWN);
         listener.setLatch(1, Type.INSTALL_REQ);
@@ -437,7 +437,7 @@ public class IntentManagerTest {
         listener.await(Type.INSTALL_REQ);
         // The delay here forces the retry loop in the intent manager to time out
         delay(100);
-        flowRuleService.setFuture(false, 1);
+        flowRuleService.setFuture(false);
         service.withdraw(intent);
         listener.await(Type.WITHDRAWN);
     }
