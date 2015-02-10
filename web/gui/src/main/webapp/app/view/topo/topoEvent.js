@@ -61,7 +61,7 @@
                 eh = api[eid];
 
             if (eh) {
-                $log.debug('  *EVENT* ', ev.payload);
+                $log.debug('  *EVENT* ', eid, ev.payload);
                 eh(ev.payload);
             } else {
                 $log.warn('Unknown event (ignored):', ev);

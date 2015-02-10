@@ -26,6 +26,15 @@
     // injected refs
     var $log, fs, rnd, api;
 
+    // shorthand
+    var lu, rlk, nodes, links;
+
+    // api:
+    //   projection: func()
+    //   network {...}
+    //   restyleLinkElement: func(ldata)
+    //   removeLinkElement: func(ldata)
+
     var dim;    // dimensions of layout, as [w,h]
 
     // configuration 'constants'
@@ -95,7 +104,7 @@
         }
 
         function getDevice(cp) {
-            var d = api.lookup[cp.device];
+            var d = lu[cp.device];
             return d || rand();
         }
 
@@ -194,8 +203,8 @@
 
 
     function linkEndPoints(srcId, dstId) {
-        var srcNode = api.lookup[srcId],
-            dstNode = api.lookup[dstId],
+        var srcNode = lu[srcId],
+            dstNode = lu[dstId],
             sMiss = !srcNode ? missMsg('src', srcId) : '',
             dMiss = !dstNode ? missMsg('dst', dstId) : '';
 
@@ -218,6 +227,127 @@
         return '\n[' + what + '] "' + id + '" missing';
     }
 
+
+    function makeNodeKey(d, what) {
+        var port = what + 'Port';
+        return d[what] + '/' + d[port];
+    }
+
+    function makeLinkKey(d, flipped) {
+        var one = flipped ? makeNodeKey(d, 'dst') : makeNodeKey(d, 'src'),
+            two = flipped ? makeNodeKey(d, 'src') : makeNodeKey(d, 'dst');
+        return one + '-' + two;
+    }
+
+    function findLinkById(id) {
+        // check to see if this is a reverse lookup, else default to given id
+        var key = rlk[id] || id;
+        return key && lu[key];
+    }
+
+    function findLink(linkData, op) {
+        var key = makeLinkKey(linkData),
+            keyrev = makeLinkKey(linkData, 1),
+            link = lu[key],
+            linkRev = lu[keyrev],
+            result = {},
+            ldata = link || linkRev,
+            rawLink;
+
+        if (op === 'add') {
+            if (link) {
+                // trying to add a link that we already know about
+                result.ldata = link;
+                result.badLogic = 'addLink: link already added';
+
+            } else if (linkRev) {
+                // we found the reverse of the link to be added
+                result.ldata = linkRev;
+                if (linkRev.fromTarget) {
+                    result.badLogic = 'addLink: link already added';
+                }
+            }
+        } else if (op === 'update') {
+            if (!ldata) {
+                result.badLogic = 'updateLink: link not found';
+            } else {
+                rawLink = link ? ldata.fromSource : ldata.fromTarget;
+                result.updateWith = function (data) {
+                    angular.extend(rawLink, data);
+                    api.restyleLinkElement(ldata);
+                }
+            }
+        } else if (op === 'remove') {
+            if (!ldata) {
+                result.badLogic = 'removeLink: link not found';
+            } else {
+                rawLink = link ? ldata.fromSource : ldata.fromTarget;
+
+                if (!rawLink) {
+                    result.badLogic = 'removeLink: link not found';
+
+                } else {
+                    result.removeRawLink = function () {
+                        if (link) {
+                            // remove fromSource
+                            ldata.fromSource = null;
+                            if (ldata.fromTarget) {
+                                // promote target into source position
+                                ldata.fromSource = ldata.fromTarget;
+                                ldata.fromTarget = null;
+                                ldata.key = keyrev;
+                                delete lu[key];
+                                lu[keyrev] = ldata;
+                                delete rlk[keyrev];
+                            }
+                        } else {
+                            // remove fromTarget
+                            ldata.fromTarget = null;
+                            delete rlk[keyrev];
+                        }
+                        if (ldata.fromSource) {
+                            api.restyleLinkElement(ldata);
+                        } else {
+                            api.removeLinkElement(ldata);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    function findDevices(offlineOnly) {
+        var a = [];
+        nodes.forEach(function (d) {
+            if (d.class === 'device' && !(offlineOnly && d.online)) {
+                a.push(d);
+            }
+        });
+        return a;
+    }
+
+    function findAttachedHosts(devId) {
+        var hosts = [];
+        nodes.forEach(function (d) {
+            if (d.class === 'host' && d.cp.device === devId) {
+                hosts.push(d);
+            }
+        });
+        return hosts;
+    }
+
+    function findAttachedLinks(devId) {
+        var links = [];
+        links.forEach(function (d) {
+            if (d.source.id === devId || d.target.id === devId) {
+                links.push(d);
+            }
+        });
+        return links;
+    }
+
+
     // ==========================
     // Module definition
 
@@ -233,6 +363,10 @@
             function initModel(_api_, _dim_) {
                 api = _api_;
                 dim = _dim_;
+                lu = api.network.lookup;
+                rlk = api.network.revLinkToKey;
+                nodes = api.network.nodes;
+                links = api.network.links;
             }
 
             function newDim(_dim_) {
@@ -250,6 +384,11 @@
                 createLink: createLink,
                 coordFromLngLat: coordFromLngLat,
                 lngLatFromCoord: lngLatFromCoord,
+                findLink: findLink,
+                findLinkById: findLinkById,
+                findDevices: findDevices,
+                findAttachedHosts: findAttachedHosts,
+                findAttachedLinks: findAttachedLinks
             }
         }]);
 }());

@@ -1,0 +1,23 @@
+{
+  "event": "removeDevice",
+  "payload": {
+    "id": "of:0000ffffffff0008",
+    "type": "switch",
+    "online": false,
+    "master": "myInstA",
+    "location": {
+      "type": "latlng",
+      "lat": 37.7833,
+      "lng": -122.4167
+    },
+    "labels": [
+      "",
+      "sw-8",
+      "0000ffffffff0008"
+    ],
+    "metaUi": {
+      "x": 520,
+      "y": 350
+    }
+  }
+}

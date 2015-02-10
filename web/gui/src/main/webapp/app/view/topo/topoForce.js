@@ -70,6 +70,7 @@
             revLinkToKey: {}
         },
         lu = network.lookup,    // shorthand
+        rlk = network.revLinkToKey,
         deviceLabelIndex = 0,   // for device label cycling
         hostLabelIndex = 0,     // for host label cycling
         showHosts = true,       // whether hosts are displayed
@@ -134,9 +135,6 @@
         d = tms.createDeviceNode(data);
         network.nodes.push(d);
         lu[id] = d;
-
-        $log.debug("Created new device.. ", d.id, d.x, d.y);
-
         updateNodes();
         fStart();
     }
@@ -154,7 +152,7 @@
             }
             updateNodes();
             if (wasOnline !== d.online) {
-                findAttachedLinks(d.id).forEach(restyleLinkElement);
+                tms.findAttachedLinks(d.id).forEach(restyleLinkElement);
                 updateOfflineVisibility(d);
             }
         } else {
@@ -188,16 +186,10 @@
         d = tms.createHostNode(data);
         network.nodes.push(d);
         lu[id] = d;
-
-        $log.debug("Created new host.. ", d.id, d.x, d.y);
-
         updateNodes();
 
         lnk = tms.createHostLink(data);
         if (lnk) {
-
-            $log.debug("Created new host-link.. ", lnk.key);
-
             d.linkData = lnk;    // cache ref on its host
             network.links.push(lnk);
             lu[d.ingress] = lnk;
@@ -235,7 +227,7 @@
     }
 
     function addLink(data) {
-        var result = findLink(data, 'add'),
+        var result = tms.findLink(data, 'add'),
             bad = result.badLogic,
             d = result.ldata;
 
@@ -261,7 +253,7 @@
     }
 
     function updateLink(data) {
-        var result = findLink(data, 'update'),
+        var result = tms.findLink(data, 'update'),
             bad = result.badLogic;
         if (bad) {
             //logicError(bad + ': ' + link.id);
@@ -271,7 +263,7 @@
     }
 
     function removeLink(data) {
-        var result = findLink(data, 'remove'),
+        var result = tms.findLink(data, 'remove'),
             bad = result.badLogic;
         if (bad) {
             // may have already removed link, if attached to removed device
@@ -286,20 +278,10 @@
     function addLinkUpdate(ldata, link) {
         // add link event, but we already have the reverse link installed
         ldata.fromTarget = link;
-        network.revLinkToKey[link.id] = ldata.key;
+        rlk[link.id] = ldata.key;
         restyleLinkElement(ldata);
     }
 
-    function makeNodeKey(d, what) {
-        var port = what + 'Port';
-        return d[what] + '/' + d[port];
-    }
-
-    function makeLinkKey(d, flipped) {
-        var one = flipped ? makeNodeKey(d, 'dst') : makeNodeKey(d, 'src'),
-            two = flipped ? makeNodeKey(d, 'src') : makeNodeKey(d, 'dst');
-        return one + '-' + two;
-    }
 
     var widthRatio = 1.4,
         linkScale = d3.scale.linear()
@@ -329,113 +311,7 @@
             .attr('stroke', linkConfig[th].baseColor);
     }
 
-    function findLinkById(id) {
-        // check to see if this is a reverse lookup, else default to given id
-        var key = network.revLinkToKey[id] || id;
-        return key && lu[key];
-    }
 
-    function findLink(linkData, op) {
-        var key = makeLinkKey(linkData),
-            keyrev = makeLinkKey(linkData, 1),
-            link = lu[key],
-            linkRev = lu[keyrev],
-            result = {},
-            ldata = link || linkRev,
-            rawLink;
-
-        if (op === 'add') {
-            if (link) {
-                // trying to add a link that we already know about
-                result.ldata = link;
-                result.badLogic = 'addLink: link already added';
-
-            } else if (linkRev) {
-                // we found the reverse of the link to be added
-                result.ldata = linkRev;
-                if (linkRev.fromTarget) {
-                    result.badLogic = 'addLink: link already added';
-                }
-            }
-        } else if (op === 'update') {
-            if (!ldata) {
-                result.badLogic = 'updateLink: link not found';
-            } else {
-                rawLink = link ? ldata.fromSource : ldata.fromTarget;
-                result.updateWith = function (data) {
-                    angular.extend(rawLink, data);
-                    restyleLinkElement(ldata);
-                }
-            }
-        } else if (op === 'remove') {
-            if (!ldata) {
-                result.badLogic = 'removeLink: link not found';
-            } else {
-                rawLink = link ? ldata.fromSource : ldata.fromTarget;
-
-                if (!rawLink) {
-                    result.badLogic = 'removeLink: link not found';
-
-                } else {
-                    result.removeRawLink = function () {
-                        if (link) {
-                            // remove fromSource
-                            ldata.fromSource = null;
-                            if (ldata.fromTarget) {
-                                // promote target into source position
-                                ldata.fromSource = ldata.fromTarget;
-                                ldata.fromTarget = null;
-                                ldata.key = keyrev;
-                                delete network.lookup[key];
-                                network.lookup[keyrev] = ldata;
-                                delete network.revLinkToKey[keyrev];
-                            }
-                        } else {
-                            // remove fromTarget
-                            ldata.fromTarget = null;
-                            delete network.revLinkToKey[keyrev];
-                        }
-                        if (ldata.fromSource) {
-                            restyleLinkElement(ldata);
-                        } else {
-                            removeLinkElement(ldata);
-                        }
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    function findDevices(offlineOnly) {
-        var a = [];
-        network.nodes.forEach(function (d) {
-            if (d.class === 'device' && !(offlineOnly && d.online)) {
-                a.push(d);
-            }
-        });
-        return a;
-    }
-
-    function findAttachedHosts(devId) {
-        var hosts = [];
-        network.nodes.forEach(function (d) {
-            if (d.class === 'host' && d.cp.device === devId) {
-                hosts.push(d);
-            }
-        });
-        return hosts;
-    }
-
-    function findAttachedLinks(devId) {
-        var links = [];
-        network.links.forEach(function (d) {
-            if (d.source.id === devId || d.target.id === devId) {
-                links.push(d);
-            }
-        });
-        return links;
-    }
 
     function removeLinkElement(d) {
         var idx = fs.find(d.key, network.links, 'key'),
@@ -475,8 +351,8 @@
     function removeDeviceElement(d) {
         var id = d.id;
         // first, remove associated hosts and links..
-        findAttachedHosts(id).forEach(removeHostElement);
-        findAttachedLinks(id).forEach(removeLinkElement);
+        tms.findAttachedHosts(id).forEach(removeHostElement);
+        tms.findAttachedLinks(id).forEach(removeLinkElement);
 
         // remove from lookup cache
         delete lu[id];
@@ -485,7 +361,7 @@
         network.nodes.splice(idx, 1);
 
         if (!network.nodes.length) {
-            xlink.showNoDevs(true);
+            uplink.showNoDevs(true);
         }
 
         // remove from SVG
@@ -502,11 +378,11 @@
         function updDev(d, show) {
             sus.makeVisible(d.el, show);
 
-            findAttachedLinks(d.id).forEach(function (link) {
+            tms.findAttachedLinks(d.id).forEach(function (link) {
                 b = show && ((link.type() !== 'hostLink') || showHosts);
                 sus.makeVisible(link.el, b);
             });
-            findAttachedHosts(d.id).forEach(function (host) {
+            tms.findAttachedHosts(d.id).forEach(function (host) {
                 b = show && showHosts;
                 sus.makeVisible(host.el, b);
             });
@@ -517,7 +393,7 @@
             updDev(dev, dev.online || showOffline);
         } else {
             // updating all offline devices
-            findDevices(true).forEach(function (d) {
+            tms.findDevices(true).forEach(function (d) {
                 updDev(d, showOffline);
             });
         }
@@ -532,12 +408,7 @@
         // attach the x, y, longitude, latitude...
         if (!clearPos) {
             ll = tms.lngLatFromCoord([d.x, d.y]);
-            metaUi = {
-                x: d.x,
-                y: d.y,
-                lng: ll[0],
-                lat: ll[1]
-            };
+            metaUi = {x: d.x, y: d.y, lng: ll[0], lat: ll[1]};
         }
         d.metaUi = metaUi;
         uplink.sendEvent('updateMeta', {
@@ -691,7 +562,7 @@
 
     function cycleDeviceLabels() {
         deviceLabelIndex = (deviceLabelIndex+1) % 3;
-        findDevices().forEach(function (d) {
+        tms.findDevices().forEach(function (d) {
             updateDeviceLabel(d);
         });
     }
@@ -1107,7 +978,7 @@
         },
         linkLabelAttr: {
             transform: function (d) {
-                var lnk = findLinkById(d.key);
+                var lnk = tms.findLinkById(d.key);
                 if (lnk) {
                     return transformLabel({
                         x1: lnk.source.x,
@@ -1223,6 +1094,15 @@
     // ==========================
     // Module definition
 
+    function mkModelApi(uplink) {
+        return {
+            projection: uplink.projection,
+            network: network,
+            restyleLinkElement: restyleLinkElement,
+            removeLinkElement: removeLinkElement
+        };
+    }
+
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
@@ -1241,7 +1121,7 @@
             icfg = is.iconConfig();
 
             // forceG is the SVG group to display the force layout in
-            // xlink is the cross-link api from the main topo source file
+            // uplink is the api from the main topo source file
             // dim is the initial dimensions of the SVG as [w,h]
             // opts are, well, optional :)
             function initForce(forceG, _uplink_, _dim_, opts) {
@@ -1250,10 +1130,7 @@
 
                 $log.debug('initForce().. dim = ' + dim);
 
-                tms.initModel({
-                    projection: uplink.projection,
-                    lookup: network.lookup
-                }, dim);
+                tms.initModel(mkModelApi(uplink), dim);
 
                 settings = angular.extend({}, defaultSettings, opts);
 

@@ -45,23 +45,22 @@ describe('factory: view/topo/topoModel.js', function() {
         return [xy[0] + 2000, xy[1] + 3000];
     };
 
-    // our test device lookup
-    var lu = {
-        dev1: {
+    // our test devices and hosts:
+    var dev1 = {
             'class': 'device',
             id: 'dev1',
             x: 17,
             y: 27,
             online: true
         },
-        dev2: {
+        dev2 = {
             'class': 'device',
             id: 'dev2',
             x: 18,
             y: 28,
             online: true
         },
-        host1: {
+        host1 = {
             'class': 'host',
             id: 'host1',
             x: 23,
@@ -72,7 +71,7 @@ describe('factory: view/topo/topoModel.js', function() {
             },
             ingress: 'dev1/7-host1'
         },
-        host2: {
+        host2 = {
             'class': 'host',
             id: 'host2',
             x: 24,
@@ -82,13 +81,20 @@ describe('factory: view/topo/topoModel.js', function() {
                 port: 0
             },
             ingress: 'dev0/0-host2'
-        }
-    };
+        };
+
 
     // our test api
     var api = {
         projection: function () { return mockProjection; },
-        lookup: lu
+        network: {
+            nodes: [dev1, dev2, host1, host2],
+            links: [],
+            lookup: {dev1: dev1, dev2: dev2, host1: host1, host2: host2},
+            revLinkToKey: {}
+        },
+        restyleLinkElement: function () {},
+        removeLinkElement: function () {}
     };
 
     // our test dimensions and well known locations..
@@ -204,7 +210,9 @@ describe('factory: view/topo/topoModel.js', function() {
             'initModel', 'newDim',
             'positionNode', 'createDeviceNode', 'createHostNode',
             'createHostLink', 'createLink',
-            'coordFromLngLat', 'lngLatFromCoord'
+            'coordFromLngLat', 'lngLatFromCoord',
+            'findLink', 'findLinkById', 'findDevices',
+            'findAttachedHosts', 'findAttachedLinks'
         ])).toBeTruthy();
     });
 
@@ -348,9 +356,9 @@ describe('factory: view/topo/topoModel.js', function() {
     // === unit tests for createHostLink()
 
     it('should create a basic host link', function () {
-        var link = tms.createHostLink(lu.host1);
-        expect(link.source).toEqual(lu.host1);
-        expect(link.target).toEqual(lu.dev1);
+        var link = tms.createHostLink(host1);
+        expect(link.source).toEqual(host1);
+        expect(link.target).toEqual(dev1);
         expect(link).toHaveEndPoints(host1Loc, dev1Loc);
         expect(link.key).toEqual('dev1/7-host1');
         expect(link.class).toEqual('link');
@@ -361,7 +369,7 @@ describe('factory: view/topo/topoModel.js', function() {
 
     it('should return null for failed endpoint lookup', function () {
         spyOn($log, 'error');
-        var link = tms.createHostLink(lu.host2);
+        var link = tms.createHostLink(host2);
         expect(link).toBeNull();
         expect($log.error).toHaveBeenCalledWith(
             'Node(s) not on map for link:\n[dst] "dev0" missing'
@@ -389,8 +397,8 @@ describe('factory: view/topo/topoModel.js', function() {
                 linkWidth: 1.5
             },
             link = tms.createLink(linkData);
-        expect(link.source).toEqual(lu.dev1);
-        expect(link.target).toEqual(lu.dev2);
+        expect(link.source).toEqual(dev1);
+        expect(link.target).toEqual(dev2);
         expect(link).toHaveEndPoints(dev1Loc, dev2Loc);
         expect(link.key).toEqual('baz');
         expect(link.class).toEqual('link');
@@ -400,4 +408,5 @@ describe('factory: view/topo/topoModel.js', function() {
         expect(link.linkWidth()).toEqual(1.5);
     });
 
+    // TODO: more unit tests for additional functions....
 });
