@@ -27,7 +27,7 @@ public class CreateLabelResourcePoolCommand extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        lrs.create(DeviceId.deviceId(deviceId),
+        lrs.createDevicePool(DeviceId.deviceId(deviceId),
                    LabelResourceId.labelResourceId(Long.parseLong(beginLabel)),
                    LabelResourceId.labelResourceId(Long.parseLong(endLabel)));
     }

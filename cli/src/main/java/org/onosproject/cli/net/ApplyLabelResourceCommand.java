@@ -28,7 +28,7 @@ public class ApplyLabelResourceCommand extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        Collection<DefaultLabelResource> result = lrs.apply(DeviceId
+        Collection<DefaultLabelResource> result = lrs.applyFromDevicePool(DeviceId
                 .deviceId(deviceId), ApplyLabelNumber.applyLabelNumber(Long.parseLong(applyNum)));
         if (result.size() > 0) {
             for (Iterator<DefaultLabelResource> iterator = result.iterator(); iterator

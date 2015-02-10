@@ -38,7 +38,7 @@ public class ReleaseLabelResourceCommand extends AbstractShellCommand {
                                                         .parseLong(labelIds[i])));
             map.put(DeviceId.deviceId(deviceId), resource);
         }
-        lrs.release(map);
+        lrs.releaseToDevicePool(map);
     }
 
 }

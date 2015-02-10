@@ -15,7 +15,7 @@ public class DestroyLabelResourcePoolCommand extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        lrs.destroy(DeviceId.deviceId(deviceId));
+        lrs.destroyDevicePool(DeviceId.deviceId(deviceId));
     }
 
 }

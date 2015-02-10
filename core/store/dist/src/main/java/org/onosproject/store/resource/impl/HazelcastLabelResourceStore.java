@@ -215,7 +215,7 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public LabelResourceEvent create(DeviceId deviceId, LabelResourceId beginLabel,
+    public LabelResourceEvent createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
                                      LabelResourceId endLabel) {
         LabelResourcePool pool = new LabelResourcePool(deviceId.toString(),
                                                        beginLabel.getLabelId(), endLabel.getLabelId());
@@ -223,14 +223,14 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public LabelResourceEvent createGlobal(LabelResourceId beginLabel,
+    public LabelResourceEvent createGlobalPool(LabelResourceId beginLabel,
                                      LabelResourceId endLabel) {
         LabelResourcePool pool = new LabelResourcePool("",
                                                        beginLabel.getLabelId(), endLabel.getLabelId());
         return this.create(pool);
     }
 
-    public LabelResourceEvent create(LabelResourcePool labelResourcePool) {
+    private LabelResourceEvent create(LabelResourcePool labelResourcePool) {
         if (labelResourcePool.getBeginLabel().getLabelId() < 0
                 || labelResourcePool.getEndLabel().getLabelId() < 0) {
             log.warn("the value of beginLabel and the value of endLabel must be both positive number.");
@@ -302,7 +302,7 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public LabelResourceEvent destroy(DeviceId deviceId) {
+    public LabelResourceEvent destroyDevicePool(DeviceId deviceId) {
         if (deviceId == null || "".equals(deviceId.toString())) {
             log.warn("the value of device is null");
             return null;
@@ -360,7 +360,7 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public Collection<DefaultLabelResource> apply(DeviceId deviceId,
+    public Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
                                                   ApplyLabelNumber applyNum) {
         Device device = (Device) deviceService.getDevice(deviceId);
         if (device == null) {
@@ -413,7 +413,7 @@ public class HazelcastLabelResourceStore
         long applyNum = request.getApplyNum().getApplyNum();
         LabelResourcePool pool = resourcePool.get(deviceId);
         Collection<DefaultLabelResource> result = new ArrayList<DefaultLabelResource>();
-        long freeNum = this.getFreeNum(deviceId);
+        long freeNum = this.getFreeNumOfDevicePool(deviceId);
         if (applyNum > freeNum) {
             log.info("the free number of the label resource pool of deviceId {} is not enough.");
             resourcePoolLock.writeLock().unlock();
@@ -445,7 +445,7 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public boolean release(Multimap<DeviceId, DefaultLabelResource> release) {
+    public boolean releaseToDevicePool(Multimap<DeviceId, DefaultLabelResource> release) {
         Map<DeviceId, Collection<DefaultLabelResource>> maps = release.asMap();
         Set<DeviceId> deviceIdSet = maps.keySet();
         LabelResourceRequest request = null;
@@ -530,7 +530,7 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public boolean isFull(DeviceId deviceId) {
+    public boolean isDevicePoolFull(DeviceId deviceId) {
         LabelResourcePool pool = resourcePool.get(deviceId);
         if (pool == null) {
             return true;
@@ -540,7 +540,7 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public long getFreeNum(DeviceId deviceId) {
+    public long getFreeNumOfDevicePool(DeviceId deviceId) {
         LabelResourcePool pool = resourcePool.get(deviceId);
         if (pool == null) {
             return 0;
@@ -556,15 +556,46 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public LabelResourcePool getLabelResourcePool(DeviceId deviceId) {
+    public LabelResourcePool getDeviceLabelResourcePool(DeviceId deviceId) {
         // TODO Auto-generated method stub
         return resourcePool.get(deviceId);
     }
 
     @Override
-    public LabelResourceEvent destroyGlobal() {
+    public LabelResourceEvent destroyGlobalPool() {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public Collection<DefaultLabelResource> applyFromGlobalPool(ApplyLabelNumber applyNum) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean releaseToGlobalPool(Set<DefaultLabelResource> release) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isGlobalPoolFull() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public long getFreeNumOfGlobalPool() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public LabelResourcePool getGlobalLabelResourcePool() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
 }

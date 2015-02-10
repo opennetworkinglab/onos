@@ -21,7 +21,7 @@ public class GetLabelResourceCommand extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        LabelResourcePool pool = lrs.getLabelResourcePool(DeviceId
+        LabelResourcePool pool = lrs.getDeviceLabelResourcePool(DeviceId
                 .deviceId(deviceId));
         if (pool != null) {
             print(FMT, pool.getDeviceId().toString(), pool.getBeginLabel(),
