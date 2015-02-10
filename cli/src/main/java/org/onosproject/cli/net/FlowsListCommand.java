@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Maps;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.core.CoreService;
@@ -37,9 +37,10 @@ import org.onosproject.net.flow.instructions.Instruction;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.onosproject.cli.net.DevicesListCommand.getSortedDevices;
 
 /**
  * Lists all currently-known hosts.
@@ -68,14 +69,12 @@ public class FlowsListCommand extends AbstractShellCommand {
         CoreService coreService = get(CoreService.class);
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
-        Map<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
+        SortedMap<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
 
         if (outputJson()) {
-            print("%s", json(coreService, getSortedDevices(deviceService), flows));
+            print("%s", json(coreService, flows.keySet(), flows));
         } else {
-            for (Device d : getSortedDevices(deviceService)) {
-                printFlows(d, flows.get(d), coreService);
-            }
+            flows.forEach((device, flow) -> printFlows(device, flow, coreService));
         }
     }
 
@@ -145,9 +144,9 @@ public class FlowsListCommand extends AbstractShellCommand {
      * @param service flow rule service
      * @return sorted device list
      */
-    protected Map<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService,
+    protected SortedMap<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService,
                                                           FlowRuleService service) {
-        Map<Device, List<FlowEntry>> flows = Maps.newHashMap();
+        SortedMap<Device, List<FlowEntry>> flows = new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
         List<FlowEntry> rules;
         FlowEntryState s = null;
         if (state != null && !state.equals("any")) {
@@ -166,7 +165,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                     }
                 }
             }
-            Collections.sort(rules, Comparators.FLOW_RULE_COMPARATOR);
+            rules.sort(Comparators.FLOW_RULE_COMPARATOR);
             flows.put(d, rules);
         }
         return flows;
