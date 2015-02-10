@@ -196,18 +196,18 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
-    public Intent getIntent(IntentId id) {
-        return intents.get(id);
+    public Intent getIntent(Key intentKey) {
+        return intents.get(intentKey);
     }
 
     @Override
-    public IntentState getIntentState(IntentId id) {
-        return intentStates.get(id);
+    public IntentState getIntentState(Key intentKey) {
+        return intentStates.get(intentKey);
     }
 
     @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
-        return installables.get(intentId);
+    public List<Intent> getInstallableIntents(Key intentKey) {
+        return installables.get(intentKey);
     }
 
     @Override

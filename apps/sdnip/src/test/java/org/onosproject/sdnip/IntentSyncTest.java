@@ -535,19 +535,19 @@ public class IntentSyncTest extends AbstractIntentTest {
         reset(intentService);
         Set<Intent> intents = new HashSet<Intent>();
         intents.add(intent1);
-        expect(intentService.getIntentState(intent1.id()))
+        expect(intentService.getIntentState(intent1.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent2);
-        expect(intentService.getIntentState(intent2.id()))
+        expect(intentService.getIntentState(intent2.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent4);
-        expect(intentService.getIntentState(intent4.id()))
+        expect(intentService.getIntentState(intent4.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent5);
-        expect(intentService.getIntentState(intent5.id()))
+        expect(intentService.getIntentState(intent5.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent7);
-        expect(intentService.getIntentState(intent7.id()))
+        expect(intentService.getIntentState(intent7.key()))
                 .andReturn(IntentState.WITHDRAWING).anyTimes();
         expect(intentService.getIntents()).andReturn(intents).anyTimes();
 

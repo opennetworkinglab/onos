@@ -32,7 +32,7 @@ import org.onosproject.event.Event;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.LinkResourceEvent;
@@ -49,6 +49,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.link;
 
 /**
@@ -99,13 +100,13 @@ public class ObjectiveTrackerTest {
     static class TestTopologyChangeDelegate implements TopologyChangeDelegate {
 
         CountDownLatch latch = new CountDownLatch(1);
-        List<IntentId> intentIdsFromEvent;
+        List<Key> intentIdsFromEvent;
         boolean compileAllFailedFromEvent;
 
         @Override
-        public void triggerCompile(Iterable<IntentId> intentIds,
+        public void triggerCompile(Iterable<Key> intentKeys,
                                    boolean compileAllFailed) {
-            intentIdsFromEvent = Lists.newArrayList(intentIds);
+            intentIdsFromEvent = Lists.newArrayList(intentKeys);
             compileAllFailedFromEvent = compileAllFailed;
             latch.countDown();
         }
@@ -199,9 +200,9 @@ public class ObjectiveTrackerTest {
                 topology,
                 reasons);
 
-        final IntentId intentId = IntentId.valueOf(0x333L);
+        final Key key = Key.of(0x333L, APP_ID);
         Collection<NetworkResource> resources = ImmutableSet.of(link);
-        tracker.addTrackedResources(intentId, resources);
+        tracker.addTrackedResources(key, resources);
 
         listener.event(event);
         assertThat(

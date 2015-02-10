@@ -24,8 +24,8 @@ import javax.ws.rs.core.Response;
 
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -54,15 +54,15 @@ public class IntentsWebResource extends AbstractWebResource {
     /**
      * Gets a single intent by Id.
      *
-     * @param id Id to look up
+     * @param key Id to look up
      * @return intent data
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    public Response getIntentById(@PathParam("id") long id) {
+    public Response getIntentById(@PathParam("id") String key) {
         final Intent intent = nullIsNotFound(get(IntentService.class)
-                        .getIntent(IntentId.valueOf(id)),
+                        .getIntent(Key.of(key, null)),
                 INTENT_NOT_FOUND);
         final ObjectNode root;
         if (intent instanceof HostToHostIntent) {

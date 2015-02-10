@@ -91,7 +91,7 @@ public class IntentServiceTest {
             @Override
             public void run() {
                 assertEquals("incorrect intent state", IntentState.INSTALLED,
-                             service.getIntentState(intent.id()));
+                             service.getIntentState(intent.key()));
             }
         });
 
@@ -112,7 +112,7 @@ public class IntentServiceTest {
             @Override
             public void run() {
                 assertEquals("incorrect intent state", IntentState.WITHDRAWN,
-                             service.getIntentState(intent.id()));
+                             service.getIntentState(intent.key()));
             }
         });
 
@@ -140,7 +140,7 @@ public class IntentServiceTest {
             @Override
             public void run() {
                 assertEquals("incorrect intent state", IntentState.FAILED,
-                             service.getIntentState(intent.id()));
+                             service.getIntentState(intent.key()));
             }
         });
 
@@ -163,7 +163,7 @@ public class IntentServiceTest {
             @Override
             public void run() {
                 assertEquals("incorrect intent state", IntentState.FAILED,
-                             service.getIntentState(intent.id()));
+                             service.getIntentState(intent.key()));
             }
         });
 
@@ -255,7 +255,7 @@ public class IntentServiceTest {
             @Override
             public void run() {
                 assertEquals("incorrect intent state", IntentState.INSTALLED,
-                             service.getIntentState(intent.id()));
+                             service.getIntentState(intent.key()));
             }
         });
 

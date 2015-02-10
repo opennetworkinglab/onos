@@ -40,6 +40,7 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
+import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
@@ -202,6 +203,10 @@ public class DistributedIntentStore
     }
 
     @Override
+    public Intent getIntent(Key intentKey) {
+        return null;
+    }
+
     public Intent getIntent(IntentId intentId) {
         Context timer = startTimer(getIntentTimer);
         try {
@@ -212,7 +217,10 @@ public class DistributedIntentStore
     }
 
     @Override
-    public IntentState getIntentState(IntentId id) {
+    public IntentState getIntentState(Key key) {
+        // TODO: either implement this or remove the class
+        return IntentState.FAILED;
+        /*
         Context timer = startTimer(getIntentStateTimer);
         try {
             final IntentState localState = transientStates.get(id);
@@ -223,6 +231,7 @@ public class DistributedIntentStore
         } finally {
             stopTimer(timer);
         }
+        */
     }
 
     private void verify(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
@@ -236,13 +245,17 @@ public class DistributedIntentStore
     }
 
     @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
+    public List<Intent> getInstallableIntents(Key intentKey) {
+        // TODO: implement this or delete class
+        return null;
+        /*
         Context timer = startTimer(getInstallableIntentsTimer);
         try {
             return installable.get(intentId);
         } finally {
             stopTimer(timer);
         }
+        */
     }
 
     protected String strIntentId(IntentId key) {

@@ -29,8 +29,8 @@ import org.onosproject.event.Event;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetworkResource;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.LinkResourceEvent;
 import org.onosproject.net.resource.LinkResourceListener;
@@ -65,8 +65,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private final Logger log = getLogger(getClass());
 
-    private final SetMultimap<LinkKey, IntentId> intentsByLink =
-            synchronizedSetMultimap(HashMultimap.<LinkKey, IntentId>create());
+    private final SetMultimap<LinkKey, Key> intentsByLink =
+            synchronizedSetMultimap(HashMultimap.<LinkKey, Key>create());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
@@ -126,21 +126,21 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     }
 
     @Override
-    public void addTrackedResources(IntentId intentId,
+    public void addTrackedResources(Key intentKey,
                                     Collection<NetworkResource> resources) {
         for (NetworkResource resource : resources) {
             if (resource instanceof Link) {
-                intentsByLink.put(linkKey((Link) resource), intentId);
+                intentsByLink.put(linkKey((Link) resource), intentKey);
             }
         }
     }
 
     @Override
-    public void removeTrackedResources(IntentId intentId,
+    public void removeTrackedResources(Key intentKey,
                                        Collection<NetworkResource> resources) {
         for (NetworkResource resource : resources) {
             if (resource instanceof Link) {
-                intentsByLink.remove(linkKey((Link) resource), intentId);
+                intentsByLink.remove(linkKey((Link) resource), intentKey);
             }
         }
     }
@@ -170,10 +170,10 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             }
 
             if (event.reasons() == null || event.reasons().isEmpty()) {
-                delegate.triggerCompile(new HashSet<IntentId>(), true);
+                delegate.triggerCompile(new HashSet<Key>(), true);
 
             } else {
-                Set<IntentId> toBeRecompiled = new HashSet<>();
+                Set<Key> toBeRecompiled = new HashSet<>();
                 boolean recompileOnly = true;
 
                 // Scan through the list of reasons and keep accruing all
@@ -186,9 +186,9 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                                         linkEvent.subject().isDurable())) {
                             final LinkKey linkKey = linkKey(linkEvent.subject());
                             synchronized (intentsByLink) {
-                                Set<IntentId> intentIds = intentsByLink.get(linkKey);
-                                log.debug("recompile triggered by LinkDown {} {}", linkKey, intentIds);
-                                toBeRecompiled.addAll(intentIds);
+                                Set<Key> intentKeys = intentsByLink.get(linkKey);
+                                log.debug("recompile triggered by LinkDown {} {}", linkKey, intentKeys);
+                                toBeRecompiled.addAll(intentKeys);
                             }
                         }
                         recompileOnly = recompileOnly &&
@@ -243,15 +243,15 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
         intentService.getIntents().forEach(intent -> {
             if (intent.appId().equals(appId)) {
-                IntentId id = intent.id();
+                Key key = intent.key();
                 Collection<NetworkResource> resources = Lists.newArrayList();
-                intentService.getInstallableIntents(id).stream()
+                intentService.getInstallableIntents(key).stream()
                         .map(installable -> installable.resources())
                         .forEach(resources::addAll);
                 if (track) {
-                    addTrackedResources(id, resources);
+                    addTrackedResources(key, resources);
                 } else {
-                    removeTrackedResources(id, resources);
+                    removeTrackedResources(key, resources);
                 }
             }
         });

@@ -40,13 +40,13 @@ import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
+import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ public class IntentManager
     private static final Logger log = getLogger(IntentManager.class);
 
     public static final String INTENT_NULL = "Intent cannot be null";
-    public static final String INTENT_ID_NULL = "Intent ID cannot be null";
+    public static final String INTENT_ID_NULL = "Intent key cannot be null";
 
     private static final int NUM_THREADS = 12;
 
@@ -163,6 +163,11 @@ public class IntentManager
     }
 
     @Override
+    public Intent getIntent(Key key) {
+        return store.getIntent(key);
+    }
+
+    @Override
     public Iterable<Intent> getIntents() {
         return store.getIntents();
     }
@@ -173,21 +178,15 @@ public class IntentManager
     }
 
     @Override
-    public Intent getIntent(IntentId id) {
-        checkNotNull(id, INTENT_ID_NULL);
-        return store.getIntent(id);
+    public IntentState getIntentState(Key intentKey) {
+        checkNotNull(intentKey, INTENT_ID_NULL);
+        return store.getIntentState(intentKey);
     }
 
     @Override
-    public IntentState getIntentState(IntentId id) {
-        checkNotNull(id, INTENT_ID_NULL);
-        return store.getIntentState(id);
-    }
-
-    @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
-        checkNotNull(intentId, INTENT_ID_NULL);
-        return store.getInstallableIntents(intentId);
+    public List<Intent> getInstallableIntents(Key intentKey) {
+        checkNotNull(intentKey, INTENT_ID_NULL);
+        return store.getInstallableIntents(intentKey);
     }
 
     @Override
@@ -446,11 +445,11 @@ public class IntentManager
         }
     }
 
-    private void buildAndSubmitBatches(Iterable<IntentId> intentIds,
+    private void buildAndSubmitBatches(Iterable<Key> intentKeys,
                                        boolean compileAllFailed) {
         // Attempt recompilation of the specified intents first.
-        for (IntentId id : intentIds) {
-            Intent intent = store.getIntent(id);
+        for (Key key : intentKeys) {
+            Intent intent = store.getIntent(key);
             if (intent == null) {
                 continue;
             }
@@ -460,7 +459,7 @@ public class IntentManager
         if (compileAllFailed) {
             // If required, compile all currently failed intents.
             for (Intent intent : getIntents()) {
-                IntentState state = getIntentState(intent.id());
+                IntentState state = getIntentState(intent.key());
                 if (RECOMPILE.contains(state)) {
                     if (state == WITHDRAW_REQ) {
                         withdraw(intent);
@@ -482,9 +481,9 @@ public class IntentManager
     // Topology change delegate
     private class InternalTopoChangeDelegate implements TopologyChangeDelegate {
         @Override
-        public void triggerCompile(Iterable<IntentId> intentIds,
+        public void triggerCompile(Iterable<Key> intentKeys,
                                    boolean compileAllFailed) {
-            buildAndSubmitBatches(intentIds, compileAllFailed);
+            buildAndSubmitBatches(intentKeys, compileAllFailed);
         }
     }
 

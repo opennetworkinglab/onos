@@ -19,8 +19,8 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 
 import java.math.BigInteger;
 
@@ -43,8 +43,8 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             id = id.replaceFirst("0x", "");
         }
 
-        IntentId intentId = IntentId.valueOf(new BigInteger(id, 16).longValue());
-        Intent intent = service.getIntent(intentId);
+        Key key = Key.of(new BigInteger(id, 16).longValue(), appId());
+        Intent intent = service.getIntent(key);
         if (intent != null) {
             service.withdraw(intent);
         }

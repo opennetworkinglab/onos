@@ -46,6 +46,7 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
+import org.onosproject.net.intent.Key;
 import org.onosproject.store.hz.AbstractHazelcastStore;
 import org.onosproject.store.hz.SMap;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -209,6 +210,11 @@ public class HazelcastIntentStore
     }
 
     @Override
+    public Intent getIntent(Key intentKey) {
+        return null;
+    }
+
+
     public Intent getIntent(IntentId intentId) {
         Context timer = startTimer(getIntentTimer);
         try {
@@ -227,7 +233,10 @@ public class HazelcastIntentStore
     }
 
     @Override
-    public IntentState getIntentState(IntentId id) {
+    public IntentState getIntentState(Key key) {
+        // TODO: either implement this or remove this class
+        return IntentState.FAILED;
+        /*
         Context timer = startTimer(getIntentStateTimer);
         try {
             final IntentState localState = transientStates.get(id);
@@ -238,6 +247,7 @@ public class HazelcastIntentStore
         } finally {
             stopTimer(timer);
         }
+        */
     }
 
     private void verify(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
@@ -251,13 +261,18 @@ public class HazelcastIntentStore
     }
 
     @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
+    public List<Intent> getInstallableIntents(Key intentKey) {
+        // TODO: implement this or delete class
+        return null;
+
+        /*
         Context timer = startTimer(getInstallableIntentsTimer);
         try {
             return installable.get(intentId);
         } finally {
             stopTimer(timer);
         }
+        */
     }
 
     @Override

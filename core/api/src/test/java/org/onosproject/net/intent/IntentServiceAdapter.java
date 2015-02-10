@@ -43,17 +43,17 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
-    public Intent getIntent(IntentId id) {
+    public Intent getIntent(Key intentKey) {
         return null;
     }
 
     @Override
-    public IntentState getIntentState(IntentId id) {
+    public IntentState getIntentState(Key intentKey) {
         return null;
     }
 
     @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
+    public List<Intent> getInstallableIntents(Key intentKey) {
         return null;
     }
 

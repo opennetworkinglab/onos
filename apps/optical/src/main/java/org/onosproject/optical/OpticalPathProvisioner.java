@@ -100,7 +100,7 @@ public class OpticalPathProvisioner {
         inStatusTportMap.clear();
         outStatusTportMap.clear();
         for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.id()) == INSTALLED) {
+            if (intentService.getIntentState(intent.key()) == INSTALLED) {
                 if (intent instanceof OpticalConnectivityIntent) {
                     inStatusTportMap.put(((OpticalConnectivityIntent) intent).getSrc(),
                             (OpticalConnectivityIntent) intent);
@@ -177,7 +177,7 @@ public class OpticalPathProvisioner {
             // TODO change the coordination approach between packet intents and optical intents
             // Low speed LLDP may cause multiple calls which are not expected
 
-            if (!IntentState.FAILED.equals(intentService.getIntentState(intent.id()))) {
+            if (!IntentState.FAILED.equals(intentService.getIntentState(intent.key()))) {
                    return;
              }
 

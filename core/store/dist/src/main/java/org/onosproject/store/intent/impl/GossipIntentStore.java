@@ -137,18 +137,29 @@ public class GossipIntentStore
     }
 
     @Override
+    public Intent getIntent(Key intentKey) {
+        // TODO: Implement this
+        return null;
+    }
+
+
     public Intent getIntent(IntentId intentId) {
         return intents.get(intentId);
     }
 
     @Override
-    public IntentState getIntentState(IntentId intentId) {
-        return intentStates.get(intentId);
+    public IntentState getIntentState(Key intentKey) {
+        // TODO: implement this
+        return IntentState.FAILED;
     }
 
     @Override
-    public List<Intent> getInstallableIntents(IntentId intentId) {
+    public List<Intent> getInstallableIntents(Key intentKey) {
+        // TODO: implement this or delete class
+        return null;
+        /*
         return installables.get(intentId);
+        */
     }
 
     @Override
@@ -222,11 +233,6 @@ public class GossipIntentStore
     @Override
     public void batchWrite(Iterable<IntentData> updates) {
         // TODO
-    }
-
-    @Override
-    public Intent getIntent(Key key) {
-        return null; // TODO
     }
 
     @Override

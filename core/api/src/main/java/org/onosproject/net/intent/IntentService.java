@@ -43,6 +43,14 @@ public interface IntentService {
     void withdraw(Intent intent);
 
     /**
+     * Fetches an intent based on its key.
+     *
+     * @param key key of the intent
+     * @return intent object if the key is found, null otherwise
+     */
+    public Intent getIntent(Key key);
+
+    /**
      * Returns an iterable of intents currently in the system.
      *
      * @return set of intents
@@ -57,30 +65,22 @@ public interface IntentService {
     long getIntentCount();
 
     /**
-     * Retrieves the intent specified by its identifier.
-     *
-     * @param id intent identifier
-     * @return the intent or null if one with the given identifier is not found
-     */
-    Intent getIntent(IntentId id);
-
-    /**
      * Retrieves the state of an intent by its identifier.
      *
-     * @param id intent identifier
+     * @param intentKey intent identifier
      * @return the intent state or null if one with the given identifier is not
      * found
      */
-    IntentState getIntentState(IntentId id);
+    IntentState getIntentState(Key intentKey);
 
     /**
      * Returns the list of the installable events associated with the specified
      * top-level intent.
      *
-     * @param intentId top-level intent identifier
+     * @param intentKey top-level intent identifier
      * @return compiled installable intents
      */
-    List<Intent> getInstallableIntents(IntentId intentId);
+    List<Intent> getInstallableIntents(Key intentKey);
 
     /**
      * Adds the specified listener for intent events.

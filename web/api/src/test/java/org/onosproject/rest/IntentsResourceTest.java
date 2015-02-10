@@ -35,8 +35,8 @@ import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
@@ -339,7 +339,7 @@ public class IntentsResourceTest extends ResourceTest {
 
         intents.add(intent);
 
-        expect(mockIntentService.getIntent(IntentId.valueOf(0)))
+        expect(mockIntentService.getIntent(Key.of(0, APP_ID)))
                 .andReturn(intent)
                 .anyTimes();
         replay(mockIntentService);
@@ -356,7 +356,7 @@ public class IntentsResourceTest extends ResourceTest {
     @Test
     public void testBadGet() {
 
-        expect(mockIntentService.getIntent(IntentId.valueOf(0)))
+        expect(mockIntentService.getIntent(Key.of(0, APP_ID)))
                 .andReturn(null)
                 .anyTimes();
         replay(mockIntentService);

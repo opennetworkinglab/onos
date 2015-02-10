@@ -579,7 +579,7 @@ public class IntentSynchronizer implements FibListener {
             }
 
             IntentState state =
-                intentService.getIntentState(fetchedIntent.id());
+                intentService.getIntentState(fetchedIntent.key());
             if (state == null ||
                 state == IntentState.WITHDRAWING ||
                 state == IntentState.WITHDRAWN) {
@@ -601,7 +601,7 @@ public class IntentSynchronizer implements FibListener {
             }
 
             IntentState state =
-                intentService.getIntentState(fetchedIntent.id());
+                intentService.getIntentState(fetchedIntent.key());
             if (state == null ||
                 state == IntentState.WITHDRAWING ||
                 state == IntentState.WITHDRAWN) {

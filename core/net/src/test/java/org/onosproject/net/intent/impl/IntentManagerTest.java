@@ -45,6 +45,7 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
@@ -133,12 +134,12 @@ public class IntentManagerTest {
         }
 
         @Override
-        public void addTrackedResources(IntentId intentId, Collection<NetworkResource> resources) {
+        public void addTrackedResources(Key key, Collection<NetworkResource> resources) {
             //TODO
         }
 
         @Override
-        public void removeTrackedResources(IntentId intentId, Collection<NetworkResource> resources) {
+        public void removeTrackedResources(Key key, Collection<NetworkResource> resources) {
             //TODO
         }
     }
@@ -294,7 +295,7 @@ public class IntentManagerTest {
         // verify that all intents are parked and the batch operation is unblocked
         Set<IntentState> parked = Sets.newHashSet(INSTALLED, WITHDRAWN, FAILED);
         for (Intent i : service.getIntents()) {
-            IntentState state = service.getIntentState(i.id());
+            IntentState state = service.getIntentState(i.key());
             assertTrue("Intent " + i.id() + " is in invalid state " + state,
                        parked.contains(state));
         }

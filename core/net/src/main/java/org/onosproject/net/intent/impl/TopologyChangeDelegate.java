@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.Key;
 
 /**
  * Auxiliary delegate for integration of intent manager and flow trackerService.
@@ -32,6 +32,6 @@ public interface TopologyChangeDelegate {
      * @param compileAllFailed true implies full compile of all failed intents
      *                         is required; false for selective recompile only
      */
-    void triggerCompile(Iterable<IntentId> intentIds, boolean compileAllFailed);
+    void triggerCompile(Iterable<Key> intentIds, boolean compileAllFailed);
 
 }

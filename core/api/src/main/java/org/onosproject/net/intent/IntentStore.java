@@ -40,37 +40,24 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     Iterable<Intent> getIntents();
 
     /**
-     * Returns the intent with the specified identifier.
-     *
-     * @param intentId intent identification
-     * @return intent or null if not found
-     */
-    @Deprecated
-    default Intent getIntent(IntentId intentId) {
-        throw new UnsupportedOperationException("deprecated");
-    }
-
-    /**
      * Returns the state of the specified intent.
      *
-     * @param intentId intent identification
+     * @param intentKey intent identification
      * @return current intent state
      */
-    @Deprecated
-    default IntentState getIntentState(IntentId intentId) {
-        throw new UnsupportedOperationException("deprecated");
+    default IntentState getIntentState(Key intentKey) {
+        return null;
     }
 
     /**
      * Returns the list of the installable events associated with the specified
      * original intent.
      *
-     * @param intentId original intent identifier
+     * @param intentKey original intent identifier
      * @return compiled installable intents
      */
-    @Deprecated
-    default List<Intent> getInstallableIntents(IntentId intentId) {
-        throw new UnsupportedOperationException("deprecated");
+    default List<Intent> getInstallableIntents(Key intentKey) {
+        throw new UnsupportedOperationException("getInstallableIntents()");
     }
 
     /**
@@ -92,7 +79,8 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param key key
      * @return intent or null if not found
      */
-    default Intent getIntent(Key key) { //FIXME remove when impl.
+    default Intent getIntent(Key key) {
+        // FIXME remove this default implementation when all stores have implemented it
         return null;
     }
 

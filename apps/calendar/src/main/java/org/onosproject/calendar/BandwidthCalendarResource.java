@@ -23,7 +23,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -108,12 +107,15 @@ public class BandwidthCalendarResource extends BaseResource {
     public Response withdrawIntent(@PathParam("intentId") String intentId) {
         log.info("Receiving Teardown request for {}", intentId);
         IntentService service = get(IntentService.class);
+        // TODO: there needs to be an app id and key here
+        /*
         Intent intent = service.getIntent(IntentId.valueOf(Long.parseLong(intentId)));
         if (intent != null) {
             service.withdraw(intent);
             String reply = "ok\n";
             return Response.ok(reply).build();
         }
+        */
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
@@ -163,7 +165,7 @@ public class BandwidthCalendarResource extends BaseResource {
         @Override
         public void event(IntentEvent event) {
             if (event.subject().equals(intent)) {
-                state = service.getIntentState(intent.id());
+                state = service.getIntentState(intent.key());
                 if (state == INSTALLED || state == FAILED || state == WITHDRAWN) {
                     latch.countDown();
                 }

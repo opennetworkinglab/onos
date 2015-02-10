@@ -672,7 +672,7 @@ public abstract class TopologyViewMessages {
         for (TrafficClass trafficClass : trafficClasses) {
             for (Intent intent : trafficClass.intents) {
                 boolean isOptical = intent instanceof OpticalConnectivityIntent;
-                List<Intent> installables = intentService.getInstallableIntents(intent.id());
+                List<Intent> installables = intentService.getInstallableIntents(intent.key());
                 if (installables != null) {
                     for (Intent installable : installables) {
                         String type = isOptical ? trafficClass.type + " optical" : trafficClass.type;

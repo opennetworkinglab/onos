@@ -76,7 +76,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             print("%s", json(service, service.getIntents()));
         } else {
             for (Intent intent : service.getIntents()) {
-                IntentState state = service.getIntentState(intent.id());
+                IntentState state = service.getIntentState(intent.key());
                 if (state != null) {
                     print("id=%s, state=%s, type=%s, appId=%s",
                           intent.id(), state, intent.getClass().getSimpleName(),
@@ -130,7 +130,7 @@ public class IntentsListCommand extends AbstractShellCommand {
 
             // Collect the summary for each intent type intents
             for (Intent intent : intents) {
-                IntentState intentState = service.getIntentState(intent.id());
+                IntentState intentState = service.getIntentState(intent.key());
                 if (intentState == null) {
                     continue;
                 }
@@ -365,7 +365,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             print("    egress=%s", li.egressPoints());
         }
 
-        List<Intent> installable = service.getInstallableIntents(intent.id());
+        List<Intent> installable = service.getInstallableIntents(intent.key());
         if (showInstallable && installable != null && !installable.isEmpty()) {
             print("    installable=%s", installable);
         }
@@ -387,7 +387,7 @@ public class IntentsListCommand extends AbstractShellCommand {
                 .put("type", intent.getClass().getSimpleName())
                 .put("appId", intent.appId().name());
 
-        IntentState state = service.getIntentState(intent.id());
+        IntentState state = service.getIntentState(intent.key());
         if (state != null) {
             result.put("state", state.toString());
         }
@@ -438,7 +438,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             result.set("links", LinksListCommand.json(li.links()));
         }
 
-        List<Intent> installable = service.getInstallableIntents(intent.id());
+        List<Intent> installable = service.getInstallableIntents(intent.key());
         if (installable != null && !installable.isEmpty()) {
             result.set("installable", json(service, installable));
         }

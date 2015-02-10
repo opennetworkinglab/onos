@@ -110,7 +110,7 @@ public class TopologyViewIntentFilter {
 
         // Search through all intents and see if they are relevant to our search.
         for (Intent intent : sourceIntents) {
-            if (intentService.getIntentState(intent.id()) == INSTALLED) {
+            if (intentService.getIntentState(intent.key()) == INSTALLED) {
                 boolean isRelevant = false;
                 if (intent instanceof HostToHostIntent) {
                     isRelevant = isIntentRelevantToHosts((HostToHostIntent) intent, hosts) &&
@@ -157,7 +157,7 @@ public class TopologyViewIntentFilter {
 
     // Indicates whether the specified intent involves all of the given devices.
     private boolean isIntentRelevantToDevices(Intent intent, Iterable<Device> devices) {
-        List<Intent> installables = intentService.getInstallableIntents(intent.id());
+        List<Intent> installables = intentService.getInstallableIntents(intent.key());
         for (Device device : devices) {
             if (!isIntentRelevantToDevice(installables, device)) {
                 return false;
@@ -228,7 +228,7 @@ public class TopologyViewIntentFilter {
         Link ccDst = getFirstLink(opticalIntent.getDst(), true);
 
         for (Intent intent : intents) {
-            List<Intent> installables = intentService.getInstallableIntents(intent.id());
+            List<Intent> installables = intentService.getInstallableIntents(intent.key());
             for (Intent installable : installables) {
                 if (installable instanceof PathIntent) {
                     List<Link> links = ((PathIntent) installable).path().links();
