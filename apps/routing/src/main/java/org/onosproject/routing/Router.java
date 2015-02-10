@@ -124,7 +124,7 @@ public class Router implements RoutingService {
         this.fibComponent = checkNotNull(listener);
         this.hostService.addListener(hostListener);
 
-        bgpService.start(new InternalRouteListener(), 2000);
+        bgpService.start(new InternalRouteListener());
 
         bgpUpdatesExecutor.execute(new Runnable() {
             @Override

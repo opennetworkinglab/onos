@@ -18,7 +18,6 @@ package org.onosproject.sdnip;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -34,10 +33,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.routingapi.RoutingService;
 import org.onosproject.sdnip.config.SdnIpConfigurationReader;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
-
-import java.util.Dictionary;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -77,9 +73,6 @@ public class SdnIp implements SdnIpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
 
-    private static final int DEFAULT_BGP_PORT = 2000;
-    private int bgpPort;
-
     private IntentSynchronizer intentSynchronizer;
     private SdnIpConfigurationReader config;
     private PeerConnectivityManager peerConnectivity;
@@ -90,9 +83,8 @@ public class SdnIp implements SdnIpService {
     private ControllerNode localControllerNode;
 
     @Activate
-    protected void activate(ComponentContext context) {
+    protected void activate() {
         log.info("SDN-IP started");
-        readComponentConfiguration(context);
 
         appId = coreService.registerApplication(SDN_IP_APP);
         config = new SdnIpConfigurationReader();
@@ -117,9 +109,6 @@ public class SdnIp implements SdnIpService {
 
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());
-
-        log.info("Starting BGP with port {}", bgpPort);
-        // TODO feed port information through to the BgpService
     }
 
     @Deactivate
@@ -132,33 +121,6 @@ public class SdnIp implements SdnIpService {
         leadershipService.removeListener(leadershipEventListener);
 
         log.info("SDN-IP Stopped");
-    }
-
-    /**
-     * Extracts properties from the component configuration context.
-     *
-     * @param context the component context
-     */
-    private void readComponentConfiguration(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-        try {
-            String strPort = (String) properties.get("bgpPort");
-            if (strPort != null) {
-                bgpPort = Integer.parseInt(strPort);
-            } else {
-                bgpPort = DEFAULT_BGP_PORT;
-            }
-        } catch (Exception e) {
-            bgpPort = DEFAULT_BGP_PORT;
-        }
-        log.debug("BGP port is set to {}", bgpPort);
-    }
-
-    @Modified
-    public void modified(ComponentContext context) {
-        // Blank @Modified method to catch modifications to the context.
-        // If no @Modified method exists, it seems @Activate is called again
-        // when the context is modified.
     }
 
     @Override

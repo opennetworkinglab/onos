@@ -78,7 +78,7 @@ public class RouterAsyncArpTest {
         hostService = createMock(HostService.class);
 
         BgpService bgpService = createMock(BgpService.class);
-        bgpService.start(anyObject(RouteListener.class), anyInt());
+        bgpService.start(anyObject(RouteListener.class));
         bgpService.stop();
         replay(bgpService);
 

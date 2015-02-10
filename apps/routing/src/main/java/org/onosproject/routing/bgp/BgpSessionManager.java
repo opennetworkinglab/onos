@@ -15,7 +15,11 @@
  */
 package org.onosproject.routing.bgp;
 
+import org.osgi.service.component.ComponentContext;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Service;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -40,6 +44,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -71,6 +76,47 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
             new ConcurrentHashMap<>();
 
     private RouteListener routeListener;
+
+    private static final int DEFAULT_BGP_PORT = 2000;
+    private int bgpPort;
+
+    @Activate
+    protected void activate(ComponentContext context) {
+        readComponentConfiguration(context);
+        log.info("BgpSessionManager started");
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        log.info("BgpSessionManager stopped");
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        try {
+            String strPort = (String) properties.get("bgpPort");
+            if (strPort != null) {
+                bgpPort = Integer.parseInt(strPort);
+            } else {
+                bgpPort = DEFAULT_BGP_PORT;
+            }
+        } catch (Exception e) {
+            bgpPort = DEFAULT_BGP_PORT;
+        }
+        log.debug("BGP port is set to {}", bgpPort);
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        // Blank @Modified method to catch modifications to the context.
+        // If no @Modified method exists, it seems @Activate is called again
+        // when the context is modified.
+    }
 
     /**
      * Checks whether the BGP Session Manager is shutdown.
@@ -245,7 +291,7 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
     }
 
     @Override
-    public void start(RouteListener routeListener, int listenPortNumber) {
+    public void start(RouteListener routeListener) {
         log.debug("BGP Session Manager start.");
         isShutdown = false;
 
@@ -271,7 +317,7 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
             }
         };
         InetSocketAddress listenAddress =
-                new InetSocketAddress(listenPortNumber);
+                new InetSocketAddress(bgpPort);
 
         serverBootstrap = new ServerBootstrap(channelFactory);
         // serverBootstrap.setOptions("reuseAddr", true);

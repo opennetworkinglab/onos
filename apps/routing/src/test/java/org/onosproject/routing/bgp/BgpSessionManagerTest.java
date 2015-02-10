@@ -35,16 +35,21 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onosproject.routingapi.RouteListener;
 import org.onosproject.routingapi.RouteUpdate;
+import org.osgi.service.component.ComponentContext;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.LinkedList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -252,7 +257,14 @@ public class BgpSessionManagerTest {
         //
         bgpSessionManager = new BgpSessionManager();
         // NOTE: We use port 0 to bind on any available port
-        bgpSessionManager.start(dummyRouteListener, 0);
+        ComponentContext componentContext = createMock(ComponentContext.class);
+        Dictionary<String, String> dictionary = createMock(Dictionary.class);
+        expect(dictionary.get("bgpPort")).andReturn("0");
+        replay(dictionary);
+        expect(componentContext.getProperties()).andReturn(dictionary);
+        replay(componentContext);
+        bgpSessionManager.activate(componentContext);
+        bgpSessionManager.start(dummyRouteListener);
 
         // Get the port number the BGP Session Manager is listening on
         Channel serverChannel = TestUtils.getField(bgpSessionManager,

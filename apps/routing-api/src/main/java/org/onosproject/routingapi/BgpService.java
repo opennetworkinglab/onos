@@ -24,9 +24,8 @@ public interface BgpService {
      * Starts the BGP service.
      *
      * @param routeListener listener to send route updates to
-     * @param bgpPort port number to listen on
      */
-    void start(RouteListener routeListener, int bgpPort);
+    void start(RouteListener routeListener);
 
     /**
      * Stops the BGP service.
