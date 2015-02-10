@@ -56,8 +56,26 @@ public class IntentData { //FIXME need to make this "immutable"
         return intent.key();
     }
 
+    public Timestamp version() {
+        return version;
+    }
+
     public void setState(IntentState newState) {
         this.state = newState;
+    }
+
+    /**
+     * Sets the version for this intent data.
+     * <p>
+     * The store should call this method only once when the IntentData is
+     * first passed into the pending map. Ideally, an IntentData is timestamped
+     * on the same thread that the called used to submit the intents.
+     * </p>
+     *
+     * @param version the version/timestamp for this intent data
+     */
+    public void setVersion(Timestamp version) {
+        this.version = version;
     }
 
     public void setInstallables(List<Intent> installables) {

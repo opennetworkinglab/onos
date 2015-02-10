@@ -30,6 +30,7 @@ import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.impl.SystemClockTimestamp;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -38,6 +39,8 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+
+//TODO Note: this store will be removed once the GossipIntentStore is stable
 
 @Component(immediate = true)
 @Service
@@ -48,9 +51,8 @@ public class SimpleIntentStore
 
     private final Logger log = getLogger(getClass());
 
-    // current state maps FIXME.. make this a IntentData map
     private final Map<Key, IntentData> current = Maps.newConcurrentMap();
-    private final Map<Key, IntentData> pending = Maps.newConcurrentMap(); //String is "key"
+    private final Map<Key, IntentData> pending = Maps.newConcurrentMap();
 
     @Activate
     public void activate() {
@@ -160,17 +162,30 @@ public class SimpleIntentStore
 
     @Override
     public void write(IntentData newData) {
-        //FIXME need to compare the versions
-        current.put(newData.key(), newData);
-        try {
-            notifyDelegate(IntentEvent.getEvent(newData));
-        } catch (IllegalArgumentException e) {
-            //no-op
-            log.trace("ignore this exception: {}", e);
-        }
-        IntentData old = pending.get(newData.key());
-        if (old != null /* && FIXME version check */) {
-            pending.remove(newData.key());
+        synchronized (this) {
+            // TODO this could be refactored/cleaned up
+            IntentData currentData = current.get(newData.key());
+            IntentData pendingData = pending.get(newData.key());
+            if (currentData == null ||
+                    // current version is less than or equal to newData's
+                    // Note: current and newData's versions will be equal for state updates
+                    currentData.version().compareTo(newData.version()) <= 0) {
+                current.put(newData.key(), newData);
+
+                if (pendingData != null
+                        // pendingData version is less than or equal to newData's
+                        // Note: a new update for this key could be pending (it's version will be greater)
+                        && pendingData.version().compareTo(newData.version()) <= 0) {
+                    pending.remove(newData.key());
+                }
+
+                try {
+                    notifyDelegate(IntentEvent.getEvent(newData));
+                } catch (IllegalArgumentException e) {
+                    //no-op
+                    log.trace("ignore this exception: {}", e);
+                }
+            }
         }
     }
 
@@ -187,14 +202,26 @@ public class SimpleIntentStore
         return (data != null) ? data.intent() : null;
     }
 
-
     @Override
     public void addPending(IntentData data) {
-        //FIXME need to compare versions
-        pending.put(data.key(), data);
-        checkNotNull(delegate, "Store delegate is not set")
-                .process(data);
-        notifyDelegate(IntentEvent.getEvent(data));
+        data.setVersion(new SystemClockTimestamp());
+        synchronized (this) {
+            IntentData existingData = pending.get(data.key());
+            if (existingData == null ||
+                    // existing version is strictly less than data's version
+                    // Note: if they are equal, we already have the update
+                    // TODO maybe we should still make this <= to be safe?
+                    existingData.version().compareTo(data.version()) < 0) {
+                pending.put(data.key(), data);
+                checkNotNull(delegate, "Store delegate is not set")
+                        .process(data);
+                notifyDelegate(IntentEvent.getEvent(data));
+            } else {
+                log.debug("IntentData {} is older than existing: {}",
+                          data, existingData);
+            }
+            //TODO consider also checking the current map at this point
+        }
     }
 
 

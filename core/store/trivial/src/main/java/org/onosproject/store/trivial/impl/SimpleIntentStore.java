@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
+//TODO Note: this store will be removed
+
 @Component(immediate = true)
 @Service
 public class SimpleIntentStore

@@ -71,6 +71,8 @@ import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
 import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
+//TODO Note: this store will be removed
+
 @Component(immediate = true, enabled = false)
 @Service
 public class DistributedIntentStore
