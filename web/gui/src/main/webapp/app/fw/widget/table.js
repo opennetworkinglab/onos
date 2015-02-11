@@ -21,7 +21,11 @@
     'use strict';
 
     var $log, $window, fs, is,
+        div,
+        currCol = {},
+        prevCol = {},
         bottomMargin = 200;
+
 
     // Render a plain d3 table by giving it the div, a config file, and data
 
@@ -106,6 +110,50 @@
         setTableHeight(th, tb);
     }
 
+    function updateSortingIcons(thElem, api) {
+        currCol.colId = thElem.attr('colId');
+
+        if (currCol.colId === prevCol.colId) {
+            (currCol.icon === 'tableColSortDesc') ?
+                currCol.icon = 'tableColSortAsc' :
+                currCol.icon = 'tableColSortDesc';
+            prevCol.icon = currCol.icon;
+        } else {
+            currCol.icon = 'tableColSortAsc';
+            prevCol.icon = 'tableColSortNone';
+        }
+
+        div = thElem.select('div');
+        div.remove();
+        div = thElem.append('div');
+
+        if (currCol.icon === 'tableColSortAsc') {
+            api.sortAsc(div);
+        } else {
+            api.sortDesc(div);
+        }
+
+        if (prevCol.colId !== undefined &&
+            prevCol.icon === 'tableColSortNone') {
+            api.sortNone(prevCol.elem.select('div'));
+        }
+
+        prevCol.colId = currCol.colId;
+        prevCol.elem = thElem;
+    }
+
+    function generateQueryParams() {
+        var queryString = '?sortCol=' + currCol.colId + '&sortDir=';
+
+        if(currCol.icon === 'tableColSortAsc') {
+            queryString = queryString + 'asc';
+        } else {
+            queryString = queryString + 'desc';
+        }
+
+        return queryString;
+    }
+
     angular.module('onosWidget')
         .factory('TableService', [function () {
             return {
@@ -158,66 +206,31 @@
 
         .directive('onosSortableHeader', ['$log', 'IconService',
             function (_$log_, _is_) {
-            return function (scope, element, attrs) {
-                $log = _$log_;
-                is = _is_;
-                var table = d3.select(element[0]),
-                    currCol = {},
-                    prevCol = {},
-                    sortIconAPI = is.createSortIcon();
+            return {
+                scope: {
+                    ctrlCallback: '&sortCallback'
+                },
+                link: function (scope, element, attrs) {
+                    $log = _$log_;
+                    is = _is_;
+                    var table = d3.select(element[0]),
+                        sortIconAPI = is.createSortIcon();
 
-                // when a header is clicked, change its icon tag and get sorting
-                // order to send to the server.
-                table.selectAll('th').on('click', function () {
-                    var thElem = d3.select(this),
-                        div;
+                    // when a header is clicked, change its icon tag
+                    // and get sorting order to send to the server.
+                    table.selectAll('th').on('click', function () {
+                        var thElem = d3.select(this);
 
-                    currCol.colId = thElem.attr('colId');
-
-                    if (currCol.colId === prevCol.colId) {
-                        (currCol.icon === 'tableColSortDesc') ?
-                            currCol.icon = 'tableColSortAsc' :
-                            currCol.icon = 'tableColSortDesc';
-                        prevCol.icon = currCol.icon;
-                    } else {
-                        currCol.icon = 'tableColSortAsc';
-                        prevCol.icon = 'tableColSortNone';
-                    }
-
-                    $log.debug('currCol clicked: ' + currCol.colId +
-                    ', with sorting icon: ' + currCol.icon);
-                    $log.debug('prevCol clicked: ' + prevCol.colId +
-                    ', with its current sorting icon as ' + prevCol.icon);
-
-                    div = thElem.select('div');
-                    div.remove();
-
-                    div = thElem.append('div');
-
-                    if (currCol.icon === 'tableColSortAsc') {
-                        sortIconAPI.sortAsc(div);
-                    } else {
-                        sortIconAPI.sortDesc(div);
-                    }
-
-                    if (prevCol.colId !== undefined &&
-                        prevCol.icon === 'tableColSortNone') {
-                        sortIconAPI.sortNone(prevCol.elem.select('div'));
-                    }
-
-                    prevCol.colId = currCol.colId;
-                    prevCol.elem = thElem;
-
-                });
-
-                // TODO: send the prev and currCol info to the server to use in sorting table
-
-                // TODO: figure out timing of events:
-                // updating the icon
-                // sending the column sorting info to the server
-                // refreshing the table so that the new rows will be sorted
-
-            }
+                        if (thElem.attr('sortable') === '') {
+                            updateSortingIcons(thElem, sortIconAPI);
+                            // call the ctrl's rest callback function
+                            scope.ctrlCallback({
+                                    urlSuffix: generateQueryParams()
+                                });
+                        }
+                    });
+                }
+            };
         }]);
 
 }());

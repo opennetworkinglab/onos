@@ -64,7 +64,7 @@ describe('factory: fw/layer/flash.js', function () {
             text = item.select('text');
             expect(text.size()).toEqual(1);
             expect(text.text()).toEqual('foo');
-        }, 500);
+        }, 2000);
     });
 
     // TODO: testing these time-sensitive behaviors is hard...

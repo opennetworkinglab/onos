@@ -21,7 +21,7 @@ describe('Controller: OvDeviceCtrl', function () {
     // instantiate the Device module
     beforeEach(module('ovDevice', 'onosRemote'));
 
-    var $log, $controller, ctrl, $mockHttp;
+    var $log, $scope, $controller, ctrl, $mockHttp;
 
     var fakeData = {
         "devices": [{
@@ -40,17 +40,21 @@ describe('Controller: OvDeviceCtrl', function () {
         }]
     };
 
-    beforeEach(inject(function(_$log_, _$controller_, $httpBackend) {
+    beforeEach(inject(function(_$log_, $rootScope, _$controller_, $httpBackend) {
         $log = _$log_;
+        $scope = $rootScope.$new();
         $controller = _$controller_;
         $mockHttp = $httpBackend;
 
         $mockHttp.whenGET(/\/device$/).respond(fakeData);
     }));
 
-    it('should be an empty array', function () {
-        ctrl = $controller('OvDeviceCtrl');
+    it('should be an empty array and then have device data', function () {
+        ctrl = $controller('OvDeviceCtrl', {
+            $scope: $scope
+        });
         expect(ctrl.deviceData).toEqual([]);
+        $scope.sortCallback();
         $mockHttp.flush();
         expect(ctrl.deviceData).toEqual(fakeData.devices);
     });
