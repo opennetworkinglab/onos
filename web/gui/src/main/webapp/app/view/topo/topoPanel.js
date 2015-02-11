@@ -143,7 +143,12 @@
 
     function showSummaryPanel() {
         summaryPanel.show();
-        // TODO: augment, once we have the details pane also
+        // TODO: augment, for details panel move
+    }
+
+    function hideSummaryPanel() {
+        summaryPanel.hide();
+        // TODO: augment, for details panel move
     }
 
     function showDetailPanel() {
@@ -194,6 +199,7 @@
                 displayMulti: displayMulti,
                 addAction: addAction,
 
+                hideSummaryPanel: hideSummaryPanel,
                 showDetailPanel: showDetailPanel,
                 hideDetailPanel: hideDetailPanel,
 

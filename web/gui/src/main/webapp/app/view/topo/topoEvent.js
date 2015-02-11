@@ -58,14 +58,15 @@
         };
     }
 
-    var dispatcher = {
+    var nilApi = {},
+        dispatcher = {
         handleEvent: function (ev) {
             var eid = ev.event,
-                api = evApis[eid] || {},
+                api = evApis[eid] || nilApi,
                 eh = api[eid];
 
             if (eh) {
-                $log.debug('  *EVENT* ', eid, ev.payload);
+                $log.debug(' << *Rx* ', eid, ev.payload);
                 eh(ev.payload);
             } else {
                 $log.warn('Unknown event (ignored):', ev);
@@ -74,6 +75,7 @@
 
         sendEvent: function (evType, payload) {
             if (wsock) {
+                $log.debug(' *Tx* >> ', evType, payload);
                 wes.sendEvent(wsock, evType, payload);
             } else {
                 $log.warn('sendEvent: no websocket open:', evType, payload);

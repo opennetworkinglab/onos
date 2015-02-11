@@ -40,6 +40,7 @@ describe('factory: view/topo/topoPanel.js', function() {
             'displaySingle',
             'displayMulti',
             'addAction',
+            'hideSummaryPanel',
             'showDetailPanel',
             'hideDetailPanel',
             'detailVisible',

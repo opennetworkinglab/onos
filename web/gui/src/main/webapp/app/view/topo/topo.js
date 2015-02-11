@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, tfs, tis;
+    var $log, fs, ks, zs, gs, ms, sus, tes, tfs, tps, tis;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -42,7 +42,7 @@
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
         ks.keyBindings({
-            //O: [toggleSummary, 'Toggle ONOS summary pane'],
+            O: [toggleSummary, 'Toggle ONOS summary pane'],
             I: [toggleInstances, 'Toggle ONOS instances pane'],
             //D: [toggleDetails, 'Disable / enable details pane'],
 
@@ -86,6 +86,15 @@
     }
 
     // --- Keystroke functions -------------------------------------------
+
+    function toggleSummary() {
+        if (tps.summaryVisible()) {
+            tes.sendEvent("cancelSummary");
+            tps.hideSummaryPanel();
+        } else {
+            tes.sendEvent('requestSummary');
+        }
+    }
 
     function toggleInstances() {
         tis.toggle();
@@ -213,7 +222,7 @@
             'TopoInstService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _sus_, tes, _tfs_, tps, _tis_) {
+                  _ks_, _zs_, _gs_, _ms_, _sus_, _tes_, _tfs_, _tps_, _tis_) {
             var self = this,
                 projection,
                 dim,
@@ -221,7 +230,7 @@
                     // provides function calls back into this space
                     showNoDevs: showNoDevs,
                     projection: function () { return projection; },
-                    sendEvent: tes.sendEvent
+                    sendEvent: _tes_.sendEvent
                 };
 
             $log = _$log_;
@@ -231,7 +240,9 @@
             gs = _gs_;
             ms = _ms_;
             sus = _sus_;
+            tes = _tes_;
             tfs = _tfs_;
+            tps = _tps_;
             tis = _tis_;
 
             self.notifyResize = function () {
