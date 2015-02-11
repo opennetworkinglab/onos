@@ -16,12 +16,12 @@
 package org.onosproject.net.flow;
 
 
-import java.util.Collections;
-import java.util.Set;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.DeviceId;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Representation of a completed flow rule batch operation.
@@ -54,7 +54,7 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
      *
      * @param success  indicates whether the completion is successful.
      * @param failures set of any failures encountered
-     * @param deviceId device id
+     * @param deviceId the device this operation completed for
      */
     public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures,
                                    DeviceId deviceId) {

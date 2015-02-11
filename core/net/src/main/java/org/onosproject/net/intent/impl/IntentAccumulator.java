@@ -44,6 +44,8 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
 
     /**
      * Creates an intent operation accumulator.
+     *
+     * @param delegate the intent batch delegate
      */
     protected IntentAccumulator(IntentBatchDelegate delegate) {
         super(TIMER, DEFAULT_MAX_EVENTS, DEFAULT_MAX_BATCH_MS, DEFAULT_MAX_IDLE_MS);

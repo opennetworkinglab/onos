@@ -108,8 +108,10 @@ public class IntentData { //FIXME need to make this "immutable"
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("key", key())
+                .add("intent", intent())
                 .add("state", state())
                 .add("version", version())
+                .add("installables", installables())
                 .toString();
     }
 

@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a phase of withdrawing an intent with calling
- * {@link import org.onosproject.net.flow.FlowRuleService}.
+ * {@link org.onosproject.net.flow.FlowRuleService}.
  */
 class Withdrawing implements IntentUpdate {
 

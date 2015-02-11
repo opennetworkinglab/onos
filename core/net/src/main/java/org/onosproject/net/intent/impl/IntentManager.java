@@ -265,6 +265,7 @@ public class IntentManager
      * Compiles an intent recursively.
      *
      * @param intent intent
+     * @param previousInstallables previous intent installables
      * @return result of compilation
      */
     List<Intent> compileIntent(Intent intent, List<Intent> previousInstallables) {

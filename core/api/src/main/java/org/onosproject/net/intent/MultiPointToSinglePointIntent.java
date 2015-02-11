@@ -64,6 +64,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
      * traffic selector and treatment.
      *
      * @param appId         application identifier
+     * @param key           intent key
      * @param selector      traffic selector
      * @param treatment     treatment
      * @param ingressPoints set of ports from which ingress traffic originates
