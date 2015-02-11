@@ -72,7 +72,9 @@ public class NettyMessagingService implements MessagingService {
             .removalListener(new RemovalListener<Long, SettableFuture<byte[]>>() {
                 @Override
                 public void onRemoval(RemovalNotification<Long, SettableFuture<byte[]>> entry) {
-                    entry.getValue().setException(new TimeoutException("Timedout waiting for reply"));
+                    if (entry.wasEvicted()) {
+                        entry.getValue().setException(new TimeoutException("Timedout waiting for reply"));
+                    }
                 }
             })
             .build();

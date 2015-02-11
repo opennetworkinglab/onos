@@ -312,9 +312,11 @@ public class SimpleFlowRuleStore
         @Override
         public void onRemoval(RemovalNotification<Integer, SettableFuture<CompletedBatchOperation>> notification) {
             // wrapping in ExecutionException to support Future.get
-            notification.getValue()
-                .setException(new ExecutionException("Timed out",
+            if (notification.wasEvicted()) {
+                notification.getValue()
+                    .setException(new ExecutionException("Timed out",
                                                      new TimeoutException()));
+            }
         }
     }
 }
