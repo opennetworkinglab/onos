@@ -31,9 +31,9 @@ import java.util.concurrent.Executors;
  */
 public class FakeIntentManager implements TestableIntentService {
 
-    private final Map<IntentId, Intent> intents = new HashMap<>();
-    private final Map<IntentId, IntentState> intentStates = new HashMap<>();
-    private final Map<IntentId, List<Intent>> installables = new HashMap<>();
+    private final Map<Key, Intent> intents = new HashMap<>();
+    private final Map<Key, IntentState> intentStates = new HashMap<>();
+    private final Map<Key, List<Intent>> installables = new HashMap<>();
     private final Set<IntentListener> listeners = new HashSet<>();
 
     private final Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> compilers = new HashMap<>();
@@ -69,7 +69,7 @@ public class FakeIntentManager implements TestableIntentService {
             @Override
             public void run() {
                 try {
-                    List<Intent> installable = getInstallable(intent.id());
+                    List<Intent> installable = getInstallable(intent.key());
                     executeWithdrawingPhase(intent, installable);
                 } catch (IntentException e) {
                     exceptions.add(e);
@@ -123,7 +123,7 @@ public class FakeIntentManager implements TestableIntentService {
                 getInstaller(ii).install(ii);
             }
             setState(intent, IntentState.INSTALLED);
-            putInstallable(intent.id(), installable);
+            putInstallable(intent.key(), installable);
             dispatch(new IntentEvent(IntentEvent.Type.INSTALLED, intent));
 
         } catch (IntentException e) {
@@ -139,7 +139,7 @@ public class FakeIntentManager implements TestableIntentService {
             for (Intent ii : installable) {
                 getInstaller(ii).uninstall(ii);
             }
-            removeInstallable(intent.id());
+            removeInstallable(intent.key());
             setState(intent, IntentState.WITHDRAWN);
             dispatch(new IntentEvent(IntentEvent.Type.WITHDRAWN, intent));
         } catch (IntentException e) {
@@ -151,19 +151,19 @@ public class FakeIntentManager implements TestableIntentService {
 
     // Sets the internal state for the given intent and dispatches an event
     private void setState(Intent intent, IntentState state) {
-        intentStates.put(intent.id(), state);
+        intentStates.put(intent.key(), state);
     }
 
-    private void putInstallable(IntentId id, List<Intent> installable) {
-        installables.put(id, installable);
+    private void putInstallable(Key key, List<Intent> installable) {
+        installables.put(key, installable);
     }
 
-    private void removeInstallable(IntentId id) {
-        installables.remove(id);
+    private void removeInstallable(Key key) {
+        installables.remove(key);
     }
 
-    private List<Intent> getInstallable(IntentId id) {
-        List<Intent> installable = installables.get(id);
+    private List<Intent> getInstallable(Key key) {
+        List<Intent> installable = installables.get(key);
         if (installable != null) {
             return installable;
         } else {
@@ -173,7 +173,7 @@ public class FakeIntentManager implements TestableIntentService {
 
     @Override
     public void submit(Intent intent) {
-        intents.put(intent.id(), intent);
+        intents.put(intent.key(), intent);
         setState(intent, IntentState.INSTALL_REQ);
         dispatch(new IntentEvent(IntentEvent.Type.INSTALL_REQ, intent));
         executeSubmit(intent);
@@ -181,7 +181,7 @@ public class FakeIntentManager implements TestableIntentService {
 
     @Override
     public void withdraw(Intent intent) {
-        intents.remove(intent.id());
+        intents.remove(intent.key());
         executeWithdraw(intent);
     }
 

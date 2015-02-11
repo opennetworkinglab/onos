@@ -33,7 +33,6 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
@@ -42,7 +41,6 @@ import org.onosproject.net.resource.LinkResourceAllocations;
 /**
  * Suite of tests for the intent service contract.
  */
-@Ignore
 public class IntentServiceTest {
 
     public static final int IID = 123;
