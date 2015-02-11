@@ -163,7 +163,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         String newNbor;
         try {
             String s = (String) properties.get("eventRate");
-            newRate = isNullOrEmpty(s) ? eventRate : Integer.valueOf(s.trim());
+            newRate = isNullOrEmpty(s) ? eventRate : Integer.parseInt(s.trim());
             s = (String) properties.get("neighbors");
             newNbor = isNullOrEmpty(s) ? neighbor : getNeighbor(s.trim());
         } catch (Exception e) {
@@ -239,7 +239,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
                 String part = part(did.toString());
                 String npart = nIdPart(did.toString());
-                if (part.equals("ffff") & npart.equals(neighbor)) {
+                if (part.equals("ffff") && npart.equals(neighbor)) {
                     // 'tail' of our neighboring island - link us <- tail
                     tails.add(new ConnectPoint(did, SRCPORT));
                 }

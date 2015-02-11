@@ -156,7 +156,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
                 newDevNum = getDevicesConfig(s);
             }
             s = (String) properties.get("numPorts");
-            newPortNum = isNullOrEmpty(s) ? DEF_NUMPORTS : Integer.valueOf(s.trim());
+            newPortNum = isNullOrEmpty(s) ? DEF_NUMPORTS : Integer.parseInt(s.trim());
         } catch (Exception e) {
             log.warn(e.getMessage());
             newDevNum = numDevices;
@@ -183,7 +183,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
                 NodeId that = new NodeId(params[0].trim());
                 String nd = params[1];
                 if (clusterService.getLocalNode().id().equals(that)) {
-                    return Integer.valueOf(nd.trim());
+                    return Integer.parseInt(nd.trim());
                 }
                 continue;
             }
