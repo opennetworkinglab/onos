@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, tes, tfs, tps, tis;
+    var $log, fs, ks, zs, gs, ms, sus, tes, tfs, tps, tis, tss;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -42,9 +42,9 @@
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
         ks.keyBindings({
-            O: [toggleSummary, 'Toggle ONOS summary pane'],
+            O: [tps.toggleSummary, 'Toggle ONOS summary pane'],
             I: [toggleInstances, 'Toggle ONOS instances pane'],
-            //D: [toggleDetails, 'Disable / enable details pane'],
+            D: [tss.toggleDetails, 'Disable / enable details pane'],
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
@@ -87,15 +87,8 @@
 
     // --- Keystroke functions -------------------------------------------
 
-    function toggleSummary() {
-        if (tps.summaryVisible()) {
-            tes.sendEvent("cancelSummary");
-            tps.hideSummaryPanel();
-        } else {
-            tes.sendEvent('requestSummary');
-        }
-    }
-
+    // NOTE: this really belongs in the TopoPanelService -- but how to
+    //       cleanly link in the updateDeviceColors() call? To be fixed later.
     function toggleInstances() {
         tis.toggle();
         tfs.updateDeviceColors();
@@ -219,10 +212,11 @@
             'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
-            'TopoInstService',
+            'TopoInstService', 'TopoSelectService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _sus_, _tes_, _tfs_, _tps_, _tis_) {
+                  _ks_, _zs_, _gs_, _ms_, _sus_,
+                  _tes_, _tfs_, _tps_, _tis_, _tss_) {
             var self = this,
                 projection,
                 dim,
@@ -244,6 +238,7 @@
             tfs = _tfs_;
             tps = _tps_;
             tis = _tis_;
+            tss = _tss_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -279,7 +274,7 @@
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(forceG, uplink, dim);
             tis.initInst();
-            tps.initPanels();
+            tps.initPanels({ sendEvent: tes.sendEvent });
             tes.openSock();
 
             $log.log('OvTopoCtrl has been created');

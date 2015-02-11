@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, tps;
+    var $log, fs, flash, tps;
 
     // api to topoForce
     var api;
@@ -229,6 +229,19 @@
         }
     }
 
+    function toggleDetails() {
+        useDetails = !useDetails;
+        if (useDetails) {
+            flash.flash('Enable details panel');
+            if (haveDetails) {
+                tps.showDetailPanel();
+            }
+        } else {
+            flash.flash('Disable details panel');
+            tps.hideDetailPanel();
+        }
+    }
+
     // === -----------------------------------------------------
     //  TODO: migrate these to topoTraffic.js
 
@@ -263,31 +276,33 @@
 
     angular.module('ovTopo')
         .factory('TopoSelectService',
-        ['$log', 'FnService', 'TopoPanelService',
+        ['$log', 'FnService', 'FlashService', 'TopoPanelService',
 
-            function (_$log_, _fs_, _tps_) {
-                $log = _$log_;
-                fs = _fs_;
-                tps = _tps_;
+        function (_$log_, _fs_, _flash_, _tps_) {
+            $log = _$log_;
+            fs = _fs_;
+            flash = _flash_;
+            tps = _tps_;
 
-                function initSelect(_api_) {
-                    api = _api_;
-                }
+            function initSelect(_api_) {
+                api = _api_;
+            }
 
-                function destroySelect() { }
+            function destroySelect() { }
 
-                return {
-                    initSelect: initSelect,
-                    destroySelect: destroySelect,
+            return {
+                initSelect: initSelect,
+                destroySelect: destroySelect,
 
-                    showDetails: showDetails,
+                showDetails: showDetails,
+                toggleDetails: toggleDetails,
 
-                    nodeMouseOver: nodeMouseOver,
-                    nodeMouseOut: nodeMouseOut,
-                    selectObject: selectObject,
-                    deselectObject: deselectObject,
-                    deselectAll: deselectAll,
-                    hovered: function () { return hovered; }
-                };
-            }]);
+                nodeMouseOver: nodeMouseOver,
+                nodeMouseOut: nodeMouseOut,
+                selectObject: selectObject,
+                deselectObject: deselectObject,
+                deselectAll: deselectAll,
+                hovered: function () { return hovered; }
+            };
+        }]);
 }());

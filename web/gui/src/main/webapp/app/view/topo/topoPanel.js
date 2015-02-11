@@ -23,7 +23,12 @@
     'use strict';
 
     // injected refs
-    var $log, ps, gs;
+    var $log, fs, ps, gs;
+
+    var api;
+    /*
+      sendEvent( event, {payload} )
+     */
 
     // constants
     var pCls = 'topo-p',
@@ -137,39 +142,83 @@
         showSummaryPanel();
     }
 
+    function toggleSummary() {
+        if (summaryPanel.isVisible()) {
+            api.sendEvent("cancelSummary");
+            hideSummaryPanel();
+        } else {
+            api.sendEvent('requestSummary');
+        }
+    }
 
     // === -----------------------------------------------------
     // === LOGIC For showing/hiding summary and detail panels...
 
     function showSummaryPanel() {
-        summaryPanel.show();
-        // TODO: augment, for details panel move
+        if (detailPanel.isVisible()) {
+            detailPanel.down(summaryPanel.show);
+        } else {
+            summaryPanel.show();
+        }
     }
 
     function hideSummaryPanel() {
-        summaryPanel.hide();
-        // TODO: augment, for details panel move
+        summaryPanel.hide(function () {
+            if (detailPanel.isVisible()) {
+                detailPanel.up();
+            }
+        });
     }
 
     function showDetailPanel() {
-        // TODO: augment with summary-accomodation-logic
-        detailPanel.show();
+        if (summaryPanel.isVisible()) {
+            detailPanel.down(detailPanel.show);
+        } else {
+            detailPanel.up(detailPanel.show);
+        }
     }
 
     function hideDetailPanel() {
         detailPanel.hide();
     }
 
+    // ==========================
 
+    function noop () {}
+
+    function augmentDetailPanel() {
+        var dp = detailPanel;
+        dp.ypos = { up: 64, down: 320, current: 320};
+
+        dp._move = function (y, cb) {
+            var endCb = fs.isF(cb) || noop,
+                yp = dp.ypos;
+            if (yp.current !== y) {
+                yp.current = y;
+                dp.el().transition().duration(300)
+                    .each('end', endCb)
+                    .style('top', yp.current + 'px');
+            } else {
+                endCb();
+            }
+        };
+
+        dp.down = function (cb) { dp._move(dp.ypos.down, cb); };
+        dp.up = function (cb) { dp._move(dp.ypos.up, cb); };
+    }
 
     // ==========================
 
-    function initPanels() {
+    function initPanels(_api_) {
+        api = _api_;
+
         summaryPanel = ps.createPanel(idSum, panelOpts);
         detailPanel = ps.createPanel(idDet, panelOpts);
 
         summaryPanel.classed(pCls, true);
         detailPanel.classed(pCls, true);
+
+        augmentDetailPanel();
     }
 
     function destroyPanels() {
@@ -182,10 +231,11 @@
 
     angular.module('ovTopo')
     .factory('TopoPanelService',
-        ['$log', 'PanelService', 'GlyphService',
+        ['$log', 'FnService', 'PanelService', 'GlyphService',
 
-        function (_$log_, _ps_, _gs_) {
+        function (_$log_, _fs_, _ps_, _gs_) {
             $log = _$log_;
+            fs = _fs_;
             ps = _ps_;
             gs = _gs_;
 
@@ -194,6 +244,7 @@
                 destroyPanels: destroyPanels,
 
                 showSummary: showSummary,
+                toggleSummary: toggleSummary,
 
                 displaySingle: displaySingle,
                 displayMulti: displayMulti,

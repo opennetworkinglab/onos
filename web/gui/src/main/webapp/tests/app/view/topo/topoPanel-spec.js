@@ -37,6 +37,7 @@ describe('factory: view/topo/topoPanel.js', function() {
             'initPanels',
             'destroyPanels',
             'showSummary',
+            'toggleSummary',
             'displaySingle',
             'displayMulti',
             'addAction',
