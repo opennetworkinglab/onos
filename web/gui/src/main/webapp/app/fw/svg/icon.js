@@ -161,6 +161,28 @@
         return g;
     }
 
+    function createSortIcon() {
+       function sortAsc(div) {
+            div.style('display', 'inline-block');
+            loadEmbeddedIcon(div, 'tableColSortAsc', 10);
+        }
+
+        function sortDesc(div) {
+            div.style('display', 'inline-block');
+            loadEmbeddedIcon(div, 'tableColSortDesc', 10);
+        }
+
+        function sortNone(div) {
+            div.remove();
+        }
+
+        return {
+            sortAsc: sortAsc,
+            sortDesc: sortDesc,
+            sortNone: sortNone
+        };
+    }
+
 
     // =========================
     // === DEFINE THE MODULE
@@ -180,7 +202,8 @@
                 loadEmbeddedIcon: loadEmbeddedIcon,
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
-                iconConfig: function () { return config; }
+                iconConfig: function () { return config; },
+                createSortIcon: createSortIcon
             };
         }]);
 

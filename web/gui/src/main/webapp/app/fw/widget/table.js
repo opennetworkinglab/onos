@@ -20,7 +20,7 @@
 (function () {
     'use strict';
 
-    var $window, fs,
+    var $log, $window, fs, is,
         bottomMargin = 200;
 
     // Render a plain d3 table by giving it the div, a config file, and data
@@ -101,9 +101,9 @@
         });
     }
 
-    function fixTable(t, th, tb, height) {
+    function fixTable(t, th, tb) {
         setTableWidth(t);
-        setTableHeight(th, tb, height);
+        setTableHeight(th, tb);
     }
 
     angular.module('onosWidget')
@@ -137,6 +137,7 @@
 
                     scope.setTableHW = function () {
                         scope.$on('LastElement', function (event) {
+                            // only adjust the table once it's completely loaded
                             fixTable(table, thead, tbody);
                             shouldResize = true;
                         });
@@ -153,6 +154,70 @@
                 });
             };
 
+        }])
+
+        .directive('onosSortableHeader', ['$log', 'IconService',
+            function (_$log_, _is_) {
+            return function (scope, element, attrs) {
+                $log = _$log_;
+                is = _is_;
+                var table = d3.select(element[0]),
+                    currCol = {},
+                    prevCol = {},
+                    sortIconAPI = is.createSortIcon();
+
+                // when a header is clicked, change its icon tag and get sorting
+                // order to send to the server.
+                table.selectAll('th').on('click', function () {
+                    var thElem = d3.select(this),
+                        div;
+
+                    currCol.colId = thElem.attr('colId');
+
+                    if (currCol.colId === prevCol.colId) {
+                        (currCol.icon === 'tableColSortDesc') ?
+                            currCol.icon = 'tableColSortAsc' :
+                            currCol.icon = 'tableColSortDesc';
+                        prevCol.icon = currCol.icon;
+                    } else {
+                        currCol.icon = 'tableColSortAsc';
+                        prevCol.icon = 'tableColSortNone';
+                    }
+
+                    $log.debug('currCol clicked: ' + currCol.colId +
+                    ', with sorting icon: ' + currCol.icon);
+                    $log.debug('prevCol clicked: ' + prevCol.colId +
+                    ', with its current sorting icon as ' + prevCol.icon);
+
+                    div = thElem.select('div');
+                    div.remove();
+
+                    div = thElem.append('div');
+
+                    if (currCol.icon === 'tableColSortAsc') {
+                        sortIconAPI.sortAsc(div);
+                    } else {
+                        sortIconAPI.sortDesc(div);
+                    }
+
+                    if (prevCol.colId !== undefined &&
+                        prevCol.icon === 'tableColSortNone') {
+                        sortIconAPI.sortNone(prevCol.elem.select('div'));
+                    }
+
+                    prevCol.colId = currCol.colId;
+                    prevCol.elem = thElem;
+
+                });
+
+                // TODO: send the prev and currCol info to the server to use in sorting table
+
+                // TODO: figure out timing of events:
+                // updating the icon
+                // sending the column sorting info to the server
+                // refreshing the table so that the new rows will be sorted
+
+            }
         }]);
 
 }());
