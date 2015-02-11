@@ -127,13 +127,35 @@ public class ICMP6 extends BasePacket {
         }
 
         final byte[] data = new byte[HEADER_LENGTH + payloadLength];
-        final ByteBuffer bb = ByteBuffer.wrap(data);
+        final ByteBuffer bbData = ByteBuffer.wrap(data);
 
-        bb.put(this.icmpType);
-        bb.put(this.icmpCode);
-        bb.putShort(this.checksum);
+        // Creating ByteBuffer for checksum calculation
+        final byte[] checksumData =
+            new byte[IPv6.FIXED_HEADER_LENGTH + HEADER_LENGTH + payloadLength];
+        final ByteBuffer bbChecksum = ByteBuffer.wrap(checksumData);
+
+        //
+        // Creating IPv6 Pseudo Header for checksum calculation according
+        // to RFC 4443 and RFC 2460
+        //
+        bbChecksum.put(((IPv6) this.parent).getSourceAddress());
+        bbChecksum.put(((IPv6) this.parent).getDestinationAddress());
+        bbChecksum.putInt(HEADER_LENGTH + payloadLength);
+        bbChecksum.put((byte) 0);
+        bbChecksum.put((byte) 0);
+        bbChecksum.put((byte) 0);
+        bbChecksum.put(IPv6.PROTOCOL_ICMP6);
+        bbChecksum.put(this.icmpType);
+        bbChecksum.put(this.icmpCode);
+        bbChecksum.put((byte) 0);
+        bbChecksum.put((byte) 0);
+
+        bbData.put(this.icmpType);
+        bbData.put(this.icmpCode);
+        bbData.putShort(this.checksum);
         if (payloadData != null) {
-            bb.put(payloadData);
+            bbData.put(payloadData);
+            bbChecksum.put(payloadData);
         }
 
         if (this.parent != null && this.parent instanceof IPv6) {
@@ -142,21 +164,22 @@ public class ICMP6 extends BasePacket {
 
         // compute checksum if needed
         if (this.checksum == 0) {
-            bb.rewind();
+            bbData.rewind();
+            bbChecksum.rewind();
             int accumulation = 0;
 
-            for (int i = 0; i < data.length / 2; ++i) {
-                accumulation += 0xffff & bb.getShort();
+            for (int i = 0; i < checksumData.length / 2; ++i) {
+                accumulation += 0xffff & bbChecksum.getShort();
             }
             // pad to an even number of shorts
-            if (data.length % 2 > 0) {
-                accumulation += (bb.get() & 0xff) << 8;
+            if (checksumData.length % 2 > 0) {
+                accumulation += (bbChecksum.get() & 0xff) << 8;
             }
 
             accumulation = (accumulation >> 16 & 0xffff)
                     + (accumulation & 0xffff);
             this.checksum = (short) (~accumulation & 0xffff);
-            bb.putShort(2, this.checksum);
+            bbData.putShort(2, this.checksum);
         }
         return data;
     }
