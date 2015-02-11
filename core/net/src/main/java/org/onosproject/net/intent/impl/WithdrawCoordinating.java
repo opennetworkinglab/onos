@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentState;
 
 import java.util.Optional;
 
@@ -36,12 +37,16 @@ class WithdrawCoordinating implements IntentUpdate {
     WithdrawCoordinating(IntentManager intentManager, IntentData pending, IntentData current) {
         this.intentManager = checkNotNull(intentManager);
         this.pending = checkNotNull(pending);
-        this.current = checkNotNull(current);
+        this.current = current;
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current);
+        if (current == null) { // there's nothing in the store with this key
+            return Optional.of(new Withdrawn(pending, IntentState.WITHDRAWN));
+        }
+        FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current, pending);
+        pending.setInstallables(current.installables());
         return Optional.of(new Withdrawing(intentManager, pending, flowRules));
     }
 }

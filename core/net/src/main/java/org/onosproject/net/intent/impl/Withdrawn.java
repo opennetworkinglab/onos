@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentState;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.WITHDRAWING;
@@ -25,8 +26,12 @@ class Withdrawn extends CompletedIntentUpdate {
     private final IntentData intentData;
 
     Withdrawn(IntentData intentData) {
+        this(intentData, WITHDRAWING);
+    }
+
+    Withdrawn(IntentData intentData, IntentState newState) {
         this.intentData = checkNotNull(intentData);
-        this.intentData.setState(WITHDRAWING);
+        this.intentData.setState(newState);
     }
 
     @Override

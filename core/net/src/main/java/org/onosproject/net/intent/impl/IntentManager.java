@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -304,9 +305,11 @@ public class IntentManager
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                //FIXME store.write(pending.setState(BROKEN));
                 log.warn("Failed installation: {} {} on {}", pending.key(),
                          pending.intent(), ops);
+                //FIXME store.write(pending.setState(BROKEN));
+                pending.setState(FAILED);
+                store.write(pending);
             }
         });
     }
@@ -317,7 +320,7 @@ public class IntentManager
      * @param current intent data stored in the store
      * @return flow rule operations
      */
-    FlowRuleOperations uninstallCoordinate(IntentData current) {
+    FlowRuleOperations uninstallCoordinate(IntentData current, IntentData pending) {
         List<Intent> installables = current.installables();
         List<List<FlowRuleBatchOperation>> plans = new ArrayList<>();
         for (Intent installable : installables) {
@@ -327,16 +330,17 @@ public class IntentManager
         return merge(plans).build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Completed withdrawing: {}", current.key());
-                current.setState(WITHDRAWN);
-                store.write(current);
+                log.info("Completed withdrawing: {}", pending.key());
+                pending.setState(WITHDRAWN);
+                pending.setInstallables(Collections.emptyList());
+                store.write(pending);
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.warn("Failed withdraw: {}", current.key());
-                current.setState(FAILED);
-                store.write(current);
+                log.warn("Failed withdraw: {}", pending.key());
+                pending.setState(FAILED);
+                store.write(pending);
             }
         });
     }

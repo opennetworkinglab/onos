@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 //TODO Note: this store will be removed once the GossipIntentStore is stable
@@ -53,6 +54,19 @@ public class SimpleIntentStore
 
     private final Map<Key, IntentData> current = Maps.newConcurrentMap();
     private final Map<Key, IntentData> pending = Maps.newConcurrentMap();
+
+    private IntentData copyData(IntentData original) {
+        if (original == null) {
+            return null;
+        }
+        IntentData result =
+                new IntentData(original.intent(), original.state(), original.version());
+
+        if (original.installables() != null) {
+            result.setInstallables(original.installables());
+        }
+        return result;
+    }
 
     @Activate
     public void activate() {
@@ -160,18 +174,85 @@ public class SimpleIntentStore
         */
     }
 
+
+    /**
+     * TODO.
+     * @param currentData
+     * @param newData
+     * @return
+     */
+    private boolean isUpdateAcceptable(IntentData currentData, IntentData newData) {
+
+        if (currentData == null) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) < 0) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) > 0) {
+            return false;
+        }
+
+        // current and new data versions are the same
+        IntentState currentState = currentData.state();
+        IntentState newState = newData.state();
+
+        switch (newState) {
+            case INSTALLING:
+                if (currentState == INSTALLING) {
+                    return false;
+                }
+            // FALLTHROUGH
+            case INSTALLED:
+                if (currentState == INSTALLED) {
+                    return false;
+                } else if (currentState == WITHDRAWING || currentState == WITHDRAWN) {
+                    log.warn("Invalid state transition from {} to {} for intent {}",
+                             currentState, newState, newData.key());
+                    return false;
+                }
+                return true;
+
+            case WITHDRAWING:
+                if (currentState == WITHDRAWING) {
+                    return false;
+                }
+            // FALLTHOUGH
+            case WITHDRAWN:
+                if (currentState == WITHDRAWN) {
+                    return false;
+                } else if (currentState == INSTALLING || currentState == INSTALLED) {
+                    log.warn("Invalid state transition from {} to {} for intent {}",
+                             currentState, newState, newData.key());
+                    return false;
+                }
+                return true;
+
+
+            case FAILED:
+                if (currentState == FAILED) {
+                    return false;
+                }
+                return true;
+
+
+            case COMPILING:
+            case RECOMPILING:
+            case INSTALL_REQ:
+            case WITHDRAW_REQ:
+            default:
+                log.warn("Invalid state {} for intent {}", newState, newData.key());
+                return false;
+        }
+    }
+
     @Override
     public void write(IntentData newData) {
         synchronized (this) {
             // TODO this could be refactored/cleaned up
             IntentData currentData = current.get(newData.key());
             IntentData pendingData = pending.get(newData.key());
-            if (currentData == null ||
-                    // current version is less than or equal to newData's
-                    // Note: current and newData's versions will be equal for state updates
-                    currentData.version().compareTo(newData.version()) <= 0) {
-                // FIXME need to check that the validity of state transition if ==
-                current.put(newData.key(), newData);
+
+            if (isUpdateAcceptable(currentData, newData)) {
+                current.put(newData.key(), copyData(newData));
 
                 if (pendingData != null
                         // pendingData version is less than or equal to newData's
@@ -204,8 +285,13 @@ public class SimpleIntentStore
     }
 
     @Override
+    public IntentData getIntentData(Key key) {
+        return copyData(current.get(key));
+    }
+
+    @Override
     public void addPending(IntentData data) {
-        if (data.version() != null) { // recompiled intents will already have a version
+        if (data.version() == null) { // recompiled intents will already have a version
             data.setVersion(new SystemClockTimestamp());
         }
         synchronized (this) {
@@ -226,7 +312,6 @@ public class SimpleIntentStore
             //TODO consider also checking the current map at this point
         }
     }
-
 
     @Override
     public boolean isMaster(Intent intent) {

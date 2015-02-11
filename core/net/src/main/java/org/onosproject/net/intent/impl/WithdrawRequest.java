@@ -37,7 +37,7 @@ class WithdrawRequest implements IntentUpdate {
 
     @Override
     public Optional<IntentUpdate> execute() {
-        //FIXME... store hack
+        //FIXME need store interface
         IntentData current = intentManager.store.getIntentData(pending.key());
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
