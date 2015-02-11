@@ -48,7 +48,7 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.resource.LinkResourceAllocations;
-import org.onosproject.store.trivial.impl.SimpleIntentStore;
+import org.onosproject.store.intent.impl.SimpleIntentStore;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -170,6 +170,7 @@ public class SimpleIntentStore
                     // current version is less than or equal to newData's
                     // Note: current and newData's versions will be equal for state updates
                     currentData.version().compareTo(newData.version()) <= 0) {
+                // FIXME need to check that the validity of state transition if ==
                 current.put(newData.key(), newData);
 
                 if (pendingData != null
@@ -204,7 +205,9 @@ public class SimpleIntentStore
 
     @Override
     public void addPending(IntentData data) {
-        data.setVersion(new SystemClockTimestamp());
+        if (data.version() != null) { // recompiled intents will already have a version
+            data.setVersion(new SystemClockTimestamp());
+        }
         synchronized (this) {
             IntentData existingData = pending.get(data.key());
             if (existingData == null ||
