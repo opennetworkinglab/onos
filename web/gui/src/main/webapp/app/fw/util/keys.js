@@ -119,19 +119,14 @@
         return true;
     }
 
+    // returns true if we 'consumed' the ESC keypress, false otherwise
     function escapeKey(view, key, code, ev) {
-        // TODO: plumb in handling of alerts and quick help dismissal
-        // We will delegate to the Alert / QuickHelp Services as appropriate.
+        // TODO: plumb in handling of quick help dismissal
 /*
-        if (alerts.open) {
-            closeAlerts();
-            return true;
-        }
-        if (libApi.quickHelp.hide()) {
+        if (qh.hide()) {
             return true;
         }
 */
-        console.log('ESCAPE');
         return false;
     }
 

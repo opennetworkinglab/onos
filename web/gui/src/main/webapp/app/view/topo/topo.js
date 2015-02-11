@@ -99,16 +99,26 @@
     }
 
     function handleEscape() {
-        $log.debug("TODO: handle-ESCAPE...");
-        // if showingAffinity: cancelAffinity
+        if (false) {
+            // TODO: if an instance is selected, cancel the affinity mapping
+            // tis.cancelAffinity()
 
-        // else if showingDetails: deselectAll
+        } else if (tss.haveDetails()) {
+            // else if we have node selections, deselect them all
+            tss.deselectAll();
 
-        // else if oiBox visible: hide oiBox
+        } else if (tis.isVisible()) {
+            // else if the Instance Panel is visible, hide it
+            tis.hide();
+            tfs.updateDeviceColors();
 
-        // else if summary panel visible: cancel Summary
+        } else if (tps.summaryVisible()) {
+            // else if the Summary Panel is visible, hide it
+            tps.hideSummaryPanel();
 
-        // else: hoverMode = hoverModeNone
+        } else {
+            // TODO: set hover mode to hoverModeNone
+        }
     }
 
     // --- Glyphs, Icons, and the like -----------------------------------

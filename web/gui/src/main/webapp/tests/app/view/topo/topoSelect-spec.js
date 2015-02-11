@@ -36,7 +36,7 @@ describe('factory: view/topo/topoSelect.js', function() {
         expect(fs.areFunctions(tss, [
             'initSelect', 'destroySelect', 'showDetails', 'toggleDetails',
             'nodeMouseOver', 'nodeMouseOut', 'selectObject', 'deselectObject',
-            'deselectAll', 'hovered'
+            'deselectAll', 'hovered', 'haveDetails'
         ])).toBeTruthy();
     });
 

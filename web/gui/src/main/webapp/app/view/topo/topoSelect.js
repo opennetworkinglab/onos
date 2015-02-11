@@ -302,7 +302,8 @@
                 selectObject: selectObject,
                 deselectObject: deselectObject,
                 deselectAll: deselectAll,
-                hovered: function () { return hovered; }
+                hovered: function () { return hovered; },
+                haveDetails: function () { return haveDetails; }
             };
         }]);
 }());

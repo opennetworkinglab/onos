@@ -144,10 +144,11 @@
 
     function toggleSummary() {
         if (summaryPanel.isVisible()) {
-            api.sendEvent("cancelSummary");
             hideSummaryPanel();
         } else {
+            // ask server to start sending summary data.
             api.sendEvent('requestSummary');
+            // note: the summary panel will appear, once data arrives
         }
     }
 
@@ -163,11 +164,9 @@
     }
 
     function hideSummaryPanel() {
-        summaryPanel.hide(function () {
-            if (detailPanel.isVisible()) {
-                detailPanel.up();
-            }
-        });
+        // instruct server to stop sending summary data
+        api.sendEvent("cancelSummary");
+        summaryPanel.hide(detailPanel.up);
     }
 
     function showDetailPanel() {
