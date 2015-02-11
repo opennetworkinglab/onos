@@ -15,8 +15,10 @@
  */
 package org.onosproject.store.app;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -52,8 +54,6 @@ import org.slf4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -297,8 +297,8 @@ public class GossipApplicationStore extends ApplicationArchive
     private void fetchBits(Application app) {
         ControllerNode localNode = clusterService.getLocalNode();
         ClusterMessage message = new ClusterMessage(localNode.id(), APP_BITS_REQUEST,
-                                                    app.id().name().getBytes());
-        Map<ControllerNode, ListenableFuture<byte[]>> futures = new HashMap<>();
+                                                    app.id().name().getBytes(Charsets.UTF_8));
+        //Map<ControllerNode, ListenableFuture<byte[]>> futures = new HashMap<>();
         CountDownLatch latch = new CountDownLatch(1);
 
         // FIXME: send message with name & version to make sure we don't get served old bits
@@ -329,7 +329,7 @@ public class GossipApplicationStore extends ApplicationArchive
     private class InternalBitServer implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
-            String name = new String(message.payload());
+            String name = new String(message.payload(), Charsets.UTF_8);
             try {
                 message.respond(toByteArray(getApplicationInputStream(name)));
             } catch (Exception e) {
