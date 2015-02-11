@@ -32,6 +32,7 @@ import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
@@ -63,6 +64,7 @@ import static org.junit.Assert.fail;
 @Ignore
 public class IntentsResourceTest extends ResourceTest {
     final IntentService mockIntentService = createMock(IntentService.class);
+    final CoreService mockCoreService = createMock(CoreService.class);
     final HashSet<Intent> intents = new HashSet<>();
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
     private IdGenerator mockGenerator;
@@ -105,6 +107,7 @@ public class IntentsResourceTest extends ResourceTest {
             this.id = id;
         }
 
+        @Override
         public String toString() {
             return "Resource " + Integer.toString(id);
         }
@@ -260,14 +263,14 @@ public class IntentsResourceTest extends ResourceTest {
     @Before
     public void setUpTest() {
         expect(mockIntentService.getIntents()).andReturn(intents).anyTimes();
-
         // Register the services needed for the test
         final CodecManager codecService =  new CodecManager();
         codecService.activate();
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(IntentService.class, mockIntentService)
-                        .add(CodecService.class, codecService);
+                        .add(CodecService.class, codecService)
+                        .add(CoreService.class, mockCoreService);
 
         BaseResource.setServiceDirectory(testDirectory);
 
@@ -344,10 +347,15 @@ public class IntentsResourceTest extends ResourceTest {
         expect(mockIntentService.getIntent(Key.of(0, APP_ID)))
                 .andReturn(intent)
                 .anyTimes();
+        expect(mockIntentService.getIntent(Key.of("0", APP_ID)))
+                .andReturn(intent)
+                .anyTimes();
         replay(mockIntentService);
-
+        expect(mockCoreService.getAppId(APP_ID.id()))
+                .andReturn(APP_ID).anyTimes();
+        replay(mockCoreService);
         final WebResource rs = resource();
-        final String response = rs.path("intents/0").get(String.class);
+        final String response = rs.path("intents/1/0").get(String.class);
         final JsonObject result = JsonObject.readFrom(response);
         assertThat(result, matchesIntent(intent));
     }
