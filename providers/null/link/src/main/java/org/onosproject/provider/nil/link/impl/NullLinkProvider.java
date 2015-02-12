@@ -16,7 +16,6 @@
 package org.onosproject.provider.nil.link.impl;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.util.Tools.toHex;
@@ -112,6 +111,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     @Property(name = "eventRate", value = "0",
             label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
+    private int checkRateDuration = 10;
 
     // For flicker = true, duration between events in msec.
     @Property(name = "neighbors", value = "",
@@ -337,12 +337,36 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void run() {
+            long startTime = System.currentTimeMillis();
+            long countEvent = 0;
+            float effLoad = 0;
+
             while (!linkDriver.isShutdown()) {
-                for (LinkDescription desc : descriptions.values()) {
-                    providerService.linkVanished(desc);
-                    delay(eventRate);
-                    providerService.linkDetected(desc);
-                    delay(eventRate);
+
+                //Assuming eventRate is in microsecond unit
+                if (countEvent <= checkRateDuration * 1000000 / eventRate) {
+                    for (LinkDescription desc : descriptions.values()) {
+                        providerService.linkVanished(desc);
+                        countEvent++;
+                        try {
+                            TimeUnit.MICROSECONDS.sleep(eventRate);
+                        } catch (InterruptedException e) {
+                            log.warn(String.valueOf(e));
+                        }
+                        providerService.linkDetected(desc);
+                        countEvent++;
+                        try {
+                            TimeUnit.MICROSECONDS.sleep(eventRate);
+                        } catch (InterruptedException e) {
+                            log.warn(String.valueOf(e));
+                        }
+                    }
+                } else {
+                    // log in WARN the effective load generation rate in events/sec, every 10 seconds
+                    effLoad = (float) (countEvent * 1000 / (System.currentTimeMillis() - startTime));
+                    log.warn("Effective Loading is {} events/second", String.valueOf(effLoad));
+                    countEvent = 0;
+                    startTime = System.currentTimeMillis();
                 }
             }
         }
