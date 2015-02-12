@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
+import org.onlab.packet.Data;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
@@ -141,22 +142,21 @@ public class ProxyArpManager implements ProxyArpService {
         ARP arp = (ARP) eth.getPayload();
         checkArgument(arp.getOpCode() == ARP.OP_REQUEST, NOT_ARP_REQUEST);
         checkNotNull(inPort);
+        Ip4Address targetAddress = Ip4Address.valueOf(arp.getTargetProtocolAddress());
 
         VlanId vlan = VlanId.vlanId(eth.getVlanID());
 
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
         if (isOutsidePort(inPort)) {
-            Ip4Address target =
-                Ip4Address.valueOf(arp.getTargetProtocolAddress());
             Set<PortAddresses> addressSet =
                 hostService.getAddressBindingsForPort(inPort);
 
             for (PortAddresses addresses : addressSet) {
                 for (InterfaceIpAddress ia : addresses.ipAddresses()) {
-                    if (ia.ipAddress().equals(target)) {
+                    if (ia.ipAddress().equals(targetAddress)) {
                         Ethernet arpReply =
-                            buildArpReply(target, addresses.mac(), eth);
+                            buildArpReply(targetAddress, addresses.mac(), eth);
                         sendTo(arpReply, inPort);
                     }
                 }
@@ -187,8 +187,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         // Continue with normal proxy ARP case
 
-        Set<Host> hosts = hostService.getHostsByIp(
-                        Ip4Address.valueOf(arp.getTargetProtocolAddress()));
+        Set<Host> hosts = hostService.getHostsByIp(targetAddress);
 
         Host dst = null;
         Host src = hostService.getHost(HostId.hostId(eth.getSourceMAC(),
@@ -202,23 +201,19 @@ public class ProxyArpManager implements ProxyArpService {
         }
 
         if (src == null || dst == null) {
+            //
+            // The request couldn't be resolved.
+            // Flood the request on all ports except the incoming ports.
+            //
             flood(eth, inPort);
             return;
         }
 
         //
-        // TODO find the correct IP address.
-        // Right now we use the first IPv4 address that is found.
+        // Reply on the port the request was received on
         //
-        for (IpAddress ipAddress : dst.ipAddresses()) {
-            Ip4Address ip4Address = ipAddress.getIp4Address();
-            if (ip4Address != null) {
-                Ethernet arpReply = buildArpReply(ip4Address, dst.mac(), eth);
-                // TODO: check send status with host service.
-                sendTo(arpReply, src.location());
-                break;
-            }
-        }
+        Ethernet arpReply = buildArpReply(targetAddress, dst.mac(), eth);
+        sendTo(arpReply, inPort);
     }
 
     private void replyNdp(Ethernet eth, ConnectPoint inPort) {
@@ -226,22 +221,21 @@ public class ProxyArpManager implements ProxyArpService {
         IPv6 ipv6 = (IPv6) eth.getPayload();
         ICMP6 icmpv6 = (ICMP6) ipv6.getPayload();
         NeighborSolicitation nsol = (NeighborSolicitation) icmpv6.getPayload();
+        Ip6Address targetAddress = Ip6Address.valueOf(nsol.getTargetAddress());
 
         VlanId vlan = VlanId.vlanId(eth.getVlanID());
 
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
         if (isOutsidePort(inPort)) {
-            Ip6Address target =
-                    Ip6Address.valueOf(nsol.getTargetAddress());
             Set<PortAddresses> addressSet =
                     hostService.getAddressBindingsForPort(inPort);
 
             for (PortAddresses addresses : addressSet) {
                 for (InterfaceIpAddress ia : addresses.ipAddresses()) {
-                    if (ia.ipAddress().equals(target)) {
+                    if (ia.ipAddress().equals(targetAddress)) {
                         Ethernet ndpReply =
-                                buildNdpReply(target, addresses.mac(), eth);
+                                buildNdpReply(targetAddress, addresses.mac(), eth);
                         sendTo(ndpReply, inPort);
                     }
                 }
@@ -272,8 +266,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         // Continue with normal proxy ARP case
 
-        Set<Host> hosts = hostService.getHostsByIp(
-                Ip6Address.valueOf(nsol.getTargetAddress()));
+        Set<Host> hosts = hostService.getHostsByIp(targetAddress);
 
         Host dst = null;
         Host src = hostService.getHost(HostId.hostId(eth.getSourceMAC(),
@@ -287,23 +280,19 @@ public class ProxyArpManager implements ProxyArpService {
         }
 
         if (src == null || dst == null) {
+            //
+            // The request couldn't be resolved.
+            // Flood the request on all ports except the incoming ports.
+            //
             flood(eth, inPort);
             return;
         }
 
         //
-        // TODO find the correct IP address.
-        // Right now we use the first IPv4 address that is found.
+        // Reply on the port the request was received on
         //
-        for (IpAddress ipAddress : dst.ipAddresses()) {
-            Ip6Address ip6Address = ipAddress.getIp6Address();
-            if (ip6Address != null) {
-                Ethernet arpReply = buildNdpReply(ip6Address, dst.mac(), eth);
-                // TODO: check send status with host service.
-                sendTo(arpReply, src.location());
-                break;
-            }
-        }
+        Ethernet ndpReply = buildNdpReply(targetAddress, dst.mac(), eth);
+        sendTo(ndpReply, inPort);
     }
 
 
@@ -429,7 +418,9 @@ public class ProxyArpManager implements ProxyArpService {
 
     /**
      * Flood the arp request at all edges in the network.
-     * @param request the arp request.
+     *
+     * @param request the arp request
+     * @param inPort the connect point the arp request was received on
      */
     private void flood(Ethernet request, ConnectPoint inPort) {
         TrafficTreatment.Builder builder = null;
@@ -519,6 +510,7 @@ public class ProxyArpManager implements ProxyArpService {
         arp.setTargetProtocolAddress(((ARP) request.getPayload())
                 .getSenderProtocolAddress());
         arp.setSenderProtocolAddress(srcIp.toInt());
+
         eth.setPayload(arp);
         return eth;
     }
@@ -545,19 +537,32 @@ public class ProxyArpManager implements ProxyArpService {
         ipv6.setSourceAddress(srcIp.toOctets());
         ipv6.setDestinationAddress(requestIp.getSourceAddress());
         ipv6.setHopLimit((byte) 255);
-        eth.setPayload(ipv6);
 
         ICMP6 icmp6 = new ICMP6();
         icmp6.setIcmpType(ICMP6.NEIGHBOR_ADVERTISEMENT);
         icmp6.setIcmpCode((byte) 0);
-        ipv6.setPayload(icmp6);
 
         NeighborAdvertisement nadv = new NeighborAdvertisement();
-        nadv.setTargetAddress(srcMac.toBytes());
+        nadv.setTargetAddress(srcIp.toOctets());
         nadv.setSolicitedFlag((byte) 1);
         nadv.setOverrideFlag((byte) 1);
+        byte[] nadvData =
+            new byte[NeighborAdvertisement.OPTION_LENGTH_IEEE802_ADDRESS];
+        ByteBuffer bbNadv = ByteBuffer.wrap(nadvData);
+        byte nadvOptionType =
+            NeighborAdvertisement.OPTION_TYPE_TARGET_LL_ADDRESS;
+        // The Option length in 8-octets units
+        byte nadvOptionLength =
+            (NeighborAdvertisement.OPTION_LENGTH_IEEE802_ADDRESS + 7) / 8;
+        bbNadv.put(nadvOptionType);
+        bbNadv.put(nadvOptionLength);
+        bbNadv.put(srcMac.toBytes());
+        Data nadvPayload = new Data();
+        nadv.setPayload(nadvPayload.deserialize(nadvData, 0, nadvData.length));
         icmp6.setPayload(nadv);
 
+        ipv6.setPayload(icmp6);
+        eth.setPayload(ipv6);
         return eth;
     }
 

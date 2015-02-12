@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
@@ -27,10 +24,16 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Implements ICMPv6 Neighbor Advertisement packet format. (RFC 4861)
+ * Implements ICMPv6 Neighbor Advertisement packet format (RFC 4861).
  */
 public class NeighborAdvertisement extends BasePacket {
     public static final byte HEADER_LENGTH = 20; // bytes
+    public static final byte OPTION_TYPE_SOURCE_LL_ADDRESS = 1;
+    public static final byte OPTION_TYPE_TARGET_LL_ADDRESS = 2;
+    public static final byte OPTION_TYPE_PREFIX_INFORMATION = 3;
+    public static final byte OPTION_TYPE_REDIRECTED_HEADER = 4;
+    public static final byte OPTION_TYPE_MTU = 5;
+    public static final byte OPTION_LENGTH_IEEE802_ADDRESS = 8;
 
     protected byte routerFlag;
     protected byte solicitedFlag;
