@@ -16,6 +16,7 @@
 package org.onosproject.provider.of.flow.impl;
 
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -32,6 +33,7 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPc
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -45,6 +47,8 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IPv6Address;
+import org.projectfloodlight.openflow.types.IPv6FlowLabel;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFGroup;
@@ -267,17 +271,34 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         L3ModificationInstruction l3m = (L3ModificationInstruction) i;
         ModIPInstruction ip;
         Ip4Address ip4;
+        Ip6Address ip6;
         OFOxm<?> oxm = null;
         switch (l3m.subtype()) {
-        case IP_DST:
+        case IPV4_SRC:
+            ip = (ModIPInstruction) i;
+            ip4 = ip.ip().getIp4Address();
+            oxm = factory().oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
+            break;
+        case IPV4_DST:
             ip = (ModIPInstruction) i;
             ip4 = ip.ip().getIp4Address();
             oxm = factory().oxms().ipv4Dst(IPv4Address.of(ip4.toInt()));
             break;
-        case IP_SRC:
+        case IPV6_SRC:
             ip = (ModIPInstruction) i;
-            ip4 = ip.ip().getIp4Address();
-            oxm = factory().oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
+            ip6 = ip.ip().getIp6Address();
+            oxm = factory().oxms().ipv6Src(IPv6Address.of(ip6.toOctets()));
+            break;
+        case IPV6_DST:
+            ip = (ModIPInstruction) i;
+            ip6 = ip.ip().getIp6Address();
+            oxm = factory().oxms().ipv6Dst(IPv6Address.of(ip6.toOctets()));
+            break;
+        case IPV6_FLABEL:
+            ModIPv6FlowLabelInstruction flowLabelInstruction =
+                (ModIPv6FlowLabelInstruction) i;
+            int flowLabel = flowLabelInstruction.flowLabel();
+            oxm = factory().oxms().ipv6Flabel(IPv6FlowLabel.of(flowLabel));
             break;
         case DEC_TTL:
             return factory().actions().decNwTtl();

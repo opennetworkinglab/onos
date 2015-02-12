@@ -120,7 +120,7 @@ public interface TrafficTreatment {
         public Builder setIpDst(IpAddress addr);
 
         /**
-         * Decrease the TTL in IP header by one.
+         * Decrement the TTL in IP header by one.
          *
          * @return a treatment builder
          */

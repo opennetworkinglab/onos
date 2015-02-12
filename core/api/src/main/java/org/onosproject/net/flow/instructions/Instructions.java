@@ -29,6 +29,7 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
 
 import org.onlab.packet.Ethernet;
@@ -144,24 +145,59 @@ public final class Instructions {
     public static L2ModificationInstruction decMplsTtl() {
         return new ModMplsTtlInstruction();
     }
+
     /**
-     * Creates a L3 src modification.
-     * @param addr the ip address to modify to.
+     * Creates a L3 IPv4 src modification.
+     *
+     * @param addr the IPv4 address to modify to
      * @return a L3 modification
      */
     public static L3ModificationInstruction modL3Src(IpAddress addr) {
-        checkNotNull(addr, "Src l3 address cannot be null");
-        return new ModIPInstruction(L3SubType.IP_SRC, addr);
+        checkNotNull(addr, "Src l3 IPv4 address cannot be null");
+        return new ModIPInstruction(L3SubType.IPV4_SRC, addr);
     }
 
     /**
-     * Creates a L3 dst modification.
-     * @param addr the ip address to modify to.
+     * Creates a L3 IPv4 dst modification.
+     *
+     * @param addr the IPv4 address to modify to
      * @return a L3 modification
      */
     public static L3ModificationInstruction modL3Dst(IpAddress addr) {
-        checkNotNull(addr, "Dst l3 address cannot be null");
-        return new ModIPInstruction(L3SubType.IP_DST, addr);
+        checkNotNull(addr, "Dst l3 IPv4 address cannot be null");
+        return new ModIPInstruction(L3SubType.IPV4_DST, addr);
+    }
+
+    /**
+     * Creates a L3 IPv6 src modification.
+     *
+     * @param addr the IPv6 address to modify to
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modL3IPv6Src(IpAddress addr) {
+        checkNotNull(addr, "Src l3 IPv6 address cannot be null");
+        return new ModIPInstruction(L3SubType.IPV6_SRC, addr);
+    }
+
+    /**
+     * Creates a L3 IPv6 dst modification.
+     *
+     * @param addr the IPv6 address to modify to
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modL3IPv6Dst(IpAddress addr) {
+        checkNotNull(addr, "Dst l3 IPv6 address cannot be null");
+        return new ModIPInstruction(L3SubType.IPV6_DST, addr);
+    }
+
+    /**
+     * Creates a L3 IPv6 Flow Label modification.
+     *
+     * @param flowLabel the IPv6 flow label to modify to (20 bits)
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modL3IPv6FlowLabel(int flowLabel) {
+        return new ModIPv6FlowLabelInstruction(flowLabel);
     }
 
     /**

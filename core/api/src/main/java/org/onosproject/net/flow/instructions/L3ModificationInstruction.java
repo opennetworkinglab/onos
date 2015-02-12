@@ -31,17 +31,32 @@ public abstract class L3ModificationInstruction implements Instruction {
      */
     public enum L3SubType {
         /**
-         * Ether src modification.
+         * IPv4 src modification.
          */
-        IP_SRC,
+        IPV4_SRC,
 
         /**
-         * Ether dst modification.
+         * IPv4 dst modification.
          */
-        IP_DST,
+        IPV4_DST,
 
         /**
-         * Decrease TTL.
+         * IPv6 src modification.
+         */
+        IPV6_SRC,
+
+        /**
+         * IPv6 dst modification.
+         */
+        IPV6_DST,
+
+        /**
+         * IPv6 flow label modification.
+         */
+        IPV6_FLABEL,
+
+        /**
+         * Decrement TTL.
          */
         DEC_TTL,
 
@@ -114,6 +129,65 @@ public abstract class L3ModificationInstruction implements Instruction {
                         Objects.equals(this.type(), that.type()) &&
                         Objects.equals(this.subtype(), that.subtype());
 
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 IPv6 Flow Label (RFC 6437) modification instruction
+     * (20 bits unsigned integer).
+     */
+    public static final class ModIPv6FlowLabelInstruction
+        extends L3ModificationInstruction {
+        private static final int MASK = 0xfffff;
+        private final int flowLabel;            // IPv6 flow label: 20 bits
+
+        /**
+         * Constructor.
+         *
+         * flowLabel the IPv6 flow label to set in the treatment (20 bits)
+         */
+        public ModIPv6FlowLabelInstruction(int flowLabel) {
+            this.flowLabel = flowLabel & MASK;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return L3SubType.IPV6_FLABEL;
+        }
+
+        /**
+         * Gets the IPv6 flow label to set in the treatment.
+         *
+         * @return the IPv6 flow label to set in the treatment (20 bits)
+         */
+        public int flowLabel() {
+            return this.flowLabel;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                .add("flowLabel", Long.toHexString(flowLabel)).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), flowLabel);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModIPv6FlowLabelInstruction) {
+                ModIPv6FlowLabelInstruction that =
+                    (ModIPv6FlowLabelInstruction) obj;
+                return  Objects.equals(flowLabel, that.flowLabel) &&
+                        Objects.equals(this.type(), that.type()) &&
+                        Objects.equals(this.subtype(), that.subtype());
             }
             return false;
         }

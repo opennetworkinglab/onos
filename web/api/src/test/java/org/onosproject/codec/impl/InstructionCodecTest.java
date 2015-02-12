@@ -17,8 +17,8 @@ package org.onosproject.codec.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
@@ -144,14 +144,70 @@ public class InstructionCodecTest {
     }
 
     /**
-     * Tests the encoding of mod ip instructions.
+     * Tests the encoding of mod IPv4 src instructions.
      */
     @Test
-    public void modIPInstructionTest() {
-        final IpAddress ip = IpPrefix.valueOf("1.2.3.4/24").address();
+    public void modIPSrcInstructionTest() {
+        final Ip4Address ip = Ip4Address.valueOf("1.2.3.4");
         final L3ModificationInstruction.ModIPInstruction instruction =
                 (L3ModificationInstruction.ModIPInstruction)
                         Instructions.modL3Src(ip);
+        final ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod IPv4 dst instructions.
+     */
+    @Test
+    public void modIPDstInstructionTest() {
+        final Ip4Address ip = Ip4Address.valueOf("1.2.3.4");
+        final L3ModificationInstruction.ModIPInstruction instruction =
+                (L3ModificationInstruction.ModIPInstruction)
+                        Instructions.modL3Dst(ip);
+        final ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod IPv6 src instructions.
+     */
+    @Test
+    public void modIPv6SrcInstructionTest() {
+        final Ip6Address ip = Ip6Address.valueOf("1111::2222");
+        final L3ModificationInstruction.ModIPInstruction instruction =
+                (L3ModificationInstruction.ModIPInstruction)
+                        Instructions.modL3IPv6Src(ip);
+        final ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod IPv6 dst instructions.
+     */
+    @Test
+    public void modIPv6DstInstructionTest() {
+        final Ip6Address ip = Ip6Address.valueOf("1111::2222");
+        final L3ModificationInstruction.ModIPInstruction instruction =
+                (L3ModificationInstruction.ModIPInstruction)
+                        Instructions.modL3IPv6Dst(ip);
+        final ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod IPv6 flow label instructions.
+     */
+    @Test
+    public void modIPv6FlowLabelInstructionTest() {
+        final int flowLabel = 0xfffff;
+        final L3ModificationInstruction.ModIPv6FlowLabelInstruction instruction =
+                (L3ModificationInstruction.ModIPv6FlowLabelInstruction)
+                        Instructions.modL3IPv6FlowLabel(flowLabel);
         final ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));

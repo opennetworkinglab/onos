@@ -18,7 +18,6 @@ package org.onosproject.net.flow.instructions;
 import org.junit.Test;
 import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 
@@ -94,6 +93,7 @@ public class InstructionsTest {
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanPcpInstruction.class);
         assertThatClassIsImmutable(L3ModificationInstruction.ModIPInstruction.class);
+        assertThatClassIsImmutable(L3ModificationInstruction.ModIPv6FlowLabelInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModMplsLabelInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.PushHeaderInstructions.class);
     }
@@ -377,29 +377,40 @@ public class InstructionsTest {
                 is(not(equalTo(modVlanPcp2.hashCode()))));
     }
 
-    //  ModIPerInstruction
+    //  ModIPInstruction
 
-    private static final String IP1 = "1.2.3.4/24";
-    private static final String IP2 = "5.6.7.8/24";
-    private IpAddress ip1 = IpPrefix.valueOf(IP1).address();
-    private IpAddress ip2 = IpPrefix.valueOf(IP2).address();
-    private final Instruction modIPInstruction1 = Instructions.modL3Src(ip1);
-    private final Instruction sameAsModIPInstruction1 = Instructions.modL3Src(ip1);
-    private final Instruction modIPInstruction2 = Instructions.modL3Src(ip2);
+    private static final String IP41 = "1.2.3.4";
+    private static final String IP42 = "5.6.7.8";
+    private IpAddress ip41 = IpAddress.valueOf(IP41);
+    private IpAddress ip42 = IpAddress.valueOf(IP42);
+    private final Instruction modIPInstruction1 = Instructions.modL3Src(ip41);
+    private final Instruction sameAsModIPInstruction1 = Instructions.modL3Src(ip41);
+    private final Instruction modIPInstruction2 = Instructions.modL3Src(ip42);
+
+    private static final String IP61 = "1111::2222";
+    private static final String IP62 = "3333::4444";
+    private IpAddress ip61 = IpAddress.valueOf(IP61);
+    private IpAddress ip62 = IpAddress.valueOf(IP62);
+    private final Instruction modIPv6Instruction1 =
+        Instructions.modL3IPv6Src(ip61);
+    private final Instruction sameAsModIPv6Instruction1 =
+        Instructions.modL3IPv6Src(ip61);
+    private final Instruction modIPv6Instruction2 =
+        Instructions.modL3IPv6Src(ip62);
 
     /**
      * Test the modL3Src method.
      */
     @Test
     public void testModL3SrcMethod() {
-        final Instruction instruction = Instructions.modL3Src(ip1);
+        final Instruction instruction = Instructions.modL3Src(ip41);
         final L3ModificationInstruction.ModIPInstruction modIPInstruction =
                 checkAndConvert(instruction,
                         Instruction.Type.L3MODIFICATION,
                         L3ModificationInstruction.ModIPInstruction.class);
-        assertThat(modIPInstruction.ip(), is(equalTo(ip1)));
+        assertThat(modIPInstruction.ip(), is(equalTo(ip41)));
         assertThat(modIPInstruction.subtype(),
-                is(equalTo(L3ModificationInstruction.L3SubType.IP_SRC)));
+                is(equalTo(L3ModificationInstruction.L3SubType.IPV4_SRC)));
     }
 
     /**
@@ -407,20 +418,49 @@ public class InstructionsTest {
      */
     @Test
     public void testModL3DstMethod() {
-        final Instruction instruction = Instructions.modL3Dst(ip1);
+        final Instruction instruction = Instructions.modL3Dst(ip41);
         final L3ModificationInstruction.ModIPInstruction modIPInstruction =
                 checkAndConvert(instruction,
                         Instruction.Type.L3MODIFICATION,
                         L3ModificationInstruction.ModIPInstruction.class);
-        assertThat(modIPInstruction.ip(), is(equalTo(ip1)));
+        assertThat(modIPInstruction.ip(), is(equalTo(ip41)));
         assertThat(modIPInstruction.subtype(),
-                is(equalTo(L3ModificationInstruction.L3SubType.IP_DST)));
+                is(equalTo(L3ModificationInstruction.L3SubType.IPV4_DST)));
     }
 
     /**
-     * Test the equals() method of the ModEtherInstruction class.
+     * Test the modL3IPv6Src method.
      */
+    @Test
+    public void testModL3IPv6SrcMethod() {
+        final Instruction instruction = Instructions.modL3IPv6Src(ip61);
+        final L3ModificationInstruction.ModIPInstruction modIPInstruction =
+                checkAndConvert(instruction,
+                        Instruction.Type.L3MODIFICATION,
+                        L3ModificationInstruction.ModIPInstruction.class);
+        assertThat(modIPInstruction.ip(), is(equalTo(ip61)));
+        assertThat(modIPInstruction.subtype(),
+                is(equalTo(L3ModificationInstruction.L3SubType.IPV6_SRC)));
+    }
 
+    /**
+     * Test the modL3IPv6Dst method.
+     */
+    @Test
+    public void testModL3IPv6DstMethod() {
+        final Instruction instruction = Instructions.modL3IPv6Dst(ip61);
+        final L3ModificationInstruction.ModIPInstruction modIPInstruction =
+                checkAndConvert(instruction,
+                        Instruction.Type.L3MODIFICATION,
+                        L3ModificationInstruction.ModIPInstruction.class);
+        assertThat(modIPInstruction.ip(), is(equalTo(ip61)));
+        assertThat(modIPInstruction.subtype(),
+                is(equalTo(L3ModificationInstruction.L3SubType.IPV6_DST)));
+    }
+
+    /**
+     * Test the equals() method of the ModIPInstruction class.
+     */
     @Test
     public void testModIPInstructionEquals() throws Exception {
         checkEqualsAndToString(modIPInstruction1,
@@ -429,15 +469,62 @@ public class InstructionsTest {
     }
 
     /**
-     * Test the hashCode() method of the ModEtherInstruction class.
+     * Test the hashCode() method of the ModIPInstruction class.
      */
-
     @Test
     public void testModIPInstructionHashCode() {
         assertThat(modIPInstruction1.hashCode(),
                    is(equalTo(sameAsModIPInstruction1.hashCode())));
         assertThat(modIPInstruction1.hashCode(),
                    is(not(equalTo(modIPInstruction2.hashCode()))));
+    }
+
+    private final int flowLabel1 = 0x11111;
+    private final int flowLabel2 = 0x22222;
+    private final Instruction modIPv6FlowLabelInstruction1 =
+        Instructions.modL3IPv6FlowLabel(flowLabel1);
+    private final Instruction sameAsModIPv6FlowLabelInstruction1 =
+        Instructions.modL3IPv6FlowLabel(flowLabel1);
+    private final Instruction modIPv6FlowLabelInstruction2 =
+        Instructions.modL3IPv6FlowLabel(flowLabel2);
+
+    /**
+     * Test the modL3IPv6FlowLabel method.
+     */
+    @Test
+    public void testModL3IPv6FlowLabelMethod() {
+        final Instruction instruction =
+            Instructions.modL3IPv6FlowLabel(flowLabel1);
+        final L3ModificationInstruction.ModIPv6FlowLabelInstruction
+            modIPv6FlowLabelInstruction =
+                checkAndConvert(instruction,
+                        Instruction.Type.L3MODIFICATION,
+                        L3ModificationInstruction.ModIPv6FlowLabelInstruction.class);
+        assertThat(modIPv6FlowLabelInstruction.flowLabel(),
+                   is(equalTo(flowLabel1)));
+        assertThat(modIPv6FlowLabelInstruction.subtype(),
+                is(equalTo(L3ModificationInstruction.L3SubType.IPV6_FLABEL)));
+    }
+
+    /**
+     * Test the equals() method of the ModIPv6FlowLabelInstruction class.
+     */
+    @Test
+    public void testModIPv6FlowLabelInstructionEquals() throws Exception {
+        checkEqualsAndToString(modIPv6FlowLabelInstruction1,
+                               sameAsModIPv6FlowLabelInstruction1,
+                               modIPv6FlowLabelInstruction2);
+    }
+
+    /**
+     * Test the hashCode() method of the ModIPv6FlowLabelInstruction class.
+     */
+    @Test
+    public void testModIPv6FlowLabelInstructionHashCode() {
+        assertThat(modIPv6FlowLabelInstruction1.hashCode(),
+                   is(equalTo(sameAsModIPv6FlowLabelInstruction1.hashCode())));
+        assertThat(modIPv6FlowLabelInstruction1.hashCode(),
+                   is(not(equalTo(modIPv6FlowLabelInstruction2.hashCode()))));
     }
 
     private Instruction modMplsLabelInstruction1 = Instructions.modMplsLabel(1);
@@ -463,7 +550,6 @@ public class InstructionsTest {
      * Test the equals(), hashCode and toString() methods of the
      * ModMplsLabelInstruction class.
      */
-
     @Test
     public void testModMplsLabelInstructionEquals() throws Exception {
         checkEqualsAndToString(modMplsLabelInstruction1,

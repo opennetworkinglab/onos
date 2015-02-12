@@ -16,6 +16,7 @@
 package org.onosproject.provider.of.group.impl;
 
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -39,6 +40,8 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IPv6Address;
+import org.projectfloodlight.openflow.types.IPv6FlowLabel;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -284,17 +287,34 @@ public final class GroupModBuilder {
         L3ModificationInstruction l3m = (L3ModificationInstruction) i;
         L3ModificationInstruction.ModIPInstruction ip;
         Ip4Address ip4;
+        Ip6Address ip6;
         OFOxm<?> oxm = null;
         switch (l3m.subtype()) {
-            case IP_DST:
+            case IPV4_SRC:
+                ip = (L3ModificationInstruction.ModIPInstruction) i;
+                ip4 = ip.ip().getIp4Address();
+                oxm = factory.oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
+                break;
+            case IPV4_DST:
                 ip = (L3ModificationInstruction.ModIPInstruction) i;
                 ip4 = ip.ip().getIp4Address();
                 oxm = factory.oxms().ipv4Dst(IPv4Address.of(ip4.toInt()));
                 break;
-            case IP_SRC:
+            case IPV6_SRC:
                 ip = (L3ModificationInstruction.ModIPInstruction) i;
-                ip4 = ip.ip().getIp4Address();
-                oxm = factory.oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
+                ip6 = ip.ip().getIp6Address();
+                oxm = factory.oxms().ipv6Src(IPv6Address.of(ip6.toOctets()));
+                break;
+            case IPV6_DST:
+                ip = (L3ModificationInstruction.ModIPInstruction) i;
+                ip6 = ip.ip().getIp6Address();
+                oxm = factory.oxms().ipv6Dst(IPv6Address.of(ip6.toOctets()));
+                break;
+            case IPV6_FLABEL:
+                L3ModificationInstruction.ModIPv6FlowLabelInstruction flowLabelInstruction =
+                    (L3ModificationInstruction.ModIPv6FlowLabelInstruction) i;
+                int flowLabel = flowLabelInstruction.flowLabel();
+                oxm = factory.oxms().ipv6Flabel(IPv6FlowLabel.of(flowLabel));
                 break;
             case DEC_TTL:
                 return factory.actions().decNwTtl();

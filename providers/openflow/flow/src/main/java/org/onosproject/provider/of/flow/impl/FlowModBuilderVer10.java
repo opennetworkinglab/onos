@@ -176,14 +176,14 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
         ModIPInstruction ip;
         Ip4Address ip4;
         switch (l3m.subtype()) {
-        case IP_DST:
-            ip = (ModIPInstruction) i;
-            ip4 = ip.ip().getIp4Address();
-            return factory().actions().setNwDst(IPv4Address.of(ip4.toInt()));
-        case IP_SRC:
+        case IPV4_SRC:
             ip = (ModIPInstruction) i;
             ip4 = ip.ip().getIp4Address();
             return factory().actions().setNwSrc(IPv4Address.of(ip4.toInt()));
+        case IPV4_DST:
+            ip = (ModIPInstruction) i;
+            ip4 = ip.ip().getIp4Address();
+            return factory().actions().setNwDst(IPv4Address.of(ip4.toInt()));
         default:
             log.warn("Unimplemented action type {}.", l3m.subtype());
             break;

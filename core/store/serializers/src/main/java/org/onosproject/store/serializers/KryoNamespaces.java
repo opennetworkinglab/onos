@@ -257,6 +257,7 @@ public final class KryoNamespaces {
                     L3ModificationInstruction.class,
                     L3ModificationInstruction.L3SubType.class,
                     L3ModificationInstruction.ModIPInstruction.class,
+                    L3ModificationInstruction.ModIPv6FlowLabelInstruction.class,
                     RoleInfo.class,
                     FlowRuleBatchEvent.class,
                     FlowRuleBatchEvent.Type.class,

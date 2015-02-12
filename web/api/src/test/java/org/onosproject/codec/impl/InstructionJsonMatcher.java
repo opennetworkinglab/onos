@@ -41,6 +41,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of a push header instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchPushHeaderInstruction(JsonNode instructionJson,
@@ -77,6 +78,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of an output instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchOutputInstruction(JsonNode instructionJson,
@@ -102,6 +104,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of a mod lambda instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchModLambdaInstruction(JsonNode instructionJson,
@@ -133,6 +136,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of a mod Ethernet instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchModEtherInstruction(JsonNode instructionJson,
@@ -165,6 +169,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of a mod vlan id instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchModVlanIdInstruction(JsonNode instructionJson,
@@ -197,6 +202,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of a mod vlan pcp instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchModVlanPcpInstruction(JsonNode instructionJson,
@@ -229,6 +235,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * Matches the contents of a mod ip instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchModIpInstruction(JsonNode instructionJson,
@@ -258,9 +265,43 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
     }
 
     /**
+     * Matches the contents of a mod IPv6 Flow Label instruction.
+     *
+     * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
+     * @return true if contents match, false otherwise
+     */
+    private boolean matchModIPv6FlowLabelInstruction(JsonNode instructionJson,
+                                                     Description description) {
+        ModIPv6FlowLabelInstruction instructionToMatch =
+                (ModIPv6FlowLabelInstruction) instruction;
+        final String jsonSubtype = instructionJson.get("subtype").textValue();
+        if (!instructionToMatch.subtype().name().equals(jsonSubtype)) {
+            description.appendText("subtype was " + jsonSubtype);
+            return false;
+        }
+
+        final String jsonType = instructionJson.get("type").textValue();
+        if (!instructionToMatch.type().name().equals(jsonType)) {
+            description.appendText("type was " + jsonType);
+            return false;
+        }
+
+        final int jsonFlowLabel = instructionJson.get("flowLabel").intValue();
+        final int flowLabel = instructionToMatch.flowLabel();
+        if (flowLabel != jsonFlowLabel) {
+            description.appendText("IPv6 flow label was " + jsonFlowLabel);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Matches the contents of a mod MPLS label instruction.
      *
      * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
     private boolean matchModMplsLabelInstruction(JsonNode instructionJson,
@@ -282,7 +323,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
         final int jsonLabel = instructionJson.get("label").intValue();
         final int label = instructionToMatch.label();
         if (label != jsonLabel) {
-            description.appendText("ip was " + jsonLabel);
+            description.appendText("MPLS label was " + jsonLabel);
             return false;
         }
 
@@ -317,6 +358,9 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             return matchModVlanPcpInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModIPInstruction) {
             return matchModIpInstruction(jsonInstruction, description);
+        } else if (instruction instanceof ModIPv6FlowLabelInstruction) {
+            return matchModIPv6FlowLabelInstruction(jsonInstruction,
+                                                    description);
         } else if (instruction instanceof ModMplsLabelInstruction) {
             return matchModMplsLabelInstruction(jsonInstruction, description);
         }
