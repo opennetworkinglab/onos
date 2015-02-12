@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.ICMP6;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -63,6 +65,22 @@ public class ProxyArp {
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
         selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selectorBuilder.build(),
+                                     PacketPriority.CONTROL, appId);
+
+        // IPv6 Neighbor Solicitation packet.
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+        packetService.requestPackets(selectorBuilder.build(),
+                                     PacketPriority.CONTROL, appId);
+
+        // IPv6 Neighbor Advertisement packet.
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
         packetService.requestPackets(selectorBuilder.build(),
                                      PacketPriority.CONTROL, appId);
 

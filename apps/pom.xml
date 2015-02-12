@@ -37,7 +37,6 @@
         <module>ifwd</module>
         <module>mobility</module>
         <module>proxyarp</module>
-        <module>proxyndp</module>
         <module>config</module>
         <module>sdnip</module>
         <module>calendar</module>
