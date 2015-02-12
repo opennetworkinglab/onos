@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -45,11 +44,7 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
-import static org.onosproject.net.intent.IntentState.INSTALLING;
-import static org.onosproject.net.intent.IntentState.WITHDRAWING;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -143,12 +138,6 @@ public class GossipIntentStore
         return null;
     }
 
-    @Override
-    public List<BatchWrite.Operation> batchWrite(BatchWrite batch) {
-        // Deprecated
-        return null;
-    }
-
     private IntentData copyData(IntentData original) {
         if (original == null) {
             return null;
@@ -163,10 +152,13 @@ public class GossipIntentStore
     }
 
     /**
-     * TODO.
-     * @param currentData
-     * @param newData
-     * @return
+     * Determines whether an intent data update is allowed. The update must
+     * either have a higher version than the current data, or the state
+     * transition between two updates of the same version must be sane.
+     *
+     * @param currentData existing intent data in the store
+     * @param newData new intent data update proposal
+     * @return true if we can apply the update, otherwise false
      */
     private boolean isUpdateAcceptable(IntentData currentData, IntentData newData) {
 

@@ -22,7 +22,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,8 +31,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.MetricsHelper;
-import org.onosproject.net.intent.BatchWrite;
-import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentId;
@@ -45,24 +42,17 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
-import org.onosproject.store.service.BatchWriteRequest;
-import org.onosproject.store.service.BatchWriteRequest.Builder;
-import org.onosproject.store.service.BatchWriteResult;
 import org.onosproject.store.service.DatabaseAdminService;
 import org.onosproject.store.service.DatabaseService;
 import org.onosproject.store.service.impl.CMap;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
 import static org.onosproject.net.intent.IntentState.FAILED;
@@ -292,7 +282,7 @@ public class DistributedIntentStore
         }
     }
 
-    @Override
+    /*@Override
     public List<Operation> batchWrite(BatchWrite batch) {
         if (batch.isEmpty()) {
             return Collections.emptyList();
@@ -370,5 +360,5 @@ public class DistributedIntentStore
             // everything failed
             return batch.operations();
         }
-    }
+    }*/
 }

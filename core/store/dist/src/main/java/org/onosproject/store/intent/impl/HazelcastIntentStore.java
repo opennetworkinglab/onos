@@ -20,7 +20,6 @@ import com.codahale.metrics.Timer.Context;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.EntryAdapter;
@@ -53,8 +52,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +63,10 @@ import java.util.concurrent.Future;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 //TODO Note: this store will be removed
@@ -277,7 +277,7 @@ public class HazelcastIntentStore
         */
     }
 
-    @Override
+    /*@Override
     public List<Operation> batchWrite(BatchWrite batch) {
         if (batch.isEmpty()) {
             return Collections.emptyList();
@@ -297,7 +297,7 @@ public class HazelcastIntentStore
         notifyDelegate(events);
 
         return failed;
-    }
+    }*/
 
     private void batchWriteAsync(BatchWrite batch, List<Operation> failed,
                                  List<Pair<Operation, List<Future<?>>>> futures) {

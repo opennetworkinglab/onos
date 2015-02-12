@@ -20,8 +20,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.intent.BatchWrite;
-import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -85,70 +83,6 @@ public class SimpleIntentStore
     public List<Intent> getInstallableIntents(Key intentKey) {
         IntentData data = current.get(intentKey);
         return (data != null) ? data.installables() : null;
-    }
-
-    /*
-     * Execute writes in a batch.
-     *
-     * @param batch BatchWrite to execute
-     * @return failed operations
-     */
-    @Override
-    public List<Operation> batchWrite(BatchWrite batch) {
-        throw new UnsupportedOperationException("deprecated");
-        /*
-        if (batch.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<Operation> failed = Lists.newArrayList();
-        for (Operation op : batch.operations()) {
-            switch (op.type()) {
-            case CREATE_INTENT:
-                checkArgument(op.args().size() == 1,
-                              "CREATE_INTENT takes 1 argument. %s", op);
-                Intent intent = (Intent) op.args().get(0);
-                // TODO: what if it failed?
-//                createIntent(intent); FIXME
-                break;
-
-            case REMOVE_INTENT:
-                checkArgument(op.args().size() == 1,
-                              "REMOVE_INTENT takes 1 argument. %s", op);
-                IntentId intentId = (IntentId) op.args().get(0);
-//                removeIntent(intentId); FIXME
-                break;
-
-            case REMOVE_INSTALLED:
-                checkArgument(op.args().size() == 1,
-                              "REMOVE_INSTALLED takes 1 argument. %s", op);
-                intentId = (IntentId) op.args().get(0);
-                removeInstalledIntents(intentId);
-                break;
-
-            case SET_INSTALLABLE:
-                checkArgument(op.args().size() == 2,
-                              "SET_INSTALLABLE takes 2 arguments. %s", op);
-                intentId = (IntentId) op.args().get(0);
-                @SuppressWarnings("unchecked")
-                List<Intent> installableIntents = (List<Intent>) op.args().get(1);
-                setInstallableIntents(intentId, installableIntents);
-                break;
-
-            case SET_STATE:
-                checkArgument(op.args().size() == 2,
-                              "SET_STATE takes 2 arguments. %s", op);
-                intent = (Intent) op.args().get(0);
-                IntentState newState = (IntentState) op.args().get(1);
-                setState(intent, newState);
-                break;
-
-            default:
-                break;
-            }
-        }
-        return failed;
-        */
     }
 
     @Override

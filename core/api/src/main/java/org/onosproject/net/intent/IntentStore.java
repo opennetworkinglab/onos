@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent;
 
-import org.onosproject.net.intent.BatchWrite.Operation;
 import org.onosproject.store.Store;
 
 import java.util.List;
@@ -61,16 +60,18 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     }
 
     /**
-     * Execute writes in a batch.
-     * If the specified BatchWrite is empty, write will not be executed.
+     * Writes an IntentData object to the store.
      *
-     * @param batch BatchWrite to execute
-     * @return failed operations
+     * @param newData new intent data to write
      */
-    @Deprecated
-    List<Operation> batchWrite(BatchWrite batch);
-
     default void write(IntentData newData) {}
+
+    /**
+     * Writes a batch of IntentData objects to the store. A batch has no
+     * semantics, this is simply a convenience API.
+     *
+     * @param updates collection of intent data objects to write
+     */
     default void batchWrite(Iterable<IntentData> updates) {}
 
     /**
