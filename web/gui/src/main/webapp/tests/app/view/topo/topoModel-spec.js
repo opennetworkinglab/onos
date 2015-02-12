@@ -207,7 +207,7 @@ describe('factory: view/topo/topoModel.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tms, [
-            'initModel', 'newDim',
+            'initModel', 'newDim', 'destroyModel',
             'positionNode', 'createDeviceNode', 'createHostNode',
             'createHostLink', 'createLink',
             'coordFromLngLat', 'lngLatFromCoord',

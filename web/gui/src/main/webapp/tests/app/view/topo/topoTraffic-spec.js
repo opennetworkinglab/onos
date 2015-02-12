@@ -15,29 +15,31 @@
  */
 
 /*
- ONOS GUI -- Topo View -- Topo Selection Service - Unit Tests
+ ONOS GUI -- Topo View -- Topo Traffic Service - Unit Tests
  */
-describe('factory: view/topo/topoSelect.js', function() {
-    var $log, fs, tss;
+describe('factory: view/topo/topoTraffic.js', function() {
+    var $log, fs, tts;
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoSelectService) {
+    beforeEach(inject(function (_$log_, FnService, TopoTrafficService) {
         $log = _$log_;
         fs = FnService;
-        tss = TopoSelectService;
+        tts = TopoTrafficService;
     }));
 
-    it('should define TopoSelectService', function () {
-        expect(tss).toBeDefined();
+    it('should define TopoTrafficService', function () {
+        expect(tts).toBeDefined();
     });
 
     it('should define api functions', function () {
-        expect(fs.areFunctions(tss, [
-            'initSelect', 'destroySelect', 'showDetails', 'toggleDetails',
-            'nodeMouseOver', 'nodeMouseOut', 'selectObject', 'deselectObject',
-            'deselectAll', 'hovered', 'haveDetails', 'selectOrder',
-            'validateSelectionContext'
+        expect(fs.areFunctions(tts, [
+            'initTraffic', 'destroyTraffic', 'showTraffic',
+            'cancelTraffic', 'requestTrafficForMode',
+            'showRelatedIntentsAction', 'addHostIntentAction',
+            'addMultiSourceIntentAction', 'showDeviceLinkFlowsAction',
+            'showNextIntentAction', 'showPrevIntentAction',
+            'showSelectedIntentTrafficAction', 'showAllTrafficAction'
         ])).toBeTruthy();
     });
 

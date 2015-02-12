@@ -27,7 +27,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, wes, tps, tis, tfs, tss;
+    var $log, wss, wes, tps, tis, tfs, tss, tts;
 
     // internal state
     var wsock, evApis;
@@ -39,6 +39,8 @@
             showSummary: tps,
 
             showDetails: tss,
+
+            showTraffic: tts,
 
             addInstance: tis,
             updateInstance: tis,
@@ -53,8 +55,6 @@
             addLink: tfs,
             updateLink: tfs,
             removeLink: tfs
-
-            // TODO: add remaining event api vectors
         };
     }
 
@@ -106,9 +106,10 @@
     .factory('TopoEventService',
         ['$log', '$location', 'WebSocketService', 'WsEventService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
-            'TopoSelectService',
+            'TopoSelectService', 'TopoTrafficService',
 
-        function (_$log_, $loc, _wss_, _wes_, _tps_, _tis_, _tfs_, _tss_) {
+        function (_$log_, $loc, _wss_, _wes_,
+                  _tps_, _tis_, _tfs_, _tss_, _tts_) {
             $log = _$log_;
             wss = _wss_;
             wes = _wes_;
@@ -116,6 +117,7 @@
             tis = _tis_;
             tfs = _tfs_;
             tss = _tss_;
+            tts = _tts_;
 
             bindApis();
 

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, tps;
+    var $log, fs, flash, tps, tts;
 
     // api to topoForce
     var api;
@@ -65,7 +65,7 @@
             $log.debug("MouseOver()...", m);
             if (hovered != m) {
                 hovered = m;
-                requestTrafficForMode();
+                tts.requestTrafficForMode();
             }
         }
     }
@@ -74,7 +74,7 @@
         if (!m.dragStarted) {
             if (hovered) {
                 hovered = null;
-                requestTrafficForMode();
+                tts.requestTrafficForMode();
             }
             $log.debug("MouseOut()...", m);
         }
@@ -118,8 +118,6 @@
         n.classed('selected', true);
         api.updateDeviceColors(obj);
         updateDetail();
-
-        debugSel();
     }
 
     function deselectObject(id) {
@@ -130,8 +128,6 @@
             fs.removeFromArray(id, selectOrder);
             api.updateDeviceColors(obj.obj);
         }
-
-        debugSel();
     }
 
     function deselectAll() {
@@ -141,12 +137,6 @@
         selectOrder = [];
         api.updateDeviceColors();
         updateDetail();
-
-        debugSel();
-    }
-
-    function debugSel() {
-        $log.debug(' ..... Selected now >> ', selectOrder);
     }
 
     // === -----------------------------------------------------
@@ -175,14 +165,14 @@
     function emptySelect() {
         haveDetails = false;
         tps.hideDetailPanel();
-        cancelTraffic();
+        tts.cancelTraffic();
     }
 
     function singleSelect() {
         // NOTE: detail is shown from 'showDetails' event callback
         requestDetails();
-        cancelTraffic();
-        requestTrafficForMode();
+        tts.cancelTraffic();
+        tts.requestTrafficForMode();
     }
 
     function multiSelect() {
@@ -192,17 +182,17 @@
         tps.displayMulti(selectOrder);
 
         // always add the 'show traffic' action
-        tps.addAction('Show Related Traffic', showRelatedIntentsAction);
+        tps.addAction('Show Related Traffic', tts.showRelatedIntentsAction);
 
         // add other actions, based on what is selected...
         if (nSel() === 2 && allSelectionsClass('host')) {
-            tps.addAction('Create Host-to-Host Flow', addHostIntentAction);
+            tps.addAction('Create Host-to-Host Flow', tts.addHostIntentAction);
         } else if (nSel() >= 2 && allSelectionsClass('host')) {
-            tps.addAction('Create Multi-Source Flow', addMultiSourceIntentAction);
+            tps.addAction('Create Multi-Source Flow', tts.addMultiSourceIntentAction);
         }
 
-        cancelTraffic();
-        requestTrafficForMode();
+        tts.cancelTraffic();
+        tts.requestTrafficForMode();
     }
 
 
@@ -216,11 +206,11 @@
         tps.displaySingle(data);
 
         // always add the 'show traffic' action
-        tps.addAction('Show Related Traffic', showRelatedIntentsAction);
+        tps.addAction('Show Related Traffic', tts.showRelatedIntentsAction);
 
         // add other actions, based on what is selected...
         if (data.type === 'switch') {
-            tps.addAction('Show Device Flows', showDeviceLinkFlowsAction);
+            tps.addAction('Show Device Flows', tts.showDeviceLinkFlowsAction);
         }
 
         // only show the details panel if the user hasn't "hidden" it
@@ -242,34 +232,13 @@
         }
     }
 
-    // === -----------------------------------------------------
-    //  TODO: migrate these to topoTraffic.js
-
-    function cancelTraffic() {
-        $log.debug('TODO: cancelTraffic');
-
+    function validateSelectionContext() {
+        if (!hovered && !nSel()) {
+            tts.cancelTraffic();
+            return false;
+        }
+        return true;
     }
-    function requestTrafficForMode() {
-        $log.debug('TODO: requestTrafficForMode');
-
-    }
-    function showRelatedIntentsAction () {
-        $log.debug('TODO: showRelatedIntentsAction');
-
-    }
-    function addHostIntentAction () {
-        $log.debug('TODO: addHostIntentAction');
-
-    }
-    function addMultiSourceIntentAction () {
-        $log.debug('TODO: addMultiSourceIntentAction');
-
-    }
-    function showDeviceLinkFlowsAction () {
-        $log.debug('TODO: showDeviceLinkFlowsAction');
-
-    }
-
 
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
@@ -277,12 +246,14 @@
     angular.module('ovTopo')
         .factory('TopoSelectService',
         ['$log', 'FnService', 'FlashService', 'TopoPanelService',
+            'TopoTrafficService',
 
-        function (_$log_, _fs_, _flash_, _tps_) {
+        function (_$log_, _fs_, _flash_, _tps_, _tts_) {
             $log = _$log_;
             fs = _fs_;
             flash = _flash_;
             tps = _tps_;
+            tts = _tts_;
 
             function initSelect(_api_) {
                 api = _api_;
@@ -302,8 +273,11 @@
                 selectObject: selectObject,
                 deselectObject: deselectObject,
                 deselectAll: deselectAll,
+
                 hovered: function () { return hovered; },
-                haveDetails: function () { return haveDetails; }
+                haveDetails: function () { return haveDetails; },
+                selectOrder: function () { return selectOrder; },
+                validateSelectionContext: validateSelectionContext
             };
         }]);
 }());

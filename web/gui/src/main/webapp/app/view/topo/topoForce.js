@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, tms, tss, icfg, uplink;
+    var $log, fs, sus, is, ts, flash, tis, tms, tss, tts, icfg, uplink;
 
     // configuration
     var labelConfig = {
@@ -996,6 +996,21 @@
         return true;
     }
 
+    // ==========================
+    // function entry points for traffic module
+
+    var allTrafficClasses = 'primary secondary animated optical';
+
+    function clearLinkTrafficStyle() {
+        link.style('stroke-width', null)
+            .classed(allTrafficClasses, false);
+    }
+
+    function removeLinkLabels() {
+        network.links.forEach(function (d) {
+            d.label = '';
+        });
+    }
 
     // ==========================
     // Module definition
@@ -1018,13 +1033,27 @@
         };
     }
 
+    function mkTrafficApi(uplink) {
+        return {
+            clearLinkTrafficStyle: clearLinkTrafficStyle,
+            removeLinkLabels: removeLinkLabels,
+            updateLinks: updateLinks,
+            findLinkById: tms.findLinkById,
+            hovered: tss.hovered,
+            validateSelectionContext: tss.validateSelectionContext,
+            selectOrder: tss.selectOrder,
+            sendEvent: uplink.sendEvent
+        }
+    }
+
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
             'FlashService', 'TopoInstService', 'TopoModelService',
-            'TopoSelectService',
+            'TopoSelectService', 'TopoTrafficService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _tis_, _tms_, _tss_) {
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_,
+                  _tis_, _tms_, _tss_, _tts_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -1034,6 +1063,7 @@
             tis = _tis_;
             tms = _tms_;
             tss = _tss_;
+            tts = _tts_;
 
             icfg = is.iconConfig();
 
@@ -1049,6 +1079,7 @@
 
                 tms.initModel(mkModelApi(uplink), dim);
                 tss.initSelect(mkSelectApi(uplink));
+                tts.initTraffic(mkTrafficApi(uplink));
 
                 settings = angular.extend({}, defaultSettings, opts);
 
@@ -1083,7 +1114,9 @@
             }
 
             function destroyForce() {
-
+                tts.destroyTraffic();
+                tss.destroySelect();
+                tms.destroyModel();
             }
 
             return {

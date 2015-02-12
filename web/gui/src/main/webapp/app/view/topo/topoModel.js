@@ -376,9 +376,12 @@
                 dim = _dim_;
             }
 
+            function destroyModel() { }
+
             return {
                 initModel: initModel,
                 newDim: newDim,
+                destroyModel: destroyModel,
 
                 positionNode: positionNode,
                 createDeviceNode: createDeviceNode,

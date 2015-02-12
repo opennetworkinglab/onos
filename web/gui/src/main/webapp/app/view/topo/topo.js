@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, tes, tfs, tps, tis, tss;
+    var $log, fs, ks, zs, gs, ms, sus, tes, tfs, tps, tis, tss, tts;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -57,12 +57,12 @@
             U: [tfs.unpin, 'Unpin node (hover mouse over)'],
             R: [resetZoom, 'Reset pan / zoom'],
 
-            //V: [showRelatedIntentsAction, 'Show all related intents'],
-            //rightArrow: [showNextIntentAction, 'Show next related intent'],
-            //leftArrow: [showPrevIntentAction, 'Show previous related intent'],
-            //W: [showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
-            //A: [showAllTrafficAction, 'Monitor all traffic'],
-            //F: [showDeviceLinkFlowsAction, 'Show device link flows'],
+            V: [tts.showRelatedIntentsAction, 'Show all related intents'],
+            rightArrow: [tts.showNextIntentAction, 'Show next related intent'],
+            leftArrow: [tts.showPrevIntentAction, 'Show previous related intent'],
+            W: [tts.showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
+            A: [tts.showAllTrafficAction, 'Monitor all traffic'],
+            F: [tts.showDeviceLinkFlowsAction, 'Show device link flows'],
 
             //E: [equalizeMasters, 'Equalize mastership roles'],
 
@@ -222,11 +222,11 @@
             'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
-            'TopoInstService', 'TopoSelectService',
+            'TopoInstService', 'TopoSelectService', 'TopoTrafficService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
                   _ks_, _zs_, _gs_, _ms_, _sus_,
-                  _tes_, _tfs_, _tps_, _tis_, _tss_) {
+                  _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_) {
             var self = this,
                 projection,
                 dim,
@@ -249,6 +249,7 @@
             tps = _tps_;
             tis = _tis_;
             tss = _tss_;
+            tts = _tts_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
