@@ -17,6 +17,10 @@ package org.onlab.netty;
 
 import java.io.IOException;
 
+import org.onlab.util.ByteArraySizeHashPrinter;
+
+import com.google.common.base.MoreObjects;
+
 /**
  * Internal message representation with additional attributes
  * for supporting, synchronous request/reply behavior.
@@ -73,6 +77,15 @@ public final class InternalMessage implements Message {
         messagingService.sendAsync(sender, message);
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("type", type)
+                .add("sender", sender)
+                .add("payload", ByteArraySizeHashPrinter.of(payload))
+                .toString();
+    }
 
     /**
      * Builder for InternalMessages.

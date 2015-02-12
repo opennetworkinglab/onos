@@ -194,7 +194,7 @@ public class ClusterCommunicationManager
             try {
                 clusterMessage = SERIALIZER.decode(message.payload());
             } catch (Exception e) {
-                log.error("Failed decoding ClusterMessage", e);
+                log.error("Failed decoding ClusterMessage {}", message, e);
                 throw e;
             }
             try {
