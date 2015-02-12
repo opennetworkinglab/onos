@@ -20,6 +20,7 @@ import org.onosproject.net.intent.IntentData;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * Represents a phase of requesting a withdraw of an intent.
@@ -39,6 +40,9 @@ class WithdrawRequest implements IntentUpdate {
     public Optional<IntentUpdate> execute() {
         //FIXME need store interface
         IntentData current = intentManager.store.getIntentData(pending.key());
+        if (current == null) {
+            return Optional.of(new Withdrawn(pending, WITHDRAWN));
+        }
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
         // Note: this call is not just the symmetric version of submit
