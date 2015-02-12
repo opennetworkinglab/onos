@@ -28,7 +28,9 @@ public interface DemoAPI {
 
     /**
      * Tests flow subsystem based on the parameters supplied.
+     *
      * @param params the test parameters
+     * @return JSON representation
      */
     JsonNode flowTest(Optional<JsonNode> params);
 

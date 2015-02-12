@@ -54,6 +54,7 @@ public class CompletedBatchOperation implements BatchOperationResult<FlowRule> {
      *
      * @param success  indicates whether the completion is successful.
      * @param failures set of any failures encountered
+     * @param deviceId device id
      */
     public CompletedBatchOperation(boolean success, Set<? extends FlowRule> failures,
                                    DeviceId deviceId) {
