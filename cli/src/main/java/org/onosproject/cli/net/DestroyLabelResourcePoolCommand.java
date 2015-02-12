@@ -7,7 +7,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.resource.LabelResourceService;
 @Command(scope = "onos", name = "destroy-label-resource-pool",
       description = "destroy label resource pool by specific device id")
-public class DestroyLabelResourcePool extends AbstractShellCommand {
+public class DestroyLabelResourcePoolCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Id of device", required = true, multiValued = false)
     String deviceId = null;
@@ -15,7 +15,7 @@ public class DestroyLabelResourcePool extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        lrs.destroy(DeviceId.deviceId(deviceId));
+        lrs.destroyDevicePool(DeviceId.deviceId(deviceId));
     }
 
 }

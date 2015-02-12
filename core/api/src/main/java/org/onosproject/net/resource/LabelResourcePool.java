@@ -8,23 +8,26 @@ import org.onosproject.net.DeviceId;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Abstraction of the capacity of device label resource.
+ */
 public class LabelResourcePool {
 
     private DeviceId deviceId;
-    private long beginLabel;
-    private long endLabel;
+    private LabelResourceId beginLabel;
+    private LabelResourceId endLabel;
     private long totalNum;
     private long usedNum;
-    private long currentUsedMaxLabelId;
+    private LabelResourceId currentUsedMaxLabelId;
     private Queue<DefaultLabelResource> releaseLabelId;
 
     public LabelResourcePool(String deviceId, long beginLabel, long endLabel) {
         this.deviceId = DeviceId.deviceId(deviceId);
-        this.beginLabel = beginLabel;
-        this.endLabel = endLabel;
+        this.beginLabel = LabelResourceId.labelResourceId(beginLabel);
+        this.endLabel = LabelResourceId.labelResourceId(endLabel);
         this.totalNum = endLabel - beginLabel + 1;
         this.usedNum = 0L;
-        this.currentUsedMaxLabelId = beginLabel;
+        this.currentUsedMaxLabelId = LabelResourceId.labelResourceId(beginLabel);
         this.releaseLabelId = new LinkedList<DefaultLabelResource>();
     }
 
@@ -36,20 +39,28 @@ public class LabelResourcePool {
         this.deviceId = deviceId;
     }
 
-    public long getBeginLabel() {
+    public LabelResourceId getBeginLabel() {
         return beginLabel;
     }
 
-    public void setBeginLabel(long beginLabel) {
+    public void setBeginLabel(LabelResourceId beginLabel) {
         this.beginLabel = beginLabel;
     }
 
-    public long getEndLabel() {
+    public LabelResourceId getEndLabel() {
         return endLabel;
     }
 
-    public void setEndLabel(long endLabel) {
+    public void setEndLabel(LabelResourceId endLabel) {
         this.endLabel = endLabel;
+    }
+
+    public LabelResourceId getCurrentUsedMaxLabelId() {
+        return currentUsedMaxLabelId;
+    }
+
+    public void setCurrentUsedMaxLabelId(LabelResourceId currentUsedMaxLabelId) {
+        this.currentUsedMaxLabelId = currentUsedMaxLabelId;
     }
 
     public long getTotalNum() {
@@ -68,14 +79,6 @@ public class LabelResourcePool {
         this.usedNum = usedNum;
     }
 
-    public long getCurrentUsedMaxLabelId() {
-        return currentUsedMaxLabelId;
-    }
-
-    public void setCurrentUsedMaxLabelId(long currentUsedMaxLabelId) {
-        this.currentUsedMaxLabelId = currentUsedMaxLabelId;
-    }
-
     public Queue<DefaultLabelResource> getReleaseLabelId() {
         return releaseLabelId;
     }
@@ -87,19 +90,19 @@ public class LabelResourcePool {
     @Override
     public int hashCode() {
         // TODO Auto-generated method stub
-        return Objects.hashCode(this.deviceId.toString() + this.beginLabel
-                + this.endLabel + this.totalNum + this.usedNum
-                + this.currentUsedMaxLabelId + this.releaseLabelId.toString());
+        return Objects.hashCode(this.deviceId.toString() + this.beginLabel.toString()
+                + this.endLabel.toString() + this.totalNum + this.usedNum
+                + this.currentUsedMaxLabelId.toString() + this.releaseLabelId.toString());
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof LabelResourcePool) {
             LabelResourcePool that = (LabelResourcePool) obj;
-            return Objects.equals(this.deviceId.toString() + this.beginLabel
-                                          + this.endLabel + this.totalNum
+            return Objects.equals(this.deviceId.toString() + this.beginLabel.toString()
+                                          + this.endLabel.toString() + this.totalNum
                                           + this.usedNum
-                                          + this.currentUsedMaxLabelId
+                                          + this.currentUsedMaxLabelId.toString()
                                           + this.releaseLabelId.toString(),
                                   that.deviceId.toString() + that.beginLabel
                                           + that.endLabel + that.totalNum
@@ -115,10 +118,10 @@ public class LabelResourcePool {
         // TODO Auto-generated method stub
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", this.deviceId.toString())
-                .add("beginLabel", this.beginLabel)
-                .add("endLabel", this.endLabel).add("totalNum", this.totalNum)
+                .add("beginLabel", this.beginLabel.toString())
+                .add("endLabel", this.endLabel.toString()).add("totalNum", this.totalNum)
                 .add("usedNum", this.usedNum)
-                .add("currentUsedMaxLabelId", this.currentUsedMaxLabelId)
+                .add("currentUsedMaxLabelId", this.currentUsedMaxLabelId.toString())
                 .add("releaseLabelId", this.releaseLabelId.toString())
                 .toString();
     }

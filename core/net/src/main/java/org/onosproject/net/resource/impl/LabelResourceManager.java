@@ -3,6 +3,7 @@ package org.onosproject.net.resource.impl;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -13,11 +14,17 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.resource.ApplyLabelNumber;
 import org.onosproject.net.resource.DefaultLabelResource;
 import org.onosproject.net.resource.LabelResourceDelegate;
 import org.onosproject.net.resource.LabelResourceEvent;
+import org.onosproject.net.resource.LabelResourceId;
 import org.onosproject.net.resource.LabelResourceListener;
 import org.onosproject.net.resource.LabelResourcePool;
+import org.onosproject.net.resource.LabelResourceProvider;
+import org.onosproject.net.resource.LabelResourceProviderRegistry;
+import org.onosproject.net.resource.LabelResourceProviderService;
 import org.onosproject.net.resource.LabelResourceService;
 import org.onosproject.net.resource.LabelResourceStore;
 import org.slf4j.Logger;
@@ -30,7 +37,7 @@ import com.google.common.collect.Multimap;
  */
 @Component(immediate = true)
 @Service
-public class LabelResourceManager implements LabelResourceService {
+public class LabelResourceManager extends AbstractProviderRegistry<LabelResourceProvider, LabelResourceProviderService> implements LabelResourceService, LabelResourceProviderRegistry {
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
@@ -59,54 +66,92 @@ public class LabelResourceManager implements LabelResourceService {
     }
 
     @Override
-    public void create(DeviceId deviceId, long beginLabel, long endLabel) {
+    public void createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
+                       LabelResourceId endLabel) {
         // TODO Auto-generated method stub
-        LabelResourceEvent event = store.create(deviceId, beginLabel, endLabel);
+        LabelResourceEvent event = store.createDevicePool(deviceId, beginLabel, endLabel);
         post(event);
     }
 
     @Override
-    public void create(LabelResourcePool labelResourcePool) {
+    public void createGlobalPool(LabelResourceId beginLabel,
+                       LabelResourceId endLabel) {
         // TODO Auto-generated method stub
-        LabelResourceEvent event = store.create(labelResourcePool);
+        LabelResourceEvent event = store.createGlobalPool(beginLabel, endLabel);
         post(event);
     }
 
     @Override
-    public void destroy(DeviceId deviceId) {
-        LabelResourceEvent event = store.destroy(deviceId);
+    public void destroyDevicePool(DeviceId deviceId) {
+        LabelResourceEvent event = store.destroyDevicePool(deviceId);
         post(event);
     }
 
     @Override
-    public Collection<DefaultLabelResource> apply(DeviceId deviceId,
-                                                  long applyNum) {
-        // TODO Auto-generated method stub
-        return store.apply(deviceId, applyNum);
+    public void destroyGlobalPool() {
+        LabelResourceEvent event = store.destroyGlobalPool();
+        post(event);
     }
 
     @Override
-    public boolean release(Multimap<DeviceId, DefaultLabelResource> release) {
+    public Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
+                                                  ApplyLabelNumber applyNum) {
         // TODO Auto-generated method stub
-        return store.release(release);
+        return store.applyFromDevicePool(deviceId, applyNum);
     }
 
     @Override
-    public boolean isFull(DeviceId deviceId) {
+    public Collection<DefaultLabelResource> applyFromGlobalPool(ApplyLabelNumber applyNum) {
         // TODO Auto-generated method stub
-        return store.isFull(deviceId);
+        return store.applyFromGlobalPool(applyNum);
     }
 
     @Override
-    public long getFreeNum(DeviceId deviceId) {
+    public boolean releaseToDevicePool(Multimap<DeviceId, DefaultLabelResource> release) {
         // TODO Auto-generated method stub
-        return store.getFreeNum(deviceId);
+        return store.releaseToDevicePool(release);
     }
 
     @Override
-    public LabelResourcePool getLabelResourcePool(DeviceId deviceId) {
+    public boolean releaseToGlobalPool(Set<DefaultLabelResource> release) {
         // TODO Auto-generated method stub
-        return store.getLabelResourcePool(deviceId);
+        return store.releaseToGlobalPool(release);
+    }
+
+    @Override
+    public boolean isDevicePoolFull(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return store.isDevicePoolFull(deviceId);
+    }
+
+    @Override
+    public boolean isGlobalPoolFull() {
+        // TODO Auto-generated method stub
+        return store.isGlobalPoolFull();
+    }
+
+    @Override
+    public long getFreeNumOfDevicePool(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return store.getFreeNumOfDevicePool(deviceId);
+    }
+
+    @Override
+    public long getFreeNumOfGlobalPool() {
+        // TODO Auto-generated method stub
+        return store.getFreeNumOfGlobalPool();
+    }
+
+    @Override
+    public LabelResourcePool getDeviceLabelResourcePool(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return store.getDeviceLabelResourcePool(deviceId);
+    }
+
+    @Override
+    public LabelResourcePool getGlobalLabelResourcePool() {
+        // TODO Auto-generated method stub
+        return store.getGlobalLabelResourcePool();
     }
 
     @Override
@@ -135,5 +180,11 @@ public class LabelResourceManager implements LabelResourceService {
             post(event);
         }
 
+    }
+
+    @Override
+    protected LabelResourceProviderService createProviderService(LabelResourceProvider provider) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

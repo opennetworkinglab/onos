@@ -52,7 +52,7 @@ public class FlowRuleListCommand extends AbstractShellCommand {
                                 print(FMT_OMSG , d.id().toString(), ofMod.getVersion(),
                                       ofMod.getType() , matches);
                         } else if (msg instanceof OFGroupMod) {
-                                OFGroupMod groupMod = (OFGroupMod)msg;
+                                OFGroupMod groupMod = (OFGroupMod) msg;
                                 print(FMT_GMSG , d.id().toString(), groupMod.getVersion(),
                                       groupMod.getType() , groupMod.getCommand());
                         }

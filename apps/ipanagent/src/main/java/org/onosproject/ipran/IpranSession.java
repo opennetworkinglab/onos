@@ -64,12 +64,12 @@ public class IpranSession {
          * To tell ipran i'm leader.
          */
         LEADER_ELECTED,
-        
+
         /**
          * To tell ipran i'm leader.
          */
         TOPO_CHANGED,
-        
+
         /**
          * FlowEntryExtend downStream.
          */

@@ -4,6 +4,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.resource.LabelResourceId;
 import org.onosproject.net.resource.LabelResourceService;
 
 /**
@@ -11,7 +12,7 @@ import org.onosproject.net.resource.LabelResourceService;
  */
 @Command(scope = "onos", name = "create-label-resource-pool",
            description = "create label resource pool by specific device id")
-public class CreateLabelResourcePool extends AbstractShellCommand {
+public class CreateLabelResourcePoolCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Id of device", required = true, multiValued = false)
     String deviceId = null;
@@ -26,7 +27,9 @@ public class CreateLabelResourcePool extends AbstractShellCommand {
     protected void execute() {
         // TODO Auto-generated method stub
         LabelResourceService lrs = get(LabelResourceService.class);
-        lrs.create(DeviceId.deviceId(deviceId), Long.parseLong(beginLabel), Long.parseLong(endLabel));
+        lrs.createDevicePool(DeviceId.deviceId(deviceId),
+                   LabelResourceId.labelResourceId(Long.parseLong(beginLabel)),
+                   LabelResourceId.labelResourceId(Long.parseLong(endLabel)));
     }
 
 }
