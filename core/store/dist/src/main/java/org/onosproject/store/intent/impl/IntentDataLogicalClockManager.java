@@ -31,6 +31,7 @@ public class IntentDataLogicalClockManager<K> implements ClockService<K, IntentD
 
     @Override
     public Timestamp getTimestamp(K key, IntentData intentData) {
-        return new MultiValuedTimestamp(intentData.version(), sequenceNumber.getAndIncrement());
+        return new MultiValuedTimestamp<>(intentData.version(),
+                                          sequenceNumber.getAndIncrement());
     }
 }

@@ -15,17 +15,6 @@
  */
 package org.onosproject.net.device.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.MastershipRole.*;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -64,6 +53,18 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.namedThreads;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -234,7 +235,7 @@ public class DeviceManager
         log.debug("Checking mastership");
         for (Device device : getDevices()) {
             final DeviceId deviceId = device.id();
-            log.debug("Checking device {}", deviceId);
+            log.trace("Checking device {}", deviceId);
 
             if (!isReachable(deviceId)) {
                 continue;

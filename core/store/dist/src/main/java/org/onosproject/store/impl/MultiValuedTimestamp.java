@@ -22,26 +22,28 @@ import org.onosproject.store.Timestamp;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A logical timestamp that derives its value from two input values. Value1
- * always takes precedence over value2 when comparing timestamps.
+ * A logical timestamp that derives its value from two input values. The first
+ * value always takes precedence over the second value when comparing timestamps.
  */
-public class MultiValuedTimestamp implements Timestamp {
+public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<U>>
+        implements Timestamp {
 
-    private final Timestamp timestamp;
-    private final long value2;
+    private final T value1;
+    private final U value2;
 
     /**
      * Creates a new timestamp based on two values. The first value has higher
      * precedence than the second when comparing timestamps.
      *
-     * @param timestamp first value
+     * @param value1 first value
      * @param value2 second value
      */
-    public MultiValuedTimestamp(Timestamp timestamp, long value2) {
-        this.timestamp = timestamp;
-        this.value2 = value2;
+    public MultiValuedTimestamp(T value1, U value2) {
+        this.value1 = checkNotNull(value1);
+        this.value2 = checkNotNull(value2);
     }
 
     @Override
@@ -51,14 +53,14 @@ public class MultiValuedTimestamp implements Timestamp {
         MultiValuedTimestamp that = (MultiValuedTimestamp) o;
 
         return ComparisonChain.start()
-                .compare(this.timestamp, that.timestamp)
+                .compare(this.value1, that.value1)
                 .compare(this.value2, that.value2)
                 .result();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timestamp, value2);
+        return Objects.hash(value1, value2);
     }
 
     @Override
@@ -70,14 +72,14 @@ public class MultiValuedTimestamp implements Timestamp {
             return false;
         }
         MultiValuedTimestamp that = (MultiValuedTimestamp) obj;
-        return Objects.equals(this.timestamp, that.timestamp) &&
+        return Objects.equals(this.value1, that.value1) &&
                 Objects.equals(this.value2, that.value2);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("timestamp", timestamp)
+                .add("value1", value1)
                 .add("value2", value2)
                 .toString();
     }
@@ -87,8 +89,8 @@ public class MultiValuedTimestamp implements Timestamp {
      *
      * @return first value
      */
-    public Timestamp timestamp() {
-        return timestamp;
+    public T value1() {
+        return value1;
     }
 
     /**
@@ -96,14 +98,14 @@ public class MultiValuedTimestamp implements Timestamp {
      *
      * @return second value
      */
-    public long sequenceNumber() {
+    public U value2() {
         return value2;
     }
 
     // Default constructor for serialization
     @SuppressWarnings("unused")
     private MultiValuedTimestamp() {
-        this.timestamp = null;
-        this.value2 = -1;
+        this.value1 = null;
+        this.value2 = null;
     }
 }
