@@ -21,9 +21,9 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
         ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
         FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
         FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId2), new DownStreamPacket(buffer2), null);
+                     .deviceId(deviceId2), new DownStreamFlowEntry(buffer2), null);
         final long time = 123L;
         final FlowRuleExtEvent event1 =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADDED, entry1, time);
@@ -51,7 +51,7 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         String deviceId1 = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
         FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, entry1, time);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, entry1, time);
@@ -66,7 +66,7 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         String deviceId1 = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
         FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_UPDATED, entry1);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_UPDATED, entry1, time,

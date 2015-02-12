@@ -19,7 +19,6 @@ import org.onosproject.net.flow.FlowRule;
 
 /**
  * FlowRule extended from current FlowRule API.
- *
  */
 public interface FlowRuleExt extends FlowRule {
 

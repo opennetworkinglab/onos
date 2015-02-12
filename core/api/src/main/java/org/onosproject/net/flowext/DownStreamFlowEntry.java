@@ -6,14 +6,14 @@ import java.util.Objects;
 /**
  * Represents a generic abstraction of the service data. User app can customize whatever it needs to install on devices.
  */
-public class DownStreamPacket implements FlowEntryExtension{
+public class DownStreamFlowEntry implements FlowEntryExtension{
 
   /**
    * temporarily only have byte steam, but it will be extract more abstract information from it later.
    */
    private final ByteBuffer payload;
 
-   public DownStreamPacket( ByteBuffer data) {
+   public DownStreamFlowEntry (ByteBuffer data) {
            this.payload = data;
    }
 
@@ -48,8 +48,8 @@ public class DownStreamPacket implements FlowEntryExtension{
     */
    @Override
    public boolean equals(Object obj) {
-        if (obj instanceof DownStreamPacket) {
-            DownStreamPacket packet = (DownStreamPacket) obj;
+        if (obj instanceof DownStreamFlowEntry) {
+            DownStreamFlowEntry packet = (DownStreamFlowEntry) obj;
             return Objects.equals(this.payload, packet.payload);
         } else {
             return false;

@@ -24,9 +24,9 @@ public class FlowRuleBatchExtRequestTest {
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
         ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
         FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
         FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId2), new DownStreamPacket(buffer2), null);
+                     .deviceId(deviceId2), new DownStreamFlowEntry(buffer2), null);
         Collection<FlowRuleExt> toAdd = new ArrayList<FlowRuleExt>();
         toAdd.add(entry1);
         toAdd.add(entry2);

@@ -41,7 +41,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flowext.DefaultFlowRuleExt;
-import org.onosproject.net.flowext.DownStreamPacket;
+import org.onosproject.net.flowext.DownStreamFlowEntry;
 import org.onosproject.net.flowext.FlowExtCompletedOperation;
 import org.onosproject.net.flowext.FlowRuleBatchExtEvent;
 import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
@@ -110,7 +110,7 @@ public class DefaultFlowRuleExtRouter
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(FlowExtCompletedOperation.class)
                     .register(FlowRuleBatchExtRequest.class)
-                    .register(DownStreamPacket.class)
+                    .register(DownStreamFlowEntry.class)
                     .register(DefaultFlowRuleExt.class)
                     .build();
         }

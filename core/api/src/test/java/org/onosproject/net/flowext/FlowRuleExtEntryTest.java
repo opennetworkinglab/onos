@@ -17,7 +17,7 @@ public class FlowRuleExtEntryTest {
         String deviceId = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId.getBytes());
         FlowRuleExt entry = new DefaultFlowRuleExt(DeviceId
-                      .deviceId(deviceId), new DownStreamPacket(buffer1), null);
+                      .deviceId(deviceId), new DownStreamFlowEntry(buffer1), null);
         assertArrayEquals(deviceId.getBytes(), entry.getFlowEntryExt().getPayload().array());
         assertEquals(deviceId, entry.deviceId().toString());
         assertEquals(deviceId.getBytes().length, entry.getFlowEntryExt().getPayload().array().length);
@@ -28,9 +28,9 @@ public class FlowRuleExtEntryTest {
         String deviceId = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId.getBytes());
         FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                      .deviceId(deviceId), new DownStreamPacket(buffer1), null);
+                      .deviceId(deviceId), new DownStreamFlowEntry(buffer1), null);
         FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
-                      .deviceId(deviceId), new DownStreamPacket(buffer1), null);
+                      .deviceId(deviceId), new DownStreamFlowEntry(buffer1), null);
         assertEquals(entry1, entry2);
     }
 
