@@ -24,10 +24,13 @@ import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -48,13 +51,32 @@ public class DeviceGuiResource extends BaseResource {
     // return list of devices
     @GET
     @Produces("application/json")
-    public Response getDevices() {
+    public Response getDevices(
+            @DefaultValue("none") @QueryParam("sortCol") String colId,
+            @DefaultValue("none") @QueryParam("sortDir") String dir
+    ) {
         ObjectNode rootNode = mapper.createObjectNode();
         ArrayNode devices = mapper.createArrayNode();
         DeviceService service = get(DeviceService.class);
 
-        for (Device dev: service.getDevices()) {
-            devices.add(deviceJson(service, dev));
+        // if no query parameters were given, get the data in whatever order
+        if (colId.equals("none") || dir.equals("none")) {
+            for (Device dev : service.getDevices()) {
+                devices.add(deviceJson(service, dev));
+            }
+        } else {
+            ArrayList<Device> sortedDevices = new ArrayList<>();
+            for (Device dev : service.getDevices()) {
+                sortedDevices.add(dev);
+            }
+            // now sort the arrayList based on the query parameters
+            // then put each item into the ArrayNode devices
+                // (pass in each device to deviceJson)
+
+            // at this point, the sortedDevices list will be sorted
+            for (Device dev : sortedDevices) {
+                devices.add(deviceJson(service, dev));
+            }
         }
 
         rootNode.set("devices", devices);
