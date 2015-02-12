@@ -22,5 +22,4 @@ import org.onosproject.net.provider.ProviderService;
  * the core.
  */
 public interface FlowRuleExtProviderService extends ProviderService<FlowRuleExtProvider> {
-
 }

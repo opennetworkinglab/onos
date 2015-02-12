@@ -17,28 +17,12 @@ package org.onosproject.net.flowext;
 
 import java.util.concurrent.Future;
 
-import org.onosproject.net.DeviceId;
-
-import com.esotericsoftware.kryo.Serializer;
-
 /**
  * Service for injecting extended flow rules into the environment.
- * This implements semantics of a distributed authoritative flow table where the master copy
- * of the flow rules lies with the controller and the devices hold only the
- * 'cached' copy.
+ * This service just send the packet downstream. It won't store the 
+ * flowRuleExtension in cache.
  */
 public interface FlowRuleExtService {
-
-    /**
-     * Returns the collection of flow entries applied on the specified device.
-     * This will include flow rules which may not yet have been applied to
-     * the device.
-     *
-     * @param deviceId device identifier
-     * @return collection of flow rules
-     */
-    Iterable<FlowRuleExtEntry> getFlowEntries(DeviceId deviceId);
-
     /**
      * Applies a batch operation of FlowRules.
      * this batch can be divided into many sub-batch by deviceId, and application
@@ -63,20 +47,4 @@ public interface FlowRuleExtService {
      * @param listener flow rule listener
      */
     void removeListener(FlowRuleExtListener listener);
-
-    /**
-     * Get all extended flow entry of device, using for showing in GUI or CLI.
-     *
-     * @param did DeviceId of the device role changed
-     * @return message parsed from byte[] using the specific serializer
-     */
-    Iterable<?> getExtMessages(DeviceId deviceId);
-
-    /**
-     * Register classT and serializer which can decode byte stream to classT object.
-     *
-     * @param classT the class flowEntryExtension can be decoded to.
-     * @param serializer the serializer apps provide using to decode flowEntryExtension
-     */
-    void registerSerializer(Class<?> classT, Serializer<?> serializer);
 }

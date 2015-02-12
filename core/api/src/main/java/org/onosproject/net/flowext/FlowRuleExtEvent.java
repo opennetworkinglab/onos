@@ -20,7 +20,7 @@ import org.onosproject.event.AbstractEvent;
 /**
  * Describes flow rule event.
  */
-public class FlowRuleExtEvent extends AbstractEvent<FlowRuleExtEvent.Type, FlowRuleExtEntry> {
+public class FlowRuleExtEvent extends AbstractEvent<FlowRuleExtEvent.Type, FlowRuleExt> {
 
     /**
      * Type of flow rule events.
@@ -60,7 +60,7 @@ public class FlowRuleExtEvent extends AbstractEvent<FlowRuleExtEvent.Type, FlowR
      * @param type     flow rule event type
      * @param flowRule event flow rule subject
      */
-    public FlowRuleExtEvent(Type type, FlowRuleExtEntry flowRule) {
+    public FlowRuleExtEvent(Type type, FlowRuleExt flowRule) {
         super(type, flowRule);
     }
 
@@ -71,7 +71,7 @@ public class FlowRuleExtEvent extends AbstractEvent<FlowRuleExtEvent.Type, FlowR
      * @param flowRule event flow rule subject
      * @param time     occurrence time
      */
-    public FlowRuleExtEvent(Type type, FlowRuleExtEntry flowRule, long time) {
+    public FlowRuleExtEvent(Type type, FlowRuleExt flowRule, long time) {
         super(type, flowRule, time);
     }
 

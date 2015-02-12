@@ -18,6 +18,7 @@ package org.onosproject.net.flowext.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,17 +38,16 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.flowext.DefaultFlowRuleExt;
+import org.onosproject.net.flowext.DownStreamPacket;
 import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
-import org.onosproject.net.flowext.FlowRuleExtEntry;
+import org.onosproject.net.flowext.FlowRuleExt;
 import org.onosproject.net.flowext.FlowRuleExtEvent;
 import org.onosproject.net.flowext.FlowRuleExtListener;
 import org.onosproject.net.flowext.FlowRuleExtProvider;
 import org.onosproject.net.flowext.FlowRuleExtService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.store.trivial.impl.SimpleFlowRuleExtStore;
-
-import com.google.common.collect.Sets;
 
 /**
  * Test for the applyBatch of FlowRuleExtManager .
@@ -68,7 +68,6 @@ public class FlowRuleExtManagerTest {
     @Before
     public void setUp() {
         mgr = new FlowRuleExtManager();
-        mgr.store = new SimpleFlowRuleExtStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.deviceService = new TestDeviceService();
         service = mgr;
@@ -88,20 +87,26 @@ public class FlowRuleExtManagerTest {
     @Test
     public void testApplyBatch() {
 
-        FlowRuleExtEntry r1 = new FlowRuleExtEntry(DID, null, "of:123:01".getBytes());
-        FlowRuleExtEntry r2 = new FlowRuleExtEntry(DID, null, "of:123:02".getBytes());
-        FlowRuleExtEntry r3 = new FlowRuleExtEntry(DID, null, "of:123:03".getBytes());
+        String deviceId1 = "of:123456";
+        ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
+                      .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+        String deviceId2 = "of:234567";
+        ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
+        FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
+                      .deviceId(deviceId2), new DownStreamPacket(buffer2), null);
+        String deviceId3 = "of:345678";
+        ByteBuffer buffer3 = ByteBuffer.wrap(deviceId2.getBytes());
+        FlowRuleExt entry3 = new DefaultFlowRuleExt(DeviceId
+                      .deviceId(deviceId3), new DownStreamPacket(buffer3), null);
 
-        Collection<FlowRuleExtEntry> batchOperation = new ArrayList<FlowRuleExtEntry>();
-        assertTrue("store should be empty",
-                   Sets.newHashSet(service.getExtMessages(DID)).isEmpty());
-        batchOperation.add(r1);
-        batchOperation.add(r2);
-        batchOperation.add(r3);
+        Collection<FlowRuleExt> batchOperation = new ArrayList<FlowRuleExt>();
+        batchOperation.add(entry1);
+        batchOperation.add(entry2);
+        batchOperation.add(entry3);
         FlowRuleBatchExtRequest request = new FlowRuleBatchExtRequest(1, batchOperation);
         service.applyBatch(request);
-        Collection<FlowRuleExtEntry> store = (Collection<FlowRuleExtEntry>) service.getExtMessages(DID);
-        assertEquals("3 rules should exist", 3, store.size());
+        assertEquals("3 rules should exist", 3, batchOperation.size());
     }
 
     private static class TestListener implements FlowRuleExtListener {

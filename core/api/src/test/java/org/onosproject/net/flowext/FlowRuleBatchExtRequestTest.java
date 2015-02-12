@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -19,10 +20,14 @@ public class FlowRuleBatchExtRequestTest {
     @Test
     public void testConstructor() {
         String deviceId1 = "of:123456";
-        FlowRuleExtEntry entry1 = new FlowRuleExtEntry(DeviceId.deviceId(deviceId1), null, deviceId1.getBytes());
         String deviceId2 = "of:234567";
-        FlowRuleExtEntry entry2 = new FlowRuleExtEntry(DeviceId.deviceId(deviceId2), null, deviceId2.getBytes());
-        Collection<FlowRuleExtEntry> toAdd = new ArrayList<FlowRuleExtEntry>();
+        ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
+        ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
+                     .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+        FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
+                     .deviceId(deviceId2), new DownStreamPacket(buffer2), null);
+        Collection<FlowRuleExt> toAdd = new ArrayList<FlowRuleExt>();
         toAdd.add(entry1);
         toAdd.add(entry2);
         FlowRuleBatchExtRequest request = new FlowRuleBatchExtRequest(1, toAdd);

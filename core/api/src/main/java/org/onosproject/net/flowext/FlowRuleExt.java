@@ -15,10 +15,13 @@
  */
 package org.onosproject.net.flowext;
 
-import org.onosproject.store.StoreDelegate;
+import org.onosproject.net.flow.FlowRule;
 
 /**
- * Flow rule extend store delegate abstraction.
+ * FlowRule extended from current FlowRule API.
+ *
  */
-public interface FlowRuleExtStoreDelegate extends StoreDelegate<FlowRuleBatchExtEvent> {
+public interface FlowRuleExt extends FlowRule {
+
+    FlowEntryExtension getFlowEntryExt();
 }

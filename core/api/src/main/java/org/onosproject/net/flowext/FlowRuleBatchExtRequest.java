@@ -26,16 +26,25 @@ public class FlowRuleBatchExtRequest {
      * Concern all the entry as to add, because the bytes contains the information
      * of to-add or to-delete,
      */
-    private final Collection<FlowRuleExtEntry> toAdd;
+    private final Collection<FlowRuleExt> toAdd;
 
-    public FlowRuleBatchExtRequest(int batchId, Collection<FlowRuleExtEntry> toAdd) {
+    public FlowRuleBatchExtRequest(int batchId, Collection<FlowRuleExt> toAdd) {
         this.batchId = batchId;
         this.toAdd = ImmutableList.copyOf(toAdd);
     }
 
-    public Collection<FlowRuleExtEntry> getBatch() {
+    /**
+     * Get the Set of this BatchOperation.
+     * @return the set of Batch
+     */  
+    public Collection<FlowRuleExt> getBatch() {
         return toAdd;
     }
+
+    /**
+     * Returns the BatchId of this BatchOperation.
+     * @return the number of Batch
+     */  
     public int batchId() {
         return batchId;
     }

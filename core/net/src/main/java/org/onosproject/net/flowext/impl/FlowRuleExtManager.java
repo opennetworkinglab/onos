@@ -28,20 +28,19 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flowext.FlowExtCompletedOperation;
 import org.onosproject.net.flowext.FlowRuleBatchExtEvent;
 import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
-import org.onosproject.net.flowext.FlowRuleExtEntry;
+import org.onosproject.net.flowext.FlowRuleExt;
 import org.onosproject.net.flowext.FlowRuleExtEvent;
 import org.onosproject.net.flowext.FlowRuleExtListener;
 import org.onosproject.net.flowext.FlowRuleExtProvider;
 import org.onosproject.net.flowext.FlowRuleExtProviderRegistry;
 import org.onosproject.net.flowext.FlowRuleExtProviderService;
+import org.onosproject.net.flowext.FlowRuleExtRouter;
+import org.onosproject.net.flowext.FlowRuleExtRouterListener;
 import org.onosproject.net.flowext.FlowRuleExtService;
-import org.onosproject.net.flowext.FlowRuleExtStore;
-import org.onosproject.net.flowext.FlowRuleExtStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import com.esotericsoftware.kryo.Serializer;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -83,12 +82,10 @@ public class FlowRuleExtManager
     private final AbstractListenerRegistry<FlowRuleExtEvent, FlowRuleExtListener>
                   listenerRegistry = new AbstractListenerRegistry<>();
 
-    private final FlowRuleExtStoreDelegate delegate = new InternalStoreDelegate();
-
     private ExecutorService futureService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleExtStore store;
+    protected FlowRuleExtRouter router;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -96,79 +93,27 @@ public class FlowRuleExtManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    InternalFlowRuleExtouterListener routerListener = new InternalFlowRuleExtouterListener();
     @Activate
     public void activate() {
         futureService = Executors.newFixedThreadPool(
                       32, namedThreads("provider-future-listeners-%d"));
-        store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleExtEvent.class, listenerRegistry);
+        router.addListener(routerListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         futureService.shutdownNow();
-        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(FlowRuleExtEvent.class);
+        router.removeListener(routerListener);
         log.info("Stopped");
-    }
-
-    // Store delegate to re-post events emitted from the store.
-    private class InternalStoreDelegate implements FlowRuleExtStoreDelegate {
-        // TODO: We assume all the batch install success when they are send to
-        // provider.
-        // It will be using transaction tactics Later.
-        @Override
-        public void notify(FlowRuleBatchExtEvent event) {
-            // TODO Auto-generated method stub
-            switch (event.type()) {
-            case BATCH_OPERATION_REQUESTED:
-                // Request has been forwarded to MASTER Node
-                for (FlowRuleExtEntry entry : event.subject().getBatch()) {
-                    eventDispatcher
-                            .post(new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADD_REQUESTED,
-                                                       entry));
-                }
-                // send it
-                FlowRuleBatchExtRequest flowrules = event.subject();
-                FlowRuleExtProvider flowRuleProvider = getProvider(event
-                        .subject().getBatch().iterator().next().getDeviceId());
-                flowRuleProvider.applyFlowRule(flowrules);
-                // do not have transaction, assume it install success
-                // temporarily
-                FlowExtCompletedOperation result = new FlowExtCompletedOperation(
-                        flowrules.batchId(), true, Collections.<FlowRuleExtEntry>emptySet());
-                store.batchOperationComplete(FlowRuleBatchExtEvent
-                        .completed(flowrules, result));
-                break;
-            case BATCH_OPERATION_COMPLETED:
-
-                break;
-            default:
-                break;
-            }
-        }
-    }
-
-    /**
-     * Returns the collection of flow entries applied on the specified device.
-     * This will include flow rules which may not yet have been applied to
-     * the device.
-     *
-     * @param deviceId device identifier
-     * @return collection of flow rules
-     */
-    @Override
-    public Iterable<FlowRuleExtEntry> getFlowEntries(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     /**
      * Applies a batch operation of FlowRules.
-     * this batch can be divided into many sub-batch by deviceId, and application
-     * gives a batchId, it means once one flowRule apply failed, all flow rules should
-     * withdraw.
+     * this batch can be divided into many sub-batch by deviceId
      *
      * @param batch batch operation to apply
      * @return future indicating the state of the batch operation
@@ -176,21 +121,21 @@ public class FlowRuleExtManager
     @Override
     public Future<FlowExtCompletedOperation> applyBatch(FlowRuleBatchExtRequest batch) {
         // TODO group the Collection into sub-Collection by deviceId
-        Multimap<DeviceId, FlowRuleExtEntry> perDeviceBatches = ArrayListMultimap
+        Multimap<DeviceId, FlowRuleExt> perDeviceBatches = ArrayListMultimap
                 .create();
         List<Future<FlowExtCompletedOperation>> futures = Lists.newArrayList();
-        Collection<FlowRuleExtEntry> entries = batch.getBatch();
-        for (FlowRuleExtEntry fbe : entries) {
-            perDeviceBatches.put(fbe.getDeviceId(), fbe);
+        Collection<FlowRuleExt> entries = batch.getBatch();
+        for (FlowRuleExt fbe : entries) {
+            perDeviceBatches.put(fbe.deviceId(), fbe);
         }
 
         for (DeviceId deviceId : perDeviceBatches.keySet()) {
-            Collection<FlowRuleExtEntry> flows = perDeviceBatches.get(deviceId);
+            Collection<FlowRuleExt> flows = perDeviceBatches.get(deviceId);
             FlowRuleBatchExtRequest subBatch = new FlowRuleBatchExtRequest(batch.batchId(), flows);
-            Future<FlowExtCompletedOperation> future = store.storeBatch(subBatch);
+            Future<FlowExtCompletedOperation> future = router.applySubBatch(subBatch);
             futures.add(future);
         }
-        return new FlowRuleBatchFuture(batch.batchId(), futures, perDeviceBatches);
+        return new FlowRuleBatchFuture(batch.batchId(), futures);
     }
 
     /**
@@ -215,17 +160,6 @@ public class FlowRuleExtManager
         listenerRegistry.removeListener(listener);
     }
 
-    /**
-     * Get all extended flow entry of device, using for showing in GUI or CLI.
-     *
-     * @param did DeviceId of the device role changed
-     * @return message parsed from byte[] using the specific serializer
-     */
-    @Override
-    public Iterable<?> getExtMessages(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return store.getExtMessages(deviceId);
-    }
 
     @Override
     protected FlowRuleExtProviderService createProviderService(FlowRuleExtProvider provider) {
@@ -233,6 +167,15 @@ public class FlowRuleExtManager
         return new InternalFlowRuleProviderService(provider);
     }
 
+    private class InternalFlowRuleProviderService
+        extends AbstractProviderService<FlowRuleExtProvider>
+        implements FlowRuleExtProviderService {
+
+        protected InternalFlowRuleProviderService(FlowRuleExtProvider provider) {
+                super(provider);
+        }
+}
+    
     /**
      * Batch futures include all flow extension entries in one batch.
      * Using for transaction and will use in next-step.
@@ -241,15 +184,12 @@ public class FlowRuleExtManager
             implements Future<FlowExtCompletedOperation> {
 
         private final List<Future<FlowExtCompletedOperation>> futures;
-        private final Multimap<DeviceId, FlowRuleExtEntry> batches;
         private final int batchId;
         private final AtomicReference<BatchState> state;
         private FlowExtCompletedOperation overall;
 
-        public FlowRuleBatchFuture(int batchId, List<Future<FlowExtCompletedOperation>> futures,
-                                   Multimap<DeviceId, FlowRuleExtEntry> batches) {
+        public FlowRuleBatchFuture(int batchId, List<Future<FlowExtCompletedOperation>> futures) {
             this.futures = futures;
-            this.batches = batches;
             this.batchId = batchId;
             state = new AtomicReference<FlowRuleExtManager.BatchState>();
             state.set(BatchState.STARTED);
@@ -315,7 +255,7 @@ public class FlowRuleExtManager
                 return overall;
             }
             boolean success = true;
-            Set<FlowRuleExtEntry> failed = Sets.newHashSet();
+            Set<FlowRuleExt> failed = Sets.newHashSet();
             FlowExtCompletedOperation completed;
             for (Future<FlowExtCompletedOperation> future : futures) {
                 completed = future.get();
@@ -348,7 +288,7 @@ public class FlowRuleExtManager
                 return overall;
             }
             boolean success = true;
-            Set<FlowRuleExtEntry> failed = Sets.newHashSet();
+            Set<FlowRuleExt> failed = Sets.newHashSet();
             FlowExtCompletedOperation completed;
             for (Future<FlowExtCompletedOperation> future : futures) {
                 completed = future.get(timeout, unit);
@@ -364,7 +304,7 @@ public class FlowRuleExtManager
          * @param completed the result of apply flow extension entries
          * @return {@code true} if all entries applies successful
          */
-        private boolean validateBatchOperation(Set<FlowRuleExtEntry> failed,
+        private boolean validateBatchOperation(Set<FlowRuleExt> failed,
                                                FlowExtCompletedOperation completed) {
 
             if (isCancelled()) {
@@ -397,7 +337,7 @@ public class FlowRuleExtManager
          * @return FlowExtCompletedOperation of batch operation
          */
         private FlowExtCompletedOperation finalizeBatchOperation(boolean success,
-                                                                 Set<FlowRuleExtEntry> failed) {
+                                                                 Set<FlowRuleExt> failed) {
             synchronized (this) {
                 if (!state.compareAndSet(BatchState.STARTED,
                                          BatchState.FINISHED)) {
@@ -418,27 +358,32 @@ public class FlowRuleExtManager
     /**
      * South Bound API to south plug-in.
      */
-    private class InternalFlowRuleProviderService
-            extends AbstractProviderService<FlowRuleExtProvider>
-            implements FlowRuleExtProviderService {
-
-        protected InternalFlowRuleProviderService(FlowRuleExtProvider provider) {
-            super(provider);
+    private class InternalFlowRuleExtouterListener
+            implements FlowRuleExtRouterListener {
+        @Override
+        public void notify(FlowRuleBatchExtEvent event) {
+            // TODO Auto-generated method stub
+         // Request has been forwarded to MASTER Node
+            for (FlowRuleExt entry : event.subject().getBatch()) {
+                eventDispatcher
+                        .post(new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADD_REQUESTED,
+                                                   entry));
+            }
+            // send it
+            FlowRuleExtProvider flowRuleProvider = getProvider(event.subject()
+                    .getBatch().iterator().next().deviceId());
+            flowRuleProvider.applyFlowRule(event.subject());
+            // do not have transaction, assume it install success
+            // temporarily
+            FlowExtCompletedOperation result = new FlowExtCompletedOperation(
+                    event.subject().batchId(), true, Collections.<FlowRuleExt>emptySet());
+            futureService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    router.batchOperationComplete(FlowRuleBatchExtEvent
+                                                  .completed(event.subject(), result));
+                }
+            });
         }
-
-        // TODO Temporarily, we don't have interaction with south provider, but we will
-        // do a lot of work here to support transaction.
-    }
-
-    /**
-     * Register classT and serializer which can decode byte stream to classT object.
-     *
-     * @param classT the class flowEntryExtension can be decoded to.
-     * @param serializer the serializer apps provide using to decode flowEntryExtension
-     */
-    @Override
-    public void registerSerializer(Class<?> classT, Serializer<?> serializer) {
-        // TODO Auto-generated method stub
-        store.registerSerializer(classT, serializer);
     }
 }

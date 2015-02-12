@@ -15,7 +15,7 @@
  */
 
 /**
- * Implementation of the distributed flow extension rule store using p2p synchronization
- * protocol.
+ * Implementation of the distributed flow extension rule router using p2p synchronization
+ * protocol. The Router is the core component of routing flow rules to specified device.
  */
 package org.onosproject.store.flowext.impl;
