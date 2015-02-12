@@ -489,19 +489,16 @@ public class IntentManager
     }
 
     private IntentUpdate createIntentUpdate(IntentData intentData) {
+        IntentData current = store.getIntentData(intentData.key());
         switch (intentData.state()) {
             case INSTALL_REQ:
-                return new InstallRequest(this, intentData);
+                return new InstallRequest(this, intentData, Optional.ofNullable(current));
             case WITHDRAW_REQ:
-                return new WithdrawRequest(this, intentData);
-            // fallthrough
-            case COMPILING:
-            case INSTALLING:
-            case INSTALLED:
-            case RECOMPILING:
-            case WITHDRAWING:
-            case WITHDRAWN:
-            case FAILED:
+                if (current == null) {
+                    return new Withdrawn(current, WITHDRAWN);
+                } else {
+                    return new WithdrawRequest(this, intentData, current);
+                }
             default:
                 // illegal state
                 return new CompilingFailed(intentData);

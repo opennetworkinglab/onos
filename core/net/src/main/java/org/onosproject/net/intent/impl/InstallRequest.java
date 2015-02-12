@@ -27,16 +27,16 @@ class InstallRequest implements IntentUpdate {
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
     private final IntentData pending;
+    private final Optional<IntentData> current;
 
-    InstallRequest(IntentManager intentManager, IntentData intentData) {
+    InstallRequest(IntentManager intentManager, IntentData intentData, Optional<IntentData> current) {
         this.intentManager = checkNotNull(intentManager);
         this.pending = checkNotNull(intentData);
+        this.current = checkNotNull(current);
     }
 
     @Override
     public Optional<IntentUpdate> execute() {
-        //FIXME... store hack
-        IntentData current = intentManager.store.getIntentData(pending.key());
-        return Optional.of(new Compiling(intentManager, pending, current));
+        return Optional.of(new Compiling(intentManager, pending, current.orElse(null)));
     }
 }
