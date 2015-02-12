@@ -281,7 +281,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     providerService.flowRemoved(fr);
                     break;
                 case STATS_REPLY:
-                    if (((OFStatsReply) msg).getStatsType() != OFStatsType.FLOW) {
+                    if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW) {
                         pushFlowMetrics(dpid, (OFFlowStatsReply) msg);
                     }
                     break;
