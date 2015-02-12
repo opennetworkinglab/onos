@@ -19,10 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.rest.BaseResource;
-import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
-import org.slf4j.Logger;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -31,8 +29,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * UI REST resource for interacting with the inventory of infrastructure devices.
@@ -40,87 +38,42 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("device")
 public class DeviceGuiResource extends BaseResource {
 
-    private static final String ICON_ID_ONLINE = "deviceOnline";
-    private static final String ICON_ID_OFFLINE = "deviceOffline";
+    private static final String DEVICES = "devices";
 
-    private static final Logger log = getLogger(DeviceGuiResource.class);
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
     // return list of devices
     @GET
     @Produces("application/json")
     public Response getDevices(
-            @DefaultValue("none") @QueryParam("sortCol") String colId,
-            @DefaultValue("none") @QueryParam("sortDir") String dir
+            @DefaultValue("id") @QueryParam("sortCol") String colId,
+            @DefaultValue("asc") @QueryParam("sortDir") String dir
     ) {
-        ObjectNode rootNode = mapper.createObjectNode();
-        ArrayNode devices = mapper.createArrayNode();
         DeviceService service = get(DeviceService.class);
+        TableRow[] rows = generateTableRows(service);
+        RowComparator rc = new RowComparator(colId, RowComparator.direction(dir));
+        Arrays.sort(rows, rc);
+        ArrayNode devices = generateArrayNode(rows);
+        ObjectNode rootNode = MAPPER.createObjectNode();
+        rootNode.set(DEVICES, devices);
 
-        // if no query parameters were given, get the data in whatever order
-        if (colId.equals("none") || dir.equals("none")) {
-            for (Device dev : service.getDevices()) {
-                devices.add(deviceJson(service, dev));
-            }
-        } else {
-            ArrayList<Device> sortedDevices = new ArrayList<>();
-            for (Device dev : service.getDevices()) {
-                sortedDevices.add(dev);
-            }
-            // now sort the arrayList based on the query parameters
-            // then put each item into the ArrayNode devices
-                // (pass in each device to deviceJson)
-
-            // at this point, the sortedDevices list will be sorted
-            for (Device dev : sortedDevices) {
-                devices.add(deviceJson(service, dev));
-            }
-        }
-
-        rootNode.set("devices", devices);
         return Response.ok(rootNode.toString()).build();
     }
 
-    /**
-     * Returns a JSON node representing the specified device.
-     *
-     * @param device infrastructure device
-     * @return JSON node
-     */
-    private ObjectNode deviceJson(DeviceService service, Device device) {
-        boolean available = service.isAvailable(device.id());
-        // pick the appropriate id for the icon to appear in the table row
-        String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
-
-        ObjectNode result = mapper.createObjectNode();
-        result.put("id", device.id().toString())
-                .put("available", available)
-                .put("_iconid_available", iconId)
-                .put("type", device.type().toString())
-                .put("role", service.getRole(device.id()).toString())
-                .put("mfr", device.manufacturer())
-                .put("hw", device.hwVersion())
-                .put("sw", device.swVersion())
-                .put("serial", device.serialNumber())
-                .set("annotations", annotations(mapper, device.annotations()));
-        return result;
-    }
-
-    /**
-     * Produces a JSON object from the specified key/value annotations.
-     *
-     * @param mapper ObjectMapper to use while converting to JSON
-     * @param annotations key/value annotations
-     * @return JSON object
-     */
-    private static ObjectNode annotations(ObjectMapper mapper, Annotations annotations) {
-        ObjectNode result = mapper.createObjectNode();
-        for (String key : annotations.keys()) {
-            result.put(key, annotations.value(key));
+    private ArrayNode generateArrayNode(TableRow[] rows) {
+        ArrayNode devices = MAPPER.createArrayNode();
+        for (TableRow r : rows) {
+            devices.add(r.toJsonNode());
         }
-        return result;
+        return devices;
     }
 
+    private TableRow[] generateTableRows(DeviceService service) {
+        List<TableRow> list = new ArrayList<>();
+        for (Device dev : service.getDevices()) {
+            list.add(new DeviceTableRow(service, dev));
+        }
+        return list.toArray(new TableRow[list.size()]);
+    }
 }
