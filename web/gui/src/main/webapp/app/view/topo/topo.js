@@ -216,7 +216,6 @@
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
-
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
             'FnService', 'MastService', 'KeyService', 'ZoomService',

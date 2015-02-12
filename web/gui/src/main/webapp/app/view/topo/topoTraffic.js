@@ -199,7 +199,7 @@
     // === MODULE DEFINITION ===
 
     angular.module('ovTopo')
-        .factory('TopoTrafficService',
+    .factory('TopoTrafficService',
         ['$log', 'FnService', 'FlashService',
 
         function (_$log_, _fs_, _flash_) {

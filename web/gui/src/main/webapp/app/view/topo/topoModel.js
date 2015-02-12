@@ -355,7 +355,7 @@
     // Module definition
 
     angular.module('ovTopo')
-        .factory('TopoModelService',
+    .factory('TopoModelService',
         ['$log', 'FnService', 'RandomService',
 
         function (_$log_, _fs_, _rnd_) {

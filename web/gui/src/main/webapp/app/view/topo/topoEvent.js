@@ -19,7 +19,7 @@
 
  Defines the conduit between the client and the server:
     - provides a clean API for sending events to the server
-    - dispatches incoming events from the server to the appropriate submodule
+    - dispatches incoming events from the server to the appropriate sub-module
 
  */
 
@@ -60,34 +60,34 @@
 
     var nilApi = {},
         dispatcher = {
-        handleEvent: function (ev) {
-            var eid = ev.event,
-                api = evApis[eid] || nilApi,
-                eh = api[eid];
+            handleEvent: function (ev) {
+                var eid = ev.event,
+                    api = evApis[eid] || nilApi,
+                    eh = api[eid];
 
-            if (eh) {
-                $log.debug(' << *Rx* ', eid, ev.payload);
-                eh(ev.payload);
-            } else {
-                $log.warn('Unknown event (ignored):', ev);
-            }
-        },
+                if (eh) {
+                    $log.debug(' << *Rx* ', eid, ev.payload);
+                    eh(ev.payload);
+                } else {
+                    $log.warn('Unknown event (ignored):', ev);
+                }
+            },
 
-        sendEvent: function (evType, payload) {
-            if (wsock) {
-                $log.debug(' *Tx* >> ', evType, payload);
-                wes.sendEvent(wsock, evType, payload);
-            } else {
-                $log.warn('sendEvent: no websocket open:', evType, payload);
+            sendEvent: function (evType, payload) {
+                if (wsock) {
+                    $log.debug(' *Tx* >> ', evType, payload);
+                    wes.sendEvent(wsock, evType, payload);
+                } else {
+                    $log.warn('sendEvent: no websocket open:', evType, payload);
+                }
             }
-        }
-    };
+        };
 
     // ===  Web Socket functions ===
 
     function onWsOpen() {
         $log.debug('web socket opened...');
-        // kick off request for periodic summary data...
+        // start by requesting periodic summary data...
         dispatcher.sendEvent('requestSummary');
     }
 

@@ -244,7 +244,7 @@
     // === MODULE DEFINITION ===
 
     angular.module('ovTopo')
-        .factory('TopoSelectService',
+    .factory('TopoSelectService',
         ['$log', 'FnService', 'FlashService', 'TopoPanelService',
             'TopoTrafficService',
 
