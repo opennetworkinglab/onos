@@ -35,7 +35,7 @@ public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleE
     /**
      * Returns the BatchId of this BatchOperation.
      * @return the number of Batch
-     */    
+     */
     public int getBatchId() {
         return batchId;
     }
@@ -51,7 +51,7 @@ public class FlowExtCompletedOperation implements BatchOperationResult<FlowRuleE
 
     /**
      * Returns a string representation of the object.
-     * 
+     *
      * @return  a string representation of the object.
      */
     @Override

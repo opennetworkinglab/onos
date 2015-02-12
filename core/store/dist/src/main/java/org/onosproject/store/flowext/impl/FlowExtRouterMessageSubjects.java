@@ -24,7 +24,7 @@ public final class FlowExtRouterMessageSubjects {
     private FlowExtRouterMessageSubjects() {}
 
     /**
-     * The subject of routing extended flow to specified device
+     * The subject of routing extended flow to specified device.
      */
     public static final  MessageSubject APPLY_EXTEND_FLOWS
     = new MessageSubject("peer-forward-apply-batch-extension");

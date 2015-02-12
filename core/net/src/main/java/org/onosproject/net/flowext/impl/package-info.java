@@ -16,9 +16,9 @@
 
 /**
  * Core subsystem for tracking and manipulating global extended flow state.
- * This module is still under development, this module is used for external 
+ * This module is still under development, this module is used for external
  * application to generate openflow flowrule extension and use onos to route
- * the packet to device by deviceId. If we want to use these api, we should write an agent
+ * the flow rule extension to device by deviceId. If we want to use these api, we should write an agent
  * on app layer to receive packet and parse common structure as an abstraction.
  */
 package org.onosproject.net.flowext.impl;

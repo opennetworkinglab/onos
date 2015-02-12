@@ -36,7 +36,7 @@ public class FlowRuleBatchExtRequest {
     /**
      * Get the Set of this BatchOperation.
      * @return the set of Batch
-     */  
+     */
     public Collection<FlowRuleExt> getBatch() {
         return toAdd;
     }
@@ -44,7 +44,7 @@ public class FlowRuleBatchExtRequest {
     /**
      * Returns the BatchId of this BatchOperation.
      * @return the number of Batch
-     */  
+     */
     public int batchId() {
         return batchId;
     }

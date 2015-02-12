@@ -11,7 +11,7 @@ public interface FlowEntryExtension {
 
     /**
      * Get the payload of flowExtension.
-     * 
+     *
      * @return  the byte steam value of payload.
      */
     ByteBuffer getPayload();

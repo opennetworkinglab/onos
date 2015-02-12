@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.AbstractEventTest;
 import org.onosproject.net.DeviceId;
 
@@ -20,10 +21,10 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         String deviceId2 = "of:234567";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
         ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
-        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
-        FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId2), new DownStreamFlowEntry(buffer2), null);
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                     DeviceId.deviceId(deviceId1), new DownStreamFlowEntry(buffer1));
+        FlowRuleExt entry2 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                     DeviceId.deviceId(deviceId2), new DownStreamFlowEntry(buffer2));
         final long time = 123L;
         final FlowRuleExtEvent event1 =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_ADDED, entry1, time);
@@ -50,8 +51,8 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         final long time = 123L;
         String deviceId1 = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
-        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                      DeviceId.deviceId(deviceId1), new DownStreamFlowEntry(buffer1));
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, entry1, time);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_REMOVE_REQUESTED, entry1, time);
@@ -65,8 +66,8 @@ public class FlowRuleExtEventTest extends AbstractEventTest {
         final long time = System.currentTimeMillis();
         String deviceId1 = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
-        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                      DeviceId.deviceId(deviceId1), new DownStreamFlowEntry(buffer1));
         final FlowRuleExtEvent event =
                 new FlowRuleExtEvent(FlowRuleExtEvent.Type.RULE_UPDATED, entry1);
         validateEvent(event, FlowRuleExtEvent.Type.RULE_UPDATED, entry1, time,

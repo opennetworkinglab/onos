@@ -16,8 +16,6 @@
 package org.onosproject.net.flowext.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +37,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flowext.DefaultFlowRuleExt;
-import org.onosproject.net.flowext.DownStreamPacket;
+import org.onosproject.net.flowext.DownStreamFlowEntry;
 import org.onosproject.net.flowext.FlowRuleBatchExtRequest;
 import org.onosproject.net.flowext.FlowRuleExt;
 import org.onosproject.net.flowext.FlowRuleExtEvent;
@@ -70,8 +68,8 @@ public class FlowRuleExtManagerTest {
         mgr = new FlowRuleExtManager();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.deviceService = new TestDeviceService();
+        mgr.router = new TestFlowRuleExtRouter();
         service = mgr;
-
         mgr.activate();
         mgr.addListener(listener);
     }
@@ -89,16 +87,16 @@ public class FlowRuleExtManagerTest {
 
         String deviceId1 = "of:123456";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
-        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                      .deviceId(deviceId1), new DownStreamPacket(buffer1), null);
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                                      DeviceId.deviceId(deviceId1), new DownStreamFlowEntry(buffer1));
         String deviceId2 = "of:234567";
         ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
-        FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
-                      .deviceId(deviceId2), new DownStreamPacket(buffer2), null);
+        FlowRuleExt entry2 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                                     DeviceId.deviceId(deviceId2), new DownStreamFlowEntry(buffer2));
         String deviceId3 = "of:345678";
         ByteBuffer buffer3 = ByteBuffer.wrap(deviceId2.getBytes());
-        FlowRuleExt entry3 = new DefaultFlowRuleExt(DeviceId
-                      .deviceId(deviceId3), new DownStreamPacket(buffer3), null);
+        FlowRuleExt entry3 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                                     DeviceId.deviceId(deviceId3), new DownStreamFlowEntry(buffer3));
 
         Collection<FlowRuleExt> batchOperation = new ArrayList<FlowRuleExt>();
         batchOperation.add(entry1);

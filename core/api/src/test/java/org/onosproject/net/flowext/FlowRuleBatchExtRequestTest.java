@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.Test;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -23,10 +24,10 @@ public class FlowRuleBatchExtRequestTest {
         String deviceId2 = "of:234567";
         ByteBuffer buffer1 = ByteBuffer.wrap(deviceId1.getBytes());
         ByteBuffer buffer2 = ByteBuffer.wrap(deviceId2.getBytes());
-        FlowRuleExt entry1 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId1), new DownStreamFlowEntry(buffer1), null);
-        FlowRuleExt entry2 = new DefaultFlowRuleExt(DeviceId
-                     .deviceId(deviceId2), new DownStreamFlowEntry(buffer2), null);
+        FlowRuleExt entry1 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                     DeviceId.deviceId(deviceId1), new DownStreamFlowEntry(buffer1));
+        FlowRuleExt entry2 = new DefaultFlowRuleExt(new DefaultApplicationId((short) 0, "test"),
+                     DeviceId.deviceId(deviceId2), new DownStreamFlowEntry(buffer2));
         Collection<FlowRuleExt> toAdd = new ArrayList<FlowRuleExt>();
         toAdd.add(entry1);
         toAdd.add(entry2);
