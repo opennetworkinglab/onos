@@ -45,13 +45,18 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALLING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of Intents in a distributed data store that uses optimistic
  * replication and gossip based techniques.
  */
-@Component(immediate = false, enabled = false)
+@Component(immediate = false, enabled = true)
 @Service
 public class GossipIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
@@ -144,17 +149,104 @@ public class GossipIntentStore
         return null;
     }
 
+    private IntentData copyData(IntentData original) {
+        if (original == null) {
+            return null;
+        }
+        IntentData result =
+                new IntentData(original.intent(), original.state(), original.version());
+
+        if (original.installables() != null) {
+            result.setInstallables(original.installables());
+        }
+        return result;
+    }
+
+    /**
+     * TODO.
+     * @param currentData
+     * @param newData
+     * @return
+     */
+    private boolean isUpdateAcceptable(IntentData currentData, IntentData newData) {
+
+        if (currentData == null) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) < 0) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) > 0) {
+            return false;
+        }
+
+        // current and new data versions are the same
+        IntentState currentState = currentData.state();
+        IntentState newState = newData.state();
+
+        switch (newState) {
+        case INSTALLING:
+            if (currentState == INSTALLING) {
+                return false;
+            }
+            // FALLTHROUGH
+        case INSTALLED:
+            if (currentState == INSTALLED) {
+                return false;
+            } else if (currentState == WITHDRAWING || currentState == WITHDRAWN) {
+                log.warn("Invalid state transition from {} to {} for intent {}",
+                         currentState, newState, newData.key());
+                return false;
+            }
+            return true;
+
+        case WITHDRAWING:
+            if (currentState == WITHDRAWING) {
+                return false;
+            }
+            // FALLTHROUGH
+        case WITHDRAWN:
+            if (currentState == WITHDRAWN) {
+                return false;
+            } else if (currentState == INSTALLING || currentState == INSTALLED) {
+                log.warn("Invalid state transition from {} to {} for intent {}",
+                         currentState, newState, newData.key());
+                return false;
+            }
+            return true;
+
+
+        case FAILED:
+            if (currentState == FAILED) {
+                return false;
+            }
+            return true;
+
+
+        case COMPILING:
+        case RECOMPILING:
+        case INSTALL_REQ:
+        case WITHDRAW_REQ:
+        default:
+            log.warn("Invalid state {} for intent {}", newState, newData.key());
+            return false;
+        }
+    }
+
     @Override
     public void write(IntentData newData) {
-        log.debug("writing intent {}", newData);
+        //log.debug("writing intent {}", newData);
 
-        // Only the master is modifying the current state. Therefore assume
-        // this always succeeds
-        currentState.put(newData.key(), newData);
+        IntentData currentData = currentState.get(newData.key());
 
-        // if current.put succeeded
-        pending.remove(newData.key(), newData);
+        if (isUpdateAcceptable(currentData, newData)) {
+            // Only the master is modifying the current state. Therefore assume
+            // this always succeeds
+            currentState.put(newData.key(), copyData(newData));
 
+            // if current.put succeeded
+            pending.remove(newData.key(), newData);
+        } else {
+            log.debug("not writing update: {}", newData);
+        }
         /*try {
             notifyDelegate(IntentEvent.getEvent(newData));
         } catch (IllegalArgumentException e) {
@@ -179,7 +271,7 @@ public class GossipIntentStore
 
     @Override
     public IntentData getIntentData(Key key) {
-        return currentState.get(key);
+        return copyData(currentState.get(key));
     }
 
     @Override
@@ -189,7 +281,7 @@ public class GossipIntentStore
             log.debug("updating timestamp");
             data.setVersion(new SystemClockTimestamp());
         }
-        pending.put(data.key(), data);
+        pending.put(data.key(), copyData(data));
     }
 
     @Override
@@ -234,7 +326,7 @@ public class GossipIntentStore
                 // some work.
                 if (isMaster(event.value().intent())) {
                     if (delegate != null) {
-                        delegate.process(event.value());
+                        delegate.process(copyData(event.value()));
                     }
                 }
 

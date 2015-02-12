@@ -242,11 +242,13 @@ public class EventuallyConsistentMapImpl<K, V>
         synchronized (this) {
             Timestamp removed = removedItems.get(key);
             if (removed != null && removed.compareTo(timestamp) > 0) {
+                log.debug("ecmap - removed was newer {}", value);
                 return false;
             }
 
             Timestamped<V> existing = items.get(key);
             if (existing != null && existing.isNewer(timestamp)) {
+                log.debug("ecmap - existing was newer {}", value);
                 return false;
             } else {
                 items.put(key, new Timestamped<>(value, timestamp));

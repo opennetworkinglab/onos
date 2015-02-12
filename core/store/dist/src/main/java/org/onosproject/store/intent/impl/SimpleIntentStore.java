@@ -43,7 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 //TODO Note: this store will be removed once the GossipIntentStore is stable
 
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 //FIXME remove this
 public class SimpleIntentStore
