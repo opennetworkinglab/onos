@@ -25,10 +25,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-app-routing</artifactId>
+    <artifactId>onos-app-bgprouter</artifactId>
 
     <packaging>bundle</packaging>
-    <description>Libraries for routing applications</description>
+    <description>BGP router application</description>
 
     <dependencies>
         <dependency>
@@ -43,12 +43,6 @@
             <version>${project.version}</version>
         </dependency>
 
-	    <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-thirdparty</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -60,27 +54,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.karaf.shell</groupId>
-            <artifactId>org.apache.karaf.shell.console</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
-
 </project>

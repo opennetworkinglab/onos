@@ -47,6 +47,7 @@
         <module>election</module>
         <module>routing</module>
         <module>routing-api</module>
+        <module>bgprouter</module>
     </modules>
 
     <properties>
