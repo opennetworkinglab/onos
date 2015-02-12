@@ -15,14 +15,13 @@
  */
 package org.onosproject.cli.net;
 
-import com.google.common.collect.ArrayListMultimap;
-
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -35,13 +34,12 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentEvent.Type;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.MacAddress;
 
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -66,21 +64,15 @@ public class IntentPushTestCommand extends AbstractShellCommand
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-
-    @Argument(index = 2, name = "IntentsPerAppId",
-            description = "Number of intents per appId",
+    @Argument(index = 2, name = "numberOfIntents",
+            description = "Number of intents to install/withdraw",
             required = true, multiValued = false)
-    String intentsPerAppId = null;
+    String numberOfIntents = null;
 
-    @Argument(index = 3, name = "apps",
-            description = "Number of appIds",
+    @Argument(index = 3, name = "keyOffset",
+            description = "Starting point for first key (default: 1)",
             required = false, multiValued = false)
-    String appIds = null;
-
-    @Argument(index = 4, name = "appIdBase",
-            description = "Base Value for Application IDs",
-            required = false, multiValued = false)
-    String appIdBaseStr = null;
+    String keyOffsetStr = null;
 
     @Option(name = "-i", aliases = "--install",
             description = "Install intents",
@@ -95,12 +87,9 @@ public class IntentPushTestCommand extends AbstractShellCommand
     private IntentService service;
     private CountDownLatch latch;
     private volatile long start, end;
-    private int apps;
-    private int intentsPerApp;
-    private int appIdBase;
     private int count;
+    private int keyOffset;
     private boolean add;
-    private final Set<ApplicationId> myAppIds = new HashSet<>();
 
     @Override
     protected void execute() {
@@ -115,64 +104,55 @@ public class IntentPushTestCommand extends AbstractShellCommand
         PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
-        apps = appIds != null ? Integer.parseInt(appIds) : 1;
-        intentsPerApp = Integer.parseInt(intentsPerAppId);
-        appIdBase = appIdBaseStr != null ? Integer.parseInt(appIdBaseStr) : 1;
-
-        count = intentsPerApp * apps;
+        count = Integer.parseInt(numberOfIntents);
+        keyOffset = (keyOffsetStr != null) ? Integer.parseInt(keyOffsetStr) : 1;
 
         service.addListener(this);
 
-        ArrayListMultimap<Integer, Intent> operations = generateIntents(ingress, egress);
+        List<Intent> operations = generateIntents(ingress, egress);
 
         boolean both = !(installOnly ^ withdrawOnly);
 
         if (installOnly || both) {
             add = true;
-            latch = new CountDownLatch(count);
             submitIntents(operations);
         }
 
         if (withdrawOnly || both) {
-            if (withdrawOnly && !both) {
-                print("This should fail for now...");
-            }
             add = false;
-            latch = new CountDownLatch(count);
             submitIntents(operations);
         }
 
         service.removeListener(this);
     }
 
-    private ArrayListMultimap<Integer, Intent> generateIntents(ConnectPoint ingress, ConnectPoint egress) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
+    private List<Intent> generateIntents(ConnectPoint ingress, ConnectPoint egress) {
+        TrafficSelector.Builder selectorBldr = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
-        ArrayListMultimap<Integer, Intent> intents = ArrayListMultimap.create();
-        for (int app = 0; app < apps; app++) {
-            for (int i = 1; i <= intentsPerApp; i++) {
-                TrafficSelector s = selector
-                        .matchEthSrc(MacAddress.valueOf(i + (app + appIdBase) * intentsPerApp))
-                        .build();
-                intents.put(app, new PointToPointIntent(appId(app), s, treatment,
-                                                        ingress, egress));
+        List<Intent> intents = Lists.newArrayList();
+        for (int i = 0; i < count; i++) {
+            TrafficSelector selector = selectorBldr
+                    .matchEthSrc(MacAddress.valueOf(i + keyOffset))
+                    .build();
+            intents.add(new PointToPointIntent(appId(), Key.of(i + keyOffset, appId()),
+                                               selector, treatment,
+                                               ingress, egress,
+                                               Collections.emptyList()));
 
-            }
         }
         return intents;
     }
 
-    private void submitIntents(ArrayListMultimap<Integer, Intent> intents) {
+    private void submitIntents(List<Intent> intents) {
+        latch = new CountDownLatch(count);
         start = System.currentTimeMillis();
-        for (Integer app : intents.keySet()) {
-            for (Intent intent : intents.get(app)) {
-                if (add) {
-                    service.submit(intent);
-                } else {
-                    service.withdraw(intent);
-                }
+        for (Intent intent : intents) {
+            if (add) {
+                service.submit(intent);
+            } else {
+                service.withdraw(intent);
             }
         }
 
@@ -191,21 +171,6 @@ public class IntentPushTestCommand extends AbstractShellCommand
         long delta = end - start;
         String text = add ? "install" : "withdraw";
         print("Time to %s %d intents: %d ms", text, count, delta);
-    }
-
-
-    /**
-     * Returns application ID for the CLI.
-     *
-     * @param id application id
-     * @return command-line application identifier
-     */
-    protected ApplicationId appId(Integer id) {
-        ApplicationId appId = get(CoreService.class)
-                                .registerApplication("org.onosproject.cli-"
-                                                     + (id + appIdBase));
-        myAppIds.add(appId);
-        return appId;
     }
 
     /**
@@ -240,7 +205,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
             = EnumSet.of(Type.INSTALL_REQ, Type.WITHDRAW_REQ);
     @Override
     public synchronized void event(IntentEvent event) {
-        if (!myAppIds.contains(event.subject().appId())) {
+        if (!appId().equals(event.subject().appId())) {
             // not my event, ignore
             return;
         }
