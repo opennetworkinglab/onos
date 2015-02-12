@@ -17,21 +17,17 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.intent.IntentData;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.FAILED;
+/**
+ * Represent a phase where the install has failed.
+ */
+class InstallingFailed extends AbstractFailed {
 
-class InstallingFailed extends CompletedIntentUpdate {
-
-    private final IntentData intentData;
-
+    /**
+     * Create an instance with the specified data.
+     *
+     * @param intentData intentData
+     */
     InstallingFailed(IntentData intentData) {
-        this.intentData = checkNotNull(intentData);
-        this.intentData.setState(FAILED); //FIXME maybe should be "BROKEN"
-        //TODO consider adding the flow rule operations here
-    }
-
-    @Override
-    public IntentData data() {
-        return intentData;
+        super(intentData);
     }
 }

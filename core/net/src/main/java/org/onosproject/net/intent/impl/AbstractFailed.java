@@ -17,17 +17,29 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.intent.IntentData;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.FAILED;
+
 /**
- * Represents a phase where the compile has failed.
+ * A common parent class of a class representing failure
+ * as IntentUpdate subclass.
  */
-class CompilingFailed extends AbstractFailed {
+abstract class AbstractFailed extends CompletedIntentUpdate {
+
+    private final IntentData intentData;
 
     /**
      * Create an instance with the specified data.
      *
      * @param intentData intentData
      */
-    CompilingFailed(IntentData intentData) {
-        super(intentData);
+    AbstractFailed(IntentData intentData) {
+        this.intentData = checkNotNull(intentData);
+        this.intentData.setState(FAILED);
+    }
+
+    @Override
+    public IntentData data() {
+        return intentData;
     }
 }

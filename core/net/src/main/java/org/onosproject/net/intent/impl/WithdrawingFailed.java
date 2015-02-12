@@ -18,16 +18,16 @@ package org.onosproject.net.intent.impl;
 import org.onosproject.net.intent.IntentData;
 
 /**
- * Represents a phase where the compile has failed.
+ * Represents a phase where the withdraw has failed.
  */
-class CompilingFailed extends AbstractFailed {
+class WithdrawingFailed extends AbstractFailed {
 
     /**
      * Create an instance with the specified data.
      *
      * @param intentData intentData
      */
-    CompilingFailed(IntentData intentData) {
+    WithdrawingFailed(IntentData intentData) {
         super(intentData);
     }
 }

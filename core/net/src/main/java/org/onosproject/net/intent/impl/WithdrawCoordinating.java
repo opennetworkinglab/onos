@@ -17,6 +17,9 @@ package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -27,6 +30,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * with using registered intent installers.
  */
 class WithdrawCoordinating implements IntentUpdate {
+
+    private static final Logger log = LoggerFactory.getLogger(WithdrawCoordinating.class);
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
@@ -41,8 +46,13 @@ class WithdrawCoordinating implements IntentUpdate {
 
     @Override
     public Optional<IntentUpdate> execute() {
-        FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current, pending);
-        pending.setInstallables(current.installables());
-        return Optional.of(new Withdrawing(intentManager, pending, flowRules));
+        try {
+            FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current, pending);
+            pending.setInstallables(current.installables());
+            return Optional.of(new Withdrawing(intentManager, pending, flowRules));
+        } catch (IntentException e) {
+            log.warn("Unable to generate generate a FlowRuleOperations from intent {} due to:", pending.intent(), e);
+            return Optional.of(new WithdrawingFailed(pending));
+        }
     }
 }
