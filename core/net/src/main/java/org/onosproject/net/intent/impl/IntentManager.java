@@ -89,7 +89,6 @@ public class IntentManager
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
 
-
     // Collections for compiler, installer, and listener are ONOS instance local
     private final ConcurrentMap<Class<? extends Intent>,
             IntentCompiler<? extends Intent>> compilers = new ConcurrentHashMap<>();
@@ -151,7 +150,6 @@ public class IntentManager
     public void submit(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
         IntentData data = new IntentData(intent, IntentState.INSTALL_REQ, null);
-        //FIXME timestamp?
         store.addPending(data);
     }
 
@@ -159,7 +157,6 @@ public class IntentManager
     public void withdraw(Intent intent) {
         checkNotNull(intent, INTENT_NULL);
         IntentData data = new IntentData(intent, IntentState.WITHDRAW_REQ, null);
-        //FIXME timestamp?
         store.addPending(data);
     }
 
@@ -290,12 +287,11 @@ public class IntentManager
         List<List<FlowRuleBatchOperation>> plans = new ArrayList<>(installables.size());
         for (Intent installable : installables) {
             registerSubclassInstallerIfNeeded(installable);
-            //FIXME need to migrate installers to FlowRuleOperations
-            // FIXME need to aggregate the FlowRuleOperations across installables
+            //TODO consider migrating installers to FlowRuleOperations
             plans.add(getInstaller(installable).install(installable));
         }
 
-        return merge(plans).build(new FlowRuleOperationsContext() { // FIXME move this out
+        return merge(plans).build(new FlowRuleOperationsContext() { // TODO move this out
             @Override
             public void onSuccess(FlowRuleOperations ops) {
                 log.info("Completed installing: {}", pending.key());
@@ -307,7 +303,7 @@ public class IntentManager
             public void onError(FlowRuleOperations ops) {
                 log.warn("Failed installation: {} {} on {}", pending.key(),
                          pending.intent(), ops);
-                //FIXME store.write(pending.setState(BROKEN));
+                //TODO store.write(pending.setState(BROKEN));
                 pending.setState(FAILED);
                 store.write(pending);
             }
@@ -346,7 +342,7 @@ public class IntentManager
     }
 
 
-    // FIXME... needs tests... or maybe it's just perfect
+    // TODO needs tests... or maybe it's just perfect
     private FlowRuleOperations.Builder merge(List<List<FlowRuleBatchOperation>> plans) {
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         // Build a batch one stage at a time
@@ -622,166 +618,4 @@ public class IntentManager
             // TODO ensure that only one batch is in flight at a time
         }
     }
-
-//    /////////**************************///////////////////
-//    FIXME Need to build and monitor contexts from FlowRuleService
-//
-//    // TODO: better naming
-//    private class IntentBatchApplyFirst extends IntentBatchPreprocess {
-//
-//        protected final List<CompletedIntentUpdate> intentUpdates;
-//        protected final int installAttempt;
-//        protected Future<CompletedBatchOperation> future;
-//
-//        IntentBatchApplyFirst(Collection<IntentData> operations, List<CompletedIntentUpdate> intentUpdates,
-//                              long endTime, int installAttempt, Future<CompletedBatchOperation> future) {
-//            super(operations, endTime);
-//            this.intentUpdates = ImmutableList.copyOf(intentUpdates);
-//            this.future = future;
-//            this.installAttempt = installAttempt;
-//        }
-//
-//        @Override
-//        public void run() {
-//            Future<CompletedBatchOperation> future = applyNextBatch(intentUpdates);
-//            new IntentBatchProcessFutures(data, intentUpdates, endTime, installAttempt, future).run();
-//        }
-//
-//        /**
-//         * Builds and applies the next batch, and returns the future.
-//         *
-//         * @return Future for next batch
-//         */
-//        protected Future<CompletedBatchOperation> applyNextBatch(List<CompletedIntentUpdate> updates) {
-//            //TODO test this. (also, maybe save this batch)
-//
-//            FlowRuleBatchOperation batch = createFlowRuleBatchOperation(updates);
-//            if (batch.size() > 0) {
-//                //FIXME apply batch might throw an exception
-//                return flowRuleService.applyBatch(batch);
-//            } else {
-//                return null;
-//            }
-//        }
-//
-//        private FlowRuleBatchOperation createFlowRuleBatchOperation(List<CompletedIntentUpdate> intentUpdates) {
-//            FlowRuleBatchOperation batch = new FlowRuleBatchOperation(Collections.emptyList(), null, 0);
-//            for (CompletedIntentUpdate update : intentUpdates) {
-//                FlowRuleBatchOperation currentBatch = update.currentBatch();
-//                if (currentBatch != null) {
-//                    batch.addAll(currentBatch);
-//                }
-//            }
-//            return batch;
-//        }
-//
-//        protected void abandonShip() {
-//            // the batch has failed
-//            // TODO: maybe we should do more?
-//            log.error("Walk the plank, matey...");
-//            future = null;
-//            //FIXME
-//            //batchService.removeIntentOperations(data);
-//        }
-//    }
-//
-//    // TODO: better naming
-//    private class IntentBatchProcessFutures extends IntentBatchApplyFirst {
-//
-//        IntentBatchProcessFutures(Collection<IntentData> operations, List<CompletedIntentUpdate> intentUpdates,
-//                                  long endTime, int installAttempt, Future<CompletedBatchOperation> future) {
-//            super(operations, intentUpdates, endTime, installAttempt, future);
-//        }
-//
-//        @Override
-//        public void run() {
-//            try {
-//                Future<CompletedBatchOperation> future = processFutures();
-//                if (future == null) {
-//                    // there are no outstanding batches; we are done
-//                    //FIXME
-//                    return; //?
-//                    //batchService.removeIntentOperations(data);
-//                } else if (System.currentTimeMillis() > endTime) {
-//                    // - cancel current FlowRuleBatch and resubmit again
-//                    retry();
-//                } else {
-//                    // we are not done yet, yield the thread by resubmitting ourselves
-//                    batchExecutor.submit(new IntentBatchProcessFutures(data, intentUpdates, endTime,
-//                            installAttempt, future));
-//                }
-//            } catch (Exception e) {
-//                log.error("Error submitting batches:", e);
-//                // FIXME incomplete Intents should be cleaned up
-//                //       (transition to FAILED, etc.)
-//                abandonShip();
-//            }
-//        }
-//
-//        /**
-//         * Iterate through the pending futures, and remove them when they have completed.
-//         */
-//        private Future<CompletedBatchOperation> processFutures() {
-//            try {
-//                CompletedBatchOperation completed = future.get(100, TimeUnit.NANOSECONDS);
-//                updateBatches(completed);
-//                return applyNextBatch(intentUpdates);
-//            } catch (TimeoutException | InterruptedException te) {
-//                log.trace("Installation of intents are still pending: {}", data);
-//                return future;
-//            } catch (ExecutionException e) {
-//                log.warn("Execution of batch failed: {}", data, e);
-//                abandonShip();
-//                return future;
-//            }
-//        }
-//
-//        private void updateBatches(CompletedBatchOperation completed) {
-//            if (completed.isSuccess()) {
-//                for (CompletedIntentUpdate update : intentUpdates) {
-//                    update.batchSuccess();
-//                }
-//            } else {
-//                // entire batch has been reverted...
-//                log.debug("Failed items: {}", completed.failedItems());
-//                log.debug("Failed ids: {}",  completed.failedIds());
-//
-//                for (Long id : completed.failedIds()) {
-//                    IntentId targetId = IntentId.valueOf(id);
-//                    for (CompletedIntentUpdate update : intentUpdates) {
-//                        for (Intent intent : update.allInstallables()) {
-//                            if (intent.id().equals(targetId)) {
-//                                update.batchFailed();
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    // don't increment the non-failed items, as they have been reverted.
-//                }
-//            }
-//        }
-//
-//        private void retry() {
-//            log.debug("Execution timed out, retrying.");
-//            if (future.cancel(true)) { // cancel success; batch is reverted
-//                // reset the timer
-//                long timeLimit = calculateTimeoutLimit();
-//                int attempts = installAttempt + 1;
-//                if (attempts == MAX_ATTEMPTS) {
-//                    log.warn("Install request timed out: {}", data);
-//                    for (CompletedIntentUpdate update : intentUpdates) {
-//                        update.batchFailed();
-//                    }
-//                } else if (attempts > MAX_ATTEMPTS) {
-//                    abandonShip();
-//                    return;
-//                }
-//                Future<CompletedBatchOperation> future = applyNextBatch(intentUpdates);
-//                batchExecutor.submit(new IntentBatchProcessFutures(data, intentUpdates, timeLimit, attempts, future));
-//            } else {
-//                log.error("Cancelling FlowRuleBatch failed.");
-//                abandonShip();
-//            }
-//        }
-//    }
 }
