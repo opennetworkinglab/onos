@@ -9,6 +9,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Versioned;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -112,7 +116,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
         return CompletableFuture.allOf(partitions
                     .values()
                     .stream()
-                    .map(p -> p.values(tableName))
+                    .map(p -> p.values(tableName).thenApply(values::addAll))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> values);
     }

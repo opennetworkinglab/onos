@@ -22,7 +22,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
-import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Sets;
@@ -32,7 +34,7 @@ import com.google.common.collect.Sets;
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class DatabaseManager implements DatabaseService {
+public class DatabaseManager implements StorageService {
 
     private final Logger log = getLogger(getClass());
     private PartitionedDatabase partitionedDatabase;
@@ -44,7 +46,7 @@ public class DatabaseManager implements DatabaseService {
     protected ClusterService clusterService;
 
     protected String nodeToUri(ControllerNode node) {
-        return "tcp://" + node.ip() + ":" + COPYCAT_TCP_PORT;
+        return String.format("tcp://%s:%d", node.ip(), COPYCAT_TCP_PORT);
     }
 
     @Activate
@@ -76,7 +78,17 @@ public class DatabaseManager implements DatabaseService {
         String localNodeUri = nodeToUri(clusterService.getLocalNode());
 
         ClusterConfig clusterConfig = new ClusterConfig()
-            .withProtocol(new NettyTcpProtocol())
+            .withProtocol(new NettyTcpProtocol()
+                    .withSsl(false)
+                    .withConnectTimeout(60000)
+                    .withAcceptBacklog(1024)
+                    .withTrafficClass(-1)
+                    .withSoLinger(-1)
+                    .withReceiveBufferSize(32768)
+                    .withSendBufferSize(8192)
+                    .withThreads(1))
+            .withElectionTimeout(300)
+            .withHeartbeatInterval(150)
             .withMembers(activeNodeUris)
             .withLocalMember(localNodeUri);
 
@@ -85,8 +97,15 @@ public class DatabaseManager implements DatabaseService {
         partitionMap.forEach((name, nodes) -> {
             Set<String> replicas = nodes.stream().map(this::nodeToUri).collect(Collectors.toSet());
             DatabaseConfig partitionConfig = new DatabaseConfig()
+                            .withElectionTimeout(300)
+                            .withHeartbeatInterval(150)
                             .withConsistency(Consistency.STRONG)
-                            .withLog(new FileLog(logDir))
+                            .withLog(new FileLog()
+                                    .withDirectory(logDir)
+                                    .withSegmentSize(1073741824) // 1GB
+                                    .withFlushOnWrite(true)
+                                    .withSegmentInterval(Long.MAX_VALUE))
+                            .withDefaultSerializer(new DatabaseSerializer())
                             .withReplicas(replicas);
             databaseConfig.addPartition(name, partitionConfig);
         });
@@ -116,7 +135,7 @@ public class DatabaseManager implements DatabaseService {
     }
 
     @Override
-    public <K, V> ConsistentMap<K , V> createConsistentMap(String name, StoreSerializer serializer) {
+    public <K, V> ConsistentMap<K , V> createConsistentMap(String name, Serializer serializer) {
         return new ConsistentMapImpl<K, V>(name, partitionedDatabase, serializer);
     }
 }

@@ -1,4 +1,4 @@
-package org.onosproject.store.consistent.impl;
+package org.onosproject.store.service;
 
 import com.google.common.base.MoreObjects;
 

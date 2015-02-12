@@ -1,4 +1,4 @@
-package org.onosproject.store.consistent.impl;
+package org.onosproject.store.service;
 
 import java.util.Collection;
 import java.util.List;

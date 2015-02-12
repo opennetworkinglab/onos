@@ -6,7 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Versioned;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import net.kuujo.copycat.state.Initializer;
 import net.kuujo.copycat.state.StateContext;
@@ -88,17 +96,21 @@ public class DefaultDatabaseState<K, V> implements DatabaseState<K, V> {
 
     @Override
     public Set<K> keySet(String tableName) {
-        return getTableMap(tableName).keySet();
+        return ImmutableSet.copyOf(getTableMap(tableName).keySet());
     }
 
     @Override
     public Collection<Versioned<V>> values(String tableName) {
-        return getTableMap(tableName).values();
+        return ImmutableList.copyOf(getTableMap(tableName).values());
     }
 
     @Override
     public Set<Entry<K, Versioned<V>>> entrySet(String tableName) {
-        return getTableMap(tableName).entrySet();
+        return ImmutableSet.copyOf(getTableMap(tableName)
+                .entrySet()
+                .stream()
+                .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toSet()));
     }
 
     @Override
@@ -110,7 +122,7 @@ public class DefaultDatabaseState<K, V> implements DatabaseState<K, V> {
     @Override
     public boolean remove(String tableName, K key, V value) {
         Versioned<V> existing = getTableMap(tableName).get(key);
-        if (existing != null && existing.value().equals(value)) {
+        if (existing != null && checkEquality(existing.value(), value)) {
             getTableMap(tableName).remove(key);
             return true;
         }
@@ -130,7 +142,7 @@ public class DefaultDatabaseState<K, V> implements DatabaseState<K, V> {
     @Override
     public boolean replace(String tableName, K key, V oldValue, V newValue) {
         Versioned<V> existing = getTableMap(tableName).get(key);
-        if (existing != null && existing.value().equals(oldValue)) {
+        if (existing != null && checkEquality(existing.value(), oldValue)) {
             put(tableName, key, newValue);
             return true;
         }
@@ -198,11 +210,11 @@ public class DefaultDatabaseState<K, V> implements DatabaseState<K, V> {
         case PUT_IF_VERSION_MATCH:
             return existingEntry != null && existingEntry.version() == update.currentVersion();
         case PUT_IF_VALUE_MATCH:
-            return existingEntry != null && existingEntry.value().equals(update.currentValue());
+            return existingEntry != null && checkEquality(existingEntry.value(), update.currentValue());
         case REMOVE_IF_VERSION_MATCH:
             return existingEntry == null || existingEntry.version() == update.currentVersion();
         case REMOVE_IF_VALUE_MATCH:
-            return existingEntry == null || existingEntry.value().equals(update.currentValue());
+            return existingEntry == null || checkEquality(existingEntry.value(), update.currentValue());
         default:
             throw new IllegalStateException("Unsupported type: " + update.type());
         }

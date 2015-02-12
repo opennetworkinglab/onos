@@ -1,4 +1,4 @@
-package org.onosproject.store.consistent.impl;
+package org.onosproject.store.service;
 
 import static com.google.common.base.Preconditions.*;
 

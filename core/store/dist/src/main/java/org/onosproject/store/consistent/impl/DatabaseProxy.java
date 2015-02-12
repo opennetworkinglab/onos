@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Versioned;
+
 /**
  * Database proxy.
  */

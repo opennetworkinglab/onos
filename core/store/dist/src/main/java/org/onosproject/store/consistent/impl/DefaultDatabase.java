@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Versioned;
+
 /**
  * Default database.
  */
@@ -132,7 +135,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     return runStartupTasks()
       .thenCompose(v -> stateMachine.open())
       .thenRun(() -> {
-        this.proxy = stateMachine.createProxy(DatabaseProxy.class);
+        this.proxy = stateMachine.createProxy(DatabaseProxy.class, this.getClass().getClassLoader());
       })
       .thenApply(v -> null);
   }

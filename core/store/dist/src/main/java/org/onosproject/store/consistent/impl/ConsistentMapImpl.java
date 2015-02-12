@@ -2,7 +2,6 @@ package org.onosproject.store.consistent.impl;
 
 import static com.google.common.base.Preconditions.*;
 
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -15,8 +14,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.HexString;
-import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Versioned;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -33,7 +37,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
 
     private final String name;
     private final DatabaseProxy<String, byte[]> proxy;
-    private final StoreSerializer serializer;
+    private final Serializer serializer;
 
     private static final int OPERATION_TIMEOUT_MILLIS = 1000;
     private static final String ERROR_NULL_KEY = "Key cannot be null";
@@ -55,7 +59,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
 
     ConsistentMapImpl(String name,
             DatabaseProxy<String, byte[]> proxy,
-            StoreSerializer serializer) {
+            Serializer serializer) {
         this.name = checkNotNull(name, "map name cannot be null");
         this.proxy = checkNotNull(proxy, "database proxy cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
@@ -87,14 +91,15 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
     public Versioned<V> get(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
         Versioned<byte[]> value = complete(proxy.get(name, keyCache.getUnchecked(key)));
-        return new Versioned<>(serializer.decode(value.value()), value.version());
+        return (value != null) ? new Versioned<>(serializer.decode(value.value()), value.version()) : null;
     }
 
     @Override
     public Versioned<V> put(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        Versioned<byte[]> previousValue = complete(proxy.get(name, keyCache.getUnchecked(key)));
+        Versioned<byte[]> previousValue =
+                complete(proxy.put(name, keyCache.getUnchecked(key), serializer.encode(value)));
         return (previousValue != null) ?
                 new Versioned<>(serializer.decode(previousValue.value()), previousValue.version()) : null;
 
@@ -103,7 +108,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
     @Override
     public Versioned<V> remove(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        Versioned<byte[]> value = complete(proxy.get(name, keyCache.getUnchecked(key)));
+        Versioned<byte[]> value = complete(proxy.remove(name, keyCache.getUnchecked(key)));
         return (value != null) ? new Versioned<>(serializer.decode(value.value()), value.version()) : null;
     }
 
@@ -198,7 +203,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
     }
 
     private Map.Entry<K, Versioned<V>> fromRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
-        return new AbstractMap.SimpleEntry<>(
+        return Pair.of(
                 dK(e.getKey()),
                 new Versioned<>(
                         serializer.decode(e.getValue().value()),

@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Versioned;
+
 import net.kuujo.copycat.state.Command;
 import net.kuujo.copycat.state.Initializer;
 import net.kuujo.copycat.state.Query;

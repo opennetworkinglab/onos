@@ -67,13 +67,14 @@ public interface PartitionedDatabaseManager {
         CopycatConfig copycatConfig = new CopycatConfig()
             .withName(name)
             .withClusterConfig(clusterConfig)
+            .withDefaultSerializer(new DatabaseSerializer())
             .withDefaultExecutor(Executors.newSingleThreadExecutor(new NamedThreadFactory("copycat-coordinator-%d")));
         ClusterCoordinator coordinator = new DefaultClusterCoordinator(copycatConfig.resolve());
         PartitionedDatabase partitionedDatabase = new PartitionedDatabase(coordinator);
         partitionedDatabaseConfig.partitions().forEach((partitionName, partitionConfig) ->
             partitionedDatabase.registerPartition(partitionName ,
                     coordinator.getResource(partitionName, partitionConfig.resolve(clusterConfig)
-                        .withDefaultSerializer(copycatConfig.getDefaultSerializer().copy())
+                        .withSerializer(copycatConfig.getDefaultSerializer())
                         .withDefaultExecutor(copycatConfig.getDefaultExecutor()))));
         partitionedDatabase.setPartitioner(
                 new SimpleKeyHashPartitioner(partitionedDatabase.getRegisteredPartitions()));
