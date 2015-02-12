@@ -83,7 +83,7 @@
             // if the header has no text in it,
             // then make the column the width of the td element.
             // (This looks good for icons)
-            if (!(thElement.html().length)) {
+            if (!(thElement.text().length)) {
                 var tdSize = tdElement.style('width');
                 thElement.style('width', tdSize + 'px');
                 tdElement.style('width', tdSize + 'px');
@@ -161,6 +161,7 @@
             };
         }])
 
+        // TODO: fix header alignment spacing
         .directive('onosFixedHeader', ['$window', '$timeout',
             'MastService', 'FnService',
             function (_$window_, $timeout, mast, _fs_) {

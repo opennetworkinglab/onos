@@ -31,6 +31,8 @@
     var glyphMapping = {
         deviceOnline: 'checkMark',
         deviceOffline: 'xMark',
+        devIcon_SWITCH: 'switch',
+
         tableColSortAsc: 'triangleUp',
         tableColSortDesc: 'triangleDown',
         tableColSortNone: '-'

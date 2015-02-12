@@ -29,6 +29,13 @@ public class RowComparator implements Comparator<TableRow> {
     private final String colId;
     private final Direction dir;
 
+    /**
+     * Constructs a comparator for table rows that uses the given
+     * column ID and direction.
+     *
+     * @param colId the column to sort on
+     * @param dir the direction to sort in
+     */
     public RowComparator(String colId, Direction dir) {
         if (colId == null || dir == null) {
             throw new NullPointerException("Null parameters not allowed");

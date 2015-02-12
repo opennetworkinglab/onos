@@ -43,7 +43,7 @@ public class DeviceGuiResource extends BaseResource {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
-    // return list of devices
+    // return the list of devices in appropriate sorted order
     @GET
     @Produces("application/json")
     public Response getDevices(
