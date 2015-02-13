@@ -43,6 +43,7 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
     private final int timeout;
     private final boolean permanent;
     private final GroupId groupId;
+    private final Type type;
     private FlowEntryExtension flowEntryExtension;
     public DefaultFlowRuleExt(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, long flowId,
@@ -58,6 +59,7 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
         this.appId = (short) (flowId >>> 48);
         this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
+        this.type = Type.DEFAULT;
     }
 
     public DefaultFlowRuleExt(DeviceId deviceId, TrafficSelector selector,
@@ -69,7 +71,7 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
 
     public DefaultFlowRuleExt(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
-                           GroupId groupId, int timeout, boolean permanent) {
+                           GroupId groupId, int timeout, boolean permanent; Type type) {
 
         if (priority < FlowRule.MIN_PRIORITY) {
             throw new IllegalArgumentException("Priority cannot be less than " + MIN_PRIORITY);
@@ -84,7 +86,7 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
         this.timeout = timeout;
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
-
+        this.type = type;
         /*
          * id consists of the following.
          * | appId (16 bits) | groupId (16 bits) | flowId (32 bits) |
@@ -104,6 +106,7 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
         this.timeout = rule.timeout();
         this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
+        this.type = rule.type();
     }
 
     public DefaultFlowRuleExt(ApplicationId appId, DeviceId deviceId, FlowEntryExtension data) {
@@ -117,6 +120,7 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
         this.permanent = false;
         this.created = System.currentTimeMillis();
         this.groupId = new DefaultGroupId(0);
+        this.type = Type.DEFAULT;
         /*
          * id consists of the following.
          * | appId (16 bits) | groupId (16 bits) | flowId (32 bits) |
@@ -169,6 +173,12 @@ public class DefaultFlowRuleExt implements FlowRuleExt {
         return permanent;
     }
 
+    @Override
+    public Type type() {
+        return type;
+    }
+
+    @Override
     public FlowEntryExtension getFlowEntryExt() {
         return this.flowEntryExtension;
     }
