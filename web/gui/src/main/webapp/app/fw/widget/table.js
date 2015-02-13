@@ -24,6 +24,7 @@
         div,
         currCol = {},
         prevCol = {},
+        tableIconTdSize = 30,
         bottomMargin = 200;
 
 
@@ -80,15 +81,10 @@
 
             tdElement = t.select('td:nth-of-type(' + (index + 1) + ')');
 
-            // if the header has no text in it,
-            // then make the column the width of the td element.
-            // (This looks good for icons)
-            if (!(thElement.text().length)) {
-                var tdSize = tdElement.style('width');
-                thElement.style('width', tdSize + 'px');
-                tdElement.style('width', tdSize + 'px');
-            }
-            else {
+            if (tdElement.classed('table-icon')) {
+                thElement.style('width', tableIconTdSize + 'px');
+                tdElement.style('width', tableIconTdSize + 'px');
+            } else {
                 thElement.style('width', colWidth + 'px');
                 tdElement.style('width', colWidth + 'px');
             }
@@ -161,7 +157,6 @@
             };
         }])
 
-        // TODO: fix header alignment spacing
         .directive('onosFixedHeader', ['$window', '$timeout',
             'MastService', 'FnService',
             function (_$window_, $timeout, mast, _fs_) {

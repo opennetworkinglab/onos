@@ -21,7 +21,7 @@
 /* ------ for summary-list tables ------ */
 
 table.summary-list {
-    margin: 0px 50px 50px 50px;
+    margin: 0 50px 50px 50px;
     font-size: 10pt;
     border-spacing: 0;
 }
@@ -46,6 +46,7 @@ table.summary-list tbody {
 table.summary-list th {
     padding: 10px;
     letter-spacing: 0.02em;
+    text-align: left;
 }
 table.summary-list th:first-child {
     border-radius: 8px 0 0 0;
@@ -62,9 +63,10 @@ table.summary-list th:last-child {
 }
 
 table.summary-list td {
-    padding: 10px;
-    text-align: center;
+    padding: 6px 10px 6px 10px;
+    text-align: left;
 }
+
 .dark table.summary-list td {
     color: #ccc;
 }

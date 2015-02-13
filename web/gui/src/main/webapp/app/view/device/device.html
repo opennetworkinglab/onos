@@ -8,8 +8,8 @@
            sort-callback="sortCallback(urlSuffix)">
         <thead>
             <tr>
-                <th colId="available">.</th>
-                <th colId="type">.</th>
+                <th colId="available"></th>
+                <th colId="type"></th>
                 <th colId="id" sortable>Device ID </th>
                 <th colId="mfr" sortable>Vendor </th>
                 <th colId="hw" sortable>H/W Version </th>
@@ -23,8 +23,12 @@
         <tbody>
             <tr ng-repeat="dev in ctrl.deviceData"
                 ng-repeat-done>
-                <td><div icon icon-id="{{dev._iconid_available}}"></div></td>
-                <td><div icon icon-id="{{dev._iconid_type}}"></div></td>
+                <td class="table-icon">
+                    <div icon icon-id="{{dev._iconid_available}}"></div>
+                </td>
+                <td class="table-icon">
+                    <div icon icon-id="{{dev._iconid_type}}"></div>
+                </td>
                 <td>{{dev.id}}</td>
                 <td>{{dev.mfr}}</td>
                 <td>{{dev.hw}}</td>

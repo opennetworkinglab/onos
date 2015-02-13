@@ -32,22 +32,40 @@ div.inline-icon {
     display: inline-block;
 }
 
-.light svg.embeddedIcon .icon.deviceOnline {
-    fill: green;
-}
+.light svg.embeddedIcon .icon.deviceOnline,
 .light svg.embeddedIcon .icon.deviceOffline {
-    fill: darkred;
+    fill: none;
 }
 
 .dark svg.embeddedIcon .icon.deviceOnline,
 .dark svg.embeddedIcon .icon.deviceOffline {
+    fill: none;
+}
+
+.light svg.embeddedIcon .icon.devIcon_SWITCH {
     fill: #ccc;
 }
-.dark svg.embeddedIcon .icon.deviceOnline .glyph {
+.dark svg.embeddedIcon .icon.devIcon_SWITCH {
+    fill: #222;
+}
+.light svg.embeddedIcon .icon.devIcon_SWITCH .glyph {
+    fill: #333;
+}
+.dark svg.embeddedIcon .icon.devIcon_SWITCH .glyph {
+    fill: #ccc;
+}
+
+.light svg.embeddedIcon .icon.deviceOnline .glyph {
     fill: green;
 }
-.dark svg.embeddedIcon .icon.deviceOffline .glyph {
+.light svg.embeddedIcon .icon.deviceOffline .glyph {
     fill: darkred;
+}
+.dark svg.embeddedIcon .icon.deviceOnline .glyph {
+    fill: #266610;
+}
+.dark svg.embeddedIcon .icon.deviceOffline .glyph {
+    fill: #610000;
 }
 
 .light svg.embeddedIcon .icon.tableColSortAsc .glyph,
@@ -59,6 +77,14 @@ div.inline-icon {
     fill: #ccc;
 }
 
+.light svg.embeddedIcon .icon.deviceOnline rect,
+.light svg.embeddedIcon .icon.deviceOffline rect,
+.dark svg.embeddedIcon .icon.deviceOnline rect,
+.dark svg.embeddedIcon .icon.deviceOffline rect {
+    stroke: none;
+    fill: none;
+}
+
 svg.embeddedIcon .icon.tableColSortAsc rect,
 svg.embeddedIcon .icon.tableColSortDesc rect {
     stroke: none;
@@ -68,6 +94,10 @@ svg.embeddedIcon .icon.tableColSortDesc rect {
 svg.embeddedIcon .icon rect {
     stroke: black;
     stroke-width: 1px;
+}
+.dark svg.embeddedIcon .icon.deviceOnline rect
+.dark svg.embeddedIcon .icon.deviceOffline rect {
+    stroke: none;
 }
 .dark svg.embeddedIcon .icon rect {
     stroke: #ccc;
