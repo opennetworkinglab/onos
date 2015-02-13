@@ -43,6 +43,16 @@ describe('factory: fw/util/keys.js', function() {
         d3.select('#ptest').remove();
     });
 
+    it('should define the key service', function () {
+        expect(ks).toBeDefined();
+    });
+
+    it('should define api functions', function () {
+        expect(fs.areFunctions(ks, [
+            'installOn', 'keyBindings', 'gestureNotes', 'enableKeys'
+        ])).toBeTruthy();
+    });
+
     // Code to emulate key presses....
     // NOTE: kinda messy, but it seems to get the job done.
     function jsKeyDown(element, code) {
@@ -205,6 +215,29 @@ describe('factory: fw/util/keys.js', function() {
         // but the 'space' key SHOULD invoke our callback
         jsKeyDown(elem, 32); // 'space'
         expect(count).toEqual(1);
+    });
+
+    it('should block keys when disabled', function () {
+        var cbCount = 0;
+
+        function cb() { cbCount++; }
+
+        function pressA() { jsKeyDown(elem, 65); }  // 65 == 'A' keycode
+
+        ks.keyBindings({ A: cb });
+
+        expect(cbCount).toBe(0);
+
+        pressA();
+        expect(cbCount).toBe(1);
+
+        ks.enableKeys(false);
+        pressA();
+        expect(cbCount).toBe(1);
+
+        ks.enableKeys(true);
+        pressA();
+        expect(cbCount).toBe(2);
     });
 
     // === Gesture notes related tests

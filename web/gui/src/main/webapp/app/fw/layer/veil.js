@@ -24,56 +24,60 @@
     'use strict';
 
     // injected references
-    var $log, fs;
+    var $log, fs, ks;
 
     var veil, pdiv, svg;
 
+    // msg should be an array of strings
     function show(msg) {
+        var msgs = fs.isA(msg) || [msg];
         pdiv.selectAll('p').remove();
 
-        msg.forEach(function (line) {
+        msgs.forEach(function (line) {
             pdiv.append('p').text(line);
         });
 
         veil.style('display', 'block');
-
-        // TODO: disable key bindings
+        ks.enableKeys(false);
     }
 
     function hide() {
         veil.style('display', 'none');
-        // TODO: re-enable key bindings
+        ks.enableKeys(true);
     }
 
     angular.module('onosLayer')
-        .factory('VeilService', ['$log', 'FnService', 'GlyphService',
-            function (_$log_, _fs_, gs) {
-                $log = _$log_;
-                fs = _fs_;
+    .factory('VeilService',
+        ['$log', 'FnService', 'KeyService', 'GlyphService',
 
-                var wSize = fs.windowSize(),
-                    ww = wSize.width,
-                    wh = wSize.height,
-                    shrinkConst = wh-(wh * 0.7),
-                    birdDim = wh-shrinkConst,
-                    birdCenter = (ww / 2) - (birdDim / 2);
+        function (_$log_, _fs_, _ks_, gs) {
+            $log = _$log_;
+            fs = _fs_;
+            ks = _ks_;
 
-                veil = d3.select('#veil');
-                pdiv = veil.append('div').classed('msg', true);
+            var wSize = fs.windowSize(),
+                ww = wSize.width,
+                wh = wSize.height,
+                vbox = '0 0 ' + ww + ' ' +  wh,
+                shrink = wh * 0.3,
+                birdDim = wh - shrink,
+                birdCenter = (ww - birdDim) / 2;
 
-                svg = veil.append('svg').attr({
-                    width: (ww + 'px'),
-                    height: (wh + 'px'),
-                    viewBox: '0 0 ' + ww + ' ' +  wh
-                }).style('opacity', 0.2);
+            veil = d3.select('#veil');
+            pdiv = veil.append('div').classed('msg', true);
 
-                gs.addGlyph(svg, 'bird', (birdDim + 'px'),
-                    false, [birdCenter, shrinkConst/2]);
+            svg = veil.append('svg').attr({
+                width: ww,
+                height: wh,
+                viewBox: vbox
+            }).style('opacity', 0.2);
 
-                return {
-                    show: show,
-                    hide: hide
-                };
-        }]);
+            gs.addGlyph(svg, 'bird', birdDim, false, [birdCenter, shrink/2]);
+
+            return {
+                show: show,
+                hide: hide
+            };
+    }]);
 
 }());

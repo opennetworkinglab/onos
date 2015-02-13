@@ -27,7 +27,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, wes, tps, tis, tfs, tss, tts;
+    var $log, wss, wes, vs, tps, tis, tfs, tss, tts;
 
     // internal state
     var wsock, evApis;
@@ -89,6 +89,7 @@
         $log.debug('web socket opened...');
         // start by requesting periodic summary data...
         dispatcher.sendEvent('requestSummary');
+        vs.hide();
     }
 
     function onWsMessage(ev) {
@@ -98,21 +99,27 @@
     function onWsClose(reason) {
         $log.log('web socket closed; reason=', reason);
         wsock = null;
+        vs.show([
+            'Oops!',
+            'Web-socket connection to server closed...',
+            'Try refreshing the page.'
+        ]);
     }
 
     // ==========================
 
     angular.module('ovTopo')
     .factory('TopoEventService',
-        ['$log', '$location', 'WebSocketService', 'WsEventService',
+        ['$log', '$location', 'WebSocketService', 'WsEventService', 'VeilService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
             'TopoSelectService', 'TopoTrafficService',
 
-        function (_$log_, $loc, _wss_, _wes_,
+        function (_$log_, $loc, _wss_, _wes_, _vs_,
                   _tps_, _tis_, _tfs_, _tss_, _tts_) {
             $log = _$log_;
             wss = _wss_;
             wes = _wes_;
+            vs = _vs_;
             tps = _tps_;
             tis = _tis_;
             tfs = _tfs_;

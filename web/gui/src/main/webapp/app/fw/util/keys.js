@@ -24,7 +24,8 @@
     var $log, fs, ts;
 
     // internal state
-    var keyHandler = {
+    var enabled = true,
+        keyHandler = {
             globalKeys: {},
             maskedKeys: {},
             viewKeys: {},
@@ -80,14 +81,16 @@
 
         d3.event.stopPropagation();
 
-        // global callback?
-        if (gcb && gcb(token, key, keyCode, event)) {
-            // if the event was 'handled', we are done
-            return;
-        }
-        // otherwise, let the view callback have a shot
-        if (vcb) {
-            vcb(token, key, keyCode, event);
+        if (enabled) {
+            // global callback?
+            if (gcb && gcb(token, key, keyCode, event)) {
+                // if the event was 'handled', we are done
+                return;
+            }
+            // otherwise, let the view callback have a shot
+            if (vcb) {
+                vcb(token, key, keyCode, event);
+            }
         }
     }
 
@@ -197,6 +200,9 @@
                     } else {
                         keyHandler.viewGestures = fs.isA(g) || [];
                     }
+                },
+                enableKeys: function (b) {
+                    enabled = b;
                 }
             };
     }]);
