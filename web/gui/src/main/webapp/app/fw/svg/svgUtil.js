@@ -125,15 +125,42 @@
                         }
                     });
 
-                return drag;            }
+                return drag;
+            }
 
-            function loadGlow() {
-                $log.warn('SvgUtilService: loadGlow -- To Be Implemented');
+
+            function loadGlow(defs, r, g, b, id) {
+                var glow = defs.append('filter')
+                    .attr('x', '-50%')
+                    .attr('y', '-50%')
+                    .attr('width', '200%')
+                    .attr('height', '200%')
+                    .attr('id', id);
+
+                glow.append('feColorMatrix')
+                    .attr('type', 'matrix')
+                    .attr('values',
+                    '0 0 0 0  ' + r + ' ' +
+                    '0 0 0 0  ' + g + ' ' +
+                    '0 0 0 0  ' + b + ' ' +
+                    '0 0 0 1  0 ');
+
+                glow.append('feGaussianBlur')
+                    .attr('stdDeviation', 3)
+                    .attr('result', 'coloredBlur');
+
+                glow.append('feMerge').selectAll('feMergeNode')
+                    .data(['coloredBlur', 'SourceGraphic'])
+                    .enter().append('feMergeNode')
+                    .attr('in', String);
+            }
+
+            function loadGlowDefs(defs) {
+                loadGlow(defs, 0.0, 0.0, 0.7, 'blue-glow');
+                loadGlow(defs, 1.0, 1.0, 0.3, 'yellow-glow');
             }
 
             // --- Ordinal scales for 7 values.
-            // TODO: tune colors for light and dark themes
-            // Note: These colors look good on the white background. Still, need to tune for dark.
 
             //               blue       brown      brick red  sea green  purple     dark teal  lime
             var lightNorm = ['#3E5780', '#78533B', '#CB4D28', '#018D61', '#8A2979', '#006D73', '#56AF00'],
@@ -249,7 +276,7 @@
 
             return {
                 createDragBehavior: createDragBehavior,
-                loadGlow: loadGlow,
+                loadGlowDefs: loadGlowDefs,
                 cat7: cat7,
                 translate: translate,
                 stripPx: stripPx,

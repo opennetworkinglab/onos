@@ -130,6 +130,7 @@
     function setUpDefs() {
         defs = svg.append('defs');
         gs.loadDefs(defs);
+        sus.loadGlowDefs(defs);
     }
 
 

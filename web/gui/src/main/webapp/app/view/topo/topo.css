@@ -290,9 +290,11 @@
 #topo-p-instance .onosInst.mastership.affinity {
     opacity: 1.0;
 }
-#topo-p-instance .onosInst.mastership.affinity svg rect {
-    /* TODO: add blue glow */
-    /*filter: url(#blue-glow);*/
+.light #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+.dark #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#yellow-glow);
 }
 
 
@@ -302,11 +304,15 @@
     cursor: pointer;
 }
 
-#ov-topo svg .node.selected rect,
-#ov-topo svg .node.selected circle {
+.light #ov-topo svg .node.selected rect,
+.light #ov-topo svg .node.selected circle {
     fill: #f90;
-    /* TODO: add blue glow filter */
-    /*filter: url(#blue-glow);*/
+    filter: url(#blue-glow);
+}
+.dark #ov-topo svg .node.selected rect,
+.dark #ov-topo svg .node.selected circle {
+    fill: #f90;
+    filter: url(#yellow-glow);
 }
 
 #ov-topo svg .node text {
