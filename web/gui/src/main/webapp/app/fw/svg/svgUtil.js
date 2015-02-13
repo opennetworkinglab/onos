@@ -235,12 +235,16 @@
                 return s.replace(/px$/,'');
             }
 
+            function safeId(s) {
+                return s.replace(/[^a-z0-9]/gi, '-');
+            }
+
             function makeVisible(el, b) {
                 el.style('visibility', (b ? 'visible' : 'hidden'));
             }
 
-            function safeId(s) {
-                return s.replace(/[^a-z0-9]/gi, '-');
+            function isVisible(el) {
+                return el.style('visibility') === 'visible';
             }
 
             return {
@@ -249,8 +253,14 @@
                 cat7: cat7,
                 translate: translate,
                 stripPx: stripPx,
-                makeVisible: makeVisible,
-                safeId: safeId
+                safeId: safeId,
+                visible: function (el, x) {
+                            if (x === undefined) {
+                                return isVisible(el);
+                            } else {
+                                makeVisible(el, x);
+                            }
+                         }
             };
         }]);
 }());

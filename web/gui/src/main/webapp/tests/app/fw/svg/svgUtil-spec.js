@@ -41,7 +41,7 @@ describe('factory: fw/svg/svgUtil.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(sus, [
             'createDragBehavior', 'loadGlow', 'cat7', 'translate', 'stripPx',
-            'makeVisible', 'safeId'
+            'safeId', 'visible'
         ])).toBeTruthy();
     });
 
@@ -114,15 +114,17 @@ describe('factory: fw/svg/svgUtil.js', function() {
         expect(sus.stripPx('4px')).toEqual('4');
     });
 
-    // === makeVisible()
+    // === visible()
 
     it('should hide and show an element', function () {
         var r = svg.append('rect');
 
-        sus.makeVisible(r, false);
+        sus.visible(r, false);
         expect(r.style('visibility')).toEqual('hidden');
+        expect(sus.visible(r)).toBe(false);
 
-        sus.makeVisible(r, true);
+        sus.visible(r, true);
         expect(r.style('visibility')).toEqual('visible');
+        expect(sus.visible(r)).toBe(true);
     });
 });

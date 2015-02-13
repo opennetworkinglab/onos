@@ -365,21 +365,21 @@
     }
 
     function updateHostVisibility() {
-        sus.makeVisible(nodeG.selectAll('.host'), showHosts);
-        sus.makeVisible(linkG.selectAll('.hostLink'), showHosts);
+        sus.visible(nodeG.selectAll('.host'), showHosts);
+        sus.visible(linkG.selectAll('.hostLink'), showHosts);
     }
 
     function updateOfflineVisibility(dev) {
         function updDev(d, show) {
-            sus.makeVisible(d.el, show);
+            sus.visible(d.el, show);
 
             tms.findAttachedLinks(d.id).forEach(function (link) {
                 b = show && ((link.type() !== 'hostLink') || showHosts);
-                sus.makeVisible(link.el, b);
+                sus.visible(link.el, b);
             });
             tms.findAttachedHosts(d.id).forEach(function (host) {
                 b = show && showHosts;
-                sus.makeVisible(host.el, b);
+                sus.visible(host.el, b);
             });
         }
 
@@ -721,7 +721,7 @@
             textDy = r + 10;
 
         d.el = node;
-        sus.makeVisible(node, showHosts);
+        sus.visible(node, showHosts);
 
         is.addHostIcon(node, r, gid);
 
@@ -849,7 +849,7 @@
         d.el = link;
         restyleLinkElement(d);
         if (d.type() === 'hostLink') {
-            sus.makeVisible(link, showHosts);
+            sus.visible(link, showHosts);
         }
     }
 

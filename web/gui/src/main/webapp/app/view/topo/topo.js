@@ -48,7 +48,7 @@
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
-            //B: [toggleBg, 'Toggle background image'],
+            B: [toggleMap, 'Toggle background map'],
             //P: togglePorts,
 
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
@@ -92,6 +92,10 @@
     function toggleInstances() {
         tis.toggle();
         tfs.updateDeviceColors();
+    }
+
+    function toggleMap() {
+        sus.visible(mapG, !sus.visible(mapG));
     }
 
     function resetZoom() {
@@ -184,7 +188,7 @@
     }
 
     function showNoDevs(b) {
-        sus.makeVisible(noDevsLayer, b);
+        sus.visible(noDevsLayer, b);
     }
 
     function showCallibrationPoints() {
