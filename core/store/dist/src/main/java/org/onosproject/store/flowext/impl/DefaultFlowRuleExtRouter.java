@@ -67,9 +67,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
 /**
- * Manages inventory of extended flow rules using a distributed state management protocol.
- * This store does'nt support backing-up flow-rule data for now, but
- * it will be stronger in future.
+ * Implement a simple routing-like mechanism to directly send service data to its master and push to device.
+ * This Router does'nt any flow rule extension data in cache, it focus on routing mechanism. but its still 
+ * being provisional / experimental at this point in time.
  */
 @Component(immediate = true)
 @Service
