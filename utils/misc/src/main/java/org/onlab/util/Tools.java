@@ -34,6 +34,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
 
@@ -81,6 +82,16 @@ public abstract class Tools {
                 .setThreadFactory(factory)
                 .setPriority(Thread.MIN_PRIORITY)
                 .build();
+    }
+
+    /**
+     * Returns true if the collection is null or is empty.
+     *
+     * @param collection collection to test
+     * @return true if null or empty; false otherwise
+     */
+    public static boolean isNullOrEmpty(Collection collection) {
+        return collection == null || collection.isEmpty();
     }
 
     /**

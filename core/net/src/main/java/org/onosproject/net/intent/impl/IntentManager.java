@@ -66,8 +66,10 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -282,13 +284,42 @@ public class IntentManager
 
     //TODO javadoc
     //FIXME
-    FlowRuleOperations coordinate(IntentData pending) {
-        List<Intent> installables = pending.installables();
-        List<List<FlowRuleBatchOperation>> plans = new ArrayList<>(installables.size());
-        for (Intent installable : installables) {
-            registerSubclassInstallerIfNeeded(installable);
+    FlowRuleOperations coordinate(IntentData current, IntentData pending) {
+        List<Intent> oldInstallables = (current != null) ? current.installables() : null;
+        List<Intent> newInstallables = pending.installables();
+
+        checkState(isNullOrEmpty(oldInstallables) ||
+                   oldInstallables.size() == newInstallables.size(),
+                   "Old and New Intent must have equivalent installable intents.");
+
+        List<List<FlowRuleBatchOperation>> plans = new ArrayList<>();
+        for (int i = 0; i < newInstallables.size(); i++) {
+            Intent newInstallable = newInstallables.get(i);
+            registerSubclassInstallerIfNeeded(newInstallable);
             //TODO consider migrating installers to FlowRuleOperations
-            plans.add(getInstaller(installable).install(installable));
+            /* FIXME
+               - we need to do another pass on this method about that doesn't
+               require the length of installables to be equal, and also doesn't
+               depend on ordering
+               - we should also reconsider when to start/stop tracking resources
+             */
+            if (isNullOrEmpty(oldInstallables)) {
+                plans.add(getInstaller(newInstallable).install(newInstallable));
+            } else {
+                Intent oldInstallable = oldInstallables.get(i);
+                checkState(oldInstallable.getClass().equals(newInstallable.getClass()),
+                           "Installable Intent type mismatch.");
+                trackerService.removeTrackedResources(pending.key(), oldInstallable.resources());
+                plans.add(getInstaller(newInstallable).replace(oldInstallable, newInstallable));
+            }
+            trackerService.addTrackedResources(pending.key(), newInstallable.resources());
+//            } catch (IntentException e) {
+//                log.warn("Unable to update intent {} due to:", oldIntent.id(), e);
+//                //FIXME... we failed. need to uninstall (if same) or revert (if different)
+//                trackerService.removeTrackedResources(newIntent.id(), newInstallable.resources());
+//                exception = e;
+//                batches = uninstallIntent(oldIntent, oldInstallables);
+//            }
         }
 
         return merge(plans).build(new FlowRuleOperationsContext() { // TODO move this out
@@ -321,6 +352,7 @@ public class IntentManager
         List<List<FlowRuleBatchOperation>> plans = new ArrayList<>();
         for (Intent installable : installables) {
             plans.add(getInstaller(installable).uninstall(installable));
+            trackerService.removeTrackedResources(pending.key(), installable.resources());
         }
 
         return merge(plans).build(new FlowRuleOperationsContext() {
@@ -494,7 +526,7 @@ public class IntentManager
             case INSTALL_REQ:
                 return new InstallRequest(this, intentData, Optional.ofNullable(current));
             case WITHDRAW_REQ:
-                if (current == null) {
+                if (current == null || isNullOrEmpty(current.installables())) {
                     return new Withdrawn(current, WITHDRAWN);
                 } else {
                     return new WithdrawRequest(this, intentData, current);

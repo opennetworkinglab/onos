@@ -47,6 +47,7 @@ class WithdrawCoordinating implements IntentUpdate {
     @Override
     public Optional<IntentUpdate> execute() {
         try {
+            // Note: current.installables() are not null or empty due to createIntentUpdate check
             FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current, pending);
             pending.setInstallables(current.installables());
             return Optional.of(new Withdrawing(intentManager, pending, flowRules));

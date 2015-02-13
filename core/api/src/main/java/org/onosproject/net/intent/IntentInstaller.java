@@ -50,7 +50,6 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete the replace
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
-    @Deprecated
     List<FlowRuleBatchOperation> replace(T oldIntent, T newIntent);
 
 }

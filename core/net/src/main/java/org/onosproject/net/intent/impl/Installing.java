@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
 import org.slf4j.Logger;
@@ -49,9 +48,6 @@ class Installing implements IntentUpdate {
     public Optional<IntentUpdate> execute() {
         try {
             intentManager.flowRuleService.apply(flowRules); // FIXME we need to provide a context
-            for (Intent installable: pending.installables()) {
-                intentManager.trackerService.addTrackedResources(pending.key(), installable.resources());
-            }
             return Optional.of(new Installed(pending));
         // What kinds of exceptions are thrown by FlowRuleService.apply()?
         // Is IntentException a correct exception abstraction?

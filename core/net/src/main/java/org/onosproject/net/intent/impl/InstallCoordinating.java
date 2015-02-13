@@ -49,7 +49,7 @@ class InstallCoordinating implements IntentUpdate {
         try {
             //FIXME we orphan flow rules that are currently on the data plane
             // ... should either reuse them or remove them
-            FlowRuleOperations flowRules = intentManager.coordinate(pending);
+            FlowRuleOperations flowRules = intentManager.coordinate(current, pending);
             return Optional.of(new Installing(intentManager, pending, flowRules));
         } catch (IntentException e) {
             log.warn("Unable to generate a FlowRuleOperations from intent {} due to:", pending.intent().id(), e);

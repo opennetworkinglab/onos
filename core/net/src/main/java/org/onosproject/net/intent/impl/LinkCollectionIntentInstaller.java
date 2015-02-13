@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -112,10 +113,13 @@ public class LinkCollectionIntentInstaller
     }
 
     @Override
-    public List<FlowRuleBatchOperation> replace(LinkCollectionIntent intent,
+    public List<FlowRuleBatchOperation> replace(LinkCollectionIntent oldIntent,
                                                 LinkCollectionIntent newIntent) {
-        // FIXME: implement
-        return null;
+        // FIXME: implement this in a more intelligent/less brute force way
+        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
+        batches.addAll(uninstall(oldIntent));
+        batches.addAll(install(newIntent));
+        return batches;
     }
 
     /**

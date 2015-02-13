@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl;
 
 import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 
 import java.util.Optional;
@@ -43,9 +42,6 @@ class Withdrawing implements IntentUpdate {
     @Override
     public Optional<IntentUpdate> execute() {
         intentManager.flowRuleService.apply(flowRules);
-        for (Intent installable: pending.installables()) {
-            intentManager.trackerService.removeTrackedResources(pending.key(), installable.resources());
-        }
         return Optional.of(new Withdrawn(pending));
     }
 }
