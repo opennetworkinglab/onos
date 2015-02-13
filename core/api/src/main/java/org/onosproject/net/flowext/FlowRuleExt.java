@@ -22,5 +22,10 @@ import org.onosproject.net.flow.FlowRule;
  */
 public interface FlowRuleExt extends FlowRule {
 
+    /**
+     * Get the flow entry extension.
+     *
+     * @return  FlowEntryExtension value.
+     */
     FlowEntryExtension getFlowEntryExt();
 }

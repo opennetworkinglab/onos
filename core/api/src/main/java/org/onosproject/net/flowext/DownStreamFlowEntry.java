@@ -9,7 +9,7 @@ import java.util.Objects;
 public class DownStreamFlowEntry implements FlowEntryExtension {
 
   /**
-   * temporarily only have byte steam, but it will be extract more abstract information from it later.
+   * temporarily only have byte stream, but it will be extract more abstract information from it later.
    */
    private final ByteBuffer payload;
 

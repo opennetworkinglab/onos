@@ -28,6 +28,10 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
+/**
+ * A temporary flow rule extend implementation, It will cover current onos flow rule and other flow extension.
+ * Its still being provisional / experimental at this point in time.
+ */
 public class DefaultFlowRuleExt implements FlowRuleExt {
     private final DeviceId deviceId;
     private final int priority;

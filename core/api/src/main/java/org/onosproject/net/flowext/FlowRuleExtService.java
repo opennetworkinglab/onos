@@ -20,7 +20,8 @@ import java.util.concurrent.Future;
 /**
  * Service for injecting extended flow rules into the environment.
  * This service just send the packet downstream. It won't store the
- * flowRuleExtension in cache.
+ * flowRuleExtension in cache. its still being provisional / experimental
+ * at this point in time.
  */
 public interface FlowRuleExtService {
     /**

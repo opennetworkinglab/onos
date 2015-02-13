@@ -2,6 +2,9 @@ package org.onosproject.net.flowext;
 
 import org.onosproject.net.provider.Provider;
 
+/**
+ * Abstraction of a flow rule extension provider.
+ */
 public interface FlowRuleExtProvider extends Provider {
     /**
      * Instructs the provider to apply the specified flow rules to their

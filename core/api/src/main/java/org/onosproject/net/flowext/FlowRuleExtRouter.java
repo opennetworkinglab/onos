@@ -19,7 +19,8 @@ import java.util.concurrent.Future;
 
 /**
  * The Router is in charge of sending flow rule to master;
- * the core component of routing-like mechanism.
+ * the core component of routing-like mechanism. Its still
+ * being provisional / experimental at this point in time.
  */
 public interface FlowRuleExtRouter {
 
