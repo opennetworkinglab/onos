@@ -198,13 +198,14 @@ public class SimpleIntentStore
                     pending.remove(newData.key());
                 }
 
-                try {
-                    notifyDelegate(IntentEvent.getEvent(newData));
-                } catch (IllegalArgumentException e) {
-                    //no-op
-                    log.trace("ignore this exception: {}", e);
-                }
+                notifyDelegateIfNotNull(IntentEvent.getEvent(newData));
             }
+        }
+    }
+
+    private void notifyDelegateIfNotNull(IntentEvent event) {
+        if (event != null) {
+            notifyDelegate(event);
         }
     }
 
@@ -241,7 +242,7 @@ public class SimpleIntentStore
                 pending.put(data.key(), data);
                 checkNotNull(delegate, "Store delegate is not set")
                         .process(data);
-                notifyDelegate(IntentEvent.getEvent(data));
+                notifyDelegateIfNotNull(IntentEvent.getEvent(data));
             } else {
                 log.debug("IntentData {} is older than existing: {}",
                           data, existingData);

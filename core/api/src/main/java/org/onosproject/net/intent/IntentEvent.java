@@ -72,10 +72,26 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
         super(type, intent);
     }
 
+    /**
+     * Creates an IntentEvent based on the state contained in the given intent
+     * data. Some states are not sent as external events, and these states will
+     * return null events.
+     *
+     * @param data the intent data to create an event for
+     * @return new intent event if the state is valid, otherwise null.
+     */
     public static IntentEvent getEvent(IntentData data) {
         return getEvent(data.state(), data.intent());
     }
 
+    /**
+     * Creates an IntentEvent based on the given state and intent. Some states
+     * are not sent as external events, and these states will return null events.
+     *
+     * @param state new state of the intent
+     * @param intent intent to put in event
+     * @return new intent event if the state is valid, otherwise null.
+     */
     public static IntentEvent getEvent(IntentState state, Intent intent) {
         Type type;
         switch (state) {
@@ -95,14 +111,13 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
                 type = Type.FAILED;
                 break;
 
-            //fallthrough to default from here
+            // fallthrough to default from here
             case COMPILING:
             case INSTALLING:
             case RECOMPILING:
             case WITHDRAWING:
             default:
-                throw new IllegalArgumentException(
-                        "Intent event cannot have transient state: " + state);
+                return null;
         }
         return new IntentEvent(type, intent);
     }

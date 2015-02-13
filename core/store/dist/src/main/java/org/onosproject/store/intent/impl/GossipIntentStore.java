@@ -268,9 +268,8 @@ public class GossipIntentStore
 
     @Override
     public void addPending(IntentData data) {
-        log.debug("new call to pending {}", data);
+        log.debug("new pending {} {} {}", data.key(), data.state(), data.version());
         if (data.version() == null) {
-            log.debug("updating timestamp");
             data.setVersion(new SystemClockTimestamp());
         }
         pending.put(data.key(), copyData(data));
@@ -293,16 +292,9 @@ public class GossipIntentStore
         public void event(
                 EventuallyConsistentMapEvent<Key, IntentData> event) {
             if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
-                IntentEvent externalEvent;
                 IntentData intentData = event.value();
 
-                try {
-                    externalEvent = IntentEvent.getEvent(intentData.state(), intentData.intent());
-                } catch (IllegalArgumentException e) {
-                    externalEvent = null;
-                }
-
-                notifyDelegateIfNotNull(externalEvent);
+                notifyDelegateIfNotNull(IntentEvent.getEvent(intentData));
             }
         }
     }
@@ -322,12 +314,7 @@ public class GossipIntentStore
                     }
                 }
 
-                try {
-                    notifyDelegate(IntentEvent.getEvent(event.value()));
-                } catch (IllegalArgumentException e) {
-                    //no-op
-                    log.trace("ignore this exception: {}", e);
-                }
+                notifyDelegateIfNotNull(IntentEvent.getEvent(event.value()));
             }
         }
     }
