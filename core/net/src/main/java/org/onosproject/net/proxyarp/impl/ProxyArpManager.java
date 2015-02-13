@@ -176,6 +176,7 @@ public class ProxyArpManager implements ProxyArpService {
                             pa.vlan().equals(vlan)) {
                         matched = true;
                         sendTo(eth, pa.connectPoint());
+                        break;
                     }
                 }
             }
@@ -235,7 +236,7 @@ public class ProxyArpManager implements ProxyArpService {
                 for (InterfaceIpAddress ia : addresses.ipAddresses()) {
                     if (ia.ipAddress().equals(targetAddress)) {
                         Ethernet ndpReply =
-                                buildNdpReply(targetAddress, addresses.mac(), eth);
+                            buildNdpReply(targetAddress, addresses.mac(), eth);
                         sendTo(ndpReply, inPort);
                     }
                 }
@@ -246,7 +247,7 @@ public class ProxyArpManager implements ProxyArpService {
             // it could be a request from an internal host to an external
             // address. Forward it over to the correct ports.
             Ip6Address source =
-                    Ip6Address.valueOf(nsol.getTargetAddress());
+                    Ip6Address.valueOf(ipv6.getSourceAddress());
             Set<PortAddresses> sourceAddresses = findPortsInSubnet(source);
             boolean matched = false;
             for (PortAddresses pa : sourceAddresses) {
@@ -255,6 +256,7 @@ public class ProxyArpManager implements ProxyArpService {
                             pa.vlan().equals(vlan)) {
                         matched = true;
                         sendTo(eth, pa.connectPoint());
+                        break;
                     }
                 }
             }
