@@ -87,11 +87,11 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
     private static final AtomicLong XID_COUNTER = new AtomicLong(1);
     private final Map<Dpid, GroupStatsCollector> collectors = Maps.newHashMap();
     private final Map<Long, OFStatsReply> groupStats = Maps.newConcurrentMap();
-    private final Map<Integer, GroupOperation> pendingGroupOperations =
+    private final Map<GroupId, GroupOperation> pendingGroupOperations =
             Maps.newConcurrentMap();
 
     /* Map<Group ID, Transaction ID> */
-    private final Map<Integer, Long> pendingXidMaps = Maps.newConcurrentMap();
+    private final Map<GroupId, Long> pendingXidMaps = Maps.newConcurrentMap();
 
     /**
      * Creates a OpenFlow group provider.
@@ -157,9 +157,9 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                     log.error("Unsupported Group operation");
             }
             sw.sendMsg(groupMod);
-            pendingGroupOperations.put(groupMod.getGroup().getGroupNumber(),
-                    groupOperation);
-            pendingXidMaps.put(groupMod.getGroup().getGroupNumber(), groupModXid);
+            GroupId groudId = new DefaultGroupId(groupMod.getGroup().getGroupNumber());
+            pendingGroupOperations.put(groudId, groupOperation);
+            pendingXidMaps.put(groudId, groupModXid);
         }
      }
 
@@ -282,14 +282,14 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                 case ERROR:
                     OFErrorMsg errorMsg = (OFErrorMsg) msg;
                     if (errorMsg.getErrType() == OFErrorType.GROUP_MOD_FAILED) {
-                        int pendingGroupId = -1;
-                        for (Map.Entry<Integer, Long> entry: pendingXidMaps.entrySet()) {
+                        GroupId pendingGroupId = null;
+                        for (Map.Entry<GroupId, Long> entry: pendingXidMaps.entrySet()) {
                             if (entry.getValue() == errorMsg.getXid()) {
                                 pendingGroupId = entry.getKey();
                                 break;
                             }
                         }
-                        if (pendingGroupId == -1) {
+                        if (pendingGroupId == null) {
                             log.warn("Error for unknown group operation: {}",
                                     errorMsg.getXid());
                         } else {
