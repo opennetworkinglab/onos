@@ -47,6 +47,8 @@ class InstallCoordinating implements IntentUpdate {
     @Override
     public Optional<IntentUpdate> execute() {
         try {
+            //FIXME we orphan flow rules that are currently on the data plane
+            // ... should either reuse them or remove them
             FlowRuleOperations flowRules = intentManager.coordinate(pending);
             return Optional.of(new Installing(intentManager, pending, flowRules));
         } catch (IntentException e) {
