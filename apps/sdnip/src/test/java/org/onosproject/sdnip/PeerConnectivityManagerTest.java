@@ -40,11 +40,11 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.sdnip.config.BgpPeer;
-import org.onosproject.sdnip.config.BgpSpeaker;
-import org.onosproject.sdnip.config.Interface;
-import org.onosproject.sdnip.config.InterfaceAddress;
-import org.onosproject.sdnip.config.SdnIpConfigurationService;
+import org.onosproject.routingapi.config.BgpPeer;
+import org.onosproject.routingapi.config.BgpSpeaker;
+import org.onosproject.routingapi.config.Interface;
+import org.onosproject.routingapi.config.InterfaceAddress;
+import org.onosproject.routingapi.config.RoutingConfigurationService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,8 +75,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private PeerConnectivityManager peerConnectivityManager;
     private IntentSynchronizer intentSynchronizer;
-    private SdnIpConfigurationService configInfoService;
-    private InterfaceService interfaceService;
+    private RoutingConfigurationService routingConfig;
     private IntentService intentService;
 
     private Map<String, BgpSpeaker> bgpSpeakers;
@@ -114,6 +113,9 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        routingConfig = createMock(RoutingConfigurationService.class);
+
+        // These will set expectations on routingConfig
         bgpSpeakers = Collections.unmodifiableMap(setUpBgpSpeakers());
         interfaces = Collections.unmodifiableMap(setUpInterfaces());
         peers = Collections.unmodifiableMap(setUpPeers());
@@ -135,8 +137,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "bgpSpeaker1",
                 "00:00:00:00:00:00:00:01", 100,
                 "00:00:00:00:00:01");
-        List<InterfaceAddress> interfaceAddresses1 =
-                new LinkedList<InterfaceAddress>();
+        List<InterfaceAddress> interfaceAddresses1 = new LinkedList<>();
         interfaceAddresses1.add(new InterfaceAddress(dpid1, 1, "192.168.10.101"));
         interfaceAddresses1.add(new InterfaceAddress(dpid2, 1, "192.168.20.101"));
         bgpSpeaker1.setInterfaceAddresses(interfaceAddresses1);
@@ -147,8 +148,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "bgpSpeaker2",
                 "00:00:00:00:00:00:00:01", 100,
                 "00:00:00:00:00:02");
-        List<InterfaceAddress> interfaceAddresses2 =
-                new LinkedList<InterfaceAddress>();
+        List<InterfaceAddress> interfaceAddresses2 = new LinkedList<>();
         interfaceAddresses2.add(new InterfaceAddress(dpid1, 1, "192.168.10.102"));
         interfaceAddresses2.add(new InterfaceAddress(dpid2, 1, "192.168.20.102"));
         bgpSpeaker2.setInterfaceAddresses(interfaceAddresses2);
@@ -158,8 +158,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "bgpSpeaker3",
                 "00:00:00:00:00:00:00:02", 100,
                 "00:00:00:00:00:03");
-        List<InterfaceAddress> interfaceAddresses3 =
-                new LinkedList<InterfaceAddress>();
+        List<InterfaceAddress> interfaceAddresses3 = new LinkedList<>();
         interfaceAddresses3.add(new InterfaceAddress(dpid1, 1, "192.168.10.103"));
         interfaceAddresses3.add(new InterfaceAddress(dpid2, 1, "192.168.20.103"));
         bgpSpeaker3.setInterfaceAddresses(interfaceAddresses3);
@@ -198,22 +197,19 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 VlanId.NONE);
         configuredInterfaces.put(interfaceSw2Eth1, intfsw2eth1);
 
-        interfaceService = createMock(InterfaceService.class);
-
-        expect(interfaceService.getInterface(s1Eth1))
+        expect(routingConfig.getInterface(s1Eth1))
                 .andReturn(intfsw1eth1).anyTimes();
-        expect(interfaceService.getInterface(s2Eth1))
+        expect(routingConfig.getInterface(s2Eth1))
                 .andReturn(intfsw2eth1).anyTimes();
 
         // Non-existent interface used during one of the tests
-        expect(interfaceService.getInterface(new ConnectPoint(
+        expect(routingConfig.getInterface(new ConnectPoint(
                     DeviceId.deviceId(SdnIp.dpidToUri("00:00:00:00:00:00:01:00")),
                     PortNumber.portNumber(1))))
                     .andReturn(null).anyTimes();
 
-        expect(interfaceService.getInterfaces()).andReturn(
+        expect(routingConfig.getInterfaces()).andReturn(
                 Sets.newHashSet(configuredInterfaces.values())).anyTimes();
-        replay(interfaceService);
 
         return configuredInterfaces;
     }
@@ -250,7 +246,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     private List<PointToPointIntent> setUpIntentList() {
 
-        intentList = new ArrayList<PointToPointIntent>();
+        intentList = new ArrayList<>();
 
         setUpBgpIntents();
         setUpIcmpIntents();
@@ -538,23 +534,21 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     private void initPeerConnectivity() throws TestUtilsException {
 
-        configInfoService = createMock(SdnIpConfigurationService.class);
-        expect(configInfoService.getBgpPeers()).andReturn(peers).anyTimes();
-        expect(configInfoService.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
-        replay(configInfoService);
+        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
+        expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
+        replay(routingConfig);
 
         intentService = createMock(IntentService.class);
         replay(intentService);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    configInfoService,
-                                                    interfaceService);
+                                                    routingConfig);
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 
         peerConnectivityManager =
             new PeerConnectivityManager(APPID, intentSynchronizer,
-                                        configInfoService, interfaceService);
+                                        routingConfig);
     }
 
     /**
@@ -587,19 +581,17 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testNullInterfaces() {
-        reset(interfaceService);
-        expect(interfaceService.getInterfaces()).andReturn(
+        reset(routingConfig);
+        expect(routingConfig.getInterfaces()).andReturn(
                 Sets.<Interface>newHashSet()).anyTimes();
-        expect(interfaceService.getInterface(s2Eth1))
+        expect(routingConfig.getInterface(s2Eth1))
                 .andReturn(null).anyTimes();
-        expect(interfaceService.getInterface(s1Eth1))
+        expect(routingConfig.getInterface(s1Eth1))
         .andReturn(null).anyTimes();
-        replay(interfaceService);
 
-        reset(configInfoService);
-        expect(configInfoService.getBgpPeers()).andReturn(peers).anyTimes();
-        expect(configInfoService.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
-        replay(configInfoService);
+        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
+        expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
+        replay(routingConfig);
 
         reset(intentService);
         replay(intentService);
@@ -612,17 +604,13 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testNullBgpPeers() {
-        reset(interfaceService);
-        expect(interfaceService.getInterfaces()).andReturn(
+        reset(routingConfig);
+        expect(routingConfig.getInterfaces()).andReturn(
                 Sets.newHashSet(interfaces.values())).anyTimes();
-        replay(interfaceService);
 
-        reset(configInfoService);
-        expect(configInfoService.getBgpPeers()).andReturn(
-                new HashMap<IpAddress, BgpPeer>()).anyTimes();
-        expect(configInfoService.getBgpSpeakers()).andReturn(
-                bgpSpeakers).anyTimes();
-        replay(configInfoService);
+        expect(routingConfig.getBgpPeers()).andReturn(new HashMap<>()).anyTimes();
+        expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
+        replay(routingConfig);
 
         reset(intentService);
         replay(intentService);
@@ -635,17 +623,14 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testNullBgpSpeakers() {
-        reset(interfaceService);
-        expect(interfaceService.getInterfaces()).andReturn(
+        reset(routingConfig);
+        expect(routingConfig.getInterfaces()).andReturn(
                 Sets.newHashSet(interfaces.values())).anyTimes();
-        replay(interfaceService);
 
-        reset(configInfoService);
-        expect(configInfoService.getBgpPeers()).andReturn(
-                peers).anyTimes();
-        expect(configInfoService.getBgpSpeakers()).andReturn(
+        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
+        expect(routingConfig.getBgpSpeakers()).andReturn(
                 Collections.emptyMap()).anyTimes();
-        replay(configInfoService);
+        replay(routingConfig);
 
         reset(intentService);
         replay(intentService);
@@ -676,8 +661,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "bgpSpeaker100",
                 "00:00:00:00:00:00:01:00", 100,
                 "00:00:00:00:01:00");
-        List<InterfaceAddress> interfaceAddresses100 =
-                new LinkedList<InterfaceAddress>();
+        List<InterfaceAddress> interfaceAddresses100 = new LinkedList<>();
         interfaceAddresses100.add(new InterfaceAddress(dpid1, 1, "192.168.10.201"));
         interfaceAddresses100.add(new InterfaceAddress(dpid2, 1, "192.168.20.201"));
         bgpSpeaker100.setInterfaceAddresses(interfaceAddresses100);

@@ -13,26 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip.config;
+package org.onosproject.routing.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.host.HostService;
+import org.onosproject.routingapi.config.BgpPeer;
+import org.onosproject.routingapi.config.BgpSpeaker;
+import org.onosproject.routingapi.config.Interface;
+import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.onlab.packet.IpAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * Implementation of SdnIpConfigurationService which reads SDN-IP configuration
- * from a file.
+ * Implementation of RoutingConfigurationService which reads routing
+ * configuration from a file.
  */
-public class SdnIpConfigurationReader implements SdnIpConfigurationService {
+@Component(immediate = true)
+@Service
+public class RoutingConfigurationImpl implements RoutingConfigurationService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -40,8 +53,20 @@ public class SdnIpConfigurationReader implements SdnIpConfigurationService {
     private static final String DEFAULT_CONFIG_FILE = "sdnip.json";
     private String configFileName = DEFAULT_CONFIG_FILE;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
     private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
     private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
+
+    private HostToInterfaceAdaptor hostAdaptor;
+
+    @Activate
+    public void activate() {
+        readConfiguration();
+        hostAdaptor = new HostToInterfaceAdaptor(hostService);
+        log.info("Routing configuration service started");
+    }
 
     /**
      * Reads SDN-IP related information contained in the configuration file.
@@ -87,14 +112,19 @@ public class SdnIpConfigurationReader implements SdnIpConfigurationService {
         return Collections.unmodifiableMap(bgpPeers);
     }
 
-    /**
-     * Converts DPIDs of the form xx:xx:xx:xx:xx:xx:xx to OpenFlow provider
-     * device URIs.
-     *
-     * @param dpid the DPID string to convert
-     * @return the URI string for this device
-     */
-    static String dpidToUri(String dpid) {
-        return "of:" + dpid.replace(":", "");
+    @Override
+    public Set<Interface> getInterfaces() {
+        return hostAdaptor.getInterfaces();
     }
+
+    @Override
+    public Interface getInterface(ConnectPoint connectPoint) {
+        return hostAdaptor.getInterface(connectPoint);
+    }
+
+    @Override
+    public Interface getMatchingInterface(IpAddress ipAddress) {
+        return hostAdaptor.getMatchingInterface(ipAddress);
+    }
+
 }

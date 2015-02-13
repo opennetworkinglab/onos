@@ -29,10 +29,9 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.routingapi.RoutingService;
-import org.onosproject.sdnip.config.SdnIpConfigurationReader;
+import org.onosproject.routingapi.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -54,9 +53,6 @@ public class SdnIp implements SdnIpService {
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -64,6 +60,9 @@ public class SdnIp implements SdnIpService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingService routingService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingConfigurationService config;
 
     //
     // NOTE: Unused reference - needed to guarantee that the
@@ -74,7 +73,6 @@ public class SdnIp implements SdnIpService {
     protected NetworkConfigService networkConfigService;
 
     private IntentSynchronizer intentSynchronizer;
-    private SdnIpConfigurationReader config;
     private PeerConnectivityManager peerConnectivity;
 
     private LeadershipEventListener leadershipEventListener =
@@ -87,22 +85,16 @@ public class SdnIp implements SdnIpService {
         log.info("SDN-IP started");
 
         appId = coreService.registerApplication(SDN_IP_APP);
-        config = new SdnIpConfigurationReader();
-        config.readConfiguration();
 
         localControllerNode = clusterService.getLocalNode();
 
-        InterfaceService interfaceService =
-            new HostToInterfaceAdaptor(hostService);
-
         intentSynchronizer = new IntentSynchronizer(appId, intentService,
-                                                    config, interfaceService);
+                                                    config);
         intentSynchronizer.start();
 
         peerConnectivity = new PeerConnectivityManager(appId,
                                                        intentSynchronizer,
-                                                       config,
-                                                       interfaceService);
+                                                       config);
         peerConnectivity.start();
 
         routingService.start(intentSynchronizer);

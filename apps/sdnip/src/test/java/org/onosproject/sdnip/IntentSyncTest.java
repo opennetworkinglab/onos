@@ -44,10 +44,10 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.routingapi.FibEntry;
 import org.onosproject.routingapi.FibUpdate;
 import org.onosproject.routingapi.RouteEntry;
+import org.onosproject.routingapi.config.BgpPeer;
+import org.onosproject.routingapi.config.Interface;
+import org.onosproject.routingapi.config.RoutingConfigurationService;
 import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
-import org.onosproject.sdnip.config.BgpPeer;
-import org.onosproject.sdnip.config.Interface;
-import org.onosproject.sdnip.config.SdnIpConfigurationService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,8 +70,7 @@ import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
  */
 public class IntentSyncTest extends AbstractIntentTest {
 
-    private SdnIpConfigurationService sdnIpConfigService;
-    private InterfaceService interfaceService;
+    private RoutingConfigurationService routingConfig;
     private IntentService intentService;
 
     private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
@@ -107,13 +106,19 @@ public class IntentSyncTest extends AbstractIntentTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        setUpInterfaceService();
 
+        routingConfig = createMock(RoutingConfigurationService.class);
+
+        // These will set expectations on routingConfig
+        setUpInterfaceService();
         setUpBgpPeers();
+
+        replay(routingConfig);
+
         intentService = createMock(IntentService.class);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    sdnIpConfigService, interfaceService);
+                                                    routingConfig);
     }
 
     /**
@@ -140,18 +145,13 @@ public class IntentSyncTest extends AbstractIntentTest {
         peers.put(IpAddress.valueOf(peer1Sw4Eth1),
                   new BgpPeer("00:00:00:00:00:00:00:04", 1, peer1Sw4Eth1));
 
-        sdnIpConfigService = createMock(SdnIpConfigurationService.class);
-        expect(sdnIpConfigService.getBgpPeers()).andReturn(peers).anyTimes();
-        replay(sdnIpConfigService);
-
+        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
     }
 
     /**
      * Sets up InterfaceService.
      */
     private void setUpInterfaceService() {
-
-        interfaceService = createMock(InterfaceService.class);
 
         Set<Interface> interfaces = Sets.newHashSet();
 
@@ -190,17 +190,16 @@ public class IntentSyncTest extends AbstractIntentTest {
                                           MacAddress.valueOf("00:00:00:00:00:04"),
                                           VlanId.vlanId((short) 1));
 
-        expect(interfaceService.getInterface(SW4_ETH1)).andReturn(sw4Eth1).anyTimes();
+        expect(routingConfig.getInterface(SW4_ETH1)).andReturn(
+                sw4Eth1).anyTimes();
         interfaces.add(sw4Eth1);
 
-        expect(interfaceService.getInterface(SW1_ETH1)).andReturn(
+        expect(routingConfig.getInterface(SW1_ETH1)).andReturn(
                 sw1Eth1).anyTimes();
-        expect(interfaceService.getInterface(SW2_ETH1)).andReturn(
+        expect(routingConfig.getInterface(SW2_ETH1)).andReturn(
                 sw2Eth1).anyTimes();
-        expect(interfaceService.getInterface(SW3_ETH1)).andReturn(
-                sw3Eth1).anyTimes();
-        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
-        replay(interfaceService);
+        expect(routingConfig.getInterface(SW3_ETH1)).andReturn(sw3Eth1).anyTimes();
+        expect(routingConfig.getInterfaces()).andReturn(interfaces).anyTimes();
     }
 
     /**
@@ -517,7 +516,7 @@ public class IntentSyncTest extends AbstractIntentTest {
 
         // Set up expectation
         reset(intentService);
-        Set<Intent> intents = new HashSet<Intent>();
+        Set<Intent> intents = new HashSet<>();
         intents.add(intent1);
         expect(intentService.getIntentState(intent1.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
@@ -584,9 +583,9 @@ public class IntentSyncTest extends AbstractIntentTest {
                 DefaultTrafficTreatment.builder();
         treatmentBuilder.setEthDst(MacAddress.valueOf(nextHopMacAddress));
 
-        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        for (Interface intf : interfaceService.getInterfaces()) {
-            if (!intf.equals(interfaceService.getInterface(egressPoint))) {
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        for (Interface intf : routingConfig.getInterfaces()) {
+            if (!intf.equals(routingConfig.getInterface(egressPoint))) {
                 ConnectPoint srcPort = intf.connectPoint();
                 ingressPoints.add(srcPort);
             }

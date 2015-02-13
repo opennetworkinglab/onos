@@ -28,11 +28,11 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.sdnip.config.BgpPeer;
-import org.onosproject.sdnip.config.BgpSpeaker;
-import org.onosproject.sdnip.config.Interface;
-import org.onosproject.sdnip.config.InterfaceAddress;
-import org.onosproject.sdnip.config.SdnIpConfigurationService;
+import org.onosproject.routingapi.config.BgpPeer;
+import org.onosproject.routingapi.config.BgpSpeaker;
+import org.onosproject.routingapi.config.Interface;
+import org.onosproject.routingapi.config.InterfaceAddress;
+import org.onosproject.routingapi.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +51,7 @@ public class PeerConnectivityManager {
     private static final short BGP_PORT = 179;
 
     private final IntentSynchronizer intentSynchronizer;
-    private final SdnIpConfigurationService configService;
-    private final InterfaceService interfaceService;
+    private final RoutingConfigurationService configService;
 
     private final ApplicationId appId;
 
@@ -62,23 +61,20 @@ public class PeerConnectivityManager {
      * @param appId              the application ID
      * @param intentSynchronizer the intent synchronizer
      * @param configService      the SDN-IP config service
-     * @param interfaceService   the interface service
      */
     public PeerConnectivityManager(ApplicationId appId,
                                    IntentSynchronizer intentSynchronizer,
-                                   SdnIpConfigurationService configService,
-                                   InterfaceService interfaceService) {
+                                   RoutingConfigurationService configService) {
         this.appId = appId;
         this.intentSynchronizer = intentSynchronizer;
         this.configService = configService;
-        this.interfaceService = interfaceService;
     }
 
     /**
      * Starts the peer connectivity manager.
      */
     public void start() {
-        if (interfaceService.getInterfaces().isEmpty()) {
+        if (configService.getInterfaces().isEmpty()) {
             log.warn("No interfaces found in configuration file");
         }
 
@@ -142,7 +138,7 @@ public class PeerConnectivityManager {
         List<InterfaceAddress> interfaceAddresses =
                 bgpSpeaker.interfaceAddresses();
 
-        Interface peerInterface = interfaceService.getInterface(
+        Interface peerInterface = configService.getInterface(
                 bgpPeer.connectPoint());
 
         if (peerInterface == null) {

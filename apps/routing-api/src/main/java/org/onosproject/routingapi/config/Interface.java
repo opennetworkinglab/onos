@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip.config;
+package org.onosproject.routingapi.config;
 
-import java.util.Objects;
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * An Interface is a set of addresses that are logically mapped to a switch

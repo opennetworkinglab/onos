@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
+package org.onosproject.routing.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
-import org.onosproject.sdnip.config.Interface;
+import org.onosproject.routingapi.config.Interface;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Provides InterfaceService using PortAddresses data from the HostService.
+ * Adapts PortAddresses data from the HostService into Interface data used by
+ * the routing module.
  */
-public class HostToInterfaceAdaptor implements InterfaceService {
+public class HostToInterfaceAdaptor {
 
     private final HostService hostService;
 
@@ -39,7 +39,6 @@ public class HostToInterfaceAdaptor implements InterfaceService {
         this.hostService = checkNotNull(hostService);
     }
 
-    @Override
     public Set<Interface> getInterfaces() {
         Set<PortAddresses> addresses = hostService.getAddressBindings();
         Set<Interface> interfaces = Sets.newHashSetWithExpectedSize(addresses.size());
@@ -49,7 +48,6 @@ public class HostToInterfaceAdaptor implements InterfaceService {
         return interfaces;
     }
 
-    @Override
     public Interface getInterface(ConnectPoint connectPoint) {
         checkNotNull(connectPoint);
 
@@ -65,7 +63,6 @@ public class HostToInterfaceAdaptor implements InterfaceService {
         return null;
     }
 
-    @Override
     public Interface getMatchingInterface(IpAddress ipAddress) {
         checkNotNull(ipAddress);
 

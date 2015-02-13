@@ -17,4 +17,4 @@
 /**
  * SDN-IP configuration services.
  */
-package org.onosproject.sdnip.config;
+package org.onosproject.routingapi.config;

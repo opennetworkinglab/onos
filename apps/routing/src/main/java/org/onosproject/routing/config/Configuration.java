@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip.config;
+package org.onosproject.routing.config;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.onosproject.routingapi.config.BgpPeer;
+import org.onosproject.routingapi.config.BgpSpeaker;
 
 import java.util.Collections;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Contains the configuration data for SDN-IP that has been read from a

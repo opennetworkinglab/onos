@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip.config;
+package org.onosproject.routingapi.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.NetTools;
 import org.onosproject.net.PortNumber;
 
 import java.util.List;
@@ -63,7 +64,7 @@ public class BgpSpeaker {
         this.name = name;
         this.macAddress = MacAddress.valueOf(macAddress);
         this.connectPoint = new ConnectPoint(
-                DeviceId.deviceId(SdnIpConfigurationReader.dpidToUri(attachmentDpid)),
+                DeviceId.deviceId(NetTools.dpidToUri(attachmentDpid)),
                 PortNumber.portNumber(attachmentPort));
     }
 

@@ -37,9 +37,9 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.routingapi.FibListener;
 import org.onosproject.routingapi.FibUpdate;
-import org.onosproject.sdnip.config.BgpPeer;
-import org.onosproject.sdnip.config.Interface;
-import org.onosproject.sdnip.config.SdnIpConfigurationService;
+import org.onosproject.routingapi.config.BgpPeer;
+import org.onosproject.routingapi.config.Interface;
+import org.onosproject.routingapi.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +79,7 @@ public class IntentSynchronizer implements FibListener {
     private volatile boolean isElectedLeader = false;
     private volatile boolean isActivatedLeader = false;
 
-    private final SdnIpConfigurationService configService;
-    private final InterfaceService interfaceService;
+    private final RoutingConfigurationService configService;
 
     /**
      * Class constructor.
@@ -88,18 +87,15 @@ public class IntentSynchronizer implements FibListener {
      * @param appId the Application ID
      * @param intentService the intent service
      * @param configService the SDN-IP configuration service
-     * @param interfaceService the interface service
      */
     IntentSynchronizer(ApplicationId appId, IntentService intentService,
-                       SdnIpConfigurationService configService,
-                       InterfaceService interfaceService) {
+                       RoutingConfigurationService configService) {
         this.appId = appId;
         this.intentService = intentService;
         peerIntents = new ConcurrentHashMap<>();
         routeIntents = new ConcurrentHashMap<>();
 
         this.configService = configService;
-        this.interfaceService = interfaceService;
 
         bgpIntentsSynchronizerExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
@@ -289,12 +285,12 @@ public class IntentSynchronizer implements FibListener {
             BgpPeer peer =
                     configService.getBgpPeers().get(nextHopIpAddress);
             egressInterface =
-                    interfaceService.getInterface(peer.connectPoint());
+                    configService.getInterface(peer.connectPoint());
         } else {
             // Route to non-peer
             log.debug("Route to non-peer {}", nextHopIpAddress);
             egressInterface =
-                    interfaceService.getMatchingInterface(nextHopIpAddress);
+                    configService.getMatchingInterface(nextHopIpAddress);
             if (egressInterface == null) {
                 log.warn("No outgoing interface found for {}",
                          nextHopIpAddress);
@@ -310,7 +306,7 @@ public class IntentSynchronizer implements FibListener {
         log.debug("Generating intent for prefix {}, next hop mac {}",
                   prefix, nextHopMacAddress);
 
-        for (Interface intf : interfaceService.getInterfaces()) {
+        for (Interface intf : configService.getInterfaces()) {
             if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
                 ConnectPoint srcPort = intf.connectPoint();
                 ingressPorts.add(srcPort);

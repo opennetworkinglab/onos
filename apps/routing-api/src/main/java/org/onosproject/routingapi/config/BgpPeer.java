@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip.config;
+package org.onosproject.routingapi.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.NetTools;
 import org.onosproject.net.PortNumber;
 
 import java.util.Objects;
@@ -42,7 +43,7 @@ public class BgpPeer {
                    @JsonProperty("attachmentPort") long port,
                    @JsonProperty("ipAddress") String ipAddress) {
         this.connectPoint = new ConnectPoint(
-                DeviceId.deviceId(SdnIpConfigurationReader.dpidToUri(dpid)),
+                DeviceId.deviceId(NetTools.dpidToUri(dpid)),
                 PortNumber.portNumber(port));
         this.ipAddress = IpAddress.valueOf(ipAddress);
     }
