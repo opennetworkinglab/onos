@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
 
 import java.util.Optional;
 
 /**
- * Represents a completed phase of processing an intent.
+ * Represents a final phase of processing an intent.
  */
-abstract class CompletedIntentUpdate implements IntentUpdate {
+public abstract class FinalIntentProcessPhase implements IntentProcessPhase {
 
     @Override
-    public final Optional<IntentUpdate> execute() {
+    public final Optional<IntentProcessPhase> execute() {
         return Optional.empty();
     }
 

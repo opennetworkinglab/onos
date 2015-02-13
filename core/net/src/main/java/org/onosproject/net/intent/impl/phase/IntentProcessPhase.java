@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
-import org.onosproject.net.intent.IntentData;
+import java.util.Optional;
 
 /**
- * Represents a phase where the compile has failed.
+ * Represents a phase of processing an intent.
  */
-class CompilingFailed extends AbstractFailed {
+public interface IntentProcessPhase {
 
     /**
-     * Create an instance with the specified data.
+     * Execute the procedure represented by the instance
+     * and generates the next update instance.
      *
-     * @param intentData intentData
+     * @return next update
      */
-    CompilingFailed(IntentData intentData) {
-        super(intentData);
-    }
+    Optional<IntentProcessPhase> execute();
 }

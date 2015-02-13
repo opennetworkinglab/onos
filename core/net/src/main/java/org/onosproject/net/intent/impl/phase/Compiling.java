@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
+import org.onosproject.net.intent.impl.IntentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a phase where an intent is being compiled.
  */
-class Compiling implements IntentUpdate {
+final class Compiling implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(Compiling.class);
 
@@ -45,7 +46,7 @@ class Compiling implements IntentUpdate {
     }
 
     @Override
-    public Optional<IntentUpdate> execute() {
+    public Optional<IntentProcessPhase> execute() {
         try {
             List<Intent> installables = (current != null) ? current.installables() : null;
             pending.setInstallables(intentManager.compileIntent(pending.intent(), installables));

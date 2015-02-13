@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
+import org.onosproject.net.intent.impl.IntentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Represents a phase of installing an intent with calling
  * {@link org.onosproject.net.flow.FlowRuleService}.
  */
-class Installing implements IntentUpdate {
+final class Installing implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(Installing.class);
 
@@ -45,7 +46,7 @@ class Installing implements IntentUpdate {
     }
 
     @Override
-    public Optional<IntentUpdate> execute() {
+    public Optional<IntentProcessPhase> execute() {
         try {
             intentManager.flowRuleService.apply(flowRules); // FIXME we need to provide a context
             return Optional.of(new Installed(pending));

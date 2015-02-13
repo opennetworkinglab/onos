@@ -13,33 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.FAILED;
-
 /**
- * A common parent class of a class representing failure
- * as IntentUpdate subclass.
+ * Represent a phase where the install has failed.
  */
-abstract class AbstractFailed extends CompletedIntentUpdate {
-
-    private final IntentData intentData;
+class InstallingFailed extends AbstractFailed {
 
     /**
      * Create an instance with the specified data.
      *
      * @param intentData intentData
      */
-    AbstractFailed(IntentData intentData) {
-        this.intentData = checkNotNull(intentData);
-        this.intentData.setState(FAILED);
-    }
-
-    @Override
-    public IntentData data() {
-        return intentData;
+    InstallingFailed(IntentData intentData) {
+        super(intentData);
     }
 }

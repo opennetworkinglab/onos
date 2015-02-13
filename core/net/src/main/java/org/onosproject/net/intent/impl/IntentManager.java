@@ -47,6 +47,12 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.impl.phase.CompilingFailed;
+import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
+import org.onosproject.net.intent.impl.phase.InstallRequest;
+import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
+import org.onosproject.net.intent.impl.phase.WithdrawRequest;
+import org.onosproject.net.intent.impl.phase.Withdrawn;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -112,8 +118,9 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
+    // TODO: make this protected due to short term hack for ONOS-1051
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowRuleService;
+    public FlowRuleService flowRuleService;
 
 
     private ExecutorService batchExecutor;
@@ -268,7 +275,8 @@ public class IntentManager
      * @param previousInstallables previous intent installables
      * @return result of compilation
      */
-    List<Intent> compileIntent(Intent intent, List<Intent> previousInstallables) {
+    // TODO: make this non-public due to short term hack for ONOS-1051
+    public List<Intent> compileIntent(Intent intent, List<Intent> previousInstallables) {
         if (intent.isInstallable()) {
             return ImmutableList.of(intent);
         }
@@ -284,7 +292,8 @@ public class IntentManager
 
     //TODO javadoc
     //FIXME
-    FlowRuleOperations coordinate(IntentData current, IntentData pending) {
+    // TODO: make this non-public due to short term hack for ONOS-1051
+    public FlowRuleOperations coordinate(IntentData current, IntentData pending) {
         List<Intent> oldInstallables = (current != null) ? current.installables() : null;
         List<Intent> newInstallables = pending.installables();
 
@@ -347,7 +356,8 @@ public class IntentManager
      * @param current intent data stored in the store
      * @return flow rule operations
      */
-    FlowRuleOperations uninstallCoordinate(IntentData current, IntentData pending) {
+    // TODO: make this non-public due to short term hack for ONOS-1051
+    public FlowRuleOperations uninstallCoordinate(IntentData current, IntentData pending) {
         List<Intent> installables = current.installables();
         List<List<FlowRuleBatchOperation>> plans = new ArrayList<>();
         for (Intent installable : installables) {
@@ -520,7 +530,7 @@ public class IntentManager
         }
     }
 
-    private IntentUpdate createIntentUpdate(IntentData intentData) {
+    private IntentProcessPhase createIntentUpdate(IntentData intentData) {
         IntentData current = store.getIntentData(intentData.key());
         switch (intentData.state()) {
             case INSTALL_REQ:
@@ -537,7 +547,7 @@ public class IntentManager
         }
     }
 
-    private Future<CompletedIntentUpdate> submitIntentData(IntentData data) {
+    private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
         return workerExecutor.submit(new IntentWorker(data));
     }
 
@@ -590,15 +600,15 @@ public class IntentManager
             }
         }
 
-        private List<Future<CompletedIntentUpdate>> createIntentUpdates() {
+        private List<Future<FinalIntentProcessPhase>> createIntentUpdates() {
             return data.stream()
                     .map(IntentManager.this::submitIntentData)
                     .collect(Collectors.toList());
         }
 
-        private List<CompletedIntentUpdate> waitForFutures(List<Future<CompletedIntentUpdate>> futures) {
-            ImmutableList.Builder<CompletedIntentUpdate> updateBuilder = ImmutableList.builder();
-            for (Future<CompletedIntentUpdate> future : futures) {
+        private List<FinalIntentProcessPhase> waitForFutures(List<Future<FinalIntentProcessPhase>> futures) {
+            ImmutableList.Builder<FinalIntentProcessPhase> updateBuilder = ImmutableList.builder();
+            for (Future<FinalIntentProcessPhase> future : futures) {
                 try {
                     updateBuilder.add(future.get());
                 } catch (InterruptedException | ExecutionException e) {
@@ -609,14 +619,14 @@ public class IntentManager
             return updateBuilder.build();
         }
 
-        private void submitUpdates(List<CompletedIntentUpdate> updates) {
+        private void submitUpdates(List<FinalIntentProcessPhase> updates) {
             store.batchWrite(updates.stream()
-                                    .map(CompletedIntentUpdate::data)
+                                    .map(FinalIntentProcessPhase::data)
                                     .collect(Collectors.toList()));
         }
     }
 
-    private final class IntentWorker implements Callable<CompletedIntentUpdate> {
+    private final class IntentWorker implements Callable<FinalIntentProcessPhase> {
 
         private final IntentData data;
 
@@ -625,16 +635,16 @@ public class IntentManager
         }
 
         @Override
-        public CompletedIntentUpdate call() throws Exception {
-            IntentUpdate update = createIntentUpdate(data);
-            Optional<IntentUpdate> currentPhase = Optional.of(update);
-            IntentUpdate previousPhase = update;
+        public FinalIntentProcessPhase call() throws Exception {
+            IntentProcessPhase update = createIntentUpdate(data);
+            Optional<IntentProcessPhase> currentPhase = Optional.of(update);
+            IntentProcessPhase previousPhase = update;
 
             while (currentPhase.isPresent()) {
                 previousPhase = currentPhase.get();
                 currentPhase = previousPhase.execute();
             }
-            return (CompletedIntentUpdate) previousPhase;
+            return (FinalIntentProcessPhase) previousPhase;
         }
     }
 

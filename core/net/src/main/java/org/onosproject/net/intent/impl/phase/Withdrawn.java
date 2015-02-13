@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentState;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.INSTALLING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 
 /**
- * Represent a phase where an intent has been installed.
+ * Represents a phase where an intent has been withdrawn.
  */
-class Installed extends CompletedIntentUpdate {
+public final class Withdrawn extends FinalIntentProcessPhase {
 
     private final IntentData intentData;
 
-    Installed(IntentData intentData) {
+    public Withdrawn(IntentData intentData) {
+        this(intentData, WITHDRAWING);
+    }
+
+    public Withdrawn(IntentData intentData, IntentState newState) {
         this.intentData = checkNotNull(intentData);
-        this.intentData.setState(INSTALLING);
+        this.intentData.setState(newState);
     }
 
     @Override

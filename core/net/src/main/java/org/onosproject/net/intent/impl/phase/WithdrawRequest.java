@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.impl.IntentManager;
 
 import java.util.Optional;
 
@@ -24,21 +25,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a phase of requesting a withdraw of an intent.
  */
-class WithdrawRequest implements IntentUpdate {
+public final class WithdrawRequest implements IntentProcessPhase {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
     private final IntentData pending;
     private final IntentData current;
 
-    WithdrawRequest(IntentManager intentManager, IntentData intentData, IntentData current) {
+    public WithdrawRequest(IntentManager intentManager, IntentData intentData, IntentData current) {
         this.intentManager = checkNotNull(intentManager);
         this.pending = checkNotNull(intentData);
         this.current = checkNotNull(current);
     }
 
     @Override
-    public Optional<IntentUpdate> execute() {
+    public Optional<IntentProcessPhase> execute() {
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
         // Note: this call is not just the symmetric version of submit

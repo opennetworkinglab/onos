@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.impl.IntentManager;
 
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Represents a phase of withdrawing an intent with calling
  * {@link org.onosproject.net.flow.FlowRuleService}.
  */
-class Withdrawing implements IntentUpdate {
+class Withdrawing implements IntentProcessPhase {
 
     // TODO: define an interface and use it, instead of IntentManager
     private final IntentManager intentManager;
@@ -40,7 +41,7 @@ class Withdrawing implements IntentUpdate {
     }
 
     @Override
-    public Optional<IntentUpdate> execute() {
+    public Optional<IntentProcessPhase> execute() {
         intentManager.flowRuleService.apply(flowRules);
         return Optional.of(new Withdrawn(pending));
     }

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
 
 /**
  * Represents a phase where the withdraw has failed.
  */
-class WithdrawingFailed extends AbstractFailed {
+final class WithdrawingFailed extends AbstractFailed {
 
     /**
      * Create an instance with the specified data.
