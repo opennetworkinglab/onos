@@ -103,9 +103,9 @@
     }
 
     function handleEscape() {
-        if (false) {
-            // TODO: if an instance is selected, cancel the affinity mapping
-            // tis.cancelAffinity()
+        if (tis.showMaster()) {
+            // if an instance is selected, cancel the affinity mapping
+            tis.cancelAffinity()
 
         } else if (tss.haveDetails()) {
             // else if we have node selections, deselect them all
@@ -288,7 +288,7 @@
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(forceG, uplink, dim);
-            tis.initInst();
+            tis.initInst({ showMastership: tfs.showMastership });
             tps.initPanels({ sendEvent: tes.sendEvent });
             tes.openSock();
 

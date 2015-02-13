@@ -73,7 +73,7 @@
         rlk = network.revLinkToKey,
         deviceLabelIndex = 0,   // for device label cycling
         hostLabelIndex = 0,     // for host label cycling
-        showHosts = true,       // whether hosts are displayed
+        showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         oblique = false,        // whether we are in the oblique view
         nodeLock = false,       // whether nodes can be dragged or not (locked)
@@ -287,14 +287,15 @@
             .clamp(true),
         allLinkTypes = 'direct indirect optical tunnel';
 
-    function restyleLinkElement(ldata) {
+    function restyleLinkElement(ldata, immediate) {
         // this fn's job is to look at raw links and decide what svg classes
         // need to be applied to the line element in the DOM
         var th = ts.theme(),
             el = ldata.el,
             type = ldata.type(),
             lw = ldata.linkWidth(),
-            online = ldata.online();
+            online = ldata.online(),
+            delay = immediate ? 0 : 1000;
 
         el.classed('link', true);
         el.classed('inactive', !online);
@@ -303,7 +304,7 @@
             el.classed(type, true);
         }
         el.transition()
-            .duration(1000)
+            .duration(delay)
             .attr('stroke-width', linkScale(lw))
             .attr('stroke', linkConfig[th].baseColor);
     }
@@ -548,6 +549,35 @@
         }
     }
 
+    function showMastership(masterId) {
+        if (!masterId) {
+            restoreLayerState();
+        } else {
+            showMastershipFor(masterId);
+        }
+    }
+
+    function restoreLayerState() {
+        // NOTE: this level of indirection required, for when we have
+        //          the layer filter functionality re-implemented
+        suppressLayers(false);
+    }
+
+    function showMastershipFor(id) {
+        suppressLayers(true);
+        node.each(function (n) {
+            if (n.master === id) {
+                n.el.classed('suppressed', false);
+            }
+        });
+    }
+
+    function suppressLayers(b) {
+        node.classed('suppressed', b);
+        link.classed('suppressed', b);
+//        d3.selectAll('svg .port').classed('inactive', b);
+//        d3.selectAll('svg .portText').classed('inactive', b);
+    }
 
     // ==========================================
 
@@ -777,7 +807,7 @@
             .data(network.links, function (d) { return d.key; });
 
         // operate on existing links:
-        //link.each(linkExisting);
+        link.each(linkExisting);
 
         // operate on entering links:
         var entering = link.enter()
@@ -842,7 +872,9 @@
         return data;
     }
 
-    //function linkExisting(d) { }
+    function linkExisting(d) {
+        restyleLinkElement(d, true);
+    }
 
     function linkEntering(d) {
         var link = d3.select(this);
@@ -1067,6 +1099,11 @@
 
             icfg = is.iconConfig();
 
+            var themeListener = ts.addListener(function () {
+                updateLinks();
+                updateNodes();
+            });
+
             // forceG is the SVG group to display the force layout in
             // uplink is the api from the main topo source file
             // dim is the initial dimensions of the SVG as [w,h]
@@ -1117,6 +1154,8 @@
                 tts.destroyTraffic();
                 tss.destroySelect();
                 tms.destroyModel();
+                ts.removeListener(themeListener);
+                themeListener = null;
             }
 
             return {
@@ -1129,6 +1168,7 @@
                 toggleOffline: toggleOffline,
                 cycleDeviceLabels: cycleDeviceLabels,
                 unpin: unpin,
+                showMastership: showMastership,
 
                 addDevice: addDevice,
                 updateDevice: updateDevice,

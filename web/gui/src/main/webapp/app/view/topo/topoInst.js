@@ -25,6 +25,12 @@
     // injected refs
     var $log, ps, sus, gs, ts, fs;
 
+    // api from topo
+    var api;
+    /*
+        showMastership( id )
+     */
+
     // configuration
     var instCfg = {
             rectPad: 8,
@@ -120,13 +126,8 @@
             .classed('affinity', false);
         el.classed('affinity', true);
 
-        // TODO: suppress the layers and highlight only specific nodes...
-        //suppressLayers(true);
-        //node.each(function (n) {
-        //    if (n.master === d.id) {
-        //        n.el.classed('suppressed', false);
-        //    }
-        //});
+        // suppress all elements except nodes whose master is this instance
+        api.showMastership(d.id);
         oiShowMaster = true;
     }
 
@@ -134,8 +135,7 @@
         d3.selectAll('.onosInst')
             .classed('mastership affinity', false);
 
-        // TODO: restore layer state
-        //restoreLayerState();
+        api.showMastership(null);
         oiShowMaster = false;
     }
 
@@ -284,7 +284,8 @@
         }
     }
 
-    function initInst() {
+    function initInst(_api_) {
+        api = _api_;
         oiBox = ps.createPanel(idIns, instOpts);
         oiBox.show();
 
@@ -327,10 +328,13 @@
                 updateInstance: updateInstance,
                 removeInstance: removeInstance,
 
+                cancelAffinity: cancelAffinity,
+
                 isVisible: function () { return oiBox.isVisible(); },
                 show: function () { oiBox.show(); },
                 hide: function () { oiBox.hide(); },
-                toggle: function () { oiBox.toggle(); }
+                toggle: function () { oiBox.toggle(); },
+                showMaster: function () { return oiShowMaster; }
             };
         }]);
 }());

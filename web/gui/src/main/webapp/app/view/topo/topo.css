@@ -300,6 +300,10 @@
 
 /* --- Topo Nodes --- */
 
+#ov-topo svg .suppressed {
+    opacity: 0.2 !important;
+}
+
 #ov-topo svg .node {
     cursor: pointer;
 }
