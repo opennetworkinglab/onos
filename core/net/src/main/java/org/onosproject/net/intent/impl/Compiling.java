@@ -26,6 +26,9 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Represents a phase where an intent is being compiled.
+ */
 class Compiling implements IntentUpdate {
 
     private static final Logger log = LoggerFactory.getLogger(Compiling.class);

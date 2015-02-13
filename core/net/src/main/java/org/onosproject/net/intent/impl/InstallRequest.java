@@ -21,7 +21,9 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-// TODO pull out the IntentUpdate inner classes
+/**
+ * Represents a phase where intent installation has been requested.
+ */
 class InstallRequest implements IntentUpdate {
 
     // TODO: define an interface and use it, instead of IntentManager

@@ -21,6 +21,9 @@ import org.onosproject.net.intent.IntentState;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 
+/**
+ * Represents a phase where an intent has been withdrawn.
+ */
 class Withdrawn extends CompletedIntentUpdate {
 
     private final IntentData intentData;
