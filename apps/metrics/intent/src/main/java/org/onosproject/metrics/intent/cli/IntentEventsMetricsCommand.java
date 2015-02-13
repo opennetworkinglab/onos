@@ -93,8 +93,8 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
         Gauge<Long> gauge = eventMetric.lastEventTimestampGauge();
         Meter meter = eventMetric.eventRateMeter();
 
-        objectNode.put(gaugeName, json(mapper, gauge));
-        objectNode.put(meterName, json(mapper, meter));
+        objectNode.set(gaugeName, json(mapper, gauge));
+        objectNode.set(meterName, json(mapper, meter));
         return objectNode;
     }
 

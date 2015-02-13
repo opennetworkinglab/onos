@@ -92,8 +92,8 @@ public class RoutesListCommand extends AbstractShellCommand {
         if (outputJson()) {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode result = mapper.createObjectNode();
-            result.put("routes4", json(routes4));
-            result.put("routes6", json(routes6));
+            result.set("routes4", json(routes4));
+            result.set("routes6", json(routes6));
             print("%s", result);
         } else {
             // The IPv4 routes

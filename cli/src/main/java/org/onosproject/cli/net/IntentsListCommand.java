@@ -180,17 +180,17 @@ public class IntentsListCommand extends AbstractShellCommand {
         ObjectNode json() {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode result = mapper.createObjectNode();
-            result.put("connectivity", summaryConnectivity.json(mapper));
-            result.put("hostToHost", summaryHostToHost.json(mapper));
-            result.put("pointToPoint", summaryPointToPoint.json(mapper));
-            result.put("multiPointToSinglePoint",
+            result.set("connectivity", summaryConnectivity.json(mapper));
+            result.set("hostToHost", summaryHostToHost.json(mapper));
+            result.set("pointToPoint", summaryPointToPoint.json(mapper));
+            result.set("multiPointToSinglePoint",
                        summaryMultiPointToSinglePoint.json(mapper));
-            result.put("singlePointToMultiPoint",
+            result.set("singlePointToMultiPoint",
                        summarySinglePointToMultiPoint.json(mapper));
-            result.put("path", summaryPath.json(mapper));
-            result.put("linkCollection", summaryLinkCollection.json(mapper));
-            result.put("unknownType", summaryUnknownType.json(mapper));
-            result.put("all", summaryAll.json(mapper));
+            result.set("path", summaryPath.json(mapper));
+            result.set("linkCollection", summaryLinkCollection.json(mapper));
+            result.set("unknownType", summaryUnknownType.json(mapper));
+            result.set("all", summaryAll.json(mapper));
             return result;
         }
 

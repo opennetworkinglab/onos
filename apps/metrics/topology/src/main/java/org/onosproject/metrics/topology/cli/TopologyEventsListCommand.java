@@ -77,7 +77,7 @@ public class TopologyEventsListCommand extends AbstractShellCommand {
      * Produces JSON object for a topology event.
      *
      * @param mapper the JSON object mapper to use
-     * @param topologyEvent the topology event with the data
+     * @param event the topology event with the data
      * @return JSON object for the topology event
      */
     private ObjectNode json(ObjectMapper mapper, Event event) {
@@ -94,7 +94,7 @@ public class TopologyEventsListCommand extends AbstractShellCommand {
             for (Event reason : topologyEvent.reasons()) {
                 reasons.add(json(mapper, reason));
             }
-            result.put("reasons", reasons);
+            result.set("reasons", reasons);
         }
 
         return result;

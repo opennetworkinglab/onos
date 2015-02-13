@@ -122,8 +122,8 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         if (outputJson()) {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode result = mapper.createObjectNode();
-            result.put("routes4", json(routes4));
-            result.put("routes6", json(routes6));
+            result.set("routes4", json(routes4));
+            result.set("routes6", json(routes6));
             print("%s", result);
         } else {
             // The IPv4 routes
@@ -248,7 +248,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         result.put("bgpId",
                    route.getBgpSession().remoteInfo().bgpId().toString());
         result.put("origin", Update.Origin.typeToString(route.getOrigin()));
-        result.put("asPath", json(mapper, route.getAsPath()));
+        result.set("asPath", json(mapper, route.getAsPath()));
         result.put("localPref", route.getLocalPref());
         result.put("multiExitDisc", route.getMultiExitDisc());
 
@@ -273,10 +273,10 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
             for (Long asNumber : pathSegment.getSegmentAsNumbers()) {
                 segmentAsNumbersJson.add(asNumber);
             }
-            pathSegmentJson.put("segmentAsNumbers", segmentAsNumbersJson);
+            pathSegmentJson.set("segmentAsNumbers", segmentAsNumbersJson);
             pathSegmentsJson.add(pathSegmentJson);
         }
-        result.put("pathSegments", pathSegmentsJson);
+        result.set("pathSegments", pathSegmentsJson);
 
         return result;
     }
