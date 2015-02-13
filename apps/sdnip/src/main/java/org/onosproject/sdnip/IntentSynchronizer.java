@@ -399,6 +399,8 @@ public class IntentSynchronizer implements FibListener {
                                   oldIntent);
                         intentService.withdraw(oldIntent);
                     }
+                    log.trace("SDN-IP Submitting intent: {}", intent);
+                    intentService.submit(intent);
                 }
             }
         }
