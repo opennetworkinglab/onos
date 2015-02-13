@@ -36,7 +36,8 @@ describe('factory: view/topo/topoInst.js', function() {
         expect(fs.areFunctions(tis, [
             'initInst', 'destroyInst',
             'addInstance', 'updateInstance', 'removeInstance',
-            'isVisible', 'show', 'hide', 'toggle'
+            'cancelAffinity',
+            'isVisible', 'show', 'hide', 'toggle', 'showMaster'
         ])).toBeTruthy();
     });
 

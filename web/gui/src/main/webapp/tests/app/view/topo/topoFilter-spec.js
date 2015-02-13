@@ -15,33 +15,26 @@
  */
 
 /*
- ONOS GUI -- Topo View -- Topo Force Service - Unit Tests
+ ONOS GUI -- Topo View -- Topo Filter Service - Unit Tests
  */
-describe('factory: view/topo/topoForce.js', function() {
-    var $log, fs, tfs;
+describe('factory: view/topo/topoFilter.js', function() {
+    var $log, fs, filter;
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoForceService) {
+    beforeEach(inject(function (_$log_, FnService, TopoFilterService) {
         $log = _$log_;
         fs = FnService;
-        tfs = TopoForceService;
+        filter = TopoFilterService;
     }));
 
-    it('should define TopoForceService', function () {
-        expect(tfs).toBeDefined();
+    it('should define TopoFilterService', function () {
+        expect(filter).toBeDefined();
     });
 
     it('should define api functions', function () {
-        expect(fs.areFunctions(tfs, [
-            'initForce', 'newDim', 'destroyForce',
-
-            'updateDeviceColors', 'toggleHosts', 'toggleOffline',
-            'cycleDeviceLabels', 'unpin', 'showMastership',
-
-            'addDevice', 'updateDevice', 'removeDevice',
-            'addHost', 'updateHost', 'removeHost',
-            'addLink', 'updateLink', 'removeLink'
+        expect(fs.areFunctions(filter, [
+            'initFilter', 'destroyFilter'
         ])).toBeTruthy();
     });
 
