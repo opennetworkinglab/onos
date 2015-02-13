@@ -672,13 +672,14 @@ public class DistributedFlowRuleStore
                         // This node is the new master, populate local structure
                         // from backup
                         loadFromBackup(did);
-                    } else {
+                    }
+                    //else {
                         // This node is no longer the master holder,
                         // clean local structure
-                        removeFromPrimary(did);
+                        //removeFromPrimary(did);
                         // TODO: probably should stop pending backup activities in
                         // executors to avoid overwriting with old value
-                    }
+                    //}
                     break;
                 default:
                     break;
