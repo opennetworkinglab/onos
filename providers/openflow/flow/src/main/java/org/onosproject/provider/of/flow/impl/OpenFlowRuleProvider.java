@@ -560,5 +560,4 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     .toString();
         }
     }
-
 }

@@ -49,9 +49,18 @@ public interface TrafficTreatment {
         Builder add(Instruction instruction);
 
         /**
-         * Adds a drop instruction and does not return a builder.
+         * Adds a drop instruction.
+         *
+         * @return a treatment builder
          */
-        public void drop();
+        public Builder drop();
+
+        /**
+         * Adds a punt-to-controller instruction.
+         *
+         * @return a treatment builder
+         */
+        public Builder punt();
 
         /**
          * Set the output port.
@@ -111,18 +120,21 @@ public interface TrafficTreatment {
 
         /**
          * Push MPLS ether type.
+         *
          * @return a treatment builder.
          */
         public Builder pushMpls();
 
         /**
          * Pops MPLS ether type.
+         *
          * @return a treatment builder.
          */
         public Builder popMpls();
 
         /**
          * Sets the mpls label.
+         *
          * @param mplsLabel MPLS label.
          * @return a treatment builder.
          */

@@ -45,6 +45,7 @@
         <module>oecfg</module>
         <module>demo</module>
         <module>election</module>
+        <module>ipanagent</module>
     </modules>
 
     <properties>

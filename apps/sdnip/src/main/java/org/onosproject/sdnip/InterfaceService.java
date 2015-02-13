@@ -17,9 +17,9 @@ package org.onosproject.sdnip;
 
 import java.util.Set;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.sdnip.config.Interface;
-import org.onlab.packet.IpAddress;
 
 /**
  * Provides information about the interfaces in the network.

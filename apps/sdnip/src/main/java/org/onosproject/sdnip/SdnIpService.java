@@ -32,18 +32,32 @@ public interface SdnIpService {
     public Collection<BgpSession> getBgpSessions();
 
     /**
-     * Gets the BGP routes.
+     * Gets the selected IPv4 BGP routes among all BGP sessions.
      *
-     * @return the BGP routes
+     * @return the selected IPv4 BGP routes among all BGP sessions
      */
-    public Collection<BgpRouteEntry> getBgpRoutes();
+    public Collection<BgpRouteEntry> getBgpRoutes4();
 
     /**
-     * Gets all the routes known to SDN-IP.
+     * Gets the selected IPv6 BGP routes among all BGP sessions.
      *
-     * @return the SDN-IP routes
+     * @return the selected IPv6 BGP routes among all BGP sessions
      */
-    public Collection<RouteEntry> getRoutes();
+    public Collection<BgpRouteEntry> getBgpRoutes6();
+
+    /**
+     * Gets all IPv4 routes known to SDN-IP.
+     *
+     * @return the SDN-IP IPv4 routes
+     */
+    public Collection<RouteEntry> getRoutes4();
+
+    /**
+     * Gets all IPv6 routes known to SDN-IP.
+     *
+     * @return the SDN-IP IPv6 routes
+     */
+    public Collection<RouteEntry> getRoutes6();
 
     /**
      * Changes whether this SDN-IP instance is the primary or not based on the

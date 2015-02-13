@@ -18,10 +18,10 @@ package org.onosproject.sdnip.config;
 import java.util.List;
 import java.util.Objects;
 
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onlab.packet.MacAddress;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

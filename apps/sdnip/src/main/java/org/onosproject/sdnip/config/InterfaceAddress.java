@@ -17,10 +17,10 @@ package org.onosproject.sdnip.config;
 
 import java.util.Objects;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onlab.packet.IpAddress;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;

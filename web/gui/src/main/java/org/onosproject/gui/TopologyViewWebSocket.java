@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014,2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
+import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ControllerNode;
@@ -53,7 +54,6 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
-import org.onlab.osgi.ServiceDirectory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -267,7 +267,7 @@ public class TopologyViewWebSocket
     }
 
     // Sends the specified data to the client.
-    private synchronized void sendMessage(ObjectNode data) {
+    protected synchronized void sendMessage(ObjectNode data) {
         try {
             if (connection.isOpen()) {
                 connection.sendMessage(data.toString());

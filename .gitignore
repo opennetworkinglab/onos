@@ -11,3 +11,4 @@ target
 *.pyc
 dependency-reduced-pom.xml
 .idea
+.metadata/*

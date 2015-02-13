@@ -164,13 +164,23 @@ public class SdnIp implements SdnIpService {
     }
 
     @Override
-    public Collection<BgpRouteEntry> getBgpRoutes() {
-        return bgpSessionManager.getBgpRoutes();
+    public Collection<BgpRouteEntry> getBgpRoutes4() {
+        return bgpSessionManager.getBgpRoutes4();
     }
 
     @Override
-    public Collection<RouteEntry> getRoutes() {
-        return router.getRoutes();
+    public Collection<BgpRouteEntry> getBgpRoutes6() {
+        return bgpSessionManager.getBgpRoutes6();
+    }
+
+    @Override
+    public Collection<RouteEntry> getRoutes4() {
+        return router.getRoutes4();
+    }
+
+    @Override
+    public Collection<RouteEntry> getRoutes6() {
+        return router.getRoutes6();
     }
 
     @Override

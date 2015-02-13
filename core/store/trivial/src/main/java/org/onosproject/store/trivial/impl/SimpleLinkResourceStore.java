@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.PositionalParameterStringFormatter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Link;
@@ -38,6 +39,7 @@ import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceEvent;
 import org.onosproject.net.resource.LinkResourceStore;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceAllocationException;
 import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
@@ -143,13 +145,30 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 double requestedBandwidth =
                         ((BandwidthResourceAllocation) res).bandwidth().toDouble();
                 double newBandwidth = ba.bandwidth().toDouble() - requestedBandwidth;
-                checkState(newBandwidth >= 0.0);
+                if (newBandwidth < 0.0) {
+                    throw new ResourceAllocationException(
+                            PositionalParameterStringFormatter.format(
+                            "Unable to allocate bandwidth for link {} "
+                            + "requested amount is {} current allocation is {}",
+                                    link,
+                                    requestedBandwidth,
+                                    ba));
+                }
                 freeRes.remove(ba);
                 freeRes.add(new BandwidthResourceAllocation(
                         Bandwidth.valueOf(newBandwidth)));
                 break;
             case LAMBDA:
-                checkState(freeRes.remove(res));
+                final boolean lambdaAvailable = freeRes.remove(res);
+                if (!lambdaAvailable) {
+                    int requestedLambda =
+                            ((LambdaResourceAllocation) res).lambda().toInt();
+                    throw new ResourceAllocationException(
+                            PositionalParameterStringFormatter.format(
+                                    "Unable to allocate lambda for link {} lambda is {}",
+                                    link,
+                                    requestedLambda));
+                }
                 break;
             default:
                 break;

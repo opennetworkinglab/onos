@@ -18,10 +18,10 @@ package org.onosproject.sdnip.config;
 import java.util.Objects;
 import java.util.Set;
 
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
-import org.onlab.packet.MacAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;

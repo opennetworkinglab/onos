@@ -26,8 +26,12 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
-import org.onosproject.sdnip.bgp.BgpConstants.Update.AsPath;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.UpdateMessageError;
+import org.onosproject.sdnip.bgp.BgpConstants.Open.Capabilities.MultiprotocolExtensions;
+import org.onosproject.sdnip.bgp.BgpConstants.Update;
+import org.onosproject.sdnip.bgp.BgpConstants.Update.AsPath;
 import org.onosproject.sdnip.bgp.BgpMessage.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +61,7 @@ final class BgpUpdate {
     static void processBgpUpdate(BgpSession bgpSession,
                                  ChannelHandlerContext ctx,
                                  ChannelBuffer message) {
-        Collection<BgpRouteEntry> addedRoutes = null;
-        Map<Ip4Prefix, BgpRouteEntry> deletedRoutes = new HashMap<>();
+        DecodedBgpRoutes decodedBgpRoutes = new DecodedBgpRoutes();
 
         int minLength =
             BgpConstants.BGP_UPDATE_MIN_LENGTH - BgpConstants.BGP_HEADER_LENGTH;
@@ -97,8 +100,8 @@ final class BgpUpdate {
         }
         Collection<Ip4Prefix> withdrawnPrefixes = null;
         try {
-            withdrawnPrefixes = parsePackedPrefixes(withdrawnRoutesLength,
-                                                    message);
+            withdrawnPrefixes = parsePackedIp4Prefixes(withdrawnRoutesLength,
+                                                       message);
         } catch (BgpParseException e) {
             // ERROR: Invalid Network Field
             log.debug("Exception parsing Withdrawn Prefixes from BGP peer {}: ",
@@ -109,9 +112,10 @@ final class BgpUpdate {
         for (Ip4Prefix prefix : withdrawnPrefixes) {
             log.debug("BGP RX UPDATE message WITHDRAWN from {}: {}",
                       bgpSession.getRemoteAddress(), prefix);
-            BgpRouteEntry bgpRouteEntry = bgpSession.bgpRibIn().get(prefix);
+            BgpRouteEntry bgpRouteEntry = bgpSession.findBgpRoute(prefix);
             if (bgpRouteEntry != null) {
-                deletedRoutes.put(prefix, bgpRouteEntry);
+                decodedBgpRoutes.deletedUnicastRoutes4.put(prefix,
+                                                           bgpRouteEntry);
             }
         }
 
@@ -119,31 +123,48 @@ final class BgpUpdate {
         // Parse the Path Attributes
         //
         try {
-            addedRoutes = parsePathAttributes(bgpSession, ctx, message);
+            parsePathAttributes(bgpSession, ctx, message, decodedBgpRoutes);
         } catch (BgpParseException e) {
             log.debug("Exception parsing Path Attributes from BGP peer {}: ",
                       bgpSession.getRemoteBgpId(), e);
             // NOTE: The session was already closed, so nothing else to do
             return;
         }
-        // Ignore WITHDRAWN routes that are ADDED
-        for (BgpRouteEntry bgpRouteEntry : addedRoutes) {
-            deletedRoutes.remove(bgpRouteEntry.prefix());
-        }
 
+        //
         // Update the BGP RIB-IN
-        for (BgpRouteEntry bgpRouteEntry : deletedRoutes.values()) {
-            bgpSession.bgpRibIn().remove(bgpRouteEntry.prefix());
+        //
+        for (Ip4Prefix ip4Prefix :
+                 decodedBgpRoutes.deletedUnicastRoutes4.keySet()) {
+            bgpSession.removeBgpRoute(ip4Prefix);
         }
-        for (BgpRouteEntry bgpRouteEntry : addedRoutes) {
-            bgpSession.bgpRibIn().put(bgpRouteEntry.prefix(), bgpRouteEntry);
+        //
+        for (BgpRouteEntry bgpRouteEntry :
+                 decodedBgpRoutes.addedUnicastRoutes4.values()) {
+            bgpSession.addBgpRoute(bgpRouteEntry);
+        }
+        //
+        for (Ip6Prefix ip6Prefix :
+                 decodedBgpRoutes.deletedUnicastRoutes6.keySet()) {
+            bgpSession.removeBgpRoute(ip6Prefix);
+        }
+        //
+        for (BgpRouteEntry bgpRouteEntry :
+                 decodedBgpRoutes.addedUnicastRoutes6.values()) {
+            bgpSession.addBgpRoute(bgpRouteEntry);
         }
 
+        //
         // Push the updates to the BGP Merged RIB
-        BgpSessionManager.BgpRouteSelector bgpRouteSelector =
+        //
+        BgpRouteSelector bgpRouteSelector =
             bgpSession.getBgpSessionManager().getBgpRouteSelector();
-        bgpRouteSelector.routeUpdates(bgpSession, addedRoutes,
-                                      deletedRoutes.values());
+        bgpRouteSelector.routeUpdates(bgpSession,
+                                decodedBgpRoutes.addedUnicastRoutes4.values(),
+                                decodedBgpRoutes.deletedUnicastRoutes4.values());
+        bgpRouteSelector.routeUpdates(bgpSession,
+                                decodedBgpRoutes.addedUnicastRoutes6.values(),
+                                decodedBgpRoutes.deletedUnicastRoutes6.values());
 
         // Start the Session Timeout timer
         bgpSession.restartSessionTimeoutTimer(ctx);
@@ -155,27 +176,34 @@ final class BgpUpdate {
      * @param bgpSession the BGP Session to use
      * @param ctx the Channel Handler Context
      * @param message the message to parse
-     * @return a collection of the result BGP Route Entries
+     * @param decodedBgpRoutes the container to store the decoded BGP Route
+     * Entries. It might already contain some route entries such as withdrawn
+     * IPv4 prefixes
      * @throws BgpParseException
      */
-    private static Collection<BgpRouteEntry> parsePathAttributes(
-                                                BgpSession bgpSession,
-                                                ChannelHandlerContext ctx,
-                                                ChannelBuffer message)
+    // CHECKSTYLE IGNORE MethodLength FOR NEXT 300 LINES
+    private static void parsePathAttributes(
+                                        BgpSession bgpSession,
+                                        ChannelHandlerContext ctx,
+                                        ChannelBuffer message,
+                                        DecodedBgpRoutes decodedBgpRoutes)
         throws BgpParseException {
-        Map<Ip4Prefix, BgpRouteEntry> addedRoutes = new HashMap<>();
 
         //
         // Parsed values
         //
         Short origin = -1;                      // Mandatory
         BgpRouteEntry.AsPath asPath = null;     // Mandatory
-        Ip4Address nextHop = null;              // Mandatory
+        // Legacy NLRI (RFC 4271). Mandatory NEXT_HOP if legacy NLRI is used
+        MpNlri legacyNlri = new MpNlri(MultiprotocolExtensions.AFI_IPV4,
+                                       MultiprotocolExtensions.SAFI_UNICAST);
         long multiExitDisc =                    // Optional
-            BgpConstants.Update.MultiExitDisc.LOWEST_MULTI_EXIT_DISC;
+            Update.MultiExitDisc.LOWEST_MULTI_EXIT_DISC;
         Long localPref = null;                  // Mandatory
         Long aggregatorAsNumber = null;         // Optional: unused
         Ip4Address aggregatorIpAddress = null;  // Optional: unused
+        Collection<MpNlri> mpNlriReachList = new ArrayList<>();   // Optional
+        Collection<MpNlri> mpNlriUnreachList = new ArrayList<>(); // Optional
 
         //
         // Get and verify the Path Attributes Length
@@ -188,7 +216,7 @@ final class BgpUpdate {
             throw new BgpParseException(errorMsg);
         }
         if (pathAttributeLength == 0) {
-            return addedRoutes.values();
+            return;
         }
 
         //
@@ -244,28 +272,29 @@ final class BgpUpdate {
             //
             switch (attrTypeCode) {
 
-            case BgpConstants.Update.Origin.TYPE:
+            case Update.Origin.TYPE:
                 // Attribute Type Code ORIGIN
                 origin = parseAttributeTypeOrigin(bgpSession, ctx,
                                                   attrTypeCode, attrLen,
                                                   attrFlags, message);
                 break;
 
-            case BgpConstants.Update.AsPath.TYPE:
+            case Update.AsPath.TYPE:
                 // Attribute Type Code AS_PATH
                 asPath = parseAttributeTypeAsPath(bgpSession, ctx,
                                                   attrTypeCode, attrLen,
                                                   attrFlags, message);
                 break;
 
-            case BgpConstants.Update.NextHop.TYPE:
+            case Update.NextHop.TYPE:
                 // Attribute Type Code NEXT_HOP
-                nextHop = parseAttributeTypeNextHop(bgpSession, ctx,
-                                                    attrTypeCode, attrLen,
-                                                    attrFlags, message);
+                legacyNlri.nextHop4 =
+                    parseAttributeTypeNextHop(bgpSession, ctx,
+                                              attrTypeCode, attrLen,
+                                              attrFlags, message);
                 break;
 
-            case BgpConstants.Update.MultiExitDisc.TYPE:
+            case Update.MultiExitDisc.TYPE:
                 // Attribute Type Code MULTI_EXIT_DISC
                 multiExitDisc =
                     parseAttributeTypeMultiExitDisc(bgpSession, ctx,
@@ -273,7 +302,7 @@ final class BgpUpdate {
                                                     attrFlags, message);
                 break;
 
-            case BgpConstants.Update.LocalPref.TYPE:
+            case Update.LocalPref.TYPE:
                 // Attribute Type Code LOCAL_PREF
                 localPref =
                     parseAttributeTypeLocalPref(bgpSession, ctx,
@@ -281,7 +310,7 @@ final class BgpUpdate {
                                                 attrFlags, message);
                 break;
 
-            case BgpConstants.Update.AtomicAggregate.TYPE:
+            case Update.AtomicAggregate.TYPE:
                 // Attribute Type Code ATOMIC_AGGREGATE
                 parseAttributeTypeAtomicAggregate(bgpSession, ctx,
                                                   attrTypeCode, attrLen,
@@ -289,7 +318,7 @@ final class BgpUpdate {
                 // Nothing to do: this attribute is primarily informational
                 break;
 
-            case BgpConstants.Update.Aggregator.TYPE:
+            case Update.Aggregator.TYPE:
                 // Attribute Type Code AGGREGATOR
                 Pair<Long, Ip4Address> aggregator =
                     parseAttributeTypeAggregator(bgpSession, ctx,
@@ -297,6 +326,29 @@ final class BgpUpdate {
                                                  attrFlags, message);
                 aggregatorAsNumber = aggregator.getLeft();
                 aggregatorIpAddress = aggregator.getRight();
+                break;
+
+            case Update.MpReachNlri.TYPE:
+                // Attribute Type Code MP_REACH_NLRI
+                MpNlri mpNlriReach =
+                    parseAttributeTypeMpReachNlri(bgpSession, ctx,
+                                                  attrTypeCode,
+                                                  attrLen,
+                                                  attrFlags, message);
+                if (mpNlriReach != null) {
+                    mpNlriReachList.add(mpNlriReach);
+                }
+                break;
+
+            case Update.MpUnreachNlri.TYPE:
+                // Attribute Type Code MP_UNREACH_NLRI
+                MpNlri mpNlriUnreach =
+                    parseAttributeTypeMpUnreachNlri(bgpSession, ctx,
+                                                    attrTypeCode, attrLen,
+                                                    attrFlags, message);
+                if (mpNlriUnreach != null) {
+                    mpNlriUnreachList.add(mpNlriUnreach);
+                }
                 break;
 
             default:
@@ -320,17 +372,15 @@ final class BgpUpdate {
             }
         }
 
-        // Verify the Well-known Attributes
-        verifyBgpUpdateWellKnownAttributes(bgpSession, ctx, origin, asPath,
-                                           nextHop, localPref);
-
         //
         // Parse the NLRI (Network Layer Reachability Information)
         //
-        Collection<Ip4Prefix> addedPrefixes = null;
         int nlriLength = message.readableBytes();
         try {
-            addedPrefixes = parsePackedPrefixes(nlriLength, message);
+            Collection<Ip4Prefix> addedPrefixes4 =
+                parsePackedIp4Prefixes(nlriLength, message);
+            // Store it inside the legacy NLRI wrapper
+            legacyNlri.nlri4 = addedPrefixes4;
         } catch (BgpParseException e) {
             // ERROR: Invalid Network Field
             log.debug("Exception parsing NLRI from BGP peer {}: ",
@@ -340,25 +390,89 @@ final class BgpUpdate {
             throw e;
         }
 
-        // Generate the added routes
-        for (Ip4Prefix prefix : addedPrefixes) {
-            BgpRouteEntry bgpRouteEntry =
-                new BgpRouteEntry(bgpSession, prefix, nextHop,
-                                  origin.byteValue(), asPath, localPref);
-            bgpRouteEntry.setMultiExitDisc(multiExitDisc);
-            if (bgpRouteEntry.hasAsPathLoop(bgpSession.getLocalAs())) {
-                log.debug("BGP RX UPDATE message IGNORED from {}: {} " +
-                          "nextHop {}: contains AS Path loop",
-                          bgpSession.getRemoteAddress(), prefix, nextHop);
-                continue;
-            } else {
-                log.debug("BGP RX UPDATE message ADDED from {}: {} nextHop {}",
-                          bgpSession.getRemoteAddress(), prefix, nextHop);
+        // Verify the Well-known Attributes
+        verifyBgpUpdateWellKnownAttributes(bgpSession, ctx, origin, asPath,
+                                           localPref, legacyNlri,
+                                           mpNlriReachList);
+
+        //
+        // Generate the deleted routes
+        //
+        for (MpNlri mpNlri : mpNlriUnreachList) {
+            BgpRouteEntry bgpRouteEntry;
+
+            // The deleted IPv4 routes
+            for (Ip4Prefix prefix : mpNlri.nlri4) {
+                bgpRouteEntry = bgpSession.findBgpRoute(prefix);
+                if (bgpRouteEntry != null) {
+                    decodedBgpRoutes.deletedUnicastRoutes4.put(prefix,
+                                                               bgpRouteEntry);
+                }
             }
-            addedRoutes.put(prefix, bgpRouteEntry);
+
+            // The deleted IPv6 routes
+            for (Ip6Prefix prefix : mpNlri.nlri6) {
+                bgpRouteEntry = bgpSession.findBgpRoute(prefix);
+                if (bgpRouteEntry != null) {
+                    decodedBgpRoutes.deletedUnicastRoutes6.put(prefix,
+                                                               bgpRouteEntry);
+                }
+            }
         }
 
-        return addedRoutes.values();
+        //
+        // Generate the added routes
+        //
+        mpNlriReachList.add(legacyNlri);
+        for (MpNlri mpNlri : mpNlriReachList) {
+            BgpRouteEntry bgpRouteEntry;
+
+            // The added IPv4 routes
+            for (Ip4Prefix prefix : mpNlri.nlri4) {
+                bgpRouteEntry =
+                    new BgpRouteEntry(bgpSession, prefix, mpNlri.nextHop4,
+                                      origin.byteValue(), asPath, localPref);
+                bgpRouteEntry.setMultiExitDisc(multiExitDisc);
+                if (bgpRouteEntry.hasAsPathLoop(bgpSession.getLocalAs())) {
+                    log.debug("BGP RX UPDATE message IGNORED from {}: {} " +
+                              "nextHop {}: contains AS Path loop",
+                              bgpSession.getRemoteAddress(), prefix,
+                              mpNlri.nextHop4);
+                    continue;
+                } else {
+                    log.debug("BGP RX UPDATE message ADDED from {}: {} nextHop {}",
+                              bgpSession.getRemoteAddress(), prefix,
+                              mpNlri.nextHop4);
+                }
+                // Remove from the collection of deleted routes
+                decodedBgpRoutes.deletedUnicastRoutes4.remove(prefix);
+                decodedBgpRoutes.addedUnicastRoutes4.put(prefix,
+                                                         bgpRouteEntry);
+            }
+
+            // The added IPv6 routes
+            for (Ip6Prefix prefix : mpNlri.nlri6) {
+                bgpRouteEntry =
+                    new BgpRouteEntry(bgpSession, prefix, mpNlri.nextHop6,
+                                      origin.byteValue(), asPath, localPref);
+                bgpRouteEntry.setMultiExitDisc(multiExitDisc);
+                if (bgpRouteEntry.hasAsPathLoop(bgpSession.getLocalAs())) {
+                    log.debug("BGP RX UPDATE message IGNORED from {}: {} " +
+                              "nextHop {}: contains AS Path loop",
+                              bgpSession.getRemoteAddress(), prefix,
+                              mpNlri.nextHop6);
+                    continue;
+                } else {
+                    log.debug("BGP RX UPDATE message ADDED from {}: {} nextHop {}",
+                              bgpSession.getRemoteAddress(), prefix,
+                              mpNlri.nextHop6);
+                }
+                // Remove from the collection of deleted routes
+                decodedBgpRoutes.deletedUnicastRoutes6.remove(prefix);
+                decodedBgpRoutes.addedUnicastRoutes6.put(prefix,
+                                                         bgpRouteEntry);
+            }
+        }
     }
 
     /**
@@ -368,8 +482,10 @@ final class BgpUpdate {
      * @param ctx the Channel Handler Context
      * @param origin the ORIGIN well-known mandatory attribute
      * @param asPath the AS_PATH well-known mandatory attribute
-     * @param nextHop the NEXT_HOP well-known mandatory attribute
      * @param localPref the LOCAL_PREF required attribute
+     * @param legacyNlri the legacy NLRI. Encapsulates the NEXT_HOP well-known
+     * mandatory attribute (mandatory if legacy NLRI is used).
+     * @param mpNlriReachList the Multiprotocol NLRI attributes
      * @throws BgpParseException
      */
     private static void verifyBgpUpdateWellKnownAttributes(
@@ -377,39 +493,63 @@ final class BgpUpdate {
                                 ChannelHandlerContext ctx,
                                 Short origin,
                                 BgpRouteEntry.AsPath asPath,
-                                Ip4Address nextHop,
-                                Long localPref)
+                                Long localPref,
+                                MpNlri legacyNlri,
+                                Collection<MpNlri> mpNlriReachList)
         throws BgpParseException {
+        boolean hasNlri = false;
+        boolean hasLegacyNlri = false;
+
+        //
+        // Convenience flags that are used to check for missing attributes.
+        //
+        // NOTE: The hasLegacyNlri flag is always set to true if the
+        // Multiprotocol Extensions are not enabled, even if the UPDATE
+        // message doesn't contain the legacy NLRI (per RFC 4271).
+        //
+        if (!bgpSession.getMpExtensions()) {
+            hasNlri = true;
+            hasLegacyNlri = true;
+        } else {
+            if (!legacyNlri.nlri4.isEmpty()) {
+                hasNlri = true;
+                hasLegacyNlri = true;
+            }
+            if (!mpNlriReachList.isEmpty()) {
+                hasNlri = true;
+            }
+        }
+
         //
         // Check for Missing Well-known Attributes
         //
-        if ((origin == null) || (origin == -1)) {
+        if (hasNlri && ((origin == null) || (origin == -1))) {
             // Missing Attribute Type Code ORIGIN
-            int type = BgpConstants.Update.Origin.TYPE;
+            int type = Update.Origin.TYPE;
             actionsBgpUpdateMissingWellKnownAttribute(bgpSession, ctx, type);
             String errorMsg = "Missing Well-known Attribute: ORIGIN";
             throw new BgpParseException(errorMsg);
         }
-        if (asPath == null) {
+        if (hasNlri && (asPath == null)) {
             // Missing Attribute Type Code AS_PATH
-            int type = BgpConstants.Update.AsPath.TYPE;
+            int type = Update.AsPath.TYPE;
             actionsBgpUpdateMissingWellKnownAttribute(bgpSession, ctx, type);
             String errorMsg = "Missing Well-known Attribute: AS_PATH";
             throw new BgpParseException(errorMsg);
         }
-        if (nextHop == null) {
-            // Missing Attribute Type Code NEXT_HOP
-            int type = BgpConstants.Update.NextHop.TYPE;
-            actionsBgpUpdateMissingWellKnownAttribute(bgpSession, ctx, type);
-            String errorMsg = "Missing Well-known Attribute: NEXT_HOP";
-            throw new BgpParseException(errorMsg);
-        }
-        if (localPref == null) {
+        if (hasNlri && (localPref == null)) {
             // Missing Attribute Type Code LOCAL_PREF
             // NOTE: Required for iBGP
-            int type = BgpConstants.Update.LocalPref.TYPE;
+            int type = Update.LocalPref.TYPE;
             actionsBgpUpdateMissingWellKnownAttribute(bgpSession, ctx, type);
             String errorMsg = "Missing Well-known Attribute: LOCAL_PREF";
+            throw new BgpParseException(errorMsg);
+        }
+        if (hasLegacyNlri && (legacyNlri.nextHop4 == null)) {
+            // Missing Attribute Type Code NEXT_HOP
+            int type = Update.NextHop.TYPE;
+            actionsBgpUpdateMissingWellKnownAttribute(bgpSession, ctx, type);
+            String errorMsg = "Missing Well-known Attribute: NEXT_HOP";
             throw new BgpParseException(errorMsg);
         }
     }
@@ -440,33 +580,41 @@ final class BgpUpdate {
         String typeName = "UNKNOWN";
         boolean isWellKnown = false;
         switch (attrTypeCode) {
-        case BgpConstants.Update.Origin.TYPE:
+        case Update.Origin.TYPE:
             isWellKnown = true;
             typeName = "ORIGIN";
             break;
-        case BgpConstants.Update.AsPath.TYPE:
+        case Update.AsPath.TYPE:
             isWellKnown = true;
             typeName = "AS_PATH";
             break;
-        case BgpConstants.Update.NextHop.TYPE:
+        case Update.NextHop.TYPE:
             isWellKnown = true;
             typeName = "NEXT_HOP";
             break;
-        case BgpConstants.Update.MultiExitDisc.TYPE:
+        case Update.MultiExitDisc.TYPE:
             isWellKnown = false;
             typeName = "MULTI_EXIT_DISC";
             break;
-        case BgpConstants.Update.LocalPref.TYPE:
+        case Update.LocalPref.TYPE:
             isWellKnown = true;
             typeName = "LOCAL_PREF";
             break;
-        case BgpConstants.Update.AtomicAggregate.TYPE:
+        case Update.AtomicAggregate.TYPE:
             isWellKnown = true;
             typeName = "ATOMIC_AGGREGATE";
             break;
-        case BgpConstants.Update.Aggregator.TYPE:
+        case Update.Aggregator.TYPE:
             isWellKnown = false;
             typeName = "AGGREGATOR";
+            break;
+        case Update.MpReachNlri.TYPE:
+            isWellKnown = false;
+            typeName = "MP_REACH_NLRI";
+            break;
+        case Update.MpUnreachNlri.TYPE:
+            isWellKnown = false;
+            typeName = "MP_UNREACH_NLRI";
             break;
         default:
             isWellKnown = false;
@@ -521,7 +669,7 @@ final class BgpUpdate {
         throws BgpParseException {
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.Origin.LENGTH) {
+        if (attrLen != Update.Origin.LENGTH) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -532,11 +680,11 @@ final class BgpUpdate {
         message.markReaderIndex();
         short origin = message.readUnsignedByte();
         switch (origin) {
-        case BgpConstants.Update.Origin.IGP:
+        case Update.Origin.IGP:
             // FALLTHROUGH
-        case BgpConstants.Update.Origin.EGP:
+        case Update.Origin.EGP:
             // FALLTHROUGH
-        case BgpConstants.Update.Origin.INCOMPLETE:
+        case Update.Origin.INCOMPLETE:
             break;
         default:
             // ERROR: Invalid ORIGIN Attribute
@@ -590,13 +738,13 @@ final class BgpUpdate {
 
             // Verify the Path Segment Type
             switch (pathSegmentType) {
-            case BgpConstants.Update.AsPath.AS_SET:
+            case Update.AsPath.AS_SET:
                 // FALLTHROUGH
-            case BgpConstants.Update.AsPath.AS_SEQUENCE:
+            case Update.AsPath.AS_SEQUENCE:
                 // FALLTHROUGH
-            case BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE:
+            case Update.AsPath.AS_CONFED_SEQUENCE:
                 // FALLTHROUGH
-            case BgpConstants.Update.AsPath.AS_CONFED_SET:
+            case Update.AsPath.AS_CONFED_SET:
                 break;
             default:
                 // ERROR: Invalid Path Segment Type
@@ -669,7 +817,7 @@ final class BgpUpdate {
         throws BgpParseException {
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.NextHop.LENGTH) {
+        if (attrLen != Update.NextHop.LENGTH) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -725,7 +873,7 @@ final class BgpUpdate {
         throws BgpParseException {
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.MultiExitDisc.LENGTH) {
+        if (attrLen != Update.MultiExitDisc.LENGTH) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -759,7 +907,7 @@ final class BgpUpdate {
         throws BgpParseException {
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.LocalPref.LENGTH) {
+        if (attrLen != Update.LocalPref.LENGTH) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -792,7 +940,7 @@ final class BgpUpdate {
         throws BgpParseException {
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.AtomicAggregate.LENGTH) {
+        if (attrLen != Update.AtomicAggregate.LENGTH) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -825,7 +973,7 @@ final class BgpUpdate {
         throws BgpParseException {
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.Aggregator.LENGTH) {
+        if (attrLen != Update.Aggregator.LENGTH) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -845,6 +993,214 @@ final class BgpUpdate {
     }
 
     /**
+     * Parses BGP UPDATE Attribute Type MP_REACH_NLRI.
+     *
+     * @param bgpSession the BGP Session to use
+     * @param ctx the Channel Handler Context
+     * @param attrTypeCode the attribute type code
+     * @param attrLen the attribute length (in octets)
+     * @param attrFlags the attribute flags
+     * @param message the message to parse
+     * @return the parsed MP_REACH_NLRI information if recognized, otherwise
+     * null
+     * @throws BgpParseException
+     */
+    private static MpNlri parseAttributeTypeMpReachNlri(
+                                                BgpSession bgpSession,
+                                                ChannelHandlerContext ctx,
+                                                int attrTypeCode,
+                                                int attrLen,
+                                                int attrFlags,
+                                                ChannelBuffer message)
+        throws BgpParseException {
+        int attributeEnd = message.readerIndex() + attrLen;
+
+        // Check the Attribute Length
+        if (attrLen < Update.MpReachNlri.MIN_LENGTH) {
+            // ERROR: Attribute Length Error
+            actionsBgpUpdateAttributeLengthError(
+                bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
+            String errorMsg = "Attribute Length Error";
+            throw new BgpParseException(errorMsg);
+        }
+
+        message.markReaderIndex();
+        int afi = message.readUnsignedShort();
+        int safi = message.readUnsignedByte();
+        int nextHopLen = message.readUnsignedByte();
+
+        //
+        // Verify the AFI/SAFI, and skip the attribute if not recognized.
+        // NOTE: Currently, we support only IPv4/IPv6 UNICAST
+        //
+        if (((afi != MultiprotocolExtensions.AFI_IPV4) &&
+             (afi != MultiprotocolExtensions.AFI_IPV6)) ||
+            (safi != MultiprotocolExtensions.SAFI_UNICAST)) {
+            // Skip the attribute
+            message.resetReaderIndex();
+            message.skipBytes(attrLen);
+            return null;
+        }
+
+        //
+        // Verify the next-hop length
+        //
+        int expectedNextHopLen = 0;
+        switch (afi) {
+        case MultiprotocolExtensions.AFI_IPV4:
+            expectedNextHopLen = Ip4Address.BYTE_LENGTH;
+            break;
+        case MultiprotocolExtensions.AFI_IPV6:
+            expectedNextHopLen = Ip6Address.BYTE_LENGTH;
+            break;
+        default:
+            // UNREACHABLE
+            break;
+        }
+        if (nextHopLen != expectedNextHopLen) {
+            // ERROR: Optional Attribute Error
+            message.resetReaderIndex();
+            actionsBgpUpdateOptionalAttributeError(
+                bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
+            String errorMsg = "Invalid next-hop network address length. " +
+                "Received " + nextHopLen + " expected " + expectedNextHopLen;
+            throw new BgpParseException(errorMsg);
+        }
+        // NOTE: We use "+ 1" to take into account the Reserved field (1 octet)
+        if (message.readerIndex() + nextHopLen + 1 >= attributeEnd) {
+            // ERROR: Optional Attribute Error
+            message.resetReaderIndex();
+            actionsBgpUpdateOptionalAttributeError(
+                bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
+            String errorMsg = "Malformed next-hop network address";
+            throw new BgpParseException(errorMsg);
+        }
+
+        //
+        // Get the Next-hop address, skip the Reserved field, and get the NLRI
+        //
+        byte[] nextHopBuffer = new byte[nextHopLen];
+        message.readBytes(nextHopBuffer, 0, nextHopLen);
+        int reserved = message.readUnsignedByte();
+        MpNlri mpNlri = new MpNlri(afi, safi);
+        try {
+            switch (afi) {
+            case MultiprotocolExtensions.AFI_IPV4:
+                // The next-hop address
+                mpNlri.nextHop4 = Ip4Address.valueOf(nextHopBuffer);
+                // The NLRI
+                mpNlri.nlri4 = parsePackedIp4Prefixes(
+                                        attributeEnd - message.readerIndex(),
+                                        message);
+                break;
+            case MultiprotocolExtensions.AFI_IPV6:
+                // The next-hop address
+                mpNlri.nextHop6 = Ip6Address.valueOf(nextHopBuffer);
+                // The NLRI
+                mpNlri.nlri6 = parsePackedIp6Prefixes(
+                                        attributeEnd - message.readerIndex(),
+                                        message);
+                break;
+            default:
+                // UNREACHABLE
+                break;
+            }
+        } catch (BgpParseException e) {
+            // ERROR: Optional Attribute Error
+            message.resetReaderIndex();
+            actionsBgpUpdateOptionalAttributeError(
+                bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
+            String errorMsg = "Malformed network layer reachability information";
+            throw new BgpParseException(errorMsg);
+        }
+
+        return mpNlri;
+    }
+
+    /**
+     * Parses BGP UPDATE Attribute Type MP_UNREACH_NLRI.
+     *
+     * @param bgpSession the BGP Session to use
+     * @param ctx the Channel Handler Context
+     * @param attrTypeCode the attribute type code
+     * @param attrLen the attribute length (in octets)
+     * @param attrFlags the attribute flags
+     * @param message the message to parse
+     * @return the parsed MP_UNREACH_NLRI information if recognized, otherwise
+     * null
+     * @throws BgpParseException
+     */
+    private static MpNlri parseAttributeTypeMpUnreachNlri(
+                                                BgpSession bgpSession,
+                                                ChannelHandlerContext ctx,
+                                                int attrTypeCode,
+                                                int attrLen,
+                                                int attrFlags,
+                                                ChannelBuffer message)
+        throws BgpParseException {
+        int attributeEnd = message.readerIndex() + attrLen;
+
+        // Check the Attribute Length
+        if (attrLen < Update.MpUnreachNlri.MIN_LENGTH) {
+            // ERROR: Attribute Length Error
+            actionsBgpUpdateAttributeLengthError(
+                bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
+            String errorMsg = "Attribute Length Error";
+            throw new BgpParseException(errorMsg);
+        }
+
+        message.markReaderIndex();
+        int afi = message.readUnsignedShort();
+        int safi = message.readUnsignedByte();
+
+        //
+        // Verify the AFI/SAFI, and skip the attribute if not recognized.
+        // NOTE: Currently, we support only IPv4/IPv6 UNICAST
+        //
+        if (((afi != MultiprotocolExtensions.AFI_IPV4) &&
+             (afi != MultiprotocolExtensions.AFI_IPV6)) ||
+            (safi != MultiprotocolExtensions.SAFI_UNICAST)) {
+            // Skip the attribute
+            message.resetReaderIndex();
+            message.skipBytes(attrLen);
+            return null;
+        }
+
+        //
+        // Get the Withdrawn Routes
+        //
+        MpNlri mpNlri = new MpNlri(afi, safi);
+        try {
+            switch (afi) {
+            case MultiprotocolExtensions.AFI_IPV4:
+                // The Withdrawn Routes
+                mpNlri.nlri4 = parsePackedIp4Prefixes(
+                                        attributeEnd - message.readerIndex(),
+                                        message);
+                break;
+            case MultiprotocolExtensions.AFI_IPV6:
+                // The Withdrawn Routes
+                mpNlri.nlri6 = parsePackedIp6Prefixes(
+                                        attributeEnd - message.readerIndex(),
+                                        message);
+                break;
+            default:
+                // UNREACHABLE
+                break;
+            }
+        } catch (BgpParseException e) {
+            // ERROR: Optional Attribute Error
+            message.resetReaderIndex();
+            actionsBgpUpdateOptionalAttributeError(
+                bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
+            String errorMsg = "Malformed withdrawn routes";
+            throw new BgpParseException(errorMsg);
+        }
+
+        return mpNlri;
+    }
+
+    /**
      * Parses a message that contains encoded IPv4 network prefixes.
      * <p>
      * The IPv4 prefixes are encoded in the form:
@@ -857,7 +1213,7 @@ final class BgpUpdate {
      * @return a collection of parsed IPv4 network prefixes
      * @throws BgpParseException
      */
-    private static Collection<Ip4Prefix> parsePackedPrefixes(
+    private static Collection<Ip4Prefix> parsePackedIp4Prefixes(
                                                 int totalLength,
                                                 ChannelBuffer message)
         throws BgpParseException {
@@ -868,6 +1224,7 @@ final class BgpUpdate {
         }
 
         // Parse the data
+        byte[] buffer = new byte[Ip4Address.BYTE_LENGTH];
         int dataEnd = message.readerIndex() + totalLength;
         while (message.readerIndex() < dataEnd) {
             int prefixBitlen = message.readUnsignedByte();
@@ -877,17 +1234,52 @@ final class BgpUpdate {
                 throw new BgpParseException(errorMsg);
             }
 
-            long address = 0;
-            long extraShift = (4 - prefixBytelen) * 8;
-            while (prefixBytelen > 0) {
-                address <<= 8;
-                address |= message.readUnsignedByte();
-                prefixBytelen--;
+            message.readBytes(buffer, 0, prefixBytelen);
+            Ip4Prefix prefix = Ip4Prefix.valueOf(Ip4Address.valueOf(buffer),
+                                                 prefixBitlen);
+            result.add(prefix);
+        }
+
+        return result;
+    }
+
+    /**
+     * Parses a message that contains encoded IPv6 network prefixes.
+     * <p>
+     * The IPv6 prefixes are encoded in the form:
+     * <Length, Prefix> where Length is the length in bits of the IPv6 prefix,
+     * and Prefix is the IPv6 prefix (padded with trailing bits to the end
+     * of an octet).
+     *
+     * @param totalLength the total length of the data to parse
+     * @param message the message with data to parse
+     * @return a collection of parsed IPv6 network prefixes
+     * @throws BgpParseException
+     */
+    private static Collection<Ip6Prefix> parsePackedIp6Prefixes(
+                                                int totalLength,
+                                                ChannelBuffer message)
+        throws BgpParseException {
+        Collection<Ip6Prefix> result = new ArrayList<>();
+
+        if (totalLength == 0) {
+            return result;
+        }
+
+        // Parse the data
+        byte[] buffer = new byte[Ip6Address.BYTE_LENGTH];
+        int dataEnd = message.readerIndex() + totalLength;
+        while (message.readerIndex() < dataEnd) {
+            int prefixBitlen = message.readUnsignedByte();
+            int prefixBytelen = (prefixBitlen + 7) / 8;     // Round-up
+            if (message.readerIndex() + prefixBytelen > dataEnd) {
+                String errorMsg = "Malformed Network Prefixes";
+                throw new BgpParseException(errorMsg);
             }
-            address <<= extraShift;
-            Ip4Prefix prefix =
-                Ip4Prefix.valueOf(Ip4Address.valueOf((int) address),
-                                  prefixBitlen);
+
+            message.readBytes(buffer, 0, prefixBytelen);
+            Ip6Prefix prefix = Ip6Prefix.valueOf(Ip6Address.valueOf(buffer),
+                                                 prefixBitlen);
             result.add(prefix);
         }
 
@@ -1078,7 +1470,7 @@ final class BgpUpdate {
                   bgpSession.getRemoteAddress(), nextHop);
 
         //
-        // ERROR: Invalid ORIGIN Attribute
+        // ERROR: Invalid NEXT_HOP Attribute
         //
         // Send NOTIFICATION and close the connection
         int errorCode = UpdateMessageError.ERROR_CODE;
@@ -1123,6 +1515,45 @@ final class BgpUpdate {
         int errorCode = UpdateMessageError.ERROR_CODE;
         int errorSubcode =
             UpdateMessageError.UNRECOGNIZED_WELL_KNOWN_ATTRIBUTE;
+        ChannelBuffer data =
+            prepareBgpUpdateNotificationDataPayload(attrTypeCode, attrLen,
+                                                    attrFlags, message);
+        ChannelBuffer txMessage =
+            BgpNotification.prepareBgpNotification(errorCode, errorSubcode,
+                                                   data);
+        ctx.getChannel().write(txMessage);
+        bgpSession.closeSession(ctx);
+    }
+
+    /**
+     * Applies the appropriate actions after detecting BGP UPDATE
+     * Optional Attribute Error: send NOTIFICATION and close
+     * the channel.
+     *
+     * @param bgpSession the BGP Session to use
+     * @param ctx the Channel Handler Context
+     * @param attrTypeCode the attribute type code
+     * @param attrLen the attribute length (in octets)
+     * @param attrFlags the attribute flags
+     * @param message the message with the data
+     */
+    private static void actionsBgpUpdateOptionalAttributeError(
+                                BgpSession bgpSession,
+                                ChannelHandlerContext ctx,
+                                int attrTypeCode,
+                                int attrLen,
+                                int attrFlags,
+                                ChannelBuffer message) {
+        log.debug("BGP RX UPDATE Error from {}: Optional Attribute Error: {}",
+                  bgpSession.getRemoteAddress(), attrTypeCode);
+
+        //
+        // ERROR: Optional Attribute Error
+        //
+        // Send NOTIFICATION and close the connection
+        int errorCode = UpdateMessageError.ERROR_CODE;
+        int errorSubcode =
+            UpdateMessageError.OPTIONAL_ATTRIBUTE_ERROR;
         ChannelBuffer data =
             prepareBgpUpdateNotificationDataPayload(attrTypeCode, attrLen,
                                                     attrFlags, message);
@@ -1226,5 +1657,43 @@ final class BgpUpdate {
         }
         data.writeBytes(message, attrLen);
         return data;
+    }
+
+    /**
+     * Helper class for storing Multiprotocol Network Layer Reachability
+     * information.
+     */
+    private static final class MpNlri {
+        private final int afi;
+        private final int safi;
+        private Ip4Address nextHop4;
+        private Ip6Address nextHop6;
+        private Collection<Ip4Prefix> nlri4 = new ArrayList<>();
+        private Collection<Ip6Prefix> nlri6 = new ArrayList<>();
+
+        /**
+         * Constructor.
+         *
+         * @param afi the Address Family Identifier
+         * @param safi the Subsequent Address Family Identifier
+         */
+        private MpNlri(int afi, int safi) {
+            this.afi = afi;
+            this.safi = safi;
+        }
+    }
+
+    /**
+     * Helper class for storing decoded BGP routing information.
+     */
+    private static final class DecodedBgpRoutes {
+        private final Map<Ip4Prefix, BgpRouteEntry> addedUnicastRoutes4 =
+            new HashMap<>();
+        private final Map<Ip6Prefix, BgpRouteEntry> addedUnicastRoutes6 =
+            new HashMap<>();
+        private final Map<Ip4Prefix, BgpRouteEntry> deletedUnicastRoutes4 =
+            new HashMap<>();
+        private final Map<Ip6Prefix, BgpRouteEntry> deletedUnicastRoutes6 =
+            new HashMap<>();
     }
 }

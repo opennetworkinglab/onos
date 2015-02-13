@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.PositionalParameterStringFormatter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
@@ -43,6 +44,7 @@ import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceEvent;
 import org.onosproject.net.resource.LinkResourceStore;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceAllocationException;
 import org.onosproject.net.resource.ResourceType;
 import org.onosproject.store.StoreDelegate;
 import org.onosproject.store.hz.AbstractHazelcastStore;
@@ -330,20 +332,27 @@ public class HazelcastLinkResourceStore
                 }
                 BandwidthResourceAllocation bw = (BandwidthResourceAllocation) avail.iterator().next();
                 double bwLeft = bw.bandwidth().toDouble();
-                bwLeft -= ((BandwidthResourceAllocation) req).bandwidth().toDouble();
+                BandwidthResourceAllocation bwReq = ((BandwidthResourceAllocation) req);
+                bwLeft -= bwReq.bandwidth().toDouble();
                 if (bwLeft < 0) {
-                    checkState(bwLeft >= 0,
-                               "There's no Bandwidth left on %s. %s",
-                               link, bwLeft);
+                    throw new ResourceAllocationException(
+                            PositionalParameterStringFormatter.format(
+                                    "Unable to allocate bandwidth for link {} "
+                                        + " requested amount is {} current allocation is {}",
+                                    link,
+                                    bwReq.bandwidth().toDouble(),
+                                    bw));
                 }
             } else if (req instanceof LambdaResourceAllocation) {
-
+                LambdaResourceAllocation lambdaAllocation = (LambdaResourceAllocation) req;
                 // check if allocation should be accepted
                 if (!avail.contains(req)) {
                     // requested lambda was not available
-                    checkState(avail.contains(req),
-                               "Allocating %s on %s failed",
-                               req, link);
+                    throw new ResourceAllocationException(
+                            PositionalParameterStringFormatter.format(
+                                "Unable to allocate lambda for link {} lamdba is {}",
+                                    link,
+                                    lambdaAllocation.lambda().toInt()));
                 }
             }
         }

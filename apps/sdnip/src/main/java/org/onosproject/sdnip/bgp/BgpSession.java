@@ -20,7 +20,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -34,8 +33,10 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications;
 import org.onosproject.sdnip.bgp.BgpConstants.Notifications.HoldTimerExpired;
 import org.slf4j.Logger;
@@ -62,6 +63,8 @@ public class BgpSession extends SimpleChannelHandler {
     private long remoteAs4Octet;                // 4 octets
     private long remoteHoldtime;                // 2 octets
     private Ip4Address remoteBgpId;             // 4 octets -> IPv4 address
+    private boolean remoteMpExtensions;         // Peer Multiprotocol
+                                                // Extensions enabled: RFC 4760
     private boolean remoteIpv4Unicast;          // Peer IPv4/UNICAST AFI/SAFI
     private boolean remoteIpv4Multicast;        // Peer IPv4/MULTICAST AFI/SAFI
     private boolean remoteIpv6Unicast;          // Peer IPv6/UNICAST AFI/SAFI
@@ -74,6 +77,8 @@ public class BgpSession extends SimpleChannelHandler {
     private long localAs;                       // 2 octets
     private long localHoldtime;                 // 2 octets
     private Ip4Address localBgpId;              // 4 octets -> IPv4 address
+    private boolean localMpExtensions;          // Local Multiprotocol
+                                                // Extensions enabled: RFC 4760
     private boolean localIpv4Unicast;        // Local IPv4/UNICAST AFI/SAFI
     private boolean localIpv4Multicast;      // Local IPv4/MULTICAST AFI/SAFI
     private boolean localIpv6Unicast;        // Local IPv6/UNICAST AFI/SAFI
@@ -88,7 +93,9 @@ public class BgpSession extends SimpleChannelHandler {
     private volatile Timeout sessionTimeout;    // Session timeout
 
     // BGP RIB-IN routing entries from this peer
-    private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRibIn =
+    private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRibIn4 =
+        new ConcurrentHashMap<>();
+    private ConcurrentMap<Ip6Prefix, BgpRouteEntry> bgpRibIn6 =
         new ConcurrentHashMap<>();
 
     /**
@@ -113,22 +120,110 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
-     * Gets the BGP RIB-IN routing entries.
+     * Gets the IPv4 BGP RIB-IN routing entries.
      *
-     * @return the BGP RIB-IN routing entries
+     * @return the IPv4 BGP RIB-IN routing entries
      */
-    public Map<Ip4Prefix, BgpRouteEntry> bgpRibIn() {
-        return bgpRibIn;
+    public Collection<BgpRouteEntry> getBgpRibIn4() {
+        return bgpRibIn4.values();
     }
 
     /**
-     * Finds a BGP routing entry in the BGP RIB-IN.
+     * Gets the IPv6 BGP RIB-IN routing entries.
      *
-     * @param prefix the prefix of the route to search for
+     * @return the IPv6 BGP RIB-IN routing entries
+     */
+    public Collection<BgpRouteEntry> getBgpRibIn6() {
+        return bgpRibIn6.values();
+    }
+
+    /**
+     * Finds an IPv4 BGP routing entry for a prefix in the IPv4 BGP RIB-IN.
+     *
+     * @param prefix the IPv4 prefix of the route to search for
+     * @return the IPv4 BGP routing entry if found, otherwise null
+     */
+    public BgpRouteEntry findBgpRoute(Ip4Prefix prefix) {
+        return bgpRibIn4.get(prefix);
+    }
+
+    /**
+     * Finds an IPv6 BGP routing entry for a prefix in the IPv6 BGP RIB-IN.
+     *
+     * @param prefix the IPv6 prefix of the route to search for
+     * @return the IPv6 BGP routing entry if found, otherwise null
+     */
+    public BgpRouteEntry findBgpRoute(Ip6Prefix prefix) {
+        return bgpRibIn6.get(prefix);
+    }
+
+    /**
+     * Finds a BGP routing entry for a prefix in the BGP RIB-IN. The prefix
+     * can be either IPv4 or IPv6.
+     *
+     * @param prefix the IP prefix of the route to search for
      * @return the BGP routing entry if found, otherwise null
      */
-    public BgpRouteEntry findBgpRouteEntry(Ip4Prefix prefix) {
-        return bgpRibIn.get(prefix);
+    public BgpRouteEntry findBgpRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            // IPv4 prefix
+            Ip4Prefix ip4Prefix = prefix.getIp4Prefix();
+            return bgpRibIn4.get(ip4Prefix);
+        }
+
+        // IPv6 prefix
+        Ip6Prefix ip6Prefix = prefix.getIp6Prefix();
+        return bgpRibIn6.get(ip6Prefix);
+    }
+
+    /**
+     * Adds a BGP route. The route can be either IPv4 or IPv6.
+     *
+     * @param bgpRouteEntry the BGP route entry to use
+     */
+    void addBgpRoute(BgpRouteEntry bgpRouteEntry) {
+        if (bgpRouteEntry.version() == Ip4Address.VERSION) {
+            // IPv4 route
+            Ip4Prefix ip4Prefix = bgpRouteEntry.prefix().getIp4Prefix();
+            bgpRibIn4.put(ip4Prefix, bgpRouteEntry);
+        } else {
+            // IPv6 route
+            Ip6Prefix ip6Prefix = bgpRouteEntry.prefix().getIp6Prefix();
+            bgpRibIn6.put(ip6Prefix, bgpRouteEntry);
+        }
+    }
+
+    /**
+     * Removes an IPv4 BGP route for a prefix.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(Ip4Prefix prefix) {
+        return (bgpRibIn4.remove(prefix) != null);
+    }
+
+    /**
+     * Removes an IPv6 BGP route for a prefix.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(Ip6Prefix prefix) {
+        return (bgpRibIn6.remove(prefix) != null);
+    }
+
+    /**
+     * Removes a BGP route for a prefix. The prefix can be either IPv4 or IPv6.
+     *
+     * @param prefix the prefix to use
+     * @return true if the route was found and removed, otherwise false
+     */
+    boolean removeBgpRoute(IpPrefix prefix) {
+        if (prefix.version() == Ip4Address.VERSION) {
+            return (bgpRibIn4.remove(prefix.getIp4Prefix()) != null);   // IPv4
+        }
+        return (bgpRibIn6.remove(prefix.getIp6Prefix()) != null);       // IPv6
     }
 
     /**
@@ -256,6 +351,16 @@ public class BgpSession extends SimpleChannelHandler {
     }
 
     /**
+     * Gets the BGP Multiprotocol Extensions for the session.
+     *
+     * @return true if the BGP Multiprotocol Extensions are enabled for the
+     * session, otherwise false
+     */
+     public boolean getMpExtensions() {
+        return remoteMpExtensions && localMpExtensions;
+    }
+
+    /**
      * Gets the BGP session remote AFI/SAFI configuration for IPv4 unicast.
      *
      * @return the BGP session remote AFI/SAFI configuration for IPv4 unicast
@@ -268,10 +373,11 @@ public class BgpSession extends SimpleChannelHandler {
      * Sets the BGP session remote AFI/SAFI configuration for IPv4 unicast.
      */
     void setRemoteIpv4Unicast() {
+        this.remoteMpExtensions = true;
         this.remoteIpv4Unicast = true;
         // Copy the remote AFI/SAFI setting to the local configuration
-        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
-        // this.localIpv4Unicast = true;
+        this.localMpExtensions = true;
+        this.localIpv4Unicast = true;
     }
 
     /**
@@ -287,10 +393,11 @@ public class BgpSession extends SimpleChannelHandler {
      * Sets the BGP session remote AFI/SAFI configuration for IPv4 multicast.
      */
     void setRemoteIpv4Multicast() {
+        this.remoteMpExtensions = true;
         this.remoteIpv4Multicast = true;
         // Copy the remote AFI/SAFI setting to the local configuration
-        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
-        // this.localIpv4Multicast = true;
+        this.localMpExtensions = true;
+        this.localIpv4Multicast = true;
     }
 
     /**
@@ -306,10 +413,11 @@ public class BgpSession extends SimpleChannelHandler {
      * Sets the BGP session remote AFI/SAFI configuration for IPv6 unicast.
      */
     void setRemoteIpv6Unicast() {
+        this.remoteMpExtensions = true;
         this.remoteIpv6Unicast = true;
         // Copy the remote AFI/SAFI setting to the local configuration
-        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
-        // this.localIpv6Unicast = true;
+        this.localMpExtensions = true;
+        this.localIpv6Unicast = true;
     }
 
     /**
@@ -325,10 +433,11 @@ public class BgpSession extends SimpleChannelHandler {
      * Sets the BGP session remote AFI/SAFI configuration for IPv6 multicast.
      */
     void setRemoteIpv6Multicast() {
+        this.remoteMpExtensions = true;
         this.remoteIpv6Multicast = true;
         // Copy the remote AFI/SAFI setting to the local configuration
-        // NOTE: Uncomment the line below if the AFI/SAFI is supported locally
-        // this.localIpv6Multicast = true;
+        this.localMpExtensions = true;
+        this.localIpv6Multicast = true;
     }
 
     /**
@@ -511,7 +620,7 @@ public class BgpSession extends SimpleChannelHandler {
 
     @Override
     public void channelClosed(ChannelHandlerContext ctx,
-                            ChannelStateEvent channelEvent) {
+                              ChannelStateEvent channelEvent) {
         bgpSessionManager.removeSessionChannel(channelEvent.getChannel());
     }
 
@@ -576,14 +685,17 @@ public class BgpSession extends SimpleChannelHandler {
         // for further processing. Otherwise, the BGP Decision Process
         // will use those routes again.
         //
-        Collection<BgpRouteEntry> deletedRoutes = bgpRibIn.values();
-        bgpRibIn = new ConcurrentHashMap<>();
+        Collection<BgpRouteEntry> deletedRoutes4 = bgpRibIn4.values();
+        Collection<BgpRouteEntry> deletedRoutes6 = bgpRibIn6.values();
+        bgpRibIn4 = new ConcurrentHashMap<>();
+        bgpRibIn6 = new ConcurrentHashMap<>();
 
         // Push the updates to the BGP Merged RIB
-        BgpSessionManager.BgpRouteSelector bgpRouteSelector =
+        BgpRouteSelector bgpRouteSelector =
             bgpSessionManager.getBgpRouteSelector();
         Collection<BgpRouteEntry> addedRoutes = Collections.emptyList();
-        bgpRouteSelector.routeUpdates(this, addedRoutes, deletedRoutes);
+        bgpRouteSelector.routeUpdates(this, addedRoutes, deletedRoutes4);
+        bgpRouteSelector.routeUpdates(this, addedRoutes, deletedRoutes6);
 
         bgpSessionManager.peerDisconnected(this);
     }

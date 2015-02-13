@@ -63,8 +63,8 @@ import org.onosproject.sdnip.config.Interface;
 import org.onosproject.sdnip.config.SdnIpConfigurationService;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -239,8 +239,8 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
                 new HostEvent(HostEvent.Type.HOST_ADDED, host));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 1);
-        assertTrue(router.getRoutes().contains(routeEntry));
+        assertEquals(router.getRoutes4().size(), 1);
+        assertTrue(router.getRoutes4().contains(routeEntry));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
         Intent firstIntent =
             intentSynchronizer.getRouteIntents().iterator().next();
@@ -333,8 +333,8 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
                 new HostEvent(HostEvent.Type.HOST_ADDED, host));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 1);
-        assertTrue(router.getRoutes().contains(routeEntryUpdate));
+        assertEquals(router.getRoutes4().size(), 1);
+        assertTrue(router.getRoutes4().contains(routeEntryUpdate));
         assertEquals(intentSynchronizer.getRouteIntents().size(), 1);
         Intent firstIntent =
             intentSynchronizer.getRouteIntents().iterator().next();
@@ -380,7 +380,7 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
         router.processRouteUpdates(Collections.<RouteUpdate>singletonList(routeUpdate));
 
         // Verify
-        assertEquals(router.getRoutes().size(), 0);
+        assertEquals(router.getRoutes4().size(), 0);
         assertEquals(intentSynchronizer.getRouteIntents().size(), 0);
         verify(intentService);
     }
@@ -424,7 +424,7 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
                 new DefaultByteArrayNodeFactory());
         ribTable.put(RouteEntry.createBinaryString(routeEntry.prefix()),
                      routeEntry);
-        TestUtils.setField(router, "ribTable", ribTable);
+        TestUtils.setField(router, "ribTable4", ribTable);
     }
 
     /**
@@ -436,7 +436,7 @@ public class RouterAsyncArpTest extends AbstractIntentTest {
             MultiPointToSinglePointIntent intent)
             throws TestUtilsException {
 
-        ConcurrentHashMap<Ip4Prefix, MultiPointToSinglePointIntent>
+        ConcurrentHashMap<IpPrefix, MultiPointToSinglePointIntent>
             routeIntents =  new ConcurrentHashMap<>();
         routeIntents.put(routeEntry.prefix(), intent);
         TestUtils.setField(intentSynchronizer, "routeIntents", routeIntents);

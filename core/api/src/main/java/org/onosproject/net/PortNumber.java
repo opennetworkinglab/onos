@@ -37,6 +37,7 @@ public final class PortNumber {
     public static final PortNumber FLOOD = new PortNumber(-5);
     public static final PortNumber ALL = new PortNumber(-4);
     public static final PortNumber LOCAL = new PortNumber(-2);
+    public static final PortNumber CONTROLLER = new PortNumber(-3);
 
     private final long number;
 

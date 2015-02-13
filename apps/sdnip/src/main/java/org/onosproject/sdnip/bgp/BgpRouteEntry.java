@@ -20,8 +20,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onosproject.sdnip.RouteEntry;
 import org.onosproject.sdnip.bgp.BgpConstants.Update;
 
@@ -48,8 +49,8 @@ public class BgpRouteEntry extends RouteEntry {
      * @param asPath the AS path
      * @param localPref the route local preference
      */
-    public BgpRouteEntry(BgpSession bgpSession, Ip4Prefix prefix,
-                         Ip4Address nextHop, byte origin,
+    public BgpRouteEntry(BgpSession bgpSession, IpPrefix prefix,
+                         IpAddress nextHop, byte origin,
                          BgpRouteEntry.AsPath asPath, long localPref) {
         super(prefix, nextHop);
         this.bgpSession = checkNotNull(bgpSession);

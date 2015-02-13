@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -55,7 +55,7 @@ public class IntentSynchronizer {
     private final ApplicationId appId;
     private final IntentService intentService;
     private final Map<IntentKey, PointToPointIntent> peerIntents;
-    private final Map<Ip4Prefix, MultiPointToSinglePointIntent> routeIntents;
+    private final Map<IpPrefix, MultiPointToSinglePointIntent> routeIntents;
 
     //
     // State to deal with SDN-IP Leader election and pushing Intents
@@ -182,7 +182,7 @@ public class IntentSynchronizer {
     public Collection<MultiPointToSinglePointIntent> getRouteIntents() {
         List<MultiPointToSinglePointIntent> result = new LinkedList<>();
 
-        for (Map.Entry<Ip4Prefix, MultiPointToSinglePointIntent> entry :
+        for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry :
             routeIntents.entrySet()) {
             result.add(entry.getValue());
         }
@@ -247,12 +247,12 @@ public class IntentSynchronizer {
      * Updates multi-point-to-single-point route intents.
      *
      * @param submitIntents the intents to submit
-     * @param withdrawPrefixes the IPv4 matching prefixes for the intents
-     * to withdraw
+     * @param withdrawPrefixes the IPv4 or IPv6 matching prefixes for the
+     * intents to withdraw
      */
     void updateRouteIntents(
-                Collection<Pair<Ip4Prefix, MultiPointToSinglePointIntent>> submitIntents,
-                Collection<Ip4Prefix> withdrawPrefixes) {
+                Collection<Pair<IpPrefix, MultiPointToSinglePointIntent>> submitIntents,
+                Collection<IpPrefix> withdrawPrefixes) {
 
         //
         // NOTE: Semantically, we MUST withdraw existing intents before
@@ -269,7 +269,7 @@ public class IntentSynchronizer {
             //
             IntentOperations.Builder withdrawBuilder =
                 IntentOperations.builder(appId);
-            for (Ip4Prefix prefix : withdrawPrefixes) {
+            for (IpPrefix prefix : withdrawPrefixes) {
                 intent = routeIntents.remove(prefix);
                 if (intent == null) {
                     log.trace("SDN-IP No intent in routeIntents to delete " +
@@ -287,9 +287,9 @@ public class IntentSynchronizer {
             //
             IntentOperations.Builder submitBuilder =
                 IntentOperations.builder(appId);
-            for (Pair<Ip4Prefix, MultiPointToSinglePointIntent> pair :
+            for (Pair<IpPrefix, MultiPointToSinglePointIntent> pair :
                      submitIntents) {
-                Ip4Prefix prefix = pair.getLeft();
+                IpPrefix prefix = pair.getLeft();
                 intent = pair.getRight();
                 MultiPointToSinglePointIntent oldIntent =
                     routeIntents.put(prefix, intent);
@@ -382,18 +382,23 @@ public class IntentSynchronizer {
                     // Find the IP prefix
                     Criterion c =
                         mp2pIntent.selector().getCriterion(Criterion.Type.IPV4_DST);
+                    if (c == null) {
+                        // Try IPv6
+                        c =
+                            mp2pIntent.selector().getCriterion(Criterion.Type.IPV6_DST);
+                    }
                     if (c != null && c instanceof IPCriterion) {
                         IPCriterion ipCriterion = (IPCriterion) c;
-                        Ip4Prefix ip4Prefix = ipCriterion.ip().getIp4Prefix();
-                        if (ip4Prefix == null) {
+                        IpPrefix ipPrefix = ipCriterion.ip();
+                        if (ipPrefix == null) {
                             continue;
                         }
                         log.trace("SDN-IP Intent Synchronizer: updating " +
                                   "in-memory Route Intent for prefix {}",
-                                  ip4Prefix);
-                        routeIntents.put(ip4Prefix, mp2pIntent);
+                                  ipPrefix);
+                        routeIntents.put(ipPrefix, mp2pIntent);
                     } else {
-                        log.warn("SDN-IP no IPV4_DST criterion found for Intent {}",
+                        log.warn("SDN-IP no IPV4_DST or IPV6_DST criterion found for Intent {}",
                                  mp2pIntent.id());
                     }
                     continue;

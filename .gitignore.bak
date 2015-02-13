@@ -1,0 +1,13 @@
+*~
+*.class
+.classpath
+.project
+.pydevproject
+.settings
+.javacp*
+.checkstyle
+target
+*.iml
+*.pyc
+dependency-reduced-pom.xml
+.idea
