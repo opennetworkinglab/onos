@@ -28,10 +28,6 @@ svg.embeddedIcon .icon .glyph {
     fill-rule: evenodd;
 }
 
-div.inline-icon {
-    display: inline-block;
-}
-
 .light svg.embeddedIcon .icon.deviceOnline,
 .light svg.embeddedIcon .icon.deviceOffline {
     fill: none;

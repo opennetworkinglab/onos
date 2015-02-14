@@ -21,50 +21,10 @@
     'use strict';
 
     var $log, $window, fs, is,
-        div,
         currCol = {},
         prevCol = {},
-        tableIconTdSize = 30,
+        tableIconTdSize = 33,
         bottomMargin = 200;
-
-
-    // Render a plain d3 table by giving it the div, a config file, and data
-
-    function renderTable(div, config, data) {
-        var table = div.append('table'),
-            colIds = config.colIds,
-            colText = config.colText,
-            dataObjects = data[Object.keys(data)[0]],
-            thead, tbody, tRows;
-
-        thead = table.append('thead');
-        tbody = table.append('tbody');
-
-        thead.append('tr').selectAll('th')
-            .data(colText)
-            .enter()
-            .append('th')
-            .text(function(d) { return d });
-
-        tRows = tbody.selectAll('tr')
-            .data(dataObjects)
-            .enter()
-            .append('tr');
-
-        tRows.selectAll('td')
-            .data(function(row) {
-                return colIds.map(function(headerId) {
-                    return {
-                        column: headerId, value: row[headerId]
-                    };
-                });
-            })
-            .enter()
-            .append('td')
-            .html(function(d) { return d.value });
-
-        return table;
-    }
 
     // Functions for creating a fixed header on a table (Angular Directive)
 
@@ -106,7 +66,10 @@
         setTableHeight(th, tb);
     }
 
+    // Functions for sorting table rows by header and choosing appropriate icon
+
     function updateSortingIcons(thElem, api) {
+        var div;
         currCol.colId = thElem.attr('colId');
 
         if (currCol.colId === prevCol.colId) {
@@ -120,7 +83,7 @@
         }
 
         div = thElem.select('div');
-        div.remove();
+        api.sortNone(div);
         div = thElem.append('div');
 
         if (currCol.icon === 'tableColSortAsc') {
@@ -151,15 +114,8 @@
     }
 
     angular.module('onosWidget')
-        .factory('TableService', [function () {
-            return {
-                renderTable: renderTable
-            };
-        }])
-
-        .directive('onosFixedHeader', ['$window', '$timeout',
-            'MastService', 'FnService',
-            function (_$window_, $timeout, mast, _fs_) {
+        .directive('onosFixedHeader', ['$window', 'FnService',
+            function (_$window_, _fs_) {
             return function (scope, element) {
                 $window = _$window_;
                 fs = _fs_;
@@ -206,7 +162,7 @@
                 scope: {
                     ctrlCallback: '&sortCallback'
                 },
-                link: function (scope, element, attrs) {
+                link: function (scope, element) {
                     $log = _$log_;
                     is = _is_;
                     var table = d3.select(element[0]),
@@ -219,7 +175,6 @@
 
                         if (thElem.attr('sortable') === '') {
                             updateSortingIcons(thElem, sortIconAPI);
-                            // call the ctrl's rest callback function
                             scope.ctrlCallback({
                                     urlSuffix: generateQueryParams()
                                 });

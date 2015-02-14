@@ -27,11 +27,13 @@ describe('factory: fw/layer/flash.js', function () {
         $timeout = _$timeout_;
         fs = FnService;
         flash = FlashService;
+        jasmine.clock().install();
         d3Elem = d3.select('body').append('div').attr('id', 'myflashdiv');
         flash.initFlash();
     }));
 
     afterEach(function () {
+        jasmine.clock().uninstall();
         d3.select('#myflashdiv').remove();
     });
 
@@ -56,6 +58,7 @@ describe('factory: fw/layer/flash.js', function () {
     it('should flash the message Foo', function () {
         var item, rect, text;
         flash.flash('foo');
+        jasmine.clock().tick(101);
         setTimeout(function () {
             item = flashItemSelection();
             expect(item.size()).toEqual(1);
@@ -64,9 +67,6 @@ describe('factory: fw/layer/flash.js', function () {
             text = item.select('text');
             expect(text.size()).toEqual(1);
             expect(text.text()).toEqual('foo');
-        }, 2000);
+        }, 100);
     });
-
-    // TODO: testing these time-sensitive behaviors is hard...
-    //  need to work on this some other time.
 });

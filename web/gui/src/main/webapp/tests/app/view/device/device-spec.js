@@ -45,14 +45,16 @@ describe('Controller: OvDeviceCtrl', function () {
         $scope = $rootScope.$new();
         $controller = _$controller_;
         $mockHttp = $httpBackend;
-
-        $mockHttp.whenGET(/\/device$/).respond(fakeData);
     }));
 
+    beforeEach(function() {
+        $scope = {};
+        ctrl = $controller('OvDeviceCtrl', { $scope: $scope });
+        $mockHttp.whenGET(/\/device$/).respond(fakeData);
+    });
+
+
     it('should be an empty array and then have device data', function () {
-        ctrl = $controller('OvDeviceCtrl', {
-            $scope: $scope
-        });
         expect(ctrl.deviceData).toEqual([]);
         $scope.sortCallback();
         $mockHttp.flush();

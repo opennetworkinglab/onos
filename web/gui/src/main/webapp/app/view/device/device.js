@@ -27,20 +27,15 @@
             var self = this;
             self.deviceData = [];
 
-            // TODO: remove test code
-            var testCase = $location.search().test;
-            var url = testCase ? 'test/' + testCase : 'device';
-
             $scope.sortCallback = function (urlSuffix) {
                 if (!urlSuffix) {
                     urlSuffix = '';
                 }
-                url = 'device' + urlSuffix;
+                var url = 'device' + urlSuffix;
                 rs.get(url, function (data) {
                     self.deviceData = data.devices;
                 });
             };
-
             $scope.sortCallback();
 
             $log.log('OvDeviceCtrl has been created');

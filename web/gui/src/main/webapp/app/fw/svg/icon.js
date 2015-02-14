@@ -34,8 +34,7 @@
         devIcon_SWITCH: 'switch',
 
         tableColSortAsc: 'triangleUp',
-        tableColSortDesc: 'triangleDown',
-        tableColSortNone: '-'
+        tableColSortDesc: 'triangleDown'
     };
 
 
@@ -86,15 +85,13 @@
             rx: cornerSize
         });
 
-        if (gid !== '-') {
-            g.append('use').attr({
-                width: vboxSize,
-                height: vboxSize,
-                'class': 'glyph',
-                'xlink:href': '#' + gid
-            });
-        }
-    }
+        g.append('use').attr({
+            width: vboxSize,
+            height: vboxSize,
+            'class': 'glyph',
+            'xlink:href': '#' + gid
+        });
+}
 
     function loadEmbeddedIcon(div, iconCls, size) {
         loadIcon(div, iconCls, size, true);

@@ -17,116 +17,94 @@
 /*
  ONOS GUI -- Widget -- Table Service - Unit Tests
  */
-describe('factory: fw/widget/table.js', function() {
-    var ts, $log, d3Elem;
+describe('factory: fw/widget/table.js', function () {
+    var $log, $compile, $rootScope,
+        fs, is,
+        table;
 
-    var config = {
-        colIds: ['id', 'mfr', 'hw', 'sw', 'serial', 'annotations.protocol'],
-        colText: ['URI', 'Vendor', 'Hardware Version', 'Software Version',
-            'Serial Number', 'Protocol']
-        },
-        fakeData = {
-            "devices": [{
-                "id": "of:0000000000000001",
-                "available": true,
-                "_iconid_available": "deviceOnline",
-                "role": "MASTER",
-                "mfr": "Nicira, Inc.",
-                "hw": "Open vSwitch",
-                "sw": "2.0.1",
-                "serial": "None",
-                "annotations": {
-                    "protocol": "OF_10"
-                    }
-                },
-                {
-                    "id": "of:0000000000000004",
-                    "available": false,
-                    "_iconid_available": "deviceOffline",
-                    "role": "MASTER",
-                    "mfr": "Nicira, Inc.",
-                    "hw": "Open vSwitch",
-                    "sw": "2.0.1",
-                    "serial": "None",
-                    "annotations": {
-                        "protocol": "OF_10"
-                    }
-                },
-                {
-                    "id": "of:0000000000000092",
-                    "available": false,
-                    "_iconid_available": "deviceOffline",
-                    "role": "MASTER",
-                    "mfr": "Nicira, Inc.",
-                    "hw": "Open vSwitch",
-                    "sw": "2.0.1",
-                    "serial": "None",
-                    "annotations": {
-                        "protocol": "OF_10"
-                    }
-                }]
-        };
+    var onosFixedHeaderTags = '<table ' +
+                                'onos-fixed-header ' +
+                                'ng-style="setTableHW()">' +
+                                '<thead>' +
+                                '<tr>' +
+                                '<th></th>' +
+                                '<th>Device ID </th>' +
+                                '<th>H/W Version </th>' +
+                                '<th>S/W Version </th>' +
+                                '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                '<tr>' +
+                                '<td>' +
+                                    '<div icon icon-id="{{dev._iconid_available}}">' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td>Some ID</td>' +
+                                '<td>Some HW</td>' +
+                                '<td>Some Software</td>' +
+                                '</tr>' +
+                                '</tbody>' +
+                                '</table>',
 
-    beforeEach(module('onosWidget'));
+        onosSortableHeaderTags = '<table class="summary-list" ' +
+                                'onos-sortable-header ' +
+                                'sort-callback="sortCallback(urlSuffix)">' +
+                                '<thead>' +
+                                '<tr>' +
+                                '<th colId="available"></th>' +
+                                '<th colId="id" sortable>Device ID </th>' +
+                                '<th colId="hw" sortable>H/W Version </th>' +
+                                '<th colId="sw" sortable>S/W Version </th>' +
+                                '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                '<tr>' +
+                                '<td>' +
+                                    '<div icon icon-id="{{dev._iconid_available}}">' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td>Some ID</td>' +
+                                '<td>Some HW</td>' +
+                                '<td>Some Software</td>' +
+                                '</tr>' +
+                                '</tbody>' +
+                                '</table>';
 
-    beforeEach(inject(function (TableService, _$log_) {
-        ts = TableService;
+    beforeEach(module('onosWidget', 'onosUtil', 'onosSvg'));
+
+    beforeEach(inject(function (_$log_, _$compile_, _$rootScope_,
+                                FnService, IconService) {
         $log = _$log_;
-        d3Elem = d3.select('body').append('div').attr('id', 'myDiv');
+        $compile = _$compile_;
+        $rootScope = _$rootScope_;
+        fs = FnService;
+        is = IconService;
     }));
 
+    beforeEach(function () {
+    });
+
     afterEach(function () {
-        d3.select('#myDiv').remove();
+        table = null;
     });
 
-    it('should define TableService', function () {
-        expect(ts).toBeDefined();
+    it('should affirm that onos-fixed-header is working', function () {
+        table = $compile(onosFixedHeaderTags)($rootScope);
+        $rootScope.$digest();
+
+        table = d3.select(table);
+        expect(table).toBeDefined();
+
+        //expect(table.select('thead').style('display')).toBe('block');
     });
 
-    function verifyTableTags(div) {
-        var table = div.select('table'),
-            tableHeaders;
-        expect(table).toBeTruthy();
-        expect(table.attr('fixed-header')).toBeFalsy();
-        expect(table.select('thead')).toBeTruthy();
-        expect(table.select('tbody')).toBeTruthy();
+    it('should affirm that onos-sortable-header is working', function () {
+        table = $compile(onosSortableHeaderTags)($rootScope);
+        $rootScope.$digest();
 
-        tableHeaders = table.select('thead').selectAll('th');
-        tableHeaders.each(function(thElement, i) {
-            thElement = d3.select(this);
-            expect(thElement).toBeTruthy();
-            expect(thElement.html()).toBe(config.colText[i]);
-        });
-    }
-
-    function verifyData(div) {
-        var tbody = div.select('tbody'),
-            tableBoxes = tbody.selectAll('td');
-        expect(tbody).toBeTruthy();
-        expect(tbody.select('tr')).toBeTruthy();
-
-        tableBoxes.each(function(tdElement, i){
-            tdElement = d3.select(this);
-            if(i === 0) {
-                expect(tdElement.html()).toBe('of:0000000000000001');
-            }
-            if(i === 1) {
-                expect(tdElement.html()).toBe('Nicira, Inc.');
-            }
-            if(i === 2) {
-                expect(tdElement.html()).toBe('Open vSwitch');
-            }
-            expect(tdElement).toBeTruthy();
-        });
-    }
-
-    it('should create table tags', function () {
-        ts.renderTable(d3Elem, config, fakeData);
-        verifyTableTags(d3Elem);
+        table = d3.select(table);
+        expect(table).toBeDefined();
     });
 
-    it('should load data into table', function () {
-        ts.renderTable(d3Elem, config, fakeData);
-        verifyData(d3Elem);
-    });
+    // TODO: write directive unit tests for table.js
 });
