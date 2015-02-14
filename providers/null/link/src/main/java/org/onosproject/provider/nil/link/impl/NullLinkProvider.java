@@ -22,13 +22,16 @@ import static org.onlab.util.Tools.toHex;
 import static org.onosproject.net.MastershipRole.MASTER;
 
 import java.util.Dictionary;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -62,6 +65,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Provider which advertises fake/nonexistent links to the core. To be used for
@@ -95,8 +99,12 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     private final InternalLinkProvider linkProvider = new InternalLinkProvider();
     private final InternalLinkListener listener = new InternalLinkListener();
 
+    // True for device with Driver, false otherwise.
+    private final ConcurrentMap<DeviceId, Boolean> driverMap = Maps
+            .newConcurrentMap();
+
     // Link descriptions
-    private final ConcurrentMap<ConnectPoint, LinkDescription> descriptions = Maps
+    private final ConcurrentMap<DeviceId, Set<LinkDescription>> linkDescrs = Maps
             .newConcurrentMap();
 
     // Local Device ID's that have been seen so far
@@ -104,19 +112,23 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     // tail ends of other islands
     private final List<ConnectPoint> tails = Lists.newArrayList();
 
-    private ExecutorService linkDriver = Executors.newFixedThreadPool(1,
-            namedThreads("onos-null-link-driver"));
+    private final int checkRateDuration = 10;
+
+    private ExecutorService linkDriver = Executors.newCachedThreadPool(
+            namedThreads("onos-null-link-driver-%d"));
 
     // For flicker = true, duration between events in msec.
     @Property(name = "eventRate", value = "0",
             label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
-    private int checkRateDuration = 10;
 
     // For flicker = true, duration between events in msec.
     @Property(name = "neighbors", value = "",
             label = "Node ID of instance for neighboring island ")
     private String neighbor = "";
+
+    // flag checked to create a LinkDriver, if rate is non-zero.
+    private boolean flicker = false;
 
     public NullLinkProvider() {
         super(new ProviderId("null", "org.onosproject.provider.nil"));
@@ -126,20 +138,20 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     public void activate(ComponentContext context) {
         providerService = providerRegistry.register(this);
         linkService = (LinkService) providerRegistry;
+        modified(context);
         linkService.addListener(listener);
         deviceService.addListener(linkProvider);
-        modified(context);
+
         log.info("started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
-        if (eventRate != 0) {
-            try {
-                linkDriver.awaitTermination(1000, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                log.error("LinkBuilder did not terminate");
-            }
+        linkDriver.shutdown();
+        try {
+            linkDriver.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            log.error("LinkBuilder did not terminate");
             linkDriver.shutdownNow();
         }
         deviceService.removeListener(linkProvider);
@@ -175,10 +187,23 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         if (newNbor != neighbor) {
             neighbor = newNbor;
         }
-
         if (newRate != 0 & eventRate != newRate) {
             eventRate = newRate;
-            linkDriver.submit(new LinkDriver());
+            flicker = true;
+            // try to find and add drivers for current devices
+            for (Device dev : deviceService.getDevices()) {
+                DeviceId did = dev.id();
+                synchronized (this) {
+                    if (driverMap.get(did) == null || !driverMap.get(did)) {
+                        driverMap.put(dev.id(), true);
+                        linkDriver.submit(new LinkDriver(dev));
+                    }
+                }
+            }
+        } else if (newRate == 0) {
+            driverMap.replaceAll((k, v) -> false);
+        } else {
+            log.warn("Invalid link flicker rate {}", newRate);
         }
 
         log.info("Using new settings: eventRate={}", eventRate);
@@ -213,6 +238,70 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         return "";
     }
 
+    private boolean addLdesc(DeviceId did, LinkDescription ldesc) {
+        Set<LinkDescription> ldescs = ConcurrentUtils.putIfAbsent(
+                linkDescrs, did, Sets.newConcurrentHashSet());
+        return ldescs.add(ldesc);
+    }
+
+    private void addLink(Device current) {
+        DeviceId did = current.id();
+        if (!MASTER.equals(roleService.getLocalRole(did))) {
+
+            String part = part(did.toString());
+            String npart = nIdPart(did.toString());
+            if (part.equals("ffff") && npart.equals(neighbor)) {
+                // 'tail' of our neighboring island - link us <- tail
+                tails.add(new ConnectPoint(did, SRCPORT));
+            }
+            tryLinkTail();
+            return;
+        }
+        devices.add(did);
+
+        if (devices.size() == 1) {
+            return;
+        }
+
+        // Normal flow - attach new device to the last-seen device
+        DeviceId prev = devices.get(devices.size() - 2);
+        ConnectPoint src = new ConnectPoint(prev, SRCPORT);
+        ConnectPoint dst = new ConnectPoint(did, DSTPORT);
+
+        LinkDescription fdesc = new DefaultLinkDescription(src, dst,
+                Link.Type.DIRECT);
+        LinkDescription rdesc = new DefaultLinkDescription(dst, src,
+                Link.Type.DIRECT);
+        addLdesc(prev, fdesc);
+        addLdesc(did, rdesc);
+
+        providerService.linkDetected(fdesc);
+        providerService.linkDetected(rdesc);
+    }
+
+    // try to link to a tail to first element
+    private void tryLinkTail() {
+        if (tails.isEmpty() || devices.isEmpty()) {
+            return;
+        }
+        ConnectPoint first = new ConnectPoint(devices.get(0), DSTPORT);
+        boolean added = false;
+        for (ConnectPoint cp : tails) {
+            if (!linkService.getLinks(cp).isEmpty()) {
+                continue;
+            }
+            LinkDescription ld = new DefaultLinkDescription(cp, first,
+                    Link.Type.DIRECT);
+            addLdesc(cp.deviceId(), ld);
+            providerService.linkDetected(ld);
+            added = true;
+            break;
+        }
+        if (added) {
+            tails.clear();
+        }
+    }
+
     /**
      * Adds links as devices are found, and generates LinkEvents.
      */
@@ -223,71 +312,20 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             Device dev = event.subject();
             switch (event.type()) {
             case DEVICE_ADDED:
+                synchronized (this) {
+                    if (flicker && !driverMap.getOrDefault(dev.id(), false)) {
+                        driverMap.put(dev.id(), true);
+                        linkDriver.submit(new LinkDriver(dev));
+                    }
+                }
                 addLink(dev);
                 break;
             case DEVICE_REMOVED:
+                driverMap.put(dev.id(), false);
                 removeLink(dev);
                 break;
             default:
                 break;
-            }
-        }
-
-        private void addLink(Device current) {
-            DeviceId did = current.id();
-            if (!MASTER.equals(roleService.getLocalRole(did))) {
-
-                String part = part(did.toString());
-                String npart = nIdPart(did.toString());
-                if (part.equals("ffff") && npart.equals(neighbor)) {
-                    // 'tail' of our neighboring island - link us <- tail
-                    tails.add(new ConnectPoint(did, SRCPORT));
-                }
-                tryLinkTail();
-                return;
-            }
-            devices.add(did);
-
-            if (devices.size() == 1) {
-                return;
-            }
-
-            // Normal flow - attach new device to the last-seen device
-            DeviceId prev = devices.get(devices.size() - 2);
-            ConnectPoint src = new ConnectPoint(prev, SRCPORT);
-            ConnectPoint dst = new ConnectPoint(did, DSTPORT);
-
-            LinkDescription fdesc = new DefaultLinkDescription(src, dst,
-                    Link.Type.DIRECT);
-            LinkDescription rdesc = new DefaultLinkDescription(dst, src,
-                    Link.Type.DIRECT);
-            descriptions.put(src, fdesc);
-            descriptions.put(dst, rdesc);
-
-            providerService.linkDetected(fdesc);
-            providerService.linkDetected(rdesc);
-        }
-
-        // try to link to a tail to first element
-        private void tryLinkTail() {
-            if (tails.isEmpty() || devices.isEmpty()) {
-                return;
-            }
-            ConnectPoint first = new ConnectPoint(devices.get(0), DSTPORT);
-            boolean added = false;
-            for (ConnectPoint cp : tails) {
-                if (!linkService.getLinks(cp).isEmpty()) {
-                    continue;
-                }
-                LinkDescription ld = new DefaultLinkDescription(cp, first,
-                        Link.Type.DIRECT);
-                descriptions.put(cp, ld);
-                providerService.linkDetected(ld);
-                added = true;
-                break;
-            }
-            if (added) {
-                tails.clear();
             }
         }
 
@@ -297,6 +335,19 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             }
             providerService.linksVanished(device.id());
             devices.remove(device.id());
+            synchronized (linkDescrs) {
+                Set<LinkDescription> lds = linkDescrs.remove(device.id());
+                for (LinkDescription ld : lds) {
+                    ConnectPoint src = ld.src();
+                    DeviceId dst = ld.dst().deviceId();
+                    Iterator<LinkDescription> it = linkDescrs.get(dst).iterator();
+                    while (it.hasNext()) {
+                        if (it.next().dst().equals(src)) {
+                            it.remove();
+                        }
+                    }
+                }
+            }
         }
 
     }
@@ -317,7 +368,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                         LinkDescription ld = new DefaultLinkDescription(event
                                 .subject().dst(), event.subject().src(),
                                 Link.Type.DIRECT);
-                        descriptions.put(event.subject().dst(), ld);
+                        addLdesc(event.subject().dst().deviceId(), ld);
                         providerService.linkDetected(ld);
                     }
                     return;
@@ -334,18 +385,26 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
      * Generates link events using fake links.
      */
     private class LinkDriver implements Runnable {
+        Device myDev;
+        LinkDriver(Device dev) {
+            myDev = dev;
+        }
 
         @Override
         public void run() {
+            log.info("Thread started for dev {}", myDev.id());
             long startTime = System.currentTimeMillis();
             long countEvent = 0;
             float effLoad = 0;
 
-            while (!linkDriver.isShutdown()) {
+            while (!linkDriver.isShutdown() && driverMap.get(myDev.id())) {
+                if (linkDescrs.get(myDev.id()) == null) {
+                    addLink(myDev);
+                }
 
                 //Assuming eventRate is in microsecond unit
                 if (countEvent <= checkRateDuration * 1000000 / eventRate) {
-                    for (LinkDescription desc : descriptions.values()) {
+                    for (LinkDescription desc : linkDescrs.get(myDev.id())) {
                         providerService.linkVanished(desc);
                         countEvent++;
                         try {
@@ -363,8 +422,10 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                     }
                 } else {
                     // log in WARN the effective load generation rate in events/sec, every 10 seconds
-                    effLoad = (float) (countEvent * 1000 / (System.currentTimeMillis() - startTime));
-                    log.warn("Effective Loading is {} events/second", String.valueOf(effLoad));
+                    effLoad = (float) (countEvent * 1000.0 /
+                            (System.currentTimeMillis() - startTime));
+                    log.warn("Effective Loading for thread is {} events/second",
+                            String.valueOf(effLoad));
                     countEvent = 0;
                     startTime = System.currentTimeMillis();
                 }
