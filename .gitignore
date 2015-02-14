@@ -11,5 +11,6 @@ target
 *.pyc
 dependency-reduced-pom.xml
 .idea
+*.DS_Store
 
 core/store/trivial/data/
