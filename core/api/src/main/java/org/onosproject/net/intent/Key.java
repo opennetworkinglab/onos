@@ -69,7 +69,7 @@ public class Key {
 
         @Override
         public int hashCode() {
-            return Objects.hash(key);
+            return key.hashCode();
         }
 
         @Override
@@ -108,7 +108,7 @@ public class Key {
 
         @Override
         public int hashCode() {
-            return Objects.hash(key);
+            return (int) (key ^ (key >>> 32));
         }
 
         @Override
