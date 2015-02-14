@@ -42,7 +42,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.PathIntent;
 
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +72,7 @@ public class LinkCollectionIntentInstaller
 
     @Deactivate
     public void deactivate() {
-        intentManager.unregisterInstaller(PathIntent.class);
+        intentManager.unregisterInstaller(LinkCollectionIntent.class);
     }
 
     @Override
