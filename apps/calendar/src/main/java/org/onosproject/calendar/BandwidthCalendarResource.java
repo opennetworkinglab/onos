@@ -15,41 +15,49 @@
  */
 package org.onosproject.calendar;
 
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import org.onlab.packet.Ethernet;
+import org.onlab.rest.BaseResource;
+import org.onlab.util.Tools;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
-import org.onlab.rest.BaseResource;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.TwoWayP2PIntent;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.LatencyConstraint;
+import org.onosproject.net.resource.Bandwidth;
+import org.slf4j.Logger;
 
-import javax.ws.rs.POST;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
-
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.intent.PointToPointIntent;
-import org.onlab.packet.Ethernet;
+import java.net.URI;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
-
-import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
-
-import org.slf4j.Logger;
 
 /**
  * Web resource for triggering calendared intents.
@@ -58,80 +66,262 @@ import org.slf4j.Logger;
 public class BandwidthCalendarResource extends BaseResource {
 
     private static final Logger log = getLogger(BandwidthCalendarResource.class);
-    private static final long TIMEOUT = 5; // seconds
+    private static final long TIMEOUT = 10; // seconds
 
-    @javax.ws.rs.Path("/{src}/{dst}/{srcPort}/{dstPort}/{bandwidth}")
+    private static final String INVALID_PARAMETER = "INVALID_PARAMETER\n";
+    private static final String OPERATION_INSTALLED = "INSTALLED\n";
+    private static final String OPERATION_FAILED = "FAILED\n";
+    private static final String OPERATION_WITHDRAWN = "WITHDRAWN\n";
+
+    /**
+     * Setup a bi-directional path with constraints between switch to switch.
+     * Switch is identified by DPID.
+     *
+     * @param src the path source (DPID or hostID)
+     * @param dst the path destination (DPID or hostID)
+     * @param srcPort the source port (-1 if src/dest is a host)
+     * @param dstPort the destination port (-1 if src/dest is a host)
+     * @param bandwidth the bandwidth (mbps) requirement for the path
+     * @param latency the latency (micro sec) requirement for the path
+     * @return intent key if successful,
+     *         server error message or "FAILED" if failed to create or submit intent
+     */
+    @javax.ws.rs.Path("/{src}/{dst}/{srcPort}/{dstPort}/{bandwidth}/{latency}")
     @POST
-    public Response createIntent(@PathParam("src") String src,
-                                 @PathParam("dst") String dst,
-                                 @PathParam("srcPort") String srcPort,
-                                 @PathParam("dstPort") String dstPort,
-                                 @PathParam("bandwidth") String bandwidth) {
+    // TODO could allow applications to provide optional key
+    // ... if you do, you will need to change from LongKeys to StringKeys
+    public Response setupPath(@PathParam("src") String src,
+                              @PathParam("dst") String dst,
+                              @PathParam("srcPort") String srcPort,
+                              @PathParam("dstPort") String dstPort,
+                              @PathParam("bandwidth") String bandwidth,
+                              @PathParam("latency") String latency) {
 
-        log.info("Receiving Create Intent request...");
-        log.info("Path Constraints: Src = {} SrcPort = {} Dest = {} DestPort = {} BW = {}",
-                 src, srcPort, dst, dstPort, bandwidth);
+        log.info("Path Constraints: Src = {} SrcPort = {} Dest = {} DestPort = {} " +
+                          "BW = {} latency = {}",
+                 src, srcPort, dst, dstPort, bandwidth, latency);
+
+        if (src == null || dst == null || srcPort == null || dstPort == null) {
+            return Response.ok(INVALID_PARAMETER).build();
+        }
+
+        Long bandwidthL = 0L;
+        Long latencyL = 0L;
+        try {
+            bandwidthL = Long.parseLong(bandwidth, 10);
+            latencyL = Long.parseLong(latency, 10);
+        } catch (Exception e) {
+            return Response.ok(INVALID_PARAMETER).build();
+        }
+
+        Intent intent = createIntent(null, src, dst, srcPort, dstPort, bandwidthL, latencyL);
+        try {
+            if (submitIntent(intent)) {
+                return Response.ok(intent.key() + "\n").build();
+            } else {
+                return Response.ok(OPERATION_FAILED).build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Modify a bi-directional path's bandwidth.
+     *
+     * @param intentKey the path intent key
+     * @param src the path source (DPID or hostID)
+     * @param dst the path destination (DPID or hostID)
+     * @param srcPort the source port (-1 if src/dest is a host)
+     * @param dstPort the destination port (-1 if src/dest is a host)
+     * @param bandwidth the bandwidth (mbps) requirement for the path
+     * @return @return Intent state, "INSTALLED", if successful,
+     *         server error message or "FAILED" if failed to modify any direction intent
+     */
+    @javax.ws.rs.Path("/{intentKey}/{src}/{dst}/{srcPort}/{dstPort}/{bandwidth}")
+    @PUT
+    public Response modifyBandwidth(@PathParam("intentKey") String intentKey,
+                                    @PathParam("src") String src,
+                                    @PathParam("dst") String dst,
+                                    @PathParam("srcPort") String srcPort,
+                                    @PathParam("dstPort") String dstPort,
+                                    @PathParam("bandwidth") String bandwidth) {
+
+        log.info("Modify bw for intentKey = {}; src = {}; dst = {};" +
+                         "srcPort = {}; dstPort = {}; with new bandwidth = {}",
+                 intentKey, src, dst, srcPort, dstPort, bandwidth);
+
+        if (src == null || dst == null || srcPort == null || dstPort == null) {
+            return Response.ok(INVALID_PARAMETER).build();
+        }
+
+        Long bandwidthL = 0L;
+        try {
+            bandwidthL = Long.parseLong(bandwidth, 10);
+        } catch (Exception e) {
+            return Response.ok(INVALID_PARAMETER).build();
+        }
 
         IntentService service = get(IntentService.class);
+        Intent originalIntent
+                = service.getIntent(Key.of(Tools.fromHex(intentKey.replace("0x", "")), appId()));
 
-        ConnectPoint srcPoint = new ConnectPoint(deviceId(src), portNumber(srcPort));
-        ConnectPoint dstPoint = new ConnectPoint(deviceId(dst), portNumber(dstPort));
+        if (originalIntent == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // get the latency constraint from the original intent
+        Long latencyL = 0L;
+        if (originalIntent instanceof ConnectivityIntent) {
+            ConnectivityIntent connectivityIntent = (ConnectivityIntent) originalIntent;
+            for (Constraint constraint : connectivityIntent.constraints()) {
+                if (constraint instanceof LatencyConstraint) {
+                    latencyL = ((LatencyConstraint) constraint).latency().get(ChronoUnit.MICROS);
+                }
+            }
+        }
+
+        Intent newIntent = createIntent(originalIntent.key(), src, dst,
+                                        srcPort, dstPort, bandwidthL, latencyL);
+        try {
+            if (submitIntent(newIntent)) {
+                return Response.ok(OPERATION_INSTALLED).build();
+            } else {
+                return Response.ok(OPERATION_FAILED).build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Create an Intent for a bidirectional path with constraints.
+     *
+     * @param key optional intent key
+     * @param src the path source (DPID or hostID)
+     * @param dst the path destination (DPID or hostID)
+     * @param srcPort the source port (-1 if src/dest is a host)
+     * @param dstPort the destination port (-1 if src/dest is a host)
+     * @param bandwidth the bandwidth (mbps) requirement for the path
+     * @param latency the latency (micro sec) requirement for the path
+     * @return the appropriate intent
+     */
+    private Intent createIntent(Key key,
+                                String src,
+                                String dst,
+                                String srcPort,
+                                String dstPort,
+                                Long bandwidth,
+                                Long latency) {
 
         TrafficSelector selector = buildTrafficSelector();
         TrafficTreatment treatment = builder().build();
 
-        PointToPointIntent intentP2P =
-                new PointToPointIntent(appId(), selector, treatment,
-                                       srcPoint, dstPoint);
+        final Constraint constraintBandwidth =
+                new BandwidthConstraint(Bandwidth.mbps(bandwidth));
+        final Constraint constraintLatency =
+                new LatencyConstraint(Duration.of(latency, ChronoUnit.MICROS));
+        final List<Constraint> constraints = new LinkedList<>();
+
+        constraints.add(constraintBandwidth);
+        constraints.add(constraintLatency);
+
+        if (srcPort.equals("-1")) {
+            HostId srcPoint = HostId.hostId(src);
+            HostId dstPoint = HostId.hostId(dst);
+            return new HostToHostIntent(appId(), key, srcPoint, dstPoint,
+                                        selector, treatment, constraints);
+        } else {
+            ConnectPoint srcPoint = new ConnectPoint(deviceId(src), portNumber(srcPort));
+            ConnectPoint dstPoint = new ConnectPoint(deviceId(dst), portNumber(dstPort));
+            return new TwoWayP2PIntent(appId(), key, srcPoint, dstPoint,
+                                       selector, treatment, constraints);
+        }
+    }
+
+
+    /**
+     * Synchronously submits an intent to the Intent Service.
+     *
+     * @param intent intent to submit
+     * @return true if operation succeed, false otherwise
+     */
+    private boolean submitIntent(Intent intent)
+        throws InterruptedException {
+        IntentService service = get(IntentService.class);
 
         CountDownLatch latch = new CountDownLatch(1);
-        InternalIntentListener listener = new InternalIntentListener(intentP2P, service, latch);
+        InternalIntentListener listener = new InternalIntentListener(intent, service, latch);
         service.addListener(listener);
-        service.submit(intentP2P);
-        try {
-            if (latch.await(TIMEOUT, TimeUnit.SECONDS)) {
-                log.info("Submitted Calendar App intent: src = {}; dst = {}; " +
-                                 "srcPort = {}; dstPort = {}; intentID = {}",
-                         src, dst, srcPort, dstPort, intentP2P.id());
-                String reply = intentP2P.id() + " " + listener.getState() + "\n";
-                return Response.ok(reply).build();
-            }
-        } catch (InterruptedException e) {
-            log.warn("Interrupted while waiting for intent {} status", intentP2P.id());
+        service.submit(intent);
+        log.info("Submitted Calendar App intent and waiting: {}", intent);
+        if (latch.await(TIMEOUT, TimeUnit.SECONDS) &&
+                listener.getState() == INSTALLED) {
+            return true;
         }
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        return false;
     }
 
-    @javax.ws.rs.Path("/cancellation/{intentId}")
+    /**
+     * Remove a bi-directional path with created intent key.
+     *
+     * @param intentKey the string key for the intent to remove
+     * @return Intent state, "WITHDRAWN", if successful,
+     *         server error message or FAILED" if any direction intent remove failed
+     */
+    @javax.ws.rs.Path("/{intentKey}")
     @DELETE
-    public Response withdrawIntent(@PathParam("intentId") String intentId) {
-        log.info("Receiving Teardown request for {}", intentId);
-        IntentService service = get(IntentService.class);
-        // TODO: there needs to be an app id and key here
-        /*
-        Intent intent = service.getIntent(IntentId.valueOf(Long.parseLong(intentId)));
-        if (intent != null) {
-            service.withdraw(intent);
-            String reply = "ok\n";
-            return Response.ok(reply).build();
+    public Response removePath(@PathParam("intentKey") String intentKey) {
+
+        log.info("Receiving tear down request for {}", intentKey);
+
+        if (intentKey == null) {
+            return Response.ok(INVALID_PARAMETER).build();
         }
-        */
-        return Response.status(Response.Status.NOT_FOUND).build();
+
+        IntentService service = get(IntentService.class);
+        Intent intent = service.getIntent(Key.of(Tools.fromHex(intentKey.replace("0x", "")), appId()));
+
+        if (intent == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        try {
+            if (withdrawIntent(intent)) {
+                return Response.ok(OPERATION_WITHDRAWN).build();
+            } else {
+                return Response.ok(OPERATION_FAILED).build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @javax.ws.rs.Path("/modification/{intentId}/{bandwidth}")
-    @POST
-    public Response modifyBandwidth(@PathParam("intentId") String intentId,
-                                    @PathParam("bandwidth") String bandwidth) {
+    /**
+     * Synchronously withdraws an intent to the Intent Service.
+     *
+     * @param intent intent to submit
+     * @return true if operation succeed, false otherwise
+     */
+    private boolean withdrawIntent(Intent intent)
+            throws InterruptedException {
+        IntentService service = get(IntentService.class);
 
-        log.info("Receiving Modify request...");
-        log.info("Modify bw for intentId = {} with new bandwidth = {}", intentId, bandwidth);
-
-        String reply = "ok\n";
-        return Response.ok(reply).build();
+        CountDownLatch latch = new CountDownLatch(1);
+        InternalIntentListener listener = new InternalIntentListener(intent, service, latch);
+        service.addListener(listener);
+        service.withdraw(intent);
+        log.info("Withdrawing intent and waiting: {}", intent);
+        if (latch.await(TIMEOUT, TimeUnit.SECONDS) &&
+                listener.getState() == WITHDRAWN) {
+            return true;
+        }
+        return false;
     }
 
-    private TrafficSelector buildTrafficSelector() {
+
+    private static TrafficSelector buildTrafficSelector() {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         Short ethType = Ethernet.TYPE_IPV4;
 
@@ -140,7 +330,7 @@ public class BandwidthCalendarResource extends BaseResource {
         return selectorBuilder.build();
     }
 
-    private DeviceId deviceId(String dpid) {
+    private static DeviceId deviceId(String dpid) {
         return DeviceId.deviceId(URI.create("of:" + dpid));
     }
 
@@ -168,8 +358,8 @@ public class BandwidthCalendarResource extends BaseResource {
                 state = service.getIntentState(intent.key());
                 if (state == INSTALLED || state == FAILED || state == WITHDRAWN) {
                     latch.countDown();
+                    service.removeListener(this);
                 }
-                service.removeListener(this);
             }
         }
 
