@@ -54,11 +54,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.easymock.EasyMock.*;
+import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
 
 /**
  * Unit tests for PeerConnectivityManager.
  */
-@Ignore
 public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private static final ApplicationId APPID = new ApplicationId() {
@@ -571,7 +571,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
         // Setup the expected intents
         for (Intent intent : intentList) {
-            intentService.submit(intent);
+            intentService.submit(eqExceptId(intent));
         }
         replay(intentService);
 

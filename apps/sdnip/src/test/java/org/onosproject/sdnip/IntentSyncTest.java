@@ -17,7 +17,6 @@ package org.onosproject.sdnip;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
@@ -59,13 +58,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
 
 /**
  * This class tests the intent synchronization function in the
  * IntentSynchronizer class.
  */
-@Ignore //FIXME
 public class IntentSyncTest extends AbstractIntentTest {
 
     private SdnIpConfigurationService sdnIpConfigService;
@@ -237,11 +239,7 @@ public class IntentSyncTest extends AbstractIntentTest {
                                                   ingressPoints, SW1_ETH1);
 
         // Setup the expected intents
-// FIXME Jono needs to refactor
-//        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-//        builder.addSubmitOperation(intent);
-//        intentService.execute(TestIntentServiceHelper.eqExceptId(
-//                builder.build()));
+        intentService.submit(eqExceptId(intent));
         replay(intentService);
 
         intentSynchronizer.leaderChanged(true);
@@ -299,11 +297,8 @@ public class IntentSyncTest extends AbstractIntentTest {
                         ingressPoints, SW4_ETH1);
 
         // Setup the expected intents
-// FIXME Jono needs to refactor
-//        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-//        builder.addSubmitOperation(intent);
-//        intentService.execute(
-//                TestIntentServiceHelper.eqExceptId(builder.build()));
+        intentService.submit(eqExceptId(intent));
+
         replay(intentService);
 
         // Run the test
@@ -371,15 +366,8 @@ public class IntentSyncTest extends AbstractIntentTest {
         // Set up test expectation
         reset(intentService);
         // Setup the expected intents
-// FIXME Jono needs to refactor
-//        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-//        builder.addWithdrawOperation(addedIntent.id());
-//        intentService.execute(TestIntentServiceHelper.eqExceptId(
-//                builder.build()));
-//        builder = IntentOperations.builder(APPID);
-//        builder.addSubmitOperation(intentNew);
-//        intentService.execute(TestIntentServiceHelper.eqExceptId(
-//                builder.build()));
+        intentService.withdraw(eqExceptId(addedIntent));
+        intentService.submit(eqExceptId(intentNew));
         replay(intentService);
 
         // Call the update() method in IntentSynchronizer class
@@ -423,11 +411,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         // Set up expectation
         reset(intentService);
         // Setup the expected intents
-// FIXME Jono needs to refactor
-//        IntentOperations.Builder builder = IntentOperations.builder(APPID);
-//        builder.addWithdrawOperation(addedIntent.id());
-//        intentService.execute(TestIntentServiceHelper.eqExceptId(
-//                builder.build()));
+        intentService.withdraw(eqExceptId(addedIntent));
         replay(intentService);
 
         // Call the update() method in IntentSynchronizer class
