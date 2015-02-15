@@ -46,6 +46,7 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 /**
@@ -57,22 +58,11 @@ public class HazelcastLabelResourceStore
         extends
         AbstractHazelcastStore<LabelResourceEvent, LabelResourceDelegate>
         implements LabelResourceStore {
-
-    @Override
-    public void setDelegate(LabelResourceDelegate delegate) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void unsetDelegate(LabelResourceDelegate delegate) {
-        // TODO Auto-generated method stub
-
-    }
-
     private final Logger log = getLogger(getClass());
 
     private static final String POOL_MAP_NAME = "labelresourcepool";
+
+    private static final String GLOBAL_RESOURCE_POOL_DEVICE_ID = "global_resource_pool_device_id";
 
     // primary data:
     // read/write needs to be locked
@@ -215,18 +205,22 @@ public class HazelcastLabelResourceStore
     }
 
     @Override
-    public LabelResourceEvent createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
-                                     LabelResourceId endLabel) {
+    public LabelResourceEvent createDevicePool(DeviceId deviceId,
+                                               LabelResourceId beginLabel,
+                                               LabelResourceId endLabel) {
         LabelResourcePool pool = new LabelResourcePool(deviceId.toString(),
-                                                       beginLabel.getLabelId(), endLabel.getLabelId());
+                                                       beginLabel.getLabelId(),
+                                                       endLabel.getLabelId());
         return this.create(pool);
     }
 
     @Override
     public LabelResourceEvent createGlobalPool(LabelResourceId beginLabel,
-                                     LabelResourceId endLabel) {
-        LabelResourcePool pool = new LabelResourcePool("",
-                                                       beginLabel.getLabelId(), endLabel.getLabelId());
+                                               LabelResourceId endLabel) {
+        LabelResourcePool pool = new LabelResourcePool(
+                                                       GLOBAL_RESOURCE_POOL_DEVICE_ID,
+                                                       beginLabel.getLabelId(),
+                                                       endLabel.getLabelId());
         return this.create(pool);
     }
 
@@ -236,19 +230,21 @@ public class HazelcastLabelResourceStore
             log.warn("the value of beginLabel and the value of endLabel must be both positive number.");
             return null;
         }
-        if (labelResourcePool.getBeginLabel().getLabelId() > labelResourcePool.getEndLabel().getLabelId()) {
+        if (labelResourcePool.getBeginLabel().getLabelId() > labelResourcePool
+                .getEndLabel().getLabelId()) {
             log.warn("beginLabel must be less than or equal to endLabel.");
             return null;
         }
         Device device = (Device) deviceService.getDevice(labelResourcePool
                 .getDeviceId());
-        if (device == null) {
+        if (device == null
+                && !GLOBAL_RESOURCE_POOL_DEVICE_ID.equals(labelResourcePool
+                        .getDeviceId())) {
             return null;
         }
         LabelResourcePool pool = new LabelResourcePool(labelResourcePool
-                .getDeviceId().toString(), labelResourcePool.getBeginLabel().getLabelId(),
-                                                       labelResourcePool
-                                                               .getEndLabel().getLabelId());
+                .getDeviceId().toString(), labelResourcePool.getBeginLabel()
+                .getLabelId(), labelResourcePool.getEndLabel().getLabelId());
 
         ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(pool
                 .getDeviceId());
@@ -260,7 +256,9 @@ public class HazelcastLabelResourceStore
         }
 
         if (replicaInfo.master().get()
-                .equals(clusterService.getLocalNode().id())) {
+                .equals(clusterService.getLocalNode().id())
+                || GLOBAL_RESOURCE_POOL_DEVICE_ID.equals(labelResourcePool
+                        .getDeviceId())) {
             return internalCreate(pool);
         }
 
@@ -361,7 +359,7 @@ public class HazelcastLabelResourceStore
 
     @Override
     public Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
-                                                  ApplyLabelNumber applyNum) {
+                                                                ApplyLabelNumber applyNum) {
         Device device = (Device) deviceService.getDevice(deviceId);
         if (device == null) {
             return null;
@@ -434,8 +432,8 @@ public class HazelcastLabelResourceStore
                                                         .labelResourceId(j));
             result.add(resource);
         }
-        long current = pool.getCurrentUsedMaxLabelId().getLabelId()
-        + applyNum - tmp;
+        long current = pool.getCurrentUsedMaxLabelId().getLabelId() + applyNum
+                - tmp;
         pool.setCurrentUsedMaxLabelId(LabelResourceId.labelResourceId(current));
         pool.setUsedNum(pool.getUsedNum() + applyNum);
         resourcePool.put(deviceId, pool);
@@ -459,7 +457,9 @@ public class HazelcastLabelResourceStore
             request = new LabelResourceRequest(
                                                deviceId,
                                                LabelResourceRequest.Type.RELEASE,
-                                               ApplyLabelNumber.applyLabelNumber(0), collection);
+                                               ApplyLabelNumber
+                                                       .applyLabelNumber(0),
+                                               collection);
             ReplicaInfo replicaInfo = replicaInfoManager
                     .getReplicaInfoFor(deviceId);
 
@@ -545,14 +545,9 @@ public class HazelcastLabelResourceStore
         if (pool == null) {
             return 0;
         }
-        return pool.getEndLabel().getLabelId() - pool.getCurrentUsedMaxLabelId().getLabelId()
+        return pool.getEndLabel().getLabelId()
+                - pool.getCurrentUsedMaxLabelId().getLabelId()
                 + pool.getReleaseLabelId().size();
-    }
-
-    @Override
-    public boolean hasDelegate() {
-        // TODO Auto-generated method stub
-        return false;
     }
 
     @Override
@@ -563,39 +558,44 @@ public class HazelcastLabelResourceStore
 
     @Override
     public LabelResourceEvent destroyGlobalPool() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.internalDestroy(DeviceId
+                .deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID));
     }
 
     @Override
     public Collection<DefaultLabelResource> applyFromGlobalPool(ApplyLabelNumber applyNum) {
-        // TODO Auto-generated method stub
-        return null;
+        LabelResourceRequest request = new LabelResourceRequest(
+                                                                DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
+                                                                LabelResourceRequest.Type.APPLY,
+                                                                applyNum, null);
+        return this.internalApply(request);
     }
 
     @Override
     public boolean releaseToGlobalPool(Set<DefaultLabelResource> release) {
         // TODO Auto-generated method stub
-        return false;
+        Multimap<DeviceId, DefaultLabelResource> map = ArrayListMultimap.create();
+        map.putAll(DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID), release);
+        return this.releaseToDevicePool(map);
     }
 
     @Override
     public boolean isGlobalPoolFull() {
         // TODO Auto-generated method stub
-        return false;
+        return this.isDevicePoolFull(DeviceId
+                .deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID));
     }
 
     @Override
     public long getFreeNumOfGlobalPool() {
-        // TODO Auto-generated method stub
-        return 0;
+        return this.getFreeNumOfDevicePool(DeviceId
+                .deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID));
     }
 
     @Override
     public LabelResourcePool getGlobalLabelResourcePool() {
         // TODO Auto-generated method stub
-        return null;
+        return this.getDeviceLabelResourcePool(DeviceId
+                .deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID));
     }
-
-
 }

@@ -13,8 +13,14 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceEvent.Type;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.resource.ApplyLabelNumber;
 import org.onosproject.net.resource.DefaultLabelResource;
 import org.onosproject.net.resource.LabelResourceDelegate;
@@ -37,12 +43,16 @@ import com.google.common.collect.Multimap;
  */
 @Component(immediate = true)
 @Service
-public class LabelResourceManager extends AbstractProviderRegistry<LabelResourceProvider, LabelResourceProviderService> implements LabelResourceService, LabelResourceProviderRegistry {
+public class LabelResourceManager
+        extends
+        AbstractProviderRegistry<LabelResourceProvider, LabelResourceProviderService>
+        implements LabelResourceService, LabelResourceProviderRegistry {
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
-    private final AbstractListenerRegistry<LabelResourceEvent, LabelResourceListener> listenerRegistry
-                                                                                = new AbstractListenerRegistry<>();
+    private final AbstractListenerRegistry<LabelResourceEvent,
+                                    LabelResourceListener> listenerRegistry
+                                    = new AbstractListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LabelResourceStore store;
@@ -50,16 +60,23 @@ public class LabelResourceManager extends AbstractProviderRegistry<LabelResource
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    private DeviceListener deviceListener = new InternalDeviceListener();
+
     @Activate
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(LabelResourceEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
         log.info("Started");
+
     }
 
     @Deactivate
     public void deactivate() {
-
+        deviceService.removeListener(deviceListener);
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(LabelResourceEvent.class);
         log.info("Stopped");
@@ -67,15 +84,16 @@ public class LabelResourceManager extends AbstractProviderRegistry<LabelResource
 
     @Override
     public void createDevicePool(DeviceId deviceId, LabelResourceId beginLabel,
-                       LabelResourceId endLabel) {
+                                 LabelResourceId endLabel) {
         // TODO Auto-generated method stub
-        LabelResourceEvent event = store.createDevicePool(deviceId, beginLabel, endLabel);
+        LabelResourceEvent event = store.createDevicePool(deviceId, beginLabel,
+                                                          endLabel);
         post(event);
     }
 
     @Override
     public void createGlobalPool(LabelResourceId beginLabel,
-                       LabelResourceId endLabel) {
+                                 LabelResourceId endLabel) {
         // TODO Auto-generated method stub
         LabelResourceEvent event = store.createGlobalPool(beginLabel, endLabel);
         post(event);
@@ -95,7 +113,7 @@ public class LabelResourceManager extends AbstractProviderRegistry<LabelResource
 
     @Override
     public Collection<DefaultLabelResource> applyFromDevicePool(DeviceId deviceId,
-                                                  ApplyLabelNumber applyNum) {
+                                                                ApplyLabelNumber applyNum) {
         // TODO Auto-generated method stub
         return store.applyFromDevicePool(deviceId, applyNum);
     }
@@ -182,9 +200,45 @@ public class LabelResourceManager extends AbstractProviderRegistry<LabelResource
 
     }
 
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+            if (Type.DEVICE_REMOVED.equals(event.type())) {
+                destroyDevicePool(device.id());
+            }
+        }
+    }
+
+    private class InternalLabelResourceProviderService
+            extends AbstractProviderService<LabelResourceProvider>
+            implements LabelResourceProviderService {
+
+        protected InternalLabelResourceProviderService(LabelResourceProvider provider) {
+            super(provider);
+            // TODO Auto-generated constructor stub
+        }
+
+        @Override
+        public void deviceLabelResourcePoolDetected(DeviceId deviceId,
+                                                    LabelResourceId beginLabel,
+                                                    LabelResourceId endLabel) {
+            // TODO Auto-generated method stub
+            createDevicePool(deviceId, beginLabel, endLabel);
+        }
+
+        @Override
+        public void deviceLabelResourcePoolDestroyed(DeviceId deviceId) {
+            // TODO Auto-generated method stub
+            destroyDevicePool(deviceId);
+        }
+
+    }
+
     @Override
     protected LabelResourceProviderService createProviderService(LabelResourceProvider provider) {
         // TODO Auto-generated method stub
-        return null;
+        return new InternalLabelResourceProviderService(provider);
     }
 }
