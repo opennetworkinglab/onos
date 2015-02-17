@@ -34,7 +34,7 @@
 
         tHeaders = t.selectAll('th');
         numCols = tHeaders[0].length;
-        colWidth = Math.floor(winWidth/numCols);
+        colWidth = Math.floor(winWidth / numCols);
 
         tHeaders.each(function(thElement, index) {
             thElement = d3.select(this);
@@ -121,7 +121,9 @@
                 fs = _fs_;
                 var w = angular.element($window),
                     table = d3.select(element[0]),
-                    shouldResize = false;
+                    thead = table.select('thead'),
+                    tbody = table.select('tbody'),
+                    canAdjust = false;
 
                 scope.$watch(function () {
                     return {
@@ -129,31 +131,24 @@
                         w: window.innerWidth
                     };
                 }, function (newVal) {
-                    var thead = table.select('thead'),
-                        tbody = table.select('tbody');
-
                     scope.windowHeight = newVal.h;
                     scope.windowWidth = newVal.w;
 
-                    scope.setTableHW = function () {
-                        scope.$on('LastElement', function (event) {
-                            // only adjust the table once it's completely loaded
-                            fixTable(table, thead, tbody);
-                            shouldResize = true;
-                        });
-                    };
+                    scope.$on('LastElement', function () {
+                        // only adjust the table once it's completely loaded
+                        fixTable(table, thead, tbody);
+                        canAdjust = true;
+                    });
 
-                    if (shouldResize) {
+                    if (canAdjust) {
                         fixTable(table, thead, tbody);
                     }
-
                 }, true);
 
                 w.bind('onos-fixed-header', function () {
                     scope.$apply();
                 });
             };
-
         }])
 
         .directive('onosSortableHeader', ['$log', 'IconService',
