@@ -62,7 +62,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Experimental extension to the flow rule subsystem; still under development.
  */
-@Component(immediate = true)
+@Component(immediate = false)
 @Service
 public class FlowRuleExtManager extends FlowRuleManager
         implements FlowRuleExtService {
