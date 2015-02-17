@@ -384,7 +384,7 @@ public class DistributedFlowRuleStore
             log.warn("Failed to storeBatch: {}", e.getMessage());
 
             Set<FlowRule> allFailures = operation.getOperations().stream()
-                    .map(op -> op.getTarget())
+                    .map(op -> op.target())
                     .collect(Collectors.toSet());
 
             notifyDelegate(FlowRuleBatchEvent.completed(
@@ -418,9 +418,9 @@ public class DistributedFlowRuleStore
         return operation.getOperations().stream().map(
                 op -> {
                     StoredFlowEntry entry;
-                    switch (op.getOperator()) {
+                    switch (op.operator()) {
                         case ADD:
-                            entry = new DefaultFlowEntry(op.getTarget());
+                            entry = new DefaultFlowEntry(op.target());
                             // always add requested FlowRule 
                             // Note: 2 equal FlowEntry may have different treatment
                             flowTable.remove(entry.deviceId(), entry);
@@ -438,7 +438,7 @@ public class DistributedFlowRuleStore
                             //TODO: figure this out at some point
                             break;
                         default:
-                            log.warn("Unknown flow operation operator: {}", op.getOperator());
+                            log.warn("Unknown flow operation operator: {}", op.operator());
                     }
                     return null;
                 }
@@ -712,15 +712,15 @@ public class DistributedFlowRuleStore
 
                 ops.stream().forEach(
                         op -> {
-                            final FlowRule entry = op.getTarget();
+                            final FlowRule entry = op.target();
                             final FlowId id = entry.id();
                             ImmutableList<StoredFlowEntry> original = backupFlowTable.get(id);
                             List<StoredFlowEntry> list = new ArrayList<>();
                             if (original != null) {
                                 list.addAll(original);
                             }
-                            list.remove(op.getTarget());
-                            if (op.getOperator() == FlowRuleOperation.ADD) {
+                            list.remove(op.target());
+                            if (op.operator() == FlowRuleOperation.ADD) {
                                 list.add((StoredFlowEntry) entry);
                             }
 

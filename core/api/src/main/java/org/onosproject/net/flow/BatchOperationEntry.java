@@ -48,28 +48,8 @@ public class BatchOperationEntry<T extends Enum<?>, U> {
      *
      * @return the target object of this operation
      */
-    @Deprecated
-    public U getTarget() {
-        return target();
-    }
-
-    /**
-     * Gets the target object of this operation.
-     *
-     * @return the target object of this operation
-     */
     public U target() {
         return target;
-    }
-
-    /**
-     * Gets the operator of this operation.
-     *
-     * @return the operator of this operation
-     */
-    @Deprecated
-    public T getOperator() {
-        return operator();
     }
 
     /**

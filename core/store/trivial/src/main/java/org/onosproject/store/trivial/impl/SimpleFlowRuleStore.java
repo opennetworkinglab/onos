@@ -265,8 +265,8 @@ public class SimpleFlowRuleStore
         List<FlowRuleBatchEntry> toRemove = new ArrayList<>();
 
         for (FlowRuleBatchEntry entry : operation.getOperations()) {
-            final FlowRule flowRule = entry.getTarget();
-            if (entry.getOperator().equals(FlowRuleOperation.ADD)) {
+            final FlowRule flowRule = entry.target();
+            if (entry.operator().equals(FlowRuleOperation.ADD)) {
                 if (!getFlowEntries(flowRule.deviceId(), flowRule.id()).contains(flowRule)) {
                     storeFlowRule(flowRule);
                     toAdd.add(entry);

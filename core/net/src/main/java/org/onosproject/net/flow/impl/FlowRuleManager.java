@@ -200,18 +200,18 @@ public class FlowRuleManager
 
         FlowRuleOperations.Builder fopsBuilder = FlowRuleOperations.builder();
         batch.getOperations().stream().forEach(op -> {
-                        switch (op.getOperator()) {
+                        switch (op.operator()) {
                             case ADD:
-                                fopsBuilder.add(op.getTarget());
+                                fopsBuilder.add(op.target());
                                 break;
                             case REMOVE:
-                                fopsBuilder.remove(op.getTarget());
+                                fopsBuilder.remove(op.target());
                                 break;
                             case MODIFY:
-                                fopsBuilder.modify(op.getTarget());
+                                fopsBuilder.modify(op.target());
                                 break;
                             default:
-                                log.warn("Unknown flow operation operator: {}", op.getOperator());
+                                log.warn("Unknown flow operation operator: {}", op.operator());
 
                         }
                 }
@@ -438,25 +438,25 @@ public class FlowRuleManager
                 // Request has been forwarded to MASTER Node, and was
                 request.ops().stream().forEach(
                         op -> {
-                            switch (op.getOperator()) {
+                            switch (op.operator()) {
 
                                 case ADD:
                                     eventDispatcher.post(
                                             new FlowRuleEvent(
                                                     FlowRuleEvent.Type.RULE_ADD_REQUESTED,
-                                                    op.getTarget()));
+                                                    op.target()));
                                     break;
                                 case REMOVE:
                                     eventDispatcher.post(
                                             new FlowRuleEvent(
                                                     FlowRuleEvent.Type.RULE_REMOVE_REQUESTED,
-                                                    op.getTarget()));
+                                                    op.target()));
                                     break;
                                 case MODIFY:
                                     //TODO: do something here when the time comes.
                                     break;
                                 default:
-                                    log.warn("Unknown flow operation operator: {}", op.getOperator());
+                                    log.warn("Unknown flow operation operator: {}", op.operator());
                             }
                         }
                 );
