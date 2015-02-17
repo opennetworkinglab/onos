@@ -32,8 +32,10 @@ public class MplsLabel {
 
     public static MplsLabel mplsLabel(int value) {
 
-        if (value > MAX_MPLS) {
-            throw new IllegalArgumentException("value exceeds allowed maximum MPLS label value (0xFFFFF)");
+        if (value < 0 || value > MAX_MPLS) {
+            String errorMsg = "MPLS label value " + value +
+                " is not in the interval [0, 0xFFFFF]";
+            throw new IllegalArgumentException(errorMsg);
         }
         return new MplsLabel(value);
     }

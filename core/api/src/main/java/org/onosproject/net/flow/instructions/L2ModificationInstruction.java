@@ -305,7 +305,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
+            return toStringHelper(subtype().toString())
                     .add("mpls", mplsLabel).toString();
         }
 
