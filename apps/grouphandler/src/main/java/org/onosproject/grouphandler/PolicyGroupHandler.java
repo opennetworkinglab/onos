@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.grouphandler.GroupBucketIdentifier.BucketOutputType;
@@ -111,7 +112,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                                getDeviceMac(neighbor))
                                     .setEthSrc(nodeMacAddr)
                                     .pushMpls()
-                                    .setMpls(label);
+                                    .setMpls(MplsLabel.mplsLabel(label));
                             outBuckets.add(DefaultGroupBucket.
                                            createSelectGroupBucket(tBuilder.build()));
                             GroupDescription desc = new
@@ -176,7 +177,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                        getDeviceMac(neighbor))
                             .setEthSrc(nodeMacAddr)
                             .pushMpls()
-                            .setMpls(bucketId.label());
+                            .setMpls(MplsLabel.mplsLabel(bucketId.label()));
                     //TODO: BoS
                     outBuckets.add(DefaultGroupBucket.
                                    createSelectGroupBucket(tBuilder.build()));
@@ -217,7 +218,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                         TrafficTreatment.Builder tBuilder =
                                 DefaultTrafficTreatment.builder();
                         tBuilder.pushMpls()
-                                .setMpls(bucketId.label());
+                                .setMpls(MplsLabel.mplsLabel(bucketId.label()));
                         //TODO: BoS
                         if (bucketId.type() == BucketOutputType.PORT) {
                             DeviceId neighbor = portDeviceMap.

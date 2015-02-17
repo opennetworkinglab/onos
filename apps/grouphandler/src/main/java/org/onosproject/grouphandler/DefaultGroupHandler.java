@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -186,7 +187,7 @@ public class DefaultGroupHandler {
                          portDeviceMap.get(port)))
                     .setEthSrc(nodeMacAddr)
                     .pushMpls()
-                    .setMpls(ns.getEdgeLabel());
+                    .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
             GroupBucket removeBucket = DefaultGroupBucket.
                     createSelectGroupBucket(tBuilder.build());
             GroupBuckets removeBuckets = new GroupBuckets(
@@ -332,7 +333,7 @@ public class DefaultGroupHandler {
                             .setEthDst(deviceConfig.getDeviceMac(d))
                             .setEthSrc(nodeMacAddr)
                             .pushMpls()
-                            .setMpls(ns.getEdgeLabel());
+                            .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
                     buckets.add(DefaultGroupBucket.createSelectGroupBucket(
                                                                 tBuilder.build()));
                 }

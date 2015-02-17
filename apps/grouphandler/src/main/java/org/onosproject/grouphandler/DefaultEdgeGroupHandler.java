@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -125,7 +126,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                           newNeighborLink.dst().deviceId()))
                     .setEthSrc(nodeMacAddr)
                     .pushMpls()
-                    .setMpls(ns.getEdgeLabel());
+                    .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
             GroupBucket updatedBucket = DefaultGroupBucket.
                     createSelectGroupBucket(tBuilder.build());
             GroupBuckets updatedBuckets = new GroupBuckets(
