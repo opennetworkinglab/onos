@@ -24,15 +24,24 @@ import java.util.Objects;
  * processed by a single ONOS instance at a time.
  */
 public class PartitionId {
-    private final long id;
+    private final int id;
 
     /**
      * Creates a new partition ID.
      *
      * @param id the partition ID
      */
-    PartitionId(long id) {
+    PartitionId(int id) {
         this.id = id;
+    }
+
+    /**
+     * Returns the integer ID value.
+     *
+     * @return ID value
+     */
+    public int value() {
+        return id;
     }
 
     @Override

@@ -21,7 +21,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
@@ -31,8 +34,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages the assignment of intent keyspace partitions to instances.
@@ -49,40 +56,105 @@ public class PartitionManager implements PartitionService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    // TODO make configurable
-    private static final int NUM_PARTITIONS = 100;
+    private static final int NUM_PARTITIONS = 32;
+    private static final int BACKOFF_TIME = 2;
+    private static final int CHECK_PERIOD = 10;
 
     private static final String ELECTION_PREFIX = "intent-partition-";
 
     private LeadershipEventListener leaderListener = new InternalLeadershipListener();
+    private ClusterEventListener clusterListener = new InternalClusterEventListener();
 
-    private Set<PartitionId> myPartitions;
+    private final Set<PartitionId> myPartitions
+            = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    private ScheduledExecutorService executor = Executors
+            .newScheduledThreadPool(1);
 
     @Activate
     public void activate() {
-        myPartitions = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
         leadershipService.addListener(leaderListener);
+        clusterService.addListener(clusterListener);
 
         for (int i = 0; i < NUM_PARTITIONS; i++) {
-            leadershipService.runForLeadership(ELECTION_PREFIX + i);
+            leadershipService.runForLeadership(getPartitionPath(i));
         }
+
+        executor.scheduleAtFixedRate(this::doRelinquish, 0,
+                                     CHECK_PERIOD, TimeUnit.SECONDS);
     }
 
     @Deactivate
     public void deactivate() {
         leadershipService.removeListener(leaderListener);
+        clusterService.removeListener(clusterListener);
+    }
+
+    private String getPartitionPath(int i) {
+        return ELECTION_PREFIX + i;
     }
 
     private PartitionId getPartitionForKey(Key intentKey) {
         log.debug("Getting partition for {}: {}", intentKey,
-                  new PartitionId(Math.abs(intentKey.hash()) % NUM_PARTITIONS));
-        return new PartitionId(Math.abs(intentKey.hash()) % NUM_PARTITIONS);
+                  new PartitionId((int) Math.abs(intentKey.hash()) % NUM_PARTITIONS));
+        return new PartitionId((int) Math.abs(intentKey.hash()) % NUM_PARTITIONS);
     }
 
     @Override
     public boolean isMine(Key intentKey) {
         return myPartitions.contains(getPartitionForKey(intentKey));
+    }
+
+    private void doRelinquish() {
+        try {
+            relinquish();
+        } catch (Exception e) {
+            log.warn("Exception caught during relinquish task", e);
+        }
+    }
+
+
+    /**
+     * Determine whether we have more than our fair share of partitions, and if
+     * so, relinquish leadership of some of them for a little while to let
+     * other instances take over.
+     */
+    private void relinquish() {
+        int activeNodes = (int) clusterService.getNodes()
+                .stream()
+                .filter(n -> clusterService.getState(n.id())
+                        == ControllerNode.State.ACTIVE)
+                .count();
+
+        int myShare = (int) Math.ceil((double) NUM_PARTITIONS / activeNodes);
+
+        synchronized (myPartitions) {
+            int relinquish = myPartitions.size() - myShare;
+
+            if (relinquish <= 0) {
+                return;
+            }
+
+            Iterator<PartitionId> it = myPartitions.iterator();
+            for (int i = 0; i < relinquish; i++) {
+                PartitionId id = it.next();
+                it.remove();
+
+                leadershipService.withdraw(getPartitionPath(id.value()));
+
+                executor.schedule(() -> recontest(getPartitionPath(id.value())),
+                                  BACKOFF_TIME, TimeUnit.SECONDS);
+            }
+        }
+    }
+
+    /**
+     * Try and recontest for leadership of a partition.
+     *
+     * @param path topic name to recontest
+     */
+    private void recontest(String path) {
+        leadershipService.runForLeadership(path);
     }
 
     private final class InternalLeadershipListener implements LeadershipEventListener {
@@ -109,12 +181,26 @@ public class PartitionManager implements PartitionService {
                     return;
                 }
 
-                if (event.type() == LeadershipEvent.Type.LEADER_ELECTED) {
-                    myPartitions.add(new PartitionId(partitionId));
-                } else if (event.type() == LeadershipEvent.Type.LEADER_BOOTED) {
-                    myPartitions.remove(new PartitionId(partitionId));
+                synchronized (myPartitions) {
+                    if (event.type() == LeadershipEvent.Type.LEADER_ELECTED) {
+                        myPartitions.add(new PartitionId(partitionId));
+                    } else if (event.type() == LeadershipEvent.Type.LEADER_BOOTED) {
+                        myPartitions.remove(new PartitionId(partitionId));
+                    }
                 }
+
+                // See if we need to let some partitions go
+                relinquish();
             }
+        }
+    }
+
+    private final class InternalClusterEventListener implements
+            ClusterEventListener {
+
+        @Override
+        public void event(ClusterEvent event) {
+            relinquish();
         }
     }
 }

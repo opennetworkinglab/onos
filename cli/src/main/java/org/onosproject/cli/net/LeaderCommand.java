@@ -20,6 +20,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipService;
 
+import java.util.Comparator;
 import java.util.Map;
 
 /**
@@ -29,17 +30,32 @@ import java.util.Map;
         description = "Finds the leader for particular topic.")
 public class LeaderCommand extends AbstractShellCommand {
 
-    private static final String FMT = "%-20s: %15s %5s";
+    private static final String FMT = "%-20s: %15s %15s";
 
     @Override
     protected void execute() {
         LeadershipService leaderService = get(LeadershipService.class);
         Map<String, Leadership> leaderBoard = leaderService.getLeaderBoard();
         print(FMT, "Topic", "Leader", "Epoch");
-        for (String topic : leaderBoard.keySet()) {
-            Leadership leadership = leaderBoard.get(topic);
-            print(FMT, topic, leadership.leader(), leadership.epoch());
-        }
+
+        Comparator<Leadership> leadershipComparator =
+                (e1, e2) -> {
+                    if (e1.leader() == null && e2.leader() == null) {
+                        return 0;
+                    }
+                    if (e1.leader() == null) {
+                        return 1;
+                    }
+                    if (e2.leader() == null) {
+                        return -1;
+                    }
+                    return e1.leader().toString().compareTo(e2.leader().toString());
+                };
+
+        leaderBoard.values()
+                .stream()
+                .sorted(leadershipComparator)
+                .forEach(l -> print(FMT, l.topic(), l.leader(), l.epoch()));
     }
 
 }
