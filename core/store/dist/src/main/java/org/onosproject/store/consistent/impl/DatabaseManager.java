@@ -41,6 +41,7 @@ import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.TransactionContext;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Sets;
@@ -153,5 +154,10 @@ public class DatabaseManager implements StorageService {
     @Override
     public <K, V> ConsistentMap<K , V> createConsistentMap(String name, Serializer serializer) {
         return new ConsistentMapImpl<K, V>(name, partitionedDatabase, serializer);
+    }
+
+    @Override
+    public TransactionContext createTransactionContext() {
+        return new DefaultTransactionContext(partitionedDatabase);
     }
 }

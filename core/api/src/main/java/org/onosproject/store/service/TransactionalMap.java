@@ -21,26 +21,16 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 /**
- * A distributed, strongly consistent map.
+ * Transactional Map data structure.
  * <p>
- * This map offers strong read-after-update (where update == create/update/delete)
- * consistency. All operations to the map are serialized and applied in a consistent
- * manner.
- * <p>
- * The stronger consistency comes at the expense of availability in
- * the event of a network partition. A network partition can be either due to
- * a temporary disruption in network connectivity between participating nodes
- * or due to a node being temporarily down.
- * </p><p>
- * All values stored in this map are versioned and the API supports optimistic
- * concurrency by allowing conditional updates that take into consideration
- * the version or value that was previously read.
- * </p><p>
- * This map does not allow null values. All methods can throw a ConsistentMapException
- * (which extends RuntimeException) to indicate failures.
+ * A TransactionalMap is created by invoking {@link TransactionContext#createTransactionalMap createTransactionalMap}
+ * method. All operations performed on this map with in a transaction boundary are invisible externally
+ * until the point when the transaction commits. A commit usually succeeds in the absence of conflicts.
  *
+ * @param <K> type of key.
+ * @param <V> type of value.
  */
-public interface ConsistentMap<K, V> {
+public interface TransactionalMap<K, V> {
 
     /**
      * Returns the number of entries in the map.
@@ -73,14 +63,14 @@ public interface ConsistentMap<K, V> {
     boolean containsValue(V value);
 
     /**
-     * Returns the value (and version) to which the specified key is mapped, or null if this
+     * Returns the value to which the specified key is mapped, or null if this
      * map contains no mapping for the key.
      *
-     * @param key the key whose associated value (and version) is to be returned
-     * @return the value (and version) to which the specified key is mapped, or null if
+     * @param key the key whose associated value is to be returned
+     * @return the value to which the specified key is mapped, or null if
      * this map contains no mapping for the key
      */
-    Versioned<V> get(K key);
+    V get(K key);
 
     /**
      * Associates the specified value with the specified key in this map (optional operation).
@@ -89,19 +79,19 @@ public interface ConsistentMap<K, V> {
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @return the previous value (and version) associated with key, or null if there was
+     * @return the previous value associated with key, or null if there was
      * no mapping for key.
      */
-    Versioned<V> put(K key, V value);
+    V put(K key, V value);
 
     /**
      * Removes the mapping for a key from this map if it is present (optional operation).
      *
      * @param key key whose value is to be removed from the map
-     * @return the value (and version) to which this map previously associated the key,
+     * @return the value to which this map previously associated the key,
      * or null if the map contained no mapping for the key.
      */
-    Versioned<V> remove(K key);
+    V remove(K key);
 
     /**
      * Removes all of the mappings from this map (optional operation).
@@ -121,15 +111,15 @@ public interface ConsistentMap<K, V> {
     Set<K> keySet();
 
     /**
-     * Returns the collection of values (and associated versions) contained in this map.
+     * Returns the collection of values contained in this map.
      * This method differs from the behavior of java.util.Map.values() in that
      * what is returned is a unmodifiable snapshot view of the values in the ConsistentMap.
      * Attempts to modify the returned collection, whether direct or via its iterator,
      * result in an UnsupportedOperationException.
      *
-     * @return a collection of the values (and associated versions) contained in this map
+     * @return a collection of the values contained in this map
      */
-    Collection<Versioned<V>> values();
+    Collection<V> values();
 
     /**
      * Returns the set of entries contained in this map.
@@ -140,7 +130,7 @@ public interface ConsistentMap<K, V> {
      *
      * @return set of entries contained in this map.
      */
-    Set<Entry<K, Versioned<V>>> entrySet();
+    Set<Entry<K, V>> entrySet();
 
     /**
      * If the specified key is not already associated with a value
@@ -151,7 +141,7 @@ public interface ConsistentMap<K, V> {
      * @return the previous value associated with the specified key or null
      * if key does not already mapped to a value.
      */
-    Versioned<V> putIfAbsent(K key, V value);
+    V putIfAbsent(K key, V value);
 
     /**
      * Removes the entry for the specified key only if it is currently
@@ -164,16 +154,6 @@ public interface ConsistentMap<K, V> {
     boolean remove(K key, V value);
 
     /**
-     * Removes the entry for the specified key only if its current
-     * version in the map is equal to the specified version.
-     *
-     * @param key key with which the specified version is associated
-     * @param version version expected to be associated with the specified key
-     * @return true if the value was removed
-     */
-    boolean remove(K key, long version);
-
-    /**
      * Replaces the entry for the specified key only if currently mapped
      * to the specified value.
      *
@@ -183,15 +163,4 @@ public interface ConsistentMap<K, V> {
      * @return true if the value was replaced
      */
     boolean replace(K key, V oldValue, V newValue);
-
-    /**
-     * Replaces the entry for the specified key only if it is currently mapped to the
-     * specified version.
-     *
-     * @param key key key with which the specified value is associated
-     * @param oldVersion version expected to be associated with the specified key
-     * @param newValue value to be associated with the specified key
-     * @return true if the value was replaced
-     */
-    boolean replace(K key, long oldVersion, V newValue);
 }

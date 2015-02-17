@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +34,6 @@ import org.onlab.util.HexString;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.UpdateOperation;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.cache.CacheBuilder;
@@ -73,7 +71,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
         return serializer.decode(HexString.fromHexString(key));
     }
 
-    ConsistentMapImpl(String name,
+    public ConsistentMapImpl(String name,
             DatabaseProxy<String, byte[]> proxy,
             Serializer serializer) {
         this.name = checkNotNull(name, "map name cannot be null");
@@ -196,15 +194,6 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
         return complete(proxy.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue)));
     }
 
-    @Override
-    public boolean batchUpdate(List<UpdateOperation<K, V>> updates) {
-        checkNotNull(updates, "updates cannot be null");
-        return complete(proxy.atomicBatchUpdate(updates
-                .stream()
-                .map(this::toRawUpdateOperation)
-                .collect(Collectors.toList())));
-    }
-
     private static <T> T complete(CompletableFuture<T> future) {
         try {
             return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
@@ -224,32 +213,5 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
                 new Versioned<>(
                         serializer.decode(e.getValue().value()),
                         e.getValue().version()));
-    }
-
-    private UpdateOperation<String, byte[]> toRawUpdateOperation(UpdateOperation<K, V> update) {
-
-        checkArgument(name.equals(update.tableName()), "Unexpected table name");
-
-        UpdateOperation.Builder<String, byte[]> rawUpdate = UpdateOperation.<String, byte[]>newBuilder();
-
-        rawUpdate = rawUpdate.withKey(keyCache.getUnchecked(update.key()))
-            .withCurrentVersion(update.currentVersion())
-            .withType(update.type());
-
-        rawUpdate = rawUpdate.withTableName(update.tableName());
-
-        if (update.value() != null) {
-            rawUpdate = rawUpdate.withValue(serializer.encode(update.value()));
-        } else {
-            checkState(update.type() == UpdateOperation.Type.REMOVE
-                    || update.type() == UpdateOperation.Type.REMOVE_IF_VERSION_MATCH,
-                    ERROR_NULL_VALUE);
-        }
-
-        if (update.currentValue() != null) {
-            rawUpdate = rawUpdate.withCurrentValue(serializer.encode(update.currentValue()));
-        }
-
-        return rawUpdate.build();
     }
 }

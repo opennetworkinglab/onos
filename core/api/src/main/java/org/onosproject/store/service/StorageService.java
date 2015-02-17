@@ -39,5 +39,9 @@ public interface StorageService {
      */
     <K, V> ConsistentMap<K , V> createConsistentMap(String name, Serializer serializer);
 
-    // TODO: add API for creating Eventually Consistent Map.
+    /**
+     * Creates a new transaction context.
+     * @return transaction context
+     */
+    TransactionContext createTransactionContext();
 }
