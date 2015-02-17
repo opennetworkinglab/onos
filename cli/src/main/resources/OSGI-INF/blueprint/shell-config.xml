@@ -53,33 +53,6 @@
         </command>
 
         <command>
-            <action class="org.onosproject.cli.TabletMemberCommand"/>
-        </command>
-
-        <command>
-            <action class="org.onosproject.cli.TabletLeaderCommand"/>
-        </command>
-
-<!--
-        <command>
-            <action class="org.onosproject.cli.TabletAddCommand"/>
-            <completers>
-                <ref component-id="nodeIdCompleter"/>
-                <null/>
-                <null/>
-            </completers>
-        </command>
-        <command>
-            <action class="org.onosproject.cli.TabletRemoveCommand"/>
-            <completers>
-                <ref component-id="nodeIdCompleter"/>
-                <null/>
-                <null/>
-            </completers>
-        </command>
--->
-
-        <command>
             <action class="org.onosproject.cli.NodesListCommand"/>
         </command>
 <!--

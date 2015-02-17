@@ -18,6 +18,7 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -119,15 +120,7 @@ import org.onosproject.net.resource.MplsLabel;
 import org.onosproject.net.resource.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.MplsLabelResourceRequest;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.service.BatchReadRequest;
-import org.onosproject.store.service.BatchWriteRequest;
-import org.onosproject.store.service.ReadRequest;
-import org.onosproject.store.service.ReadResult;
-import org.onosproject.store.service.ReadStatus;
-import org.onosproject.store.service.VersionedValue;
-import org.onosproject.store.service.WriteRequest;
-import org.onosproject.store.service.WriteResult;
-import org.onosproject.store.service.WriteStatus;
+import org.onosproject.store.service.Versioned;
 
 import java.net.URI;
 import java.time.Duration;
@@ -339,16 +332,7 @@ public final class KryoNamespaces {
             .register(new MastershipTermSerializer(), MastershipTerm.class)
             .register(new HostLocationSerializer(), HostLocation.class)
             .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
-            .register(ReadRequest.class)
-            .register(WriteRequest.class)
-            .register(WriteRequest.Type.class)
-            .register(WriteResult.class)
-            .register(ReadResult.class)
-            .register(BatchReadRequest.class)
-            .register(BatchWriteRequest.class)
-            .register(ReadStatus.class)
-            .register(WriteStatus.class)
-            .register(VersionedValue.class)
+            .register(Versioned.class)
             .register(DefaultGroupId.class)
             .register(
                     MplsIntent.class,
