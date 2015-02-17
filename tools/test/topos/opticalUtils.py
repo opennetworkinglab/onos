@@ -264,6 +264,9 @@ def startOE( net ):
     output = quietRun( 'cp -v sys.config %s/rel/linc/releases/1.0/' % lincDir, shell=True ).strip( '\n' )
     info( output + '\n' )
 
+    info( '*** Adding taps and bring them up...\n' )
+    setupInts( getTaps() )
+
     info( '*** Starting linc OE...\n' )
     output = quietRun( '%s/rel/linc/bin/linc start' % lincDir, shell=True )
     if output:
@@ -387,6 +390,30 @@ def findTap( node, port, path=None ):
         if 'port,%s' % port in intfLine:
             return re.findall( 'tap\d+', intfLine )[ 0 ]
 
+def getTaps(path = None):
+    '''
+    return list of all the tops in sys.config
+    '''
+    if path is None:
+        lincDir = findDir( 'linc-oe' )
+        if not lincDir:
+            error( '***ERROR: Could not find linc-oe in users home directory\n' )
+            return None
+        path = '%s/rel/linc/releases/1.0/sys.config' % lincDir
+    fd = open( path, 'r', 0 )
+    sys_data = fd.read()
+    taps = re.findall( 'tap\d+', sys_data )
+    fd.close()
+    return taps
+
+def setupInts(intfs):
+    '''
+    add taps and bring them up.
+    '''
+    for i in intfs:
+        quietRun( 'ip tuntap add dev %s mode tap' %i )
+        quietRun( 'ip link set dev %s up' % i )
+        info( '*** Intf %s set\n' % i )
 
 class MininetOE( Mininet ):
     "Mininet with Linc-OE support (starts and stops linc-oe)"
