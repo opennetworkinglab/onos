@@ -70,7 +70,7 @@ public class IntentsWebResource extends AbstractWebResource {
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
         if (intent == null) {
             intent = get(IntentService.class)
-                    .getIntent(Key.of(Long.valueOf(key), app));
+                    .getIntent(Key.of(Long.parseLong(key), app));
         }
         nullIsNotFound(intent, INTENT_NOT_FOUND);
 
