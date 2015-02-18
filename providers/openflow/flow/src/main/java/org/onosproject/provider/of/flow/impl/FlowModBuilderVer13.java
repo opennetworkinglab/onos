@@ -102,8 +102,10 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         // write-actions. I would prefer to change this back in the future
         // because apply-actions is an optional instruction in OF 1.3.
 
-        //OFInstruction writeActions =
-                //factory().instructions().writeActions(actions);
+        OFInstruction applyActions =
+                factory().instructions().applyActions(actions);
+
+        instructions.add(applyActions);
 
         long cookie = flowRule().id().value();
 
@@ -112,7 +114,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
                 .setInstructions(instructions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
@@ -127,8 +128,10 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
         List<OFInstruction> instructions = buildInstructions();
-        //OFInstruction writeActions =
-                //factory().instructions().writeActions(actions);
+        OFInstruction applyActions =
+                factory().instructions().applyActions(actions);
+
+        instructions.add(applyActions);
 
         long cookie = flowRule().id().value();
 
@@ -137,7 +140,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setActions(actions)
                 .setInstructions(instructions)
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
