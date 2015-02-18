@@ -48,6 +48,7 @@
         <module>routing</module>
         <module>routing-api</module>
         <module>bgprouter</module>
+        <module>intent-perf</module>
     </modules>
 
     <properties>
