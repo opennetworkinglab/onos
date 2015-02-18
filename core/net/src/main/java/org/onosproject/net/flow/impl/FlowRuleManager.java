@@ -15,13 +15,15 @@
  */
 package org.onosproject.net.flow.impl;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -58,15 +60,12 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.namedThreads;
@@ -192,36 +191,6 @@ public class FlowRuleManager
             }
         }
         return matches;
-    }
-
-    @Override
-    public Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch) {
-
-
-        FlowRuleOperations.Builder fopsBuilder = FlowRuleOperations.builder();
-        batch.getOperations().stream().forEach(op -> {
-                        switch (op.operator()) {
-                            case ADD:
-                                fopsBuilder.add(op.target());
-                                break;
-                            case REMOVE:
-                                fopsBuilder.remove(op.target());
-                                break;
-                            case MODIFY:
-                                fopsBuilder.modify(op.target());
-                                break;
-                            default:
-                                log.warn("Unknown flow operation operator: {}", op.operator());
-
-                        }
-                }
-        );
-
-        apply(fopsBuilder.build());
-        return Futures.immediateFuture(
-                new CompletedBatchOperation(true,
-                                            Collections.emptySet(), null));
-
     }
 
     @Override

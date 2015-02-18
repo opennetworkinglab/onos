@@ -18,8 +18,6 @@ package org.onosproject.net.flow;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
-import java.util.concurrent.Future;
-
 /**
  * Service for injecting flow rules into the environment and for obtaining
  * information about flow rules already in the environment. This implements
@@ -96,16 +94,6 @@ public interface FlowRuleService {
      * @return collection of flow rules
      */
     Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId);
-
-    /**
-     * Applies a batch operation of FlowRules.
-     *
-     * @param batch batch operation to apply
-     * @return future indicating the state of the batch operation, due to the
-     * deprecation of this api the future will immediately return
-     */
-    @Deprecated
-    Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch);
 
     /**
      * Applies a batch operation of FlowRules.

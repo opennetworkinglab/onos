@@ -15,21 +15,19 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 
 public class MockFlowRuleService implements FlowRuleService {
@@ -39,11 +37,6 @@ public class MockFlowRuleService implements FlowRuleService {
 
     public void setFuture(boolean success) {
         this.success = success;
-    }
-
-    @Override
-    public Future<CompletedBatchOperation> applyBatch(FlowRuleBatchOperation batch) {
-        throw new UnsupportedOperationException("deprecated");
     }
 
     @Override
