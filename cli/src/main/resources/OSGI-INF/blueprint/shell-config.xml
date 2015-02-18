@@ -130,6 +130,7 @@
         <command>
             <action class="org.onosproject.cli.net.IntentRemoveCommand"/>
             <completers>
+                <ref component-id="appIdNameCompleter" />
                 <ref component-id="intentIdCompleter"/>
                 <null/>
             </completers>
@@ -279,6 +280,7 @@
     </command-bundle>
 
     <bean id="appNameCompleter" class="org.onosproject.cli.app.ApplicationNameCompleter"/>
+    <bean id="appIdNameCompleter" class="org.onosproject.cli.app.ApplicationIdNameCompleter"/>
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="clusterIdCompleter" class="org.onosproject.cli.net.ClusterIdCompleter"/>

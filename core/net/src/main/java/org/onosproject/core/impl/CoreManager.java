@@ -74,6 +74,12 @@ public class CoreManager implements CoreService {
     }
 
     @Override
+    public ApplicationId getAppId(String name) {
+        return applicationIdStore.getAppId(name);
+    }
+
+
+    @Override
     public ApplicationId registerApplication(String name) {
         checkNotNull(name, "Application ID cannot be null");
         return applicationIdStore.registerApplication(name);

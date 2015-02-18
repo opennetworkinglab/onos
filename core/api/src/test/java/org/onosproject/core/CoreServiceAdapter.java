@@ -38,6 +38,11 @@ public class CoreServiceAdapter implements CoreService {
     }
 
     @Override
+    public ApplicationId getAppId(String name) {
+        return null;
+    }
+
+    @Override
     public ApplicationId registerApplication(String identifier) {
         return null;
     }

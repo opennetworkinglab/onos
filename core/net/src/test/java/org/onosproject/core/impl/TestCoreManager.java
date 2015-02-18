@@ -34,7 +34,12 @@ public class TestCoreManager implements CoreService {
     }
 
     @Override
-    public ApplicationId getAppId(Short id) {
+     public ApplicationId getAppId(Short id) {
+        return null;
+    }
+
+    @Override
+    public ApplicationId getAppId(String name) {
         return null;
     }
 

@@ -49,6 +49,13 @@ public interface CoreService {
     ApplicationId getAppId(Short id);
 
     /**
+     * Returns an existing application id from a given id.
+     * @param name the name portion of the ID to look up
+     * @return an application id
+     */
+    ApplicationId getAppId(String name);
+
+    /**
      * Registers a new application by its name, which is expected
      * to follow the reverse DNS convention, e.g.
      * {@code org.flying.circus.app}

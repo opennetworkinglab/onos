@@ -52,7 +52,8 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @return command-line application identifier
      */
     protected ApplicationId appId() {
-        return get(CoreService.class).registerApplication("org.onosproject.cli");
+        return get(CoreService.class)
+               .registerApplication("org.onosproject.cli");
     }
 
     /**

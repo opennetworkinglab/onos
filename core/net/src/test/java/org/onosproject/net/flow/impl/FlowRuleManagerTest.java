@@ -600,6 +600,11 @@ public class FlowRuleManagerTest {
         }
 
         @Override
+        public ApplicationId getAppId(String name) {
+            return null;
+        }
+
+        @Override
         public ApplicationId registerApplication(String identifier) {
             return null;
         }
