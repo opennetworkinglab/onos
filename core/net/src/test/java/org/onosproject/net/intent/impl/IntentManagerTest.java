@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -32,9 +33,7 @@ import org.onosproject.core.impl.TestCoreManager;
 import org.onosproject.event.impl.TestEventDispatcher;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentEvent;
@@ -195,45 +194,45 @@ public class IntentManagerTest {
 
     private static class TestIntentInstaller implements IntentInstaller<MockInstallableIntent> {
         @Override
-        public List<FlowRuleBatchOperation> install(MockInstallableIntent intent) {
+        public List<Set<org.onosproject.net.flow.FlowRuleOperation>> install(MockInstallableIntent intent) {
             FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
-            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules, fr.deviceId(), 0));
+            Set<FlowRuleOperation> rules = ImmutableSet.of(
+                    new FlowRuleOperation(fr, FlowRuleOperation.Type.ADD));
+            return Lists.newArrayList(ImmutableSet.of(rules));
         }
 
         @Override
-        public List<FlowRuleBatchOperation> uninstall(MockInstallableIntent intent) {
+        public List<Set<FlowRuleOperation>> uninstall(MockInstallableIntent intent) {
             FlowRule fr = new IntentTestsMocks.MockFlowRule(intent.number().intValue());
-            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules, fr.deviceId(), 0));
+            Set<FlowRuleOperation> rules = ImmutableSet.of(
+                    new FlowRuleOperation(fr, FlowRuleOperation.Type.REMOVE));
+            return Lists.newArrayList(ImmutableSet.of(rules));
         }
 
         @Override
-        public List<FlowRuleBatchOperation> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
+        public List<Set<FlowRuleOperation>> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
             FlowRule fr = new IntentTestsMocks.MockFlowRule(oldIntent.number().intValue());
             FlowRule fr2 = new IntentTestsMocks.MockFlowRule(newIntent.number().intValue());
-            List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.REMOVE, fr));
-            rules.add(new FlowRuleBatchEntry(FlowRuleOperation.ADD, fr2));
-            return Lists.newArrayList(new FlowRuleBatchOperation(rules, fr.deviceId(), 0));
+            Set<FlowRuleOperation> rules = ImmutableSet.of(
+                    new FlowRuleOperation(fr, FlowRuleOperation.Type.REMOVE),
+                    new FlowRuleOperation(fr2, FlowRuleOperation.Type.ADD));
+            return Lists.newArrayList(ImmutableSet.of(rules));
         }
     }
 
     private static class TestIntentErrorInstaller implements IntentInstaller<MockInstallableIntent> {
         @Override
-        public List<FlowRuleBatchOperation> install(MockInstallableIntent intent) {
+        public List<Set<FlowRuleOperation>> install(MockInstallableIntent intent) {
             throw new IntentInstallationException("install() always fails");
         }
 
         @Override
-        public List<FlowRuleBatchOperation> uninstall(MockInstallableIntent intent) {
+        public List<Set<FlowRuleOperation>> uninstall(MockInstallableIntent intent) {
             throw new IntentRemovalException("uninstall() always fails");
         }
 
         @Override
-        public List<FlowRuleBatchOperation> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
+        public List<Set<FlowRuleOperation>> replace(MockInstallableIntent oldIntent, MockInstallableIntent newIntent) {
             throw new IntentInstallationException("replace() always fails");
         }
     }

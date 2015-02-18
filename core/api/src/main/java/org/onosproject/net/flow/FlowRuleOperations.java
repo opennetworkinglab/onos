@@ -104,6 +104,17 @@ public class FlowRuleOperations {
         }
 
         /**
+         * Appends an existing flow rule to the current stage.
+         *
+         * @param flowRuleOperation flow rule operation
+         * @return this
+         */
+        public Builder operation(FlowRuleOperation flowRuleOperation) {
+            currentStage.add(flowRuleOperation);
+            return this;
+        }
+
+        /**
          * Appends a flow rule modify to the current stage.
          *
          * @param flowRule flow rule

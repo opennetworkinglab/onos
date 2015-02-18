@@ -15,9 +15,10 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.SetMultimap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -34,19 +35,17 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.LinkCollectionIntent;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 
 /**
  * Installer for {@link org.onosproject.net.intent.LinkCollectionIntent} path
@@ -76,17 +75,17 @@ public class LinkCollectionIntentInstaller
     }
 
     @Override
-    public List<FlowRuleBatchOperation> install(LinkCollectionIntent intent) {
-        return generateBatchOperations(intent, FlowRuleOperation.ADD);
+    public List<Set<FlowRuleOperation>> install(LinkCollectionIntent intent) {
+        return generateBatchOperations(intent, FlowRuleOperation.Type.ADD);
     }
 
     @Override
-    public List<FlowRuleBatchOperation> uninstall(LinkCollectionIntent intent) {
-        return generateBatchOperations(intent, FlowRuleOperation.REMOVE);
+    public List<Set<FlowRuleOperation>> uninstall(LinkCollectionIntent intent) {
+        return generateBatchOperations(intent, FlowRuleOperation.Type.REMOVE);
     }
 
-    private List<FlowRuleBatchOperation> generateBatchOperations(
-            LinkCollectionIntent intent, FlowRuleOperation operation) {
+    private List<Set<FlowRuleOperation>> generateBatchOperations(
+            LinkCollectionIntent intent, FlowRuleOperation.Type operation) {
 
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 
@@ -99,23 +98,33 @@ public class LinkCollectionIntentInstaller
         }
 
         //FIXME change to new api
-        FlowRuleBatchOperation batchOperation =
-                new FlowRuleBatchOperation(outputPorts
+        /* Fear of streams */
+        /*
+        Set<FlowRuleBatchEntry> rules = Sets.newHashSet();
+        for (DeviceId deviceId : outputPorts.keys()) {
+            rules.add(createBatchEntry(operation,
+                      intent, deviceId,
+                      outputPorts.get(deviceId)));
+        }
+        */
+
+        Set<FlowRuleOperation> rules =
+                outputPorts
                         .keys()
                         .stream()
                         .map(deviceId -> createBatchEntry(operation,
-                                                   intent, deviceId,
-                                                   outputPorts.get(deviceId)))
-                        .collect(Collectors.toList()), null, 0);
+                                intent, deviceId,
+                                outputPorts.get(deviceId)))
+                        .collect(Collectors.toSet());
 
-        return Collections.singletonList(batchOperation);
+        return Lists.newArrayList(ImmutableSet.of(rules));
     }
 
     @Override
-    public List<FlowRuleBatchOperation> replace(LinkCollectionIntent oldIntent,
+    public List<Set<FlowRuleOperation>> replace(LinkCollectionIntent oldIntent,
                                                 LinkCollectionIntent newIntent) {
         // FIXME: implement this in a more intelligent/less brute force way
-        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
+        List<Set<FlowRuleOperation>> batches = Lists.newArrayList();
         batches.addAll(uninstall(oldIntent));
         batches.addAll(install(newIntent));
         return batches;
@@ -130,10 +139,10 @@ public class LinkCollectionIntentInstaller
      * @param outPorts the set of output ports for the flow rule
      * @return the new flow rule batch entry
      */
-    private FlowRuleBatchEntry createBatchEntry(FlowRuleOperation operation,
-                                                LinkCollectionIntent intent,
-                                                DeviceId deviceId,
-                                                Set<PortNumber> outPorts) {
+    private FlowRuleOperation createBatchEntry(FlowRuleOperation.Type operation,
+                                               LinkCollectionIntent intent,
+                                               DeviceId deviceId,
+                                               Set<PortNumber> outPorts) {
 
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
                 .builder(intent.treatment());
@@ -151,6 +160,6 @@ public class LinkCollectionIntentInstaller
                 new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
                 0, true);
 
-        return new FlowRuleBatchEntry(operation, rule);
+        return new FlowRuleOperation(rule, operation);
     }
 }

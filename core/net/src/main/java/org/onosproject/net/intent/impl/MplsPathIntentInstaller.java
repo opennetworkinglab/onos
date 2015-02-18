@@ -1,7 +1,5 @@
 package org.onosproject.net.intent.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -22,11 +20,9 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onosproject.net.flow.criteria.Criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.Criterion.Type;
@@ -44,10 +40,12 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Installer for {@link MplsPathIntent packet path connectivity intents}.
@@ -83,29 +81,26 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
     }
 
     @Override
-    public List<FlowRuleBatchOperation> install(MplsPathIntent intent) {
+    public List<Set<FlowRuleOperation>> install(MplsPathIntent intent) {
         LinkResourceAllocations allocations = assignMplsLabel(intent);
-        return generateRules(intent, allocations, FlowRuleOperation.ADD);
+        return generateRules(intent, allocations, FlowRuleOperation.Type.ADD);
 
     }
 
     @Override
-    public List<FlowRuleBatchOperation> uninstall(MplsPathIntent intent) {
+    public List<Set<FlowRuleOperation>> uninstall(MplsPathIntent intent) {
         LinkResourceAllocations allocations = resourceService
                 .getAllocations(intent.id());
         resourceService.releaseResources(allocations);
 
-        List<FlowRuleBatchOperation> rules = generateRules(intent,
-                                                           allocations,
-                                                           FlowRuleOperation.REMOVE);
-        return rules;
+        return generateRules(intent, allocations, FlowRuleOperation.Type.REMOVE);
     }
 
     @Override
-    public List<FlowRuleBatchOperation> replace(MplsPathIntent oldIntent,
-                                                MplsPathIntent newIntent) {
+    public List<Set<FlowRuleOperation>> replace(MplsPathIntent oldIntent,
+                                                 MplsPathIntent newIntent) {
 
-        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
+        List<Set<FlowRuleOperation>> batches = Lists.newArrayList();
         batches.addAll(uninstall(oldIntent));
         batches.addAll(install(newIntent));
         return batches;
@@ -145,9 +140,9 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
         return null;
     }
 
-    private List<FlowRuleBatchOperation> generateRules(MplsPathIntent intent,
+    private List<Set<FlowRuleOperation>> generateRules(MplsPathIntent intent,
                                                        LinkResourceAllocations allocations,
-                                                       FlowRuleOperation operation) {
+                                                       FlowRuleOperation.Type operation) {
 
         Iterator<Link> links = intent.path().links().iterator();
         Link srcLink = links.next();
@@ -155,7 +150,7 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
 
         Link link = links.next();
         // List of flow rules to be installed
-        List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
+        Set<FlowRuleOperation> rules = Sets.newHashSet();
 
         // Ingress traffic
         // Get the new MPLS label
@@ -187,13 +182,13 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
 
             prev = link.dst();
         }
-        return Lists.newArrayList(new FlowRuleBatchOperation(rules, null, 0));
+        return Lists.newArrayList(ImmutableSet.of(rules));
     }
 
-    private FlowRuleBatchEntry ingressFlow(PortNumber inPort, Link link,
+    private FlowRuleOperation ingressFlow(PortNumber inPort, Link link,
                                            MplsPathIntent intent,
                                            MplsLabel label,
-                                           FlowRuleOperation operation) {
+                                           FlowRuleOperation.Type operation) {
 
         TrafficSelector.Builder ingressSelector = DefaultTrafficSelector
                 .builder(intent.selector());
@@ -213,16 +208,16 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
         // Add the output action
         treat.setOutput(link.src().port());
 
-        return flowRuleBatchEntry(intent, link.src().deviceId(),
-                                  ingressSelector.build(), treat.build(),
-                                  operation);
+        return flowRuleOperation(intent, link.src().deviceId(),
+                ingressSelector.build(), treat.build(),
+                operation);
     }
 
-    private FlowRuleBatchEntry transitFlow(PortNumber inPort, Link link,
+    private FlowRuleOperation transitFlow(PortNumber inPort, Link link,
                                            MplsPathIntent intent,
                                            MplsLabel prevLabel,
                                            MplsLabel outLabel,
-                                           FlowRuleOperation operation) {
+                                           FlowRuleOperation.Type operation) {
 
         // Ignore the ingress Traffic Selector and use only the MPLS label
         // assigned in the previous link
@@ -238,14 +233,14 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
         }
 
         treat.setOutput(link.src().port());
-        return flowRuleBatchEntry(intent, link.src().deviceId(),
-                                  selector.build(), treat.build(), operation);
+        return flowRuleOperation(intent, link.src().deviceId(),
+                selector.build(), treat.build(), operation);
     }
 
-    private FlowRuleBatchEntry egressFlow(PortNumber inPort, Link link,
+    private FlowRuleOperation egressFlow(PortNumber inPort, Link link,
                                           MplsPathIntent intent,
                                           MplsLabel prevLabel,
-                                          FlowRuleOperation operation) {
+                                          FlowRuleOperation.Type operation) {
         // egress point: either set the egress MPLS label or pop the
         // MPLS label based on the intent annotations
 
@@ -272,15 +267,15 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
 
         }
         treat.setOutput(link.src().port());
-        return flowRuleBatchEntry(intent, link.src().deviceId(),
-                                  selector.build(), treat.build(), operation);
+        return flowRuleOperation(intent, link.src().deviceId(),
+                selector.build(), treat.build(), operation);
     }
 
-    protected FlowRuleBatchEntry flowRuleBatchEntry(MplsPathIntent intent,
+    protected FlowRuleOperation flowRuleOperation(MplsPathIntent intent,
                                                     DeviceId deviceId,
                                                     TrafficSelector selector,
                                                     TrafficTreatment treat,
-                                                    FlowRuleOperation operation) {
+                                                    FlowRuleOperation.Type operation) {
         FlowRule rule = new DefaultFlowRule(
                                             deviceId,
                                             selector,
@@ -289,8 +284,7 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
                                             appId,
                                             0,
                                             true);
-        return new FlowRuleBatchEntry(operation, rule, intent.id()
-                .fingerprint());
+        return new FlowRuleOperation(rule, operation);
 
     }
 }

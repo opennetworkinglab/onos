@@ -17,9 +17,10 @@ package org.onosproject.net.intent.impl;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.AbstractIntentTest;
@@ -96,9 +97,9 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
      *
      * @param compiledIntents list of compiled intents
      * @param resourceService service to use for resource allocation requests
-     * @return
+     * @return fow rule entries
      */
-    private List<FlowRuleBatchOperation> installIntents(List<Intent> compiledIntents,
+    private List<Set<FlowRuleOperation>> installIntents(List<Intent> compiledIntents,
                                                         LinkResourceService resourceService) {
         final PathIntent path = (PathIntent) compiledIntents.get(0);
 
@@ -192,7 +193,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
         assertThat(compiledIntents, notNullValue());
         assertThat(compiledIntents, hasSize(1));
 
-        final List<FlowRuleBatchOperation> flowOperations =
+        final List<Set<FlowRuleOperation>> flowOperations =
                 installIntents(compiledIntents, resourceService);
 
         assertThat(flowOperations, notNullValue());
@@ -241,7 +242,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
         assertThat(compiledIntents, notNullValue());
         assertThat(compiledIntents, hasSize(1));
 
-        final List<FlowRuleBatchOperation> flowOperations =
+        final List<Set<FlowRuleOperation>> flowOperations =
                 installIntents(compiledIntents, resourceService);
 
         assertThat(flowOperations, notNullValue());

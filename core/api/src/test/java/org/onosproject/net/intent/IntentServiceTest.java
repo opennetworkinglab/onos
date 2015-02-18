@@ -35,7 +35,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 
 /**
@@ -319,7 +319,7 @@ public class IntentServiceTest {
         }
 
         @Override
-        public List<FlowRuleBatchOperation> install(TestInstallableIntent intent) {
+        public List<Set<FlowRuleOperation>> install(TestInstallableIntent intent) {
             if (fail) {
                 throw new IntentException("install failed by design");
             }
@@ -327,7 +327,7 @@ public class IntentServiceTest {
         }
 
         @Override
-        public List<FlowRuleBatchOperation> uninstall(TestInstallableIntent intent) {
+        public List<Set<FlowRuleOperation>> uninstall(TestInstallableIntent intent) {
             if (fail) {
                 throw new IntentException("remove failed by design");
             }
@@ -335,7 +335,7 @@ public class IntentServiceTest {
         }
 
         @Override
-        public List<FlowRuleBatchOperation> replace(TestInstallableIntent intent,
+        public List<Set<FlowRuleOperation>> replace(TestInstallableIntent intent,
                                                     TestInstallableIntent newIntent) {
             return null;
         }
