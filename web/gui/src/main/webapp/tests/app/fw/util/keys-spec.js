@@ -18,19 +18,21 @@
  ONOS GUI -- Key Handler Service - Unit Tests
  */
 describe('factory: fw/util/keys.js', function() {
-    var $log, ks, fs,
+    var $log, ks, fs, qhs,
         d3Elem, elem, last;
   
 
-    beforeEach(module('onosUtil'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, KeyService, FnService) {
+    beforeEach(inject(function (_$log_, KeyService, FnService, QuickHelpService) {
         $log = _$log_;
         ks = KeyService;
         fs = FnService;
+        qhs = QuickHelpService;
         d3Elem = d3.select('body').append('p').attr('id', 'ptest');
         elem = d3Elem.node();
         ks.installOn(d3Elem);
+        ks.bindQhs(qhs);
         last = {
             view: null,
             key: null,
@@ -49,7 +51,7 @@ describe('factory: fw/util/keys.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ks, [
-            'installOn', 'keyBindings', 'gestureNotes', 'enableKeys'
+            'bindQhs', 'installOn', 'keyBindings', 'gestureNotes', 'enableKeys'
         ])).toBeTruthy();
     });
 

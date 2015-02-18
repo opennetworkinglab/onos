@@ -21,7 +21,7 @@
     'use strict';
 
     // references to injected services
-    var $log, fs, ts;
+    var $log, fs, ts, qhs;
 
     // internal state
     var enabled = true,
@@ -115,22 +115,13 @@
     }
 
     function quickHelp(view, key, code, ev) {
-        // TODO: show quick help
-        // delegate to QuickHelp service.
-        //libApi.quickHelp.show(keyHandler);
-        console.log('QUICK-HELP');
+        qhs.showQuickHelp(keyHandler);
         return true;
     }
 
     // returns true if we 'consumed' the ESC keypress, false otherwise
     function escapeKey(view, key, code, ev) {
-        // TODO: plumb in handling of quick help dismissal
-/*
-        if (qh.hide()) {
-            return true;
-        }
-*/
-        return false;
+        return qhs.hideQuickHelp();
     }
 
     function toggleTheme(view, key, code, ev) {
@@ -176,13 +167,18 @@
     }
 
     angular.module('onosUtil')
-        .factory('KeyService', ['$log', 'FnService', 'ThemeService',
+    .factory('KeyService',
+        ['$log', 'FnService', 'ThemeService',
+
         function (_$log_, _fs_, _ts_) {
             $log = _$log_;
             fs = _fs_;
             ts = _ts_;
 
             return {
+                bindQhs: function (_qhs_) {
+                    qhs = _qhs_;
+                },
                 installOn: function (elem) {
                     elem.on('keydown', keyIn);
                     setupGlobalKeys();

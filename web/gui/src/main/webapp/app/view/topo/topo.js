@@ -75,14 +75,13 @@
             ]
         });
 
-        // TODO:         // mouse gestures
-        var gestures = [
+        ks.gestureNotes([
             ['click', 'Select the item and show details'],
             ['shift-click', 'Toggle selection state'],
             ['drag', 'Reposition (and pin) device / host'],
             ['cmd-scroll', 'Zoom in / out'],
             ['cmd-drag', 'Pan']
-        ];
+        ]);
     }
 
     // --- Keystroke functions -------------------------------------------
