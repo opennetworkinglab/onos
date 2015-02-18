@@ -26,4 +26,5 @@
     - Web Socket Service
 
 - Widget
-    - Table Service
+    - Table Styling Directives
+    - Toolbar Service
