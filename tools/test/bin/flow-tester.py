@@ -7,11 +7,11 @@ def run(url, request):
     r = requests.post(url, data)
     return r
 
-def runTasks(flowPerDevice, neighbours, url, servers, doJson):
+def runTasks(flowPerDevice, neighbours, url, servers, doJson, remove):
     # We can use a with statement to ensure threads are cleaned up promptly
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         # Start the load operations and mark each future with its URL
-        request = { "flowsPerDevice" : flowPerDevice, "neighbours" : neighbours }
+        request = { "flowsPerDevice" : flowPerDevice, "neighbours" : neighbours, "remove" : remove }
         future_to_url = {executor.submit(run, url % (server), request) for server in servers}
         for f in concurrent.futures.as_completed(future_to_url):
             try:
@@ -34,10 +34,12 @@ if __name__ == "__main__":
                             default=0, type="int")
     parser.add_option("-s", "--servers", dest="servers", help="List of servers to hit",
                             default=[], action="append")
+    parser.add_option("-r", "--remove", dest="remove", help="Do not remove flows after installation",
+                            default=True, action="store_false")
     parser.add_option("-j", "--json", dest="doJson", help="Print results in json",
                             default=False, action="store_true")
 
     (options, args) = parser.parse_args()
     if (len(options.servers) == 0):
         options.servers.append("localhost")
-    runTasks(options.flows, options.neighs, options.url, options.servers, options.doJson)
+    runTasks(options.flows, options.neighs, options.url, options.servers, options.doJson, options.remove)

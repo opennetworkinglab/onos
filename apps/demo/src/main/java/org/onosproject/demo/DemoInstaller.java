@@ -148,12 +148,14 @@ public class DemoInstaller implements DemoAPI {
     public JsonNode flowTest(Optional<JsonNode> params) {
         int flowsPerDevice = 1000;
         int neighbours = 0;
+        boolean remove = true;
         if (params.isPresent()) {
             flowsPerDevice = params.get().get("flowsPerDevice").asInt();
             neighbours = params.get().get("neighbours").asInt();
+            remove = params.get().get("remove").asBoolean();
         }
 
-        Future<JsonNode> future = worker.submit(new FlowTest(flowsPerDevice, neighbours));
+        Future<JsonNode> future = worker.submit(new FlowTest(flowsPerDevice, neighbours, remove));
 
         try {
             return future.get(10, TimeUnit.SECONDS);
@@ -496,12 +498,14 @@ public class DemoInstaller implements DemoAPI {
     private class FlowTest implements Callable<JsonNode> {
         private final int flowPerDevice;
         private final int neighbours;
+        private final boolean remove;
         private FlowRuleOperations.Builder adds;
         private FlowRuleOperations.Builder removes;
 
-        public FlowTest(int flowsPerDevice, int neighbours) {
+        public FlowTest(int flowsPerDevice, int neighbours, boolean remove) {
             this.flowPerDevice = flowsPerDevice;
             this.neighbours = neighbours;
+            this.remove = remove;
             prepareInstallation();
         }
 
@@ -574,7 +578,9 @@ public class DemoInstaller implements DemoAPI {
             }));
 
             latch.await(10, TimeUnit.SECONDS);
-            flowService.apply(removes.build());
+            if (this.remove) {
+                flowService.apply(removes.build());
+            }
             return node;
         }
     }
