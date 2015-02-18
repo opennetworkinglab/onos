@@ -144,9 +144,9 @@ public abstract class L3ModificationInstruction implements Instruction {
         private final int flowLabel;            // IPv6 flow label: 20 bits
 
         /**
-         * Constructor.
+         * Creates a new flow mod instruction.
          *
-         * flowLabel the IPv6 flow label to set in the treatment (20 bits)
+         * @param flowLabel the IPv6 flow label to set in the treatment (20 bits)
          */
         public ModIPv6FlowLabelInstruction(int flowLabel) {
             this.flowLabel = flowLabel & MASK;
