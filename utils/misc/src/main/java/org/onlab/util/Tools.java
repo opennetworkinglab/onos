@@ -15,16 +15,16 @@
  */
 package org.onlab.util;
 
-import static java.nio.file.Files.delete;
-import static java.nio.file.Files.walkFileTree;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.Strings;
+import com.google.common.primitives.UnsignedLongs;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -38,11 +38,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
 
-import org.slf4j.Logger;
-
-import com.google.common.base.Strings;
-import com.google.common.primitives.UnsignedLongs;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.walkFileTree;
+import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public abstract class Tools {
 
@@ -62,13 +61,25 @@ public abstract class Tools {
         return new ThreadFactoryBuilder()
                 .setNameFormat(pattern)
                         // FIXME remove UncaughtExceptionHandler before release
-                .setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on {}", t.getName(), e)).build();
+    }
 
-                    @Override
-                    public void uncaughtException(Thread t, Throwable e) {
-                        log.error("Uncaught exception on {}", t.getName(), e);
-                    }
-                }).build();
+    /**
+     * Returns a thread factory that produces threads named according to the
+     * supplied name pattern and from the specified thread-group. The thread
+     * group name is expected to be specified in slash-delimited format, e.g.
+     * {@code onos/intent}.
+     *
+     * @param groupName group name in slash-delimited format to indicate hierarchy
+     * @param pattern   name pattern
+     * @return thread factory
+     */
+    public static ThreadFactory groupedThreads(String groupName, String pattern) {
+        return new ThreadFactoryBuilder()
+                .setThreadFactory(groupedThreadFactory(groupName))
+                .setNameFormat(pattern)
+                        // FIXME remove UncaughtExceptionHandler before release
+                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on {}", t.getName(), e)).build();
     }
 
     /**

@@ -16,6 +16,9 @@
 package org.onlab.util;
 
 import org.junit.Test;
+import org.onlab.junit.TestTools;
+
+import java.util.concurrent.ThreadFactory;
 
 import static org.junit.Assert.*;
 
@@ -42,4 +45,20 @@ public class ToolsTest {
         assertEquals("ffffffffffffffff", Tools.toHex(0xffffffffffffffffL));
 
     }
+
+    @Test
+    public  void namedThreads() {
+        ThreadFactory f = Tools.namedThreads("foo-%d");
+        Thread t = f.newThread(() -> TestTools.print("yo"));
+        assertTrue("wrong pattern", t.getName().startsWith("foo-"));
+    }
+
+    @Test
+    public  void groupedThreads() {
+        ThreadFactory f = Tools.groupedThreads("foo/bar", "foo-%d");
+        Thread t = f.newThread(() -> TestTools.print("yo"));
+        assertTrue("wrong pattern", t.getName().startsWith("foo-"));
+        assertTrue("wrong group", t.getThreadGroup().getName().equals("foo/bar"));
+    }
+
 }
