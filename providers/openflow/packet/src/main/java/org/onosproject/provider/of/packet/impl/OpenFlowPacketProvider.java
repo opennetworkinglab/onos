@@ -15,11 +15,6 @@
  */
 package org.onosproject.provider.of.packet.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.nio.ByteBuffer;
-import java.util.Collections;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,6 +45,11 @@ import org.projectfloodlight.openflow.protocol.ver10.OFFactoryVer10;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
+
+import java.nio.ByteBuffer;
+import java.util.Collections;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -138,7 +138,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                 .build();
         return builder
                 .setBufferId(OFBufferId.NO_BUFFER)
-                .setInPort(OFPort.NO_MASK)
+                .setInPort(OFPort.CONTROLLER)
                 .setActions(Collections.singletonList(act))
                 .setData(eth)
                 .build();
