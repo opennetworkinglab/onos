@@ -15,6 +15,6 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.app.optical" origin="ON.Lab" version="1.1.0"
-        features="onos-app-sdnip">
+        features="onos-app-optical">
     <description>ONOS Packet/Optical use-case application</description>
 </app>
