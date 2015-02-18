@@ -30,8 +30,7 @@ import java.io.InputStream;
 import java.util.Random;
 import java.util.Set;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 
 public class ApplicationArchiveTest {
@@ -64,41 +63,67 @@ public class ApplicationArchiveTest {
     }
 
     @Test
-    public void saveApp() throws IOException {
+    public void saveZippedApp() throws IOException {
         InputStream stream = getClass().getResourceAsStream("app.zip");
         ApplicationDescription app = aar.saveApplication(stream);
         validate(app);
     }
 
     @Test
+    public void savePlainApp() throws IOException {
+        InputStream stream = getClass().getResourceAsStream("app.xml");
+        ApplicationDescription app = aar.saveApplication(stream);
+        validate(app);
+    }
+
+    @Test
     public void loadApp() throws IOException {
-        saveApp();
+        saveZippedApp();
         ApplicationDescription app = aar.getApplicationDescription(APP_NAME);
         validate(app);
     }
 
     @Test
     public void getAppNames() throws IOException {
-        saveApp();
+        saveZippedApp();
         Set<String> names = aar.getApplicationNames();
         assertEquals("incorrect names", ImmutableSet.of(APP_NAME), names);
     }
 
     @Test
     public void purgeApp() throws IOException {
-        saveApp();
+        saveZippedApp();
         aar.purgeApplication(APP_NAME);
         assertEquals("incorrect names", ImmutableSet.<String>of(),
                      aar.getApplicationNames());
     }
 
     @Test
-    public void getAppStream() throws IOException {
-        saveApp();
+    public void getAppZipStream() throws IOException {
+        saveZippedApp();
         InputStream stream = aar.getApplicationInputStream(APP_NAME);
         byte[] orig = ByteStreams.toByteArray(getClass().getResourceAsStream("app.zip"));
         byte[] loaded = ByteStreams.toByteArray(stream);
         assertArrayEquals("incorrect stream", orig, loaded);
+    }
+
+    @Test
+    public void getAppXmlStream() throws IOException {
+        savePlainApp();
+        InputStream stream = aar.getApplicationInputStream(APP_NAME);
+        byte[] orig = ByteStreams.toByteArray(getClass().getResourceAsStream("app.xml"));
+        byte[] loaded = ByteStreams.toByteArray(stream);
+        assertArrayEquals("incorrect stream", orig, loaded);
+    }
+
+    @Test
+    public void active() throws IOException {
+        savePlainApp();
+        assertFalse("should not be active", aar.isActive(APP_NAME));
+        aar.setActive(APP_NAME);
+        assertTrue("should not be active", aar.isActive(APP_NAME));
+        aar.clearActive(APP_NAME);
+        assertFalse("should not be active", aar.isActive(APP_NAME));
     }
 
     @Test(expected = ApplicationException.class)
@@ -109,6 +134,16 @@ public class ApplicationArchiveTest {
     @Test(expected = ApplicationException.class)
     public void getBadAppStream() throws IOException {
         aar.getApplicationInputStream("org.foo.BAD");
+    }
+
+    @Test(expected = ApplicationException.class)
+    public void setBadActive() throws IOException {
+        aar.setActive("org.foo.BAD");
+    }
+
+    @Test(expected = ApplicationException.class)
+    public void purgeBadApp() throws IOException {
+        aar.purgeApplication("org.foo.BAD");
     }
 
 }

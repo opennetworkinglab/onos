@@ -14,8 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.foo.app" origin="Circus" version="1.2.a"
-        featuresRepo="mvn:org.foo-features/1.2a/xml/features"
-        features="foo,bar">
-    <description>Awesome application from Circus, Inc.</description>
+<app name="org.onosproject.app.proxyarp" origin="ON.Lab" version="1.1.0"
+        features="onos-app-proxyarp">
+    <description>ONOS proxy ARP application</description>
 </app>

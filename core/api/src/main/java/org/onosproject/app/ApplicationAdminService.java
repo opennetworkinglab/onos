@@ -29,7 +29,9 @@ public interface ApplicationAdminService extends ApplicationService {
 
     /**
      * Installs the application contained in the specified application archive
-     * input stream.
+     * input stream. This can be either a ZIP stream containing a compressed
+     * application archive or a plain XML stream containing just the
+     * {@code app.xml} application descriptor file.
      *
      * @param appDescStream application descriptor input stream
      * @return installed application descriptor

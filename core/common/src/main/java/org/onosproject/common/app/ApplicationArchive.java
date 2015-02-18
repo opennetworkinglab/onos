@@ -40,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +57,13 @@ import static com.google.common.io.Files.write;
  */
 public class ApplicationArchive
         extends AbstractStore<ApplicationEvent, ApplicationStoreDelegate> {
+
+    // Magic strings to search for at the beginning of the archive stream
+    private static final String XML_MAGIC = "<?xml ";
+
+    // Magic strings to search for and how deep to search it into the archive stream
+    private static final String APP_MAGIC = "<app ";
+    private static final int APP_MAGIC_DEPTH = 1024;
 
     private static final String NAME = "[@name]";
     private static final String ORIGIN = "[@origin]";
@@ -144,18 +152,37 @@ public class ApplicationArchive
         try (InputStream ais = stream) {
             byte[] cache = toByteArray(ais);
             InputStream bis = new ByteArrayInputStream(cache);
-            ApplicationDescription desc = parseAppDescription(bis);
-            bis.reset();
 
-            expandApplication(bis, desc);
-            bis.reset();
+            boolean plainXml = isPlainXml(cache);
+            ApplicationDescription desc = plainXml ?
+                    parsePlainAppDescription(bis) : parseZippedAppDescription(bis);
 
-            saveApplication(bis, desc);
+            if (plainXml) {
+                expandPlainApplication(cache, desc);
+            } else {
+                bis.reset();
+                expandZippedApplication(bis, desc);
+
+                bis.reset();
+                saveApplication(bis, desc);
+            }
+
             installArtifacts(desc);
             return desc;
         } catch (IOException e) {
             throw new ApplicationException("Unable to save application", e);
         }
+    }
+
+    // Indicates whether the stream encoded in the given bytes is plain XML.
+    private boolean isPlainXml(byte[] bytes) {
+        return substring(bytes, XML_MAGIC.length()).equals(XML_MAGIC) ||
+                substring(bytes, APP_MAGIC_DEPTH).contains(APP_MAGIC);
+    }
+
+    // Returns the substring of maximum possible length from the specified bytes.
+    private String substring(byte[] bytes, int length) {
+        return new String(bytes, 0, Math.min(bytes.length, length), Charset.forName("UTF-8"));
     }
 
     /**
@@ -164,22 +191,28 @@ public class ApplicationArchive
      * @param appName application name
      */
     public void purgeApplication(String appName) {
+        File appDir = new File(appsDir, appName);
         try {
-            Tools.removeDirectory(new File(appsDir, appName));
+            Tools.removeDirectory(appDir);
         } catch (IOException e) {
             throw new ApplicationException("Unable to purge application " + appName, e);
+        }
+        if (appDir.exists()) {
+            throw new ApplicationException("Unable to purge application " + appName);
         }
     }
 
     /**
-     * Returns application archive stream for the specified application.
+     * Returns application archive stream for the specified application. This
+     * will be either the application ZIP file or the application XML file.
      *
      * @param appName application name
      * @return application archive stream
      */
     public InputStream getApplicationInputStream(String appName) {
         try {
-            return new FileInputStream(appFile(appName, appName + ".zip"));
+            File appFile = appFile(appName, appName + ".zip");
+            return new FileInputStream(appFile.exists() ? appFile : appFile(appName, APP_XML));
         } catch (FileNotFoundException e) {
             throw new ApplicationException("Application " + appName + " not found");
         }
@@ -187,25 +220,31 @@ public class ApplicationArchive
 
     // Scans the specified ZIP stream for app.xml entry and parses it producing
     // an application descriptor.
-    private ApplicationDescription parseAppDescription(InputStream stream)
+    private ApplicationDescription parseZippedAppDescription(InputStream stream)
             throws IOException {
         try (ZipInputStream zis = new ZipInputStream(stream)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.getName().equals(APP_XML)) {
                     byte[] data = ByteStreams.toByteArray(zis);
-                    XMLConfiguration cfg = new XMLConfiguration();
-                    try {
-                        cfg.load(new ByteArrayInputStream(data));
-                        return loadAppDescription(cfg);
-                    } catch (ConfigurationException e) {
-                        throw new IOException("Unable to parse " + APP_XML, e);
-                    }
+                    return parsePlainAppDescription(new ByteArrayInputStream(data));
                 }
                 zis.closeEntry();
             }
         }
         throw new IOException("Unable to locate " + APP_XML);
+    }
+
+    // Scans the specified XML stream and parses it producing an application descriptor.
+    private ApplicationDescription parsePlainAppDescription(InputStream stream)
+            throws IOException {
+        XMLConfiguration cfg = new XMLConfiguration();
+        try {
+            cfg.load(stream);
+            return loadAppDescription(cfg);
+        } catch (ConfigurationException e) {
+            throw new IOException("Unable to parse " + APP_XML, e);
+        }
     }
 
     private ApplicationDescription loadAppDescription(XMLConfiguration cfg) {
@@ -225,7 +264,7 @@ public class ApplicationArchive
     }
 
     // Expands the specified ZIP stream into app-specific directory.
-    private void expandApplication(InputStream stream, ApplicationDescription desc)
+    private void expandZippedApplication(InputStream stream, ApplicationDescription desc)
             throws IOException {
         ZipInputStream zis = new ZipInputStream(stream);
         ZipEntry entry;
@@ -234,7 +273,6 @@ public class ApplicationArchive
             if (!entry.isDirectory()) {
                 byte[] data = ByteStreams.toByteArray(zis);
                 zis.closeEntry();
-
                 File file = new File(appDir, entry.getName());
                 createParentDirs(file);
                 write(data, file);
@@ -242,6 +280,15 @@ public class ApplicationArchive
         }
         zis.close();
     }
+
+    // Saves the specified XML stream into app-specific directory.
+    private void expandPlainApplication(byte[] stream, ApplicationDescription desc)
+            throws IOException {
+        File file = appFile(desc.name(), APP_XML);
+        createParentDirs(file);
+        write(stream, file);
+    }
+
 
     // Saves the specified ZIP stream into a file under app-specific directory.
     private void saveApplication(InputStream stream, ApplicationDescription desc)

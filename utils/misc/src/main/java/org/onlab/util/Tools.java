@@ -182,7 +182,11 @@ public abstract class Tools {
      * @throws java.io.IOException if unable to remove contents
      */
     public static void removeDirectory(String path) throws IOException {
-        walkFileTree(Paths.get(path), new DirectoryDeleter());
+        DirectoryDeleter visitor = new DirectoryDeleter();
+        walkFileTree(Paths.get(path), visitor);
+        if (visitor.exception != null) {
+            throw visitor.exception;
+        }
     }
 
     /**
@@ -194,11 +198,18 @@ public abstract class Tools {
      * @throws java.io.IOException if unable to remove contents
      */
     public static void removeDirectory(File dir) throws IOException {
-        walkFileTree(Paths.get(dir.getAbsolutePath()), new DirectoryDeleter());
+        DirectoryDeleter visitor = new DirectoryDeleter();
+        walkFileTree(Paths.get(dir.getAbsolutePath()), visitor);
+        if (visitor.exception != null) {
+            throw visitor.exception;
+        }
     }
 
-
+    // Auxiliary path visitor for recursive directory structure removal.
     private static class DirectoryDeleter extends SimpleFileVisitor<Path> {
+
+        private IOException exception;
+
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
                 throws IOException {
@@ -218,9 +229,8 @@ public abstract class Tools {
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException ioe)
                 throws IOException {
-            log.warn("Unable to delete file {}", file);
-            log.warn("Boom", ioe);
-            return FileVisitResult.CONTINUE;
+            this.exception = ioe;
+            return FileVisitResult.TERMINATE;
         }
     }
 
@@ -253,8 +263,8 @@ public abstract class Tools {
                                          dst.getAbsolutePath()));
     }
 
-
-    public static class DirectoryCopier extends SimpleFileVisitor<Path> {
+    // Auxiliary path visitor for recursive directory structure copying.
+    private static class DirectoryCopier extends SimpleFileVisitor<Path> {
         private Path src;
         private Path dst;
         private StandardCopyOption copyOption = StandardCopyOption.REPLACE_EXISTING;

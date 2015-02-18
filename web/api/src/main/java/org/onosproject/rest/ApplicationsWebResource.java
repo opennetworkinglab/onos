@@ -21,11 +21,13 @@ import org.onosproject.core.ApplicationId;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -55,9 +57,14 @@ public class ApplicationsWebResource extends AbstractWebResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response installApplication(InputStream stream) {
+    public Response installApplication(@QueryParam("activate")
+                                           @DefaultValue("false") boolean activate,
+                                       InputStream stream) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         Application app = service.install(stream);
+        if (activate) {
+            service.activate(app.id());
+        }
         return ok(codec(Application.class).encode(app, this)).build();
     }
 
