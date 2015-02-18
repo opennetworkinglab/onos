@@ -71,7 +71,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implement a simple routing-like mechanism to directly send service data to its master and push to device.
  * This Router does not save any flow rule extension data in cache, it focus on routing mechanism.
  */
-@Component(immediate = false)
+@Component(immediate = true, enabled = false)
 @Service
 public class DefaultFlowRuleExtRouter
         implements FlowRuleExtRouter {
