@@ -15,15 +15,12 @@
  */
 package org.onosproject.net.flow.impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -60,21 +57,23 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = true)
 @Service
 public class FlowRuleManager
         extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
@@ -91,15 +90,15 @@ public class FlowRuleManager
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 
     protected ExecutorService deviceInstallers =
-            Executors.newCachedThreadPool(namedThreads("onos-device-installer-%d"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d"));
 
     protected ExecutorService operationsService =
-            Executors.newFixedThreadPool(32, namedThreads("onos-flowservice-operations-%d"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d"));
 
     private IdGenerator idGenerator;
 
-    private Map<Long, FlowOperationsProcessor> pendingFlowOperations = new
-            ConcurrentHashMap<>();
+    private Map<Long, FlowOperationsProcessor> pendingFlowOperations
+            = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
