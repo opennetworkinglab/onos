@@ -209,6 +209,15 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.IntentCycleCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="nullCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.RandomIntentCommand"/>
             <completers>
                 <ref component-id="nullCompleter"/>
