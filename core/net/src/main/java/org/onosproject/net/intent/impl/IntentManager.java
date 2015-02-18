@@ -325,7 +325,7 @@ public class IntentManager
         return merge(plans).build(new FlowRuleOperationsContext() { // TODO move this out
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Completed installing: {}", pending.key());
+                log.debug("Completed installing: {}", pending.key());
                 pending.setState(INSTALLED);
                 store.write(pending);
             }
@@ -358,7 +358,7 @@ public class IntentManager
         return merge(plans).build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Completed withdrawing: {}", pending.key());
+                log.debug("Completed withdrawing: {}", pending.key());
                 pending.setState(WITHDRAWN);
                 pending.setInstallables(Collections.emptyList());
                 store.write(pending);
@@ -527,7 +527,7 @@ public class IntentManager
                 return new InstallRequest(this, intentData, Optional.ofNullable(current));
             case WITHDRAW_REQ:
                 if (current == null || isNullOrEmpty(current.installables())) {
-                    return new Withdrawn(current, WITHDRAWN);
+                    return new Withdrawn(intentData, WITHDRAWN);
                 } else {
                     return new WithdrawRequest(this, intentData, current);
                 }
@@ -641,8 +641,8 @@ public class IntentManager
     private class InternalBatchDelegate implements IntentBatchDelegate {
         @Override
         public void execute(Collection<IntentData> operations) {
-            log.info("Execute {} operation(s).", operations.size());
-            log.debug("Execute operations: {}", operations);
+            log.debug("Execute {} operation(s).", operations.size());
+            log.trace("Execute operations: {}", operations);
             batchExecutor.execute(new IntentBatchPreprocess(operations));
             // TODO ensure that only one batch is in flight at a time
         }
