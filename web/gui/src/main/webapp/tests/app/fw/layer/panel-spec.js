@@ -108,7 +108,7 @@ describe('factory: fw/layer/panel.js', function () {
     it('should note when there is no panel to destroy', function () {
         spyOn($log, 'debug');
         ps.destroyPanel('bar');
-        expect($log.debug).toHaveBeenCalledWith('no panel to destroy:', 'bar')
+        expect($log.debug).toHaveBeenCalledWith('no panel to destroy:', 'bar');
     });
 
     it('should destroy the panel', function () {
@@ -117,7 +117,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(1);
 
         ps.destroyPanel('foo');
-        expect($log.debug).toHaveBeenCalledWith('destroying panel:', 'foo')
+        expect($log.debug).toHaveBeenCalledWith('destroying panel:', 'foo');
         expect(floatPanelSelection().size()).toBe(0);
     });
 
