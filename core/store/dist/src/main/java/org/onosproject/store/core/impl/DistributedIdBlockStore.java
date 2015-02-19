@@ -35,7 +35,7 @@ import java.util.Map;
 @Service
 public class DistributedIdBlockStore implements IdBlockStore {
 
-    private static final long DEFAULT_BLOCK_SIZE = 0x1000L;
+    private static final long DEFAULT_BLOCK_SIZE = 0x100000L;
 
     protected Map<String, IAtomicLong> topicBlocks;
 
