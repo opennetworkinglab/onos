@@ -331,15 +331,25 @@ public class IpAddress implements Comparable<IpAddress> {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        InetAddress inetAddr = null;
-        try {
-            inetAddr = InetAddress.getByAddress(octets);
-        } catch (UnknownHostException e) {
-            // Should never happen
-            checkState(false, "Internal error: Ip6Address.toString()");
-            return "[Invalid IP Address]";
+        // FIXME InetAddress is super slow
+        switch (version) {
+            case INET:
+                return String.format("%d.%d.%d.%d", octets[0] & 0xff,
+                                                    octets[1] & 0xff,
+                                                    octets[2] & 0xff,
+                                                    octets[3] & 0xff);
+            case INET6:
+            default:
+                InetAddress inetAddr = null;
+                try {
+                    inetAddr = InetAddress.getByAddress(octets);
+                } catch (UnknownHostException e) {
+                    // Should never happen
+                    checkState(false, "Internal error: Ip6Address.toString()");
+                    return "[Invalid IP Address]";
+                }
+                return InetAddresses.toAddrString(inetAddr);
         }
-        return InetAddresses.toAddrString(inetAddr);
     }
 
     /**
