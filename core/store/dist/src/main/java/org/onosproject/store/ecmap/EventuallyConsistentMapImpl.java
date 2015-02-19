@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
-import static org.onlab.util.Tools.namedThreads;
 
 /**
  * Distributed Map implementation which uses optimistic replication and gossip
@@ -142,12 +142,12 @@ public class EventuallyConsistentMapImpl<K, V>
         items = new ConcurrentHashMap<>();
         removedItems = new ConcurrentHashMap<>();
 
-        executor = Executors
-                .newCachedThreadPool(namedThreads("onos-ecm-" + mapName + "-fg-%d"));
+        executor = Executors //FIXME
+                .newFixedThreadPool(4, groupedThreads("onos/ecm", mapName + "-fg-%d"));
 
         backgroundExecutor =
                 newSingleThreadScheduledExecutor(minPriority(
-                        namedThreads("onos-ecm-" + mapName + "-bg-%d")));
+                        groupedThreads("onos/ecm", mapName + "-bg-%d")));
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
