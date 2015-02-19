@@ -18,7 +18,6 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -284,9 +283,9 @@ public final class KryoNamespaces {
                     FlowRuleBatchEntry.FlowRuleOperation.class,
                     IntentId.class,
                     IntentState.class,
-                    Key.class,
-                    Key.LongKey.class,
-                    Key.StringKey.class,
+                    //Key.class, is abstract
+                    Key.of(1L, new DefaultApplicationId(0, "bar")).getClass(), //LongKey.class
+                    Key.of("foo", new DefaultApplicationId(0, "bar")).getClass(), //StringKey.class
                     Intent.class,
                     ConnectivityIntent.class,
                     PathIntent.class,

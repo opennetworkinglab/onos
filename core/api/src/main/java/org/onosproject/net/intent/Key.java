@@ -26,9 +26,9 @@ import java.util.Objects;
  * Key class for Intents.
  */
 // TODO maybe pull this up to utils
-// TODO need to make this classes kryo serializable
-public class Key {
+public abstract class Key {
 
+    //TODO consider making this a HashCode object (worry about performance)
     private final long hash;
     private static final HashFunction HASH_FN = Hashing.md5();
 
@@ -40,15 +40,44 @@ public class Key {
         return hash;
     }
 
+    @Override
+    public int hashCode() {
+        return (int) (hash() ^ (hash() >>> 32));
+    }
+
+    @Override
+    public abstract boolean equals(Object obj);
+
+    /**
+     * Creates a key based on the provided string.
+     * <p>
+     * Note: Two keys with equal value, but different appId, are not equal.
+     * </p>
+     *
+     * @param key the provided string
+     * @param appId application id to associate with this key
+     * @return the key for the string
+     */
     public static Key of(String key, ApplicationId appId) {
         return new StringKey(key, appId);
     }
 
+    /**
+     * Creates a key based on the provided long.
+     * <p>
+     * Note: Two keys with equal value, but different appId, are not equal.
+     * Also, "10" and 10L are different.
+     * </p>
+     *
+     * @param key the provided long
+     * @param appId application id to associate with this key
+     * @return the key for the long
+     */
     public static Key of(long key, ApplicationId appId) {
         return new LongKey(key, appId);
     }
 
-    public static final class StringKey extends Key {
+    private static final class StringKey extends Key {
 
         private final ApplicationId appId;
         private final String key;
@@ -67,9 +96,10 @@ public class Key {
             return key;
         }
 
+        // checkstyle requires this
         @Override
         public int hashCode() {
-            return key.hashCode();
+            return super.hashCode();
         }
 
         @Override
@@ -87,7 +117,7 @@ public class Key {
         }
     }
 
-    public static final class LongKey extends Key {
+    private static final class LongKey extends Key {
 
         private final ApplicationId appId;
         private final long key;
@@ -106,9 +136,10 @@ public class Key {
             return "0x" + Long.toHexString(key);
         }
 
+        // checkstyle requires this
         @Override
         public int hashCode() {
-            return (int) (key ^ (key >>> 32));
+            return super.hashCode();
         }
 
         @Override
@@ -120,10 +151,10 @@ public class Key {
                 return false;
             }
             final LongKey other = (LongKey) obj;
-            return Objects.equals(this.appId, other.appId) &&
-                    this.key == other.key;
+            return this.hash() == other.hash() &&
+                    this.key == other.key &&
+                    Objects.equals(this.appId, other.appId);
         }
-
     }
 }
 
