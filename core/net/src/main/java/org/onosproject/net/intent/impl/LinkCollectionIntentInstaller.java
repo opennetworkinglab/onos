@@ -135,10 +135,12 @@ public class LinkCollectionIntentInstaller
     }
 
     @Override
-    public List<FlowRuleBatchOperation> replace(LinkCollectionIntent intent,
+    public List<FlowRuleBatchOperation> replace(LinkCollectionIntent oldIntent,
                                                 LinkCollectionIntent newIntent) {
-        // FIXME: implement
-        return null;
+        List<FlowRuleBatchOperation> batches = Lists.newArrayList();
+        batches.addAll(uninstall(oldIntent));
+        batches.addAll(install(newIntent));
+        return batches;
     }
 
     /**
@@ -147,7 +149,7 @@ public class LinkCollectionIntentInstaller
      * @param operation the FlowRuleOperation to use
      * @param intent the link collection intent
      * @param deviceId the device ID for the flow rule
-     * @param outPort the output port of the flow rule
+     * @param outPorts the output port of the flow rule
      * @return the new flow rule batch entry
      */
     private FlowRuleBatchEntry createBatchEntry(FlowRuleOperation operation,
