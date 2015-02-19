@@ -258,6 +258,18 @@
                 return 'translate(' + x + ',' + y + ')';
             }
 
+            function scale(x, y) {
+                return 'scale(' + x + ',' + y + ')';
+            }
+
+            function skewX(x) {
+                return 'skewX(' + x + ')';
+            }
+
+            function rotate(deg) {
+                return 'rotate(' + deg + ')';
+            }
+
             function stripPx(s) {
                 return s.replace(/px$/,'');
             }
@@ -279,6 +291,9 @@
                 loadGlowDefs: loadGlowDefs,
                 cat7: cat7,
                 translate: translate,
+                scale: scale,
+                skewX: skewX,
+                rotate: rotate,
                 stripPx: stripPx,
                 safeId: safeId,
                 visible: function (el, x) {

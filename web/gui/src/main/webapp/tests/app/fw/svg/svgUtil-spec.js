@@ -41,7 +41,7 @@ describe('factory: fw/svg/svgUtil.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(sus, [
             'createDragBehavior', 'loadGlowDefs', 'cat7',
-            'translate',
+            'translate', 'scale', 'skewX', 'rotate',
             'stripPx', 'safeId', 'visible'
         ])).toBeTruthy();
     });
@@ -94,7 +94,7 @@ describe('factory: fw/svg/svgUtil.js', function() {
         expect(sus.cat7().getColor('zoo', false, 'light')).toEqual('#8A2979');
     });
 
-    // === translate()
+    // === translate(), scale(), skewX(), rotate()
 
     it('should translate from two args', function () {
         expect(sus.translate(1,2)).toEqual('translate(1,2)');
@@ -102,6 +102,18 @@ describe('factory: fw/svg/svgUtil.js', function() {
 
     it('should translate from an array', function () {
         expect(sus.translate([3,4])).toEqual('translate(3,4)');
+    });
+
+    it('should scale', function () {
+        expect(sus.scale(1.5,2.5)).toEqual('scale(1.5,2.5)');
+    });
+
+    it('should skewX', function () {
+        expect(sus.skewX(3.14)).toEqual('skewX(3.14)');
+    });
+
+    it('should rotate', function () {
+        expect(sus.rotate(45)).toEqual('rotate(45)');
     });
 
 
