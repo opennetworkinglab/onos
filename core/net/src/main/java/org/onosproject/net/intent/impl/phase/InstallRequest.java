@@ -16,7 +16,7 @@
 package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 
 import java.util.Optional;
 
@@ -27,13 +27,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class InstallRequest implements IntentProcessPhase {
 
-    // TODO: define an interface and use it, instead of IntentManager
-    private final IntentManager intentManager;
+    private final IntentProcessor intentManager;
     private final IntentData pending;
     private final Optional<IntentData> current;
 
-    public InstallRequest(IntentManager intentManager, IntentData intentData, Optional<IntentData> current) {
-        this.intentManager = checkNotNull(intentManager);
+    public InstallRequest(IntentProcessor processor, IntentData intentData, Optional<IntentData> current) {
+        this.intentManager = checkNotNull(processor);
         this.pending = checkNotNull(intentData);
         this.current = checkNotNull(current);
     }

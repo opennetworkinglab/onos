@@ -17,7 +17,7 @@ package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 
 import java.util.Optional;
 
@@ -29,20 +29,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 class Withdrawing implements IntentProcessPhase {
 
-    // TODO: define an interface and use it, instead of IntentManager
-    private final IntentManager intentManager;
+    private final IntentProcessor processor;
     private final IntentData pending;
     private final FlowRuleOperations flowRules;
 
-    Withdrawing(IntentManager intentManager, IntentData pending, FlowRuleOperations flowRules) {
-        this.intentManager = checkNotNull(intentManager);
+    Withdrawing(IntentProcessor processor, IntentData pending, FlowRuleOperations flowRules) {
+        this.processor = checkNotNull(processor);
         this.pending = checkNotNull(pending);
         this.flowRules = checkNotNull(flowRules);
     }
 
     @Override
     public Optional<IntentProcessPhase> execute() {
-        intentManager.flowRuleService.apply(flowRules);
+        processor.applyFlowRules(flowRules);
         return Optional.of(new Withdrawn(pending));
     }
 }

@@ -18,7 +18,7 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +34,12 @@ final class Compiling implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(Compiling.class);
 
-    // TODO: define an interface and use it, instead of IntentManager
-    private final IntentManager intentManager;
+    private final IntentProcessor processor;
     private final IntentData pending;
     private final IntentData current;
 
-    Compiling(IntentManager intentManager, IntentData pending, IntentData current) {
-        this.intentManager = checkNotNull(intentManager);
+    Compiling(IntentProcessor processor, IntentData pending, IntentData current) {
+        this.processor = checkNotNull(processor);
         this.pending = checkNotNull(pending);
         this.current = current;
     }
@@ -49,11 +48,12 @@ final class Compiling implements IntentProcessPhase {
     public Optional<IntentProcessPhase> execute() {
         try {
             List<Intent> installables = (current != null) ? current.installables() : null;
-            pending.setInstallables(intentManager.compileIntent(pending.intent(), installables));
-            return Optional.of(new InstallCoordinating(intentManager, pending, current));
+            pending.setInstallables(processor.compile(pending.intent(), installables));
+            return Optional.of(new InstallCoordinating(processor, pending, current));
         } catch (IntentException e) {
             log.debug("Unable to compile intent {} due to: {}", pending.intent(), e);
             return Optional.of(new CompilingFailed(pending));
         }
     }
+
 }

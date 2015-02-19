@@ -16,7 +16,7 @@
 package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 
 import java.util.Optional;
 
@@ -27,13 +27,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class WithdrawRequest implements IntentProcessPhase {
 
-    // TODO: define an interface and use it, instead of IntentManager
-    private final IntentManager intentManager;
+    private final IntentProcessor processor;
     private final IntentData pending;
     private final IntentData current;
 
-    public WithdrawRequest(IntentManager intentManager, IntentData intentData, IntentData current) {
-        this.intentManager = checkNotNull(intentManager);
+    public WithdrawRequest(IntentProcessor processor, IntentData intentData, IntentData current) {
+        this.processor = checkNotNull(processor);
         this.pending = checkNotNull(intentData);
         this.current = checkNotNull(current);
     }
@@ -43,6 +42,6 @@ public final class WithdrawRequest implements IntentProcessPhase {
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
         // Note: this call is not just the symmetric version of submit
-        return Optional.of(new WithdrawCoordinating(intentManager, pending, current));
+        return Optional.of(new WithdrawCoordinating(processor, pending, current));
     }
 }

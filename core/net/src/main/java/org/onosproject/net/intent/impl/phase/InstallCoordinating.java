@@ -18,7 +18,7 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +34,13 @@ final class InstallCoordinating implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(InstallCoordinating.class);
 
-    private final IntentManager intentManager;
+    private final IntentProcessor processor;
     private final IntentData pending;
     private final IntentData current;
 
     // TODO: define an interface and use it, instead of IntentManager
-    InstallCoordinating(IntentManager intentManager, IntentData pending, IntentData current) {
-        this.intentManager = checkNotNull(intentManager);
+    InstallCoordinating(IntentProcessor processor, IntentData pending, IntentData current) {
+        this.processor = checkNotNull(processor);
         this.pending = checkNotNull(pending);
         this.current = current;
     }
@@ -50,8 +50,8 @@ final class InstallCoordinating implements IntentProcessPhase {
         try {
             //FIXME we orphan flow rules that are currently on the data plane
             // ... should either reuse them or remove them
-            FlowRuleOperations flowRules = intentManager.coordinate(current, pending);
-            return Optional.of(new Installing(intentManager, pending, flowRules));
+            FlowRuleOperations flowRules = processor.coordinate(current, pending);
+            return Optional.of(new Installing(processor, pending, flowRules));
         } catch (IntentException e) {
             log.warn("Unable to generate a FlowRuleOperations from intent {} due to:", pending.intent().id(), e);
             return Optional.of(new InstallingFailed(pending));

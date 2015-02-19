@@ -18,7 +18,7 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +34,12 @@ final class Installing implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(Installing.class);
 
-    private final IntentManager intentManager;
+    private final IntentProcessor processor;
     private final IntentData pending;
     private final FlowRuleOperations flowRules;
 
-    // TODO: define an interface and use it, instead of IntentManager
-    Installing(IntentManager intentManager, IntentData pending, FlowRuleOperations flowRules) {
-        this.intentManager = checkNotNull(intentManager);
+    Installing(IntentProcessor processor, IntentData pending, FlowRuleOperations flowRules) {
+        this.processor = checkNotNull(processor);
         this.pending = checkNotNull(pending);
         this.flowRules = flowRules;
     }
@@ -48,7 +47,7 @@ final class Installing implements IntentProcessPhase {
     @Override
     public Optional<IntentProcessPhase> execute() {
         try {
-            intentManager.flowRuleService.apply(flowRules); // FIXME we need to provide a context
+            processor.applyFlowRules(flowRules);
             return Optional.of(new Installed(pending));
         // What kinds of exceptions are thrown by FlowRuleService.apply()?
         // Is IntentException a correct exception abstraction?

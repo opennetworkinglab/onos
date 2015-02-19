@@ -18,7 +18,7 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
-import org.onosproject.net.intent.impl.IntentManager;
+import org.onosproject.net.intent.impl.IntentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +34,12 @@ final class WithdrawCoordinating implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(WithdrawCoordinating.class);
 
-    // TODO: define an interface and use it, instead of IntentManager
-    private final IntentManager intentManager;
+    private final IntentProcessor processor;
     private final IntentData pending;
     private final IntentData current;
 
-    WithdrawCoordinating(IntentManager intentManager, IntentData pending, IntentData current) {
-        this.intentManager = checkNotNull(intentManager);
+    WithdrawCoordinating(IntentProcessor processor, IntentData pending, IntentData current) {
+        this.processor = checkNotNull(processor);
         this.pending = checkNotNull(pending);
         this.current = checkNotNull(current);
     }
@@ -49,9 +48,9 @@ final class WithdrawCoordinating implements IntentProcessPhase {
     public Optional<IntentProcessPhase> execute() {
         try {
             // Note: current.installables() are not null or empty due to createIntentUpdate check
-            FlowRuleOperations flowRules = intentManager.uninstallCoordinate(current, pending);
+            FlowRuleOperations flowRules = processor.uninstallCoordinate(current, pending);
             pending.setInstallables(current.installables());
-            return Optional.of(new Withdrawing(intentManager, pending, flowRules));
+            return Optional.of(new Withdrawing(processor, pending, flowRules));
         } catch (IntentException e) {
             log.warn("Unable to generate generate a FlowRuleOperations from intent {} due to:", pending.intent(), e);
             return Optional.of(new WithdrawingFailed(pending));
