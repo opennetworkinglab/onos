@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routingapi;
-
-import java.util.Collection;
 
 /**
- * An interface to receive route updates from route providers.
+ * API for routing libraries.
  */
-public interface RouteListener {
-    /**
-     * Receives a route update from a route provider.
-     *
-     * @param routeUpdates the collection with updated route information
-     */
-    public void update(Collection<RouteUpdate> routeUpdates);
-}
+package org.onosproject.routing;

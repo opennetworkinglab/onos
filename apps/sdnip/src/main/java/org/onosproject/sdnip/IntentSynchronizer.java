@@ -35,11 +35,11 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routingapi.FibListener;
-import org.onosproject.routingapi.FibUpdate;
-import org.onosproject.routingapi.config.BgpPeer;
-import org.onosproject.routingapi.config.Interface;
-import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.onosproject.routing.FibListener;
+import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.config.BgpPeer;
+import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

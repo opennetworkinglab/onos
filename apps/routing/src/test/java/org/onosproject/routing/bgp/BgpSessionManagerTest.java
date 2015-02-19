@@ -33,8 +33,8 @@ import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
-import org.onosproject.routingapi.RouteListener;
-import org.onosproject.routingapi.RouteUpdate;
+import org.onosproject.routing.RouteListener;
+import org.onosproject.routing.RouteUpdate;
 import org.osgi.service.component.ComponentContext;
 
 import java.net.InetAddress;

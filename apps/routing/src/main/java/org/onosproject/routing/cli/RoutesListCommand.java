@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.routingapi.RouteEntry;
-import org.onosproject.routingapi.RoutingService;
+import org.onosproject.routing.RouteEntry;
+import org.onosproject.routing.RoutingService;
 
 import java.util.Collection;
 

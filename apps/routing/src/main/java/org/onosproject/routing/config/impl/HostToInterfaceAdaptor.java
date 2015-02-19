@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing.config;
+package org.onosproject.routing.config.impl;
 
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
@@ -21,7 +21,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
-import org.onosproject.routingapi.config.Interface;
+import org.onosproject.routing.config.Interface;
 
 import java.util.Set;
 

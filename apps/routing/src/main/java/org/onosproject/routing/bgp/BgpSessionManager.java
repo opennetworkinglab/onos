@@ -35,8 +35,8 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.routingapi.BgpService;
-import org.onosproject.routingapi.RouteListener;
+import org.onosproject.routing.BgpService;
+import org.onosproject.routing.RouteListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

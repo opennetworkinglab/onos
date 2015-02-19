@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing;
+package org.onosproject.routing.impl;
 
 import com.google.common.collect.Sets;
 import org.junit.After;
@@ -36,14 +36,14 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.routing.Router.InternalHostListener;
-import org.onosproject.routingapi.BgpService;
-import org.onosproject.routingapi.FibEntry;
-import org.onosproject.routingapi.FibListener;
-import org.onosproject.routingapi.FibUpdate;
-import org.onosproject.routingapi.RouteEntry;
-import org.onosproject.routingapi.RouteListener;
-import org.onosproject.routingapi.RouteUpdate;
+import org.onosproject.routing.impl.Router.InternalHostListener;
+import org.onosproject.routing.BgpService;
+import org.onosproject.routing.FibEntry;
+import org.onosproject.routing.FibListener;
+import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.RouteEntry;
+import org.onosproject.routing.RouteListener;
+import org.onosproject.routing.RouteUpdate;
 
 import java.util.Collections;
 

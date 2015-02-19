@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing.config;
+package org.onosproject.routing.config.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.onosproject.routingapi.config.BgpPeer;
-import org.onosproject.routingapi.config.BgpSpeaker;
+import org.onosproject.routing.config.BgpPeer;
+import org.onosproject.routing.config.BgpSpeaker;
 
 import java.util.Collections;
 import java.util.List;

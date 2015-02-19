@@ -41,12 +41,12 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.routingapi.FibEntry;
-import org.onosproject.routingapi.FibUpdate;
-import org.onosproject.routingapi.RouteEntry;
-import org.onosproject.routingapi.config.BgpPeer;
-import org.onosproject.routingapi.config.Interface;
-import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.onosproject.routing.FibEntry;
+import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.RouteEntry;
+import org.onosproject.routing.config.BgpPeer;
+import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
 
 import java.util.Collections;

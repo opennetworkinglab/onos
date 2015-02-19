@@ -30,8 +30,8 @@ import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.routingapi.RoutingService;
-import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;

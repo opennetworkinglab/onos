@@ -42,11 +42,11 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.routingapi.FibListener;
-import org.onosproject.routingapi.FibUpdate;
-import org.onosproject.routingapi.RoutingService;
-import org.onosproject.routingapi.config.Interface;
-import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.onosproject.routing.FibListener;
+import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

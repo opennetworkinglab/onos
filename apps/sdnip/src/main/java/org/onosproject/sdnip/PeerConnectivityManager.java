@@ -28,11 +28,11 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routingapi.config.BgpPeer;
-import org.onosproject.routingapi.config.BgpSpeaker;
-import org.onosproject.routingapi.config.Interface;
-import org.onosproject.routingapi.config.InterfaceAddress;
-import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.onosproject.routing.config.BgpPeer;
+import org.onosproject.routing.config.BgpSpeaker;
+import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.InterfaceAddress;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

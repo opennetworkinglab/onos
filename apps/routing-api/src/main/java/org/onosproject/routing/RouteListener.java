@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routingapi;
+package org.onosproject.routing;
+
+import java.util.Collection;
 
 /**
- * Provides a way of interacting with the BGP protocol component.
+ * An interface to receive route updates from route providers.
  */
-public interface BgpService {
-
+public interface RouteListener {
     /**
-     * Starts the BGP service.
+     * Receives a route update from a route provider.
      *
-     * @param routeListener listener to send route updates to
+     * @param routeUpdates the collection with updated route information
      */
-    void start(RouteListener routeListener);
-
-    /**
-     * Stops the BGP service.
-     */
-    void stop();
+    public void update(Collection<RouteUpdate> routeUpdates);
 }

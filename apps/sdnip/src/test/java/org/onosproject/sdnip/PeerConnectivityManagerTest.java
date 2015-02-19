@@ -40,11 +40,11 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routingapi.config.BgpPeer;
-import org.onosproject.routingapi.config.BgpSpeaker;
-import org.onosproject.routingapi.config.Interface;
-import org.onosproject.routingapi.config.InterfaceAddress;
-import org.onosproject.routingapi.config.RoutingConfigurationService;
+import org.onosproject.routing.config.BgpPeer;
+import org.onosproject.routing.config.BgpSpeaker;
+import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.InterfaceAddress;
+import org.onosproject.routing.config.RoutingConfigurationService;
 
 import java.util.ArrayList;
 import java.util.Collections;

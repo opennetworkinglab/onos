@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.routing.bgp.BgpConstants.Update;
 import org.onosproject.routing.bgp.BgpInfoService;
 import org.onosproject.routing.bgp.BgpRouteEntry;
 import org.onosproject.routing.bgp.BgpSession;
+import org.onosproject.routing.bgp.BgpConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,7 +150,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
     private void printRoute(BgpRouteEntry route) {
         if (route != null) {
             print(FORMAT_ROUTE_LINE1, route.prefix(), route.nextHop(),
-                  Update.Origin.typeToString(route.getOrigin()),
+                  BgpConstants.Update.Origin.typeToString(route.getOrigin()),
                   route.getLocalPref(), route.getMultiExitDisc(),
                   route.getBgpSession().remoteInfo().bgpId());
             print(FORMAT_ROUTE_LINE2, asPath4Cli(route.getAsPath()));
@@ -176,23 +176,23 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
             String prefix = null;
             String suffix = null;
             switch (pathSegment.getType()) {
-            case Update.AsPath.AS_SET:
+            case BgpConstants.Update.AsPath.AS_SET:
                 prefix = "[AS-Set";
                 suffix = "]";
                 break;
-            case Update.AsPath.AS_SEQUENCE:
+            case BgpConstants.Update.AsPath.AS_SEQUENCE:
                 break;
-            case Update.AsPath.AS_CONFED_SEQUENCE:
+            case BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE:
                 prefix = "[AS-Confed-Seq";
                 suffix = "]";
                 break;
-            case Update.AsPath.AS_CONFED_SET:
+            case BgpConstants.Update.AsPath.AS_CONFED_SET:
                 prefix = "[AS-Confed-Set";
                 suffix = "]";
                 break;
             default:
                 builder.append(String.format("(type = %s)",
-                        Update.AsPath.typeToString(pathSegment.getType())));
+                        BgpConstants.Update.AsPath.typeToString(pathSegment.getType())));
                 break;
             }
 
@@ -247,7 +247,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         result.put("nextHop", route.nextHop().toString());
         result.put("bgpId",
                    route.getBgpSession().remoteInfo().bgpId().toString());
-        result.put("origin", Update.Origin.typeToString(route.getOrigin()));
+        result.put("origin", BgpConstants.Update.Origin.typeToString(route.getOrigin()));
         result.set("asPath", json(mapper, route.getAsPath()));
         result.put("localPref", route.getLocalPref());
         result.put("multiExitDisc", route.getMultiExitDisc());
@@ -268,7 +268,7 @@ public class BgpRoutesListCommand extends AbstractShellCommand {
         for (BgpRouteEntry.PathSegment pathSegment : asPath.getPathSegments()) {
             ObjectNode pathSegmentJson = mapper.createObjectNode();
             pathSegmentJson.put("type",
-                                Update.AsPath.typeToString(pathSegment.getType()));
+                                BgpConstants.Update.AsPath.typeToString(pathSegment.getType()));
             ArrayNode segmentAsNumbersJson = mapper.createArrayNode();
             for (Long asNumber : pathSegment.getSegmentAsNumbers()) {
                 segmentAsNumbersJson.add(asNumber);
