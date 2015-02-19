@@ -1,0 +1,16 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Kills all remote ONOS log file monitors on the specified node.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
+
+less=0
+[ "$1" = "-l" ] && shift && less=1
+
+remote=$(find_node $1)
+remote=$ONOS_USER@${remote:-$OCI}
+
+ssh $remote "ps -ef | grep \"tail -n 512\" | grep -v grep | cut -c10-15 | xargs kill"
