@@ -75,8 +75,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.isNullOrEmpty;
-import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -138,8 +138,8 @@ public class IntentManager
         store.setDelegate(delegate);
         trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
-        batchExecutor = newSingleThreadExecutor(namedThreads("onos-intent-batch"));
-        workerExecutor = newFixedThreadPool(NUM_THREADS, namedThreads("onos-intent-worker-%d"));
+        batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch"));
+        workerExecutor = newFixedThreadPool(NUM_THREADS, groupedThreads("onos/intent", "worker-%d"));
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
