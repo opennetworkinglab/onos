@@ -368,7 +368,7 @@ public class FlowRuleManager
                             extraneousFlow(rule);
                         }
                     } catch (Throwable e) {
-                        log.debug("Can't add missing flow rule {}", e.getMessage());
+                        log.debug("Can't process added or extra rule {}", e.getMessage());
                         continue;
                     }
                 }

@@ -15,16 +15,14 @@
  */
 package org.onosproject.proxyarp;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv6;
 import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPv6;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -35,6 +33,8 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
 import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive proxy arp application.

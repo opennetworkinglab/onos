@@ -108,6 +108,33 @@ implements PacketService, PacketProviderRegistry {
             return appId;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            PacketRequest that = (PacketRequest) o;
+
+            if (priority != that.priority) {
+                return false;
+            }
+            if (!selector.equals(that.selector)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = selector.hashCode();
+            result = 31 * result + priority.hashCode();
+            return result;
+        }
     }
 
     @Activate
