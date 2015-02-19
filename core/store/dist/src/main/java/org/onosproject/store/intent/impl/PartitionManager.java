@@ -95,9 +95,13 @@ public class PartitionManager implements PartitionService {
     }
 
     private PartitionId getPartitionForKey(Key intentKey) {
-        log.debug("Getting partition for {}: {}", intentKey,
-                  new PartitionId((int) Math.abs(intentKey.hash()) % NUM_PARTITIONS));
-        return new PartitionId((int) Math.abs(intentKey.hash()) % NUM_PARTITIONS);
+        int partition = Math.abs((int) intentKey.hash()) % NUM_PARTITIONS;
+        //TODO investigate Guava consistent hash method
+        // ... does it add significant computational complexity? is it worth it?
+        //int partition = consistentHash(intentKey.hash(), NUM_PARTITIONS);
+        PartitionId id = new PartitionId(partition);
+        log.debug("Getting partition for {}: {}", intentKey, id); //FIXME debug
+        return id;
     }
 
     @Override
