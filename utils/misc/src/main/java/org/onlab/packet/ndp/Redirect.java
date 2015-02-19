@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
-import org.onlab.packet.Data;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.Ip6Address;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Implements ICMPv6 Redirect packet format. (RFC 4861)
@@ -34,6 +31,9 @@ public class Redirect extends BasePacket {
 
     protected byte[] targetAddress = new byte[Ip6Address.BYTE_LENGTH];
     protected byte[] destinationAddress = new byte[Ip6Address.BYTE_LENGTH];
+
+    private final NeighborDiscoveryOptions options =
+        new NeighborDiscoveryOptions();
 
     /**
      * Gets target address.
@@ -51,7 +51,8 @@ public class Redirect extends BasePacket {
      * @return this
      */
     public Redirect setTargetAddress(final byte[] targetAddress) {
-        this.targetAddress = Arrays.copyOfRange(targetAddress, 0, Ip6Address.BYTE_LENGTH);
+        this.targetAddress =
+            Arrays.copyOfRange(targetAddress, 0, Ip6Address.BYTE_LENGTH);
         return this;
     }
 
@@ -71,32 +72,52 @@ public class Redirect extends BasePacket {
      * @return this
      */
     public Redirect setDestinationAddress(final byte[] destinationAddress) {
-        this.destinationAddress = Arrays.copyOfRange(destinationAddress, 0, Ip6Address.BYTE_LENGTH);
+        this.destinationAddress =
+            Arrays.copyOfRange(destinationAddress, 0, Ip6Address.BYTE_LENGTH);
+        return this;
+    }
+
+    /**
+     * Gets the Neighbor Discovery Protocol packet options.
+     *
+     * @return the Neighbor Discovery Protocol packet options
+     */
+    public List<NeighborDiscoveryOptions.Option> getOptions() {
+        return this.options.options();
+    }
+
+    /**
+     * Adds a Neighbor Discovery Protocol packet option.
+     *
+     * @param type the option type
+     * @param data the option data
+     * @return this
+     */
+    public Redirect addOption(final byte type, final byte[] data) {
+        this.options.addOption(type, data);
         return this;
     }
 
     @Override
     public byte[] serialize() {
-        byte[] payloadData = null;
-        if (this.payload != null) {
-            this.payload.setParent(this);
-            payloadData = this.payload.serialize();
+        byte[] optionsData = null;
+        if (this.options.hasOptions()) {
+            optionsData = this.options.serialize();
         }
 
-        int payloadLength = 0;
-        if (payloadData != null) {
-            payloadLength = payloadData.length;
+        int optionsLength = 0;
+        if (optionsData != null) {
+            optionsLength = optionsData.length;
         }
 
-        final byte[] data = new byte[HEADER_LENGTH + payloadLength];
+        final byte[] data = new byte[HEADER_LENGTH + optionsLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.putInt(0);
         bb.put(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
         bb.put(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
-
-        if (payloadData != null) {
-            bb.put(payloadData);
+        if (optionsData != null) {
+            bb.put(optionsData);
         }
 
         return data;
@@ -110,10 +131,8 @@ public class Redirect extends BasePacket {
         bb.get(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
         bb.get(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
 
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
+        this.options.deserialize(data, bb.position(),
+                                 bb.limit() - bb.position());
 
         return this;
     }
@@ -129,13 +148,14 @@ public class Redirect extends BasePacket {
         int result = super.hashCode();
         ByteBuffer bb;
         bb = ByteBuffer.wrap(this.targetAddress);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < this.targetAddress.length / 4; i++) {
             result = prime * result + bb.getInt();
         }
         bb = ByteBuffer.wrap(this.destinationAddress);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < this.destinationAddress.length / 4; i++) {
             result = prime * result + bb.getInt();
         }
+        result = prime * result + this.options.hashCode();
         return result;
     }
 
@@ -159,7 +179,11 @@ public class Redirect extends BasePacket {
         if (!Arrays.equals(this.targetAddress, other.targetAddress)) {
             return false;
         }
-        if (!Arrays.equals(this.destinationAddress, other.destinationAddress)) {
+        if (!Arrays.equals(this.destinationAddress,
+                           other.destinationAddress)) {
+            return false;
+        }
+        if (!this.options.equals(other.options)) {
             return false;
         }
         return true;

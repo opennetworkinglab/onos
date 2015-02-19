@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
-import org.onlab.packet.Data;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
@@ -35,6 +34,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborAdvertisement;
+import org.onlab.packet.ndp.NeighborDiscoveryOptions;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -548,21 +548,10 @@ public class ProxyArpManager implements ProxyArpService {
         nadv.setTargetAddress(srcIp.toOctets());
         nadv.setSolicitedFlag((byte) 1);
         nadv.setOverrideFlag((byte) 1);
-        byte[] nadvData =
-            new byte[NeighborAdvertisement.OPTION_LENGTH_IEEE802_ADDRESS];
-        ByteBuffer bbNadv = ByteBuffer.wrap(nadvData);
-        byte nadvOptionType =
-            NeighborAdvertisement.OPTION_TYPE_TARGET_LL_ADDRESS;
-        // The Option length in 8-octets units
-        byte nadvOptionLength =
-            (NeighborAdvertisement.OPTION_LENGTH_IEEE802_ADDRESS + 7) / 8;
-        bbNadv.put(nadvOptionType);
-        bbNadv.put(nadvOptionLength);
-        bbNadv.put(srcMac.toBytes());
-        Data nadvPayload = new Data();
-        nadv.setPayload(nadvPayload.deserialize(nadvData, 0, nadvData.length));
-        icmp6.setPayload(nadv);
+        nadv.addOption(NeighborDiscoveryOptions.TYPE_TARGET_LL_ADDRESS,
+                       srcMac.toBytes());
 
+        icmp6.setPayload(nadv);
         ipv6.setPayload(icmp6);
         eth.setPayload(ipv6);
         return eth;

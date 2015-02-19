@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
-import org.onlab.packet.Data;
 import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * Implements ICMPv6 Router Advertisement packet format. (RFC 4861)
@@ -36,6 +33,9 @@ public class RouterAdvertisement extends BasePacket {
     protected short routerLifetime;
     protected int reachableTime;
     protected int retransmitTimer;
+
+    private final NeighborDiscoveryOptions options =
+        new NeighborDiscoveryOptions();
 
     /**
      * Gets current hop limit.
@@ -157,20 +157,40 @@ public class RouterAdvertisement extends BasePacket {
         return this;
     }
 
+    /**
+     * Gets the Neighbor Discovery Protocol packet options.
+     *
+     * @return the Neighbor Discovery Protocol packet options
+     */
+    public List<NeighborDiscoveryOptions.Option> getOptions() {
+        return this.options.options();
+    }
+
+    /**
+     * Adds a Neighbor Discovery Protocol packet option.
+     *
+     * @param type the option type
+     * @param data the option data
+     * @return this
+     */
+    public RouterAdvertisement addOption(final byte type, final byte[] data) {
+        this.options.addOption(type, data);
+        return this;
+    }
+
     @Override
     public byte[] serialize() {
-        byte[] payloadData = null;
-        if (this.payload != null) {
-            this.payload.setParent(this);
-            payloadData = this.payload.serialize();
+        byte[] optionsData = null;
+        if (this.options.hasOptions()) {
+            optionsData = this.options.serialize();
         }
 
-        int payloadLength = 0;
-        if (payloadData != null) {
-            payloadLength = payloadData.length;
+        int optionsLength = 0;
+        if (optionsData != null) {
+            optionsLength = optionsData.length;
         }
 
-        final byte[] data = new byte[HEADER_LENGTH + payloadLength];
+        final byte[] data = new byte[HEADER_LENGTH + optionsLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.put(this.currentHopLimit);
@@ -179,8 +199,8 @@ public class RouterAdvertisement extends BasePacket {
         bb.putInt(reachableTime);
         bb.putInt(retransmitTimer);
 
-        if (payloadData != null) {
-            bb.put(payloadData);
+        if (optionsData != null) {
+            bb.put(optionsData);
         }
 
         return data;
@@ -199,10 +219,8 @@ public class RouterAdvertisement extends BasePacket {
         this.reachableTime = bb.getInt();
         this.retransmitTimer = bb.getInt();
 
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
+        this.options.deserialize(data, bb.position(),
+                                 bb.limit() - bb.position());
 
         return this;
     }
@@ -222,6 +240,7 @@ public class RouterAdvertisement extends BasePacket {
         result = prime * result + this.routerLifetime;
         result = prime * result + this.reachableTime;
         result = prime * result + this.retransmitTimer;
+        result = prime * result + this.options.hashCode();
         return result;
     }
 
@@ -258,6 +277,9 @@ public class RouterAdvertisement extends BasePacket {
             return false;
         }
         if (this.retransmitTimer != other.retransmitTimer) {
+            return false;
+        }
+        if (!this.options.equals(other.options)) {
             return false;
         }
         return true;

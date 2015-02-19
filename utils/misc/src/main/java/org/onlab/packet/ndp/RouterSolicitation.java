@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
-import org.onlab.packet.Data;
 import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * Implements ICMPv6 Router Solicitation packet format. (RFC 4861)
@@ -30,26 +27,49 @@ import java.nio.ByteBuffer;
 public class RouterSolicitation extends BasePacket {
     public static final byte HEADER_LENGTH = 4; // bytes
 
+    private final NeighborDiscoveryOptions options =
+        new NeighborDiscoveryOptions();
+
+    /**
+     * Gets the Neighbor Discovery Protocol packet options.
+     *
+     * @return the Neighbor Discovery Protocol packet options
+     */
+    public List<NeighborDiscoveryOptions.Option> getOptions() {
+        return this.options.options();
+    }
+
+    /**
+     * Adds a Neighbor Discovery Protocol packet option.
+     *
+     * @param type the option type
+     * @param data the option data
+     * @return this
+     */
+    public RouterSolicitation addOption(final byte type, final byte[] data) {
+        this.options.addOption(type, data);
+        return this;
+    }
+
     @Override
     public byte[] serialize() {
-        byte[] payloadData = null;
-        if (this.payload != null) {
-            this.payload.setParent(this);
-            payloadData = this.payload.serialize();
+        byte[] optionsData = null;
+        if (this.options.hasOptions()) {
+            optionsData = this.options.serialize();
         }
 
-        int payloadLength = 0;
-        if (payloadData != null) {
-            payloadLength = payloadData.length;
+        int optionsLength = 0;
+        if (optionsData != null) {
+            optionsLength = optionsData.length;
         }
 
-        final byte[] data = new byte[HEADER_LENGTH + payloadLength];
+        final byte[] data = new byte[HEADER_LENGTH + optionsLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.putInt(0);
 
-        if (payloadData != null) {
-            bb.put(payloadData);
+        if (optionsData != null) {
+            bb.put(optionsData);
         }
 
         return data;
@@ -61,10 +81,8 @@ public class RouterSolicitation extends BasePacket {
 
         bb.getInt();
 
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
+        this.options.deserialize(data, bb.position(),
+                                 bb.limit() - bb.position());
 
         return this;
     }
@@ -76,7 +94,10 @@ public class RouterSolicitation extends BasePacket {
      */
     @Override
     public int hashCode() {
-        return super.hashCode();
+        final int prime = 5807;
+        int result = super.hashCode();
+        result = prime * result + this.options.hashCode();
+        return result;
     }
 
     /*
@@ -93,6 +114,10 @@ public class RouterSolicitation extends BasePacket {
             return false;
         }
         if (!(obj instanceof RouterSolicitation)) {
+            return false;
+        }
+        final RouterSolicitation other = (RouterSolicitation) obj;
+        if (!this.options.equals(other.options)) {
             return false;
         }
         return true;
