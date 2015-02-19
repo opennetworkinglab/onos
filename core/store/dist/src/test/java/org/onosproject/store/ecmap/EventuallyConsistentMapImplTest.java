@@ -17,10 +17,10 @@ package org.onosproject.store.ecmap;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
@@ -60,8 +60,6 @@ import static org.junit.Assert.fail;
 /**
  * Unit tests for EventuallyConsistentMapImpl.
  */
-// FIXME: fix this test
-@Ignore
 public class EventuallyConsistentMapImplTest {
 
     private EventuallyConsistentMap<String, String> ecMap;
@@ -144,7 +142,8 @@ public class EventuallyConsistentMapImplTest {
 
         ecMap = new EventuallyConsistentMapImpl<>(MAP_NAME, clusterService,
                                                   clusterCommunicator,
-                                                  serializer, clockService);
+                                                  serializer, clockService)
+                                        .withBroadcastMessageExecutor(MoreExecutors.newDirectExecutorService());
 
         // Reset ready for tests to add their own expectations
         reset(clusterCommunicator);

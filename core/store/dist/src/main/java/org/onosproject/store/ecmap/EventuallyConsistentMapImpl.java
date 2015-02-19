@@ -85,7 +85,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private final ScheduledExecutorService backgroundExecutor;
 
-    private final ExecutorService broadcastMessageExecutor;
+    private ExecutorService broadcastMessageExecutor;
 
     private volatile boolean destroyed = false;
     private static final String ERROR_DESTROYED = " map is already destroyed";
@@ -186,6 +186,18 @@ public class EventuallyConsistentMapImpl<K, V>
                         .build();
             }
         };
+    }
+
+    /**
+     * Sets the executor to use for broadcasting messages and returns this
+     * instance for method chaining.
+     * @param executor executor service
+     * @return this instance
+     */
+    public EventuallyConsistentMapImpl<K, V> withBroadcastMessageExecutor(ExecutorService executor) {
+        checkNotNull(executor, "Null executor");
+        broadcastMessageExecutor = executor;
+        return this;
     }
 
     @Override
