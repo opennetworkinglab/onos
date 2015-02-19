@@ -114,10 +114,8 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(PathIntent intent) {
-        LinkResourceAllocations allocatedResources = resourceService.getAllocations(intent.id());
-        if (allocatedResources != null) {
-            resourceService.releaseResources(allocatedResources);
-        }
+        deallocateResources(intent);
+
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
@@ -166,5 +164,21 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
         }
         LinkResourceRequest request = builder.build();
         return request.resources().isEmpty() ? null : resourceService.requestResources(request);
+    }
+
+    /**
+     * Deallocate resources held by an intent.
+     *
+     * @param intent intent to deallocate resources for
+     */
+    private void deallocateResources(PathIntent intent) {
+        if (intent.constraints().isEmpty()) {
+            return;
+        }
+
+        LinkResourceAllocations allocatedResources = resourceService.getAllocations(intent.id());
+        if (allocatedResources != null) {
+            resourceService.releaseResources(allocatedResources);
+        }
     }
 }
