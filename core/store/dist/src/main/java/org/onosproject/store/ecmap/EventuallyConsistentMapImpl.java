@@ -85,6 +85,8 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private final ScheduledExecutorService backgroundExecutor;
 
+    private final ExecutorService broadcastMessageExecutor;
+
     private volatile boolean destroyed = false;
     private static final String ERROR_DESTROYED = " map is already destroyed";
 
@@ -144,6 +146,8 @@ public class EventuallyConsistentMapImpl<K, V>
 
         executor = Executors //FIXME
                 .newFixedThreadPool(4, groupedThreads("onos/ecm", mapName + "-fg-%d"));
+
+        broadcastMessageExecutor = Executors.newSingleThreadExecutor(groupedThreads("onos/ecm", mapName + "-notify"));
 
         backgroundExecutor =
                 newSingleThreadScheduledExecutor(minPriority(
@@ -440,7 +444,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 clusterService.getLocalNode().id(),
                 subject,
                 serializer.encode(event));
-        clusterCommunicator.broadcast(message);
+        broadcastMessageExecutor.execute(() -> clusterCommunicator.broadcast(message));
     }
 
     private void unicastMessage(NodeId peer,
