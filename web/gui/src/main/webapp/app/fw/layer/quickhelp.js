@@ -63,16 +63,9 @@
     // ===========================================
     // === Function Definitions ===
 
-
-    // TODO: move this to FnService.
-    function cap(s) {
-        return s.replace(/^[a-z]/, function (m) { return m.toUpperCase(); });
-    }
-
-
     function mkKeyDisp(id) {
         var v = keyDisp[id] || id;
-        return cap(v);
+        return fs.cap(v);
     }
 
     function addSeparator(el, i) {

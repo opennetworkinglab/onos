@@ -143,6 +143,13 @@
         return found;
     }
 
+    // return the given string with the first character capitalized.
+    function cap(s) {
+        return s.replace(/^[a-z]/, function (m) {
+            return m.toUpperCase();
+        });
+    }
+
     angular.module('onosUtil')
         .factory('FnService', ['$window', function (_$window_) {
             $window = _$window_;
@@ -158,7 +165,8 @@
                 windowSize: windowSize,
                 find: find,
                 inArray: inArray,
-                removeFromArray: removeFromArray
+                removeFromArray: removeFromArray,
+                cap: cap
             };
     }]);
 

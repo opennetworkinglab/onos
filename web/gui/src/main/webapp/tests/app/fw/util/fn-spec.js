@@ -202,7 +202,7 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
             'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find',
-            'inArray', 'removeFromArray'
+            'inArray', 'removeFromArray', 'cap'
         ])).toBeTruthy();
     });
 
@@ -323,6 +323,16 @@ describe('factory: fw/util/fn.js', function() {
         expect(array).toEqual(['x', 'z', 'z', 'y']);
         expect(fs.removeFromArray('x', array)).toBe(true);
         expect(array).toEqual(['z', 'z', 'y']);
+    });
+
+    // === Tests for cap()
+    it('should ignore non-alpha', function () {
+        expect(fs.cap('123')).toEqual('123');
+    });
+    it('should capitalize first char', function () {
+        expect(fs.cap('Foo')).toEqual('Foo');
+        expect(fs.cap('foo')).toEqual('Foo');
+        expect(fs.cap('foo bar')).toEqual('Foo bar');
     });
 
 });
