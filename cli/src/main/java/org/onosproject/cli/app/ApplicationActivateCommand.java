@@ -24,6 +24,7 @@ import org.onosproject.core.ApplicationId;
 /**
  * Activates an installed application.
  */
+@Deprecated
 @Command(scope = "onos", name = "app-activate",
         description = "Activates an installed application")
 public class ApplicationActivateCommand extends AbstractShellCommand {

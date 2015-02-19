@@ -24,6 +24,7 @@ import org.onosproject.core.ApplicationId;
 /**
  * Uninstalls an application.
  */
+@Deprecated
 @Command(scope = "onos", name = "app-uninstall",
         description = "Uninstalls an application")
 public class ApplicationUninstallCommand extends AbstractShellCommand {

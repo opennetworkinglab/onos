@@ -24,6 +24,7 @@ import org.onosproject.core.ApplicationId;
 /**
  * Deactivates an installed application.
  */
+@Deprecated
 @Command(scope = "onos", name = "app-deactivate",
         description = "Deactivates an installed application")
 public class ApplicationDeactivateCommand extends AbstractShellCommand {

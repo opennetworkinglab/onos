@@ -25,6 +25,16 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.app.ApplicationCommand"/>
+            <completers>
+                <ref component-id="appCommandCompleter"/>
+                <ref component-id="appNameCompleter"/>
+                <null/>
+            </completers>
+        </command>
+
+        <!--
+        <command>
             <action class="org.onosproject.cli.app.ApplicationActivateCommand"/>
             <completers>
                 <ref component-id="appNameCompleter"/>
@@ -47,6 +57,7 @@
                 <null/>
             </completers>
         </command>
+        -->
 
         <command>
             <action class="org.onosproject.cli.MetricsListCommand"/>
@@ -55,14 +66,14 @@
         <command>
             <action class="org.onosproject.cli.NodesListCommand"/>
         </command>
-<!--
+        <!--
         <command>
             <action class="org.onosproject.cli.NodeAddCommand"/>
         </command>
         <command>
             <action class="org.onosproject.cli.NodeRemoveCommand"/>
         </command>
--->
+        -->
 
         <command>
             <action class="org.onosproject.cli.RolesCommand"/>
@@ -130,7 +141,7 @@
         <command>
             <action class="org.onosproject.cli.net.IntentRemoveCommand"/>
             <completers>
-                <ref component-id="appIdNameCompleter" />
+                <ref component-id="appIdNameCompleter"/>
                 <ref component-id="intentIdCompleter"/>
                 <null/>
             </completers>
@@ -165,9 +176,9 @@
         </command>
         <command>
             <action class="org.onosproject.cli.net.GetStatistics"/>
-                <completers>
-                    <ref component-id="connectPointCompleter"/>
-                </completers>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.AddMultiPointToSinglePointIntentCommand"/>
@@ -272,13 +283,14 @@
             <action class="org.onosproject.cli.net.WipeOutCommand"/>
         </command>
         <command>
-			<action class="org.onosproject.cli.net.AddMplsIntent" />
-			<completers>
-			<ref component-id="connectPointCompleter" />
-		</completers>
-		</command>
+            <action class="org.onosproject.cli.net.AddMplsIntent"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
+    <bean id="appCommandCompleter" class="org.onosproject.cli.app.ApplicationCommandCompleter"/>
     <bean id="appNameCompleter" class="org.onosproject.cli.app.ApplicationNameCompleter"/>
     <bean id="appIdNameCompleter" class="org.onosproject.cli.app.ApplicationIdNameCompleter"/>
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
