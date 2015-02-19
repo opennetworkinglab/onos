@@ -530,10 +530,9 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private void handleAntiEntropyAdvertisement(AntiEntropyAdvertisement<K> ad) {
         List<EventuallyConsistentMapEvent<K, V>> externalEvents;
+        boolean sync = false;
 
         synchronized (this) {
-            final NodeId sender = ad.sender();
-
             externalEvents = antiEntropyCheckLocalItems(ad);
 
             antiEntropyCheckLocalRemoved(ad);
@@ -543,19 +542,24 @@ public class EventuallyConsistentMapImpl<K, V>
             // if remote ad has something unknown, actively sync
             for (K key : ad.timestamps().keySet()) {
                 if (!items.containsKey(key)) {
-                    AntiEntropyAdvertisement<K> myAd = createAdvertisement();
-                    try {
-                        unicastMessage(sender, antiEntropyAdvertisementSubject,
-                                       myAd);
-                        break;
-                    } catch (IOException e) {
-                        log.debug(
-                                "Failed to send reactive anti-entropy advertisement to {}",
-                                sender);
-                    }
+                    sync = true;
+                    break;
                 }
             }
         } // synchronized (this)
+
+        // Send the advertisement outside the synchronized block
+        if (sync) {
+            final NodeId sender = ad.sender();
+            AntiEntropyAdvertisement<K> myAd = createAdvertisement();
+            try {
+                unicastMessage(sender, antiEntropyAdvertisementSubject, myAd);
+            } catch (IOException e) {
+                log.debug(
+                        "Failed to send reactive anti-entropy advertisement to {}",
+                        sender);
+            }
+        }
 
         externalEvents.forEach(this::notifyListeners);
     }
