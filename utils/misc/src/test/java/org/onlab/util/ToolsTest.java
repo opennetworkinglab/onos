@@ -55,10 +55,10 @@ public class ToolsTest {
 
     @Test
     public  void groupedThreads() {
-        ThreadFactory f = Tools.groupedThreads("foo/bar", "foo-%d");
+        ThreadFactory f = Tools.groupedThreads("foo/bar-me", "foo-%d");
         Thread t = f.newThread(() -> TestTools.print("yo"));
-        assertTrue("wrong pattern", t.getName().startsWith("foo-"));
-        assertTrue("wrong group", t.getThreadGroup().getName().equals("foo/bar"));
+        assertTrue("wrong pattern", t.getName().startsWith("foo-bar-me-foo-"));
+        assertTrue("wrong group", t.getThreadGroup().getName().equals("foo/bar-me"));
     }
 
 }

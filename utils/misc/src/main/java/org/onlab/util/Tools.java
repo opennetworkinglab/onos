@@ -43,6 +43,9 @@ import static java.nio.file.Files.walkFileTree;
 import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Miscellaneous utility methods.
+ */
 public abstract class Tools {
 
     private Tools() {
@@ -68,7 +71,9 @@ public abstract class Tools {
      * Returns a thread factory that produces threads named according to the
      * supplied name pattern and from the specified thread-group. The thread
      * group name is expected to be specified in slash-delimited format, e.g.
-     * {@code onos/intent}.
+     * {@code onos/intent}. The thread names will be produced by converting
+     * the thread group name into dash-delimited format and pre-pended to the
+     * specified pattern.
      *
      * @param groupName group name in slash-delimited format to indicate hierarchy
      * @param pattern   name pattern
@@ -77,7 +82,7 @@ public abstract class Tools {
     public static ThreadFactory groupedThreads(String groupName, String pattern) {
         return new ThreadFactoryBuilder()
                 .setThreadFactory(groupedThreadFactory(groupName))
-                .setNameFormat(pattern)
+                .setNameFormat(groupName.replace(GroupedThreadFactory.DELIMITER, "-") + "-" + pattern)
                         // FIXME remove UncaughtExceptionHandler before release
                 .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on {}", t.getName(), e)).build();
     }
