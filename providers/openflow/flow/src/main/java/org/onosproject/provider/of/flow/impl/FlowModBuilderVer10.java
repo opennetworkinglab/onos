@@ -55,7 +55,7 @@ import java.util.Optional;
  */
 public class FlowModBuilderVer10 extends FlowModBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(FlowModBuilderVer10.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private static final int OFPCML_NO_BUFFER = 0xffff;
 
     private final TrafficTreatment treatment;

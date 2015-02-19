@@ -17,7 +17,6 @@ package org.onosproject.openflow.drivers;
 
 import com.google.common.collect.Lists;
 import org.onosproject.openflow.controller.Dpid;
-import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
@@ -43,8 +42,6 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
     private static final int FIB_TABLE = 6;
     private static final int LOCAL_TABLE = 9;
 
-
-
     OFCorsaSwitchDriver(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
 
@@ -58,10 +55,7 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
 
     @Override
     public void write(List<OFMessage> msgs) {
-        if (role == RoleState.MASTER) {
             channel.write(msgs);
-        }
-
     }
 
     @Override
@@ -152,7 +146,9 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
                 default:
                     log.warn("Unknown table type: {}", type);
             }
+            builder.setInstructions(newInstructions);
             this.write(builder.build());
+            log.info("Installed {}", builder.build());
         } else {
             this.write(msg);
         }

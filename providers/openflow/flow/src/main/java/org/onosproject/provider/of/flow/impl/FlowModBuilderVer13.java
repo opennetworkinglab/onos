@@ -74,7 +74,7 @@ import java.util.Optional;
  */
 public class FlowModBuilderVer13 extends FlowModBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(FlowModBuilderVer10.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private static final int OFPCML_NO_BUFFER = 0xffff;
 
     private final TrafficTreatment treatment;
@@ -118,6 +118,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
+                .setTableId(TableId.of(flowRule().type().ordinal()))
                 .build();
 
         return fm;
@@ -144,6 +145,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
+                .setTableId(TableId.of(flowRule().type().ordinal()))
                 .build();
 
         return fm;
@@ -218,6 +220,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                     OFActionGroup.Builder groupBuilder = factory().actions().buildGroup()
                             .setGroup(OFGroup.of(group.groupId().id()));
                     actions.add(groupBuilder.build());
+                    break;
+                case TABLE:
+                    //FIXME: should not occur here.
                     break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());

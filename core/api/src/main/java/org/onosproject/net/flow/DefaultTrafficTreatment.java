@@ -134,6 +134,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case DROP:
                     drop = true;
                     break;
+                case TABLE:
                 case OUTPUT:
                     outputs.add(instruction);
                     break;

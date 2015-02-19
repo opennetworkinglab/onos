@@ -36,6 +36,7 @@ public class Ethernet extends BasePacket {
     public static final short TYPE_IPV4 = (short) 0x0800;
     public static final short TYPE_IPV6 = (short) 0x86dd;
     public static final short TYPE_LLDP = (short) 0x88cc;
+    public static final short TYPE_VLAN = (short) 0x8100;
     public static final short TYPE_BSN = (short) 0x8942;
     public static final short VLAN_UNTAGGED = (short) 0xffff;
     public static final short MPLS_UNICAST = (short) 0x8847;
@@ -284,7 +285,7 @@ public class Ethernet extends BasePacket {
         bb.put(this.destinationMACAddress.toBytes());
         bb.put(this.sourceMACAddress.toBytes());
         if (this.vlanID != Ethernet.VLAN_UNTAGGED) {
-            bb.putShort((short) 0x8100);
+            bb.putShort(TYPE_VLAN);
             bb.putShort((short) (this.priorityCode << 13 | this.vlanID & 0x0fff));
         }
         bb.putShort(this.etherType);
@@ -319,7 +320,7 @@ public class Ethernet extends BasePacket {
         this.sourceMACAddress = MacAddress.valueOf(srcAddr);
 
         short ethType = bb.getShort();
-        if (ethType == (short) 0x8100) {
+        if (ethType == TYPE_VLAN) {
             final short tci = bb.getShort();
             this.priorityCode = (byte) (tci >> 13 & 0x07);
             this.vlanID = (short) (tci & 0x0fff);
