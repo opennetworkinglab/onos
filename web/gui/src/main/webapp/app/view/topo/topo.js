@@ -121,6 +121,8 @@
 
         } else {
             // TODO: set hover mode to hoverModeNone
+            // talk to Thomas about this: shouldn't it be done
+            // when we deselect the node (if tss.haveDetails()...)
         }
     }
 
@@ -191,27 +193,8 @@
         sus.visible(noDevsLayer, b);
     }
 
-    function showCallibrationPoints() {
-        // temp code for calibration
-        var points = [
-            [0, 0], [0, 1000], [1000, 0], [1000, 1000]
-        ];
-        mapG.selectAll('circle')
-            .data(points)
-            .enter()
-            .append('circle')
-            .attr('cx', function (d) { return d[0]; })
-            .attr('cy', function (d) { return d[1]; })
-            .attr('r', 5)
-            .style('fill', 'red');
-    }
-
     function setUpMap() {
         mapG = zoomLayer.append('g').attr('id', 'topo-map');
-
-        //showCallibrationPoints();
-        //return ms.loadMapInto(map, '*continental_us', {mapFillScale:0.5});
-
         // returns a promise for the projection...
         return ms.loadMapInto(mapG, '*continental_us');
     }
