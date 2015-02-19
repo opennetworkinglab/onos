@@ -429,6 +429,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
         executor.shutdown();
         backgroundExecutor.shutdown();
+        broadcastMessageExecutor.shutdown();
 
         listeners.clear();
 
@@ -444,11 +445,11 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private void notifyPeers(InternalPutEvent event) {
-        broadcastMessage(updateMessageSubject, event);
+        broadcastMessageExecutor.execute(() -> broadcastMessage(updateMessageSubject, event));
     }
 
     private void notifyPeers(InternalRemoveEvent event) {
-        broadcastMessage(removeMessageSubject, event);
+        broadcastMessageExecutor.execute(() -> broadcastMessage(removeMessageSubject, event));
     }
 
     private void broadcastMessage(MessageSubject subject, Object event) {
@@ -456,7 +457,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 clusterService.getLocalNode().id(),
                 subject,
                 serializer.encode(event));
-        broadcastMessageExecutor.execute(() -> clusterCommunicator.broadcast(message));
+        clusterCommunicator.broadcast(message);
     }
 
     private void unicastMessage(NodeId peer,
