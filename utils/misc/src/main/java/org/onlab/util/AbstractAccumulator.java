@@ -72,9 +72,9 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     }
 
     @Override
-    public void add(T event) {
+    public synchronized void add(T event) {
         idleTask = cancelIfActive(idleTask);
-        events.add(event);
+        events.add(checkNotNull(event, "Event cannot be null"));
 
         // Did we hit the max event threshold?
         if (events.size() == maxEvents) {
@@ -114,7 +114,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
                 maxTask = cancelIfActive(maxTask);
                 processEvents(finalizeCurrentBatch());
             } catch (Exception e) {
-                log.warn("Unable to process batch due to {}", e.getMessage());
+                log.warn("Unable to process batch due to {}", e);
             }
         }
     }
