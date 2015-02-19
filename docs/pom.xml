@@ -61,7 +61,7 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onosproject.impl:org.onosproject.core.impl:org.onosproject.cluster.impl:org.onosproject.net.device.impl:org.onosproject.net.link.impl:org.onosproject.net.host.impl:org.onosproject.net.topology.impl:org.onosproject.net.packet.impl:org.onosproject.net.flow.impl:org.onosproject.net.*.impl:org.onosproject.event.impl:org.onosproject.net.intent.impl:org.onosproject.net.proxyarp.impl:org.onosproject.mastership.impl:org.onosproject.net.resource.impl:org.onosproject.json:org.onosproject.json.*:org.onosproject.provider.host.impl:org.onosproject.provider.lldp.impl:org.onosproject.net.statistic.impl:org.onosproject.app.impl:org.onosproject.common.*:org.onosproject.net.group.impl
+                                org.onosproject.impl:org.onosproject.core.impl:org.onosproject.cluster.impl:org.onosproject.net.device.impl:org.onosproject.net.link.impl:org.onosproject.net.host.impl:org.onosproject.net.topology.impl:org.onosproject.net.packet.impl:org.onosproject.net.flow.impl:org.onosproject.net.*.impl:org.onosproject.event.impl:org.onosproject.net.intent.impl*:org.onosproject.net.proxyarp.impl:org.onosproject.mastership.impl:org.onosproject.net.resource.impl:org.onosproject.json:org.onosproject.json.*:org.onosproject.provider.host.impl:org.onosproject.provider.lldp.impl:org.onosproject.net.statistic.impl:org.onosproject.app.impl:org.onosproject.common.*:org.onosproject.net.group.impl
                             </packages>
                         </group>
                         <group>
@@ -99,7 +99,7 @@
                         <group>
                             <title>Sample Applications</title>
                             <packages>
-                                org.onosproject.tvue:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.foo:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config:org.onosproject.routing:org.onosproject.routing*
+                                org.onosproject.tvue:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.foo:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config:org.onosproject.routing:org.onosproject.routing*:org.onosproject.bgprouter:org.onosproject.intentperf
                             </packages>
                         </group>
                         <group>
