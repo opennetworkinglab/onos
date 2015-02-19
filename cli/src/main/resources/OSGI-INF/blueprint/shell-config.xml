@@ -244,6 +244,9 @@
             <action class="org.onosproject.cli.net.ClustersListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.PartitionsListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.ClusterDevicesCommand"/>
             <completers>
                 <ref component-id="clusterIdCompleter"/>

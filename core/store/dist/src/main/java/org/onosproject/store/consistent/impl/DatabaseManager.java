@@ -16,19 +16,12 @@
 
 package org.onosproject.store.consistent.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import net.kuujo.copycat.cluster.ClusterConfig;
+import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.log.FileLog;
 import net.kuujo.copycat.netty.NettyTcpProtocol;
 import net.kuujo.copycat.protocol.Consistency;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -39,19 +32,28 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Database manager.
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class DatabaseManager implements StorageService {
+public class DatabaseManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());
     private PartitionedDatabase partitionedDatabase;
@@ -159,5 +161,30 @@ public class DatabaseManager implements StorageService {
     @Override
     public TransactionContext createTransactionContext() {
         return new DefaultTransactionContext(partitionedDatabase);
+    }
+
+    @Override
+    public List<PartitionInfo> getPartitionInfo() {
+        return partitionedDatabase.getRegisteredPartitions()
+                .values()
+                .stream()
+                .map(DatabaseManager::toPartitionInfo)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Maps a Raft Database object to a PartitionInfo object.
+     *
+     * @param database database containing input data
+     * @return PartitionInfo object
+     */
+    private static PartitionInfo toPartitionInfo(Database database) {
+        return new PartitionInfo(database.name(),
+                          database.cluster().term(),
+                          database.cluster().members().stream()
+                                  .map(Member::uri)
+                                  .collect(Collectors.toList()),
+                          database.cluster().leader() != null ?
+                                  database.cluster().leader().uri() : null);
     }
 }
