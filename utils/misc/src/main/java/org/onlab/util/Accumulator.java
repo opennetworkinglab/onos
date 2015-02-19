@@ -18,25 +18,28 @@ package org.onlab.util;
 import java.util.List;
 
 /**
- * Abstraction of an accumulator capable of collecting events and at some
- * point in time triggers processing of all previously accumulated events.
+ * Abstraction of an accumulator capable of collecting items and at some
+ * point in time triggers processing of all previously accumulated items.
+ *
+ * @param <T> item type
  */
 public interface Accumulator<T> {
 
     /**
-     * Adds an event to the current batch. This operation may, or may not
-     * trigger processing of the current batch of events.
+     * Adds an item to the current batch. This operation may, or may not
+     * trigger processing of the current batch of items.
      *
-     * @param event event to be added to the current batch
+     * @param item item to be added to the current batch
      */
-    void add(T event);
+    void add(T item);
 
     /**
-     * Processes the specified list of accumulated events.
+     * Processes the specified list of accumulated items.
      *
-     * @param events list of accumulated events
+     * @param items list of accumulated items
      */
-    void processEvents(List<T> events);
+    void processItems(List<T> items);
 
     //TODO consider a blocking version that required consumer participation
+
 }

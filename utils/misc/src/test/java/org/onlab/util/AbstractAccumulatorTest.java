@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.event;
+package org.onlab.util;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,16 +21,13 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Timer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onlab.junit.TestTools.delay;
-import static org.onosproject.event.TestEvent.Type.FOO;
 
 /**
  * Tests the operation of the accumulator.
  */
-public class AbstractEventAccumulatorTest {
+public class AbstractAccumulatorTest {
 
     private final Timer timer = new Timer();
 
@@ -38,7 +35,7 @@ public class AbstractEventAccumulatorTest {
     public void basics() throws Exception {
         TestAccumulator accumulator = new TestAccumulator();
         assertEquals("incorrect timer", timer, accumulator.timer());
-        assertEquals("incorrect max events", 5, accumulator.maxEvents());
+        assertEquals("incorrect max events", 5, accumulator.maxItems());
         assertEquals("incorrect max ms", 100, accumulator.maxBatchMillis());
         assertEquals("incorrect idle ms", 50, accumulator.maxIdleMillis());
     }
@@ -46,12 +43,12 @@ public class AbstractEventAccumulatorTest {
     @Test
     public void eventTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
-        accumulator.add(new TestEvent(FOO, "a"));
-        accumulator.add(new TestEvent(FOO, "b"));
-        accumulator.add(new TestEvent(FOO, "c"));
-        accumulator.add(new TestEvent(FOO, "d"));
+        accumulator.add(new TestItem("a"));
+        accumulator.add(new TestItem("b"));
+        accumulator.add(new TestItem("c"));
+        accumulator.add(new TestItem("d"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
-        accumulator.add(new TestEvent(FOO, "e"));
+        accumulator.add(new TestItem("e"));
         delay(20);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcde", accumulator.batch);
@@ -61,16 +58,16 @@ public class AbstractEventAccumulatorTest {
     @Test
     public void timeTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
-        accumulator.add(new TestEvent(FOO, "a"));
+        accumulator.add(new TestItem("a"));
         delay(30);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
-        accumulator.add(new TestEvent(FOO, "b"));
+        accumulator.add(new TestItem("b"));
         delay(30);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
-        accumulator.add(new TestEvent(FOO, "c"));
+        accumulator.add(new TestItem("c"));
         delay(30);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
-        accumulator.add(new TestEvent(FOO, "d"));
+        accumulator.add(new TestItem("d"));
         delay(30);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcd", accumulator.batch);
@@ -79,15 +76,23 @@ public class AbstractEventAccumulatorTest {
     @Test
     public void idleTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
-        accumulator.add(new TestEvent(FOO, "a"));
+        accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
-        accumulator.add(new TestEvent(FOO, "b"));
+        accumulator.add(new TestItem("b"));
         delay(80);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "ab", accumulator.batch);
     }
 
-    private class TestAccumulator extends AbstractEventAccumulator {
+    private class TestItem {
+        private final String s;
+
+        public TestItem(String s) {
+            this.s = s;
+        }
+    }
+
+    private class TestAccumulator extends AbstractAccumulator<TestItem> {
 
         String batch = "";
 
@@ -96,10 +101,11 @@ public class AbstractEventAccumulatorTest {
         }
 
         @Override
-        public void processEvents(List<Event> events) {
-            for (Event event : events) {
-                batch += event.subject();
+        public void processItems(List<TestItem> items) {
+            for (TestItem item : items) {
+                batch += item.s;
             }
         }
     }
+
 }

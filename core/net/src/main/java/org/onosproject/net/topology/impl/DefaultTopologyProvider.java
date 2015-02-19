@@ -16,7 +16,6 @@
 package org.onosproject.net.topology.impl;
 
 import com.google.common.collect.ImmutableList;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,9 +24,9 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractEventAccumulator;
+import org.onlab.util.AbstractAccumulator;
+import org.onlab.util.Accumulator;
 import org.onosproject.event.Event;
-import org.onosproject.event.EventAccumulator;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -51,9 +50,9 @@ import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -104,7 +103,7 @@ public class DefaultTopologyProvider extends AbstractProvider
     private DeviceListener deviceListener = new InternalDeviceListener();
     private LinkListener linkListener = new InternalLinkListener();
 
-    private EventAccumulator accumulator;
+    private Accumulator<Event> accumulator;
     private ExecutorService executor;
 
     /**
@@ -245,18 +244,15 @@ public class DefaultTopologyProvider extends AbstractProvider
     }
 
     // Event accumulator for paced triggering of topology assembly.
-    private class TopologyChangeAccumulator
-            extends AbstractEventAccumulator implements EventAccumulator {
-
+    private class TopologyChangeAccumulator extends AbstractAccumulator<Event> {
         TopologyChangeAccumulator() {
             super(TIMER, maxEvents, maxBatchMs, maxIdleMs);
         }
 
         @Override
-        public void processEvents(List<Event> events) {
-            triggerTopologyBuild(events);
+        public void processItems(List<Event> items) {
+            triggerTopologyBuild(items);
         }
-
     }
 
     // Task for building topology data in a separate thread.

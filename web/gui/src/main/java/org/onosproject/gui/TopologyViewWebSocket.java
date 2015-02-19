@@ -20,14 +20,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.util.AbstractAccumulator;
+import org.onlab.util.Accumulator;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.event.AbstractEventAccumulator;
 import org.onosproject.event.Event;
-import org.onosproject.event.EventAccumulator;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
@@ -120,7 +120,7 @@ public class TopologyViewWebSocket
     private final IntentListener intentListener = new InternalIntentListener();
     private final FlowRuleListener flowListener = new InternalFlowListener();
 
-    private final EventAccumulator eventAccummulator = new InternalEventAccummulator();
+    private final Accumulator<Event> eventAccummulator = new InternalEventAccummulator();
 
     private TimerTask trafficTask;
     private ObjectNode trafficEvent;
@@ -721,13 +721,13 @@ public class TopologyViewWebSocket
     }
 
     // Accumulates events to drive methodic update of the summary pane.
-    private class InternalEventAccummulator extends AbstractEventAccumulator {
+    private class InternalEventAccummulator extends AbstractAccumulator<Event> {
         protected InternalEventAccummulator() {
             super(new Timer("topo-summary"), MAX_EVENTS, MAX_BATCH_MS, MAX_IDLE_MS);
         }
 
         @Override
-        public void processEvents(List<Event> events) {
+        public void processItems(List<Event> items) {
             try {
                 if (summaryEvent != null) {
                     sendMessage(summmaryMessage(0));

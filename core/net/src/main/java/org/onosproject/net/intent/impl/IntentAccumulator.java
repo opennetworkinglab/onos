@@ -53,8 +53,8 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
     }
 
     @Override
-    public void processEvents(List<IntentData> ops) {
-        delegate.execute(reduce(ops));
+    public void processItems(List<IntentData> items) {
+        delegate.execute(reduce(items));
         // FIXME kick off the work
         //for (IntentData data : opMap.values()) {}
     }
