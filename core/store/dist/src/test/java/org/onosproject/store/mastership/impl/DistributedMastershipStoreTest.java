@@ -15,10 +15,6 @@
  */
 package org.onosproject.store.mastership.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.onosproject.net.MastershipRole.*;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -30,25 +26,30 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onosproject.cluster.ClusterEventListener;
-import org.onosproject.cluster.ClusterService;
+import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipEvent.Type;
 import org.onosproject.mastership.MastershipStoreDelegate;
 import org.onosproject.mastership.MastershipTerm;
-import org.onosproject.mastership.MastershipEvent.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.store.hz.StoreManager;
 import org.onosproject.store.hz.StoreService;
 import org.onosproject.store.hz.TestStoreManager;
 import org.onosproject.store.serializers.KryoSerializer;
-import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
 
 /**
  * Test of the Hazelcast-based distributed MastershipStore implementation.
@@ -300,7 +301,7 @@ public class DistributedMastershipStoreTest {
         }
     }
 
-    private class TestClusterService implements ClusterService {
+    private class TestClusterService extends ClusterServiceAdapter {
 
         protected ControllerNode current;
 
@@ -312,24 +313,6 @@ public class DistributedMastershipStoreTest {
         @Override
         public Set<ControllerNode> getNodes() {
             return Sets.newHashSet(CN1, CN2);
-        }
-
-        @Override
-        public ControllerNode getNode(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public State getState(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public void addListener(ClusterEventListener listener) {
-        }
-
-        @Override
-        public void removeListener(ClusterEventListener listener) {
         }
 
     }

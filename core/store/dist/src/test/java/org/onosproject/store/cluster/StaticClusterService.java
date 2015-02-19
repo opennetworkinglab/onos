@@ -19,15 +19,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.onosproject.cluster.ClusterEventListener;
-import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.ControllerNode.State;
+import org.onosproject.cluster.NodeId;
 
 import com.google.common.collect.Sets;
 
-public abstract class StaticClusterService implements ClusterService {
+public abstract class StaticClusterService extends ClusterServiceAdapter {
 
     protected final Map<NodeId, ControllerNode> nodes = new HashMap<>();
     protected final Map<NodeId, ControllerNode.State> nodeStates = new HashMap<>();
@@ -53,11 +52,4 @@ public abstract class StaticClusterService implements ClusterService {
         return nodeStates.get(nodeId);
     }
 
-    @Override
-    public void addListener(ClusterEventListener listener) {
-    }
-
-    @Override
-    public void removeListener(ClusterEventListener listener) {
-    }
 }

@@ -20,10 +20,10 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.cluster.ClusterEventListener;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.impl.TestEventDispatcher;
@@ -32,13 +32,14 @@ import org.onosproject.mastership.MastershipStore;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.trivial.impl.SimpleMastershipStore;
-import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.onosproject.net.MastershipRole.*;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
 
 /**
  * Test codifying the mastership service contracts.
@@ -151,7 +152,7 @@ public class MastershipManagerTest {
         assertEquals("inconsistent terms: ", 3, ts.getMastershipTerm(DEV_MASTER).termNumber());
     }
 
-    private final class TestClusterService implements ClusterService {
+    private final class TestClusterService extends ClusterServiceAdapter {
 
         ControllerNode local = new DefaultControllerNode(NID_LOCAL, LOCALHOST);
 
@@ -163,24 +164,6 @@ public class MastershipManagerTest {
         @Override
         public Set<ControllerNode> getNodes() {
             return Sets.newHashSet();
-        }
-
-        @Override
-        public ControllerNode getNode(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public State getState(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public void addListener(ClusterEventListener listener) {
-        }
-
-        @Override
-        public void removeListener(ClusterEventListener listener) {
         }
 
     }

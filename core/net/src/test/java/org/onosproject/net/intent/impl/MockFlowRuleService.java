@@ -23,14 +23,13 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.FlowRuleServiceAdapter;
 
 import com.google.common.collect.Sets;
 
 
-public class MockFlowRuleService implements FlowRuleService {
+public class MockFlowRuleService extends FlowRuleServiceAdapter {
 
     final Set<FlowRule> flows = Sets.newHashSet();
     boolean success;
@@ -62,16 +61,6 @@ public class MockFlowRuleService implements FlowRuleService {
     }
 
     @Override
-    public void addListener(FlowRuleListener listener) {
-        //TODO not implemented
-    }
-
-    @Override
-    public void removeListener(FlowRuleListener listener) {
-        //TODO not implemented
-    }
-
-    @Override
     public int getFlowRuleCount() {
         return flows.size();
     }
@@ -96,11 +85,6 @@ public class MockFlowRuleService implements FlowRuleService {
         for (FlowRule flow : flowRules) {
             flows.remove(flow);
         }
-    }
-
-    @Override
-    public void removeFlowRulesById(ApplicationId appId) {
-        //TODO not implemented
     }
 
     @Override

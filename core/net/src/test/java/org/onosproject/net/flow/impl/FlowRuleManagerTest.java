@@ -32,10 +32,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
+import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.core.Version;
 import org.onosproject.event.impl.TestEventDispatcher;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -219,14 +218,14 @@ public class FlowRuleManagerTest {
         FlowRule r3 = flowRule(3, 3);
 
         assertTrue("store should be empty",
-                   Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
+                Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
         mgr.applyFlowRules(r1, r2, r3);
         assertEquals("3 rules should exist", 3, flowCount());
         assertTrue("Entries should be pending add.",
-                   validateState(ImmutableMap.of(
-                           r1, FlowEntryState.PENDING_ADD,
-                           r2, FlowEntryState.PENDING_ADD,
-                           r3, FlowEntryState.PENDING_ADD)));
+                validateState(ImmutableMap.of(
+                        r1, FlowEntryState.PENDING_ADD,
+                        r2, FlowEntryState.PENDING_ADD,
+                        r3, FlowEntryState.PENDING_ADD)));
     }
 
     @Test
@@ -248,10 +247,10 @@ public class FlowRuleManagerTest {
         validateEvents(RULE_REMOVE_REQUESTED, RULE_REMOVE_REQUESTED);
         assertEquals("3 rule should exist", 3, flowCount());
         assertTrue("Entries should be pending remove.",
-                   validateState(ImmutableMap.of(
-                           f1, FlowEntryState.PENDING_REMOVE,
-                           f2, FlowEntryState.PENDING_REMOVE,
-                           f3, FlowEntryState.ADDED)));
+                validateState(ImmutableMap.of(
+                        f1, FlowEntryState.PENDING_REMOVE,
+                        f2, FlowEntryState.PENDING_REMOVE,
+                        f3, FlowEntryState.ADDED)));
 
         mgr.removeFlowRules(f1);
         assertEquals("3 rule should still exist", 3, flowCount());
@@ -277,7 +276,7 @@ public class FlowRuleManagerTest {
 
 
         validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADDED,
-                       RULE_ADDED, RULE_REMOVE_REQUESTED, RULE_REMOVED);
+                RULE_ADDED, RULE_REMOVE_REQUESTED, RULE_REMOVED);
 
         providerService.flowRemoved(fe1);
         validateEvents();
@@ -317,7 +316,7 @@ public class FlowRuleManagerTest {
                            f3, FlowEntryState.PENDING_ADD)));
 
         validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
-                       RULE_ADDED, RULE_ADDED);
+                RULE_ADDED, RULE_ADDED);
     }
 
     @Test
@@ -374,7 +373,7 @@ public class FlowRuleManagerTest {
         mgr.applyFlowRules(f1, f2);
 
         assertTrue("should have two rules",
-                   Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
+                Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
     }
 
     @Test
@@ -583,31 +582,7 @@ public class FlowRuleManagerTest {
         }
     }
 
-    private class TestCoreService implements CoreService {
-        @Override
-        public Version version() {
-            return null;
-        }
-
-        @Override
-        public Set<ApplicationId> getAppIds() {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getAppId(Short id) {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getAppId(String name) {
-            return null;
-        }
-
-        @Override
-        public ApplicationId registerApplication(String identifier) {
-            return null;
-        }
+    private class TestCoreService extends CoreServiceAdapter {
 
         @Override
         public IdGenerator getIdGenerator(String topic) {

@@ -15,17 +15,20 @@
  */
 package org.onosproject.net.device.impl;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.cluster.ClusterEventListener;
-import org.onosproject.cluster.ClusterService;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.event.Event;
 import org.onosproject.event.impl.TestEventDispatcher;
 import org.onosproject.mastership.MastershipServiceAdapter;
@@ -51,18 +54,22 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.impl.SimpleDeviceStore;
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpAddress;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
 
 /**
  * Test codifying the device service & device provider service contracts.
@@ -310,7 +317,7 @@ public class DeviceManagerTest {
     }
 
     // code clone
-    private final class TestClusterService implements ClusterService {
+    private final class TestClusterService extends ClusterServiceAdapter {
 
         ControllerNode local = new DefaultControllerNode(NID_LOCAL, LOCALHOST);
 
@@ -319,28 +326,6 @@ public class DeviceManagerTest {
             return local;
         }
 
-        @Override
-        public Set<ControllerNode> getNodes() {
-            return null;
-        }
-
-        @Override
-        public ControllerNode getNode(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public State getState(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public void addListener(ClusterEventListener listener) {
-        }
-
-        @Override
-        public void removeListener(ClusterEventListener listener) {
-        }
     }
 
     private final class TestClockProviderService implements
