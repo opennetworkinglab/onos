@@ -77,6 +77,7 @@ public final class Timestamped<T> {
      * @param other timestamp to compare against
      * @return true if this instance is newer
      */
+    //TODO put this in Timestamp
     public boolean isNewer(Timestamp other) {
         return this.timestamp.compareTo(checkNotNull(other)) > 0;
     }

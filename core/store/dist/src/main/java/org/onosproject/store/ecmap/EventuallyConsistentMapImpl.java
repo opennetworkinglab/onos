@@ -258,23 +258,28 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private boolean putInternal(K key, V value, Timestamp timestamp) {
-        synchronized (this) {
-            Timestamp removed = removedItems.get(key);
-            if (removed != null && removed.compareTo(timestamp) > 0) {
-                log.debug("ecmap - removed was newer {}", value);
-                return false;
-            }
+        Timestamp removed = removedItems.get(key);
+        if (removed != null && removed.compareTo(timestamp) > 0) {
+            log.debug("ecmap - removed was newer {}", value);
+            return false;
+        }
 
+        boolean success;
+        synchronized (this) {
             Timestamped<V> existing = items.get(key);
             if (existing != null && existing.isNewer(timestamp)) {
                 log.debug("ecmap - existing was newer {}", value);
-                return false;
+                success = false;
             } else {
                 items.put(key, new Timestamped<>(value, timestamp));
-                removedItems.remove(key);
-                return true;
+                success = true;
             }
         }
+
+        if (success && removed != null) {
+            removedItems.remove(key, removed);
+        }
+        return success;
     }
 
     @Override
