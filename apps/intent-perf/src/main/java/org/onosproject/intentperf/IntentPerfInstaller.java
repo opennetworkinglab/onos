@@ -22,13 +22,13 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Counter;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -54,6 +54,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkState;
+import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -66,16 +68,16 @@ public class IntentPerfInstaller {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY_UNARY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY_UNARY)
     protected IntentService intentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY_UNARY)
     protected DeviceService deviceService;
 
     private ExecutorService worker;
@@ -90,7 +92,7 @@ public class IntentPerfInstaller {
     private Timer reportTimer;
 
     //FIXME make this configurable
-    private static final int NUM_KEYS = 10000;
+    private static final int NUM_KEYS = 10_000;
 
     @Activate
     public void activate() {
@@ -117,7 +119,7 @@ public class IntentPerfInstaller {
         // we will need to discard the first few results for priming and warmup
         listener = new Listener();
         intentService.addListener(listener);
-        reportTimer = new Timer("intent-perf-reporter");
+        reportTimer = new Timer("onos-intent-perf-reporter");
         reportTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -133,6 +135,7 @@ public class IntentPerfInstaller {
             while (!stopped) {
                 cycle();
                 // TODO delay if required
+                delay(600);
             }
         });
 
@@ -155,8 +158,13 @@ public class IntentPerfInstaller {
 
 
     private void cycle() {
+        long start = System.currentTimeMillis();
         subset(submitted).forEach(this::withdraw);
         subset(withdrawn).forEach(this::submit);
+        long delta = System.currentTimeMillis() - start;
+        if (delta > 1000 || delta < 0) {
+            log.warn("Cycle took {} ms", delta);
+        }
     }
 
     private Iterable<Intent> subset(Set<Intent> intents) {
@@ -181,14 +189,21 @@ public class IntentPerfInstaller {
 
         Iterator<Device> deviceItr = deviceService.getAvailableDevices().iterator();
 
-        if (!deviceItr.hasNext()) {
-            throw new IllegalStateException("There are no devices");
+        Device ingressDevice = null;
+        while (deviceItr.hasNext()) {
+            Device device = deviceItr.next();
+            if (deviceService.getRole(device.id()) == MastershipRole.MASTER) {
+                ingressDevice = device;
+                break;
+            }
         }
+        checkState(ingressDevice != null, "There are no local devices");
 
-        Device ingressDevice = deviceItr.next();
-
-        for (int i = 0; i < numberOfKeys; i++) {
+        for (int local = 0, i = 0; local < numberOfKeys; i++) {
             Key key = Key.of(i, appId);
+            if (!intentService.isLocal(key)) {
+                continue;
+            }
             TrafficSelector selector = DefaultTrafficSelector.builder().build();
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
@@ -201,7 +216,12 @@ public class IntentPerfInstaller {
                                                    ingress, egress,
                                                    Collections.emptyList());
             intents.add(intent);
+            local++;
+            if (i % 1000 == 0) {
+                log.info("Building intents... {} ({})", local, i);
+            }
         }
+        log.info("Created {} intents", numberOfKeys);
     }
 
     private void prime() {
@@ -243,9 +263,12 @@ public class IntentPerfInstaller {
 
         public void report() {
             StringBuilder stringBuilder = new StringBuilder();
+            double total = counters.get(IntentEvent.Type.INSTALLED).throughput() +
+                    counters.get(IntentEvent.Type.WITHDRAWN).throughput();
             for (IntentEvent.Type type : IntentEvent.Type.values()) {
                 stringBuilder.append(printCounter(type)).append("; ");
             }
+            stringBuilder.append(String.format("TOTAL=%.2f", total));
             log.info("Intent Throughput:\n{}", stringBuilder);
         }
 
