@@ -36,7 +36,7 @@ import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.Lambda;
 import org.onosproject.net.resource.LinkResourceService;
 
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -77,14 +77,29 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     }
 
     /**
+     * Creates a PointToPoint intent based on ingress and egress deviceIds and constraints.
+     *
+     * @param ingressIdString string for id of ingress device
+     * @param egressIdString  string for id of egress device
+     * @param constraints     constraints
+     * @return PointToPointIntent for the two device with constraints
+     */
+    private PointToPointIntent makeIntent(String ingressIdString,
+                                          String egressIdString, List<Constraint> constraints) {
+        return new PointToPointIntent(APPID, selector, treatment,
+                connectPoint(ingressIdString, 1),
+                connectPoint(egressIdString, 1),
+                constraints);
+    }
+
+    /**
      * Creates a compiler for HostToHost intents.
      *
      * @param hops string array describing the path hops to use when compiling
      * @return HostToHost intent compiler
      */
     private PointToPointIntentCompiler makeCompiler(String[] hops) {
-        PointToPointIntentCompiler compiler =
-                new PointToPointIntentCompiler();
+        PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
         compiler.pathService = new IntentTestsMocks.MockPathService(hops);
         return compiler;
     }
@@ -96,39 +111,11 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
      * @param resourceService service to use for resource allocation requests
      * @return point to point compiler
      */
-    private PointToPointIntentCompiler makeCompiler(LinkResourceService resourceService) {
-        final String[] hops = {"s1", "s2", "s3"};
+    private PointToPointIntentCompiler makeCompiler(String[] hops, LinkResourceService resourceService) {
         final PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
         compiler.resourceService = resourceService;
         compiler.pathService = new IntentTestsMocks.MockPathService(hops);
         return compiler;
-    }
-
-    /**
-     * Creates an intent with a given constraint and compiles it. The compiler
-     * will throw PathNotFoundException if the allocations cannot be satisfied.
-     *
-     * @param constraint constraint to apply to the created intent
-     * @param resourceService service to use for resource allocation requests
-     * @return List of compiled intents
-     */
-    private List<Intent> compileIntent(Constraint constraint,
-                                       LinkResourceService resourceService) {
-        final List<Constraint> constraints = new LinkedList<>();
-        constraints.add(constraint);
-        final TrafficSelector selector = new IntentTestsMocks.MockSelector();
-        final TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
-
-        final PointToPointIntent intent =
-                new PointToPointIntent(APP_ID,
-                        selector,
-                        treatment,
-                        connectPoint("s1", 1),
-                        connectPoint("s3", 1),
-                        constraints);
-        final PointToPointIntentCompiler compiler = makeCompiler(resourceService);
-
-        return compiler.compile(intent, null, null);
     }
 
     /**
@@ -225,9 +212,15 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
+        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(Bandwidth.bps(100.0)));
 
-        final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
+        final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
+
+        String[] hops = {"s1", "s2", "s3"};
+        final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
+
+        final List<Intent> compiledIntents = compiler.compile(intent, null, null);
+
         assertThat(compiledIntents, Matchers.notNullValue());
         assertThat(compiledIntents, hasSize(1));
     }
@@ -240,10 +233,16 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
-        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
+        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(Bandwidth.bps(100.0)));
 
         try {
-            compileIntent(constraint, resourceService);
+            final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
+
+            String[] hops = {"s1", "s2", "s3"};
+            final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
+
+            compiler.compile(intent, null, null);
+
             fail("Point to Point compilation with insufficient bandwidth does "
                     + "not throw exception.");
         } catch (PathNotFoundException noPath) {
@@ -257,12 +256,18 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testLambdaConstrainedIntentSuccess() {
 
-        final Constraint constraint = new LambdaConstraint(Lambda.valueOf(1));
+        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(Lambda.valueOf(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
 
+        final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
+
+        String[] hops = {"s1", "s2", "s3"};
+        final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
+
         final List<Intent> compiledIntents =
-                compileIntent(constraint, resourceService);
+                compiler.compile(intent, null, null);
+
         assertThat(compiledIntents, Matchers.notNullValue());
         assertThat(compiledIntents, hasSize(1));
     }
@@ -274,11 +279,17 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testLambdaConstrainedIntentFailure() {
 
-        final Constraint constraint = new LambdaConstraint(Lambda.valueOf(1));
+        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(Lambda.valueOf(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
         try {
-            compileIntent(constraint, resourceService);
+            final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
+
+            String[] hops = {"s1", "s2", "s3"};
+            final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
+
+            compiler.compile(intent, null, null);
+
             fail("Point to Point compilation with no available lambda does "
                     + "not throw exception.");
         } catch (PathNotFoundException noPath) {

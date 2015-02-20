@@ -15,31 +15,38 @@
  */
 package org.onosproject.net.intent.impl;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.Link;
 import org.onosproject.net.flow.FlowRuleOperation;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.PathIntent;
-import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.Lambda;
-import org.onosproject.net.resource.LinkResourceService;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.fail;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.PID;
 import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.intent.IntentTestsMocks.MockResourceService.makeBandwidthResourceService;
+import static org.onosproject.net.intent.IntentTestsMocks.MockResourceService.makeLambdaResourceService;
 
 /**
  * Unit tests for calculating paths for intents with constraints.
@@ -47,63 +54,26 @@ import static org.onosproject.net.NetTestTools.connectPoint;
 
 public class PathConstraintCalculationTest extends AbstractIntentTest {
 
-    /**
-     * Creates a point to point intent compiler for a three switch linear
-     * topology.
-     *
-     * @param resourceService service to use for resource allocation requests
-     * @return point to point compiler
-     */
-    private PointToPointIntentCompiler makeCompiler(LinkResourceService resourceService) {
-        final String[] hops = {"s1", "s2", "s3"};
-        final PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
-        compiler.resourceService = resourceService;
-        compiler.pathService = new IntentTestsMocks.MockPathService(hops);
-        return compiler;
+    private final IntentTestsMocks.MockSelector selector = new IntentTestsMocks.MockSelector();
+    private final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
+    private final ConnectPoint d1p1 = connectPoint("s1", 0);
+    private final ConnectPoint d2p0 = connectPoint("s2", 0);
+    private final ConnectPoint d2p1 = connectPoint("s2", 1);
+    private final ConnectPoint d3p1 = connectPoint("s3", 1);
+    private final ConnectPoint d3p0 = connectPoint("s3", 10);
+    private final ConnectPoint d1p0 = connectPoint("s1", 10);
+
+    private PathIntentInstaller sut;
+
+    @Before
+    public void setUpIntentInstaller() {
+        sut = new PathIntentInstaller();
+        sut.appId = APP_ID;
     }
 
-    /**
-     * Creates an intent with a given constraint and compiles it. The compiler
-     * will throw PathNotFoundException if the allocations cannot be satisfied.
-     *
-     * @param constraint constraint to apply to the created intent
-     * @param resourceService service to use for resource allocation requests
-     * @return List of compiled intents
-     */
-    private List<Intent> compileIntent(Constraint constraint,
-                                       LinkResourceService resourceService) {
-        final List<Constraint> constraints = new LinkedList<>();
-        constraints.add(constraint);
-        final TrafficSelector selector = new IntentTestsMocks.MockSelector();
-        final TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
-
-        final PointToPointIntent intent =
-                new PointToPointIntent(APP_ID,
-                                       selector,
-                                       treatment,
-                                       connectPoint("s1", 1),
-                                       connectPoint("s3", 1),
-                                       constraints);
-        final PointToPointIntentCompiler compiler = makeCompiler(resourceService);
-
-        return compiler.compile(intent, null, null);
-    }
-
-    /**
-     * Installs a compiled path intent and returns the flow rules it generates.
-     *
-     * @param compiledIntents list of compiled intents
-     * @param resourceService service to use for resource allocation requests
-     * @return fow rule entries
-     */
-    private List<Collection<FlowRuleOperation>> installIntents(List<Intent> compiledIntents,
-                                                        LinkResourceService resourceService) {
-        final PathIntent path = (PathIntent) compiledIntents.get(0);
-
-        final PathIntentInstaller installer = new PathIntentInstaller();
-        installer.resourceService = resourceService;
-        installer.appId = APP_ID;
-        return installer.install(path);
+    private PathIntent createPathIntent(List<Link> links, List<Constraint> constratins) {
+        int hops = links.size() - 1;
+        return new PathIntent(APP_ID, selector, treatment, new DefaultPath(PID, links, hops), constratins);
     }
 
     /**
@@ -113,16 +83,19 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
     @Test
     public void testInstallBandwidthConstrainedIntentSuccess() {
 
-        final IntentTestsMocks.MockResourceService resourceService =
-                IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
         final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
 
-        final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
-        assertThat(compiledIntents, notNullValue());
-        assertThat(compiledIntents, hasSize(1));
+        List<Link> links = Arrays.asList(
+                createEdgeLink(d1p0, true),
+                new DefaultLink(PID, d1p1, d2p0, DIRECT),
+                new DefaultLink(PID, d2p1, d3p1, DIRECT),
+                createEdgeLink(d3p0, false)
+        );
+        PathIntent installable = createPathIntent(links, Arrays.asList(constraint));
 
-        final List<Collection<FlowRuleOperation>> flowOperations =
-                installIntents(compiledIntents, resourceService);
+        sut.resourceService = makeBandwidthResourceService(1000.0);
+
+        final List<Collection<FlowRuleOperation>> flowOperations = sut.install(installable);
 
         assertThat(flowOperations, notNullValue());
         assertThat(flowOperations, hasSize(1));
@@ -135,19 +108,23 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
     @Test
     public void testInstallBandwidthConstrainedIntentFailure() {
 
-        final IntentTestsMocks.MockResourceService resourceService =
-                IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
         final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
 
-        final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
-        assertThat(compiledIntents, notNullValue());
-        assertThat(compiledIntents, hasSize(1));
+        List<Link> links = Arrays.asList(
+                createEdgeLink(d1p0, true),
+                new DefaultLink(PID, d1p1, d2p0, DIRECT),
+                new DefaultLink(PID, d2p1, d3p1, DIRECT),
+                createEdgeLink(d3p0, false)
+        );
+        PathIntent installable = createPathIntent(links, Arrays.asList(constraint));
 
         // Make it look like the available bandwidth was consumed
+        final IntentTestsMocks.MockResourceService resourceService = makeBandwidthResourceService(1000.0);
         resourceService.setAvailableBandwidth(1.0);
+        sut.resourceService = resourceService;
 
         try {
-            installIntents(compiledIntents, resourceService);
+            sut.install(installable);
             fail("Bandwidth request with no available bandwidth did not fail.");
         } catch (IntentTestsMocks.MockedAllocationFailure failure) {
             assertThat(failure,
@@ -162,16 +139,19 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
     @Test
     public void testInstallLambdaConstrainedIntentSuccess() {
 
-        final IntentTestsMocks.MockResourceService resourceService =
-                IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
         final Constraint constraint = new LambdaConstraint(Lambda.valueOf(1));
 
-        final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
-        assertThat(compiledIntents, notNullValue());
-        assertThat(compiledIntents, hasSize(1));
+        List<Link> links = Arrays.asList(
+                createEdgeLink(d1p0, true),
+                new DefaultLink(PID, d1p1, d2p0, DIRECT),
+                new DefaultLink(PID, d2p1, d3p1, DIRECT),
+                createEdgeLink(d3p0, false)
+        );
+        PathIntent installable = createPathIntent(links, Arrays.asList(constraint));
 
-        final List<Collection<FlowRuleOperation>> flowOperations =
-                installIntents(compiledIntents, resourceService);
+        sut.resourceService = makeLambdaResourceService(1);
+
+        final List<Collection<FlowRuleOperation>> flowOperations = sut.install(installable);
 
         assertThat(flowOperations, notNullValue());
         assertThat(flowOperations, hasSize(1));
@@ -184,19 +164,23 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
     @Test
     public void testInstallLambdaConstrainedIntentFailure() {
 
-        final IntentTestsMocks.MockResourceService resourceService =
-                IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
         final Constraint constraint = new LambdaConstraint(Lambda.valueOf(1));
 
-        final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
-        assertThat(compiledIntents, notNullValue());
-        assertThat(compiledIntents, hasSize(1));
+        List<Link> links = Arrays.asList(
+                createEdgeLink(d1p0, true),
+                new DefaultLink(PID, d1p1, d2p0, DIRECT),
+                new DefaultLink(PID, d2p1, d3p1, DIRECT),
+                createEdgeLink(d3p0, false)
+        );
+        PathIntent installable = createPathIntent(links, Arrays.asList(constraint));
 
         // Make it look like the available lambda was consumed
+        final IntentTestsMocks.MockResourceService resourceService = makeLambdaResourceService(1);
         resourceService.setAvailableLambda(0);
+        sut.resourceService = resourceService;
 
         try {
-            installIntents(compiledIntents, resourceService);
+            sut.install(installable);
             fail("Lambda request with no available lambda did not fail.");
         } catch (IntentTestsMocks.MockedAllocationFailure failure) {
             assertThat(failure,
