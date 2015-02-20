@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, tes, tfs, tps, tis, tss, tts;
+    var $log, fs, ks, zs, gs, ms, sus, flash, tes, tfs, tps, tis, tss, tts;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -64,7 +64,7 @@
             A: [tts.showAllTrafficAction, 'Monitor all traffic'],
             F: [tts.showDeviceLinkFlowsAction, 'Show device link flows'],
 
-            //E: [equalizeMasters, 'Equalize mastership roles'],
+            E: [equalizeMasters, 'Equalize mastership roles'],
 
             esc: handleEscape,
 
@@ -99,6 +99,11 @@
 
     function resetZoom() {
         zoomer.reset();
+    }
+
+    function equalizeMasters() {
+        tes.sendEvent('equalizeMasters');
+        flash.flash('Equalizing master roles');
     }
 
     function handleEscape() {
@@ -206,12 +211,12 @@
         .controller('OvTopoCtrl', [
             '$scope', '$log', '$location', '$timeout',
             'FnService', 'MastService', 'KeyService', 'ZoomService',
-            'GlyphService', 'MapService', 'SvgUtilService',
+            'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoTrafficService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _sus_,
+                  _ks_, _zs_, _gs_, _ms_, _sus_, _flash_,
                   _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_) {
             var self = this,
                 projection,
@@ -230,6 +235,7 @@
             gs = _gs_;
             ms = _ms_;
             sus = _sus_;
+            flash = _flash_;
             tes = _tes_;
             tfs = _tfs_;
             tps = _tps_;
