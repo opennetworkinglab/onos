@@ -25,17 +25,26 @@ import org.onosproject.net.Path;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.AbstractIntentTest;
+import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LinkResourceService;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.NetTestTools.APP_ID;
@@ -80,6 +89,47 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         return compiler;
     }
 
+    /**
+     * Creates a point to point intent compiler for a three switch linear
+     * topology.
+     *
+     * @param resourceService service to use for resource allocation requests
+     * @return point to point compiler
+     */
+    private PointToPointIntentCompiler makeCompiler(LinkResourceService resourceService) {
+        final String[] hops = {"s1", "s2", "s3"};
+        final PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
+        compiler.resourceService = resourceService;
+        compiler.pathService = new IntentTestsMocks.MockPathService(hops);
+        return compiler;
+    }
+
+    /**
+     * Creates an intent with a given constraint and compiles it. The compiler
+     * will throw PathNotFoundException if the allocations cannot be satisfied.
+     *
+     * @param constraint constraint to apply to the created intent
+     * @param resourceService service to use for resource allocation requests
+     * @return List of compiled intents
+     */
+    private List<Intent> compileIntent(Constraint constraint,
+                                       LinkResourceService resourceService) {
+        final List<Constraint> constraints = new LinkedList<>();
+        constraints.add(constraint);
+        final TrafficSelector selector = new IntentTestsMocks.MockSelector();
+        final TrafficTreatment treatment = new IntentTestsMocks.MockTreatment();
+
+        final PointToPointIntent intent =
+                new PointToPointIntent(APP_ID,
+                        selector,
+                        treatment,
+                        connectPoint("s1", 1),
+                        connectPoint("s3", 1),
+                        constraints);
+        final PointToPointIntentCompiler compiler = makeCompiler(resourceService);
+
+        return compiler.compile(intent, null, null);
+    }
 
     /**
      * Tests a pair of devices in an 8 hop path, forward direction.
@@ -166,4 +216,74 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         Link secondLink = path.links().get(1);
         assertThat(secondLink, is(createEdgeLink(dst, false)));
     }
+
+    /**
+     * Tests that requests with sufficient available bandwidth succeed.
+     */
+    @Test
+    public void testBandwidthConstrainedIntentSuccess() {
+
+        final LinkResourceService resourceService =
+                IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
+        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
+
+        final List<Intent> compiledIntents = compileIntent(constraint, resourceService);
+        assertThat(compiledIntents, Matchers.notNullValue());
+        assertThat(compiledIntents, hasSize(1));
+    }
+
+    /**
+     * Tests that requests with insufficient available bandwidth fail.
+     */
+    @Test
+    public void testBandwidthConstrainedIntentFailure() {
+
+        final LinkResourceService resourceService =
+                IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
+        final Constraint constraint = new BandwidthConstraint(Bandwidth.bps(100.0));
+
+        try {
+            compileIntent(constraint, resourceService);
+            fail("Point to Point compilation with insufficient bandwidth does "
+                    + "not throw exception.");
+        } catch (PathNotFoundException noPath) {
+            assertThat(noPath.getMessage(), containsString("No path"));
+        }
+    }
+
+    /**
+     * Tests that requests for available lambdas are successful.
+     */
+    @Test
+    public void testLambdaConstrainedIntentSuccess() {
+
+        final Constraint constraint = new LambdaConstraint(Lambda.valueOf(1));
+        final LinkResourceService resourceService =
+                IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
+
+        final List<Intent> compiledIntents =
+                compileIntent(constraint, resourceService);
+        assertThat(compiledIntents, Matchers.notNullValue());
+        assertThat(compiledIntents, hasSize(1));
+    }
+
+    /**
+     * Tests that requests for lambdas when there are no available lambdas
+     * fail.
+     */
+    @Test
+    public void testLambdaConstrainedIntentFailure() {
+
+        final Constraint constraint = new LambdaConstraint(Lambda.valueOf(1));
+        final LinkResourceService resourceService =
+                IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
+        try {
+            compileIntent(constraint, resourceService);
+            fail("Point to Point compilation with no available lambda does "
+                    + "not throw exception.");
+        } catch (PathNotFoundException noPath) {
+            assertThat(noPath.getMessage(), containsString("No path"));
+        }
+    }
+
 }
