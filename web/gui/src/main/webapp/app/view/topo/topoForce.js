@@ -874,7 +874,12 @@
     }
 
     function linkExisting(d) {
-        restyleLinkElement(d, true);
+        // this is supposed to be an existing link, but we have observed
+        //  occasions (where links are deleted and added rapidly?) where
+        //  the DOM element has not been defined. So protection against that...
+        if (d.el) {
+            restyleLinkElement(d, true);
+        }
     }
 
     function linkEntering(d) {
