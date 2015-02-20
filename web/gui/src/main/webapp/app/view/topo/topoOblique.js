@@ -24,7 +24,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, ts;
+    var $log, fs, sus;
 
     // api to topoForce
     var api;
@@ -217,13 +217,12 @@
 
 angular.module('ovTopo')
     .factory('TopoObliqueService',
-    ['$log', 'FnService', 'SvgUtilService', 'ThemeService',
+    ['$log', 'FnService', 'SvgUtilService',
 
-    function (_$log_, _fs_, _sus_, _ts_) {
+    function (_$log_, _fs_, _sus_) {
         $log = _$log_;
         fs = _fs_;
         sus = _sus_;
-        ts = _ts_;
 
         function initOblique(_api_) {
             api = _api_;
