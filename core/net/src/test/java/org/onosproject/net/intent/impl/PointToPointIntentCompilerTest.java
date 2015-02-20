@@ -33,7 +33,6 @@ import org.onosproject.net.intent.PointToPointIntent;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -89,11 +88,9 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     public void testForwardPathCompilation() {
 
         PointToPointIntent intent = makeIntent("d1", "d8");
-        assertThat(intent, is(notNullValue()));
 
         String[] hops = {"d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8"};
         PointToPointIntentCompiler compiler = makeCompiler(hops);
-        assertThat(compiler, is(notNullValue()));
 
         List<Intent> result = compiler.compile(intent, null, null);
         assertThat(result, is(Matchers.notNullValue()));
@@ -122,11 +119,9 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     public void testReversePathCompilation() {
 
         PointToPointIntent intent = makeIntent("d8", "d1");
-        assertThat(intent, is(notNullValue()));
 
         String[] hops = {"d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8"};
         PointToPointIntentCompiler compiler = makeCompiler(hops);
-        assertThat(compiler, is(notNullValue()));
 
         List<Intent> result = compiler.compile(intent, null, null);
         assertThat(result, is(Matchers.notNullValue()));
