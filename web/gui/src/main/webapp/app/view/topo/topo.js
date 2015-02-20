@@ -28,7 +28,7 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, flash, tes, tfs, tps, tis, tss, tts;
+    var $log, fs, ks, zs, gs, ms, sus, flash, tes, tfs, tps, tis, tss, tts, tos;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -52,7 +52,7 @@
             //P: togglePorts,
 
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
-            //Z: [toggleOblique, 'Toggle oblique view (Experimental)'],
+            Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
             L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
             U: [tfs.unpin, 'Unpin node (hover mouse over)'],
             R: [resetZoom, 'Reset pan / zoom'],
@@ -214,10 +214,11 @@
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoTrafficService',
+            'TopoObliqueService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
                   _ks_, _zs_, _gs_, _ms_, _sus_, _flash_,
-                  _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_) {
+                  _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_, _tos_) {
             var self = this,
                 projection,
                 dim,
@@ -238,10 +239,14 @@
             flash = _flash_;
             tes = _tes_;
             tfs = _tfs_;
+            // TODO: consider funnelling actions through TopoForceService...
+            //  rather than injecting references to these 'sub-modules',
+            //  just so we can invoke functions on them.
             tps = _tps_;
             tis = _tis_;
             tss = _tss_;
             tts = _tts_;
+            tos = _tos_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));

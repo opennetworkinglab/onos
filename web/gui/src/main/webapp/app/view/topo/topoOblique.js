@@ -38,6 +38,11 @@
 
     // ==========================
 
+
+    function toggleOblique() {
+        $log.log("TOGGLING OBLIQUE VIEW");
+    }
+
 // === -----------------------------------------------------
 // === MODULE DEFINITION ===
 
@@ -57,7 +62,9 @@ angular.module('ovTopo')
 
         return {
             initOblique: initOblique,
-            destroyOblique: destroyOblique
+            destroyOblique: destroyOblique,
+
+            toggleOblique: toggleOblique
         };
     }]);
 }());

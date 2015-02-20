@@ -34,9 +34,10 @@ describe('factory: view/topo/topoOblique.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tos, [
-            'initOblique', 'destroyOblique'
+            'initOblique', 'destroyOblique', 'toggleOblique'
         ])).toBeTruthy();
     });
 
     // TODO: more tests...
 });
+

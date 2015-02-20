@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, tms, tss, tts, fltr,
+    var $log, fs, sus, is, ts, flash, tis, tms, tss, tts, tos, fltr,
         icfg, uplink;
 
     // configuration
@@ -1084,6 +1084,13 @@
         }
     }
 
+    function mkObliqueApi(uplink) {
+        return {
+            node: function () { return node; },
+            link: function () { return link; }
+        };
+    }
+
     function mkFilterApi(uplink) {
         return {
             node: function () { return node; },
@@ -1095,10 +1102,11 @@
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
             'FlashService', 'TopoInstService', 'TopoModelService',
-            'TopoSelectService', 'TopoTrafficService', 'TopoFilterService',
+            'TopoSelectService', 'TopoTrafficService',
+            'TopoObliqueService', 'TopoFilterService',
 
         function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_,
-                  _tis_, _tms_, _tss_, _tts_, _fltr_) {
+                  _tis_, _tms_, _tss_, _tts_, _tos_, _fltr_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -1109,6 +1117,7 @@
             tms = _tms_;
             tss = _tss_;
             tts = _tts_;
+            tos = _tos_;
             fltr = _fltr_;
 
             icfg = is.iconConfig();
@@ -1131,6 +1140,7 @@
                 tms.initModel(mkModelApi(uplink), dim);
                 tss.initSelect(mkSelectApi(uplink));
                 tts.initTraffic(mkTrafficApi(uplink));
+                tos.initOblique(mkObliqueApi(uplink));
                 fltr.initFilter(mkFilterApi(uplink), d3.select('#mast-right'));
 
                 settings = angular.extend({}, defaultSettings, opts);
@@ -1167,6 +1177,7 @@
 
             function destroyForce() {
                 fltr.destroyFilter();
+                tos.destroyOblique();
                 tts.destroyTraffic();
                 tss.destroySelect();
                 tms.destroyModel();
