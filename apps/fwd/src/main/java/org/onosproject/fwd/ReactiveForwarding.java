@@ -505,10 +505,9 @@ public class ReactiveForwarding {
                         .matchIPProtocol(ipv4Protocol);
 
                 if (matchIpv4Dscp) {
-                    int dscp = ipv4Packet.getDiffServ() >>> 2;
-                    int ecn = ipv4Packet.getDiffServ() % 4;
-                    builder.matchIPDscp((byte) (dscp))
-                            .matchIPEcn((byte) (ecn));
+                    byte dscp = ipv4Packet.getDscp();
+                    byte ecn = ipv4Packet.getEcn();
+                    builder.matchIPDscp(dscp).matchIPEcn(ecn);
                 }
 
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_TCP) {

@@ -41,6 +41,10 @@ public class IPv4 extends BasePacket {
         IPv4.PROTOCOL_CLASS_MAP.put(IPv4.PROTOCOL_UDP, UDP.class);
     }
 
+    private static final byte DSCP_MASK = 0x3f;
+    private static final byte DSCP_OFFSET = 2;
+    private static final byte ECN_MASK = 0x3;
+
     protected byte version;
     protected byte headerLength;
     protected byte diffServ;
@@ -91,15 +95,61 @@ public class IPv4 extends BasePacket {
     }
 
     /**
-     * @return the diffServ
+     * Gets the DSCP value (6 bits).
+     *
+     * @return the DSCP value (6 bits)
+     */
+    public byte getDscp() {
+        return (byte) ((this.diffServ >>> DSCP_OFFSET) & DSCP_MASK);
+    }
+
+    /**
+     * Sets the DSCP value (6 bits).
+     *
+     * @param dscp the DSCP value (6 bits)
+     * @return this
+     */
+    public IPv4 setDscp(byte dscp) {
+        this.diffServ &= ~(DSCP_MASK << DSCP_OFFSET);
+        this.diffServ |= (dscp & DSCP_MASK) << DSCP_OFFSET;
+        return this;
+    }
+
+    /**
+     * Gets the ECN value (2 bits).
+     *
+     * @return the ECN value (2 bits)
+     */
+    public byte getEcn() {
+        return (byte) (this.diffServ & ECN_MASK);
+    }
+
+    /**
+     * Sets the ECN value (2 bits).
+     *
+     * @param ecn the ECN value (2 bits)
+     * @return this
+     */
+    public IPv4 setEcn(byte ecn) {
+        this.diffServ &= ~ECN_MASK;
+        this.diffServ |= (ecn & ECN_MASK);
+        return this;
+    }
+
+    /**
+     * Gets the DiffServ octet (including the DSCP and ECN bits).
+     *
+     * @return the diffServ octet (including the DSCP and ECN bits)
      */
     public byte getDiffServ() {
         return this.diffServ;
     }
 
     /**
-     * @param diffServ
-     *            the diffServ to set
+     * Sets the DiffServ octet (including the DSCP and ECN bits).
+     *
+     * @param diffServ the diffServ octet to set (including the DSCP and ECN
+     * bits)
      * @return this
      */
     public IPv4 setDiffServ(final byte diffServ) {
