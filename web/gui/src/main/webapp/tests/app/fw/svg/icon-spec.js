@@ -75,31 +75,31 @@ describe('factory: fw/svg/icon.js', function() {
 
     it('should load an icon into a div', function () {
         expect(d3Elem.html()).toEqual('');
-        is.loadIcon(d3Elem, 'deviceOnline');
+        is.loadIconByClass(d3Elem, 'deviceOnline');
         verifyIconStructure('deviceOnline', '#checkMark');
     });
 
     it('should allow us to specify the icon size', function () {
         expect(d3Elem.html()).toEqual('');
-        is.loadIcon(d3Elem, 'deviceOffline', 32);
+        is.loadIconByClass(d3Elem, 'deviceOffline', 32);
         verifyIconStructure('deviceOffline', '#xMark', '32');
     });
 
     it('should verify triangleUp icon', function () {
         expect(d3Elem.html()).toEqual('');
-        is.loadIcon(d3Elem, 'tableColSortAsc', 10);
+        is.loadIconByClass(d3Elem, 'tableColSortAsc', 10);
         verifyIconStructure('tableColSortAsc', '#triangleUp', '10');
     });
 
     it('should verify triangleDown icon', function () {
         expect(d3Elem.html()).toEqual('');
-        is.loadIcon(d3Elem, 'tableColSortDesc', 10);
+        is.loadIconByClass(d3Elem, 'tableColSortDesc', 10);
         verifyIconStructure('tableColSortDesc', '#triangleDown', '10');
     });
 
     it('should verify no icon is displayed', function () {
         expect(d3Elem.html()).toEqual('');
-        is.loadIcon(d3Elem, 'tableColSortNone', 10);
+        is.loadIconByClass(d3Elem, 'tableColSortNone', 10);
         verifyIconStructure('tableColSortNone', null, '10');
     });
 

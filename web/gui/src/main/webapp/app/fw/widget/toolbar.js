@@ -102,7 +102,7 @@
             return null;
         }
 
-        for(var i = 0; i < tools.length; i += 1) {
+        for (var i = 0; i < tools.length; i += 1) {
             if (tools[i].t === 'rad' || tools[i].t === 'sep') {
                 continue;
             } else {

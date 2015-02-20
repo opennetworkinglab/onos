@@ -52,16 +52,16 @@
     }
 
     // div is a D3 selection of the <DIV> element into which icon should load
-    // iconCls is the CSS class used to identify the icon
+    // glyphId identifies the glyph to use
     // size is dimension of icon in pixels. Defaults to 20.
     // installGlyph, if truthy, will cause the glyph to be added to
     //      well-known defs element. Defaults to false.
     // svgClass is the CSS class used to identify the SVG layer.
     //      Defaults to 'embeddedIcon'.
-    function loadIcon(div, iconCls, size, installGlyph, svgClass) {
+    function loadIcon(div, glyphId, size, installGlyph, svgClass) {
         var dim = size || 20,
             svgCls = svgClass || 'embeddedIcon',
-            gid = glyphMapping[iconCls] || 'unknown',
+            gid = glyphId || 'unknown',
             svg, g;
 
         if (installGlyph) {
@@ -76,7 +76,7 @@
         });
 
         g = svg.append('g').attr({
-            'class': 'icon ' + iconCls
+            'class': 'icon'
         });
 
         g.append('rect').attr({
@@ -91,10 +91,22 @@
             'class': 'glyph',
             'xlink:href': '#' + gid
         });
-}
+    }
+
+    // div is a D3 selection of the <DIV> element into which icon should load
+    // iconCls is the CSS class used to identify the icon
+    // size is dimension of icon in pixels. Defaults to 20.
+    // installGlyph, if truthy, will cause the glyph to be added to
+    //      well-known defs element. Defaults to false.
+    // svgClass is the CSS class used to identify the SVG layer.
+    //      Defaults to 'embeddedIcon'.
+    function loadIconByClass(div, iconCls, size, installGlyph, svgClass) {
+        loadIcon(div, glyphMapping[iconCls], size, installGlyph, svgClass);
+        div.select('svg g').classed(iconCls, true);
+    }
 
     function loadEmbeddedIcon(div, iconCls, size) {
-        loadIcon(div, iconCls, size, true);
+        loadIconByClass(div, iconCls, size, true);
     }
 
 
@@ -198,6 +210,7 @@
 
             return {
                 loadIcon: loadIcon,
+                loadIconByClass: loadIconByClass,
                 loadEmbeddedIcon: loadEmbeddedIcon,
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
