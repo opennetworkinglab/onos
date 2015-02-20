@@ -173,7 +173,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchIPEcnTest() {
-        Criterion criterion = Criteria.matchIPEcn((byte) 7);
+        Criterion criterion = Criteria.matchIPEcn((byte) 3);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }

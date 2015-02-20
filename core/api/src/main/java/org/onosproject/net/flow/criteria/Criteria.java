@@ -133,7 +133,7 @@ public final class Criteria {
     /**
      * Creates a match on IP ECN field using the specified value.
      *
-     * @param ipEcn ip ecn value (3 bits)
+     * @param ipEcn ip ecn value (2 bits)
      * @return match criterion
      */
     public static Criterion matchIPEcn(byte ipEcn) {
@@ -770,16 +770,16 @@ public final class Criteria {
 
     /**
      * Implementation of IP ECN (Explicit Congestion Notification) criterion
-     * (3 bits).
+     * (2 bits).
      */
     public static final class IPEcnCriterion implements Criterion {
-        private static final byte MASK = 0x7;
-        private final byte ipEcn;               // IP ECN value: 3 bits
+        private static final byte MASK = 0x3;
+        private final byte ipEcn;               // IP ECN value: 2 bits
 
         /**
          * Constructor.
          *
-         * @param ipEcn the IP ECN value to match (3 bits)
+         * @param ipEcn the IP ECN value to match (2 bits)
          */
         public IPEcnCriterion(byte ipEcn) {
             this.ipEcn = (byte) (ipEcn & MASK);
@@ -793,7 +793,7 @@ public final class Criteria {
         /**
          * Gets the IP ECN value to match.
          *
-         * @return the IP ECN value to match (3 bits)
+         * @return the IP ECN value to match (2 bits)
          */
         public byte ipEcn() {
             return ipEcn;
