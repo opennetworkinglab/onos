@@ -54,7 +54,7 @@ describe('factory: view/topo/topoFilter.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(fltr, [
             'initFilter', 'destroyFilter',
-            'clickAction', 'selected'
+            'clickAction', 'selected', 'inLayer',
         ])).toBeTruthy();
     });
 

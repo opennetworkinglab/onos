@@ -76,7 +76,6 @@
         hostLabelIndex = 0,     // for host label cycling
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
-        oblique = false,        // whether we are in the oblique view
         nodeLock = false,       // whether nodes can be dragged or not (locked)
         dim;                    // the dimensions of the force layout [w,h]
 
@@ -965,13 +964,13 @@
     // force layout tick function
 
     function fResume() {
-        if (!oblique) {
+        if (!tos.isOblique()) {
             force.resume();
         }
     }
 
     function fStart() {
-        if (!oblique) {
+        if (!tos.isOblique()) {
             force.start();
         }
     }
@@ -1084,10 +1083,23 @@
         }
     }
 
-    function mkObliqueApi(uplink) {
+    function mkObliqueApi(uplink, fltr) {
         return {
+            force: function() { return force; },
+            zoomLayer: uplink.zoomLayer,
+            nodeGBBox: function() { return nodeG.node().getBBox(); },
             node: function () { return node; },
-            link: function () { return link; }
+            link: function () { return link; },
+            linkLabel: function () { return linkLabel; },
+            nodes: function () { return network.nodes; },
+            tickStuff: tickStuff,
+            nodeLock: function (b) {
+                var old = nodeLock;
+                nodeLock = b;
+                return old;
+            },
+            opacifyMap: uplink.opacifyMap,
+            inLayer: fltr.inLayer
         };
     }
 
@@ -1140,7 +1152,7 @@
                 tms.initModel(mkModelApi(uplink), dim);
                 tss.initSelect(mkSelectApi(uplink));
                 tts.initTraffic(mkTrafficApi(uplink));
-                tos.initOblique(mkObliqueApi(uplink));
+                tos.initOblique(mkObliqueApi(uplink, fltr));
                 fltr.initFilter(mkFilterApi(uplink), d3.select('#mast-right'));
 
                 settings = angular.extend({}, defaultSettings, opts);

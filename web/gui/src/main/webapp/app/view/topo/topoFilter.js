@@ -117,7 +117,6 @@
         return btnG ? btnG.selected : '';
     }
 
-    // code to manipulate the nodes and links as per the filter settings
     function inLayer(d, layer) {
         var type = d.class === 'link' ? d.type() : d.type,
             look = layerLookup[d.class],
@@ -186,7 +185,8 @@
                     destroyFilter: destroyFilter,
 
                     clickAction: clickAction,
-                    selected: selected
+                    selected: selected,
+                    inLayer: inLayer
                 };
             }]);
 }());

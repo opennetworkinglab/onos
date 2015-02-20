@@ -204,6 +204,11 @@
         return ms.loadMapInto(mapG, '*continental_us');
     }
 
+    function opacifyMap(b) {
+        mapG.transition()
+            .duration(1000)
+            .attr('opacity', b ? 1 : 0);
+    }
 
     // --- Controller Definition -----------------------------------------
 
@@ -226,6 +231,8 @@
                     // provides function calls back into this space
                     showNoDevs: showNoDevs,
                     projection: function () { return projection; },
+                    zoomLayer: function () { return zoomLayer; },
+                    opacifyMap: opacifyMap,
                     sendEvent: _tes_.sendEvent
                 };
 
