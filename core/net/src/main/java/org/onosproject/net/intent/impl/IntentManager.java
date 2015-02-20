@@ -201,6 +201,11 @@ public class IntentManager
     }
 
     @Override
+    public boolean isLocal(Key intentKey) {
+        return store.isMaster(intentKey);
+    }
+
+    @Override
     public void addListener(IntentListener listener) {
         listenerRegistry.addListener(listener);
     }

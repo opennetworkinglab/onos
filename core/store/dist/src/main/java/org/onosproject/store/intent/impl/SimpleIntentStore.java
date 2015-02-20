@@ -252,7 +252,7 @@ public class SimpleIntentStore
     }
 
     @Override
-    public boolean isMaster(Intent intent) {
+    public boolean isMaster(Key intentKey) {
         return true;
     }
 }

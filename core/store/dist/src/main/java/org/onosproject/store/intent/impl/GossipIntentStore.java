@@ -276,8 +276,8 @@ public class GossipIntentStore
     }
 
     @Override
-    public boolean isMaster(Intent intent) {
-        return partitionService.isMine(intent.key());
+    public boolean isMaster(Key intentKey) {
+        return partitionService.isMine(intentKey);
     }
 
     private void notifyDelegateIfNotNull(IntentEvent event) {
@@ -308,7 +308,7 @@ public class GossipIntentStore
                 // The pending intents map has been updated. If we are master for
                 // this intent's partition, notify the Manager that it should do
                 // some work.
-                if (isMaster(event.value().intent())) {
+                if (isMaster(event.value().intent().key())) {
                     if (delegate != null) {
                         delegate.process(copyData(event.value()));
                     }

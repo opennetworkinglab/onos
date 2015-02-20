@@ -124,9 +124,4 @@ public class SimpleIntentStore
         notifyDelegate(IntentEvent.getEvent(data));
     }
 
-
-    @Override
-    public boolean isMaster(Intent intent) {
-        return true;
-    }
 }

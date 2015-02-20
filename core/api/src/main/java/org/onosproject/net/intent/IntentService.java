@@ -82,6 +82,10 @@ public interface IntentService {
      */
     List<Intent> getInstallableIntents(Key intentKey);
 
+    default boolean isLocal(Key intentKey) {
+        return true;
+    }
+
     /**
      * Adds the specified listener for intent events.
      *

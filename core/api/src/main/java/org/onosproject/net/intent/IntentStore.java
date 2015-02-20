@@ -106,11 +106,11 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * Checks to see whether the calling instance is the master for processing
      * this intent, or more specifically, the key contained in this intent.
      *
-     * @param intent intent to check
+     * @param intentKey intentKey to check
      * @return true if master; false, otherwise
      */
     //TODO better name
-    default boolean isMaster(Intent intent) { //FIXME remove default when impl.
+    default boolean isMaster(Key intentKey) { //FIXME remove default when impl.
         return true;
     }
 }
