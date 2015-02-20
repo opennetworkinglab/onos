@@ -46,7 +46,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -154,9 +153,10 @@ public class EventuallyConsistentMapImpl<K, V>
                         groupedThreads("onos/ecm", mapName + "-bg-%d")));
 
         // start anti-entropy thread
-        backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
-                                               initialDelaySec, periodSec,
-                                               TimeUnit.SECONDS);
+        //FIXME need to re-enable
+//        backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
+//                                               initialDelaySec, periodSec,
+//                                               TimeUnit.SECONDS);
 
         updateMessageSubject = new MessageSubject("ecm-" + mapName + "-update");
         clusterCommunicator.addSubscriber(updateMessageSubject,
