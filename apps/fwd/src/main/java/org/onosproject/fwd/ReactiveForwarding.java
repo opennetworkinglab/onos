@@ -19,6 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Dictionary;
 import java.util.Set;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -28,6 +29,15 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.TCP;
+import org.onlab.packet.UDP;
+import org.onlab.packet.ICMP;
+import org.onlab.packet.ICMP6;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Host;
@@ -57,8 +67,8 @@ import org.slf4j.Logger;
 @Component(immediate = true)
 public class ReactiveForwarding {
 
-    private static final int TIMEOUT = 10;
-    private static final int PRIORITY = 10;
+    private static final int DEFAULT_TIMEOUT = 10;
+    private static final int DEFAULT_PRIORITY = 10;
 
     private final Logger log = getLogger(getClass());
 
@@ -85,9 +95,58 @@ public class ReactiveForwarding {
             label = "Enable packet-out only forwarding; default is false")
     private boolean packetOutOnly = false;
 
+    @Property(name = "packetOutOfppTable", boolValue = false,
+            label = "Enable first packet forwarding using OFPP_TABLE port " +
+                "instead of PacketOut with actual port; default is false")
+    private boolean packetOutOfppTable = false;
+
+    @Property(name = "flowTimeout", intValue = DEFAULT_TIMEOUT,
+            label = "Configure Flow Timeout for installed flow rules; " +
+                "default is 10 sec")
+    private int flowTimeout = DEFAULT_TIMEOUT;
+
+    @Property(name = "flowPriority", intValue = DEFAULT_PRIORITY,
+            label = "Configure Flow Priority for installed flow rules; " +
+                "default is 10")
+    private int flowPriority = DEFAULT_PRIORITY;
+
     @Property(name = "ipv6Forwarding", boolValue = false,
             label = "Enable IPv6 forwarding; default is false")
     private boolean ipv6Forwarding = false;
+
+    @Property(name = "matchDstMacOnly", boolValue = false,
+            label = "Enable matching Dst Mac Only; default is false")
+    private boolean matchDstMacOnly = false;
+
+    @Property(name = "matchVlanId", boolValue = false,
+            label = "Enable matching Vlan ID; default is false")
+    private boolean matchVlanId = false;
+
+    @Property(name = "matchIpv4Address", boolValue = false,
+            label = "Enable matching IPv4 Addresses; default is false")
+    private boolean matchIpv4Address = false;
+
+    @Property(name = "matchIpv4Dscp", boolValue = false,
+            label = "Enable matching IPv4 DSCP and ECN; default is false")
+    private boolean matchIpv4Dscp = false;
+
+    @Property(name = "matchIpv6Address", boolValue = false,
+            label = "Enable matching IPv6 Addresses; default is false")
+    private boolean matchIpv6Address = false;
+
+    @Property(name = "matchIpv6FlowLabel", boolValue = false,
+            label = "Enable matching IPv6 FlowLabel; default is false")
+    private boolean matchIpv6FlowLabel = false;
+
+    @Property(name = "matchTcpUdpPorts", boolValue = false,
+            label = "Enable matching TCP/UDP ports; default is false")
+    private boolean matchTcpUdpPorts = false;
+
+    @Property(name = "matchIcmpFields", boolValue = false,
+            label = "Enable matching ICMPv4 and ICMPv6 fields; " +
+                "default is false")
+    private boolean matchIcmpFields = false;
+
 
     @Activate
     public void activate(ComponentContext context) {
@@ -98,7 +157,17 @@ public class ReactiveForwarding {
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
-        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
+        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE,
+                                     appId);
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE,
+                                     appId);
+
+        if (ipv6Forwarding) {
+            selector.matchEthType(Ethernet.TYPE_IPV6);
+            packetService.requestPackets(selector.build(),
+                                         PacketPriority.REACTIVE, appId);
+        }
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -123,18 +192,123 @@ public class ReactiveForwarding {
      */
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
-        boolean packetOutOnlyEnabled = isPropertyEnabled(properties, "packetOutOnly");
+        boolean packetOutOnlyEnabled =
+            isPropertyEnabled(properties, "packetOutOnly");
         if (packetOutOnly != packetOutOnlyEnabled) {
             packetOutOnly = packetOutOnlyEnabled;
             log.info("Configured. Packet-out only forwarding is {}",
-                    packetOutOnly ? "enabled" : "disabled");
+                packetOutOnly ? "enabled" : "disabled");
         }
-        boolean ipv6ForwardingEnabled = isPropertyEnabled(properties, "ipv6Forwarding");
+        boolean packetOutOfppTableEnabled =
+            isPropertyEnabled(properties, "packetOutOfppTable");
+        if (packetOutOfppTable != packetOutOfppTableEnabled) {
+            packetOutOfppTable = packetOutOfppTableEnabled;
+            log.info("Configured. Forwarding using OFPP_TABLE port is {}",
+                packetOutOfppTable ? "enabled" : "disabled");
+        }
+        boolean ipv6ForwardingEnabled =
+            isPropertyEnabled(properties, "ipv6Forwarding");
         if (ipv6Forwarding != ipv6ForwardingEnabled) {
             ipv6Forwarding = ipv6ForwardingEnabled;
             log.info("Configured. IPv6 forwarding is {}",
-                    ipv6Forwarding ? "enabled" : "disabled");
+                ipv6Forwarding ? "enabled" : "disabled");
         }
+        boolean matchDstMacOnlyEnabled =
+            isPropertyEnabled(properties, "matchDstMacOnly");
+        if (matchDstMacOnly != matchDstMacOnlyEnabled) {
+            matchDstMacOnly = matchDstMacOnlyEnabled;
+            log.info("Configured. Match Dst MAC Only is {}",
+                matchDstMacOnly ? "enabled" : "disabled");
+        }
+        boolean matchVlanIdEnabled =
+            isPropertyEnabled(properties, "matchVlanId");
+        if (matchVlanId != matchVlanIdEnabled) {
+            matchVlanId = matchVlanIdEnabled;
+            log.info("Configured. Matching Vlan ID is {}",
+                matchVlanId ? "enabled" : "disabled");
+        }
+        boolean matchIpv4AddressEnabled =
+            isPropertyEnabled(properties, "matchIpv4Address");
+        if (matchIpv4Address != matchIpv4AddressEnabled) {
+            matchIpv4Address = matchIpv4AddressEnabled;
+            log.info("Configured. Matching IPv4 Addresses is {}",
+                matchIpv4Address ? "enabled" : "disabled");
+        }
+        boolean matchIpv4DscpEnabled =
+            isPropertyEnabled(properties, "matchIpv4Dscp");
+        if (matchIpv4Dscp != matchIpv4DscpEnabled) {
+            matchIpv4Dscp = matchIpv4DscpEnabled;
+            log.info("Configured. Matching IPv4 DSCP and ECN is {}",
+                matchIpv4Dscp ? "enabled" : "disabled");
+        }
+        boolean matchIpv6AddressEnabled =
+            isPropertyEnabled(properties, "matchIpv6Address");
+        if (matchIpv6Address != matchIpv6AddressEnabled) {
+            matchIpv6Address = matchIpv6AddressEnabled;
+            log.info("Configured. Matching IPv6 Addresses is {}",
+                matchIpv6Address ? "enabled" : "disabled");
+        }
+        boolean matchIpv6FlowLabelEnabled =
+            isPropertyEnabled(properties, "matchIpv6FlowLabel");
+        if (matchIpv6FlowLabel != matchIpv6FlowLabelEnabled) {
+            matchIpv6FlowLabel = matchIpv6FlowLabelEnabled;
+            log.info("Configured. Matching IPv6 FlowLabel is {}",
+                matchIpv6FlowLabel ? "enabled" : "disabled");
+        }
+        boolean matchTcpUdpPortsEnabled =
+            isPropertyEnabled(properties, "matchTcpUdpPorts");
+        if (matchTcpUdpPorts != matchTcpUdpPortsEnabled) {
+            matchTcpUdpPorts = matchTcpUdpPortsEnabled;
+            log.info("Configured. Matching TCP/UDP fields is {}",
+                matchTcpUdpPorts ? "enabled" : "disabled");
+        }
+        boolean matchIcmpFieldsEnabled =
+            isPropertyEnabled(properties, "matchIcmpFields");
+        if (matchIcmpFields != matchIcmpFieldsEnabled) {
+            matchIcmpFields = matchIcmpFieldsEnabled;
+            log.info("Configured. Matching ICMP (v4 and v6) fields is {}",
+                matchIcmpFields ? "enabled" : "disabled");
+        }
+        Integer flowTimeoutConfigured =
+            getIntegerProperty(properties, "flowTimeout");
+        if (flowTimeoutConfigured == null) {
+            log.info("Flow Timeout is not configured, default value is {}",
+                     flowTimeout);
+        } else {
+            flowTimeout = flowTimeoutConfigured;
+            log.info("Configured. Flow Timeout is configured to {}",
+                     flowTimeout, " seconds");
+        }
+        Integer flowPriorityConfigured =
+            getIntegerProperty(properties, "flowPriority");
+        if (flowPriorityConfigured == null) {
+            log.info("Flow Priority is not configured, default value is {}",
+                     flowPriority);
+        } else {
+            flowPriority = flowPriorityConfigured;
+            log.info("Configured. Flow Priority is configured to {}",
+                     flowPriority);
+        }
+    }
+
+    /**
+     * Get Integer property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Integer getIntegerProperty(Dictionary<?, ?> properties,
+                                              String propertyName) {
+        Integer value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? value : Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            value = null;
+        }
+        return value;
     }
 
     /**
@@ -144,7 +318,8 @@ public class ReactiveForwarding {
      * @param propertyName the name of the property to look up
      * @return true when the propertyName is defined and set to true
      */
-    private static boolean isPropertyEnabled(Dictionary<?, ?> properties, String propertyName) {
+    private static boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                             String propertyName) {
         boolean enabled = false;
         try {
             String flag = (String) properties.get(propertyName);
@@ -213,9 +388,10 @@ public class ReactiveForwarding {
 
             // Otherwise, get a set of paths that lead from here to the
             // destination edge switch.
-            Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
-                                                       pkt.receivedFrom().deviceId(),
-                                                       dst.location().deviceId());
+            Set<Path> paths =
+                topologyService.getPaths(topologyService.currentTopology(),
+                                         pkt.receivedFrom().deviceId(),
+                                         dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
                 flood(context);
@@ -279,27 +455,137 @@ public class ReactiveForwarding {
 
     // Install a rule forwarding the packet to the specified port.
     private void installRule(PacketContext context, PortNumber portNumber) {
-        // We don't yet support bufferids in the flowservice so packet out first.
-        packetOut(context, portNumber);
-        if (!packetOutOnly) {
-            // Install the flow rule to handle this type of message from now on.
-            Ethernet inPkt = context.inPacket().parsed();
-            TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
-            builder.matchEthType(inPkt.getEtherType())
+        //
+        // We don't support (yet) buffer IDs in the Flow Service so
+        // packet out first.
+        //
+        Ethernet inPkt = context.inPacket().parsed();
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+
+        // If PacketOutOnly or ARP packet than forward directly to output port
+        if (packetOutOnly || inPkt.getEtherType() == Ethernet.TYPE_ARP) {
+            packetOut(context, portNumber);
+            return;
+        }
+
+        //
+        // If matchDstMacOnly
+        //    Create flows matching dstMac only
+        // Else
+        //    Create flows with default matching and include configured fields
+        //
+        if (matchDstMacOnly) {
+            builder.matchEthDst(inPkt.getDestinationMAC());
+        } else {
+            builder.matchInPort(context.inPacket().receivedFrom().port())
                     .matchEthSrc(inPkt.getSourceMAC())
                     .matchEthDst(inPkt.getDestinationMAC())
-                    .matchInPort(context.inPacket().receivedFrom().port());
+                    .matchEthType(inPkt.getEtherType());
 
-            TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
-            treat.setOutput(portNumber);
+            // If configured Match Vlan ID
+            if (matchVlanId && inPkt.getVlanID() != Ethernet.VLAN_UNTAGGED) {
+                builder.matchVlanId(VlanId.vlanId(inPkt.getVlanID()));
+            }
 
-            FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                                             builder.build(), treat.build(), PRIORITY, appId, TIMEOUT, false);
+            //
+            // If configured and EtherType is IPv4 - Match IPv4 and
+            // TCP/UDP/ICMP fields
+            //
+            if (matchIpv4Address && inPkt.getEtherType() == Ethernet.TYPE_IPV4) {
+                IPv4 ipv4Packet = (IPv4) inPkt.getPayload();
+                byte ipv4Protocol = ipv4Packet.getProtocol();
+                Ip4Prefix matchIp4SrcPrefix =
+                    Ip4Prefix.valueOf(ipv4Packet.getSourceAddress(),
+                                      Ip4Prefix.MAX_MASK_LENGTH);
+                Ip4Prefix matchIp4DstPrefix =
+                    Ip4Prefix.valueOf(ipv4Packet.getDestinationAddress(),
+                                      Ip4Prefix.MAX_MASK_LENGTH);
+                builder.matchIPSrc(matchIp4SrcPrefix)
+                        .matchIPDst(matchIp4DstPrefix)
+                        .matchIPProtocol(ipv4Protocol);
 
-            flowRuleService.applyFlowRules(f);
+                if (matchIpv4Dscp) {
+                    int dscp = ipv4Packet.getDiffServ() >>> 2;
+                    int ecn = ipv4Packet.getDiffServ() % 4;
+                    builder.matchIPDscp((byte) (dscp))
+                            .matchIPEcn((byte) (ecn));
+                }
+
+                if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_TCP) {
+                    TCP tcpPacket = (TCP) ipv4Packet.getPayload();
+                    builder.matchTcpSrc(tcpPacket.getSourcePort())
+                            .matchTcpDst(tcpPacket.getDestinationPort());
+                }
+                if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_UDP) {
+                    UDP udpPacket = (UDP) ipv4Packet.getPayload();
+                    builder.matchUdpSrc(udpPacket.getSourcePort())
+                            .matchUdpDst(udpPacket.getDestinationPort());
+                }
+                if (matchIcmpFields && ipv4Protocol == IPv4.PROTOCOL_ICMP) {
+                    ICMP icmpPacket = (ICMP) ipv4Packet.getPayload();
+                    builder.matchIcmpType(icmpPacket.getIcmpType())
+                            .matchIcmpCode(icmpPacket.getIcmpCode());
+                }
+            }
+
+            //
+            // If configured and EtherType is IPv6 - Match IPv6 and
+            // TCP/UDP/ICMP fields
+            //
+            if (matchIpv6Address && inPkt.getEtherType() == Ethernet.TYPE_IPV6) {
+                IPv6 ipv6Packet = (IPv6) inPkt.getPayload();
+                byte ipv6NextHeader = ipv6Packet.getNextHeader();
+                Ip6Prefix matchIp6SrcPrefix =
+                    Ip6Prefix.valueOf(ipv6Packet.getSourceAddress(),
+                                      Ip6Prefix.MAX_MASK_LENGTH);
+                Ip6Prefix matchIp6DstPrefix =
+                    Ip6Prefix.valueOf(ipv6Packet.getDestinationAddress(),
+                                      Ip6Prefix.MAX_MASK_LENGTH);
+                builder.matchIPv6Src(matchIp6SrcPrefix)
+                        .matchIPv6Dst(matchIp6DstPrefix)
+                        .matchIPProtocol(ipv6NextHeader);
+
+                if (matchIpv6FlowLabel) {
+                    builder.matchIPv6FlowLabel(ipv6Packet.getFlowLabel());
+                }
+
+                if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_TCP) {
+                    TCP tcpPacket = (TCP) ipv6Packet.getPayload();
+                    builder.matchTcpSrc(tcpPacket.getSourcePort())
+                            .matchTcpDst(tcpPacket.getDestinationPort());
+                }
+                if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_UDP) {
+                    UDP udpPacket = (UDP) ipv6Packet.getPayload();
+                    builder.matchUdpSrc(udpPacket.getSourcePort())
+                            .matchUdpDst(udpPacket.getDestinationPort());
+                }
+                if (matchIcmpFields && ipv6NextHeader == IPv6.PROTOCOL_ICMP6) {
+                    ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
+                    builder.matchIcmpv6Type(icmp6Packet.getIcmpType())
+                            .matchIcmpv6Code(icmp6Packet.getIcmpCode());
+                }
+            }
+        }
+        TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
+        treat.setOutput(portNumber);
+
+        FlowRule f =
+            new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
+                                builder.build(), treat.build(), flowPriority,
+                                appId, flowTimeout, false);
+
+        flowRuleService.applyFlowRules(f);
+
+        //
+        // If packetOutOfppTable
+        //  Send packet back to the OpenFlow pipeline to match installed flow
+        // Else
+        //  Send packet direction on the appropriate port
+        //
+        if (packetOutOfppTable) {
+            packetOut(context, PortNumber.TABLE);
+        } else {
+            packetOut(context, portNumber);
         }
     }
-
 }
-
-
