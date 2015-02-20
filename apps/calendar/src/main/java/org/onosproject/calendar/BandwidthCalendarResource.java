@@ -135,7 +135,7 @@ public class BandwidthCalendarResource extends BaseResource {
      * @param srcPort the source port (-1 if src/dest is a host)
      * @param dstPort the destination port (-1 if src/dest is a host)
      * @param bandwidth the bandwidth (mbps) requirement for the path
-     * @return @return Intent state, "INSTALLED", if successful,
+     * @return Intent state, "INSTALLED", if successful,
      *         server error message or "FAILED" if failed to modify any direction intent
      */
     @javax.ws.rs.Path("/{intentKey}/{src}/{dst}/{srcPort}/{dstPort}/{bandwidth}")

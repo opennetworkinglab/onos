@@ -56,6 +56,8 @@ public interface TransactionContext {
 
     /**
      * Creates a new transactional map.
+     * @param <K> key type
+     * @param <V> value type
      * @param mapName name of the transactional map.
      * @param serializer serializer to use for encoding/decoding keys and vaulues.
      * @return new Transactional Map.

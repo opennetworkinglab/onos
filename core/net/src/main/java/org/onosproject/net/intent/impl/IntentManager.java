@@ -363,6 +363,7 @@ public class IntentManager
      * Generate a {@link FlowRuleOperations} instance from the specified intent data.
      *
      * @param current intent data stored in the store
+     * @param pending intent data that is pending
      * @return flow rule operations
      */
     // TODO: make this non-public due to short term hack for ONOS-1051
