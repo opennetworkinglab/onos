@@ -295,14 +295,22 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private boolean removeInternal(K key, Timestamp timestamp) {
-        synchronized (this) {
-            if (items.get(key) != null && items.get(key).isNewer(timestamp)) {
+        Timestamped<V> value = items.get(key);
+        if (value != null) {
+            if (value.isNewer(timestamp)) {
                 return false;
+            } else {
+                items.remove(key, value);
             }
+        }
 
-            items.remove(key);
-            removedItems.put(key, timestamp);
-            return true;
+        Timestamp removedTimestamp = removedItems.get(key);
+        if (removedTimestamp == null) {
+            return removedItems.putIfAbsent(key, timestamp) == null;
+        } else if (timestamp.compareTo(removedTimestamp) > 0) {
+            return removedItems.replace(key, removedTimestamp, timestamp);
+        } else {
+            return false;
         }
     }
 
