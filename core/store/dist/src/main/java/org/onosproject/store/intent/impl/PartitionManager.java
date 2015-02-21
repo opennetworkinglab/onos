@@ -56,7 +56,7 @@ public class PartitionManager implements PartitionService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    private static final int NUM_PARTITIONS = 32;
+    private static final int NUM_PARTITIONS = 14;
     private static final int BACKOFF_TIME = 2;
     private static final int CHECK_PERIOD = 10;
 
