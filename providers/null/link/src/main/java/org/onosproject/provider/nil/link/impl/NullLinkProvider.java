@@ -178,7 +178,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             newRate = isNullOrEmpty(s) ? eventRate : Integer.parseInt(s.trim());
             s = (String) properties.get("neighbors");
             newNbor = isNullOrEmpty(s) ? neighbor : getNeighbor(s.trim());
-        } catch (Exception e) {
+        } catch (NumberFormatException | ClassCastException e) {
             log.warn(e.getMessage());
             newRate = eventRate;
             newNbor = neighbor;

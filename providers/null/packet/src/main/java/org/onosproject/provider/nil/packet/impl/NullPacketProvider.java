@@ -123,7 +123,7 @@ public class NullPacketProvider extends AbstractProvider implements
         try {
             String s = String.valueOf(properties.get("pktRate"));
             newRate = isNullOrEmpty(s) ? pktRate : Integer.parseInt(s.trim());
-        } catch (Exception e) {
+        } catch (NumberFormatException | ClassCastException e) {
             log.warn(e.getMessage());
             newRate = pktRate;
         }

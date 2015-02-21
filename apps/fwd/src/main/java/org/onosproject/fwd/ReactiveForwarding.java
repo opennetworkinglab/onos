@@ -305,7 +305,7 @@ public class ReactiveForwarding {
         try {
             String s = (String) properties.get(propertyName);
             value = isNullOrEmpty(s) ? value : Integer.parseInt(s.trim());
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ClassCastException e) {
             value = null;
         }
         return value;

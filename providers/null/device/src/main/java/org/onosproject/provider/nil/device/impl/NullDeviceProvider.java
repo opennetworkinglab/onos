@@ -157,7 +157,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             }
             s = (String) properties.get("numPorts");
             newPortNum = isNullOrEmpty(s) ? DEF_NUMPORTS : Integer.parseInt(s.trim());
-        } catch (Exception e) {
+        } catch (NumberFormatException | ClassCastException e) {
             log.warn(e.getMessage());
             newDevNum = numDevices;
             newPortNum = numPorts;

@@ -146,7 +146,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             if (flag != null) {
                 hostRemovalEnabled = flag.equals("true");
             }
-        } catch (Exception e) {
+        } catch (ClassCastException e) {
             hostRemovalEnabled = true;
         }
         log.info("Host removal is {}", hostRemovalEnabled ? "enabled" : "disabled");

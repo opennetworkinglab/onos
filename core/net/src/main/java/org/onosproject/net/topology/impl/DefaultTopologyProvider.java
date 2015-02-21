@@ -165,7 +165,7 @@ public class DefaultTopologyProvider extends AbstractProvider
             s = (String) properties.get("maxIdleMs");
             newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s.trim());
 
-        } catch (Exception e) {
+        } catch (NumberFormatException | ClassCastException e) {
             newMaxEvents = DEFAULT_MAX_EVENTS;
             newMaxBatchMs = DEFAULT_MAX_BATCH_MS;
             newMaxIdleMs = DEFAULT_MAX_IDLE_MS;

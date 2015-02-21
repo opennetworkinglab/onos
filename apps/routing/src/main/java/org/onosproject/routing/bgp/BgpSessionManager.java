@@ -105,7 +105,7 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
             } else {
                 bgpPort = DEFAULT_BGP_PORT;
             }
-        } catch (Exception e) {
+        } catch (NumberFormatException | ClassCastException e) {
             bgpPort = DEFAULT_BGP_PORT;
         }
         log.debug("BGP port is set to {}", bgpPort);
