@@ -15,10 +15,8 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,9 +43,9 @@ import org.onosproject.net.resource.LinkResourceRequest;
 import org.onosproject.net.resource.LinkResourceService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -83,14 +81,14 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> install(PathIntent intent) {
+    public List<Collection<FlowRuleOperation>> install(PathIntent intent) {
         LinkResourceAllocations allocations = allocateResources(intent);
 
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
-        Set<FlowRuleOperation> rules = Sets.newHashSet();
+        List<FlowRuleOperation> rules = Lists.newLinkedList();
         // TODO Generate multiple batches
         while (links.hasNext()) {
             builder.matchInPort(prev.port());
@@ -113,13 +111,13 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> uninstall(PathIntent intent) {
+    public List<Collection<FlowRuleOperation>> uninstall(PathIntent intent) {
         deallocateResources(intent);
         TrafficSelector.Builder builder =
                 DefaultTrafficSelector.builder(intent.selector());
         Iterator<Link> links = intent.path().links().iterator();
         ConnectPoint prev = links.next().dst();
-        Set<FlowRuleOperation> rules = Sets.newHashSet();
+        List<FlowRuleOperation> rules = Lists.newLinkedList();
         // TODO Generate multiple batches
         while (links.hasNext()) {
             builder.matchInPort(prev.port());
@@ -140,9 +138,9 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> replace(PathIntent oldIntent, PathIntent newIntent) {
+    public List<Collection<FlowRuleOperation>> replace(PathIntent oldIntent, PathIntent newIntent) {
         // FIXME: implement this
-        List<Set<FlowRuleOperation>> batches = Lists.newArrayList();
+        List<Collection<FlowRuleOperation>> batches = Lists.newArrayList();
         batches.addAll(uninstall(oldIntent));
         batches.addAll(install(newIntent));
         return batches;

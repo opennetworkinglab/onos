@@ -15,10 +15,10 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,10 +42,10 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.LinkCollectionIntent;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.SetMultimap;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Installer for {@link org.onosproject.net.intent.LinkCollectionIntent} path
@@ -75,18 +75,19 @@ public class LinkCollectionIntentInstaller
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> install(LinkCollectionIntent intent) {
+    public List<Collection<FlowRuleOperation>> install(LinkCollectionIntent intent) {
         return generateBatchOperations(intent, FlowRuleOperation.Type.ADD);
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> uninstall(LinkCollectionIntent intent) {
+    public List<Collection<FlowRuleOperation>> uninstall(LinkCollectionIntent intent) {
         return generateBatchOperations(intent, FlowRuleOperation.Type.REMOVE);
     }
 
-    private List<Set<FlowRuleOperation>> generateBatchOperations(
+    private List<Collection<FlowRuleOperation>> generateBatchOperations(
             LinkCollectionIntent intent, FlowRuleOperation.Type operation) {
 
+        //TODO do we need a set here?
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 
         for (Link link : intent.links()) {
@@ -121,10 +122,10 @@ public class LinkCollectionIntentInstaller
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> replace(LinkCollectionIntent oldIntent,
+    public List<Collection<FlowRuleOperation>> replace(LinkCollectionIntent oldIntent,
                                                 LinkCollectionIntent newIntent) {
         // FIXME: implement this in a more intelligent/less brute force way
-        List<Set<FlowRuleOperation>> batches = Lists.newArrayList();
+        List<Collection<FlowRuleOperation>> batches = Lists.newArrayList();
         batches.addAll(uninstall(oldIntent));
         batches.addAll(install(newIntent));
         return batches;

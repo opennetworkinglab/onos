@@ -15,10 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.junit.Test;
 import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.TrafficSelector;
@@ -35,11 +31,12 @@ import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.Lambda;
 import org.onosproject.net.resource.LinkResourceService;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.connectPoint;
@@ -99,7 +96,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
      * @param resourceService service to use for resource allocation requests
      * @return fow rule entries
      */
-    private List<Set<FlowRuleOperation>> installIntents(List<Intent> compiledIntents,
+    private List<Collection<FlowRuleOperation>> installIntents(List<Intent> compiledIntents,
                                                         LinkResourceService resourceService) {
         final PathIntent path = (PathIntent) compiledIntents.get(0);
 
@@ -193,7 +190,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
         assertThat(compiledIntents, notNullValue());
         assertThat(compiledIntents, hasSize(1));
 
-        final List<Set<FlowRuleOperation>> flowOperations =
+        final List<Collection<FlowRuleOperation>> flowOperations =
                 installIntents(compiledIntents, resourceService);
 
         assertThat(flowOperations, notNullValue());
@@ -242,7 +239,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
         assertThat(compiledIntents, notNullValue());
         assertThat(compiledIntents, hasSize(1));
 
-        final List<Set<FlowRuleOperation>> flowOperations =
+        final List<Collection<FlowRuleOperation>> flowOperations =
                 installIntents(compiledIntents, resourceService);
 
         assertThat(flowOperations, notNullValue());

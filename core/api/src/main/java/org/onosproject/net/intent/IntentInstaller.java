@@ -15,10 +15,10 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.List;
-import java.util.Set;
-
 import org.onosproject.net.flow.FlowRuleOperation;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Abstraction of entity capable of installing intents to the environment.
@@ -32,7 +32,7 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete install
      * @throws IntentException if issues are encountered while installing the intent
      */
-    List<Set<FlowRuleOperation>> install(T intent);
+    List<Collection<FlowRuleOperation>> install(T intent);
 
     /**
      * Uninstalls the specified intent from the environment.
@@ -41,7 +41,7 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete uninstall
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
-    List<Set<FlowRuleOperation>> uninstall(T intent);
+    List<Collection<FlowRuleOperation>> uninstall(T intent);
 
     /**
      * Replaces the specified intent with a new one in the environment.
@@ -51,6 +51,6 @@ public interface IntentInstaller<T extends Intent> {
      * @return flow rule operations to complete the replace
      * @throws IntentException if issues are encountered while uninstalling the intent
      */
-    List<Set<FlowRuleOperation>> replace(T oldIntent, T newIntent);
+    List<Collection<FlowRuleOperation>> replace(T oldIntent, T newIntent);
 
 }

@@ -15,9 +15,8 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -49,9 +48,8 @@ import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.List;
 
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -94,24 +92,24 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> install(OpticalPathIntent intent) {
+    public List<Collection<FlowRuleOperation>> install(OpticalPathIntent intent) {
         LinkResourceAllocations allocations = assignWavelength(intent);
         return generateRules(intent, allocations, FlowRuleOperation.Type.ADD);
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> uninstall(OpticalPathIntent intent) {
+    public List<Collection<FlowRuleOperation>> uninstall(OpticalPathIntent intent) {
         LinkResourceAllocations allocations = resourceService.getAllocations(intent.id());
-        List<Set<FlowRuleOperation>> rules = generateRules(intent, allocations, FlowRuleOperation.Type.REMOVE);
+        List<Collection<FlowRuleOperation>> rules = generateRules(intent, allocations, FlowRuleOperation.Type.REMOVE);
         log.info("uninstall rules: {}", rules);
         return rules;
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> replace(OpticalPathIntent oldIntent,
+    public List<Collection<FlowRuleOperation>> replace(OpticalPathIntent oldIntent,
                                                 OpticalPathIntent newIntent) {
         // FIXME: implement this
-        List<Set<FlowRuleOperation>> batches = Lists.newArrayList();
+        List<Collection<FlowRuleOperation>> batches = Lists.newArrayList();
         batches.addAll(uninstall(oldIntent));
         batches.addAll(install(newIntent));
         return batches;
@@ -125,13 +123,13 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
         return retLambda;
     }
 
-    private List<Set<FlowRuleOperation>> generateRules(OpticalPathIntent intent,
+    private List<Collection<FlowRuleOperation>> generateRules(OpticalPathIntent intent,
                                                         LinkResourceAllocations allocations,
                                                         FlowRuleOperation.Type operation) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         selectorBuilder.matchInPort(intent.src().port());
 
-        Set<FlowRuleOperation> rules = Sets.newHashSet();
+        List<FlowRuleOperation> rules = Lists.newLinkedList();
         ConnectPoint prev = intent.src();
 
         //FIXME check for null allocations

@@ -15,23 +15,8 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -68,8 +53,21 @@ import org.onosproject.net.intent.impl.phase.WithdrawRequest;
 import org.onosproject.net.intent.impl.phase.Withdrawn;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -77,11 +75,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.isNullOrEmpty;
-import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
-import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
-import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -310,7 +304,7 @@ public class IntentManager
                    oldInstallables.size() == newInstallables.size(),
                    "Old and New Intent must have equivalent installable intents.");
 
-        List<List<Set<FlowRuleOperation>>> plans = new ArrayList<>();
+        List<List<Collection<FlowRuleOperation>>> plans = new ArrayList<>();
         for (int i = 0; i < newInstallables.size(); i++) {
             Intent newInstallable = newInstallables.get(i);
             registerSubclassInstallerIfNeeded(newInstallable);
@@ -369,7 +363,7 @@ public class IntentManager
     // TODO: make this non-public due to short term hack for ONOS-1051
     public FlowRuleOperations uninstallCoordinate(IntentData current, IntentData pending) {
         List<Intent> installables = current.installables();
-        List<List<Set<FlowRuleOperation>>> plans = new ArrayList<>();
+        List<List<Collection<FlowRuleOperation>>> plans = new ArrayList<>();
         for (Intent installable : installables) {
             plans.add(getInstaller(installable).uninstall(installable));
             trackerService.removeTrackedResources(pending.key(), installable.resources());
@@ -395,20 +389,20 @@ public class IntentManager
 
 
     // TODO needs tests... or maybe it's just perfect
-    private FlowRuleOperations.Builder merge(List<List<Set<FlowRuleOperation>>> plans) {
+    private FlowRuleOperations.Builder merge(List<List<Collection<FlowRuleOperation>>> plans) {
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         // Build a batch one stage at a time
         for (int stageNumber = 0;; stageNumber++) {
             // Get the sub-stage from each plan (List<Set<FlowRuleOperation>)
-            for (Iterator<List<Set<FlowRuleOperation>>> itr = plans.iterator(); itr.hasNext();) {
-                List<Set<FlowRuleOperation>> plan = itr.next();
+            for (Iterator<List<Collection<FlowRuleOperation>>> itr = plans.iterator(); itr.hasNext();) {
+                List<Collection<FlowRuleOperation>> plan = itr.next();
                 if (plan.size() <= stageNumber) {
                     // we have consumed all stages from this plan, so remove it
                     itr.remove();
                     continue;
                 }
                 // write operations from this sub-stage into the builder
-                Set<FlowRuleOperation> stage = plan.get(stageNumber);
+                Collection<FlowRuleOperation> stage = plan.get(stageNumber);
                 for (FlowRuleOperation entry : stage) {
                     builder.operation(entry);
                 }

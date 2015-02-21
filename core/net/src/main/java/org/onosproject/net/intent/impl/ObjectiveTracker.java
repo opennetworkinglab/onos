@@ -49,10 +49,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
-import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -66,6 +66,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private final Logger log = getLogger(getClass());
 
     private final SetMultimap<LinkKey, Key> intentsByLink =
+            //TODO this could be slow as a point of synchronization
             synchronizedSetMultimap(HashMultimap.<LinkKey, Key>create());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

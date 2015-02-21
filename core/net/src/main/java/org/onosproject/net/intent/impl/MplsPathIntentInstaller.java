@@ -1,9 +1,8 @@
 package org.onosproject.net.intent.impl;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,9 +39,10 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -81,14 +81,14 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> install(MplsPathIntent intent) {
+    public List<Collection<FlowRuleOperation>> install(MplsPathIntent intent) {
         LinkResourceAllocations allocations = assignMplsLabel(intent);
         return generateRules(intent, allocations, FlowRuleOperation.Type.ADD);
 
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> uninstall(MplsPathIntent intent) {
+    public List<Collection<FlowRuleOperation>> uninstall(MplsPathIntent intent) {
         LinkResourceAllocations allocations = resourceService
                 .getAllocations(intent.id());
         resourceService.releaseResources(allocations);
@@ -97,10 +97,10 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
     }
 
     @Override
-    public List<Set<FlowRuleOperation>> replace(MplsPathIntent oldIntent,
+    public List<Collection<FlowRuleOperation>> replace(MplsPathIntent oldIntent,
                                                  MplsPathIntent newIntent) {
-
-        List<Set<FlowRuleOperation>> batches = Lists.newArrayList();
+        //FIXME this is brute force
+        List<Collection<FlowRuleOperation>> batches = Lists.newArrayList();
         batches.addAll(uninstall(oldIntent));
         batches.addAll(install(newIntent));
         return batches;
@@ -140,7 +140,7 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
         return null;
     }
 
-    private List<Set<FlowRuleOperation>> generateRules(MplsPathIntent intent,
+    private List<Collection<FlowRuleOperation>> generateRules(MplsPathIntent intent,
                                                        LinkResourceAllocations allocations,
                                                        FlowRuleOperation.Type operation) {
 
@@ -150,7 +150,7 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
 
         Link link = links.next();
         // List of flow rules to be installed
-        Set<FlowRuleOperation> rules = Sets.newHashSet();
+        List<FlowRuleOperation> rules = Lists.newLinkedList();
 
         // Ingress traffic
         // Get the new MPLS label
