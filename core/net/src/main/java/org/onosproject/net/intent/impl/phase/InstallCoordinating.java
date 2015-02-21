@@ -38,7 +38,6 @@ final class InstallCoordinating implements IntentProcessPhase {
     private final IntentData pending;
     private final IntentData current;
 
-    // TODO: define an interface and use it, instead of IntentManager
     InstallCoordinating(IntentProcessor processor, IntentData pending, IntentData current) {
         this.processor = checkNotNull(processor);
         this.pending = checkNotNull(pending);
