@@ -104,8 +104,8 @@ public class DatabaseManager implements StorageService {
                     .withReceiveBufferSize(32768)
                     .withSendBufferSize(8192)
                     .withThreads(1))
-            .withElectionTimeout(300)
-            .withHeartbeatInterval(150)
+            .withElectionTimeout(3000)
+            .withHeartbeatInterval(1500)
             .withMembers(activeNodeUris)
             .withLocalMember(localNodeUri);
 
@@ -114,8 +114,8 @@ public class DatabaseManager implements StorageService {
         partitionMap.forEach((name, nodes) -> {
             Set<String> replicas = nodes.stream().map(this::nodeToUri).collect(Collectors.toSet());
             DatabaseConfig partitionConfig = new DatabaseConfig()
-                            .withElectionTimeout(300)
-                            .withHeartbeatInterval(150)
+                            .withElectionTimeout(3000)
+                            .withHeartbeatInterval(1500)
                             .withConsistency(Consistency.STRONG)
                             .withLog(new FileLog()
                                     .withDirectory(logDir)

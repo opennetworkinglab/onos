@@ -148,7 +148,7 @@ public class ApplicationArchive
      *                                                  archive stream or store
      *                                                  the application archive
      */
-    public ApplicationDescription saveApplication(InputStream stream) {
+    public synchronized ApplicationDescription saveApplication(InputStream stream) {
         try (InputStream ais = stream) {
             byte[] cache = toByteArray(ais);
             InputStream bis = new ByteArrayInputStream(cache);
@@ -190,7 +190,7 @@ public class ApplicationArchive
      *
      * @param appName application name
      */
-    public void purgeApplication(String appName) {
+    public synchronized void purgeApplication(String appName) {
         File appDir = new File(appsDir, appName);
         try {
             Tools.removeDirectory(appDir);
@@ -209,7 +209,7 @@ public class ApplicationArchive
      * @param appName application name
      * @return application archive stream
      */
-    public InputStream getApplicationInputStream(String appName) {
+    public synchronized InputStream getApplicationInputStream(String appName) {
         try {
             File appFile = appFile(appName, appName + ".zip");
             return new FileInputStream(appFile.exists() ? appFile : appFile(appName, APP_XML));

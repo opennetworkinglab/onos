@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 #export JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-openjdk-amd64/}
-export JAVA_OPTS="${JAVA_OPTS:--Xms256m -Xmx2048m}"
+export JAVA_OPTS="${JAVA_OPTS:--Xms256m -Xmx2g}"
 
 ONOS_HOME=/opt/onos
 

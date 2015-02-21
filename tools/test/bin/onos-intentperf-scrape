@@ -1,0 +1,17 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Scrapes intent performance numbers from the remote ONOS log file.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+
+for node in $nodes; do
+    echo "fetching from ${node}..."
+    ssh $ONOS_USER@${node} "
+        grep 'Throughput: OVERALL=' $ONOS_INSTALL_DIR/log/karaf.log \
+            | sed 's/ | INFO .*\: OVERALL=/|/;s/\; INSTALL_REQ=.*//;s/\; CURRENT=/|/' | cut -c12-
+    " > ${node}.perf.log
+done

@@ -55,9 +55,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
 import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.intent.IntentEvent.Type.INSTALLED;
+import static org.onosproject.net.intent.IntentEvent.Type.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -119,23 +122,24 @@ public class IntentPerfInstaller {
         // we will need to discard the first few results for priming and warmup
         listener = new Listener();
         intentService.addListener(listener);
+
+        long delay = System.currentTimeMillis() % REPORT_PERIOD;
         reportTimer = new Timer("onos-intent-perf-reporter");
         reportTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 listener.report();
             }
-        }, REPORT_PERIOD, REPORT_PERIOD);
+        }, delay, REPORT_PERIOD);
 
         stopped = false;
         worker.submit(() -> {
-            delay(2000);
+            delay(2000); // take a breath to start
             createIntents(NUM_KEYS, 2); //FIXME
             prime();
             while (!stopped) {
                 cycle();
-                // TODO delay if required
-                delay(600);
+                delay(800); // take a breath
             }
         });
 
@@ -186,7 +190,6 @@ public class IntentPerfInstaller {
     }
 
     private void createIntents(int numberOfKeys, int pathLength) {
-
         Iterator<Device> deviceItr = deviceService.getAvailableDevices().iterator();
 
         Device ingressDevice = null;
@@ -238,12 +241,11 @@ public class IntentPerfInstaller {
 
     class Listener implements IntentListener {
 
-
-        private Map<IntentEvent.Type, Counter> counters;
+        private final Map<IntentEvent.Type, Counter> counters;
+        private final Counter runningTotal = new Counter();
 
         public Listener() {
             counters = initCounters();
-
         }
 
         private Map<IntentEvent.Type, Counter> initCounters() {
@@ -263,18 +265,21 @@ public class IntentPerfInstaller {
 
         public void report() {
             StringBuilder stringBuilder = new StringBuilder();
-            double total = counters.get(IntentEvent.Type.INSTALLED).throughput() +
-                    counters.get(IntentEvent.Type.WITHDRAWN).throughput();
+            Counter installed = counters.get(INSTALLED);
+            Counter withdrawn = counters.get(WITHDRAWN);
+            double current = installed.throughput() + withdrawn.throughput();
+            runningTotal.add(installed.total() + withdrawn.total());
             for (IntentEvent.Type type : IntentEvent.Type.values()) {
                 stringBuilder.append(printCounter(type)).append("; ");
             }
-            stringBuilder.append(String.format("TOTAL=%.2f", total));
-            log.info("Intent Throughput:\n{}", stringBuilder);
+            log.info("Throughput: OVERALL={}; CURRENT={}; {}",
+                     format("%.2f", runningTotal.throughput()),
+                     format("%.2f", current), stringBuilder);
         }
 
         private String printCounter(IntentEvent.Type event) {
             Counter counter = counters.get(event);
-            String result = String.format("%s=%.2f", event, counter.throughput());
+            String result = format("%s=%.2f", event, counter.throughput());
             counter.reset();
             return result;
         }
