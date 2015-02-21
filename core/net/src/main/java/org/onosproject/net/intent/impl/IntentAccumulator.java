@@ -38,7 +38,7 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
 
     // FIXME: Replace with a system-wide timer instance;
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
-    private static final Timer TIMER = new Timer("intent-op-batching");
+    private static final Timer TIMER = new Timer("onos-intent-op-batching");
 
     private final IntentBatchDelegate delegate;
 

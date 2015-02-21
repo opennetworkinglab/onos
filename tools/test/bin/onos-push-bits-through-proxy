@@ -1,0 +1,21 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes bits to all remote nodes in preparation for install.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCT}
+remote=$ONOS_USER@$node
+shift
+
+echo "Pushing to proxy $node..."
+onos-push-bits $node
+
+others=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+
+for other in $others; do
+    echo "Pushing to $other..."
+    ssh $remote "scp $ONOS_TAR $ONOS_USER@$other:$ONOS_TAR"
+done

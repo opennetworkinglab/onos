@@ -65,14 +65,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
-    private static final int MAX_THREADS = 32;
+    private static final int MAX_THREADS = 8;
     private static final int DEFAULT_MAX_EVENTS = 1000;
     private static final int DEFAULT_MAX_IDLE_MS = 10;
     private static final int DEFAULT_MAX_BATCH_MS = 50;
 
     // FIXME: Replace with a system-wide timer instance;
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
-    private static final Timer TIMER = new Timer("topo-event-batching");
+    private static final Timer TIMER = new Timer("onos-topo-event-batching");
 
     @Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
             label = "Maximum number of events to accumulate")
