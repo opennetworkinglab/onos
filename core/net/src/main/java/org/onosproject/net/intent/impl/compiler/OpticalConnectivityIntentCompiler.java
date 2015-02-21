@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
@@ -29,6 +29,7 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
+import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;

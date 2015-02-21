@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.compiler;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +36,7 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.topology.PathService;
 

@@ -1,4 +1,4 @@
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.compiler;
 
 import java.util.List;
 import java.util.Optional;

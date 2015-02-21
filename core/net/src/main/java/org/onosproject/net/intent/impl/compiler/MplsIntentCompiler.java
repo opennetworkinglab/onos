@@ -1,4 +1,4 @@
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.compiler;
 
 import static java.util.Arrays.asList;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;

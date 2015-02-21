@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.compiler;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -32,6 +32,7 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
+import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.Lambda;
 import org.onosproject.net.resource.LinkResourceService;

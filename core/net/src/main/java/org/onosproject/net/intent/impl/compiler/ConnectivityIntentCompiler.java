@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -27,6 +27,7 @@ import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
