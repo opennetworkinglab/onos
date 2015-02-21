@@ -49,7 +49,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
@@ -79,7 +79,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected IntentService intentService;
 
     private ExecutorService executorService =
-            newSingleThreadExecutor(namedThreads("onos-flowtracker"));
+            newSingleThreadExecutor(groupedThreads("onos/intent", "flowtracker"));
 
     private TopologyListener listener = new InternalTopologyListener();
     private LinkResourceListener linkResourceListener =

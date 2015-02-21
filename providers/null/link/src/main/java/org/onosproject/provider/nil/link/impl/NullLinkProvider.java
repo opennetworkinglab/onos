@@ -15,22 +15,9 @@
  */
 package org.onosproject.provider.nil.link.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onlab.util.Tools.toHex;
-import static org.onosproject.net.MastershipRole.MASTER;
-
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -63,9 +50,21 @@ import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.Dictionary;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.toHex;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which advertises fake/nonexistent links to the core. To be used for
@@ -114,8 +113,8 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     private final int checkRateDuration = 10;
 
-    private ExecutorService linkDriver = Executors.newCachedThreadPool(
-            namedThreads("onos-null-link-driver-%d"));
+    private ExecutorService linkDriver =
+            Executors.newCachedThreadPool(groupedThreads("onos/null", "link-driver-%d"));
 
     // For flicker = true, duration between events in msec.
     @Property(name = "eventRate", value = "0",

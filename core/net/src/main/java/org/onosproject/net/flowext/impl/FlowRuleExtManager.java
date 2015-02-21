@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -93,7 +93,7 @@ public class FlowRuleExtManager extends FlowRuleManager
     @Activate
     public void activate() {
         futureService = Executors.newFixedThreadPool(
-                32, namedThreads("provider-future-listeners-%d"));
+                32, groupedThreads("onos/flow", "provider-future-listeners-%d"));
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
         router.addListener(routerListener);
         log.info("Started");

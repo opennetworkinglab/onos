@@ -51,7 +51,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Distributed implementation of LeadershipService that is based on Hazelcast.
@@ -266,9 +266,9 @@ public class HazelcastLeadershipService implements LeadershipService {
                 return;
             }
             isShutdown = false;
-            String threadPoolName = "onos-leader-election-" + topicName + "-%d";
+            String threadPoolName = "election-" + topicName + "-%d";
             leaderElectionExecutor = Executors.newScheduledThreadPool(2,
-                                        namedThreads(threadPoolName));
+                                        groupedThreads("onos/leadership", threadPoolName));
 
             periodicProcessingFuture =
                 leaderElectionExecutor.submit(new Runnable() {

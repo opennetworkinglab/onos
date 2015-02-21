@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -115,7 +115,7 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     @Activate
     public synchronized void activate(ComponentContext context) {
-        executor = newFixedThreadPool(MAX_THREADS, namedThreads("onos-topo-build-%d"));
+        executor = newFixedThreadPool(MAX_THREADS, groupedThreads("onos/topo", "build-%d"));
         accumulator = new TopologyChangeAccumulator();
         logConfig("Configured");
 

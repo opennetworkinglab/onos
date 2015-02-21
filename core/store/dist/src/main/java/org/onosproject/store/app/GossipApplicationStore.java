@@ -60,11 +60,9 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.app.ApplicationEvent.Type.*;
-import static org.onosproject.store.app.GossipApplicationStore.InternalState.ACTIVATED;
-import static org.onosproject.store.app.GossipApplicationStore.InternalState.DEACTIVATED;
-import static org.onosproject.store.app.GossipApplicationStore.InternalState.INSTALLED;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.*;
 import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.PUT;
 import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -90,7 +88,7 @@ public class GossipApplicationStore extends ApplicationArchive
     }
 
     private final ScheduledExecutorService executor =
-            Executors.newSingleThreadScheduledExecutor(namedThreads("onos-app-store"));
+            Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store"));
 
     private EventuallyConsistentMap<ApplicationId, Application> apps;
     private EventuallyConsistentMap<Application, InternalState> states;

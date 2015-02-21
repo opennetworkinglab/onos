@@ -88,8 +88,8 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verify;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
-import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
@@ -194,10 +194,10 @@ public class GossipDeviceStore
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.PORT_INJECTED, new PortInjectedEventListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("onos-device-fg-%d"));
+        executor = Executors.newCachedThreadPool(groupedThreads("onos/device", "fg-%d"));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-device-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/device", "bg-%d")));
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),

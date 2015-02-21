@@ -55,15 +55,13 @@ import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.namedThreads;
-import static org.onosproject.net.MastershipRole.MASTER;
-import static org.onosproject.net.MastershipRole.NONE;
-import static org.onosproject.net.MastershipRole.STANDBY;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.MastershipRole.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -112,7 +110,7 @@ public class DeviceManager
 
     @Activate
     public void activate() {
-        backgroundService = Executors.newSingleThreadScheduledExecutor(namedThreads("onos-device-manager-background"));
+        backgroundService = newSingleThreadScheduledExecutor(groupedThreads("onos/device", "manager-background"));
 
         store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);

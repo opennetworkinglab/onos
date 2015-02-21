@@ -16,15 +16,6 @@
 
 package org.onosproject.openflow.controller.impl;
 
-import static org.onlab.util.Tools.namedThreads;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -40,6 +31,15 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+import static org.onlab.util.Tools.groupedThreads;
 
 
 /**
@@ -83,7 +83,6 @@ public class Controller {
     public OFFactory getOFMessageFactory13() {
         return FACTORY13;
     }
-
 
 
     public Map<String, String> getControllerNodeIPs() {
@@ -136,14 +135,14 @@ public class Controller {
     private ServerBootstrap createServerBootStrap() {
 
         if (workerThreads == 0) {
-            execFactory =  new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(namedThreads("onos-of-boss-%d")),
-                    Executors.newCachedThreadPool(namedThreads("onos-of-worker-%d")));
+            execFactory = new NioServerSocketChannelFactory(
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d")),
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d")));
             return new ServerBootstrap(execFactory);
         } else {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(namedThreads("onos-of-boss-%d")),
-                    Executors.newCachedThreadPool(namedThreads("onos-of-worker-%d")), workerThreads);
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d")),
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d")), workerThreads);
             return new ServerBootstrap(execFactory);
         }
     }
@@ -162,6 +161,7 @@ public class Controller {
 
     /**
      * Initialize internal data structures.
+     *
      * @param configParams configuration parameters
      */
     public void init(Map<String, String> configParams) {
@@ -195,13 +195,14 @@ public class Controller {
 
     /**
      * Forward to the driver-manager to get an IOFSwitch instance.
+     *
      * @param dpid data path id
      * @param desc switch description
-     * @param ofv OpenFlow version
+     * @param ofv  OpenFlow version
      * @return switch instance
      */
     protected OpenFlowSwitchDriver getOFSwitchInstance(long dpid,
-            OFDescStatsReply desc, OFVersion ofv) {
+                                                       OFDescStatsReply desc, OFVersion ofv) {
         OpenFlowSwitchDriver sw = DriverManager.getSwitch(new Dpid(dpid),
                                                           desc, ofv);
         sw.setAgent(agent);

@@ -48,7 +48,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -69,7 +69,7 @@ public class LeadershipManager implements LeadershipService {
 
     // TODO: Make Thread pool size configurable.
     private final ScheduledExecutorService threadPool =
-            Executors.newScheduledThreadPool(25, namedThreads("onos-leadership-manager-%d"));
+            Executors.newScheduledThreadPool(25, groupedThreads("onos/leadership", "manager-%d"));
 
     private static final MessageSubject LEADERSHIP_UPDATES =
             new MessageSubject("leadership-contest-updates");

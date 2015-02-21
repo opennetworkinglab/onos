@@ -15,11 +15,8 @@
  */
 package org.onosproject.provider.nil.device.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -56,9 +53,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.onlab.util.Tools.delay;
-import static org.onlab.util.Tools.namedThreads;
-import static org.onlab.util.Tools.toHex;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -79,8 +75,8 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
     private DeviceProviderService providerService;
 
-    private ExecutorService deviceBuilder = Executors.newFixedThreadPool(1,
-                                                     namedThreads("onos-null-device-creator"));
+    private ExecutorService deviceBuilder =
+            Executors.newFixedThreadPool(1, groupedThreads("onos/null", "device-creator"));
 
 
     //currently hardcoded. will be made configurable via rest/cli.

@@ -62,7 +62,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.store.flowext.impl.FlowExtRouterMessageSubjects.APPLY_EXTEND_FLOWS;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -100,7 +100,7 @@ public class DefaultFlowRuleExtRouter
             .build();
 
     private final ExecutorService futureListeners = Executors
-            .newCachedThreadPool(namedThreads("flowstore-peer-responders"));
+            .newCachedThreadPool(groupedThreads("onos/flow", "store-peer-responders"));
 
     protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
         @Override

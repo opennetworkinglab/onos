@@ -15,17 +15,6 @@
  */
 package org.onosproject.provider.nil.packet.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.delay;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.nio.ByteBuffer;
-import java.util.Dictionary;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -51,6 +40,17 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.nio.ByteBuffer;
+import java.util.Dictionary;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.delay;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which 1) intercepts network-bound messages from the core, and 2)
@@ -82,8 +82,8 @@ public class NullPacketProvider extends AbstractProvider implements
             label = "Rate of PacketEvent generation")
     private int pktRate = DEFAULT_RATE;
 
-    private ExecutorService packetDriver = Executors.newFixedThreadPool(1,
-            namedThreads("onos-null-packet-driver"));
+    private ExecutorService packetDriver =
+            Executors.newFixedThreadPool(1, groupedThreads("onos/null", "packet-driver"));
 
     public NullPacketProvider() {
         super(new ProviderId("null", "org.onosproject.provider.nil"));

@@ -91,7 +91,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -134,7 +134,7 @@ public class DistributedFlowRuleStore
 
 
     private final ExecutorService backupExecutors =
-            Executors.newSingleThreadExecutor(namedThreads("onos-async-backups"));
+            Executors.newSingleThreadExecutor(groupedThreads("onos/flow", "async-backups"));
 
     private boolean syncBackup = false;
 

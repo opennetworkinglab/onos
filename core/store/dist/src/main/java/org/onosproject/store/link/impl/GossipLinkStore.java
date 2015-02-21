@@ -81,8 +81,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
-import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.DefaultAnnotations.union;
@@ -171,10 +171,10 @@ public class GossipLinkStore
                 GossipLinkStoreMessageSubjects.LINK_INJECTED,
                 new LinkInjectedEventListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("onos-link-fg-%d"));
+        executor = Executors.newCachedThreadPool(groupedThreads("onos/link", "fg-%d"));
 
         backgroundExecutors =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-link-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/link", "bg-%d")));
 
         long initialDelaySec = 5;
         long periodSec = 5;

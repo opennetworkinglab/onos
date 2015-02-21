@@ -74,7 +74,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -82,16 +81,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.newSetMultimap;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static com.google.common.collect.Sets.newConcurrentHashSet;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
-import static org.onlab.util.Tools.namedThreads;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.HOST_ANTI_ENTROPY_ADVERTISEMENT;
-import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.HOST_REMOVED_MSG;
-import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.HOST_UPDATED_MSG;
+import static org.onosproject.store.host.impl.GossipHostStoreMessageSubjects.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -166,10 +164,10 @@ public class GossipHostStore
                 HOST_ANTI_ENTROPY_ADVERTISEMENT,
                 new InternalHostAntiEntropyAdvertisementListener());
 
-        executor = Executors.newCachedThreadPool(namedThreads("onos-host-fg-%d"));
+        executor = newCachedThreadPool(groupedThreads("onos/host", "fg-%d"));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(namedThreads("onos-host-bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/host", "bg-%d")));
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),

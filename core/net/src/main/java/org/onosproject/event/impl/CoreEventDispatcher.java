@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -45,7 +45,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private final Logger log = getLogger(getClass());
 
     private final ExecutorService executor =
-            newSingleThreadExecutor(namedThreads("onos-event-dispatch-%d"));
+            newSingleThreadExecutor(groupedThreads("onos/event", "dispatch-%d"));
 
     @SuppressWarnings("unchecked")
     private static final Event KILL_PILL = new AbstractEvent(null, 0) {

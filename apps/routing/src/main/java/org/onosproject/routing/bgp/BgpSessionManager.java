@@ -15,7 +15,6 @@
  */
 package org.onosproject.routing.bgp;
 
-import org.osgi.service.component.ComponentContext;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,6 +36,7 @@ import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.routing.BgpService;
 import org.onosproject.routing.RouteListener;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newCachedThreadPool;
-import static org.onlab.util.Tools.namedThreads;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * BGP Session Manager class.
@@ -298,8 +298,8 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
         this.routeListener = checkNotNull(routeListener);
 
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
-                newCachedThreadPool(namedThreads("onos-bgp-sm-boss-%d")),
-                newCachedThreadPool(namedThreads("onos-bgp-sm-worker-%d")));
+                newCachedThreadPool(groupedThreads("onos/bgp", "sm-boss-%d")),
+                newCachedThreadPool(groupedThreads("onos/bgp", "sm-worker-%d")));
         ChannelPipelineFactory pipelineFactory = new ChannelPipelineFactory() {
             @Override
             public ChannelPipeline getPipeline() throws Exception {

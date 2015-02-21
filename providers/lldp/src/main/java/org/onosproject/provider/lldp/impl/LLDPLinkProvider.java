@@ -15,18 +15,9 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.util.Tools.namedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.util.Dictionary;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -61,9 +52,17 @@ import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.Dictionary;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -161,9 +160,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             }
         }
 
-        executor = newSingleThreadScheduledExecutor(namedThreads("onos-device-sync-%d"));
-        executor.scheduleAtFixedRate(new SyncDeviceInfoTask(), INIT_DELAY,
-                DELAY, TimeUnit.SECONDS);
+        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/device", "sync-%d"));
+        executor.scheduleAtFixedRate(new SyncDeviceInfoTask(), INIT_DELAY, DELAY, SECONDS);
 
         requestPackets();
 
