@@ -33,13 +33,12 @@
     }
 
     function button(div, id, gid, cb, tooltip) {
-        if (!div) {
+        if (!div || div.empty()) {
             $log.warn('Button cannot append to div');
             return null;
         }
 
         var btnDiv = createDiv(div, 'btn', id),
-            svg = btnDiv.append('svg'),
             cbFnc = fs.isF(cb) || noop;
 
         is.loadIcon(btnDiv, gid, btnSize);
@@ -53,36 +52,81 @@
         }
     }
 
-    function toggle(div, id, gid, cb, tooltip) {
-        if (!div) {
+    function toggle(div, id, gid, initState, cb, tooltip) {
+        if (!div || div.empty()) {
             $log.warn('Toggle cannot append to div');
             return null;
         }
 
-        var sel = false,
+        var sel = !!initState,
             togDiv = createDiv(div, 'tog', id),
-            svg = togDiv.append('svg'),
             cbFnc = fs.isF(cb) || noop;
 
         is.loadIcon(togDiv, gid, btnSize);
+
+        function _toggle(b) {
+            if (b === undefined) {
+                sel = !sel;
+            } else {
+                sel = !!b;
+            }
+            cbFnc(sel);
+        }
+
+        togDiv.on('click', _toggle);
 
         return {
             id: id,
             el: togDiv,
             selected: function () { return sel; },
-            toggle: function (b) {
-                if (b === undefined) {
-                    sel = !sel;
-                } else {
-                    sel = !!b;
-                }
-                cbFnc(sel);
-            }
+            toggle: _toggle
         }
     }
 
     function radioSet(div, id, rset) {
-        return {}
+        if (!div || div.empty()) {
+            $log.warn('Radio buttons cannot append to div');
+            return null;
+        }
+        if (!fs.isA(rset)) {
+            $log.warn('Radio button set is not an array');
+            return null;
+        }
+        if (rset.length === 0) {
+            $log.warn('Cannot create radio button set from empty array');
+            return null;
+        }
+        var rDiv = div.append('div').classed('rset', true),
+            sel = 0,
+            rads = [];
+
+        rset.forEach(function (btn, index) {
+            var rid = {id: id + '-' + index},
+                rbtn = angular.extend({}, btn, rid),
+                istate = (index === 0),
+                rtog = toggle(rDiv, rbtn.id, rbtn.gid, istate,
+                    rbtn.cb, rbtn.tooltip);
+
+            rtog.el = (rtog.el).classed('tog', false).classed('rad', true);
+            rads.push(rtog);
+        });
+
+        return {
+            rads: rads,
+            selected: function (i) {
+                if (i === undefined) { return sel; }
+                else if (i < 0 || i >= rads.length) {
+                    $log.error('Cannot select radio button of index ' + i);
+                }
+                else {
+                    if (i !== sel) {
+                        rads[sel].toggle(false);
+                        rads[i].toggle(true);
+                        sel = i;
+                    }
+                }
+            }
+        }
     }
 
     angular.module('onosWidget')

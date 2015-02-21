@@ -18,18 +18,22 @@
  ONOS GUI -- Widget -- Toolbar Service - Unit Tests
  */
 describe('factory: fw/widget/toolbar.js', function () {
-    var $log, fs, tbs, ps,
+    var $log, fs, tbs, ps, bns, is,
         d3Elem;
 
-    beforeEach(module('onosWidget', 'onosUtil', 'onosLayer'));
+    beforeEach(module('onosWidget', 'onosUtil', 'onosLayer', 'onosSvg'));
 
-    beforeEach(inject(function (_$log_, FnService,
-                                ToolbarService, PanelService) {
+    beforeEach(inject(function (_$log_, FnService, ToolbarService,
+                                PanelService, ButtonService, IconService) {
         $log = _$log_;
         fs = FnService;
         tbs = ToolbarService;
         ps = PanelService;
+        bns = ButtonService;
+        is = IconService;
     }));
+
+    // TODO: figure out solution for calling tests with new info instead of calling init
 
     beforeEach(function () {
         d3Elem = d3.select('body').append('div').attr('id', 'floatpanels');
@@ -50,7 +54,7 @@ describe('factory: fw/widget/toolbar.js', function () {
     it('should define api functions', function () {
         expect(fs.areFunctions(tbs, [
             'init', 'makeButton', 'makeToggle', 'makeRadio', 'separator',
-            'createToolbar'
+            'createToolbar', 'createToolbar1', 'destroyToolbar'
         ])).toBeTruthy();
     });
 
@@ -263,5 +267,87 @@ describe('factory: fw/widget/toolbar.js', function () {
         expect(sepDiv.style('border-width')).toBe('1px');
         expect(sepDiv.style('border-style')).toBe('solid');
     });
+
+    // ==== new Toolbar Unit tests --------------------------------------------
+
+    it('should warn if createToolbar id is invalid', function () {
+        spyOn($log, 'warn');
+        expect(tbs.createToolbar1()).toBeNull();
+        expect($log.warn).toHaveBeenCalledWith('createToolbar: no ID given');
+
+        expect(tbs.createToolbar1('test')).toBeTruthy();
+        expect(tbs.createToolbar1('test')).toBeNull();
+        expect($log.warn).toHaveBeenCalledWith('createToolbar: ID already exists');
+    });
+
+    it('should create an unpopulated toolbar', function () {
+        spyOn($log, 'warn');
+        expect(tbs.createToolbar1('test')).toBeTruthy();
+        expect($log.warn).not.toHaveBeenCalled();
+    });
+
+    it('should create a button', function () {
+        spyOn($log, 'warn');
+        var toolbar = tbs.createToolbar1('test'),
+            btn = toolbar.addButton1('btn0', 'gid', function () {});
+        expect(btn).not.toBeNull();
+        expect(btn.id).toBe('tbar-test-btn0');
+        expect($log.warn).not.toHaveBeenCalled();
+    });
+
+    it('should not create a button with a duplicate id', function () {
+        spyOn($log, 'warn');
+        var toolbar = tbs.createToolbar1('test'),
+            btn = toolbar.addButton1('btn0', 'gid', function () {}),
+            btn1 = toolbar.addButton1('btn0', 'gid', function () {});
+        expect(btn).not.toBeNull();
+        expect(btn.id).toBe('tbar-test-btn0');
+        expect($log.warn).toHaveBeenCalledWith('addButton: ID already exists');
+        expect(btn1).toBeNull();
+    });
+
+    it('should create a toggle', function () {
+        spyOn($log, 'warn');
+        var toolbar = tbs.createToolbar1('test'),
+            tog = toolbar.addButton1('tog0', 'gid', false, function () {});
+        expect(tog).not.toBeNull();
+        expect(tog.id).toBe('tbar-test-tog0');
+        expect($log.warn).not.toHaveBeenCalled();
+    });
+
+    it('should not create a toggle with a duplicate id', function () {
+        spyOn($log, 'warn');
+        var toolbar = tbs.createToolbar1('test'),
+            tog = toolbar.addToggle1('tog0', 'gid', false, function () {}),
+            tog1 = toolbar.addToggle1('tog0', 'gid', true, function () {});
+        expect(tog).not.toBeNull();
+        expect(tog.id).toBe('tbar-test-tog0');
+        expect($log.warn).toHaveBeenCalledWith('addToggle: ID already exists');
+        expect(tog1).toBeNull();
+    });
+
+
+    it('should create a radio button set', function () {
+        spyOn($log, 'warn');
+        var toolbar = tbs.createToolbar1('test'),
+            rset = [
+                { gid: 'crown', cb: function () {}, tooltip: 'nothing' },
+                { gid: 'bird', cb: function () {}, tooltip: 'nothing' }
+            ],
+            rad = toolbar.addRadioSet('rad0', rset);
+        expect(rad).not.toBeNull();
+        expect(rad.rads[0].id).toBe('tbar-test-rad0-0');
+        expect(rad.rads[1].id).toBe('tbar-test-rad0-1');
+        expect($log.warn).not.toHaveBeenCalled();
+    });
+
+    //it('should not append to a destroyed toolbar', function () {
+    //    spyOn($log, 'warn');
+    //    var toolbar = tbs.createToolbar1('test');
+    //    expect(toolbar).not.toBeNull();
+    //    tbs.destroyToolbar('tbar-test');
+    //    expect(toolbar.addButton1('btn', 'gid', function () {})).toBeNull();
+    //    expect($log.warn).toHaveBeenCalledWith('Button cannot append to div');
+    //});
 
 });

@@ -20,14 +20,20 @@
 (function () {
     'use strict';
 
-    var $log, ps;
+    var $log, fs, ps, bns;
 
     var toolBtnIds = {},
         toolbarPanel,
         toolbarDiv;
 
+    var ids = [],
+        tbarId,
+        tbarPanel,
+        tbarDiv;
+
     function init() {
         toolBtnIds = {};
+        ids = [];
     }
 
     function addButton(btn) {
@@ -90,6 +96,76 @@
         };
     }
 
+    function validId(id, caller) {
+        if (fs.inArray(id, ids) !== -1) {
+            $log.warn(caller + ': ID already exists');
+            return false;
+        }
+        return true;
+    }
+
+    function addButton1(id, gid, cb, tooltip) {
+        var btnId = tbarId + '-' + id;
+        if (!validId(btnId, 'addButton')) {
+            return null;
+        }
+        ids.push(btnId);
+        return bns.button(tbarDiv, btnId, gid, cb, tooltip);
+    }
+
+    function addToggle1(id, gid, initState, cb, tooltip) {
+        var togId = tbarId + '-' + id;
+        if (!validId(togId, 'addToggle')) {
+            return null;
+        }
+        ids.push(togId);
+        return bns.toggle(tbarDiv, togId, gid, initState, cb, tooltip);
+    }
+
+    function addRadioSet(id, rset) {
+        var radId = tbarId + '-' + id;
+        if (!validId(radId, 'addRadioSet')) {
+            return null;
+        }
+        ids.push(radId);
+        return bns.radioSet(tbarDiv, radId, rset);
+    }
+
+    // TODO: finish this and remove unneeded code
+    function addSeparator1() {
+
+    }
+
+    function createToolbar1(id, settings) {
+        if (!id) {
+            $log.warn('createToolbar: no ID given');
+            return null;
+        }
+        tbarId = 'tbar-' + id;
+        var opts = fs.isO(settings) || {}; // default settings should be put here
+
+        if (!validId(tbarId, 'createToolbar')) {
+            return null;
+        }
+        ids.push(tbarId);
+
+        tbarPanel = ps.createPanel(tbarId, opts);
+        tbarDiv = tbarPanel.classed('toolbar', true);
+
+        // TODO: change names of functions
+        return {
+            addButton1: addButton1,
+            addToggle1: addToggle1,
+            addRadioSet: addRadioSet,
+            addSeparator1: addSeparator1
+        }
+    }
+
+    // function currently not working
+    function destroyToolbar(id) {
+        ps.destroyPanel(id);
+    }
+
     function createToolbar(tbarId, tools) {
         var api;
 
@@ -143,10 +219,13 @@
     }
 
     angular.module('onosWidget')
-        .factory('ToolbarService', ['$log', 'PanelService',
-            function (_$log_, _ps_) {
+        .factory('ToolbarService', ['$log', 'FnService',
+            'PanelService', 'ButtonService',
+            function (_$log_, _fs_, _ps_, _bns_) {
                 $log = _$log_;
+                fs = _fs_;
                 ps = _ps_;
+                bns = _bns_;
 
                 return {
                     init: init,
@@ -154,7 +233,9 @@
                     makeToggle: makeToggle,
                     makeRadio: makeRadio,
                     separator: separator,
-                    createToolbar: createToolbar
+                    createToolbar: createToolbar,
+                    createToolbar1: createToolbar1,
+                    destroyToolbar: destroyToolbar
                 };
             }]);
 
