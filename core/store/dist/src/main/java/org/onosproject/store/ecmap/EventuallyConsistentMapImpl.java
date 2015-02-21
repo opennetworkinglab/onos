@@ -458,18 +458,24 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private void notifyPeers(InternalPutEvent event) {
-        broadcastMessageExecutor.execute(() -> broadcastMessage(updateMessageSubject, event));
+        // FIXME extremely memory expensive when we are overrun
+//        broadcastMessageExecutor.execute(() -> broadcastMessage(updateMessageSubject, event));
+        broadcastMessage(updateMessageSubject, event);
     }
 
     private void notifyPeers(InternalRemoveEvent event) {
-        broadcastMessageExecutor.execute(() -> broadcastMessage(removeMessageSubject, event));
+        // FIXME extremely memory expensive when we are overrun
+//        broadcastMessageExecutor.execute(() -> broadcastMessage(removeMessageSubject, event));
+        broadcastMessage(removeMessageSubject, event);
     }
 
     private void broadcastMessage(MessageSubject subject, Object event) {
+        // FIXME can we parallelize the serialization... use the caller???
         ClusterMessage message = new ClusterMessage(
                 clusterService.getLocalNode().id(),
                 subject,
                 serializer.encode(event));
+        //broadcastMessageExecutor.execute(() -> clusterCommunicator.broadcast(message));
         clusterCommunicator.broadcast(message);
     }
 
