@@ -235,7 +235,7 @@ public class GossipHostStore
     private boolean isHostRemoved(HostId hostId, Timestamp timestamp) {
         Timestamped<Host> removedInfo = removedHosts.get(hostId);
         if (removedInfo != null) {
-            if (removedInfo.isNewer(timestamp)) {
+            if (removedInfo.isNewerThan(timestamp)) {
                 return true;
             }
             removedHosts.remove(hostId, removedInfo);

@@ -1170,7 +1170,8 @@ public class GossipDeviceStore
                     Timestamped<DeviceDescription> lProvDevice = lDeviceDescs.getDeviceDesc();
                     Timestamp advDevTimestamp = devAds.get(devFragId);
 
-                    if (advDevTimestamp == null || lProvDevice.isNewer(advDevTimestamp)) {
+                    if (advDevTimestamp == null || lProvDevice.isNewerThan(
+                            advDevTimestamp)) {
                         // remote does not have it or outdated, suggest
                         notifyPeer(sender, new InternalDeviceEvent(provId, deviceId, lProvDevice));
                     } else if (!lProvDevice.timestamp().equals(advDevTimestamp)) {
@@ -1188,7 +1189,8 @@ public class GossipDeviceStore
                         final PortFragmentId portFragId = new PortFragmentId(deviceId, provId, num);
 
                         Timestamp advPortTimestamp = portAds.get(portFragId);
-                        if (advPortTimestamp == null || lPort.isNewer(advPortTimestamp)) {
+                        if (advPortTimestamp == null || lPort.isNewerThan(
+                                advPortTimestamp)) {
                             // remote does not have it or outdated, suggest
                             notifyPeer(sender, new InternalPortStatusEvent(provId, deviceId, lPort));
                         } else if (!lPort.timestamp().equals(advPortTimestamp)) {

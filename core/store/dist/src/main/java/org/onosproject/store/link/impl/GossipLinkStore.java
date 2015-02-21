@@ -360,7 +360,7 @@ public class GossipLinkStore
             // only if this request is more recent.
             Timestamp linkRemovedTimestamp = removedLinks.get(key);
             if (linkRemovedTimestamp != null) {
-                if (linkDescription.isNewer(linkRemovedTimestamp)) {
+                if (linkDescription.isNewerThan(linkRemovedTimestamp)) {
                     removedLinks.remove(key);
                 } else {
                     log.trace("Link {} was already removed ignoring.", key);
@@ -762,7 +762,7 @@ public class GossipLinkStore
                         remoteTimestamp = ad.linkTombstones().get(key);
                     }
                     if (remoteTimestamp == null ||
-                        pDesc.isNewer(remoteTimestamp)) {
+                        pDesc.isNewerThan(remoteTimestamp)) {
                         // I have more recent link description. update peer.
                         notifyPeer(sender, new InternalLinkEvent(providerId, pDesc));
                     } else {
@@ -776,7 +776,7 @@ public class GossipLinkStore
 
                     // search local latest along the way
                     if (localLatest == null ||
-                        pDesc.isNewer(localLatest)) {
+                        pDesc.isNewerThan(localLatest)) {
                         localLatest = pDesc.timestamp();
                     }
                 }

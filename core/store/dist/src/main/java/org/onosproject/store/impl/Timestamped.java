@@ -15,13 +15,12 @@
  */
 package org.onosproject.store.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.MoreObjects;
+import org.onosproject.store.Timestamp;
 
 import java.util.Objects;
 
-import org.onosproject.store.Timestamp;
-
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Wrapper class to store Timestamped value.
@@ -69,17 +68,17 @@ public final class Timestamped<T> {
      * @return true if this instance is newer.
      */
     public boolean isNewer(Timestamped<T> other) {
-        return isNewer(checkNotNull(other).timestamp());
+        return isNewerThan(checkNotNull(other).timestamp());
     }
 
     /**
      * Tests if this timestamp is newer than the specified timestamp.
+     *
      * @param other timestamp to compare against
      * @return true if this instance is newer
      */
-    //TODO put this in Timestamp
-    public boolean isNewer(Timestamp other) {
-        return this.timestamp.compareTo(checkNotNull(other)) > 0;
+    public boolean isNewerThan(Timestamp other) {
+        return timestamp.isNewerThan(other);
     }
 
     @Override

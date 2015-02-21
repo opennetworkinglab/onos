@@ -262,7 +262,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private boolean putInternal(K key, V value, Timestamp timestamp) {
         Timestamp removed = removedItems.get(key);
-        if (removed != null && removed.compareTo(timestamp) > 0) {
+        if (removed != null && removed.isNewerThan(timestamp)) {
             log.debug("ecmap - removed was newer {}", value);
             return false;
         }
@@ -270,7 +270,7 @@ public class EventuallyConsistentMapImpl<K, V>
         boolean success;
         synchronized (this) {
             Timestamped<V> existing = items.get(key);
-            if (existing != null && existing.isNewer(timestamp)) {
+            if (existing != null && existing.isNewerThan(timestamp)) {
                 log.debug("ecmap - existing was newer {}", value);
                 success = false;
             } else {
@@ -305,7 +305,7 @@ public class EventuallyConsistentMapImpl<K, V>
     private boolean removeInternal(K key, Timestamp timestamp) {
         Timestamped<V> value = items.get(key);
         if (value != null) {
-            if (value.isNewer(timestamp)) {
+            if (value.isNewerThan(timestamp)) {
                 return false;
             } else {
                 items.remove(key, value);
@@ -315,7 +315,7 @@ public class EventuallyConsistentMapImpl<K, V>
         Timestamp removedTimestamp = removedItems.get(key);
         if (removedTimestamp == null) {
             return removedItems.putIfAbsent(key, timestamp) == null;
-        } else if (timestamp.compareTo(removedTimestamp) > 0) {
+        } else if (timestamp.isNewerThan(removedTimestamp)) {
             return removedItems.replace(key, removedTimestamp, timestamp);
         } else {
             return false;
@@ -614,7 +614,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 remoteTimestamp = ad.tombstones().get(key);
             }
             if (remoteTimestamp == null || localValue
-                    .isNewer(remoteTimestamp)) {
+                    .isNewerThan(remoteTimestamp)) {
                 // local value is more recent, push to sender
                 updatesToSend
                         .add(new PutEntry<>(key, localValue.value(),
@@ -623,7 +623,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
             Timestamp remoteDeadTimestamp = ad.tombstones().get(key);
             if (remoteDeadTimestamp != null &&
-                    remoteDeadTimestamp.compareTo(localValue.timestamp()) > 0) {
+                    remoteDeadTimestamp.isNewerThan(localValue.timestamp())) {
                 // sender has a more recent remove
                 if (removeInternal(key, remoteDeadTimestamp)) {
                     externalEvents.add(new EventuallyConsistentMapEvent<>(
@@ -664,7 +664,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
             Timestamp remoteLiveTimestamp = ad.timestamps().get(key);
             if (remoteLiveTimestamp != null
-                    && localDeadTimestamp.compareTo(remoteLiveTimestamp) > 0) {
+                    && localDeadTimestamp.isNewerThan(remoteLiveTimestamp)) {
                 // sender has zombie, push remove
                 removesToSend
                         .add(new RemoveEntry<>(key, localDeadTimestamp));
@@ -702,18 +702,19 @@ public class EventuallyConsistentMapImpl<K, V>
 
             Timestamped<V> local = items.get(key);
             Timestamp localDead = removedItems.get(key);
-            if (local != null
-                    && remoteDeadTimestamp.compareTo(local.timestamp()) > 0) {
-                // remove our version
+            if (local != null && remoteDeadTimestamp.isNewerThan(
+                    local.timestamp())) {
+                // If the remote has a more recent tombstone than either our local
+                // value, then do a remove with their timestamp
                 if (removeInternal(key, remoteDeadTimestamp)) {
                     externalEvents.add(new EventuallyConsistentMapEvent<>(
                             EventuallyConsistentMapEvent.Type.REMOVE, key, null));
                 }
-            } else if (localDead != null &&
-                    remoteDeadTimestamp.compareTo(localDead) > 0) {
-                // If we both had the item as removed, but their timestamp is
-                // newer, update ours to the newer value
-                removedItems.put(key, remoteDeadTimestamp);
+            } else if (localDead != null && remoteDeadTimestamp.isNewerThan(
+                    localDead)) {
+                // If the remote has a more recent tombstone than us, update ours
+                // to their timestamp
+                removeInternal(key, remoteDeadTimestamp);
             }
         }
 
