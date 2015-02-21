@@ -155,6 +155,11 @@ public class EventuallyConsistentMapImplTest {
         ecMap.destroy();
     }
 
+    @SuppressWarnings("unchecked")
+    private EventuallyConsistentMapListener<String, String> getListener() {
+        return createMock(EventuallyConsistentMapListener.class);
+    }
+
     @Test
     public void testSize() throws Exception {
         expectAnyMessage(clusterCommunicator);
@@ -262,7 +267,7 @@ public class EventuallyConsistentMapImplTest {
         // Set up expectations of external events to be sent to listeners during
         // the test. These don't use timestamps so we can set them all up at once.
         EventuallyConsistentMapListener<String, String> listener
-                = createMock(EventuallyConsistentMapListener.class);
+                = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
@@ -313,7 +318,7 @@ public class EventuallyConsistentMapImplTest {
         // Set up expectations of external events to be sent to listeners during
         // the test. These don't use timestamps so we can set them all up at once.
         EventuallyConsistentMapListener<String, String> listener
-                = createMock(EventuallyConsistentMapListener.class);
+                = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.REMOVE, KEY1, null));
         expectLastCall().times(2);
@@ -384,7 +389,7 @@ public class EventuallyConsistentMapImplTest {
 
         // Set up the listener with our expected events
         EventuallyConsistentMapListener<String, String> listener
-                = createMock(EventuallyConsistentMapListener.class);
+                = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
@@ -412,7 +417,7 @@ public class EventuallyConsistentMapImplTest {
     @Test
     public void testClear() throws Exception {
         EventuallyConsistentMapListener<String, String> listener
-                = createMock(EventuallyConsistentMapListener.class);
+                = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.REMOVE, KEY1, null));
         listener.event(new EventuallyConsistentMapEvent<>(

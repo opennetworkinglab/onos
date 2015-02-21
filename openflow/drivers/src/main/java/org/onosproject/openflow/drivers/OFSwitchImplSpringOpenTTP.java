@@ -421,7 +421,7 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
             // executed - if there is an action to output/group in the action
             // set
             // the packet will be sent there, otherwise it will be dropped.
-            instructions = (List<OFInstruction>) Collections.EMPTY_LIST;
+            instructions = Collections.<OFInstruction>emptyList();
         }
 
         OFMessage tableMissEntry = factory.buildFlowAdd()

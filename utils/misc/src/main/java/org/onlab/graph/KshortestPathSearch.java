@@ -46,7 +46,7 @@ public class KshortestPathSearch<V extends Vertex, E extends Edge<V>> {
     // Initialize the graph.
     public KshortestPathSearch(Graph<V, E> graph) {
         immutableGraph = graph;
-        mutableGraph = new MutableAdjacencyListsGraph(graph.getVertexes(),
+        mutableGraph = new MutableAdjacencyListsGraph<>(graph.getVertexes(),
                 graph.getEdges());
     }
 
@@ -136,6 +136,7 @@ public class KshortestPathSearch<V extends Vertex, E extends Edge<V>> {
             }
         }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private List<E> searchShortestPath(Graph<V, E> graph, V src, V dst) {
         // Determine the shortest path from the source to the destination by using the Dijkstra algorithm.
         DijkstraGraphSearch dijkstraAlg = new DijkstraGraphSearch();

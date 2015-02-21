@@ -56,6 +56,7 @@ public class DefaultTransactionContext implements TransactionContext {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <K, V> TransactionalMap<K, V> createTransactionalMap(String mapName,
             Serializer serializer) {
         checkNotNull(mapName, "map name is null");
@@ -69,6 +70,7 @@ public class DefaultTransactionContext implements TransactionContext {
         return txMaps.get(mapName);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void commit() {
         checkState(isOpen, TX_NOT_OPEN_ERROR);

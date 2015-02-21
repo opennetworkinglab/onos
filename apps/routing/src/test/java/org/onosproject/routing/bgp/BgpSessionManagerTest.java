@@ -241,6 +241,16 @@ public class BgpSessionManagerTest {
         return new BgpRouteEntryAndPeerMatcher(bgpRouteEntry);
     }
 
+    @SuppressWarnings("unchecked")
+    private Dictionary<String, String>
+            getDictionaryMock(ComponentContext componentContext) {
+        Dictionary<String, String> dictionary = createMock(Dictionary.class);
+        expect(dictionary.get("bgpPort")).andReturn("0");
+        replay(dictionary);
+        expect(componentContext.getProperties()).andReturn(dictionary);
+        return dictionary;
+    }
+
     @Before
     public void setUp() throws Exception {
         peer1 = new TestBgpPeer(BGP_PEER1_ID);
@@ -258,10 +268,7 @@ public class BgpSessionManagerTest {
         bgpSessionManager = new BgpSessionManager();
         // NOTE: We use port 0 to bind on any available port
         ComponentContext componentContext = createMock(ComponentContext.class);
-        Dictionary<String, String> dictionary = createMock(Dictionary.class);
-        expect(dictionary.get("bgpPort")).andReturn("0");
-        replay(dictionary);
-        expect(componentContext.getProperties()).andReturn(dictionary);
+        Dictionary<String, String> dictionary = getDictionaryMock(componentContext);
         replay(componentContext);
         bgpSessionManager.activate(componentContext);
         bgpSessionManager.start(dummyRouteListener);
@@ -288,7 +295,7 @@ public class BgpSessionManagerTest {
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
-        asPathShort = new BgpRouteEntry.AsPath(new ArrayList(pathSegments));
+        asPathShort = new BgpRouteEntry.AsPath(new ArrayList<>(pathSegments));
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
