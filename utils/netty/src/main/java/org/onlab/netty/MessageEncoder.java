@@ -15,16 +15,17 @@
  */
 package org.onlab.netty;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+
+import java.io.IOException;
+
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpAddress.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Encode InternalMessage out into a byte buffer.
@@ -34,33 +35,35 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    // onosiscool in ascii
-    static final byte[] PREAMBLE = "onosiscool".getBytes(StandardCharsets.US_ASCII);
-    public static final int HEADER_VERSION = 1;
-    public static final int SERIALIZER_VERSION = 1;
-
-
-    private static final KryoSerializer SERIALIZER = new KryoSerializer();
-
     @Override
     protected void encode(
             ChannelHandlerContext context,
             InternalMessage message,
             ByteBuf out) throws Exception {
 
-        // write version
-        out.writeInt(HEADER_VERSION);
+        // write message id
+        out.writeLong(message.id());
 
-        // write preamble
-        out.writeBytes(PREAMBLE);
+        Endpoint sender = message.sender();
 
-        byte[] payload = SERIALIZER.encode(message);
+        IpAddress senderIp = sender.host();
+        if (senderIp.version() == Version.INET) {
+            out.writeByte(0);
+        } else {
+            out.writeByte(1);
+        }
+        out.writeBytes(senderIp.toOctets());
+
+        // write sender port
+        out.writeInt(sender.port());
+
+        // write message type.
+        out.writeLong(message.type());
+
+        byte[] payload = message.payload();
 
         // write payload length
         out.writeInt(payload.length);
-
-        // write payloadSerializer version
-        out.writeInt(SERIALIZER_VERSION);
 
         // write payload.
         out.writeBytes(payload);

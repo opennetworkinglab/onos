@@ -15,7 +15,11 @@
  */
 package org.onlab.netty;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.Objects;
+
+import org.onlab.packet.IpAddress;
 
 import com.google.common.base.MoreObjects;
 
@@ -25,15 +29,15 @@ import com.google.common.base.MoreObjects;
 public final class Endpoint {
 
     private final int port;
-    private final String host;
+    private final IpAddress ip;
 
-    public Endpoint(String host, int port) {
-        this.host = host;
+    public Endpoint(IpAddress host, int port) {
+        this.ip = checkNotNull(host);
         this.port = port;
     }
 
-    public String host() {
-        return host;
+    public IpAddress host() {
+        return ip;
     }
 
     public int port() {
@@ -43,14 +47,14 @@ public final class Endpoint {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("host", host)
+                .add("ip", ip)
                 .add("port", port)
                 .toString();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(host, port);
+        return Objects.hash(ip, port);
     }
 
     @Override
@@ -66,6 +70,6 @@ public final class Endpoint {
         }
         Endpoint that = (Endpoint) obj;
         return Objects.equals(this.port, that.port) &&
-               Objects.equals(this.host, that.host);
+               Objects.equals(this.ip, that.ip);
     }
 }

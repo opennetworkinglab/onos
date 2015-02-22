@@ -19,9 +19,11 @@ package org.onlab.netty;
  * State transitions a decoder goes through as it is decoding an incoming message.
  */
 public enum DecoderState {
-    READ_HEADER_VERSION,
-    READ_PREAMBLE,
+    READ_MESSAGE_ID,
+    READ_SENDER_IP_VERSION,
+    READ_SENDER_IP,
+    READ_SENDER_PORT,
+    READ_MESSAGE_TYPE,
     READ_CONTENT_LENGTH,
-    READ_SERIALIZER_VERSION,
     READ_CONTENT
 }

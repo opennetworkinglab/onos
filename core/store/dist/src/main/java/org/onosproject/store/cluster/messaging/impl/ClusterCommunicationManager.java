@@ -76,7 +76,7 @@ public class ClusterCommunicationManager
     @Activate
     public void activate() {
         ControllerNode localNode = clusterService.getLocalNode();
-        NettyMessagingService netty = new NettyMessagingService(localNode.ip().toString(), localNode.tcpPort());
+        NettyMessagingService netty = new NettyMessagingService(localNode.ip(), localNode.tcpPort());
         // FIXME: workaround until it becomes a service.
         try {
             netty.activate();
@@ -143,7 +143,7 @@ public class ClusterCommunicationManager
     private boolean unicast(MessageSubject subject, byte[] payload, NodeId toNodeId) throws IOException {
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
-        Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
+        Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
         try {
             messagingService.sendAsync(nodeEp, subject.value(), payload);
             return true;
@@ -166,7 +166,7 @@ public class ClusterCommunicationManager
     public ListenableFuture<byte[]> sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException {
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
-        Endpoint nodeEp = new Endpoint(node.ip().toString(), node.tcpPort());
+        Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
         try {
             return messagingService.sendAndReceive(nodeEp, message.subject().value(), SERIALIZER.encode(message));
 
