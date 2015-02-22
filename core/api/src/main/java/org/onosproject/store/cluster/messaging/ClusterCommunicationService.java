@@ -16,10 +16,12 @@
 package org.onosproject.store.cluster.messaging;
 
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.onosproject.cluster.NodeId;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 // TODO: remove IOExceptions?
 /**
@@ -77,7 +79,17 @@ public interface ClusterCommunicationService {
      * @param subject    message subject
      * @param subscriber message subscriber
      */
+    @Deprecated
     void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber);
+
+    /**
+     * Adds a new subscriber for the specified message subject.
+     *
+     * @param subject    message subject
+     * @param subscriber message subscriber
+     * @param executor executor to use for running handler.
+     */
+    void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber, ExecutorService executor);
 
     /**
      * Removes a subscriber for the specified message subject.

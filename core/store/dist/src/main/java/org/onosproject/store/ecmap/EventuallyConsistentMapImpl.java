@@ -162,13 +162,13 @@ public class EventuallyConsistentMapImpl<K, V>
 
         updateMessageSubject = new MessageSubject("ecm-" + mapName + "-update");
         clusterCommunicator.addSubscriber(updateMessageSubject,
-                                          new InternalPutEventListener());
+                                          new InternalPutEventListener(), executor);
         removeMessageSubject = new MessageSubject("ecm-" + mapName + "-remove");
         clusterCommunicator.addSubscriber(removeMessageSubject,
-                                          new InternalRemoveEventListener());
+                                          new InternalRemoveEventListener(), executor);
         antiEntropyAdvertisementSubject = new MessageSubject("ecm-" + mapName + "-anti-entropy");
         clusterCommunicator.addSubscriber(antiEntropyAdvertisementSubject,
-                                          new InternalAntiEntropyListener());
+                                          new InternalAntiEntropyListener(), backgroundExecutor);
     }
 
     private KryoSerializer createSerializer(KryoNamespace.Builder builder) {
@@ -728,13 +728,11 @@ public class EventuallyConsistentMapImpl<K, V>
             log.trace("Received anti-entropy advertisement from peer: {}",
                       message.sender());
             AntiEntropyAdvertisement<K> advertisement = serializer.decode(message.payload());
-            backgroundExecutor.submit(() -> {
-                try {
-                    handleAntiEntropyAdvertisement(advertisement);
-                } catch (Exception e) {
-                    log.warn("Exception thrown handling advertisements", e);
-                }
-            });
+            try {
+                handleAntiEntropyAdvertisement(advertisement);
+            } catch (Exception e) {
+                log.warn("Exception thrown handling advertisements", e);
+            }
         }
     }
 
@@ -745,25 +743,23 @@ public class EventuallyConsistentMapImpl<K, V>
             log.debug("Received put event from peer: {}", message.sender());
             InternalPutEvent<K, V> event = serializer.decode(message.payload());
 
-            executor.submit(() -> {
-                try {
-                    for (PutEntry<K, V> entry : event.entries()) {
-                        K key = entry.key();
-                        V value = entry.value();
-                        Timestamp timestamp = entry.timestamp();
+            try {
+                for (PutEntry<K, V> entry : event.entries()) {
+                    K key = entry.key();
+                    V value = entry.value();
+                    Timestamp timestamp = entry.timestamp();
 
-                        if (putInternal(key, value, timestamp)) {
-                            EventuallyConsistentMapEvent<K, V> externalEvent =
-                                    new EventuallyConsistentMapEvent<>(
-                                            EventuallyConsistentMapEvent.Type.PUT, key,
-                                            value);
-                            notifyListeners(externalEvent);
-                        }
+                    if (putInternal(key, value, timestamp)) {
+                        EventuallyConsistentMapEvent<K, V> externalEvent =
+                                new EventuallyConsistentMapEvent<>(
+                                        EventuallyConsistentMapEvent.Type.PUT, key,
+                                        value);
+                        notifyListeners(externalEvent);
                     }
-                } catch (Exception e) {
-                    log.warn("Exception thrown handling put", e);
                 }
-            });
+            } catch (Exception e) {
+                log.warn("Exception thrown handling put", e);
+            }
         }
     }
 
@@ -773,25 +769,22 @@ public class EventuallyConsistentMapImpl<K, V>
         public void handle(ClusterMessage message) {
             log.debug("Received remove event from peer: {}", message.sender());
             InternalRemoveEvent<K> event = serializer.decode(message.payload());
+            try {
+                for (RemoveEntry<K> entry : event.entries()) {
+                    K key = entry.key();
+                    Timestamp timestamp = entry.timestamp();
 
-            executor.submit(() -> {
-                try {
-                    for (RemoveEntry<K> entry : event.entries()) {
-                        K key = entry.key();
-                        Timestamp timestamp = entry.timestamp();
-
-                        if (removeInternal(key, timestamp)) {
-                            EventuallyConsistentMapEvent<K, V> externalEvent
-                                    = new EventuallyConsistentMapEvent<>(
-                                    EventuallyConsistentMapEvent.Type.REMOVE,
-                                    key, null);
-                            notifyListeners(externalEvent);
-                        }
+                    if (removeInternal(key, timestamp)) {
+                        EventuallyConsistentMapEvent<K, V> externalEvent
+                        = new EventuallyConsistentMapEvent<>(
+                                EventuallyConsistentMapEvent.Type.REMOVE,
+                                key, null);
+                        notifyListeners(externalEvent);
                     }
-                } catch (Exception e) {
-                    log.warn("Exception thrown handling remove", e);
                 }
-            });
+            } catch (Exception e) {
+                log.warn("Exception thrown handling remove", e);
+            }
         }
     }
 

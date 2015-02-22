@@ -78,6 +78,9 @@ public class DefaultFlowRuleExtRouter
 
     private final Logger log = getLogger(getClass());
 
+    // TODO: Make configurable.
+    private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ReplicaInfoService replicaInfoManager;
 
@@ -102,6 +105,8 @@ public class DefaultFlowRuleExtRouter
     private final ExecutorService futureListeners = Executors
             .newCachedThreadPool(groupedThreads("onos/flow", "store-peer-responders"));
 
+    private ExecutorService messageHandlingExecutor;
+
     protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
@@ -120,6 +125,11 @@ public class DefaultFlowRuleExtRouter
 
     @Activate
     public void activate() {
+
+        messageHandlingExecutor = Executors.newFixedThreadPool(
+                MESSAGE_HANDLER_THREAD_POOL_SIZE,
+                groupedThreads("onos/flow", "message-handlers"));
+
         clusterCommunicator.addSubscriber(APPLY_EXTEND_FLOWS,
             new ClusterMessageHandler() {
 
@@ -141,7 +151,7 @@ public class DefaultFlowRuleExtRouter
                       }
                   }, futureListeners);
               }
-            });
+            }, messageHandlingExecutor);
 
         replicaInfoManager.addListener(replicaInfoEventListener);
 
@@ -151,6 +161,7 @@ public class DefaultFlowRuleExtRouter
     @Deactivate
     public void deactivate() {
         clusterCommunicator.removeSubscriber(APPLY_EXTEND_FLOWS);
+        messageHandlingExecutor.shutdown();
         replicaInfoManager.removeListener(replicaInfoEventListener);
         log.info("Stopped");
     }

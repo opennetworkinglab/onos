@@ -41,6 +41,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -210,6 +211,22 @@ public class NettyMessagingService implements MessagingService {
     @Override
     public void registerHandler(String type, MessageHandler handler) {
         handlers.putIfAbsent(hashToLong(type), handler);
+    }
+
+    @Override
+    public void registerHandler(String type, MessageHandler handler, ExecutorService executor) {
+        handlers.putIfAbsent(hashToLong(type), new MessageHandler() {
+            @Override
+            public void handle(Message message) throws IOException {
+                executor.submit(() -> {
+                    try {
+                        handler.handle(message);
+                    } catch (Exception e) {
+                        log.warn("Failed to process message of type {}", type, e);
+                    }
+                });
+            }
+        });
     }
 
     @Override

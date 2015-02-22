@@ -18,6 +18,7 @@ package org.onosproject.store.cluster.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -43,6 +44,7 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -92,6 +94,8 @@ public class LeadershipManager implements LeadershipService {
     private final LeadershipEventListener peerAdvertiser = new PeerAdvertiser();
     private final LeadershipEventListener leaderBoardUpdater = new LeaderBoardUpdater();
 
+    private ExecutorService messageHandlingExecutor;
+
     public static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
         protected void setupKryoPool() {
@@ -109,9 +113,14 @@ public class LeadershipManager implements LeadershipService {
         addListener(peerAdvertiser);
         addListener(leaderBoardUpdater);
 
+        messageHandlingExecutor = Executors.newSingleThreadExecutor(
+                        groupedThreads("onos/store/leadership",
+                        "peer-advertisement-handler"));
+
         clusterCommunicator.addSubscriber(
                 LEADERSHIP_UPDATES,
-                new PeerAdvertisementHandler());
+                new PeerAdvertisementHandler(),
+                messageHandlingExecutor);
 
         log.info("Started.");
     }
@@ -123,6 +132,7 @@ public class LeadershipManager implements LeadershipService {
 
         clusterCommunicator.removeSubscriber(LEADERSHIP_UPDATES);
 
+        messageHandlingExecutor.shutdown();
         threadPool.shutdown();
 
         log.info("Stopped.");

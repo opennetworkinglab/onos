@@ -16,6 +16,7 @@
 package org.onlab.netty;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -47,7 +48,16 @@ public interface MessagingService {
      * Registers a new message handler for message type.
      * @param type message type.
      * @param handler message handler
+     * @param executor executor to use for running message handler logic.
      */
+    public void registerHandler(String type, MessageHandler handler, ExecutorService executor);
+
+    /**
+     * Registers a new message handler for message type.
+     * @param type message type.
+     * @param handler message handler
+     */
+    @Deprecated
     public void registerHandler(String type, MessageHandler handler);
 
     /**

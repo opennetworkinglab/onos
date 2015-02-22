@@ -16,6 +16,7 @@
 package org.onosproject.store.link.impl;
 
 import com.google.common.collect.Iterables;
+
 import org.easymock.Capture;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,6 +57,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.easymock.EasyMock.*;
@@ -140,7 +142,8 @@ public class GossipLinkStoreTest {
         // TODO mock clusterCommunicator
         clusterCommunicator = createNiceMock(ClusterCommunicationService.class);
         clusterCommunicator.addSubscriber(anyObject(MessageSubject.class),
-                                    anyObject(ClusterMessageHandler.class));
+                                    anyObject(ClusterMessageHandler.class),
+                                    anyObject(ExecutorService.class));
         expectLastCall().anyTimes();
         replay(clusterCommunicator);
 

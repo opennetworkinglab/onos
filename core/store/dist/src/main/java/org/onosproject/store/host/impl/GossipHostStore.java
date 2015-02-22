@@ -154,20 +154,21 @@ public class GossipHostStore
 
     @Activate
     public void activate() {
-        clusterCommunicator.addSubscriber(
-                HOST_UPDATED_MSG,
-                new InternalHostEventListener());
-        clusterCommunicator.addSubscriber(
-                HOST_REMOVED_MSG,
-                new InternalHostRemovedEventListener());
-        clusterCommunicator.addSubscriber(
-                HOST_ANTI_ENTROPY_ADVERTISEMENT,
-                new InternalHostAntiEntropyAdvertisementListener());
 
         executor = newCachedThreadPool(groupedThreads("onos/host", "fg-%d"));
 
         backgroundExecutor =
                 newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/host", "bg-%d")));
+
+        clusterCommunicator.addSubscriber(
+                HOST_UPDATED_MSG,
+                new InternalHostEventListener(), executor);
+        clusterCommunicator.addSubscriber(
+                HOST_REMOVED_MSG,
+                new InternalHostRemovedEventListener(), executor);
+        clusterCommunicator.addSubscriber(
+                HOST_ANTI_ENTROPY_ADVERTISEMENT,
+                new InternalHostAntiEntropyAdvertisementListener(), backgroundExecutor);
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
@@ -512,20 +513,14 @@ public class GossipHostStore
             HostDescription hostDescription = event.hostDescription();
             Timestamp timestamp = event.timestamp();
 
-            executor.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        notifyDelegateIfNotNull(createOrUpdateHostInternal(providerId,
-                                                                           hostId,
-                                                                           hostDescription,
-                                                                           timestamp));
-                    } catch (Exception e) {
-                        log.warn("Exception thrown handling host removed", e);
-                    }
-                }
-            });
+            try {
+                notifyDelegateIfNotNull(createOrUpdateHostInternal(providerId,
+                        hostId,
+                        hostDescription,
+                        timestamp));
+            } catch (Exception e) {
+                log.warn("Exception thrown handling host removed", e);
+            }
         }
     }
 
@@ -540,17 +535,11 @@ public class GossipHostStore
             HostId hostId = event.hostId();
             Timestamp timestamp = event.timestamp();
 
-            executor.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        notifyDelegateIfNotNull(removeHostInternal(hostId, timestamp));
-                    } catch (Exception e) {
-                        log.warn("Exception thrown handling host removed", e);
-                    }
-                }
-            });
+            try {
+                notifyDelegateIfNotNull(removeHostInternal(hostId, timestamp));
+            } catch (Exception e) {
+                log.warn("Exception thrown handling host removed", e);
+            }
         }
     }
 
@@ -720,17 +709,11 @@ public class GossipHostStore
         public void handle(ClusterMessage message) {
             log.trace("Received Host Anti-Entropy advertisement from peer: {}", message.sender());
             HostAntiEntropyAdvertisement advertisement = SERIALIZER.decode(message.payload());
-            backgroundExecutor.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        handleAntiEntropyAdvertisement(advertisement);
-                    } catch (Exception e) {
-                        log.warn("Exception thrown handling Host advertisements", e);
-                    }
-                }
-            });
+            try {
+                handleAntiEntropyAdvertisement(advertisement);
+            } catch (Exception e) {
+                log.warn("Exception thrown handling Host advertisements", e);
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ package org.onosproject.store.cluster.impl;
 import com.google.common.collect.Maps;
 import com.hazelcast.config.TopicConfig;
 import com.hazelcast.core.IAtomicLong;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -113,6 +114,8 @@ public class HazelcastLeadershipService implements LeadershipService {
     private static final MessageSubject LEADERSHIP_EVENT_MESSAGE_SUBJECT =
             new MessageSubject("hz-leadership-events");
 
+    private ExecutorService messageHandlingExecutor;
+
     @Activate
     protected void activate() {
         localNodeId = clusterService.getLocalNode().id();
@@ -124,7 +127,13 @@ public class HazelcastLeadershipService implements LeadershipService {
         topicConfig.setName(TOPIC_HZ_ID);
         storeService.getHazelcastInstance().getConfig().addTopicConfig(topicConfig);
 
-        clusterCommunicator.addSubscriber(LEADERSHIP_EVENT_MESSAGE_SUBJECT, new InternalLeadershipEventListener());
+        messageHandlingExecutor = Executors.newSingleThreadExecutor(
+                groupedThreads("onos/store/leadership", "message-handler"));
+
+        clusterCommunicator.addSubscriber(
+                LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                new InternalLeadershipEventListener(),
+                messageHandlingExecutor);
 
         log.info("Hazelcast Leadership Service started");
     }
@@ -132,6 +141,7 @@ public class HazelcastLeadershipService implements LeadershipService {
     @Deactivate
     protected void deactivate() {
         eventDispatcher.removeSink(LeadershipEvent.class);
+        messageHandlingExecutor.shutdown();
         clusterCommunicator.removeSubscriber(LEADERSHIP_EVENT_MESSAGE_SUBJECT);
 
         for (Topic topic : topics.values()) {

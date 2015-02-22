@@ -16,6 +16,7 @@
 package org.onosproject.store.cluster.messaging.impl;
 
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -180,6 +182,13 @@ public class ClusterCommunicationManager
     public void addSubscriber(MessageSubject subject,
                               ClusterMessageHandler subscriber) {
         messagingService.registerHandler(subject.value(), new InternalClusterMessageHandler(subscriber));
+    }
+
+    @Override
+    public void addSubscriber(MessageSubject subject,
+                              ClusterMessageHandler subscriber,
+                              ExecutorService executor) {
+        messagingService.registerHandler(subject.value(), new InternalClusterMessageHandler(subscriber), executor);
     }
 
     @Override

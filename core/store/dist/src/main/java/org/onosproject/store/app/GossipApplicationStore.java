@@ -18,6 +18,7 @@ package org.onosproject.store.app;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -55,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -90,6 +92,8 @@ public class GossipApplicationStore extends ApplicationArchive
     private final ScheduledExecutorService executor =
             Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store"));
 
+    private ExecutorService messageHandlingExecutor;
+
     private EventuallyConsistentMap<ApplicationId, Application> apps;
     private EventuallyConsistentMap<Application, InternalState> states;
     private EventuallyConsistentMap<Application, Set<Permission>> permissions;
@@ -109,7 +113,10 @@ public class GossipApplicationStore extends ApplicationArchive
                 .register(KryoNamespaces.API)
                 .register(InternalState.class);
 
-        clusterCommunicator.addSubscriber(APP_BITS_REQUEST, new InternalBitServer());
+        messageHandlingExecutor = Executors.newSingleThreadExecutor(
+                groupedThreads("onos/store/app", "message-handler"));
+
+        clusterCommunicator.addSubscriber(APP_BITS_REQUEST, new InternalBitServer(), messageHandlingExecutor);
 
         apps = new EventuallyConsistentMapImpl<>("apps", clusterService,
                                                  clusterCommunicator,
@@ -145,6 +152,8 @@ public class GossipApplicationStore extends ApplicationArchive
 
     @Deactivate
     public void deactivate() {
+        clusterCommunicator.removeSubscriber(APP_BITS_REQUEST);
+        messageHandlingExecutor.shutdown();
         apps.destroy();
         states.destroy();
         permissions.destroy();

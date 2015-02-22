@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -129,7 +130,7 @@ public class EventuallyConsistentMapImplTest {
         // allows us to get a reference to the map's internal cluster message
         // handlers so we can induce events coming in from a peer.
         clusterCommunicator.addSubscriber(anyObject(MessageSubject.class),
-                anyObject(ClusterMessageHandler.class));
+                anyObject(ClusterMessageHandler.class), anyObject(ExecutorService.class));
         expectLastCall().andDelegateTo(new TestClusterCommunicationService()).times(3);
 
         replay(clusterCommunicator);
@@ -719,6 +720,21 @@ public class EventuallyConsistentMapImplTest {
         @Override
         public void addSubscriber(MessageSubject subject,
                                   ClusterMessageHandler subscriber) {
+            if (subject.equals(PUT_MESSAGE_SUBJECT)) {
+                putHandler = subscriber;
+            } else if (subject.equals(REMOVE_MESSAGE_SUBJECT)) {
+                removeHandler = subscriber;
+            } else if (subject.equals(ANTI_ENTROPY_MESSAGE_SUBJECT)) {
+                antiEntropyHandler = subscriber;
+            } else {
+                throw new RuntimeException("Unexpected message subject " + subject.toString());
+            }
+        }
+
+        @Override
+        public void addSubscriber(MessageSubject subject,
+                                  ClusterMessageHandler subscriber,
+                                  ExecutorService executor) {
             if (subject.equals(PUT_MESSAGE_SUBJECT)) {
                 putHandler = subscriber;
             } else if (subject.equals(REMOVE_MESSAGE_SUBJECT)) {

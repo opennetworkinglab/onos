@@ -16,6 +16,7 @@
 package org.onosproject.store.statistic.impl;
 
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,11 +49,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.store.statistic.impl.StatisticStoreMessageSubjects.GET_CURRENT;
 import static org.onosproject.store.statistic.impl.StatisticStoreMessageSubjects.GET_PREVIOUS;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -67,6 +71,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DistributedStatisticStore implements StatisticStore {
 
     private final Logger log = getLogger(getClass());
+
+    // TODO: Make configurable.
+    private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ReplicaInfoService replicaInfoManager;
@@ -97,10 +104,17 @@ public class DistributedStatisticStore implements StatisticStore {
         }
     };;
 
+    private ExecutorService messageHandlingExecutor;
+
     private static final long STATISTIC_STORE_TIMEOUT_MILLIS = 3000;
 
     @Activate
     public void activate() {
+
+        messageHandlingExecutor = Executors.newFixedThreadPool(
+                MESSAGE_HANDLER_THREAD_POOL_SIZE,
+                groupedThreads("onos/store/statistic", "message-handlers"));
+
         clusterCommunicator.addSubscriber(GET_CURRENT, new ClusterMessageHandler() {
 
             @Override
@@ -112,7 +126,7 @@ public class DistributedStatisticStore implements StatisticStore {
                     log.error("Failed to respond back", e);
                 }
             }
-        });
+        }, messageHandlingExecutor);
 
         clusterCommunicator.addSubscriber(GET_PREVIOUS, new ClusterMessageHandler() {
 
@@ -125,12 +139,15 @@ public class DistributedStatisticStore implements StatisticStore {
                     log.error("Failed to respond back", e);
                 }
             }
-        });
+        }, messageHandlingExecutor);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        clusterCommunicator.removeSubscriber(GET_PREVIOUS);
+        clusterCommunicator.removeSubscriber(GET_CURRENT);
+        messageHandlingExecutor.shutdown();
         log.info("Stopped");
     }
 
