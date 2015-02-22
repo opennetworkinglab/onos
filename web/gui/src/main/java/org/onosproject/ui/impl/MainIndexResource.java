@@ -37,12 +37,14 @@ import static com.google.common.io.ByteStreams.toByteArray;
 @Path("/")
 public class MainIndexResource extends AbstractInjectionResource {
 
-    private static final String INDEX = "/index-template.html";
+    private static final String INDEX = "templates/index-template.html";
 
-    private static final String INJECT_CSS = "<!-- {INJECTED-STYLESHEETS} -->";
-    private static final String INJECT_JS = "<!-- {INJECTED-JAVASCRIPT} -->";
+    private static final String INJECT_CSS_START = "<!-- {INJECTED-STYLESHEETS-START} -->";
+    private static final String INJECT_CSS_END = "<!-- {INJECTED-STYLESHEETS-END} -->";
 
-    @Path("/")
+    private static final String INJECT_JS_START = "<!-- {INJECTED-JAVASCRIPT-START} -->";
+    private static final String INJECT_JS_END = "<!-- {INJECTED-JAVASCRIPT-END} -->";
+
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response getMainIndex() throws IOException {
@@ -50,16 +52,18 @@ public class MainIndexResource extends AbstractInjectionResource {
         InputStream indexTemplate = getClass().getClassLoader().getResourceAsStream(INDEX);
         String index = new String(toByteArray(indexTemplate));
 
-        int p1 = split(index, 0, INJECT_JS);
-        int p2 = split(index, p1, INJECT_CSS);
-        int p3 = split(index, p2, null);
+        int p1s = split(index, 0, INJECT_JS_START);
+        int p1e = split(index, p1s, INJECT_JS_END);
+        int p2s = split(index, p1e, INJECT_CSS_START);
+        int p2e = split(index, p2s, INJECT_CSS_END);
+        int p3s = split(index, p2e, null);
 
         StreamEnumeration streams =
-                new StreamEnumeration(of(stream(index, 0, p1),
+                new StreamEnumeration(of(stream(index, 0, p1s),
                                          includeJs(service),
-                                         stream(index, p1, p2),
+                                         stream(index, p1e, p2s),
                                          includeCss(service),
-                                         stream(index, p2, p3)));
+                                         stream(index, p2e, p3s)));
 
         return Response.ok(new SequenceInputStream(streams)).build();
     }

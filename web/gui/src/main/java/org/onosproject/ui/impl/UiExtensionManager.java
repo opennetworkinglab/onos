@@ -54,7 +54,8 @@ public class UiExtensionManager implements UiExtensionService {
                                               new UiView("topo", "Topology View"),
                                               new UiView("device", "Devices"));
 
-    private final UiExtension core = new UiExtension(coreViews, getClass().getClassLoader());
+    private final UiExtension core = new UiExtension(coreViews, "core",
+                                                     getClass().getClassLoader());
 
     @Activate
     public void activate() {

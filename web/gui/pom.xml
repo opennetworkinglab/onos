@@ -57,32 +57,44 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/classes/WEB-INF/classes/app/view</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/webapp/app/view</directory>
-                                    <filtering>true</filtering>
-                                    <excludes>
-                                        <exclude>_sdh/**</exclude>
-                                        <exclude>test/**</exclude>
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <_wab>src/main/webapp/</_wab>
+                        <Include-Resource>src/main/webapp/app/view,{maven-resources}</Include-Resource>
+                        <Bundle-SymbolicName>
+                            ${project.groupId}.${project.artifactId}
+                        </Bundle-SymbolicName>
+                        <Import-Package>
+                            org.slf4j,
+                            org.osgi.framework,
+                            javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
+                            com.sun.jersey.api,
+                            com.sun.jersey.spi.container.servlet,
+                            com.sun.jersey.server.impl.container.servlet,
+                            com.fasterxml.jackson.databind,
+                            com.fasterxml.jackson.databind.node,
+                            com.google.common.base.*,
+                            com.google.common.collect.*,
+                            com.google.common.io.*,
+                            org.eclipse.jetty.websocket.*,
+                            org.onlab.util.*,
+                            org.onlab.osgi.*,
+                            org.onlab.packet.*,
+                            org.onlab.rest.*,
+                            org.onosproject.*
+                        </Import-Package>
+                        <Web-ContextPath>${web.context}</Web-ContextPath>
+                    </instructions>
+                </configuration>
             </plugin>
+
         </plugins>
     </build>
+    <!--
+
+-->
 
 </project>

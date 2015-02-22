@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014,2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,11 @@
     // view IDs.. note the first view listed is loaded at startup
     var viewIds = [
         // TODO: inject view IDs server side
-        // {INJECTED-VIEW-IDS}
-        // (end of injected views)
+        // {INJECTED-VIEW-IDS-START}
+        'sample',
+        'topo',
+        'device',
+        // {INJECTED-VIEW-IDS-END}
 
         // dummy entry
         ''
@@ -62,27 +65,32 @@
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'PanelService',
+            'FlashService', 'QuickHelpService',
 
-        function ($log, $route, $routeParams, $location, ks, ts, gs, ps) {
-            var self = this;
+            function ($log, $route, $routeParams, $location,
+                      ks, ts, gs, ps, flash, qhs) {
+                var self = this;
 
-            self.$route = $route;
-            self.$routeParams = $routeParams;
-            self.$location = $location;
-            self.version = '1.1.0';
+                self.$route = $route;
+                self.$routeParams = $routeParams;
+                self.$location = $location;
+                self.version = '1.1.0';
 
-            // initialize services...
-            ts.init();
-            ks.installOn(d3.select('body'));
-            gs.init();
-            ps.init();
+                // initialize services...
+                ts.init();
+                ks.installOn(d3.select('body'));
+                ks.bindQhs(qhs);
+                gs.init();
+                ps.init();
+                flash.initFlash();
+                qhs.initQuickHelp();
 
-            $log.log('OnosCtrl has been created');
+                $log.log('OnosCtrl has been created');
 
-            $log.debug('route: ', self.$route);
-            $log.debug('routeParams: ', self.$routeParams);
-            $log.debug('location: ', self.$location);
-        }])
+                $log.debug('route: ', self.$route);
+                $log.debug('routeParams: ', self.$routeParams);
+                $log.debug('location: ', self.$location);
+            }])
 
         .config(['$routeProvider', function ($routeProvider) {
             // If view ID not provided, route to the first view in the list.
@@ -94,8 +102,9 @@
             function viewCtrlName(vid) {
                 return 'Ov' + capitalize(vid) + 'Ctrl';
             }
+
             function viewTemplateUrl(vid) {
-                return 'view/' + vid + '/' + vid + '.html';
+                return 'app/view/' + vid + '/' + vid + '.html';
             }
 
             // Add routes for each defined view.

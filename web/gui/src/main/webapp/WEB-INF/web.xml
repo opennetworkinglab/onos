@@ -59,7 +59,7 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onosproject.gui.impl.MainIndexResource</param-value>
+            <param-value>org.onosproject.ui.impl.MainIndexResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -78,7 +78,7 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onosproject.gui.impl.MainExtResource</param-value>
+            <param-value>org.onosproject.ui.impl.MainExtResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

@@ -33,9 +33,9 @@ import static javax.ws.rs.core.MediaType.TEXT_HTML;
 @Path("/")
 public class MainViewResource extends AbstractInjectionResource {
 
-    private static final String CONTENT_TYPE = "Content-Type";
-    private static final String STYLESHEET = "text/css";
-    private static final String SCRIPT = "text/javascript";
+    static final String CONTENT_TYPE = "Content-Type";
+    static final String STYLESHEET = "text/css";
+    static final String SCRIPT = "text/javascript";
 
     @Path("{view}/{resource}")
     @GET

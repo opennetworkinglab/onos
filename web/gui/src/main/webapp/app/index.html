@@ -81,7 +81,7 @@
     <link rel="stylesheet" href="fw/nav/nav.css">
 
     <!-- This is where contributed javascript will get injected -->
-    <!-- {INJECTED-JAVASCRIPT} -->
+    <!-- {INJECTED-JAVASCRIPT-START} -->
     <script src="view/sample/sample.js"></script>
     <script src="view/topo/topo.js"></script>
     <script src="view/topo/topoEvent.js"></script>
@@ -94,34 +94,37 @@
     <script src="view/topo/topoSelect.js"></script>
     <script src="view/topo/topoTraffic.js"></script>
     <script src="view/device/device.js"></script>
-    <!-- TODO: inject javascript refs server-side -->
+    <!-- {INJECTED-JAVASCRIPT-END} -->
+
 
     <!-- This is where contributed stylesheets will get injected -->
-    <!-- {INJECTED-STYLESHEETS} -->
+    <!-- {INJECTED-STYLESHEETS-START} -->
     <link rel="stylesheet" href="view/sample/sample.css">
     <link rel="stylesheet" href="view/topo/topo.css">
     <link rel="stylesheet" href="view/device/device.css">
     <!-- TODO: inject style-sheet refs server-side -->
+    <!-- {INJECTED-STYLESHEETS-END} -->
+
 </head>
 <body class="light" ng-app="onosApp">
-    <div id="frame" ng-controller="OnosCtrl as onosCtrl">
-        <div id="mast"
-             ng-controller="MastCtrl as mastCtrl"
-             ng-include="'fw/mast/mast.html'"></div>
+<div id="frame" ng-controller="OnosCtrl as onosCtrl">
+    <div id="mast"
+         ng-controller="MastCtrl as mastCtrl"
+         ng-include="'fw/mast/mast.html'"></div>
 
-        <div id="view" ng-view></div>
+    <div id="view" ng-view></div>
 
-        <div id="nav"
-             ng-controller="NavCtrl as navCtrl"
-             ng-include="'fw/nav/nav.html'"></div>
+    <div id="nav"
+         ng-controller="NavCtrl as navCtrl"
+         ng-include="'fw/nav/nav.html'"></div>
 
-        <div id="floatpanels"></div>
-        <div id="alerts"></div>
-        <div id="flash"></div>
-        <div id="quickhelp"></div>
-        <div id="veil"
-             resize
-             ng-style="resizeWithOffset(0, 0)"></div>
-    </div>
+    <div id="floatpanels"></div>
+    <div id="alerts"></div>
+    <div id="flash"></div>
+    <div id="quickhelp"></div>
+    <div id="veil"
+         resize
+         ng-style="resizeWithOffset(0, 0)"></div>
+</div>
 </body>
 </html>

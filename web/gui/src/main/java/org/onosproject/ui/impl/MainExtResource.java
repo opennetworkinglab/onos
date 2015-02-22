@@ -31,6 +31,7 @@ import java.io.SequenceInputStream;
 
 import static com.google.common.collect.ImmutableList.of;
 import static com.google.common.io.ByteStreams.toByteArray;
+import static org.onosproject.ui.impl.MainViewResource.SCRIPT;
 
 /**
  * Resource for serving the dynamically composed onos.js.
@@ -38,30 +39,35 @@ import static com.google.common.io.ByteStreams.toByteArray;
 @Path("/")
 public class MainExtResource extends AbstractInjectionResource {
 
-    private static final String MAIN_JS = "/onos-template.js";
-    private static final String NAV_HTML = "/nav-template.html";
+    private static final String MAIN_JS = "templates/onos-template.js";
+    private static final String NAV_HTML = "templates/nav-template.html";
 
-    private static final String INJECT_VIEW_IDS = "// {INJECTED-VIEW-IDS}";
-    private static final String INJECT_VIEW_ITEMS = "<!-- {INJECTED-VIEW-NAV} -->";
+    private static final String INJECT_VIEW_IDS_START = "// {INJECTED-VIEW-IDS-START}";
+    private static final String INJECT_VIEW_IDS_END = "// {INJECTED-VIEW-IDS-END}";
+
+    private static final String INJECT_VIEW_ITEMS_START = "<!-- {INJECTED-VIEW-NAV-START} -->";
+    private static final String INJECT_VIEW_ITEMS_END = "<!-- {INJECTED-VIEW-NAV-END} -->";
+
 
     private static final String NAV_FORMAT =
             "    <li> <a ng-click=\"navCtrl.hideNav()\" href=\"#/%s\">%s</a></li>";
 
     @Path("/onos.js")
     @GET
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(SCRIPT)
     public Response getMainModule() throws IOException {
         UiExtensionService service = get(UiExtensionService.class);
         InputStream jsTemplate = getClass().getClassLoader().getResourceAsStream(MAIN_JS);
         String js = new String(toByteArray(jsTemplate));
 
-        int p1 = split(js, 0, INJECT_VIEW_IDS);
-        int p2 = split(js, p1, null);
+        int p1s = split(js, 0, INJECT_VIEW_IDS_START);
+        int p1e = split(js, 0, INJECT_VIEW_IDS_END);
+        int p2s = split(js, p1e, null);
 
         StreamEnumeration streams =
-                new StreamEnumeration(of(stream(js, 0, p1),
+                new StreamEnumeration(of(stream(js, 0, p1s),
                                          includeViewIds(service),
-                                         stream(js, p1, p2)));
+                                         stream(js, p1e, p2s)));
 
         return Response.ok(new SequenceInputStream(streams)).build();
     }
@@ -85,13 +91,14 @@ public class MainExtResource extends AbstractInjectionResource {
         InputStream navTemplate = getClass().getClassLoader().getResourceAsStream(NAV_HTML);
         String js = new String(toByteArray(navTemplate));
 
-        int p1 = split(js, 0, INJECT_VIEW_ITEMS);
-        int p2 = split(js, p1, null);
+        int p1s = split(js, 0, INJECT_VIEW_ITEMS_START);
+        int p1e = split(js, 0, INJECT_VIEW_ITEMS_END);
+        int p2s = split(js, p1e, null);
 
         StreamEnumeration streams =
-                new StreamEnumeration(of(stream(js, 0, p1),
+                new StreamEnumeration(of(stream(js, 0, p1s),
                                          includeNavItems(service),
-                                         stream(js, p1, p2)));
+                                         stream(js, p1e, p2s)));
 
         return Response.ok(new SequenceInputStream(streams)).build();
     }

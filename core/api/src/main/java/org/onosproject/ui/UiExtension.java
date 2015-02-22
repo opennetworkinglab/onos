@@ -92,7 +92,7 @@ public class UiExtension {
      * @return resource input stream
      */
     public InputStream resource(String viewId, String path) {
-        InputStream is = classLoader.getResourceAsStream(prefix + "views/" + viewId + "/" + path);
+        InputStream is = classLoader.getResourceAsStream(viewId + "/" + path);
         return is;
     }
 
