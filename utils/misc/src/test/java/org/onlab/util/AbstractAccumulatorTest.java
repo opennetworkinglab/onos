@@ -37,7 +37,7 @@ public class AbstractAccumulatorTest {
         assertEquals("incorrect timer", timer, accumulator.timer());
         assertEquals("incorrect max events", 5, accumulator.maxItems());
         assertEquals("incorrect max ms", 100, accumulator.maxBatchMillis());
-        assertEquals("incorrect idle ms", 50, accumulator.maxIdleMillis());
+        assertEquals("incorrect idle ms", 70, accumulator.maxIdleMillis());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class AbstractAccumulatorTest {
         delay(30);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("d"));
-        delay(30);
+        delay(60);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcd", accumulator.batch);
     }
@@ -84,6 +84,54 @@ public class AbstractAccumulatorTest {
         assertEquals("incorrect batch", "ab", accumulator.batch);
     }
 
+    @Test
+    public void readyIdleTrigger() {
+        TestAccumulator accumulator = new TestAccumulator();
+        accumulator.ready = false;
+        accumulator.add(new TestItem("a"));
+        assertTrue("should not have fired yet", accumulator.batch.isEmpty());
+        accumulator.add(new TestItem("b"));
+        delay(80);
+        assertTrue("should not have fired yet", accumulator.batch.isEmpty());
+        accumulator.ready = true;
+        delay(80);
+        assertFalse("should have fired", accumulator.batch.isEmpty());
+        assertEquals("incorrect batch", "ab", accumulator.batch);
+    }
+
+    @Test
+    public void readyLongTrigger() {
+        TestAccumulator accumulator = new TestAccumulator();
+        accumulator.ready = false;
+        delay(120);
+        assertTrue("should not have fired yet", accumulator.batch.isEmpty());
+        accumulator.add(new TestItem("a"));
+        assertTrue("should not have fired yet", accumulator.batch.isEmpty());
+        accumulator.ready = true;
+        delay(80);
+        assertFalse("should have fired", accumulator.batch.isEmpty());
+        assertEquals("incorrect batch", "a", accumulator.batch);
+    }
+
+    @Test
+    public void readyMaxTrigger() {
+        TestAccumulator accumulator = new TestAccumulator();
+        accumulator.ready = false;
+        accumulator.add(new TestItem("a"));
+        accumulator.add(new TestItem("b"));
+        accumulator.add(new TestItem("c"));
+        accumulator.add(new TestItem("d"));
+        accumulator.add(new TestItem("e"));
+        accumulator.add(new TestItem("f"));
+        assertTrue("should not have fired yet", accumulator.batch.isEmpty());
+        accumulator.ready = true;
+        accumulator.add(new TestItem("g"));
+        delay(5);
+        assertFalse("should have fired", accumulator.batch.isEmpty());
+        assertEquals("incorrect batch", "abcdefg", accumulator.batch);
+    }
+
+
     private class TestItem {
         private final String s;
 
@@ -95,9 +143,10 @@ public class AbstractAccumulatorTest {
     private class TestAccumulator extends AbstractAccumulator<TestItem> {
 
         String batch = "";
+        boolean ready = true;
 
         protected TestAccumulator() {
-            super(timer, 5, 100, 50);
+            super(timer, 5, 100, 70);
         }
 
         @Override
@@ -105,6 +154,11 @@ public class AbstractAccumulatorTest {
             for (TestItem item : items) {
                 batch += item.s;
             }
+        }
+
+        @Override
+        public boolean isReady() {
+            return ready;
         }
     }
 

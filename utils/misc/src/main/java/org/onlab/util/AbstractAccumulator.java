@@ -76,7 +76,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
         items.add(checkNotNull(item, "Item cannot be null"));
 
         // Did we hit the max item threshold?
-        if (items.size() == maxItems) {
+        if (items.size() >= maxItems) {
             maxTask = cancelIfActive(maxTask);
             schedule(1);
         } else {
@@ -108,12 +108,16 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     private class ProcessorTask extends TimerTask {
         @Override
         public void run() {
-            try {
-                idleTask = cancelIfActive(idleTask);
-                maxTask = cancelIfActive(maxTask);
-                processItems(finalizeCurrentBatch());
-            } catch (Exception e) {
-                log.warn("Unable to process batch due to {}", e);
+            idleTask = cancelIfActive(idleTask);
+            if (isReady()) {
+                try {
+                    maxTask = cancelIfActive(maxTask);
+                    processItems(finalizeCurrentBatch());
+                } catch (Exception e) {
+                    log.warn("Unable to process batch due to {}", e);
+                }
+            } else {
+                idleTask = schedule(maxIdleMillis);
             }
         }
     }
@@ -123,6 +127,11 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
         List<T> toBeProcessed = items;
         items = Lists.newArrayList();
         return toBeProcessed;
+    }
+
+    @Override
+    public boolean isReady() {
+        return true;
     }
 
     /**
@@ -163,4 +172,5 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     public int maxIdleMillis() {
         return maxIdleMillis;
     }
+
 }

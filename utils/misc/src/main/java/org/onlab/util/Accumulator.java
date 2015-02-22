@@ -40,6 +40,10 @@ public interface Accumulator<T> {
      */
     void processItems(List<T> items);
 
-    //TODO consider a blocking version that required consumer participation
-
+    /**
+     * Indicates whether the accumulator is ready to process items.
+     *
+     * @return true if ready to process
+     */
+    boolean isReady();
 }
