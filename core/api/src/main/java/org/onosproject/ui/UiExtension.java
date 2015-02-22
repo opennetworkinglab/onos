@@ -35,6 +35,7 @@ public class UiExtension {
      * Creates a user interface extension for loading CSS and JS injections
      * from {@code css.html} and {@code js.html} resources, respectively.
      *
+     * @param views       list of contributed views
      * @param classLoader class-loader for user interface resources
      */
     public UiExtension(List<UiView> views, ClassLoader classLoader) {

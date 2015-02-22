@@ -37,6 +37,7 @@ public class AbstractInjectionResource extends BaseResource {
      * @param string      string to split
      * @param start       index where to start looking for pattern
      * @param stopPattern optional pattern where to stop
+     * @return index where the split should occur
      */
     protected int split(String string, int start, String stopPattern) {
         int i = stopPattern != null ? string.indexOf(stopPattern, start) : string.length();
@@ -50,6 +51,7 @@ public class AbstractInjectionResource extends BaseResource {
      * @param string source string
      * @param start  index where to start stream
      * @param end    index where to end stream
+     * @return input stream
      */
     protected InputStream stream(String string, int start, int end) {
         return new ByteArrayInputStream(string.substring(start, end).getBytes());
