@@ -89,7 +89,7 @@ public class DistributedPacketStore
     public void activate() {
         messageHandlingExecutor =  Executors.newFixedThreadPool(
                 MESSAGE_HANDLER_THREAD_POOL_SIZE,
-                groupedThreads("onos/flow", "message-handlers"));
+                groupedThreads("onos/store/packet", "message-handlers"));
 
         communicationService.addSubscriber(
                 PACKET_OUT_SUBJECT, new InternalClusterMessageHandler(), messageHandlingExecutor);

@@ -89,9 +89,7 @@ public class GossipApplicationStore extends ApplicationArchive
         INSTALLED, ACTIVATED, DEACTIVATED
     }
 
-    private final ScheduledExecutorService executor =
-            Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store"));
-
+    private ScheduledExecutorService executor;
     private ExecutorService messageHandlingExecutor;
 
     private EventuallyConsistentMap<ApplicationId, Application> apps;
@@ -112,6 +110,8 @@ public class GossipApplicationStore extends ApplicationArchive
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(InternalState.class);
+
+        executor = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store"));
 
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/store/app", "message-handler"));
@@ -154,6 +154,7 @@ public class GossipApplicationStore extends ApplicationArchive
     public void deactivate() {
         clusterCommunicator.removeSubscriber(APP_BITS_REQUEST);
         messageHandlingExecutor.shutdown();
+        executor.shutdown();
         apps.destroy();
         states.destroy();
         permissions.destroy();

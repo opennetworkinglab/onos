@@ -178,7 +178,7 @@ public class DistributedFlowRuleStore
 
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 MESSAGE_HANDLER_THREAD_POOL_SIZE,
-                groupedThreads("onos/flow", "message-handlers"));
+                groupedThreads("onos/store/flow", "message-handlers"));
 
         clusterCommunicator.addSubscriber(APPLY_BATCH_FLOWS, new OnStoreBatch(local), messageHandlingExecutor);
 
