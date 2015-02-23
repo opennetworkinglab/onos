@@ -317,10 +317,11 @@ public class IntentSynchronizer implements FibListener {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (prefix.version() == Ip4Address.VERSION) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
+            selector.matchIPDst(prefix);
         } else {
             selector.matchEthType(Ethernet.TYPE_IPV6);
+            selector.matchIPv6Dst(prefix);
         }
-        selector.matchIPDst(prefix);
 
         // Rewrite the destination MAC address
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
