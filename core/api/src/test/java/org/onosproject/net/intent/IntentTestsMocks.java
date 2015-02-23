@@ -28,12 +28,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
@@ -56,6 +58,7 @@ import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyVertex;
+import org.onosproject.store.Timestamp;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -368,6 +371,42 @@ public class IntentTestsMocks {
         @Override
         public Type type() {
             return type;
+        }
+    }
+
+    public static class MockIntent extends Intent {
+        private static AtomicLong counter = new AtomicLong(0);
+
+        private final Long number;
+
+        public MockIntent(Long number) {
+            super(NetTestTools.APP_ID, Collections.emptyList());
+            this.number = number;
+        }
+
+        public Long number() {
+            return number;
+        }
+
+        public static Long nextId() {
+            return counter.getAndIncrement();
+        }
+    }
+
+    public static class MockTimestamp implements Timestamp {
+        final int value;
+
+        public MockTimestamp(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public int compareTo(Timestamp o) {
+            if (!(o instanceof MockTimestamp)) {
+                return -1;
+            }
+            MockTimestamp that = (MockTimestamp) o;
+            return (this.value > that.value ? -1 : (this.value == that.value ? 0 : 1));
         }
     }
 
