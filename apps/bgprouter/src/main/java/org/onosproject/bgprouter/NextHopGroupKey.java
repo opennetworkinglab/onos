@@ -24,16 +24,26 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Created by jono on 2/16/15.
+ * Identifier for a next hop group.
  */
 public class NextHopGroupKey implements GroupKey {
 
     private final IpAddress address;
 
+    /**
+     * Creates a new next hop group key.
+     *
+     * @param address next hop's IP address
+     */
     public NextHopGroupKey(IpAddress address) {
         this.address = checkNotNull(address);
     }
 
+    /**
+     * Returns the next hop's IP address.
+     *
+     * @return next hop's IP address
+     */
     public IpAddress address() {
         return address;
     }

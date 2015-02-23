@@ -310,7 +310,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                         break;
                     }
                 default:
-                    log.debug("Unhandled message type: {}", msg.getType());
+                    break;
             }
         }
 

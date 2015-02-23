@@ -16,6 +16,9 @@
 package org.onosproject.bgprouter;
 
 import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -24,6 +27,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
@@ -42,9 +47,12 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
@@ -55,7 +63,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -90,10 +97,21 @@ public class BgpRouter {
 
     private ApplicationId appId;
 
-    private final Multiset<NextHop> nextHops = ConcurrentHashMultiset.create();
-    private final Map<NextHop, NextHopGroupKey> groups = new HashMap<>();
+    // Reference count for how many times a next hop is used by a route
+    private final Multiset<IpAddress> nextHopsCount = ConcurrentHashMultiset.create();
+
+    // Mapping from prefix to its current next hop
+    private final Map<IpPrefix, IpAddress> prefixToNextHop = Maps.newHashMap();
+
+    // Mapping from next hop IP to next hop object containing group info
+    private final Map<IpAddress, NextHop> nextHops = Maps.newHashMap();
+
+    // Stores FIB updates that are waiting for groups to be set up
+    private final Multimap<GroupKey, FibEntry> pendingUpdates = HashMultimap.create();
 
     private DeviceId deviceId = DeviceId.deviceId("of:0000000000000001"); // TODO config
+
+    private final GroupListener groupListener = new InternalGroupListener();
 
     private TunnellingConnectivityManager connectivityManager;
 
@@ -101,8 +119,9 @@ public class BgpRouter {
 
     @Activate
     protected void activate() {
-        log.info("Bgp1Router started");
         appId = coreService.registerApplication(BGP_ROUTER_APP);
+
+        groupService.addListener(groupListener);
 
         provisionStaticTables.provision(true);
 
@@ -123,50 +142,58 @@ public class BgpRouter {
         connectivityManager.stop();
         provisionStaticTables.provision(false);
 
+        groupService.removeListener(groupListener);
+
         log.info("BgpRouter stopped");
     }
 
     private void updateFibEntry(Collection<FibUpdate> updates) {
         for (FibUpdate update : updates) {
-            NextHop nextHop = new NextHop(update.entry().nextHopIp(),
-                                          update.entry().nextHopMac());
+            FibEntry entry = update.entry();
 
-            addNextHop(nextHop);
+            addNextHop(entry);
 
-            TrafficSelector selector = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(update.entry().prefix())
-                    .build();
+            Group group;
+            synchronized (pendingUpdates) {
+                NextHop nextHop = nextHops.get(entry.nextHopIp());
+                group = groupService.getGroup(deviceId, nextHop.group());
 
-            // TODO ensure group exists
-            NextHopGroupKey groupKey = groups.get(nextHop);
-            Group group = groupService.getGroup(deviceId, groupKey);
-            if (group == null) {
-                // TODO handle this
-                log.warn("oops, group {} wasn't there");
-                continue;
+                if (group == null) {
+                    log.debug("Adding pending flow {}", update.entry());
+                    pendingUpdates.put(nextHop.group(), update.entry());
+                    continue;
+                }
             }
 
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .group(group.id())
-                    .build();
-
-            FlowRule flowRule = new DefaultFlowRule(deviceId, selector, treatment,
-                                                    PRIORITY, appId, 0, true,
-                                                    FlowRule.Type.IP);
-
-            flowService.applyFlowRules(flowRule);
+            installFlow(update.entry(), group);
         }
     }
 
-    private void deleteFibEntry(Collection<FibUpdate> withdraws) {
-        for (FibUpdate update : withdraws) {
-            NextHop nextHop = new NextHop(update.entry().nextHopIp(),
-                                          update.entry().nextHopMac());
+    private void installFlow(FibEntry entry, Group group) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(entry.prefix())
+                .build();
 
-            deleteNextHop(nextHop);
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .group(group.id())
+                .build();
+
+        FlowRule flowRule = new DefaultFlowRule(deviceId, selector, treatment,
+                                                PRIORITY, appId, 0, true,
+                                                FlowRule.Type.IP);
+
+        flowService.applyFlowRules(flowRule);
+    }
+
+    private synchronized void deleteFibEntry(Collection<FibUpdate> withdraws) {
+        for (FibUpdate update : withdraws) {
+            FibEntry entry = update.entry();
+
+            deleteNextHop(entry.prefix());
 
             TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
                     .matchIPDst(update.entry().prefix())
                     .build();
 
@@ -178,18 +205,20 @@ public class BgpRouter {
         }
     }
 
-    private void addNextHop(NextHop nextHop) {
-        if (nextHops.add(nextHop, 1) == 0) {
+    private synchronized void addNextHop(FibEntry entry) {
+        prefixToNextHop.put(entry.prefix(), entry.nextHopIp());
+        if (nextHopsCount.count(entry.nextHopIp()) == 0) {
             // There was no next hop in the multiset
 
-            Interface egressIntf = configService.getMatchingInterface(nextHop.ip());
+            Interface egressIntf = configService.getMatchingInterface(entry.nextHopIp());
             if (egressIntf == null) {
-                log.warn("no egress interface found for {}", nextHop);
+                log.warn("no egress interface found for {}", entry);
                 return;
             }
 
-            NextHopGroupKey groupKey = new NextHopGroupKey(nextHop.ip());
-            groups.put(nextHop, groupKey);
+            NextHopGroupKey groupKey = new NextHopGroupKey(entry.nextHopIp());
+
+            NextHop nextHop = new NextHop(entry.nextHopIp(), entry.nextHopMac(), groupKey);
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setEthSrc(egressIntf.mac())
@@ -209,17 +238,30 @@ public class BgpRouter {
                                                   appId);
 
             groupService.addGroup(groupDescription);
+
+            nextHops.put(nextHop.ip(), nextHop);
+
         }
+
+        nextHopsCount.add(entry.nextHopIp());
     }
 
-    private void deleteNextHop(NextHop nextHop) {
-        if (nextHops.remove(nextHop, 1) <= 1) {
+    private synchronized void deleteNextHop(IpPrefix prefix) {
+        IpAddress nextHopIp = prefixToNextHop.remove(prefix);
+        NextHop nextHop = nextHops.get(nextHopIp);
+        if (nextHop == null) {
+            log.warn("No next hop found when removing prefix {}", prefix);
+            return;
+        }
+
+        if (nextHopsCount.remove(nextHopIp, 1) <= 1) {
             // There was one or less next hops, so there are now none
 
-            log.debug("removing group");
+            log.debug("removing group for next hop {}", nextHop);
 
-            GroupKey groupKey = groups.remove(nextHop);
-            groupService.removeGroup(deviceId, groupKey, appId);
+            nextHops.remove(nextHopIp);
+
+            groupService.removeGroup(deviceId, nextHop.group(), appId);
         }
     }
 
@@ -237,7 +279,6 @@ public class BgpRouter {
 
         private static final int CONTROLLER_PRIORITY = 255;
         private static final int DROP_PRIORITY = 0;
-
 
         public void provision(boolean install) {
 
@@ -262,13 +303,13 @@ public class BgpRouter {
             treatment.transition(FlowRule.Type.VLAN_MPLS);
 
             FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
-                                                treatment.build(), CONTROLLER_PRIORITY,
-                                                appId, 0, true);
+                                                treatment.build(),
+                                                CONTROLLER_PRIORITY, appId, 0,
+                                                true);
 
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
 
             ops = install ? ops.add(rule) : ops.remove(rule);
-
 
             //Drop rule
             selector = DefaultTrafficSelector.builder();
@@ -277,8 +318,8 @@ public class BgpRouter {
             treatment.drop();
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
+                                       treatment.build(), DROP_PRIORITY, appId,
+                                       0, true, FlowRule.Type.VLAN_MPLS);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -298,16 +339,16 @@ public class BgpRouter {
 
         private void processTableOne(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                    .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
             selector.matchEthType(Ethernet.TYPE_IPV4);
             treatment.transition(FlowRule.Type.VLAN);
 
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                  treatment.build(), CONTROLLER_PRIORITY,
-                                  appId, 0, true, FlowRule.Type.VLAN_MPLS);
+            rule = new DefaultFlowRule(deviceId, selector.build(), treatment.build(), CONTROLLER_PRIORITY,
+                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -342,8 +383,8 @@ public class BgpRouter {
             treatment.drop();
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
+                                       treatment.build(), DROP_PRIORITY, appId,
+                                       0, true, FlowRule.Type.VLAN_MPLS);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -355,7 +396,8 @@ public class BgpRouter {
 
                 @Override
                 public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision vlan/mpls table for bgp router");
+                    log.info(
+                            "Failed to provision vlan/mpls table for bgp router");
                 }
             }));
 
@@ -363,7 +405,8 @@ public class BgpRouter {
 
         private void processTableTwo(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                    .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
@@ -372,8 +415,8 @@ public class BgpRouter {
             treatment.drop();
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN);
+                                       treatment.build(), DROP_PRIORITY, appId,
+                                       0, true, FlowRule.Type.VLAN);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -390,11 +433,10 @@ public class BgpRouter {
             }));
         }
 
-
-
         private void processTableThree(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                    .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
@@ -426,8 +468,8 @@ public class BgpRouter {
             treatment.drop();
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
+                                       treatment.build(), DROP_PRIORITY, appId,
+                                       0, true, FlowRule.Type.VLAN_MPLS);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -443,20 +485,20 @@ public class BgpRouter {
                 }
             }));
 
-
         }
 
         private void processTableFive(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                    .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
             treatment.transition(FlowRule.Type.IP);
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.COS);
+                                       treatment.build(), DROP_PRIORITY, appId,
+                                       0, true, FlowRule.Type.COS);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -476,7 +518,8 @@ public class BgpRouter {
 
         private void processTableSix(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                    .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
@@ -485,8 +528,8 @@ public class BgpRouter {
             treatment.drop();
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.IP);
+                                       treatment.build(), DROP_PRIORITY, appId,
+                                       0, true, FlowRule.Type.IP);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -505,7 +548,8 @@ public class BgpRouter {
 
         private void processTableNine(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                    .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
@@ -529,6 +573,21 @@ public class BgpRouter {
                 }
             }));
         }
+    }
 
+    private class InternalGroupListener implements GroupListener {
+
+        @Override
+        public void event(GroupEvent event) {
+            Group group = event.subject();
+
+            if (event.type() == GroupEvent.Type.GROUP_ADDED ||
+                    event.type() == GroupEvent.Type.GROUP_UPDATED) {
+                synchronized (pendingUpdates) {
+                    pendingUpdates.removeAll(group.appCookie())
+                            .forEach((entry) -> installFlow(entry, group));
+                }
+            }
+        }
     }
 }

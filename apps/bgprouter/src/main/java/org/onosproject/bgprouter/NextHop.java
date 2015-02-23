@@ -18,28 +18,57 @@ package org.onosproject.bgprouter;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.group.GroupKey;
 
 import java.util.Objects;
 
 /**
- * Created by jono on 2/12/15.
+ * Represents a next hop for routing, whose MAC address has already been resolved.
  */
 public class NextHop {
 
     private final IpAddress ip;
     private final MacAddress mac;
+    private final GroupKey group;
 
-    public NextHop(IpAddress ip, MacAddress mac) {
+    /**
+     * Creates a new next hop.
+     *
+     * @param ip next hop's IP address
+     * @param mac next hop's MAC address
+     * @param group next hop's group
+     */
+    public NextHop(IpAddress ip, MacAddress mac, GroupKey group) {
         this.ip = ip;
         this.mac = mac;
+        this.group = group;
     }
 
+    /**
+     * Returns the next hop's IP address.
+     *
+     * @return next hop's IP address
+     */
     public IpAddress ip() {
         return ip;
     }
 
+    /**
+     * Returns the next hop's MAC address.
+     *
+     * @return next hop's MAC address
+     */
     public MacAddress mac() {
         return mac;
+    }
+
+    /**
+     * Returns the next hop group.
+     *
+     * @return group
+     */
+    public GroupKey group() {
+        return group;
     }
 
     @Override
@@ -51,12 +80,13 @@ public class NextHop {
         NextHop that = (NextHop) o;
 
         return Objects.equals(this.ip, that.ip) &&
-                Objects.equals(this.mac, that.mac);
+                Objects.equals(this.mac, that.mac) &&
+                Objects.equals(this.group, that.group);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, mac);
+        return Objects.hash(ip, mac, group);
     }
 
     @Override
@@ -64,6 +94,7 @@ public class NextHop {
         return MoreObjects.toStringHelper(getClass())
                 .add("ip", ip)
                 .add("mac", mac)
+                .add("group", group)
                 .toString();
     }
 }
