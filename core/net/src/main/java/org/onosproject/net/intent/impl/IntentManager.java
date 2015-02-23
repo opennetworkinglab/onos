@@ -317,6 +317,7 @@ public class IntentManager
                 //FIXME
 //            batchService.removeIntentOperations(data);
             }
+            accumulator.ready();
         }
 
         private List<Future<FinalIntentProcessPhase>> createIntentUpdates() {

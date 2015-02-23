@@ -42,6 +42,8 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
 
     private final IntentBatchDelegate delegate;
 
+    private volatile boolean ready;
+
     /**
      * Creates an intent operation accumulator.
      *
@@ -50,13 +52,14 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
     protected IntentAccumulator(IntentBatchDelegate delegate) {
         super(TIMER, DEFAULT_MAX_EVENTS, DEFAULT_MAX_BATCH_MS, DEFAULT_MAX_IDLE_MS);
         this.delegate = delegate;
+        // Assume that the delegate is ready for work at the start
+        ready = true; //TODO validate the assumption that delegate is ready
     }
 
     @Override
     public void processItems(List<IntentData> items) {
+        ready = false;
         delegate.execute(reduce(items));
-        // FIXME kick off the work
-        //for (IntentData data : opMap.values()) {}
     }
 
     private Collection<IntentData> reduce(List<IntentData> ops) {
@@ -66,5 +69,14 @@ public class IntentAccumulator extends AbstractAccumulator<IntentData> {
         }
         //TODO check the version... or maybe store will handle this.
         return map.values();
+    }
+
+    @Override
+    public boolean isReady() {
+        return ready;
+    }
+
+    public void ready() {
+        ready = true;
     }
 }
