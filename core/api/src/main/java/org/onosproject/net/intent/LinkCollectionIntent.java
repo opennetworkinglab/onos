@@ -36,6 +36,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
 
     private final Set<Link> links;
 
+    private final Set<ConnectPoint> ingressPoints;
     private final Set<ConnectPoint> egressPoints;
 
     /**
@@ -46,6 +47,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
      * @param selector    traffic match
      * @param treatment   action
      * @param links       traversed links
+     * @param ingressPoint ingress point
      * @param egressPoint egress point
      * @throws NullPointerException {@code path} is null
      */
@@ -53,8 +55,10 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 TrafficSelector selector,
                                 TrafficTreatment treatment,
                                 Set<Link> links,
+                                ConnectPoint ingressPoint,
                                 ConnectPoint egressPoint) {
-        this(appId, selector , treatment, links, egressPoint, Collections.emptyList());
+        this(appId, selector , treatment, links, ingressPoint, egressPoint,
+             Collections.emptyList());
     }
 
     /**
@@ -66,6 +70,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
      * @param selector    traffic match
      * @param treatment   action
      * @param links       traversed links
+     * @param ingressPoint ingress point
      * @param egressPoint egress point
      * @param constraints optional list of constraints
      * @throws NullPointerException {@code path} is null
@@ -74,10 +79,12 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 TrafficSelector selector,
                                 TrafficTreatment treatment,
                                 Set<Link> links,
+                                ConnectPoint ingressPoint,
                                 ConnectPoint egressPoint,
                                 List<Constraint> constraints) {
         super(appId, resources(links), selector, treatment, constraints);
         this.links = links;
+        this.ingressPoints = ImmutableSet.of(ingressPoint);
         this.egressPoints = ImmutableSet.of(egressPoint);
     }
 
@@ -89,6 +96,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
      * @param selector     traffic match
      * @param treatment    action
      * @param links        traversed links
+     * @param ingressPoints Set of ingress point
      * @param egressPoints Set of egress point
      * @param constraints  the constraints
      * @throws NullPointerException {@code path} is null
@@ -97,11 +105,13 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                                 TrafficSelector selector,
                                 TrafficTreatment treatment,
                                 Set<Link> links,
+                                Set<ConnectPoint> ingressPoints,
                                 Set<ConnectPoint> egressPoints,
                                 List<Constraint> constraints) {
         super(appId, resources(links), selector, treatment);
 
         this.links = links;
+        this.ingressPoints = ImmutableSet.copyOf(ingressPoints);
         this.egressPoints = ImmutableSet.copyOf(egressPoints);
     }
 
@@ -111,6 +121,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
     protected LinkCollectionIntent() {
         super();
         this.links = null;
+        this.ingressPoints = null;
         this.egressPoints = null;
     }
 
@@ -125,9 +136,18 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
     }
 
     /**
-     * Returns the egress point of the intent.
+     * Returns the ingress points of the intent.
      *
-     * @return the egress point
+     * @return the ingress points
+     */
+    public Set<ConnectPoint> ingressPoints() {
+        return ingressPoints;
+    }
+
+    /**
+     * Returns the egress points of the intent.
+     *
+     * @return the egress points
      */
     public Set<ConnectPoint> egressPoints() {
         return egressPoints;
@@ -146,6 +166,7 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
                 .add("selector", selector())
                 .add("treatment", treatment())
                 .add("links", links())
+                .add("ingress", ingressPoints())
                 .add("egress", egressPoints())
                 .toString();
     }

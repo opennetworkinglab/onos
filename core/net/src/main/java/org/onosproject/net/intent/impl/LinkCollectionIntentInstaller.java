@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,14 +79,29 @@ public class LinkCollectionIntentInstaller
 
     @Override
     public List<FlowRuleBatchOperation> install(LinkCollectionIntent intent) {
+        Map<DeviceId, Set<PortNumber>> inputMap = new HashMap<DeviceId, Set<PortNumber>>();
         Map<DeviceId, Set<PortNumber>> outputMap = new HashMap<DeviceId, Set<PortNumber>>();
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
 
         for (Link link : intent.links()) {
+            if (inputMap.get(link.dst().deviceId()) == null) {
+                inputMap.put(link.dst().deviceId(), new HashSet<PortNumber>());
+            }
+            inputMap.get(link.dst().deviceId()).add(link.dst().port());
+
             if (outputMap.get(link.src().deviceId()) == null) {
                 outputMap.put(link.src().deviceId(), new HashSet<PortNumber>());
             }
             outputMap.get(link.src().deviceId()).add(link.src().port());
+
+        }
+
+        for (ConnectPoint ingressPoint : intent.ingressPoints()) {
+            if (inputMap.get(ingressPoint.deviceId()) == null) {
+                inputMap
+                        .put(ingressPoint.deviceId(), new HashSet<PortNumber>());
+            }
+            inputMap.get(ingressPoint.deviceId()).add(ingressPoint.port());
 
         }
 
@@ -99,8 +115,11 @@ public class LinkCollectionIntentInstaller
         }
 
         for (Entry<DeviceId, Set<PortNumber>> entry : outputMap.entrySet()) {
-            rules.add(createBatchEntry(FlowRuleOperation.ADD, intent,
-                                       entry.getKey(), entry.getValue()));
+            Set<PortNumber> ingressPoints = inputMap.get(entry.getKey());
+            rules.addAll(createBatchEntries(FlowRuleOperation.ADD, intent,
+                                            entry.getKey(),
+                                            ingressPoints,
+                                            entry.getValue()));
         }
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
@@ -108,14 +127,29 @@ public class LinkCollectionIntentInstaller
 
     @Override
     public List<FlowRuleBatchOperation> uninstall(LinkCollectionIntent intent) {
+        Map<DeviceId, Set<PortNumber>> inputMap = new HashMap<DeviceId, Set<PortNumber>>();
         Map<DeviceId, Set<PortNumber>> outputMap = new HashMap<DeviceId, Set<PortNumber>>();
         List<FlowRuleBatchEntry> rules = Lists.newLinkedList();
 
         for (Link link : intent.links()) {
+            if (inputMap.get(link.dst().deviceId()) == null) {
+                inputMap.put(link.dst().deviceId(), new HashSet<PortNumber>());
+            }
+            inputMap.get(link.dst().deviceId()).add(link.dst().port());
+
             if (outputMap.get(link.src().deviceId()) == null) {
                 outputMap.put(link.src().deviceId(), new HashSet<PortNumber>());
             }
             outputMap.get(link.src().deviceId()).add(link.src().port());
+        }
+
+        for (ConnectPoint ingressPoint : intent.ingressPoints()) {
+            if (inputMap.get(ingressPoint.deviceId()) == null) {
+                inputMap
+                        .put(ingressPoint.deviceId(), new HashSet<PortNumber>());
+            }
+            inputMap.get(ingressPoint.deviceId()).add(ingressPoint.port());
+
         }
 
         for (ConnectPoint egressPoint : intent.egressPoints()) {
@@ -127,8 +161,11 @@ public class LinkCollectionIntentInstaller
         }
 
         for (Entry<DeviceId, Set<PortNumber>> entry : outputMap.entrySet()) {
-            rules.add(createBatchEntry(FlowRuleOperation.REMOVE, intent,
-                                       entry.getKey(), entry.getValue()));
+            Set<PortNumber> ingressPoints = inputMap.get(entry.getKey());
+            rules.addAll(createBatchEntries(FlowRuleOperation.REMOVE, intent,
+                                            entry.getKey(),
+                                            ingressPoints,
+                                            entry.getValue()));
         }
 
         return Lists.newArrayList(new FlowRuleBatchOperation(rules));
@@ -144,34 +181,71 @@ public class LinkCollectionIntentInstaller
     }
 
     /**
-     * Creates a FlowRuleBatchEntry based on the provided parameters.
+     * Creates a collection of FlowRuleBatchEntry based on the provided
+     * parameters.
      *
      * @param operation the FlowRuleOperation to use
      * @param intent the link collection intent
      * @param deviceId the device ID for the flow rule
-     * @param outPorts the output port of the flow rule
-     * @return the new flow rule batch entry
+     * @param inPorts the logical input ports of the flow rule
+     * @param outPorts the output ports of the flow rule
+     * @return a collection with the new flow rule batch entries
      */
-    private FlowRuleBatchEntry createBatchEntry(FlowRuleOperation operation,
-                                                LinkCollectionIntent intent,
-                                                DeviceId deviceId,
-                                                Set<PortNumber> outPorts) {
+    private Collection<FlowRuleBatchEntry> createBatchEntries(
+                                FlowRuleOperation operation,
+                                LinkCollectionIntent intent,
+                                DeviceId deviceId,
+                                Set<PortNumber> inPorts,
+                                Set<PortNumber> outPorts) {
+        Collection<FlowRuleBatchEntry> result = Lists.newLinkedList();
+        Set<PortNumber> ingressPorts = new HashSet<PortNumber>();
 
-        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
-                .builder(intent.treatment());
-
-        for (PortNumber outPort : outPorts) {
-            treatmentBuilder.setOutput(outPort);
+        //
+        // Collect all ingress ports for this device.
+        // The intent treatment is applied only on those ports.
+        //
+        for (ConnectPoint cp : intent.ingressPoints()) {
+            if (cp.deviceId().equals(deviceId)) {
+                ingressPorts.add(cp.port());
+            }
         }
-        TrafficTreatment treatment = treatmentBuilder.build();
 
-        TrafficSelector selector = DefaultTrafficSelector
-                .builder(intent.selector()).build();
+        //
+        // Create two treatments: one for setting the output ports,
+        // and a second one that applies the intent treatment and sets the
+        // output ports.
+        // NOTE: The second one is created only if there are ingress ports.
+        //
+        TrafficTreatment.Builder defaultTreatmentBuilder =
+            DefaultTrafficTreatment.builder();
+        for (PortNumber outPort : outPorts) {
+            defaultTreatmentBuilder.setOutput(outPort);
+        }
+        TrafficTreatment defaultTreatment = defaultTreatmentBuilder.build();
+        TrafficTreatment intentTreatment = null;
+        if (!ingressPorts.isEmpty()) {
+            TrafficTreatment.Builder intentTreatmentBuilder =
+                DefaultTrafficTreatment.builder(intent.treatment());
+            for (PortNumber outPort : outPorts) {
+                intentTreatmentBuilder.setOutput(outPort);
+            }
+            intentTreatment = intentTreatmentBuilder.build();
+        }
 
-        FlowRule rule = new DefaultFlowRule(deviceId,
+        for (PortNumber inPort : inPorts) {
+            TrafficSelector selector = DefaultTrafficSelector
+                .builder(intent.selector()).matchInport(inPort).build();
+            TrafficTreatment treatment = defaultTreatment;
+            if (ingressPorts.contains(inPort)) {
+                // Use the intent treatment if this is ingress port
+                treatment = intentTreatment;
+            }
+            FlowRule rule = new DefaultFlowRule(deviceId,
                 selector, treatment, 123,
                 appId, (short) (intent.id().fingerprint() &  0xffff), 0, true);
+            result.add(new FlowRuleBatchEntry(operation, rule));
+        }
 
-        return new FlowRuleBatchEntry(operation, rule);
+        return result;
     }
 }
