@@ -19,9 +19,14 @@ import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.ndp.NeighborDiscoveryOptions;
+import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.Timer;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -149,7 +154,7 @@ public class HostMonitor implements TimerTask {
             Set<Host> hosts = hostManager.getHostsByIp(ip);
 
             if (hosts.isEmpty()) {
-                sendArpRequest(ip);
+                sendArpNdpRequest(ip);
             } else {
                 for (Host host : hosts) {
                     HostProvider provider = hostProviders.get(host.providerId());
@@ -166,12 +171,13 @@ public class HostMonitor implements TimerTask {
     }
 
     /**
-     * Sends an ARP request for the given IP address.
+     * Sends an ARP or Neighbor Discovery Protocol request for the given IP
+     * address.
      *
-     * @param targetIp IP address to ARP for
+     * @param targetIp IP address to send the request for
      */
-    private void sendArpRequest(IpAddress targetIp) {
-        // Find ports with an IP address in the target's subnet and sent ARP
+    private void sendArpNdpRequest(IpAddress targetIp) {
+        // Find ports with an IP address in the target's subnet and sent ARP/ND
         // probes out those ports.
         for (Device device : deviceService.getDevices()) {
             for (Port port : deviceService.getPorts(device.id())) {
@@ -182,9 +188,10 @@ public class HostMonitor implements TimerTask {
                 for (PortAddresses portAddresses : portAddressSet) {
                     for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
                         if (ia.subnetAddress().contains(targetIp)) {
-                            sendProbe(device.id(), port, targetIp,
-                                      ia.ipAddress(), portAddresses.mac(),
-                                      portAddresses.vlan());
+                            sendArpNdpProbe(device.id(), port, targetIp,
+                                            ia.ipAddress(),
+                                            portAddresses.mac(),
+                                            portAddresses.vlan());
                         }
                     }
                 }
@@ -192,26 +199,38 @@ public class HostMonitor implements TimerTask {
         }
     }
 
-    private void sendProbe(DeviceId deviceId, Port port, IpAddress targetIp,
-            IpAddress sourceIp, MacAddress sourceMac, VlanId vlan) {
-        Ethernet arpPacket = buildArpRequest(targetIp, sourceIp, sourceMac, vlan);
+    private void sendArpNdpProbe(DeviceId deviceId, Port port,
+                                 IpAddress targetIp,
+                                 IpAddress sourceIp, MacAddress sourceMac,
+                                 VlanId vlan) {
+        Ethernet probePacket = null;
+
+        if (targetIp.version() == Ip4Address.VERSION) {
+            // IPv4: Use ARP
+            probePacket = buildArpRequest(targetIp, sourceIp, sourceMac,
+                                          vlan);
+        } else {
+            // IPv6: Use Neighbor Discovery
+            probePacket = buildNdpRequest(targetIp, sourceIp, sourceMac,
+                                          vlan);
+        }
 
         List<Instruction> instructions = new ArrayList<>();
         instructions.add(Instructions.createOutput(port.number()));
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-        .setOutput(port.number())
-        .build();
+            .setOutput(port.number())
+            .build();
 
         OutboundPacket outboundPacket =
-                new DefaultOutboundPacket(deviceId, treatment,
-                        ByteBuffer.wrap(arpPacket.serialize()));
+            new DefaultOutboundPacket(deviceId, treatment,
+                                      ByteBuffer.wrap(probePacket.serialize()));
 
         packetService.emit(outboundPacket);
     }
 
     private Ethernet buildArpRequest(IpAddress targetIp, IpAddress sourceIp,
-            MacAddress sourceMac, VlanId vlan) {
+                                     MacAddress sourceMac, VlanId vlan) {
 
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
@@ -234,6 +253,46 @@ public class HostMonitor implements TimerTask {
         if (!vlan.equals(VlanId.NONE)) {
             ethernet.setVlanID(vlan.toShort());
         }
+
+        return ethernet;
+    }
+
+    private Ethernet buildNdpRequest(IpAddress targetIp, IpAddress sourceIp,
+                                     MacAddress sourceMac, VlanId vlan) {
+
+        // Create the Ethernet packet
+        Ethernet ethernet = new Ethernet();
+        ethernet.setEtherType(Ethernet.TYPE_IPV6)
+                .setDestinationMACAddress(MacAddress.BROADCAST)
+                .setSourceMACAddress(sourceMac);
+        if (!vlan.equals(VlanId.NONE)) {
+            ethernet.setVlanID(vlan.toShort());
+        }
+
+        //
+        // Create the IPv6 packet
+        //
+        // TODO: The destination IP address should be the
+        // solicited-node multicast address
+        IPv6 ipv6 = new IPv6();
+        ipv6.setSourceAddress(sourceIp.toOctets());
+        ipv6.setDestinationAddress(targetIp.toOctets());
+        ipv6.setHopLimit((byte) 255);
+
+        // Create the ICMPv6 packet
+        ICMP6 icmp6 = new ICMP6();
+        icmp6.setIcmpType(ICMP6.NEIGHBOR_SOLICITATION);
+        icmp6.setIcmpCode((byte) 0);
+
+        // Create the Neighbor Solication packet
+        NeighborSolicitation ns = new NeighborSolicitation();
+        ns.setTargetAddress(targetIp.toOctets());
+        ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS,
+                     sourceMac.toBytes());
+
+        icmp6.setPayload(ns);
+        ipv6.setPayload(icmp6);
+        ethernet.setPayload(ipv6);
 
         return ethernet;
     }
