@@ -34,11 +34,11 @@
         options: {
             showBackground: true
         },
-        webSockUrl: 'ws/topology',
+        webSockUrl: '../ws/topology',
         data: {
             live: {
-                jsonUrl: 'rs/topology/graph',
-                detailPrefix: 'rs/topology/graph/',
+                jsonUrl: '../rs/topology/graph',
+                detailPrefix: '../rs/topology/graph/',
                 detailSuffix: ''
             },
             fake: {
@@ -3029,7 +3029,7 @@
         stopAntTimer();
     }
 
-    var geoJsonUrl = 'data/map/continental_us.json',
+    var geoJsonUrl = 'continental_us.json',
         geoJson;
 
     function loadGeoJsonData() {

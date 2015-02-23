@@ -21,7 +21,7 @@
     <display-name>ONOS GUI</display-name>
 
     <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+        <welcome-file>legacy/index.html</welcome-file>
     </welcome-file-list>
 
     <!--
@@ -97,7 +97,7 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onosproject.gui.impl.MainViewResource</param-value>
+            <param-value>org.onosproject.ui.impl.MainViewResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

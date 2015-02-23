@@ -36,7 +36,7 @@
     mast.append('img')
         .attr({
             id: 'logo',
-            src: 'img/onos-logo.png'
+            src: 'onos-logo.png'
         });
 
     mast.append('span')
