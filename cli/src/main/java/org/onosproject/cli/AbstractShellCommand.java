@@ -63,7 +63,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @param args   arguments
      */
     public void print(String format, Object... args) {
-        session.getConsole().println(String.format(format, args));
+        System.out.println(String.format(format, args));
     }
 
     /**
@@ -73,8 +73,7 @@ public abstract class AbstractShellCommand extends OsgiCommandSupport {
      * @param args   arguments
      */
     public void error(String format, Object... args) {
-        //FIXME we write both out and err to the same console (stdout)
-        session.getConsole().println(String.format(format, args));
+        System.err.println(String.format(format, args));
     }
 
     /**
