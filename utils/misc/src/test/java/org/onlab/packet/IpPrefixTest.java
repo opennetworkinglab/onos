@@ -767,6 +767,12 @@ public class IpPrefixTest {
         assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/16")));
         assertFalse(ipPrefix.contains(IpPrefix.valueOf("0.0.0.0/0")));
         assertTrue(ipPrefix.contains(IpPrefix.valueOf("255.255.255.255/32")));
+
+        // Test when there is a mistmatch in the compared IP address families
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1111:2222:3333:4444::/120")));
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128")));
     }
 
     /**
@@ -840,6 +846,12 @@ public class IpPrefixTest {
         assertFalse(ipPrefix.contains(IpPrefix.valueOf("::/0")));
         assertTrue(ipPrefix.contains(
                 IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128")));
+
+        // Test when there is a mistmatch in the compared IP address families
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("1.2.0.0/24")));
+        ipPrefix = IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertFalse(ipPrefix.contains(IpPrefix.valueOf("255.255.255.255/32")));
     }
 
     /**
@@ -876,6 +888,12 @@ public class IpPrefixTest {
         assertFalse(ipPrefix.contains(IpAddress.valueOf("1.3.0.0")));
         assertFalse(ipPrefix.contains(IpAddress.valueOf("0.0.0.0")));
         assertTrue(ipPrefix.contains(IpAddress.valueOf("255.255.255.255")));
+
+        // Test when there is a mistmatch in the compared IP address families
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1111:2222:3333:4444::")));
+        ipPrefix = IpPrefix.valueOf("255.255.255.255/32");
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
     }
 
     /**
@@ -929,6 +947,12 @@ public class IpPrefixTest {
         assertFalse(ipPrefix.contains(IpAddress.valueOf("::")));
         assertTrue(ipPrefix.contains(
                 IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")));
+
+        // Test when there is a mistmatch in the compared IP address families
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("1.2.0.0")));
+        ipPrefix = IpPrefix.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+        assertFalse(ipPrefix.contains(IpAddress.valueOf("255.255.255.255")));
     }
 
     /**

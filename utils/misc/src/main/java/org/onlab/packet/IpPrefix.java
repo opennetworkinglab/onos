@@ -179,6 +179,10 @@ public class IpPrefix {
      * otherwise false
      */
     public boolean contains(IpPrefix other) {
+        if (version() != other.version()) {
+            return false;
+        }
+
         if (this.prefixLength > other.prefixLength) {
             return false;               // This prefix has smaller prefix size
         }
@@ -201,6 +205,10 @@ public class IpPrefix {
      * false
      */
     public boolean contains(IpAddress other) {
+        if (version() != other.version()) {
+            return false;
+        }
+
         //
         // Mask the other address with my prefix length.
         // If the other prefix is within this prefix, the masked address must
