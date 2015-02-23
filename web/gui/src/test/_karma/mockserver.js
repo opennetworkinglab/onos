@@ -18,6 +18,7 @@ var lastcmd,        // last command executed
     scdone,         // shows when scenario is over
     eventsById,     // map of event file names
     maxEvno,        // highest loaded event number
+    autoLast,       // last event number for auto-advance
     evno,           // next event number
     evdata;         // event data
 
@@ -119,6 +120,7 @@ function doCli() {
             case 'c': connStatus(); break;
             case 'm': customMessage(str); break;
             case 's': setScenario(str); break;
+            case 'a': autoAdvance(); break;
             case 'n': nextEvent(); break;
             case 'r': restartScenario(); break;
             case 'q': quit(); break;
@@ -140,7 +142,7 @@ var helptext = '\n' +
         'm {text} - send custom message to client\n' +
         's {id}   - load scenario {id}\n' +
         's        - show scenario status\n' +
-        //'a        - auto-send events\n' +
+        'a        - auto-send events\n' +
         'n        - send next event\n' +
         'r        - restart the scenario\n' +
         'q        - exit the server\n' +
@@ -202,6 +204,10 @@ function initScenario(verb) {
     scdata.description.forEach(function (d) {
         console.log('  ' + d);
     });
+    autoLast = (scdata.params && scdata.params.lastAuto) || 0;
+    if (autoLast) {
+        console.log('[auto-advance: ' + autoLast + ']');
+    }
     evno = 1;
     scdone = false;
     readEventFilenames();
@@ -263,36 +269,67 @@ function restartScenario() {
     rl.prompt();
 }
 
-function nextEvent() {
-    var path;
-
+function eventAvailable() {
     if (!scid) {
         console.log('No scenario loaded.');
         rl.prompt();
-    } else if (!connection) {
-        console.warn('No current connection.');
+        return false;
+    }
+
+    if (!connection) {
+        console.log('No current connection.');
         rl.prompt();
-    } else {
-        if (Number(evno) > Number(maxEvno)) {
-            // done
-            scdone = true;
-            console.log('Scenario DONE.');
-        } else {
-            // fire next event
-            path = scenarioPath(evno);
-            fs.readFile(path, 'utf8', function (err, data) {
-                if (err) {
-                    console.log('Oops error: ' + err);
-                } else {
-                    evdata = JSON.parse(data);
-                    console.log(); // get past prompt
-                    console.log('Sending event #' + evno + ' [' + evdata.event +
-                            '] from ' + eventsById[evno].fname);
-                    connection.sendUTF(data);
-                    evno++;
-                }
-                rl.prompt();
-            });
+        return false;
+    }
+
+    if (Number(evno) > Number(maxEvno)) {
+        scdone = true;
+        console.log('Scenario DONE.');
+        return false;
+    }
+    return true;
+}
+
+function autoAdvance() {
+    if (evno > autoLast) {
+        console.log('[auto done]');
+        return;
+    }
+
+    // need to recurse with a callback, since each event send relies
+    // on an async load of event data...
+    function callback() {
+        if (eventAvailable() && evno <= autoLast) {
+            _nextEvent(callback);
         }
     }
+
+    callback();
+}
+
+function nextEvent() {
+    if (eventAvailable()) {
+        _nextEvent();
+    }
+}
+
+function _nextEvent(callback) {
+    var path = scenarioPath(evno);
+
+    fs.readFile(path, 'utf8', function (err, data) {
+        if (err) {
+            console.error('Oops error: ' + err);
+        } else {
+            evdata = JSON.parse(data);
+            console.log(); // get past prompt
+            console.log('Sending event #' + evno + ' [' + evdata.event +
+                    '] from ' + eventsById[evno].fname);
+            connection.sendUTF(data);
+            evno++;
+            if (callback) {
+                callback();
+            }
+        }
+        rl.prompt();
+    });
 }
