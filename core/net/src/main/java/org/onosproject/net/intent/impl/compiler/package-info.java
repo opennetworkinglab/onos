@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  */
 
 /**
- * Flow rule model &amp; related services API definitions.
- *
- * <p>
- * The figure below depicts the general interactions between different
- * components of the intent subsystem.<br>
- * <img src="doc-files/flow-design.png" alt="ONOS flow rule subsystem design">
- * </p>
+ * Implementations of builtin intent compilers.
  */
-package org.onosproject.net.flow;
+package org.onosproject.net.intent.impl.compiler;
