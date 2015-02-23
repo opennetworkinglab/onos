@@ -33,7 +33,7 @@
     }
 
     function button(div, id, gid, cb, tooltip) {
-        if (!div || div.empty()) {
+        if (!div) {
             $log.warn('Button cannot append to div');
             return null;
         }
@@ -53,7 +53,7 @@
     }
 
     function toggle(div, id, gid, initState, cb, tooltip) {
-        if (!div || div.empty()) {
+        if (!div) {
             $log.warn('Toggle cannot append to div');
             return null;
         }
@@ -84,7 +84,7 @@
     }
 
     function radioSet(div, id, rset) {
-        if (!div || div.empty()) {
+        if (!div) {
             $log.warn('Radio buttons cannot append to div');
             return null;
         }
