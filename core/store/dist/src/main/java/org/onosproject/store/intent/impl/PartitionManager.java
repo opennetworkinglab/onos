@@ -33,13 +33,11 @@ import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Manages the assignment of intent keyspace partitions to instances.
@@ -64,9 +62,6 @@ public class PartitionManager implements PartitionService {
 
     private LeadershipEventListener leaderListener = new InternalLeadershipListener();
     private ClusterEventListener clusterListener = new InternalClusterEventListener();
-
-    private final Set<PartitionId> myPartitions
-            = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private ScheduledExecutorService executor = Executors
             .newScheduledThreadPool(1);
@@ -96,6 +91,10 @@ public class PartitionManager implements PartitionService {
         return ELECTION_PREFIX + i;
     }
 
+    private String getPartitionPath(PartitionId id) {
+        return getPartitionPath(id.value());
+    }
+
     private PartitionId getPartitionForKey(Key intentKey) {
         int partition = Math.abs((int) intentKey.hash()) % NUM_PARTITIONS;
         //TODO investigate Guava consistent hash method
@@ -108,7 +107,8 @@ public class PartitionManager implements PartitionService {
 
     @Override
     public boolean isMine(Key intentKey) {
-        return myPartitions.contains(getPartitionForKey(intentKey));
+        return leadershipService.getLeader(getPartitionPath(getPartitionForKey(intentKey)))
+                .equals(clusterService.getLocalNode().id());
     }
 
     private void doRelinquish() {
@@ -118,7 +118,6 @@ public class PartitionManager implements PartitionService {
             log.warn("Exception caught during relinquish task", e);
         }
     }
-
 
     /**
      * Determine whether we have more than our fair share of partitions, and if
@@ -134,23 +133,24 @@ public class PartitionManager implements PartitionService {
 
         int myShare = (int) Math.ceil((double) NUM_PARTITIONS / activeNodes);
 
-        synchronized (myPartitions) {
-            int relinquish = myPartitions.size() - myShare;
+        List<Leadership> myPartitions = leadershipService.getLeaderBoard().values()
+                .stream()
+                .filter(l -> clusterService.getLocalNode().id().equals(l.leader()))
+                .filter(l -> l.topic().startsWith(ELECTION_PREFIX))
+                .collect(Collectors.toList());
 
-            if (relinquish <= 0) {
-                return;
-            }
+        int relinquish = myPartitions.size() - myShare;
 
-            Iterator<PartitionId> it = myPartitions.iterator();
-            for (int i = 0; i < relinquish; i++) {
-                PartitionId id = it.next();
-                it.remove();
+        if (relinquish <= 0) {
+            return;
+        }
 
-                leadershipService.withdraw(getPartitionPath(id.value()));
+        for (int i = 0; i < relinquish; i++) {
+            String topic = myPartitions.get(i).topic();
+            leadershipService.withdraw(topic);
 
-                executor.schedule(() -> recontest(getPartitionPath(id.value())),
-                                  BACKOFF_TIME, TimeUnit.SECONDS);
-            }
+            executor.schedule(() -> recontest(topic),
+                              BACKOFF_TIME, TimeUnit.SECONDS);
         }
     }
 
@@ -168,32 +168,9 @@ public class PartitionManager implements PartitionService {
         @Override
         public void event(LeadershipEvent event) {
             Leadership leadership = event.subject();
-            // update internal state about which partitions I'm leader of
+
             if (leadership.leader().equals(clusterService.getLocalNode().id()) &&
                     leadership.topic().startsWith(ELECTION_PREFIX)) {
-
-                // Parse out the partition ID
-                String[] splitted = leadership.topic().split("-");
-                if (splitted.length != 3) {
-                    log.warn("Couldn't parse leader election topic {}", leadership.topic());
-                    return;
-                }
-
-                int partitionId;
-                try {
-                    partitionId = Integer.parseInt(splitted[2]);
-                } catch (NumberFormatException e) {
-                    log.warn("Couldn't parse partition ID {}", splitted[2]);
-                    return;
-                }
-
-                synchronized (myPartitions) {
-                    if (event.type() == LeadershipEvent.Type.LEADER_ELECTED) {
-                        myPartitions.add(new PartitionId(partitionId));
-                    } else if (event.type() == LeadershipEvent.Type.LEADER_BOOTED) {
-                        myPartitions.remove(new PartitionId(partitionId));
-                    }
-                }
 
                 // See if we need to let some partitions go
                 relinquish();
