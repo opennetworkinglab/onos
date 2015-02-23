@@ -4,14 +4,9 @@
   ],
   "title": "Show Traffic Scenario",
   "params": {
-    "lastAuto": 14
+    "lastAuto": 15
   },
   "description": [
-    "Figure out primary, secondary and animated link visualizations.",
-    "",
-    "Press 'H' to show hosts.",
-    "",
-    "Press '=' to load initial events.",
-    "Press '-' to fire further events."
+    "Primary, secondary and animated link visualizations."
   ]
 }

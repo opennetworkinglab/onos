@@ -1,17 +1,18 @@
 {
   "event": "addDevice",
   "payload": {
-    "id": "of:0000ffffffff0007",
+    "id": "of:0000ffffffff0008",
     "type": "switch",
     "online": true,
+    "master": "myInstA",
     "labels": [
       "",
-      "sw-7",
-      "0000ffffffff0007"
+      "sw-8",
+      "0000ffffffff0008"
     ],
     "metaUi": {
-      "x": 530,
-      "y": 330
+      "x": 734,
+      "y": 477
     }
   }
 }

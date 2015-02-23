@@ -9,7 +9,7 @@
         "links": [
           "of:0000ffffffff0008/2-of:0000ffffffff0003/1"
         ],
-        "labels": [""]
+        "labels": ["primary"]
       },
       {
         "class": "secondary",
@@ -17,7 +17,7 @@
         "links": [
           "of:0000ffffffff0003/9-of:0000ffffffff0007/2"
         ],
-        "labels": [""]
+        "labels": ["secondary"]
       },
       {
         "class": "animated",
@@ -25,7 +25,7 @@
         "links": [
           "of:0000ffffffff0008/4-of:0000ffffffff0007/1"
         ],
-        "labels": [""]
+        "labels": ["animated"]
       },
       {
         "class": "animated optical",
@@ -33,7 +33,7 @@
         "links": [
           "of:0000ffffffff0008/4-of:0000ffffffffff08/1"
         ],
-        "labels": [""]
+        "labels": ["animated optical"]
       },
       {
         "class": "secondary optical",
@@ -41,7 +41,7 @@
         "links": [
           "of:0000ffffffff0003/4-of:0000ffffffffff03/1"
         ],
-        "labels": [""]
+        "labels": ["secondary optical"]
       },
       {
         "class": "primary optical",
@@ -49,7 +49,7 @@
         "links": [
           "of:0000ffffffffff08/4-of:0000ffffffffff03/1"
         ],
-        "labels": [""]
+        "labels": ["primary optical"]
       }
     ]
   }
