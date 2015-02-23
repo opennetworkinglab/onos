@@ -54,6 +54,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -106,9 +107,11 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         controller.addEventListener(listener);
 
         for (OpenFlowSwitch sw : controller.getSwitches()) {
-            GroupStatsCollector gsc = new GroupStatsCollector(sw, POLL_INTERVAL);
-            gsc.start();
-            collectors.put(new Dpid(sw.getId()), gsc);
+            if (isGroupSupported(sw)) {
+                GroupStatsCollector gsc = new GroupStatsCollector(sw, POLL_INTERVAL);
+                gsc.start();
+                collectors.put(new Dpid(sw.getId()), gsc);
+            }
         }
 
         log.info("Started");
@@ -257,6 +260,16 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         return XID_COUNTER.getAndAdd(increase);
     }
 
+    private boolean isGroupSupported(OpenFlowSwitch sw) {
+        if (sw.factory().getVersion() == OFVersion.OF_10 ||
+                sw.factory().getVersion() == OFVersion.OF_11 ||
+                sw.factory().getVersion() == OFVersion.OF_12) {
+            return false;
+        }
+
+        return true;
+    }
+
     private class InternalGroupProvider
             implements OpenFlowSwitchListener, OpenFlowEventListener {
 
@@ -303,10 +316,13 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
         @Override
         public void switchAdded(Dpid dpid) {
-            GroupStatsCollector gsc = new GroupStatsCollector(
-                    controller.getSwitch(dpid), POLL_INTERVAL);
-            gsc.start();
-            collectors.put(dpid, gsc);
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
+            if (isGroupSupported(sw)) {
+                GroupStatsCollector gsc = new GroupStatsCollector(
+                        controller.getSwitch(dpid), POLL_INTERVAL);
+                gsc.start();
+                collectors.put(dpid, gsc);
+            }
         }
 
         @Override
