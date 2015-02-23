@@ -30,6 +30,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPacket;
+import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
@@ -80,7 +81,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     protected HostProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PacketService pktService;
+    protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
@@ -117,22 +118,38 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
         modified(context);
         providerService = providerRegistry.register(this);
-        pktService.addProcessor(processor, 1);
+        packetService.addProcessor(processor, 1);
         deviceService.addListener(deviceListener);
 
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
         selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
-        pktService.requestPackets(selectorBuilder.build(),
+        packetService.requestPackets(selectorBuilder.build(),
                                   PacketPriority.CONTROL, appId);
 
-        log.info("Started");
+        // IPv6 Neighbor Solicitation packet.
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+        packetService.requestPackets(selectorBuilder.build(),
+                                     PacketPriority.CONTROL, appId);
+
+        // IPv6 Neighbor Advertisement packet.
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+        packetService.requestPackets(selectorBuilder.build(),
+                                     PacketPriority.CONTROL, appId);
+
+        log.info("Started with Application ID {}", appId.id());
     }
 
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
-        pktService.removeProcessor(processor);
+        packetService.removeProcessor(processor);
         deviceService.removeListener(deviceListener);
         providerService = null;
         log.info("Stopped");
@@ -149,7 +166,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         } catch (ClassCastException e) {
             hostRemovalEnabled = true;
         }
-        log.info("Host removal is {}", hostRemovalEnabled ? "enabled" : "disabled");
+        log.info("Host removal is {}",
+                 hostRemovalEnabled ? "enabled" : "disabled");
     }
 
     @Override
@@ -179,36 +197,44 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 return;
             }
 
-            HostLocation hloc = new HostLocation(heardOn, System.currentTimeMillis());
+            HostLocation hloc =
+                new HostLocation(heardOn, System.currentTimeMillis());
 
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
 
             // ARP: possible new hosts, update both location and IP
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
-                IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET, arp.getSenderProtocolAddress());
+                IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET,
+                                                 arp.getSenderProtocolAddress());
                 HostDescription hdescr =
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
+                    new DefaultHostDescription(eth.getSourceMAC(), vlan,
+                                               hloc, ip);
                 providerService.hostDetected(hid, hdescr);
 
             // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 HostDescription hdescr =
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc);
+                    new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc);
                 providerService.hostDetected(hid, hdescr);
 
-            // NeighborAdvertisement and NeighborSolicitation: possible new hosts, update both location and IP
-            // IPv6: update location only
+                //
+                // NeighborAdvertisement and NeighborSolicitation: possible
+                // new hosts, update both location and IP.
+                //
+                // IPv6: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV6) {
                 IpAddress ip = null;
                 IPv6 ipv6 = (IPv6) eth.getPayload();
 
                 IPacket iPkt = ipv6;
                 while (iPkt != null) {
-                    if (iPkt instanceof NeighborAdvertisement || iPkt instanceof NeighborSolicitation) {
+                    if (iPkt instanceof NeighborAdvertisement ||
+                        iPkt instanceof NeighborSolicitation) {
                         IpAddress sourceAddress =
-                                IpAddress.valueOf(IpAddress.Version.INET6, ipv6.getSourceAddress());
-                        // Ignore DAD packets, in which source address is all zeros.
+                            IpAddress.valueOf(IpAddress.Version.INET6,
+                                              ipv6.getSourceAddress());
+                        // Ignore DAD packets, in which source address is zero
                         if (!sourceAddress.isZero()) {
                             ip = sourceAddress;
                             break;
@@ -217,8 +243,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     iPkt = iPkt.getPayload();
                 }
                 HostDescription hdescr = (ip == null) ?
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc) :
-                        new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc, ip);
+                    new DefaultHostDescription(eth.getSourceMAC(), vlan,
+                                               hloc) :
+                    new DefaultHostDescription(eth.getSourceMAC(), vlan,
+                                               hloc, ip);
                 providerService.hostDetected(hid, hdescr);
             }
         }

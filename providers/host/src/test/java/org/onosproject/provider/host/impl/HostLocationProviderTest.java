@@ -148,7 +148,7 @@ public class HostLocationProviderTest {
 
         provider.providerRegistry = hostRegistry;
         provider.topologyService = topoService;
-        provider.pktService = packetService;
+        provider.packetService = packetService;
         provider.deviceService = deviceService;
         provider.hostService = hostService;
 
