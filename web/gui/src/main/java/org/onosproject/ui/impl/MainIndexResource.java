@@ -34,10 +34,10 @@ import static com.google.common.io.ByteStreams.toByteArray;
 /**
  * Resource for serving the dynamically composed index.html.
  */
-@Path("/")
+@Path("/index.html")
 public class MainIndexResource extends AbstractInjectionResource {
 
-    private static final String INDEX = "templates/index-template.html";
+    private static final String INDEX = "index.html";
 
     private static final String INJECT_CSS_START = "<!-- {INJECTED-STYLESHEETS-START} -->";
     private static final String INJECT_CSS_END = "<!-- {INJECTED-STYLESHEETS-END} -->";

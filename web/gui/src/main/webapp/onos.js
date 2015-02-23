@@ -104,7 +104,7 @@
             }
 
             function viewTemplateUrl(vid) {
-                return 'view/' + vid + '/' + vid + '.html';
+                return 'app/view/' + vid + '/' + vid + '.html';
             }
 
             // Add routes for each defined view.

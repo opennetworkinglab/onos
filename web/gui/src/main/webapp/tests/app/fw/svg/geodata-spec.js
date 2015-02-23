@@ -51,7 +51,7 @@ describe('factory: fw/svg/geodata.js', function() {
         promise = gds.fetchTopoData(id);
         expect(promise.meta).toBeDefined();
         expect(promise.meta.id).toBe(id);
-        expect(promise.meta.url).toBe('../data/map/foo.json');
+        expect(promise.meta.url).toBe('data/map/foo.json');
     });
 
     it('should treat an external id as the url itself', function () {

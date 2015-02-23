@@ -59,7 +59,7 @@
 
     // internal state
     var cache = d3.map(),
-        bundledUrlPrefix = '../data/map/';
+        bundledUrlPrefix = 'data/map/';
 
     function getUrl(id) {
         if (id[0] === '*') {

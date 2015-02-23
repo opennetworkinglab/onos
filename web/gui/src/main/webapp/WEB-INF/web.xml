@@ -78,14 +78,33 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onosproject.ui.impl.MainExtResource</param-value>
+            <param-value>org.onosproject.ui.impl.MainModuleResource</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
         <servlet-name>Main Module</servlet-name>
-        <url-pattern>/dyn/*</url-pattern>
+        <url-pattern>/onos.js</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Nav Module</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-value>org.onosproject.ui.impl.MainNavResource</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Nav Module</servlet-name>
+        <url-pattern>/nav.html</url-pattern>
     </servlet-mapping>
 
     <servlet>

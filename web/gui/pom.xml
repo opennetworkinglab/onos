@@ -63,7 +63,13 @@
                 <configuration>
                     <instructions>
                         <_wab>src/main/webapp/</_wab>
-                        <Include-Resource>src/main/webapp/app/view,{maven-resources}</Include-Resource>
+                        <Include-Resource>
+                            src/main/webapp/index.html,
+                            src/main/webapp/nav.html,
+                            src/main/webapp/onos.js,
+                            src/main/webapp/app/view,
+                            {maven-resources}
+                        </Include-Resource>
                         <Bundle-SymbolicName>
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
