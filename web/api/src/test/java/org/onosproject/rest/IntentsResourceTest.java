@@ -15,10 +15,8 @@
  */
 package org.onosproject.rest;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -39,11 +37,11 @@ import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.MockIdGenerator;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import com.google.common.base.MoreObjects;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
@@ -57,6 +55,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
 
 /**
  * Unit tests for Intents REST APIs.
@@ -68,37 +67,6 @@ public class IntentsResourceTest extends ResourceTest {
     final HashSet<Intent> intents = new HashSet<>();
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
     private IdGenerator mockGenerator;
-
-    /**
-     * Mock ID generator.  This should be refactored to share the one in
-     * the core/api tests.
-     */
-    public class MockIdGenerator implements IdGenerator {
-        private AtomicLong nextId = new AtomicLong(0);
-
-        @Override
-        public long getNewId() {
-            return nextId.getAndIncrement();
-        }
-    }
-
-    /**
-     * Mock compilable intent class.
-     */
-    private static class MockIntent extends Intent {
-
-        public MockIntent(Collection<NetworkResource> resources) {
-            super(APP_ID, resources);
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("id", id())
-                    .add("appId", appId())
-                    .toString();
-        }
-    }
 
     private class MockResource implements NetworkResource {
         int id;
@@ -305,12 +273,12 @@ public class IntentsResourceTest extends ResourceTest {
     public void testIntentsArray() {
         replay(mockIntentService);
 
-        final Intent intent1 = new MockIntent(Collections.emptyList());
+        final Intent intent1 = new MockIntent(1L, Collections.emptyList());
         final HashSet<NetworkResource> resources = new HashSet<>();
         resources.add(new MockResource(1));
         resources.add(new MockResource(2));
         resources.add(new MockResource(3));
-        final Intent intent2 = new MockIntent(resources);
+        final Intent intent2 = new MockIntent(2L, resources);
 
         intents.add(intent1);
         intents.add(intent2);
@@ -340,7 +308,7 @@ public class IntentsResourceTest extends ResourceTest {
         resources.add(new MockResource(1));
         resources.add(new MockResource(2));
         resources.add(new MockResource(3));
-        final Intent intent = new MockIntent(resources);
+        final Intent intent = new MockIntent(3L, resources);
 
         intents.add(intent);
 

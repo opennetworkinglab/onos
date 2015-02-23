@@ -15,60 +15,23 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.NetTestTools;
 import org.onosproject.store.Timestamp;
 
 import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
+import static org.onosproject.net.intent.IntentTestsMocks.MockTimestamp;
 
 /**
  * Unit tests for intent data objects.
  */
 public class IntentDataTest {
-    private static class MockIntent extends Intent {
-        private static AtomicLong counter = new AtomicLong(0);
-
-        private final Long number;
-
-        public MockIntent(Long number) {
-            super(NetTestTools.APP_ID, Collections.emptyList());
-            this.number = number;
-        }
-
-        public Long number() {
-            return number;
-        }
-
-        public static Long nextId() {
-            return counter.getAndIncrement();
-        }
-    }
-
-    private static class MockTimestamp implements Timestamp {
-        final int value;
-
-        MockTimestamp(int value) {
-            this.value = value;
-        }
-
-        @Override
-        public int compareTo(Timestamp o) {
-            if (!(o instanceof MockTimestamp)) {
-                return -1;
-            }
-            MockTimestamp that = (MockTimestamp) o;
-            return (this.value > that.value ? -1 : (this.value == that.value ? 0 : 1));
-        }
-    }
 
     private Timestamp timestamp1;
     private Timestamp timestamp2;

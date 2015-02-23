@@ -36,6 +36,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
@@ -59,6 +60,8 @@ import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -384,12 +387,25 @@ public class IntentTestsMocks {
             this.number = number;
         }
 
+        public MockIntent(Long number, Collection<NetworkResource> resources) {
+            super(NetTestTools.APP_ID, resources);
+            this.number = number;
+        }
+
         public Long number() {
             return number;
         }
 
         public static Long nextId() {
             return counter.getAndIncrement();
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("id", id())
+                    .add("appId", appId())
+                    .toString();
         }
     }
 
