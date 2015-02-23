@@ -52,7 +52,9 @@ public class ImmutableClassChecker {
 
         // class must have only final and private data members
         for (final Field field : clazz.getDeclaredFields()) {
-            if (field.getName().startsWith("__cobertura")) {
+            if (field.getName().startsWith("_") ||
+                field.getName().startsWith("$")) {
+                //  eclipse generated code may insert switch table - ignore
                 //  cobertura sticks these fields into classes - ignore them
                 continue;
             }
