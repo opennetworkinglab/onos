@@ -25,7 +25,10 @@
     var ids = [],
         defaultSettings = {
             edge: 'left',
-            width: 400
+            width: 400,
+            margin: 0,
+            hideMargin: -20,
+            fade: false
         },
         settings,
         arrowSize = 10,
@@ -49,7 +52,7 @@
         return true;
     }
 
-    // translate(0 50) looks good with arrowSize of 10
+    // translate uses 50 because the svg viewbox is 50
     function rotateArrowLeft() {
         tbarArrowDiv.select('g')
             .attr('transform', 'translate(0 50) rotate(-90)');
@@ -57,14 +60,14 @@
 
     function rotateArrowRight() {
         tbarArrowDiv.select('g')
-            .attr('transform', 'translate(0 50) rotate(90)');
+            .attr('transform', 'translate(50 0) rotate(90)');
     }
 
     function createArrow() {
         tbarArrowDiv = tbarDiv.append('div')
             .classed('tbarArrow', true)
             .style({'position': 'absolute',
-                'top': '50%',
+                'top': '53%',
                 'left': '98%',
                 'margin-right': '-2%',
                 'transform': 'translate(-50%, -50%)',
@@ -151,7 +154,6 @@
 
     function hide(cb) {
         tbarPanel.hide(cb);
-        //tbarPanel.style(opts.edge, (arrowSize + 4 + 'px'));
         rotateArrowRight();
     }
 

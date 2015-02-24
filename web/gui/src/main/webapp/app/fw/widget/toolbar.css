@@ -22,9 +22,7 @@
     position: absolute;
     z-index: 100;
     display: block;
-    top: 75px; /* TODO: change this to proper height*/
     width: 200px;
-    right: -220px;
     opacity: 0;
 
     padding: 10px;

@@ -26,7 +26,9 @@
         edge: 'right',
         width: 200,
         margin: 20,
-        xtnTime: 750
+        hideMargin: 20,
+        xtnTime: 750,
+        fade: true
     };
 
     var panels,
@@ -45,6 +47,9 @@
     function margin(p) {
         return p.settings.margin;
     }
+    function hideMargin(p) {
+        return p.settings.hideMargin;
+    }
     function noPx(p, what) {
         return Number(p.el.style(what).replace(/px$/, ''));
     }
@@ -58,7 +63,7 @@
         return margin(p) + 'px';
     }
     function pxHide(p) {
-        return (-margin(p) - widthVal(p)) + 'px';
+        return (-hideMargin(p) - widthVal(p) - (noPx(p, 'padding') * 2)) + 'px';
     }
 
     function makePanel(id, settings) {
@@ -105,12 +110,13 @@
         }
 
         function hidePanel(cb) {
-            var endCb = fs.isF(cb) || noop;
+            var endCb = fs.isF(cb) || noop,
+                endOpacity = p.settings.fade ? 0 : 1;
             p.on = false;
             p.el.transition().duration(p.settings.xtnTime)
                 .each('end', endCb)
                 .style(p.settings.edge, pxHide(p))
-                .style('opacity', 0);
+                .style('opacity', endOpacity);
         }
 
         function togglePanel(cb) {
