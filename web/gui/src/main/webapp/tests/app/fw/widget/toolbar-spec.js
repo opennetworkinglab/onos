@@ -74,6 +74,16 @@ describe('factory: fw/widget/toolbar.js', function () {
         expect($log.warn).not.toHaveBeenCalled();
     });
 
+    it('should verify the toolbar arrow div exists', function () {
+        tbs.createToolbar('test');
+
+        var arrow = d3Elem.select('.tbarArrow');
+        expect(arrow).toBeTruthy();
+        expect(arrow.select('svg')).toBeTruthy();
+        expect(arrow.select('svg').select('g')
+            .classed('tableColSortAsc')).toBeTruthy();
+    });
+
     it('should create a button', function () {
         spyOn($log, 'warn');
         var toolbar = tbs.createToolbar('test'),
@@ -140,13 +150,13 @@ describe('factory: fw/widget/toolbar.js', function () {
         expect(d3Elem.select('.sep').style('width')).toBe('2px');
     });
 
-    //it('should not append to a destroyed toolbar', function () {
-    //    spyOn($log, 'warn');
-    //    var toolbar = tbs.createToolbar1('test');
-    //    expect(toolbar).not.toBeNull();
-    //    tbs.destroyToolbar('tbar-test');
-    //    expect(toolbar.addButton1('btn', 'gid', function () {})).toBeNull();
-    //    expect($log.warn).toHaveBeenCalledWith('Button cannot append to div');
-    //});
+    it('should not append to a destroyed toolbar', function () {
+        spyOn($log, 'warn');
+        var toolbar = tbs.createToolbar('test');
+        expect(toolbar).not.toBeNull();
+        tbs.destroyToolbar('tbar-test');
+        expect(toolbar.addButton('btn', 'gid', function () {})).toBeNull();
+        expect($log.warn).toHaveBeenCalledWith('Button cannot append to div');
+    });
 
 });

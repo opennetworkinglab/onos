@@ -20,17 +20,26 @@
 (function () {
     'use strict';
 
-    var $log, fs, ps, bns;
+    var $log, fs, ps, bns, is;
 
     var ids = [],
+        defaultSettings = {
+            edge: 'left',
+            width: 400
+        },
+        settings,
+        arrowSize = 10,
         tbarId,
         tbarPanel,
         tbarDiv,
         tbarArrowDiv;
 
+    // this function is only used in testing
     function init() {
         ids = [];
     }
+
+    // === Helper functions --------------------------------------
 
     function validId(id, caller) {
         if (fs.inArray(id, ids) !== -1) {
@@ -39,6 +48,34 @@
         }
         return true;
     }
+
+    // translate(0 50) looks good with arrowSize of 10
+    function rotateArrowLeft() {
+        tbarArrowDiv.select('g')
+            .attr('transform', 'translate(0 50) rotate(-90)');
+    }
+
+    function rotateArrowRight() {
+        tbarArrowDiv.select('g')
+            .attr('transform', 'translate(0 50) rotate(90)');
+    }
+
+    function createArrow() {
+        tbarArrowDiv = tbarDiv.append('div')
+            .classed('tbarArrow', true)
+            .style({'position': 'absolute',
+                'top': '50%',
+                'left': '98%',
+                'margin-right': '-2%',
+                'transform': 'translate(-50%, -50%)',
+                'cursor': 'pointer'});
+        is.loadEmbeddedIcon(tbarArrowDiv, 'tableColSortAsc', arrowSize);
+        rotateArrowLeft();
+
+        tbarArrowDiv.on('click', toggleTools);
+    }
+
+    // === Adding to toolbar functions ----------------------------
 
     function addButton(id, gid, cb, tooltip) {
         var btnId = tbarId + '-' + id;
@@ -66,46 +103,72 @@
             $log.warn('Separator cannot append to div');
             return null;
         }
-        tbarArrowDiv = tbarDiv.append('div')
+        return tbarDiv.append('div')
             .classed('sep', true)
             .style('width', '2px');
     }
 
-    function createToolbar(id, settings) {
+    // === Main toolbar API functions ----------------------------
+
+    function createToolbar(id, opts) {
         if (!id) {
             $log.warn('createToolbar: no ID given');
             return null;
         }
         tbarId = 'tbar-' + id;
-        var opts = fs.isO(settings) || {}; // default settings should be put here
+        settings = angular.extend({}, defaultSettings, fs.isO(opts));
 
         if (!validId(tbarId, 'createToolbar')) { return null; }
         ids.push(tbarId);
 
-        tbarPanel = ps.createPanel(tbarId, opts);
-        tbarDiv = tbarPanel.classed('toolbar', true);
+        tbarPanel = ps.createPanel(tbarId, settings);
+        tbarDiv = tbarPanel.classed('toolbar', true)
+            .style('position', 'relative');
+
+        createArrow();
 
         return {
             addButton: addButton,
             addToggle: addToggle,
             addRadioSet: addRadioSet,
-            addSeparator: addSeparator
+            addSeparator: addSeparator,
+
+            show: show,
+            hide: hide,
+            toggleTools: toggleTools
         }
     }
 
-    //function currently not working
     function destroyToolbar(id) {
-        //ps.destroyPanel(id);
+        ps.destroyPanel(id);
+        tbarDiv = null;
+    }
+
+    function show(cb) {
+        tbarPanel.show(cb);
+        rotateArrowLeft();
+    }
+
+    function hide(cb) {
+        tbarPanel.hide(cb);
+        //tbarPanel.style(opts.edge, (arrowSize + 4 + 'px'));
+        rotateArrowRight();
+    }
+
+    function toggleTools(cb) {
+        if (tbarPanel.isVisible()) { hide(cb); }
+        else { show(cb) }
     }
 
     angular.module('onosWidget')
         .factory('ToolbarService', ['$log', 'FnService',
-            'PanelService', 'ButtonService',
-            function (_$log_, _fs_, _ps_, _bns_) {
+            'PanelService', 'ButtonService', 'IconService',
+            function (_$log_, _fs_, _ps_, _bns_, _is_) {
                 $log = _$log_;
                 fs = _fs_;
                 ps = _ps_;
                 bns = _bns_;
+                is = _is_;
 
                 return {
                     init: init,

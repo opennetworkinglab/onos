@@ -20,13 +20,21 @@
 
 (function () {
     'use strict';
+    var tbs;
+
     angular.module('ovSample', ['onosUtil'])
-        .controller('OvSampleCtrl', ['$log', function (_$log_) {
-            var self = this,
-                $log = _$log_;
+        .controller('OvSampleCtrl', ['$log', 'ToolbarService',
+            function (_$log_, _tbs_) {
+                var self = this,
+                    $log = _$log_,
+                    tbs = _tbs_;
 
-            self.message = 'Hey there folks!';
+                self.message = 'Hey there folks!';
 
-         $log.log('OvSampleCtrl has been created');
+                var toolbar = tbs.createToolbar('sample');
+                toolbar.addButton('some-btn', 'crown', function () {});
+                toolbar.show();
+
+             $log.log('OvSampleCtrl has been created');
         }]);
 }());

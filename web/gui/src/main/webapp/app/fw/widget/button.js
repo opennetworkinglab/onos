@@ -22,7 +22,7 @@
 
     var $log, fs, is;
 
-    var btnSize = 30;
+    var btnSize = 25;
 
     function noop() {}
 
@@ -41,7 +41,7 @@
         var btnDiv = createDiv(div, 'btn', id),
             cbFnc = fs.isF(cb) || noop;
 
-        is.loadIcon(btnDiv, gid, btnSize);
+        is.loadIcon(btnDiv, gid, btnSize, true);
 
         btnDiv.on('click', cbFnc);
 
@@ -62,7 +62,7 @@
             togDiv = createDiv(div, 'tog', id),
             cbFnc = fs.isF(cb) || noop;
 
-        is.loadIcon(togDiv, gid, btnSize);
+        is.loadIcon(togDiv, gid, btnSize, true);
 
         function _toggle(b) {
             if (b === undefined) {
