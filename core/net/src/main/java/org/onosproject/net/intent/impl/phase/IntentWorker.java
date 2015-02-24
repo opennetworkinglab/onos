@@ -15,42 +15,31 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
-import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.impl.IntentProcessor;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.isNullOrEmpty;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * Worker to process a submitted intent. {@link #call()} method generates
  */
 public final class IntentWorker implements Callable<FinalIntentProcessPhase> {
 
-    private final IntentProcessor processor;
-    private final IntentData data;
-    private final IntentData current;
+    private final IntentProcessPhase initial;
 
     /**
      * Create an instance with the specified arguments.
      *
-     * @param processor intent processor to be passed to intent process phases
-     *                  generated while this instance is working
-     * @param data intent data to be processed
-     * @param current intent date that is stored in the store
+     * @param initial initial intent process phase
      */
-    public IntentWorker(IntentProcessor processor, IntentData data, IntentData current) {
-        this.processor = checkNotNull(processor);
-        this.data = checkNotNull(data);
-        this.current = current;
+    public IntentWorker(IntentProcessPhase initial) {
+        this.initial = checkNotNull(initial);
     }
 
     @Override
     public FinalIntentProcessPhase call() throws Exception {
-        IntentProcessPhase update = createInitialPhase();
+        IntentProcessPhase update = initial;
         Optional<IntentProcessPhase> currentPhase = Optional.of(update);
         IntentProcessPhase previousPhase = update;
 
@@ -59,26 +48,5 @@ public final class IntentWorker implements Callable<FinalIntentProcessPhase> {
             currentPhase = previousPhase.execute();
         }
         return (FinalIntentProcessPhase) previousPhase;
-    }
-
-    /**
-     * Create a starting intent process phase according to intent data this class holds.
-     *
-     * @return starting intent process phase
-     */
-    private IntentProcessPhase createInitialPhase() {
-        switch (data.state()) {
-            case INSTALL_REQ:
-                return new InstallRequest(processor, data, Optional.ofNullable(current));
-            case WITHDRAW_REQ:
-                if (current == null || isNullOrEmpty(current.installables())) {
-                    return new Withdrawn(data, WITHDRAWN);
-                } else {
-                    return new WithdrawRequest(processor, data, current);
-                }
-            default:
-                // illegal state
-                return new CompilingFailed(data);
-        }
     }
 }

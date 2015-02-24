@@ -15,7 +15,13 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
+import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.impl.IntentProcessor;
+
 import java.util.Optional;
+
+import static org.onlab.util.Tools.isNullOrEmpty;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * Represents a phase of processing an intent.
@@ -29,4 +35,31 @@ public interface IntentProcessPhase {
      * @return next update
      */
     Optional<IntentProcessPhase> execute();
+
+    /**
+     * Create a starting intent process phase according to intent data this class holds.
+     *
+     * @param processor intent processor to be passed to intent process phases
+     *                  generated while this instance is working
+     * @param data intent data to be processed
+     * @param current intent date that is stored in the store
+     * @return starting intent process phase
+     */
+    static IntentProcessPhase newInitialPhase(IntentProcessor processor,
+                                              IntentData data, IntentData current) {
+        switch (data.state()) {
+            case INSTALL_REQ:
+                return new InstallRequest(processor, data, Optional.ofNullable(current));
+            case WITHDRAW_REQ:
+                if (current == null || isNullOrEmpty(current.installables())) {
+                    return new Withdrawn(data, WITHDRAWN);
+                } else {
+                    return new WithdrawRequest(processor, data, current);
+                }
+            default:
+                // illegal state
+                return new CompilingFailed(data);
+        }
+    }
+
 }

@@ -42,6 +42,7 @@ import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
+import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentWorker;
 import org.slf4j.Logger;
 
@@ -61,6 +62,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.intent.IntentState.FAILED;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
 import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
+import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -278,7 +280,8 @@ public class IntentManager
 
     private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
         IntentData current = store.getIntentData(data.key());
-        return workerExecutor.submit(new IntentWorker(processor, data, current));
+        IntentProcessPhase initial = newInitialPhase(processor, data, current);
+        return workerExecutor.submit(new IntentWorker(initial));
     }
 
     private class IntentBatchPreprocess implements Runnable {
