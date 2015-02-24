@@ -368,10 +368,12 @@
     function updateHostVisibility() {
         sus.visible(nodeG.selectAll('.host'), showHosts);
         sus.visible(linkG.selectAll('.hostLink'), showHosts);
+        sus.visible(linkLabelG.selectAll('.hostLinkLabel'), showHosts);
     }
 
     function updateOfflineVisibility(dev) {
         function updDev(d, show) {
+            var b;
             sus.visible(d.el, show);
 
             tms.findAttachedLinks(d.id).forEach(function (link) {
@@ -924,6 +926,11 @@
                     x2: d.ldata.x2,
                     y2: d.ldata.y2
                 };
+
+            if (d.ldata.type() === 'hostLink') {
+                el.classed('hostLinkLabel', true);
+                sus.visible(el, showHosts);
+            }
 
             d.el = el;
             rect = el.append('rect');

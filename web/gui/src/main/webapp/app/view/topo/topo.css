@@ -457,13 +457,6 @@
     stroke: #D58E0F;
 }
 
-.light #ov-topo svg .link.animated {
-    stroke: #ffA300;
-}
-.dark #ov-topo svg .link.animated {
-    stroke: #D58E0F;
-}
-
 #ov-topo svg .link.secondary.optical {
     stroke-width: 4px;
 }
@@ -484,16 +477,6 @@
     stroke: #7352CD;
 }
 
-#ov-topo svg .link.animated.optical {
-    stroke-width: 10px;
-}
-.light #ov-topo svg .link.animated.optical {
-    stroke: #74f;
-}
-.dark #ov-topo svg .link.animated.optical {
-    stroke: #7352CD;
-}
-
 #ov-topo svg .linkLabel rect {
     stroke: none;
 }
@@ -501,7 +484,7 @@
     fill: #eee;
 }
 .dark #ov-topo svg .linkLabel rect {
-    fill: #eee;
+    fill: #555;
 }
 
 #ov-topo svg .linkLabel text {
@@ -510,10 +493,10 @@
     font-size: 9pt;
 }
 .light #ov-topo svg .linkLabel text {
-    stroke: #777;
+    fill: #444;
 }
 .dark #ov-topo svg .linkLabel text {
-    stroke: #777;
+    fill: #eee;
 }
 
 

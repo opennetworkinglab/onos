@@ -5,7 +5,6 @@
     "paths": [
       {
         "class": "primary",
-        "traffic": false,
         "links": [
           "of:0000ffffffff0008/2-of:0000ffffffff0003/1"
         ],
@@ -13,39 +12,22 @@
       },
       {
         "class": "secondary",
-        "traffic": false,
         "links": [
-          "of:0000ffffffff0003/9-of:0000ffffffff0007/2"
-        ],
-        "labels": ["secondary"]
-      },
-      {
-        "class": "animated",
-        "traffic": true,
-        "links": [
+          "of:0000ffffffff0003/9-of:0000ffffffff0007/2",
           "of:0000ffffffff0008/4-of:0000ffffffff0007/1"
         ],
-        "labels": ["animated"]
-      },
-      {
-        "class": "animated optical",
-        "traffic": true,
-        "links": [
-          "of:0000ffffffff0008/4-of:0000ffffffffff08/1"
-        ],
-        "labels": ["animated optical"]
+        "labels": ["secondary", "secondo"]
       },
       {
         "class": "secondary optical",
-        "traffic": false,
         "links": [
-          "of:0000ffffffff0003/4-of:0000ffffffffff03/1"
+          "of:0000ffffffff0003/4-of:0000ffffffffff03/1",
+          "of:0000ffffffff0008/4-of:0000ffffffffff08/1"
         ],
-        "labels": ["secondary optical"]
+        "labels": ["secondary optical", "secondo optical"]
       },
       {
         "class": "primary optical",
-        "traffic": false,
         "links": [
           "of:0000ffffffffff08/4-of:0000ffffffffff03/1"
         ],
