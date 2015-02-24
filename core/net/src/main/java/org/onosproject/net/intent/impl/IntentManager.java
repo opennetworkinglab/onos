@@ -283,11 +283,11 @@ public class IntentManager
         return workerExecutor.submit(new IntentWorker(initial));
     }
 
-    private class IntentBatchPreprocess implements Runnable {
+    private class IntentBatchProcess implements Runnable {
 
         protected final Collection<IntentData> data;
 
-        IntentBatchPreprocess(Collection<IntentData> data) {
+        IntentBatchProcess(Collection<IntentData> data) {
             this.data = checkNotNull(data);
         }
 
@@ -345,7 +345,7 @@ public class IntentManager
         public void execute(Collection<IntentData> operations) {
             log.debug("Execute {} operation(s).", operations.size());
             log.trace("Execute operations: {}", operations);
-            batchExecutor.execute(new IntentBatchPreprocess(operations));
+            batchExecutor.execute(new IntentBatchProcess(operations));
             // TODO ensure that only one batch is in flight at a time
         }
     }
