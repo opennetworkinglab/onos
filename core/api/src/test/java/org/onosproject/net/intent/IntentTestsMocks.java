@@ -45,6 +45,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.LambdaResourceRequest;
 import org.onosproject.net.resource.LinkResourceAllocations;
@@ -270,7 +271,8 @@ public class IntentTestsMocks {
         public Iterable<ResourceRequest> getAvailableResources(Link link) {
             final List<ResourceRequest> result = new LinkedList<>();
             if (availableBandwidth > 0.0) {
-                result.add(new BandwidthResourceRequest(availableBandwidth));
+                result.add(new BandwidthResourceRequest(
+                        Bandwidth.bps(availableBandwidth)));
             }
             if (availableLambda > 0) {
                 result.add(new LambdaResourceRequest());
