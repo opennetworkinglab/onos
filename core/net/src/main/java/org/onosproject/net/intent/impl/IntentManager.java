@@ -286,7 +286,7 @@ public class IntentManager
 
     private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
         IntentData current = store.getIntentData(data.key());
-        return workerExecutor.submit(new IntentWorker(data, current));
+        return workerExecutor.submit(new IntentWorker(processor, data, current));
     }
 
     private class IntentBatchPreprocess implements Runnable {
@@ -366,10 +366,12 @@ public class IntentManager
 
     private final class IntentWorker implements Callable<FinalIntentProcessPhase> {
 
+        private final IntentProcessor processor;
         private final IntentData data;
         private final IntentData current;
 
-        private IntentWorker(IntentData data, IntentData current) {
+        private IntentWorker(IntentProcessor processor, IntentData data, IntentData current) {
+            this.processor = checkNotNull(processor);
             this.data = checkNotNull(data);
             this.current = current;
         }
