@@ -231,7 +231,7 @@ public class NettyMessagingService implements MessagingService {
 
     @Override
     public void unregisterHandler(String type) {
-        handlers.remove(type);
+        handlers.remove(hashToLong(type));
     }
 
     private MessageHandler getMessageHandler(long type) {
