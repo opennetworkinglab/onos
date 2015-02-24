@@ -35,7 +35,7 @@ import static com.google.common.io.ByteStreams.toByteArray;
 /**
  * Resource for serving the dynamically composed nav.html.
  */
-@Path("/nav/nav.html")
+@Path("/")
 public class MainNavResource extends AbstractInjectionResource {
 
     private static final String NAV_HTML = "nav.html";

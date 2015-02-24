@@ -35,7 +35,7 @@ import static org.onosproject.ui.impl.MainViewResource.SCRIPT;
 /**
  * Resource for serving the dynamically composed onos.js.
  */
-@Path("/onos.js")
+@Path("/")
 public class MainModuleResource extends AbstractInjectionResource {
 
     private static final String MAIN_JS = "onos.js";

@@ -27,6 +27,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class UiExtension {
 
+    private static final String VIEW_PREFIX = "app/view/";
+
     private final String prefix;
     private final ClassLoader classLoader;
     private final List<UiView> views;
@@ -92,7 +94,7 @@ public class UiExtension {
      * @return resource input stream
      */
     public InputStream resource(String viewId, String path) {
-        InputStream is = classLoader.getResourceAsStream(viewId + "/" + path);
+        InputStream is = classLoader.getResourceAsStream(VIEW_PREFIX + viewId + "/" + path);
         return is;
     }
 

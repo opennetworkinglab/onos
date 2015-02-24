@@ -34,7 +34,7 @@ import static com.google.common.io.ByteStreams.toByteArray;
 /**
  * Resource for serving the dynamically composed index.html.
  */
-@Path("/index.html")
+@Path("/")
 public class MainIndexResource extends AbstractInjectionResource {
 
     private static final String INDEX = "index.html";
