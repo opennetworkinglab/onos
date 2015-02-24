@@ -309,6 +309,14 @@ public class GossipLinkStore
             }
 
         } else {
+            // FIXME Temporary hack for NPE (ONOS-1171).
+            // Proper fix is to implement forwarding to master on ConfigProvider
+            // redo ONOS-490
+            if (dstNode == null) {
+                // silently ignore
+                return null;
+            }
+
 
             LinkInjectedEvent linkInjectedEvent = new LinkInjectedEvent(providerId, linkDescription);
             ClusterMessage linkInjectedMessage = new ClusterMessage(localNode,

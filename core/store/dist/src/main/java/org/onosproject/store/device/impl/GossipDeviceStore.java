@@ -290,6 +290,14 @@ public class GossipDeviceStore
             }
 
         } else {
+            // FIXME Temporary hack for NPE (ONOS-1171).
+            // Proper fix is to implement forwarding to master on ConfigProvider
+            // redo ONOS-490
+            if (deviceNode == null) {
+                // silently ignore
+                return null;
+            }
+
 
             DeviceInjectedEvent deviceInjectedEvent = new DeviceInjectedEvent(
                     providerId, deviceId, deviceDescription);
@@ -536,6 +544,13 @@ public class GossipDeviceStore
             }
 
         } else {
+            // FIXME Temporary hack for NPE (ONOS-1171).
+            // Proper fix is to implement forwarding to master on ConfigProvider
+            // redo ONOS-490
+            if (deviceNode == null) {
+                // silently ignore
+                return null;
+            }
 
             PortInjectedEvent portInjectedEvent = new PortInjectedEvent(providerId, deviceId, portDescriptions);
             ClusterMessage clusterMessage = new ClusterMessage(
