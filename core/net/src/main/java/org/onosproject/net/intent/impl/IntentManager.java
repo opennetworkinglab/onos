@@ -286,28 +286,10 @@ public class IntentManager
 
     private class IntentBatchPreprocess implements Runnable {
 
-        // TODO make this configurable
-        private static final int TIMEOUT_PER_OP = 500; // ms
-        protected static final int MAX_ATTEMPTS = 3;
-
         protected final Collection<IntentData> data;
 
-        // future holding current FlowRuleBatch installation result
-        protected final long startTime = System.currentTimeMillis();
-        protected final long endTime;
-
-        private IntentBatchPreprocess(Collection<IntentData> data, long endTime) {
+        IntentBatchPreprocess(Collection<IntentData> data) {
             this.data = checkNotNull(data);
-            this.endTime = endTime;
-        }
-
-        public IntentBatchPreprocess(Collection<IntentData> data) {
-            this(data, System.currentTimeMillis() + data.size() * TIMEOUT_PER_OP);
-        }
-
-        // FIXME compute reasonable timeouts
-        protected long calculateTimeoutLimit() {
-            return System.currentTimeMillis() + data.size() * TIMEOUT_PER_OP;
         }
 
         @Override
