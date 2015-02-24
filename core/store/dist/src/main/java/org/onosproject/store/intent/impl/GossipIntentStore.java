@@ -60,10 +60,10 @@ public class GossipIntentStore
     private final Logger log = getLogger(getClass());
 
     // Map of intent key => current intent state
-    private EventuallyConsistentMap<Key, IntentData> currentState;
+    private EventuallyConsistentMap<Key, IntentData> currentMap;
 
     // Map of intent key => pending intent operation
-    private EventuallyConsistentMap<Key, IntentData> pending;
+    private EventuallyConsistentMap<Key, IntentData> pendingMap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -82,47 +82,47 @@ public class GossipIntentStore
                 .register(MultiValuedTimestamp.class)
                 .register(SystemClockTimestamp.class);
 
-        currentState = new EventuallyConsistentMapImpl<>("intent-current",
-                                                         clusterService,
-                                                         clusterCommunicator,
-                                                         intentSerializer,
-                                                         new IntentDataLogicalClockManager<>());
+        currentMap = new EventuallyConsistentMapImpl<>("intent-current",
+                                                       clusterService,
+                                                       clusterCommunicator,
+                                                       intentSerializer,
+                                                       new IntentDataLogicalClockManager<>());
 
-        pending = new EventuallyConsistentMapImpl<>("intent-pending",
-                                                    clusterService,
-                                                    clusterCommunicator,
-                                                    intentSerializer, // TODO
-                                                    new IntentDataClockManager<>());
+        pendingMap = new EventuallyConsistentMapImpl<>("intent-pending",
+                                                       clusterService,
+                                                       clusterCommunicator,
+                                                       intentSerializer, // TODO
+                                                       new IntentDataClockManager<>());
 
-        currentState.addListener(new InternalIntentStatesListener());
-        pending.addListener(new InternalPendingListener());
+        currentMap.addListener(new InternalIntentStatesListener());
+        pendingMap.addListener(new InternalPendingListener());
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        currentState.destroy();
-        pending.destroy();
+        currentMap.destroy();
+        pendingMap.destroy();
 
         log.info("Stopped");
     }
 
     @Override
     public long getIntentCount() {
-        return currentState.size();
+        return currentMap.size();
     }
 
     @Override
     public Iterable<Intent> getIntents() {
-        return currentState.values().stream()
+        return currentMap.values().stream()
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
     }
 
     @Override
     public IntentState getIntentState(Key intentKey) {
-        IntentData data = currentState.get(intentKey);
+        IntentData data = currentMap.get(intentKey);
         if (data != null) {
             return data.state();
         }
@@ -131,7 +131,7 @@ public class GossipIntentStore
 
     @Override
     public List<Intent> getInstallableIntents(Key intentKey) {
-        IntentData data = currentState.get(intentKey);
+        IntentData data = currentMap.get(intentKey);
         if (data != null) {
             return data.installables();
         }
@@ -227,15 +227,15 @@ public class GossipIntentStore
     public void write(IntentData newData) {
         //log.debug("writing intent {}", newData);
 
-        IntentData currentData = currentState.get(newData.key());
+        IntentData currentData = currentMap.get(newData.key());
 
         if (isUpdateAcceptable(currentData, newData)) {
             // Only the master is modifying the current state. Therefore assume
             // this always succeeds
-            currentState.put(newData.key(), copyData(newData));
+            currentMap.put(newData.key(), copyData(newData));
 
             // if current.put succeeded
-            pending.remove(newData.key(), newData);
+            pendingMap.remove(newData.key(), newData);
         } else {
             log.debug("not writing update: current {}, new {}", currentData, newData);
         }
@@ -254,7 +254,7 @@ public class GossipIntentStore
 
     @Override
     public Intent getIntent(Key key) {
-        IntentData data = currentState.get(key);
+        IntentData data = currentMap.get(key);
         if (data != null) {
             return data.intent();
         }
@@ -263,7 +263,7 @@ public class GossipIntentStore
 
     @Override
     public IntentData getIntentData(Key key) {
-        return copyData(currentState.get(key));
+        return copyData(currentMap.get(key));
     }
 
     @Override
@@ -272,7 +272,7 @@ public class GossipIntentStore
         if (data.version() == null) {
             data.setVersion(new SystemClockTimestamp());
         }
-        pending.put(data.key(), copyData(data));
+        pendingMap.put(data.key(), copyData(data));
     }
 
     @Override
@@ -282,7 +282,7 @@ public class GossipIntentStore
 
     @Override
     public Iterable<Intent> getPending() {
-        return pending.values().stream()
+        return pendingMap.values().stream()
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
     }
