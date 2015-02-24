@@ -285,7 +285,8 @@ public class IntentManager
     }
 
     private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
-        return workerExecutor.submit(new IntentWorker(data));
+        IntentData current = store.getIntentData(data.key());
+        return workerExecutor.submit(new IntentWorker(data, current));
     }
 
     private class IntentBatchPreprocess implements Runnable {
@@ -366,14 +367,16 @@ public class IntentManager
     private final class IntentWorker implements Callable<FinalIntentProcessPhase> {
 
         private final IntentData data;
+        private final IntentData current;
 
-        private IntentWorker(IntentData data) {
-            this.data = data;
+        private IntentWorker(IntentData data, IntentData current) {
+            this.data = checkNotNull(data);
+            this.current = current;
         }
 
         @Override
         public FinalIntentProcessPhase call() throws Exception {
-            IntentProcessPhase update = createIntentUpdate(data);
+            IntentProcessPhase update = createIntentUpdate();
             Optional<IntentProcessPhase> currentPhase = Optional.of(update);
             IntentProcessPhase previousPhase = update;
 
@@ -384,20 +387,19 @@ public class IntentManager
             return (FinalIntentProcessPhase) previousPhase;
         }
 
-        private IntentProcessPhase createIntentUpdate(IntentData intentData) {
-            IntentData current = store.getIntentData(intentData.key());
-            switch (intentData.state()) {
+        private IntentProcessPhase createIntentUpdate() {
+            switch (data.state()) {
                 case INSTALL_REQ:
-                    return new InstallRequest(processor, intentData, Optional.ofNullable(current));
+                    return new InstallRequest(processor, data, Optional.ofNullable(current));
                 case WITHDRAW_REQ:
                     if (current == null || isNullOrEmpty(current.installables())) {
-                        return new Withdrawn(intentData, WITHDRAWN);
+                        return new Withdrawn(data, WITHDRAWN);
                     } else {
-                        return new WithdrawRequest(processor, intentData, current);
+                        return new WithdrawRequest(processor, data, current);
                     }
                 default:
                     // illegal state
-                    return new CompilingFailed(intentData);
+                    return new CompilingFailed(data);
             }
         }
     }
