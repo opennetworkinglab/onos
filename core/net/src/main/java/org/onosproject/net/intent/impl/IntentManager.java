@@ -284,23 +284,6 @@ public class IntentManager
         }
     }
 
-    private IntentProcessPhase createIntentUpdate(IntentData intentData) {
-        IntentData current = store.getIntentData(intentData.key());
-        switch (intentData.state()) {
-            case INSTALL_REQ:
-                return new InstallRequest(processor, intentData, Optional.ofNullable(current));
-            case WITHDRAW_REQ:
-                if (current == null || isNullOrEmpty(current.installables())) {
-                    return new Withdrawn(intentData, WITHDRAWN);
-                } else {
-                    return new WithdrawRequest(processor, intentData, current);
-                }
-            default:
-                // illegal state
-                return new CompilingFailed(intentData);
-        }
-    }
-
     private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
         return workerExecutor.submit(new IntentWorker(data));
     }
@@ -399,6 +382,23 @@ public class IntentManager
                 currentPhase = previousPhase.execute();
             }
             return (FinalIntentProcessPhase) previousPhase;
+        }
+
+        private IntentProcessPhase createIntentUpdate(IntentData intentData) {
+            IntentData current = store.getIntentData(intentData.key());
+            switch (intentData.state()) {
+                case INSTALL_REQ:
+                    return new InstallRequest(processor, intentData, Optional.ofNullable(current));
+                case WITHDRAW_REQ:
+                    if (current == null || isNullOrEmpty(current.installables())) {
+                        return new Withdrawn(intentData, WITHDRAWN);
+                    } else {
+                        return new WithdrawRequest(processor, intentData, current);
+                    }
+                default:
+                    // illegal state
+                    return new CompilingFailed(intentData);
+            }
         }
     }
 
