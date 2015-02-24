@@ -846,13 +846,6 @@
             })
             .style('opacity', 0.0)
             .remove();
-
-        // NOTE: invoke a single tick to force the labels to position
-        //        onto their links.
-        tick();
-        // TODO: this causes undesirable behavior when in oblique view
-        // It causes the nodes to jump into "overhead" view positions, even
-        //  though the oblique planes are still showing...
     }
 
     // ==========================
@@ -921,10 +914,10 @@
                 rect,
                 text,
                 parms = {
-                    x1: d.ldata.x1,
-                    y1: d.ldata.y1,
-                    x2: d.ldata.x2,
-                    y2: d.ldata.y2
+                    x1: d.ldata.source.x,
+                    y1: d.ldata.source.y,
+                    x2: d.ldata.target.x,
+                    y2: d.ldata.target.y
                 };
 
             if (d.ldata.type() === 'hostLink') {

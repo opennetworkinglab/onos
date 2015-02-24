@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffffff04",
+    "type": "roadm",
+    "online": true,
+    "master": "myInstB",
+    "labels": [
+      "",
+      "opt-4",
+      "0000ffffffffff04"
+    ],
+    "metaUi": {
+      "x": 1100,
+      "y": 600
+    }
+  }
+}
