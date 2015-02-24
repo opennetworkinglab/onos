@@ -54,8 +54,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.BoundedThreadPool.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onlab.util.Tools.minPriority;
 
 /**
  * Distributed Map implementation which uses optimistic replication and gossip
@@ -149,16 +149,23 @@ public class EventuallyConsistentMapImpl<K, V>
         items = new ConcurrentHashMap<>();
         removedItems = new ConcurrentHashMap<>();
 
-        executor = Executors //FIXME
-                .newFixedThreadPool(4, groupedThreads("onos/ecm", mapName + "-fg-%d"));
+        // should be a normal executor; it's used for receiving messages
+        //TODO make # of threads configurable
+        executor = Executors.newFixedThreadPool(8, groupedThreads("onos/ecm", mapName + "-fg-%d"));
 
-        broadcastMessageExecutor = Executors.newSingleThreadExecutor(groupedThreads("onos/ecm", mapName + "-notify"));
+        // sending executor; should be capped
+        //TODO make # of threads configurable
+        broadcastMessageExecutor = //newSingleThreadExecutor(groupedThreads("onos/ecm", mapName + "-notify"));
+                newFixedThreadPool(4, groupedThreads("onos/ecm", mapName + "-notify"));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(
-                        groupedThreads("onos/ecm", mapName + "-bg-%d")));
+                //FIXME anti-entropy can take >60 seconds and it blocks fg workers
+                // ... dropping minPriority to try to help until this can be parallel
+                newSingleThreadScheduledExecutor(//minPriority(
+                        groupedThreads("onos/ecm", mapName + "-bg-%d"))/*)*/;
 
         // start anti-entropy thread
+        //TODO disable anti-entropy for now in testing (it is unstable)
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
                                                initialDelaySec, periodSec,
                                                TimeUnit.SECONDS);
@@ -494,8 +501,8 @@ public class EventuallyConsistentMapImpl<K, V>
                 clusterService.getLocalNode().id(),
                 subject,
                 serializer.encode(event));
-        //broadcastMessageExecutor.execute(() -> clusterCommunicator.broadcast(message));
-        clusterCommunicator.broadcast(message);
+        broadcastMessageExecutor.execute(() -> clusterCommunicator.broadcast(message));
+//        clusterCommunicator.broadcast(message);
     }
 
     private void unicastMessage(NodeId peer,

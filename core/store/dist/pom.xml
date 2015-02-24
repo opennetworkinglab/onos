@@ -53,6 +53,12 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onlab-misc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
         </dependency>
 
