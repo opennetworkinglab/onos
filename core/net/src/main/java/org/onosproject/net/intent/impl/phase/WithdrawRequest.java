@@ -25,13 +25,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a phase of requesting a withdraw of an intent.
  */
-public final class WithdrawRequest implements IntentProcessPhase {
+final class WithdrawRequest implements IntentProcessPhase {
 
     private final IntentProcessor processor;
     private final IntentData pending;
     private final IntentData current;
 
-    public WithdrawRequest(IntentProcessor processor, IntentData intentData, IntentData current) {
+    WithdrawRequest(IntentProcessor processor, IntentData intentData, IntentData current) {
         this.processor = checkNotNull(processor);
         this.pending = checkNotNull(intentData);
         this.current = checkNotNull(current);

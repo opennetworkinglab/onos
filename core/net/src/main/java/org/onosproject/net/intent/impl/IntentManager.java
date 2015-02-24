@@ -41,20 +41,14 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.impl.phase.CompilingFailed;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
-import org.onosproject.net.intent.impl.phase.InstallRequest;
-import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
-import org.onosproject.net.intent.impl.phase.WithdrawRequest;
-import org.onosproject.net.intent.impl.phase.Withdrawn;
+import org.onosproject.net.intent.impl.phase.IntentWorker;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -64,10 +58,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.intent.IntentState.FAILED;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -361,48 +353,6 @@ public class IntentManager
             store.batchWrite(updates.stream()
                                     .map(FinalIntentProcessPhase::data)
                                     .collect(Collectors.toList()));
-        }
-    }
-
-    private final class IntentWorker implements Callable<FinalIntentProcessPhase> {
-
-        private final IntentProcessor processor;
-        private final IntentData data;
-        private final IntentData current;
-
-        private IntentWorker(IntentProcessor processor, IntentData data, IntentData current) {
-            this.processor = checkNotNull(processor);
-            this.data = checkNotNull(data);
-            this.current = current;
-        }
-
-        @Override
-        public FinalIntentProcessPhase call() throws Exception {
-            IntentProcessPhase update = createIntentUpdate();
-            Optional<IntentProcessPhase> currentPhase = Optional.of(update);
-            IntentProcessPhase previousPhase = update;
-
-            while (currentPhase.isPresent()) {
-                previousPhase = currentPhase.get();
-                currentPhase = previousPhase.execute();
-            }
-            return (FinalIntentProcessPhase) previousPhase;
-        }
-
-        private IntentProcessPhase createIntentUpdate() {
-            switch (data.state()) {
-                case INSTALL_REQ:
-                    return new InstallRequest(processor, data, Optional.ofNullable(current));
-                case WITHDRAW_REQ:
-                    if (current == null || isNullOrEmpty(current.installables())) {
-                        return new Withdrawn(data, WITHDRAWN);
-                    } else {
-                        return new WithdrawRequest(processor, data, current);
-                    }
-                default:
-                    // illegal state
-                    return new CompilingFailed(data);
-            }
         }
     }
 

@@ -25,13 +25,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a phase where intent installation has been requested.
  */
-public final class InstallRequest implements IntentProcessPhase {
+final class InstallRequest implements IntentProcessPhase {
 
     private final IntentProcessor intentManager;
     private final IntentData pending;
     private final Optional<IntentData> current;
 
-    public InstallRequest(IntentProcessor processor, IntentData intentData, Optional<IntentData> current) {
+    InstallRequest(IntentProcessor processor, IntentData intentData, Optional<IntentData> current) {
         this.intentManager = checkNotNull(processor);
         this.pending = checkNotNull(intentData);
         this.current = checkNotNull(current);

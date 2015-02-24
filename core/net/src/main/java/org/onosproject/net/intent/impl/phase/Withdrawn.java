@@ -24,15 +24,15 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 /**
  * Represents a phase where an intent has been withdrawn.
  */
-public final class Withdrawn extends FinalIntentProcessPhase {
+final class Withdrawn extends FinalIntentProcessPhase {
 
     private final IntentData intentData;
 
-    public Withdrawn(IntentData intentData) {
+    Withdrawn(IntentData intentData) {
         this(intentData, WITHDRAWING);
     }
 
-    public Withdrawn(IntentData intentData, IntentState newState) {
+    Withdrawn(IntentData intentData, IntentState newState) {
         this.intentData = checkNotNull(intentData);
         this.intentData.setState(newState);
     }
