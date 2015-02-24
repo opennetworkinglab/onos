@@ -97,9 +97,8 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
-    // TODO: make this protected due to short term hack for ONOS-1051
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    public FlowRuleService flowRuleService;
+    protected FlowRuleService flowRuleService;
 
 
     private ExecutorService batchExecutor;
