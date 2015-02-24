@@ -18,6 +18,7 @@ package org.onosproject.store.intent.impl;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.ClockService;
+import org.onosproject.store.impl.MultiValuedTimestamp;
 
 /**
  * ClockService that uses IntentData versions as timestamps.
@@ -25,6 +26,6 @@ import org.onosproject.store.impl.ClockService;
 public class IntentDataClockManager<K> implements ClockService<K, IntentData> {
     @Override
     public Timestamp getTimestamp(K key, IntentData intentData) {
-        return intentData.version();
+        return new MultiValuedTimestamp<>(intentData.version(), System.nanoTime());
     }
 }
