@@ -52,6 +52,8 @@ import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceListener;
 import org.onosproject.net.resource.LinkResourceRequest;
 import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.MplsLabel;
+import org.onosproject.net.resource.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
@@ -63,6 +65,7 @@ import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -152,7 +155,7 @@ public class IntentTestsMocks {
     public static class MockLinkResourceAllocations implements LinkResourceAllocations {
         @Override
         public Set<ResourceAllocation> getResourceAllocation(Link link) {
-            return null;
+            return ImmutableSet.of(new MplsLabelResourceAllocation(MplsLabel.valueOf(10)));
         }
 
         @Override
@@ -254,17 +257,19 @@ public class IntentTestsMocks {
 
         @Override
         public Iterable<LinkResourceAllocations> getAllocations() {
-            return null;
+            return ImmutableSet.of(
+                    new IntentTestsMocks.MockLinkResourceAllocations());
         }
 
         @Override
         public Iterable<LinkResourceAllocations> getAllocations(Link link) {
-            return null;
+            return ImmutableSet.of(
+                    new IntentTestsMocks.MockLinkResourceAllocations());
         }
 
         @Override
         public LinkResourceAllocations getAllocations(IntentId intentId) {
-            return null;
+            return new IntentTestsMocks.MockLinkResourceAllocations();
         }
 
         @Override
