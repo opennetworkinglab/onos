@@ -37,7 +37,7 @@ import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
 import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
 import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
 import org.onosproject.store.impl.MultiValuedTimestamp;
-import org.onosproject.store.impl.SystemClockTimestamp;
+import org.onosproject.store.impl.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
@@ -80,7 +80,7 @@ public class GossipIntentStore
                 .register(KryoNamespaces.API)
                 .register(IntentData.class)
                 .register(MultiValuedTimestamp.class)
-                .register(SystemClockTimestamp.class);
+                .register(WallClockTimestamp.class);
 
         currentMap = new EventuallyConsistentMapImpl<>("intent-current",
                                                        clusterService,
@@ -225,8 +225,6 @@ public class GossipIntentStore
 
     @Override
     public void write(IntentData newData) {
-        //log.debug("writing intent {}", newData);
-
         IntentData currentData = currentMap.get(newData.key());
 
         if (isUpdateAcceptable(currentData, newData)) {
@@ -239,12 +237,6 @@ public class GossipIntentStore
         } else {
             log.debug("not writing update: current {}, new {}", currentData, newData);
         }
-        /*try {
-            notifyDelegate(IntentEvent.getEvent(newData));
-        } catch (IllegalArgumentException e) {
-            //no-op
-            log.trace("ignore this exception: {}", e);
-        }*/
     }
 
     @Override
@@ -268,9 +260,8 @@ public class GossipIntentStore
 
     @Override
     public void addPending(IntentData data) {
-        log.debug("new pending {} {} {}", data.key(), data.state(), data.version());
         if (data.version() == null) {
-            data.setVersion(new SystemClockTimestamp());
+            data.setVersion(new WallClockTimestamp());
         }
         pendingMap.put(data.key(), copyData(data));
     }

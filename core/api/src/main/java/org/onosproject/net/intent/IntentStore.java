@@ -17,7 +17,6 @@ package org.onosproject.net.intent;
 
 import org.onosproject.store.Store;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,27 +44,23 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param intentKey intent identification
      * @return current intent state
      */
-    default IntentState getIntentState(Key intentKey) {
-        return null;
-    }
+    IntentState getIntentState(Key intentKey);
 
     /**
      * Returns the list of the installable events associated with the specified
      * original intent.
      *
      * @param intentKey original intent identifier
-     * @return compiled installable intents
+     * @return compiled installable intents, or null if no installables exist
      */
-    default List<Intent> getInstallableIntents(Key intentKey) {
-        throw new UnsupportedOperationException("getInstallableIntents()");
-    }
+    List<Intent> getInstallableIntents(Key intentKey);
 
     /**
      * Writes an IntentData object to the store.
      *
      * @param newData new intent data to write
      */
-    default void write(IntentData newData) {}
+    void write(IntentData newData);
 
     /**
      * Writes a batch of IntentData objects to the store. A batch has no
@@ -73,7 +68,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      *
      * @param updates collection of intent data objects to write
      */
-    default void batchWrite(Iterable<IntentData> updates) {}
+    void batchWrite(Iterable<IntentData> updates);
 
     /**
      * Returns the intent with the specified identifier.
@@ -81,10 +76,7 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param key key
      * @return intent or null if not found
      */
-    default Intent getIntent(Key key) {
-        // FIXME remove this default implementation when all stores have implemented it
-        return null;
-    }
+    Intent getIntent(Key key);
 
     /**
      * Returns the intent data object associated with the specified key.
@@ -92,16 +84,14 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @param key key to look up
      * @return intent data object
      */
-    default IntentData getIntentData(Key key) { //FIXME remove when impl.
-        return null;
-    }
+    IntentData getIntentData(Key key);
 
     /**
      * Adds a new operation, which should be persisted and delegated.
      *
      * @param intent operation
      */
-    default void addPending(IntentData intent) {} //FIXME remove when impl.
+    void addPending(IntentData intent);
 
     /**
      * Checks to see whether the calling instance is the master for processing
@@ -111,17 +101,12 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return true if master; false, otherwise
      */
     //TODO better name
-    default boolean isMaster(Key intentKey) { //FIXME remove default when impl.
-        return true;
-    }
+    boolean isMaster(Key intentKey);
 
     /**
      * Returns the intent requests pending processing.
      *
      * @return pending intents
      */
-    // FIXME remove default
-    default Iterable<Intent> getPending() {
-        return Collections.emptyList();
-    }
+    Iterable<Intent> getPending();
 }

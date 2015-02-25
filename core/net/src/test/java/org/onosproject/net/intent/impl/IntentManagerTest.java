@@ -48,7 +48,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.resource.LinkResourceAllocations;
-import org.onosproject.store.intent.impl.SimpleIntentStore;
+import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;

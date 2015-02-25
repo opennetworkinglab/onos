@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
-
-//TODO Note: this store will be removed
 
 @Component(immediate = true)
 @Service
@@ -47,9 +46,21 @@ public class SimpleIntentStore
 
     private final Logger log = getLogger(getClass());
 
-    // current state maps FIXME.. make this a IntentData map
     private final Map<Key, IntentData> current = Maps.newConcurrentMap();
-    private final Map<Key, IntentData> pending = Maps.newConcurrentMap(); //String is "key"
+    private final Map<Key, IntentData> pending = Maps.newConcurrentMap();
+
+    private IntentData copyData(IntentData original) {
+        if (original == null) {
+            return null;
+        }
+        IntentData result =
+                new IntentData(original.intent(), original.state(), original.version());
+
+        if (original.installables() != null) {
+            result.setInstallables(original.installables());
+        }
+        return result;
+    }
 
     @Activate
     public void activate() {
@@ -82,22 +93,110 @@ public class SimpleIntentStore
     @Override
     public List<Intent> getInstallableIntents(Key intentKey) {
         IntentData data = current.get(intentKey);
-        return (data != null) ? data.installables() : null;
+        if (data != null) {
+            return data.installables();
+        }
+        return null;
+    }
+
+
+    /**
+     * Determines whether an intent data update is allowed. The update must
+     * either have a higher version than the current data, or the state
+     * transition between two updates of the same version must be sane.
+     *
+     * @param currentData existing intent data in the store
+     * @param newData new intent data update proposal
+     * @return true if we can apply the update, otherwise false
+     */
+    private boolean isUpdateAcceptable(IntentData currentData, IntentData newData) {
+
+        if (currentData == null) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) < 0) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) > 0) {
+            return false;
+        }
+
+        // current and new data versions are the same
+        IntentState currentState = currentData.state();
+        IntentState newState = newData.state();
+
+        switch (newState) {
+            case INSTALLING:
+                if (currentState == INSTALLING) {
+                    return false;
+                }
+            // FALLTHROUGH
+            case INSTALLED:
+                if (currentState == INSTALLED) {
+                    return false;
+                } else if (currentState == WITHDRAWING || currentState == WITHDRAWN) {
+                    log.warn("Invalid state transition from {} to {} for intent {}",
+                             currentState, newState, newData.key());
+                    return false;
+                }
+                return true;
+
+            case WITHDRAWING:
+                if (currentState == WITHDRAWING) {
+                    return false;
+                }
+            // FALLTHOUGH
+            case WITHDRAWN:
+                if (currentState == WITHDRAWN) {
+                    return false;
+                } else if (currentState == INSTALLING || currentState == INSTALLED) {
+                    log.warn("Invalid state transition from {} to {} for intent {}",
+                             currentState, newState, newData.key());
+                    return false;
+                }
+                return true;
+
+
+            case FAILED:
+                if (currentState == FAILED) {
+                    return false;
+                }
+                return true;
+
+
+            case COMPILING:
+            case RECOMPILING:
+            case INSTALL_REQ:
+            case WITHDRAW_REQ:
+            default:
+                log.warn("Invalid state {} for intent {}", newState, newData.key());
+                return false;
+        }
     }
 
     @Override
     public void write(IntentData newData) {
-        //FIXME need to compare the versions
-        current.put(newData.key(), newData);
-        try {
-            notifyDelegate(IntentEvent.getEvent(newData));
-        } catch (IllegalArgumentException e) {
-            //no-op
-            log.trace("ignore this exception: {}", e);
+        synchronized (this) {
+            // TODO this could be refactored/cleaned up
+            IntentData currentData = current.get(newData.key());
+            IntentData pendingData = pending.get(newData.key());
+
+            if (isUpdateAcceptable(currentData, newData)) {
+                current.put(newData.key(), copyData(newData));
+
+                if (pendingData != null
+                        // pendingData version is less than or equal to newData's
+                        // Note: a new update for this key could be pending (it's version will be greater)
+                        && pendingData.version().compareTo(newData.version()) <= 0) {
+                    pending.remove(newData.key());
+                }
+
+                notifyDelegateIfNotNull(IntentEvent.getEvent(newData));
+            }
         }
-        IntentData old = pending.get(newData.key());
-        if (old != null /* && FIXME version check */) {
-            pending.remove(newData.key());
+    }
+
+    private void notifyDelegateIfNotNull(IntentEvent event) {
+        if (event != null) {
+            notifyDelegate(event);
         }
     }
 
@@ -114,14 +213,44 @@ public class SimpleIntentStore
         return (data != null) ? data.intent() : null;
     }
 
+    @Override
+    public IntentData getIntentData(Key key) {
+        return copyData(current.get(key));
+    }
 
     @Override
     public void addPending(IntentData data) {
-        //FIXME need to compare versions
-        pending.put(data.key(), data);
-        checkNotNull(delegate, "Store delegate is not set")
-                .process(data);
-        notifyDelegate(IntentEvent.getEvent(data));
+        if (data.version() == null) { // recompiled intents will already have a version
+            data.setVersion(new SystemClockTimestamp());
+        }
+        synchronized (this) {
+            IntentData existingData = pending.get(data.key());
+            if (existingData == null ||
+                    // existing version is strictly less than data's version
+                    // Note: if they are equal, we already have the update
+                    // TODO maybe we should still make this <= to be safe?
+                    existingData.version().compareTo(data.version()) < 0) {
+                pending.put(data.key(), data);
+                checkNotNull(delegate, "Store delegate is not set")
+                        .process(data);
+                notifyDelegateIfNotNull(IntentEvent.getEvent(data));
+            } else {
+                log.debug("IntentData {} is older than existing: {}",
+                          data, existingData);
+            }
+            //TODO consider also checking the current map at this point
+        }
     }
 
+    @Override
+    public boolean isMaster(Key intentKey) {
+        return true;
+    }
+
+    @Override
+    public Iterable<Intent> getPending() {
+        return pending.values().stream()
+                .map(IntentData::intent)
+                .collect(Collectors.toList());
+    }
 }
