@@ -112,4 +112,11 @@ public interface IntentService {
      * @param listener listener to be removed
      */
     void removeListener(IntentListener listener);
+
+    /**
+     * Purges a specific intent from the system if it is FAILED or WITHDRAWN.
+     *
+     * @param key key of the intent to purge
+     */
+    void purge(Key key);
 }

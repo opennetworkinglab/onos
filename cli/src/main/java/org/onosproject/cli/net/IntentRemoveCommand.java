@@ -17,14 +17,24 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 
 import java.math.BigInteger;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * Removes an intent.
@@ -42,6 +52,16 @@ public class IntentRemoveCommand extends AbstractShellCommand {
               description = "Intent ID",
               required = true, multiValued = false)
     String id = null;
+
+    @Option(name = "-p", aliases = "--purge",
+            description = "Purge the intent from the store after removal",
+            required = false, multiValued = false)
+    private boolean purgeAfterRemove = false;
+
+    @Option(name = "-s", aliases = "--sync",
+            description = "Waits for the removal before returning",
+            required = false, multiValued = false)
+    private boolean sync = false;
 
     @Override
     protected void execute() {
@@ -63,8 +83,38 @@ public class IntentRemoveCommand extends AbstractShellCommand {
 
         Key key = Key.of(new BigInteger(id, 16).longValue(), appId);
         Intent intent = intentService.getIntent(key);
+
+
         if (intent != null) {
+            // set up latch and listener to track uninstall progress
+            CountDownLatch latch = new CountDownLatch(1);
+            IntentListener listener = (IntentEvent event) -> {
+                if (Objects.equals(event.subject().key(), key) &&
+                        (event.type() == IntentEvent.Type.WITHDRAWN
+                                || event.type() == IntentEvent.Type.WITHDRAWN)) {
+                    latch.countDown();
+                }
+            };
+            intentService.addListener(listener);
+
+            // request the withdraw
             intentService.withdraw(intent);
+
+            if (purgeAfterRemove || sync) {
+                try {
+                    latch.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    print("Timed out waiting for intent {}", key);
+                }
+                // double check the state
+                IntentState state = intentService.getIntentState(key);
+                if (purgeAfterRemove && (state == WITHDRAWN || state == FAILED)) {
+                    intentService.purge(key);
+                }
+            }
+            // clean up the listener
+            intentService.removeListener(listener);
         }
+
     }
 }

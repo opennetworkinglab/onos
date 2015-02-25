@@ -193,6 +193,11 @@ public class IntentManager
     }
 
     @Override
+    public void purge(Key key) {
+        store.purge(key);
+    }
+
+    @Override
     public <T extends Intent> void registerCompiler(Class<T> cls, IntentCompiler<T> compiler) {
         compilerRegistry.registerCompiler(cls, compiler);
     }

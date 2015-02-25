@@ -109,4 +109,10 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return pending intents
      */
     Iterable<Intent> getPending();
+
+    /** Purges a specific intent from the system if it is FAILED or WITHDRAWN.
+     *
+     * @param key key of the intent to purge
+     */
+    void purge(Key key);
 }

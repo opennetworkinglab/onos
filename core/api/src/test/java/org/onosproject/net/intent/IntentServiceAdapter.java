@@ -76,4 +76,9 @@ public class IntentServiceAdapter implements IntentService {
     public void removeListener(IntentListener listener) {
 
     }
+
+    @Override
+    public void purge(Key key) {
+
+    }
 }

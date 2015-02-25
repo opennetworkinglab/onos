@@ -253,4 +253,12 @@ public class SimpleIntentStore
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void purge(Key key) {
+        IntentData data = current.get(key);
+        if (data.state() == IntentState.WITHDRAWN || data.state() == IntentState.FAILED) {
+            current.remove(key, data);
+        }
+    }
 }

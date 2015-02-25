@@ -230,6 +230,11 @@ public class FakeIntentManager implements TestableIntentService {
         listeners.remove(listener);
     }
 
+    @Override
+    public void purge(Key key) {
+        // FIXME implement this
+    }
+
     private void dispatch(IntentEvent event) {
         for (IntentListener listener : listeners) {
             listener.event(event);

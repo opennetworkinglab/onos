@@ -278,6 +278,14 @@ public class GossipIntentStore
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void purge(Key key) {
+        IntentData data = currentMap.get(key);
+        if (data.state() == WITHDRAWN || data.state() == FAILED) {
+            currentMap.remove(key, data);
+        }
+    }
+
     private void notifyDelegateIfNotNull(IntentEvent event) {
         if (event != null) {
             notifyDelegate(event);
