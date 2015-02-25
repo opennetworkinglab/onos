@@ -34,8 +34,8 @@ import com.google.common.collect.ComparisonChain;
  */
 public final class MastershipBasedTimestamp implements Timestamp {
 
-    private final int termNumber;
-    private final int sequenceNumber;
+    private final long termNumber;
+    private final long sequenceNumber;
 
     /**
      * Default version tuple.
@@ -43,7 +43,7 @@ public final class MastershipBasedTimestamp implements Timestamp {
      * @param termNumber the mastership termNumber
      * @param sequenceNumber  the sequenceNumber number within the termNumber
      */
-    public MastershipBasedTimestamp(int termNumber, int sequenceNumber) {
+    public MastershipBasedTimestamp(long termNumber, long sequenceNumber) {
         this.termNumber = termNumber;
         this.sequenceNumber = sequenceNumber;
     }
@@ -91,7 +91,7 @@ public final class MastershipBasedTimestamp implements Timestamp {
      *
      * @return termNumber
      */
-    public int termNumber() {
+    public long termNumber() {
         return termNumber;
     }
 
@@ -100,7 +100,7 @@ public final class MastershipBasedTimestamp implements Timestamp {
      *
      * @return sequenceNumber
      */
-    public int sequenceNumber() {
+    public long sequenceNumber() {
         return sequenceNumber;
     }
 

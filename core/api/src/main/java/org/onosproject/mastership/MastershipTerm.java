@@ -24,14 +24,14 @@ import com.google.common.base.MoreObjects;
 public final class MastershipTerm {
 
     private final NodeId master;
-    private final int termNumber;
+    private final long termNumber;
 
-    private MastershipTerm(NodeId master, int term) {
+    private MastershipTerm(NodeId master, long term) {
         this.master = master;
         this.termNumber = term;
     }
 
-    public static MastershipTerm of(NodeId master, int term) {
+    public static MastershipTerm of(NodeId master, long term) {
         return new MastershipTerm(master, term);
     }
 
@@ -39,7 +39,7 @@ public final class MastershipTerm {
         return master;
     }
 
-    public int termNumber() {
+    public long termNumber() {
         return termNumber;
     }
 

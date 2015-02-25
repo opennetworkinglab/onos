@@ -39,13 +39,13 @@ public class MastershipTermSerializer extends Serializer<MastershipTerm> {
     @Override
     public MastershipTerm read(Kryo kryo, Input input, Class<MastershipTerm> type) {
         final NodeId node = (NodeId) kryo.readClassAndObject(input);
-        final int term = input.readInt();
+        final long term = input.readLong();
         return MastershipTerm.of(node, term);
     }
 
     @Override
     public void write(Kryo kryo, Output output, MastershipTerm object) {
         kryo.writeClassAndObject(output, object.master());
-        output.writeInt(object.termNumber());
+        output.writeLong(object.termNumber());
     }
 }

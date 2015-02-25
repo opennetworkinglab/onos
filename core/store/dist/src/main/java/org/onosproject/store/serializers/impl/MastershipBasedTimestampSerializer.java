@@ -38,14 +38,14 @@ public class MastershipBasedTimestampSerializer extends Serializer<MastershipBas
 
     @Override
     public void write(Kryo kryo, Output output, MastershipBasedTimestamp object) {
-        output.writeInt(object.termNumber());
-        output.writeInt(object.sequenceNumber());
+        output.writeLong(object.termNumber());
+        output.writeLong(object.sequenceNumber());
     }
 
     @Override
     public MastershipBasedTimestamp read(Kryo kryo, Input input, Class<MastershipBasedTimestamp> type) {
-        final int term = input.readInt();
-        final int sequence = input.readInt();
+        final long term = input.readLong();
+        final long sequence = input.readLong();
         return new MastershipBasedTimestamp(term, sequence);
     }
 }
