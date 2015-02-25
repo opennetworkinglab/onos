@@ -26,6 +26,7 @@
     var $log, fs, sus, ts;
 
     var api,
+        td3,
         network,
         enhancedLink = null;    // the link which the mouse is hovering over
 
@@ -190,14 +191,31 @@
 
     function unenhance(d) {
         d.el.classed('enhanced', false);
+        api.portLabelG().selectAll('.portLabel').remove();
     }
 
     function enhance(d) {
         d.el.classed('enhanced', true);
         $log.debug('[' + (d.srcPort || 'H') + '] ---> [' + d.tgtPort + ']', d.key);
+
+        // define port label data objects
+        var data = [
+            {
+                id: 'topo-port-src',
+                num: d.srcPort,
+                baseX: d.source.x,
+                baseY: d.source.y
+            },
+            {
+                id: 'topo-port-tgt',
+                num: d.tgtPort,
+                baseX: d.target.x,
+                baseY: d.target.y
+            }
+        ];
+
+        td3.applyPortLabels(data, api.portLabelG());
     }
-
-
 
 
     // ==========================
@@ -213,8 +231,9 @@
                 sus = _sus_;
                 ts = _ts_;
 
-                function initLink(_api_) {
+                function initLink(_api_, _td3_) {
                     api = _api_;
+                    td3 = _td3_;
                     svg = api.svg;
                     network = api.network;
                     setupMouse(api.forceG, api.zoomer);

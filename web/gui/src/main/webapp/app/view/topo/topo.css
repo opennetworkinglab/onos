@@ -484,6 +484,8 @@
     stroke: #7352CD;
 }
 
+/* Link Labels */
+
 #ov-topo svg .linkLabel rect {
     stroke: none;
 }
@@ -505,6 +507,32 @@
 .dark #ov-topo svg .linkLabel text {
     fill: #eee;
 }
+
+/* Port Labels */
+
+#ov-topo svg .portLabel rect {
+    stroke: none;
+}
+.light #ov-topo svg .portLabel rect {
+    fill: #eee;
+}
+.dark #ov-topo svg .portLabel rect {
+    fill: #555;
+}
+
+#ov-topo svg .portLabel text {
+    text-anchor: middle;
+    stroke-width: 0.1;
+    font-size: 9pt;
+}
+.light #ov-topo svg .portLabel text {
+    fill: #444;
+}
+.dark #ov-topo svg .portLabel text {
+    fill: #eee;
+}
+
+
 
 
 /* radio buttons injected into masthead */

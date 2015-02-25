@@ -60,7 +60,7 @@
         dim;                    // the dimensions of the force layout [w,h]
 
     // SVG elements;
-    var linkG, linkLabelG, nodeG;
+    var linkG, linkLabelG, portLabelG, nodeG;
 
     // D3 selections;
     var link, linkLabel, node;
@@ -741,6 +741,7 @@
             forceG: forceG,
             zoomer: uplink.zoomer(),
             network: network,
+            portLabelG: function () { return portLabelG; },
             showHosts: function () { return showHosts; }
         };
     }
@@ -792,13 +793,14 @@
                 tts.initTraffic(mkTrafficApi(uplink));
                 tos.initOblique(mkObliqueApi(uplink, fltr));
                 fltr.initFilter(mkFilterApi(uplink), d3.select('#mast-right'));
-                tls.initLink(mkLinkApi(svg, forceG, uplink));
+                tls.initLink(mkLinkApi(svg, forceG, uplink), td3);
 
                 settings = angular.extend({}, defaultSettings, opts);
 
                 linkG = forceG.append('g').attr('id', 'topo-links');
                 linkLabelG = forceG.append('g').attr('id', 'topo-linkLabels');
                 nodeG = forceG.append('g').attr('id', 'topo-nodes');
+                portLabelG = forceG.append('g').attr('id', 'topo-portLabels');
 
                 link = linkG.selectAll('.link');
                 linkLabel = linkLabelG.selectAll('.linkLabel');

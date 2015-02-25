@@ -413,6 +413,27 @@
         return sus.translate(xMid, yMid);
     }
 
+    function applyPortLabels(data, portLabelG) {
+        var entering = portLabelG.selectAll('.portLabel')
+            .data(data).enter().append('g')
+            .classed('portLabel', true)
+            .attr('id', function (d) { return d.id; });
+
+        entering.each(function (d) {
+            var el = d3.select(this),
+                rect = el.append('rect'),
+                text = el.append('text').text(d.num);
+
+            rect.attr(rectAroundText(el));
+            text.attr('dy', linkLabelOffset);
+            el.attr('transform', transformPort(d));
+        });
+    }
+
+    function transformPort(d) {
+        // TODO: offset along the link, away from the node
+        return sus.translate(d.baseX, d.baseY);
+    }
 
     // ==========================
     // Module definition
@@ -459,8 +480,8 @@
 
                 linkEntering: linkEntering,
                 applyLinkLabels: applyLinkLabels,
-
-                transformLabel: transformLabel
+                transformLabel: transformLabel,
+                applyPortLabels: applyPortLabels
             };
         }]);
 }());
