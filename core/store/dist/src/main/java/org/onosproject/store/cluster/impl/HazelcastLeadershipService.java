@@ -46,10 +46,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.groupedThreads;
@@ -159,6 +161,28 @@ public class HazelcastLeadershipService implements LeadershipService {
             return null;
         }
         return topic.leader();
+    }
+
+    @Override
+    public Leadership getLeadership(String path) {
+        checkArgument(path != null);
+        Topic topic = topics.get(path);
+        if (topic != null) {
+            return new Leadership(topic.topicName(),
+                    topic.leader(),
+                    topic.term());
+        }
+        return null;
+    }
+
+    @Override
+    public Set<String> ownedTopics(NodeId nodeId) {
+        checkArgument(nodeId != null);
+        return topics.values()
+                .stream()
+                .filter(topic -> nodeId.equals(topic.leader()))
+                .map(topic -> topic.topicName)
+                .collect(Collectors.toSet());
     }
 
     @Override

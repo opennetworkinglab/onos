@@ -15,10 +15,14 @@
  */
 package org.onosproject.store.trivial.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -55,6 +59,22 @@ public class SimpleLeadershipManager implements LeadershipService {
     }
 
     @Override
+    public Leadership getLeadership(String path) {
+        checkArgument(path != null);
+        return elections.get(path) ? new Leadership(path, clusterService.getLocalNode().id(), 0) : null;
+    }
+
+    @Override
+    public Set<String> ownedTopics(NodeId nodeId) {
+        checkArgument(nodeId != null);
+        return elections.entrySet()
+                .stream()
+                .filter(Entry::getValue)
+                .map(Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public void runForLeadership(String path) {
         elections.put(path, true);
         for (LeadershipEventListener listener : listeners) {
@@ -88,5 +108,4 @@ public class SimpleLeadershipManager implements LeadershipService {
     public void removeListener(LeadershipEventListener listener) {
         listeners.remove(listener);
     }
-
 }

@@ -16,6 +16,7 @@
 package org.onosproject.cluster;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service for leader election.
@@ -27,11 +28,25 @@ import java.util.Map;
 public interface LeadershipService {
 
     /**
-     * Gets the most recent leader for the topic.
+     * Returns the current leader for the topic.
      * @param path topic
      * @return nodeId of the leader, null if so such topic exists.
      */
     NodeId getLeader(String path);
+
+    /**
+     * Returns the current leadership info for the topic.
+     * @param path topic
+     * @return leadership info or null if so such topic exists.
+     */
+    Leadership getLeadership(String path);
+
+    /**
+     * Returns the set of topics owned by the specified node.
+     * @param nodeId node Id.
+     * @return set of topics for which this node is the current leader.
+     */
+    Set<String> ownedTopics(NodeId nodeId);
 
     /**
      * Joins the leadership contest.
@@ -45,6 +60,10 @@ public interface LeadershipService {
      */
     void withdraw(String path);
 
+    /**
+     * Returns the current leader board.
+     * @return mapping from topic to leadership info.
+     */
     Map<String, Leadership> getLeaderBoard();
 
     /**

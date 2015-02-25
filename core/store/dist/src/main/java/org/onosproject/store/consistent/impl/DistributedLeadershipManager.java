@@ -2,6 +2,7 @@ package org.onosproject.store.consistent.impl;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -168,6 +170,22 @@ public class DistributedLeadershipManager implements LeadershipService {
     public NodeId getLeader(String path) {
         Leadership leadership = leaderBoard.get(path);
         return leadership != null ? leadership.leader() : null;
+    }
+
+    @Override
+    public Leadership getLeadership(String path) {
+        checkArgument(path != null);
+        return leaderBoard.get(path);
+    }
+
+    @Override
+    public Set<String> ownedTopics(NodeId nodeId) {
+        checkArgument(nodeId != null);
+        return leaderBoard.entrySet()
+                    .stream()
+                    .filter(entry -> nodeId.equals(entry.getValue().leader()))
+                    .map(Entry::getKey)
+                    .collect(Collectors.toSet());
     }
 
     @Override
