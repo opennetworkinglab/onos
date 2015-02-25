@@ -285,7 +285,7 @@ public class IntentManagerTest {
         service = manager;
         extensionService = manager;
 
-        manager.activate();
+        manager.activate(null);
         service.addListener(listener);
         extensionService.registerCompiler(MockIntent.class, compiler);
         extensionService.registerInstaller(MockInstallableIntent.class, installer);

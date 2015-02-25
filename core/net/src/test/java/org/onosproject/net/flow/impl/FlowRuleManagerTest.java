@@ -106,7 +106,7 @@ public class FlowRuleManagerTest {
         service = mgr;
         registry = mgr;
 
-        mgr.activate();
+        mgr.activate(null);
         mgr.addListener(listener);
         provider = new TestProvider(PID);
         providerService = registry.register(provider);

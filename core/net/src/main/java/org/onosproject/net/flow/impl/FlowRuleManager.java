@@ -25,6 +25,8 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -53,8 +55,10 @@ import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +72,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.namedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -81,6 +86,8 @@ public class FlowRuleManager
         implements FlowRuleService, FlowRuleProviderRegistry {
 
     enum BatchState { STARTED, FINISHED, CANCELLED };
+
+    private static final int DEFAULT_TIMEOUT_PER_FLOW_OP_MSEC = 500; // ms
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private final Logger log = getLogger(getClass());
@@ -101,8 +108,16 @@ public class FlowRuleManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Property(name = "timeoutPerFlowOpMsec", intValue = DEFAULT_TIMEOUT_PER_FLOW_OP_MSEC,
+              label = "Configure Timeout per Flow Operation; " +
+              "default is 500 msec")
+    private int timeoutPerFlowOpMsec = DEFAULT_TIMEOUT_PER_FLOW_OP_MSEC;
+
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        readComponentConfiguration(context);
+
         futureService =
                 Executors.newFixedThreadPool(32, namedThreads("provider-future-listeners-%d"));
         store.setDelegate(delegate);
@@ -117,6 +132,54 @@ public class FlowRuleManager
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(FlowRuleEvent.class);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        readComponentConfiguration(context);
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        if (context == null) {
+            return;             // Nothing to do
+        }
+        Dictionary<?, ?> properties = context.getProperties();
+
+        Integer timeoutPerFlowOpMsecConfigured =
+            getIntegerProperty(properties, "timeoutPerFlowOpMsec");
+        if (timeoutPerFlowOpMsecConfigured == null) {
+            log.info("Timeout per Flow Operation is not configured, " +
+                     "using current value of {} ms", timeoutPerFlowOpMsec);
+        } else {
+            timeoutPerFlowOpMsec = timeoutPerFlowOpMsecConfigured;
+            log.info("Configured. Timeout per Flow Operation is " +
+                     "configured to {} ms", timeoutPerFlowOpMsec);
+        }
+    }
+
+    /**
+     * Get Integer property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Integer getIntegerProperty(Dictionary<?, ?> properties,
+                                              String propertyName) {
+        Integer value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? null : Integer.parseInt(s.trim());
+        } catch (NumberFormatException | ClassCastException e) {
+            value = null;
+        }
+        return value;
     }
 
     @Override
@@ -378,9 +441,6 @@ public class FlowRuleManager
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements FlowRuleStoreDelegate {
 
-        // FIXME set appropriate default and make it configurable
-        private static final int TIMEOUT_PER_OP = 500; // ms
-
         // TODO: Right now we only dispatch events at individual flowEntry level.
         // It may be more efficient for also dispatch events as a batch.
         @Override
@@ -408,7 +468,8 @@ public class FlowRuleManager
                     public void run() {
                         CompletedBatchOperation res;
                         try {
-                            res = result.get(TIMEOUT_PER_OP * batchOperation.size(), TimeUnit.MILLISECONDS);
+                            res = result.get(timeoutPerFlowOpMsec * batchOperation.size(),
+                                             TimeUnit.MILLISECONDS);
                             store.batchOperationComplete(FlowRuleBatchEvent.completed(request, res));
                         } catch (TimeoutException | InterruptedException | ExecutionException e) {
                             log.warn("Something went wrong with the batch operation {}",

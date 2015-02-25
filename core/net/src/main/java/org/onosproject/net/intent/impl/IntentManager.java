@@ -22,6 +22,8 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -50,10 +52,12 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.BatchWrite;
 import org.onosproject.net.intent.IntentStoreDelegate;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +71,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.onlab.util.Tools.namedThreads;
@@ -79,6 +84,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class IntentManager
         implements IntentService, IntentExtensionService {
+
+    private static final int DEFAULT_TIMEOUT_PER_INTENT_OP_MSEC = 500; // ms
+
     private static final Logger log = getLogger(IntentManager.class);
 
     public static final String INTENT_NULL = "Intent cannot be null";
@@ -119,6 +127,10 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
+    @Property(name = "timeoutPerIntentOpMsec", intValue = DEFAULT_TIMEOUT_PER_INTENT_OP_MSEC,
+              label = "Configure Timeout per Intent Operation; " +
+              "default is 500 msec")
+    private int timeoutPerIntentOpMsec = DEFAULT_TIMEOUT_PER_INTENT_OP_MSEC;
 
     private ExecutorService executor;
 
@@ -128,7 +140,9 @@ public class IntentManager
     private IdGenerator idGenerator;
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        readComponentConfiguration(context);
+
         store.setDelegate(delegate);
         trackerService.setDelegate(topoDelegate);
         batchService.setDelegate(batchDelegate);
@@ -148,6 +162,54 @@ public class IntentManager
         executor.shutdown();
         Intent.unbindIdGenerator(idGenerator);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        readComponentConfiguration(context);
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        if (context == null) {
+            return;             // Nothing to do
+        }
+        Dictionary<?, ?> properties = context.getProperties();
+
+        Integer timeoutPerIntentOpMsecConfigured =
+            getIntegerProperty(properties, "timeoutPerIntentOpMsec");
+        if (timeoutPerIntentOpMsecConfigured == null) {
+            log.info("Timeout per Intent Operation is not configured, " +
+                     "using current value of {} ms", timeoutPerIntentOpMsec);
+        } else {
+            timeoutPerIntentOpMsec = timeoutPerIntentOpMsecConfigured;
+            log.info("Configured. Timeout per Intent Operation is " +
+                     "configured to {} ms", timeoutPerIntentOpMsec);
+        }
+    }
+
+    /**
+     * Get Integer property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Integer getIntegerProperty(Dictionary<?, ?> properties,
+                                              String propertyName) {
+        Integer value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? null : Integer.parseInt(s.trim());
+        } catch (NumberFormatException | ClassCastException e) {
+            value = null;
+        }
+        return value;
     }
 
     @Override
@@ -744,7 +806,6 @@ public class IntentManager
     private class IntentInstallMonitor implements Runnable {
 
         // TODO make this configurable
-        private static final int TIMEOUT_PER_OP = 500; // ms
         private static final int MAX_ATTEMPTS = 3;
 
         private final IntentOperations ops;
@@ -764,7 +825,7 @@ public class IntentManager
         private void resetTimeoutLimit() {
             // FIXME compute reasonable timeouts
             this.endTime = System.currentTimeMillis()
-                           + ops.operations().size() * TIMEOUT_PER_OP;
+                           + ops.operations().size() * timeoutPerIntentOpMsec;
         }
 
         private void buildIntentUpdates() {
