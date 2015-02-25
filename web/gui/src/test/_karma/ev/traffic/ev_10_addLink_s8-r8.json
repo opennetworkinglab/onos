@@ -1,14 +1,14 @@
 {
   "event": "addLink",
   "payload": {
-    "id": "of:0000ffffffff0008/4-of:0000ffffffffff08/1",
+    "id": "of:0000ffffffff0008/5-of:0000ffffffffff08/11",
     "type": "direct",
     "online": true,
     "linkWidth": 2,
     "src": "of:0000ffffffff0008",
-    "srcPort": "4",
+    "srcPort": "5",
     "dst": "of:0000ffffffffff08",
-    "dstPort": "1",
+    "dstPort": "11",
     "props" : {
       "BW": "90 Gb"
     }

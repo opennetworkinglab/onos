@@ -109,7 +109,7 @@
             if (p.x > line.x1 && p.x > line.x2) return false;
             if (p.y < line.y1 && p.y < line.y2) return false;
             if (p.y > line.y1 && p.y > line.y2) return false;
-            // line bisects, but are we close enough?
+            // line intersects, but are we close enough?
             return mdist(p, m) <= proximity;
         }
 
@@ -190,12 +190,11 @@
 
     function unenhance(d) {
         d.el.classed('enhanced', false);
-        $log.debug('UN-enhancing link: ', d.key);
     }
 
     function enhance(d) {
         d.el.classed('enhanced', true);
-        $log.debug('enhancing link: ', d.key);
+        $log.debug('[' + (d.srcPort || 'H') + '] ---> [' + d.tgtPort + ']', d.key);
     }
 
 

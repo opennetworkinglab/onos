@@ -158,6 +158,8 @@
         angular.extend(lnk, {
             key: id,
             class: 'link',
+            // NOTE: srcPort left undefined (host end of the link)
+            tgtPort: host.cp.port,
 
             type: function () { return 'hostLink'; },
             online: function () {
@@ -180,6 +182,8 @@
             key: link.id,
             class: 'link',
             fromSource: link,
+            srcPort: link.srcPort,
+            tgtPort: link.dstPort,
 
             // functions to aggregate dual link state
             type: function () {
@@ -218,7 +222,7 @@
         }
         return {
             source: srcNode,
-            target: dstNode,
+            target: dstNode
         };
     }
 

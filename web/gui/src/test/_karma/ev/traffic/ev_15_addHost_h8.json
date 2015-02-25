@@ -2,11 +2,11 @@
   "event": "addHost",
   "payload": {
     "id": "0E:2A:69:30:13:aa/-1",
-    "ingress": "0E:2A:69:30:13:aa/-1/0-of:0000ffffffff0008/101",
-    "egress": "of:0000ffffffff0008/101-0E:2A:69:30:13:aa/-1/0",
+    "ingress": "0E:2A:69:30:13:aa/-1/0-of:0000ffffffff0008/103",
+    "egress": "of:0000ffffffff0008/103-0E:2A:69:30:13:aa/-1/0",
     "cp": {
       "device": "of:0000ffffffff0008",
-      "port": 101
+      "port": 103
     },
     "labels": [
       "12.13.14.15",
