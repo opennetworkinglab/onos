@@ -232,6 +232,7 @@
                     showNoDevs: showNoDevs,
                     projection: function () { return projection; },
                     zoomLayer: function () { return zoomLayer; },
+                    zoomer: function () { return zoomer; },
                     opacifyMap: opacifyMap,
                     sendEvent: _tes_.sendEvent
                 };
@@ -287,7 +288,7 @@
             );
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
-            tfs.initForce(forceG, uplink, dim);
+            tfs.initForce(svg, forceG, uplink, dim);
             tis.initInst({ showMastership: tfs.showMastership });
             tps.initPanels({ sendEvent: tes.sendEvent });
             tes.openSock();

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, tms, td3, tss, tts, tos, fltr,
+    var $log, fs, sus, is, ts, flash, tis, tms, td3, tss, tts, tos, fltr, tls,
         icfg, uplink;
 
     // configuration
@@ -728,15 +728,25 @@
         };
     }
 
+    function mkLinkApi(svg, forceG, uplink) {
+        return {
+            svg: svg,
+            forceG: forceG,
+            zoomer: uplink.zoomer(),
+            network: network,
+            showHosts: function () { return showHosts; }
+        };
+    }
+
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
             'FlashService', 'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
-            'TopoObliqueService', 'TopoFilterService',
+            'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
 
         function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_,
-                  _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_) {
+                  _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -750,6 +760,7 @@
             tts = _tts_;
             tos = _tos_;
             fltr = _fltr_;
+            tls = _tls_;
 
             icfg = is.iconConfig();
 
@@ -762,7 +773,7 @@
             // uplink is the api from the main topo source file
             // dim is the initial dimensions of the SVG as [w,h]
             // opts are, well, optional :)
-            function initForce(forceG, _uplink_, _dim_, opts) {
+            function initForce(svg, forceG, _uplink_, _dim_, opts) {
                 uplink = _uplink_;
                 dim = _dim_;
 
@@ -774,6 +785,7 @@
                 tts.initTraffic(mkTrafficApi(uplink));
                 tos.initOblique(mkObliqueApi(uplink, fltr));
                 fltr.initFilter(mkFilterApi(uplink), d3.select('#mast-right'));
+                tls.initLink(mkLinkApi(svg, forceG, uplink));
 
                 settings = angular.extend({}, defaultSettings, opts);
 
@@ -808,6 +820,7 @@
             }
 
             function destroyForce() {
+                tls.destroyLink();
                 fltr.destroyFilter();
                 tos.destroyOblique();
                 tts.destroyTraffic();
