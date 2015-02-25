@@ -28,6 +28,7 @@
             width: 400,
             margin: 0,
             hideMargin: -20,
+            top: '80%',
             fade: false
         },
         settings,
@@ -73,7 +74,6 @@
                 'transform': 'translate(-50%, -50%)',
                 'cursor': 'pointer'});
         is.loadEmbeddedIcon(tbarArrowDiv, 'tableColSortAsc', arrowSize);
-        rotateArrowLeft();
 
         tbarArrowDiv.on('click', toggleTools);
     }
@@ -107,8 +107,8 @@
             return null;
         }
         return tbarDiv.append('div')
-            .classed('sep', true)
-            .style('width', '2px');
+            .classed('separator', true)
+            .style('height', '23px');
     }
 
     // === Main toolbar API functions ----------------------------
@@ -126,7 +126,7 @@
 
         tbarPanel = ps.createPanel(tbarId, settings);
         tbarDiv = tbarPanel.classed('toolbar', true)
-            .style('position', 'relative');
+            .style('top', settings.top);
 
         createArrow();
 

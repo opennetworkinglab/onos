@@ -38,7 +38,7 @@
             return null;
         }
 
-        var btnDiv = createDiv(div, 'btn', id),
+        var btnDiv = createDiv(div, 'button', id),
             cbFnc = fs.isF(cb) || noop;
 
         is.loadIcon(btnDiv, gid, btnSize, true);
@@ -59,10 +59,11 @@
         }
 
         var sel = !!initState,
-            togDiv = createDiv(div, 'tog', id),
+            togDiv = createDiv(div, 'toggleButton', id),
             cbFnc = fs.isF(cb) || noop;
 
         is.loadIcon(togDiv, gid, btnSize, true);
+        togDiv.classed('selected', sel);
 
         function _toggle(b) {
             if (b === undefined) {
@@ -71,6 +72,7 @@
                 sel = !!b;
             }
             cbFnc(sel);
+            togDiv.classed('selected', sel);
         }
 
         togDiv.on('click', _toggle);
@@ -83,6 +85,7 @@
         }
     }
 
+    // TODO: fix radio button on click selecting functionality
     function radioSet(div, id, rset) {
         if (!div) {
             $log.warn('Radio buttons cannot append to div');
@@ -96,7 +99,7 @@
             $log.warn('Cannot create radio button set from empty array');
             return null;
         }
-        var rDiv = div.append('div').classed('rset', true),
+        var rDiv = div.append('div').classed('radioSet', true),
             sel = 0,
             rads = [];
 
@@ -107,7 +110,7 @@
                 rtog = toggle(rDiv, rbtn.id, rbtn.gid, istate,
                     rbtn.cb, rbtn.tooltip);
 
-            rtog.el = (rtog.el).classed('tog', false).classed('rad', true);
+            rtog.el.classed('radioButton', true);
             rads.push(rtog);
         });
 

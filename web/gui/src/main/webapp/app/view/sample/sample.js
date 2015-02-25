@@ -31,8 +31,13 @@
 
                 self.message = 'Hey there folks!';
 
-                var toolbar = tbs.createToolbar('sample');
+                var toolbar = tbs.createToolbar('sample'),
+                    rset = [{ gid: 'switch', cb: function () {}},
+                        { gid: 'bird', cb: function () {}}];
                 toolbar.addButton('some-btn', 'crown', function () {});
+                toolbar.addToggle('some-tog', 'chain', function () {});
+                toolbar.addSeparator();
+                toolbar.addRadioSet('some-rad', rset);
                 toolbar.show();
 
              $log.log('OvSampleCtrl has been created');

@@ -18,16 +18,15 @@
  ONOS GUI -- Toolbar Service -- CSS file
  */
 
-.floatpanel.toolbar {
-    position: absolute;
-    z-index: 100;
-    display: block;
-    width: 200px;
-    opacity: 0;
+.separator {
+    border: 1px solid;
+    margin: 0 4px 0 4px;
+}
+.light .separator {
+    border-color: #ddd;
+}
 
-    padding: 10px;
-    font-size: 10pt;
+.dark .separator {
+    border-color: #1A1A1A;
 
-    -moz-border-radius: 6px;
-    border-radius: 6px;
 }
