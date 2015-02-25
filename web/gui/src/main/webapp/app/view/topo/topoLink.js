@@ -198,21 +198,24 @@
         d.el.classed('enhanced', true);
         $log.debug('[' + (d.srcPort || 'H') + '] ---> [' + d.tgtPort + ']', d.key);
 
-        // define port label data objects
-        var data = [
-            {
+        // Define port label data objects.
+        // NOTE: src port is absent in the case of host-links.
+
+        var data = [{
+            id: 'topo-port-tgt',
+            num: d.tgtPort,
+            baseX: d.target.x,
+            baseY: d.target.y
+        }];
+
+        if (d.srcPort) {
+            data.push({
                 id: 'topo-port-src',
                 num: d.srcPort,
                 baseX: d.source.x,
                 baseY: d.source.y
-            },
-            {
-                id: 'topo-port-tgt',
-                num: d.tgtPort,
-                baseX: d.target.x,
-                baseY: d.target.y
-            }
-        ];
+            });
+        }
 
         td3.applyPortLabels(data, api.portLabelG());
     }
