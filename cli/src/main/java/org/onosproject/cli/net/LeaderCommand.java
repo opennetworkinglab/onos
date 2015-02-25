@@ -15,13 +15,13 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.Comparator;
+import java.util.Map;
+
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipService;
-
-import java.util.Comparator;
-import java.util.Map;
 
 /**
  * Prints the leader for every topic.
@@ -30,13 +30,15 @@ import java.util.Map;
         description = "Finds the leader for particular topic.")
 public class LeaderCommand extends AbstractShellCommand {
 
-    private static final String FMT = "%-20s: %15s %15s";
+    private static final String FMT = "%-20s | %-15s | %-6s |";
 
     @Override
     protected void execute() {
         LeadershipService leaderService = get(LeadershipService.class);
         Map<String, Leadership> leaderBoard = leaderService.getLeaderBoard();
+        print("-------------------------------------------------");
         print(FMT, "Topic", "Leader", "Epoch");
+        print("-------------------------------------------------");
 
         Comparator<Leadership> leadershipComparator =
                 (e1, e2) -> {
@@ -56,6 +58,7 @@ public class LeaderCommand extends AbstractShellCommand {
                 .stream()
                 .sorted(leadershipComparator)
                 .forEach(l -> print(FMT, l.topic(), l.leader(), l.epoch()));
+        print("-------------------------------------------------");
     }
 
 }

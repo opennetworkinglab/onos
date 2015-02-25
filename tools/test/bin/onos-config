@@ -10,7 +10,8 @@ remote=$ONOS_USER@${1:-$OCI}
 
 # Generate a cluster.json from the ON* environment variables
 CDEF_FILE=/tmp/${remote}.cluster.json
-echo "{ \"nodes\":[" > $CDEF_FILE
+echo "{ \"ipPrefix\": \"$ONOS_NIC\"," > $CDEF_FILE
+echo "  \"nodes\":[" >> $CDEF_FILE
 for node in $(env | sort | egrep "OC[2-9]+" | cut -d= -f2); do
     echo "  { \"id\": \"$node\", \"ip\": \"$node\", \"tcpPort\": 9876 }," >> $CDEF_FILE
 done

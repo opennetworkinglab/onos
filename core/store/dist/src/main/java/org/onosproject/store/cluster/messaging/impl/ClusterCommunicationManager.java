@@ -150,7 +150,7 @@ public class ClusterCommunicationManager
             messagingService.sendAsync(nodeEp, subject.value(), payload);
             return true;
         } catch (IOException e) {
-            log.trace("Failed to send cluster message to nodeId: " + toNodeId, e);
+            log.debug("Failed to send cluster message to nodeId: " + toNodeId, e);
             throw e;
         }
     }
@@ -179,6 +179,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
+    @Deprecated
     public void addSubscriber(MessageSubject subject,
                               ClusterMessageHandler subscriber) {
         messagingService.registerHandler(subject.value(), new InternalClusterMessageHandler(subscriber));
@@ -210,13 +211,13 @@ public class ClusterCommunicationManager
             try {
                 clusterMessage = SERIALIZER.decode(message.payload());
             } catch (Exception e) {
-                log.error("Failed decoding ClusterMessage {}", message, e);
+                log.error("Failed decoding {}", message, e);
                 throw e;
             }
             try {
                 handler.handle(new InternalClusterMessage(clusterMessage, message));
             } catch (Exception e) {
-                log.error("Exception caught handling {}", clusterMessage, e);
+                log.trace("Failed handling {}", clusterMessage, e);
                 throw e;
             }
         }

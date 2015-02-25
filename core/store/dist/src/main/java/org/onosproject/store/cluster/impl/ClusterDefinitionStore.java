@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onlab.packet.IpAddress;
@@ -53,7 +55,7 @@ public class ClusterDefinitionStore {
      *
      * @return set of controller nodes
      */
-    public Set<DefaultControllerNode> read() throws IOException {
+    public ClusterDefinition read() throws IOException {
         Set<DefaultControllerNode> nodes = new HashSet<>();
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode clusterNodeDef = (ObjectNode) mapper.readTree(file);
@@ -64,20 +66,23 @@ public class ClusterDefinitionStore {
                                                 IpAddress.valueOf(nodeDef.get("ip").asText()),
                                                 nodeDef.get("tcpPort").asInt(9876)));
         }
-        return nodes;
+        String ipPrefix = clusterNodeDef.get("ipPrefix").asText();
+
+        return ClusterDefinition.from(nodes, ipPrefix);
     }
 
     /*
-     * Writes the given set of the controller nodes.
+     * Writes the given cluster definition.
      *
-     * @param nodes set of controller nodes
+     * @param cluster definition
      */
-    public void write(Set<DefaultControllerNode> nodes) throws IOException {
+    public void write(ClusterDefinition definition) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode clusterNodeDef = mapper.createObjectNode();
+        clusterNodeDef.set("ipPrefix", new TextNode(definition.ipPrefix()));
         ArrayNode nodeDefs = mapper.createArrayNode();
         clusterNodeDef.set("nodes", nodeDefs);
-        for (DefaultControllerNode node : nodes) {
+        for (DefaultControllerNode node : definition.nodes()) {
             ObjectNode nodeDef = mapper.createObjectNode();
             nodeDef.put("id", node.id().toString())
                     .put("ip", node.ip().toString())

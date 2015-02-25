@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.store.cluster.impl;
 
 import static org.onlab.util.Tools.groupedThreads;
@@ -45,6 +60,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.hazelcast.util.AddressUtil;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -60,7 +76,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     private final Logger log = getLogger(getClass());
 
     protected final AbstractListenerRegistry<ClusterEvent, ClusterEventListener>
-    listenerRegistry = new AbstractListenerRegistry<>();
+        listenerRegistry = new AbstractListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -73,7 +89,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     private static final String CONFIG_DIR = "../config";
     private static final String CLUSTER_DEFINITION_FILE = "cluster.json";
 
-    private ClusterDefinitionStore clusterDefinition;
+    private ClusterDefinition clusterDefinition;
 
     private Set<ControllerNode> seedNodes;
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
@@ -108,9 +124,10 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     public void activate() {
 
         File clusterDefinitionFile = new File(CONFIG_DIR, CLUSTER_DEFINITION_FILE);
-        clusterDefinition = new ClusterDefinitionStore(clusterDefinitionFile.getPath());
+
         try {
-            seedNodes = ImmutableSet.copyOf(clusterDefinition.read());
+            clusterDefinition = new ClusterDefinitionStore(clusterDefinitionFile.getPath()).read();
+            seedNodes = ImmutableSet.copyOf(clusterDefinition.nodes());
         } catch (IOException e) {
             log.warn("Failed to read cluster definition.", e);
         }
@@ -128,7 +145,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
             messagingService.activate();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("Failed to cleanly initialize membership and"
+            throw new IllegalStateException("Failed to cleanly initialize membership and"
                     + " failure detector communication channel.", e);
         }
         messagingService.registerHandler(
@@ -156,8 +173,8 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
             log.trace("Failed to cleanly shutdown cluster membership messaging", e);
         }
 
-        heartBeatSender.shutdown();
-        heartBeatMessageHandler.shutdown();
+        heartBeatSender.shutdownNow();
+        heartBeatMessageHandler.shutdownNow();
         eventDispatcher.removeSink(ClusterEvent.class);
 
         log.info("Stopped");
@@ -287,7 +304,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
         }
     }
 
-    private class HeartbeatMessage {
+    private static class HeartbeatMessage {
         private ControllerNode source;
         private Set<ControllerNode> knownPeers;
 
@@ -306,13 +323,16 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     }
 
     private IpAddress findLocalIp() throws SocketException {
-        NetworkInterface ni = NetworkInterface.getByName("eth0");
-        Enumeration<InetAddress> inetAddresses =  ni.getInetAddresses();
-
-        while (inetAddresses.hasMoreElements()) {
-            InetAddress ia = inetAddresses.nextElement();
-            if (!ia.isLinkLocalAddress()) {
-                return IpAddress.valueOf(ia);
+        Enumeration<NetworkInterface> interfaces =
+                NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface iface = interfaces.nextElement();
+            Enumeration<InetAddress> inetAddresses =  iface.getInetAddresses();
+            while (inetAddresses.hasMoreElements()) {
+                IpAddress ip = IpAddress.valueOf(inetAddresses.nextElement());
+                if (AddressUtil.matchInterface(ip.toString(), clusterDefinition.ipPrefix())) {
+                    return ip;
+                }
             }
         }
         throw new IllegalStateException("Unable to determine local ip");

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.store.cluster.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -21,6 +36,7 @@ public class PhiAccrualFailureDetector {
     // TODO: make these configurable.
     private static final int WINDOW_SIZE = 250;
     private static final int MIN_SAMPLES = 25;
+    private static final double PHI_FACTOR = 1.0 / Math.log(10.0);
 
     // If a node does not have any heartbeats, this is the phi
     // value to report. Indicates the node is inactive (from the
@@ -59,11 +75,11 @@ public class PhiAccrualFailureDetector {
      * @param nodeId node id
      * @return phi value
      */
-    public Double phi(NodeId nodeId) {
+    public double phi(NodeId nodeId) {
+        checkNotNull(nodeId, "NodeId must not be null");
         if (!states.containsKey(nodeId)) {
             return BOOTSTRAP_PHI_VALUE;
         }
-        checkNotNull(nodeId, "NodeId must not be null");
         History nodeState = states.get(nodeId);
         synchronized (nodeState) {
             long latestHeartbeat = nodeState.latestHeartbeatTime();
@@ -79,7 +95,7 @@ public class PhiAccrualFailureDetector {
         long size = samples.getN();
         long t = tNow - tLast;
         return (size > 0)
-               ? (1.0 / Math.log(10.0)) * t / samples.getMean()
+               ? PHI_FACTOR * t / samples.getMean()
                : BOOTSTRAP_PHI_VALUE;
     }
 
