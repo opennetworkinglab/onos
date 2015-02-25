@@ -56,6 +56,11 @@ public class IntentsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean intentsSummary = false;
 
+    @Option(name = "-p", aliases = "--pending",
+            description = "Show inforamtion about pending intents",
+            required = false, multiValued = false)
+    private boolean pending = false;
+
     @Override
     protected void execute() {
         IntentService service = get(IntentService.class);
@@ -69,6 +74,14 @@ public class IntentsListCommand extends AbstractShellCommand {
             } else {
                 intentSummaries.printSummary();
             }
+            return;
+        } else if (pending) {
+            service.getPending().forEach(intent ->
+            print("id=%s, key=%s, type=%s, appId=%s",
+                  intent.id(), intent.key(),
+                  intent.getClass().getSimpleName(),
+                  intent.appId().name())
+            );
             return;
         }
 

@@ -32,12 +32,12 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.impl.MultiValuedTimestamp;
-import org.onosproject.store.impl.SystemClockTimestamp;
 import org.onosproject.store.ecmap.EventuallyConsistentMap;
 import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
 import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
 import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
+import org.onosproject.store.impl.MultiValuedTimestamp;
+import org.onosproject.store.impl.SystemClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
@@ -237,7 +237,7 @@ public class GossipIntentStore
             // if current.put succeeded
             pending.remove(newData.key(), newData);
         } else {
-            log.debug("not writing update: {}", newData);
+            log.debug("not writing update: current {}, new {}", currentData, newData);
         }
         /*try {
             notifyDelegate(IntentEvent.getEvent(newData));
@@ -280,6 +280,13 @@ public class GossipIntentStore
         return partitionService.isMine(intentKey);
     }
 
+    @Override
+    public Iterable<Intent> getPending() {
+        return pending.values().stream()
+                .map(IntentData::intent)
+                .collect(Collectors.toList());
+    }
+
     private void notifyDelegateIfNotNull(IntentEvent event) {
         if (event != null) {
             notifyDelegate(event);
@@ -310,6 +317,7 @@ public class GossipIntentStore
                 // some work.
                 if (isMaster(event.value().intent().key())) {
                     if (delegate != null) {
+                        log.debug("processing {}", event.key());
                         delegate.process(copyData(event.value()));
                     }
                 }

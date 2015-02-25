@@ -222,6 +222,11 @@ public class IntentManager
         return installerRegistry.getInstallers();
     }
 
+    @Override
+    public Iterable<Intent> getPending() {
+        return store.getPending();
+    }
+
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements IntentStoreDelegate {
         @Override

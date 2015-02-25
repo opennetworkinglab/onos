@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.ecmap;
 
+import com.google.common.base.MoreObjects;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.Timestamp;
 
@@ -79,5 +80,13 @@ public class AntiEntropyAdvertisement<K> {
         this.sender = null;
         this.timestamps = null;
         this.tombstones = null;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("timestampsSize", timestamps.size())
+                .add("tombstonesSize", tombstones.size())
+                .toString();
     }
 }

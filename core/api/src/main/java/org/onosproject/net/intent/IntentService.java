@@ -16,6 +16,7 @@
 package org.onosproject.net.intent;
 
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -82,8 +83,18 @@ public interface IntentService {
      */
     List<Intent> getInstallableIntents(Key intentKey);
 
+    // TODO remove defaults
     default boolean isLocal(Key intentKey) {
         return true;
+    }
+
+    /**
+     * Returns the list of intent requests pending processing.
+     *
+     * @return intents pending processing
+     */
+    default Iterable<Intent> getPending() {
+        return Collections.emptyList();
     }
 
     /**

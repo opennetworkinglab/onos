@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 import org.onosproject.store.Store;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -112,5 +113,15 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     //TODO better name
     default boolean isMaster(Key intentKey) { //FIXME remove default when impl.
         return true;
+    }
+
+    /**
+     * Returns the intent requests pending processing.
+     *
+     * @return pending intents
+     */
+    // FIXME remove default
+    default Iterable<Intent> getPending() {
+        return Collections.emptyList();
     }
 }
