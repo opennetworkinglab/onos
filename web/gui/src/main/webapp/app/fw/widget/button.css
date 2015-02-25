@@ -28,54 +28,66 @@
 .button,
 .toggleButton,
 .radioSet,
+.radioButton,
 .separator {
     display: inline-block;
 }
 .button,
-.toggleButton {
+.toggleButton,
+.radioSet {
     padding: 0 4px 0 4px;
 }
-.radioSet .toggleButton {
-    padding: 0 0 0 4px;
+.radioButton {
+    padding: 0 4px 0 0;
 }
 
 .button svg.embeddedIcon,
-.toggleButton svg.embeddedIcon {
+.toggleButton svg.embeddedIcon,
+.radioButton svg.embeddedIcon {
     cursor: pointer;
 }
 .button svg.embeddedIcon .icon rect,
-.toggleButton svg.embeddedIcon .icon rect {
+.toggleButton svg.embeddedIcon .icon rect,
+.radioButton svg.embeddedIcon .icon rect{
     stroke: none;
 }
 
 /* Selected button color */
 .light .button svg.embeddedIcon,
-.light .toggleButton.selected svg.embeddedIcon {
+.light .toggleButton.selected svg.embeddedIcon,
+.light .radioButton.selected svg.embeddedIcon {
     fill: #838383;
 }
 .light .button svg.embeddedIcon .glyph,
-.light .toggleButton.selected svg.embeddedIcon .glyph {
+.light .toggleButton.selected svg.embeddedIcon .glyph,
+.light .radioButton.selected svg.embeddedIcon .glyph {
     fill: white;
 }
 .dark .button svg.embeddedIcon,
-.dark .toggleButton.selected svg.embeddedIcon {
+.dark .toggleButton.selected svg.embeddedIcon,
+.dark .radioButton.selected svg.embeddedIcon{
     fill: #151515;
 }
 .dark .button svg.embeddedIcon .glyph,
-.dark .toggleButton.selected svg.embeddedIcon .glyph {
+.dark .toggleButton.selected svg.embeddedIcon .glyph,
+.dark .radioButton.selected svg.embeddedIcon .glyph {
     fill: #B2B2B2;
 }
 
 /* Unselected button color */
-.light .toggleButton svg.embeddedIcon {
+.light .toggleButton svg.embeddedIcon,
+.light .radioButton svg.embeddedIcon {
     fill: #eee;
 }
-.light .toggleButton svg.embeddedIcon .glyph {
+.light .toggleButton svg.embeddedIcon .glyph,
+.light .radioButton svg.embeddedIcon .glyph {
     fill: #bbb;
 }
-.dark .toggleButton svg.embeddedIcon {
+.dark .toggleButton svg.embeddedIcon,
+.dark .radioButton svg.embeddedIcon {
     fill: #303030;
 }
-.dark .toggleButton svg.embeddedIcon .glyph {
+.dark .toggleButton svg.embeddedIcon .glyph,
+.dark .radioButton svg.embeddedIcon .glyph {
     fill: #565656;
 }

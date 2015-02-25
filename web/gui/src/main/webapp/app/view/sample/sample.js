@@ -21,14 +21,26 @@
 (function () {
     'use strict';
     var $log, tbs, flash,
-        sampleDiv;
+        togFnDiv, radFnP;
 
     function btnFn() {
         flash.flash('Hi there friends!');
     }
     function togFn(display) {
-        if (display) { sampleDiv.style('display', 'block'); }
-        else { sampleDiv.style('display', 'none'); }
+        if (display) { togFnDiv.style('display', 'block'); }
+        else { togFnDiv.style('display', 'none'); }
+    }
+    function checkFn() {
+        radFnP.text('Checkmark radio button active.')
+            .style('color', 'green');
+    }
+    function xMarkFn() {
+        radFnP.text('Xmark radio button active.')
+            .style('color', 'red');
+    }
+    function birdFn() {
+        radFnP.text('Bird radio button active.')
+            .style('color', '#369');
     }
 
     angular.module('ovSample', ['onosUtil'])
@@ -41,7 +53,7 @@
 
                 self.message = 'Hey there folks!';
 
-                sampleDiv = d3.select('#ov-sample')
+                togFnDiv = d3.select('#ov-sample')
                     .append('div')
                     .text('Look at me!')
                     .style({
@@ -49,14 +61,19 @@
                         'color': 'rgb(204, 89, 81)',
                         'font-size': '20pt'
                     });
+                radFnP = d3.select('#ov-sample')
+                    .append('p')
+                    .style('font-size', '16pt');
 
                 var toolbar = tbs.createToolbar('sample'),
-                    rset = [{ gid: 'switch', cb: function () {}},
-                        { gid: 'bird', cb: function () {}}];
-                toolbar.addButton('hello-btn', 'crown', btnFn);
-                toolbar.addToggle('sample-tog', 'chain', false, togFn);
+                    rset = [{ gid: 'checkMark', cb: checkFn },
+                        { gid: 'xMark', cb: xMarkFn },
+                        { gid: 'bird', cb: birdFn }
+                    ];
+                toolbar.addButton('hello-button', 'crown', btnFn);
+                toolbar.addToggle('look-toggle', 'chain', false, togFn);
                 toolbar.addSeparator();
-                toolbar.addRadioSet('some-rad', rset);
+                toolbar.addRadioSet('something-radio', rset);
                 toolbar.hide();
 
              $log.log('OvSampleCtrl has been created');

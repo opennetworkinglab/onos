@@ -85,7 +85,6 @@
         }
     }
 
-    // TODO: fix radio button on click selecting functionality
     function radioSet(div, id, rset) {
         if (!div) {
             $log.warn('Radio buttons cannot append to div');
@@ -100,34 +99,64 @@
             return null;
         }
         var rDiv = div.append('div').classed('radioSet', true),
-            sel = 0,
-            rads = [];
+            rads = [],
+            sel;
+
+        function _selected() {
+            var curr = d3.select(this),
+                currId = curr.attr('id');
+
+            // I have it going by id's because I couldn't think of a way
+            // to get the radio button's index from the div element
+                // We could look at the end of the radio button id for its number
+                // but I didn't know how to get the end of the string's number
+            if (sel !== currId) {
+                var selIndex = _getIndex(),
+                    currIndex = _getIndex(currId);
+                rads[selIndex].el.classed('selected', false);
+                curr.classed('selected', true);
+                rads[currIndex].cb();
+                sel = currId;
+            }
+        }
+
+        // given the id, will get the index of element
+        // without the id, will get the index of sel
+        function _getIndex(id) {
+            if (!id) {
+                for (var i = 0; i < rads.length; i++) {
+                    if (rads[i].id === sel) { return i; }
+                }
+            } else {
+                for (var j = 0; j < rads.length; j++) {
+                    if (rads[j].id === id) { return j; }
+                }
+            }
+        }
 
         rset.forEach(function (btn, index) {
             var rid = {id: id + '-' + index},
                 rbtn = angular.extend({}, btn, rid),
                 istate = (index === 0),
-                rtog = toggle(rDiv, rbtn.id, rbtn.gid, istate,
-                    rbtn.cb, rbtn.tooltip);
+                rBtnDiv = createDiv(rDiv, 'radioButton', rbtn.id);
 
-            rtog.el.classed('radioButton', true);
-            rads.push(rtog);
+            if (istate) { rBtnDiv.classed('selected', true); }
+            is.loadIcon(rBtnDiv, rbtn.gid, btnSize, true);
+            rbtn.el = rBtnDiv;
+            rbtn.cb = fs.isF(rbtn.cb) || noop;
+
+            rBtnDiv.on('click', _selected);
+
+            rads.push(rbtn);
         });
+        sel = rads[0].id;
+        rads[0].cb();
 
         return {
             rads: rads,
             selected: function (i) {
-                if (i === undefined) { return sel; }
-                else if (i < 0 || i >= rads.length) {
-                    $log.error('Cannot select radio button of index ' + i);
-                }
-                else {
-                    if (i !== sel) {
-                        rads[sel].toggle(false);
-                        rads[i].toggle(true);
-                        sel = i;
-                    }
-                }
+                if (i === undefined) { _getIndex(); }
+                else { _selected(); }
             }
         }
     }
