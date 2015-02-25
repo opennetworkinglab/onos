@@ -33,6 +33,8 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.LinkResourceAllocations;
 
+import com.google.common.collect.ImmutableSet;
+
 @Component(immediate = true)
 public class SinglePointToMultiPointIntentCompiler
         extends ConnectivityIntentCompiler<SinglePointToMultiPointIntent> {
@@ -67,6 +69,7 @@ public class SinglePointToMultiPointIntentCompiler
         Intent result = new LinkCollectionIntent(intent.appId(),
                                                  intent.selector(),
                                                  intent.treatment(), links,
+                                                 ImmutableSet.of(intent.ingressPoint()),
                                                  intent.egressPoints(), Collections.emptyList());
 
         return Arrays.asList(result);

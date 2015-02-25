@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.topology.PathService;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -76,8 +78,10 @@ public class MultiPointToSinglePointIntentCompiler
             for (Link link : path.links()) {
                 if (links.containsKey(link.src().deviceId())) {
                     // We've already reached the existing tree with the first
-                    // part of this path. Don't add the remainder of the path
+                    // part of this path. Add the merging point with different
+                    // incoming port, but don't add the remainder of the path
                     // in case it differs from the path we already have.
+                    links.put(link.src().deviceId(), link);
                     break;
                 }
 
@@ -87,7 +91,10 @@ public class MultiPointToSinglePointIntentCompiler
 
         Intent result = new LinkCollectionIntent(intent.appId(),
                                                  intent.selector(), intent.treatment(),
-                                                 Sets.newHashSet(links.values()), intent.egressPoint());
+                                                 Sets.newHashSet(links.values()),
+                                                 intent.ingressPoints(),
+                                                 ImmutableSet.of(intent.egressPoint()),
+                                                 Collections.emptyList());
         return Arrays.asList(result);
     }
 

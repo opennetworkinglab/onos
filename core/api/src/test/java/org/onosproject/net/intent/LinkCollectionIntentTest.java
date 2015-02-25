@@ -45,6 +45,7 @@ import static org.onosproject.net.NetTestTools.link;
  */
 public class LinkCollectionIntentTest extends IntentTest {
 
+    final ConnectPoint ingress = NetTestTools.connectPoint("ingress", 2);
     final ConnectPoint egress = NetTestTools.connectPoint("egress", 3);
     final TrafficSelector selector = new IntentTestsMocks.MockSelector();
     final IntentTestsMocks.MockTreatment treatment = new IntentTestsMocks.MockTreatment();
@@ -70,6 +71,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                         selector,
                         treatment,
                         links1,
+                        ingress,
                         egress);
 
         final HashSet<Link> links2 = new HashSet<>();
@@ -79,6 +81,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                         selector,
                         treatment,
                         links2,
+                        ingress,
                         egress);
 
         new EqualsTester()
@@ -99,6 +102,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                         selector,
                         treatment,
                         links1,
+                        ingress,
                         egress);
 
         final Set<Link> createdLinks = collectionIntent.links();
@@ -106,6 +110,7 @@ public class LinkCollectionIntentTest extends IntentTest {
         assertThat(collectionIntent.isInstallable(), is(true));
         assertThat(collectionIntent.treatment(), is(treatment));
         assertThat(collectionIntent.selector(), is(selector));
+        assertThat(collectionIntent.ingressPoints(), is(ImmutableSet.of(ingress)));
         assertThat(collectionIntent.egressPoints(), is(ImmutableSet.of(egress)));
         assertThat(collectionIntent.resources(), hasSize(1));
         final List<Constraint> createdConstraints = collectionIntent.constraints();
@@ -127,6 +132,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                         selector,
                         treatment,
                         links1,
+                        ingress,
                         egress,
                         constraints);
 
@@ -135,6 +141,7 @@ public class LinkCollectionIntentTest extends IntentTest {
         assertThat(collectionIntent.isInstallable(), is(true));
         assertThat(collectionIntent.treatment(), is(treatment));
         assertThat(collectionIntent.selector(), is(selector));
+        assertThat(collectionIntent.ingressPoints(), is(ImmutableSet.of(ingress)));
         assertThat(collectionIntent.egressPoints(), is(ImmutableSet.of(egress)));
 
         final List<Constraint> createdConstraints = collectionIntent.constraints();
@@ -156,6 +163,7 @@ public class LinkCollectionIntentTest extends IntentTest {
         assertThat(collectionIntent.isInstallable(), is(true));
         assertThat(collectionIntent.treatment(), nullValue());
         assertThat(collectionIntent.selector(), nullValue());
+        assertThat(collectionIntent.ingressPoints(), nullValue());
         assertThat(collectionIntent.egressPoints(), nullValue());
 
         final List<Constraint> createdConstraints = collectionIntent.constraints();
@@ -170,6 +178,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                                         selector,
                                         treatment,
                                         links1,
+                                        ingress,
                                         egress);
     }
 
@@ -181,6 +190,7 @@ public class LinkCollectionIntentTest extends IntentTest {
                                         selector,
                                         treatment,
                                         links2,
+                                        ingress,
                                         egress);
     }
 }
