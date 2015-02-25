@@ -6,7 +6,7 @@
       {
         "class": "primary",
         "links": [
-          "of:0000ffffffff0008/2-of:0000ffffffff0003/1"
+          "of:0000ffffffff0008/21-of:0000ffffffff0003/1"
         ],
         "labels": ["primary"]
       },
@@ -14,23 +14,23 @@
         "class": "secondary",
         "links": [
           "of:0000ffffffff0003/9-of:0000ffffffff0007/2",
-          "of:0000ffffffff0008/4-of:0000ffffffff0007/1",
-          "of:0000ffffffff0003/4-of:0000ffffffffff03/1",
-          "of:0000ffffffff0008/4-of:0000ffffffffff08/1"
+          "of:0000ffffffff0008/4-of:0000ffffffff0007/3",
+          "of:0000ffffffff0003/6-of:0000ffffffffff03/8",
+          "of:0000ffffffff0008/5-of:0000ffffffffff08/11"
         ],
         "labels": ["secondary", "secondo", "deux", "zwei"]
       },
       {
         "class": "secondary optical",
         "links": [
-          "of:0000ffffffffff08/4-of:0000ffffffffff04/1"
+          "of:0000ffffffffff08/99-of:0000ffffffffff04/65535"
         ],
         "labels": ["secondary optical"]
       },
       {
         "class": "primary optical",
         "links": [
-          "of:0000ffffffffff08/4-of:0000ffffffffff03/1"
+          "of:0000ffffffffff08/13-of:0000ffffffffff03/17"
         ],
         "labels": ["primary optical"]
       }

@@ -2,7 +2,7 @@
   "event": "addLink",
   "payload": {
     "id": "of:0000ffffffff0008/5-of:0000ffffffffff08/11",
-    "type": "direct",
+    "type": "indirect",
     "online": true,
     "linkWidth": 2,
     "src": "of:0000ffffffff0008",
