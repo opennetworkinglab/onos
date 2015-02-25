@@ -66,15 +66,16 @@
                     .style('font-size', '16pt');
 
                 var toolbar = tbs.createToolbar('sample'),
-                    rset = [{ gid: 'checkMark', cb: checkFn },
+                    rset = [
+                        { gid: 'checkMark', cb: checkFn },
                         { gid: 'xMark', cb: xMarkFn },
                         { gid: 'bird', cb: birdFn }
                     ];
-                toolbar.addButton('hello-button', 'crown', btnFn);
-                toolbar.addToggle('look-toggle', 'chain', false, togFn);
+                toolbar.addButton('demo-button', 'crown', btnFn);
+                toolbar.addToggle('demo-toggle', 'chain', false, togFn);
                 toolbar.addSeparator();
-                toolbar.addRadioSet('something-radio', rset);
-                toolbar.hide();
+                toolbar.addRadioSet('demo-radio', rset);
+                toolbar.addSeparator();
 
              $log.log('OvSampleCtrl has been created');
         }]);

@@ -22,7 +22,8 @@
 
     var $log, fs, is;
 
-    var btnSize = 25;
+    var btnSize = 25,
+        btnPadding = 4;
 
     function noop() {}
 
@@ -102,21 +103,30 @@
             rads = [],
             sel;
 
-        function _selected() {
+        function _selected(s) {
             var curr = d3.select(this),
-                currId = curr.attr('id');
+                currId = curr.attr('id'),
+                selIndex = _getIndex(),
+                currIndex = _getIndex(currId);
 
             // I have it going by id's because I couldn't think of a way
             // to get the radio button's index from the div element
                 // We could look at the end of the radio button id for its number
                 // but I didn't know how to get the end of the string's number
-            if (sel !== currId) {
-                var selIndex = _getIndex(),
-                    currIndex = _getIndex(currId);
-                rads[selIndex].el.classed('selected', false);
-                curr.classed('selected', true);
-                rads[currIndex].cb();
-                sel = currId;
+            if (!s) {
+                if (sel !== currId) {
+                    rads[selIndex].el.classed('selected', false);
+                    curr.classed('selected', true);
+                    rads[currIndex].cb();
+                    sel = currId;
+                }
+            } else {
+                if (!rads[s].el.classed('selected')) {
+                    rads[selIndex].el.classed('selected', false);
+                    rads[s].el.classed('selected', true);
+                    rads[s].cb();
+                    sel = rads[s].id;
+                }
             }
         }
 
@@ -154,11 +164,17 @@
 
         return {
             rads: rads,
+            width: (((btnSize + btnPadding) * rads.length) + btnPadding),
             selected: function (i) {
                 if (i === undefined) { _getIndex(); }
-                else { _selected(); }
+                else { _selected(i); }
             }
         }
+    }
+
+    function width(s) {
+        if (s) { btnSize = s; }
+        return btnSize;
     }
 
     angular.module('onosWidget')
@@ -171,7 +187,8 @@
                 return {
                     button: button,
                     toggle: toggle,
-                    radioSet: radioSet
+                    radioSet: radioSet,
+                    width: width
                 };
             }]);
 

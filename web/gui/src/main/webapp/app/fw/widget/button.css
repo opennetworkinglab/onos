@@ -18,6 +18,9 @@
  ONOS GUI -- Button Service -- CSS file
  */
 
+.tbarArrow {
+    padding: 0 10px 0 10px;
+}
 .light .tbarArrow svg.embeddedIcon .icon.tableColSortAsc .glyph {
     fill: #838383;
 }
@@ -27,18 +30,13 @@
 
 .button,
 .toggleButton,
-.radioSet,
-.radioButton,
-.separator {
-    display: inline-block;
-}
-.button,
-.toggleButton,
 .radioSet {
+    display: inline-block;
     padding: 0 4px 0 4px;
 }
 .radioButton {
-    padding: 0 4px 0 0;
+    display: inline-block;
+    padding: 0 2px 0 2px;
 }
 
 .button svg.embeddedIcon,

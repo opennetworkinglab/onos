@@ -21,6 +21,7 @@
 .separator {
     border: 1px solid;
     margin: 0 4px 0 4px;
+    display: inline-block;
 }
 .light .separator {
     border-color: #ddd;
