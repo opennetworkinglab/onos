@@ -23,28 +23,10 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, tms, tss, tts, tos, fltr,
+    var $log, fs, sus, is, ts, flash, tis, tms, td3, tss, tts, tos, fltr,
         icfg, uplink;
 
     // configuration
-    var labelConfig = {
-            imgPad: 16,
-            padLR: 4,
-            padTB: 3,
-            marginLR: 3,
-            marginTB: 2,
-            port: {
-                gap: 3,
-                width: 18,
-                height: 14
-            }
-        };
-
-    var deviceIconConfig = {
-         xoff: -20,
-         yoff: -18
-    };
-
     var linkConfig = {
         light: {
             baseColor: '#666',
@@ -72,8 +54,6 @@
         },
         lu = network.lookup,    // shorthand
         rlk = network.revLinkToKey,
-        deviceLabelIndex = 0,   // for device label cycling
-        hostLabelIndex = 0,     // for host label cycling
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         nodeLock = false,       // whether nodes can be dragged or not (locked)
@@ -152,9 +132,6 @@
                 tms.findAttachedLinks(d.id).forEach(restyleLinkElement);
                 updateOfflineVisibility(d);
             }
-        } else {
-            // TODO: decide whether we want to capture logic errors
-            //logicError('updateDevice lookup fail. ID = "' + id + '"');
         }
     }
 
@@ -163,9 +140,6 @@
             d = lu[id];
         if (d) {
             removeDeviceElement(d);
-        } else {
-            // TODO: decide whether we want to capture logic errors
-            //logicError('removeDevice lookup fail. ID = "' + id + '"');
         }
     }
 
@@ -206,9 +180,6 @@
                 sendUpdateMeta(d);
             }
             updateNodes();
-        } else {
-            // TODO: decide whether we want to capture logic errors
-            //logicError('updateHost lookup fail. ID = "' + id + '"');
         }
     }
 
@@ -217,9 +188,6 @@
             d = lu[id];
         if (d) {
             removeHostElement(d, true);
-        } else {
-            // may have already removed host, if attached to removed device
-            //console.warn('removeHost lookup fail. ID = "' + id + '"');
         }
     }
 
@@ -260,14 +228,11 @@
     }
 
     function removeLink(data) {
-        var result = tms.findLink(data, 'remove'),
-            bad = result.badLogic;
-        if (bad) {
-            // may have already removed link, if attached to removed device
-            //console.warn(bad + ': ' + link.id);
-            return;
+        var result = tms.findLink(data, 'remove');
+
+        if (!result.badLogic) {
+            result.removeRawLink();
         }
-        result.removeRawLink();
     }
 
     // ========================
@@ -417,105 +382,8 @@
     }
 
 
-    // ==========================
-    // === Devices and hosts - D3 rendering
-
-
-    // Returns the newly computed bounding box of the rectangle
-    function adjustRectToFitText(n) {
-        var text = n.select('text'),
-            box = text.node().getBBox(),
-            lab = labelConfig;
-
-        text.attr('text-anchor', 'middle')
-            .attr('y', '-0.8em')
-            .attr('x', lab.imgPad/2);
-
-        // translate the bbox so that it is centered on [x,y]
-        box.x = -box.width / 2;
-        box.y = -box.height / 2;
-
-        // add padding
-        box.x -= (lab.padLR + lab.imgPad/2);
-        box.width += lab.padLR * 2 + lab.imgPad;
-        box.y -= lab.padTB;
-        box.height += lab.padTB * 2;
-
-        return box;
-    }
-
     function mkSvgClass(d) {
         return d.fixed ? d.svgClass + ' fixed' : d.svgClass;
-    }
-
-    function hostLabel(d) {
-        var idx = (hostLabelIndex < d.labels.length) ? hostLabelIndex : 0;
-        return d.labels[idx];
-    }
-    function deviceLabel(d) {
-        var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0;
-        return d.labels[idx];
-    }
-    function trimLabel(label) {
-        return (label && label.trim()) || '';
-    }
-
-    function emptyBox() {
-        return {
-            x: -2,
-            y: -2,
-            width: 4,
-            height: 4
-        };
-    }
-
-
-    function updateDeviceLabel(d) {
-        var label = trimLabel(deviceLabel(d)),
-            noLabel = !label,
-            node = d.el,
-            dim = icfg.device.dim,
-            devCfg = deviceIconConfig,
-            box, dx, dy;
-
-        node.select('text')
-            .text(label)
-            .style('opacity', 0)
-            .transition()
-            .style('opacity', 1);
-
-        if (noLabel) {
-            box = emptyBox();
-            dx = -dim/2;
-            dy = -dim/2;
-        } else {
-            box = adjustRectToFitText(node);
-            dx = box.x + devCfg.xoff;
-            dy = box.y + devCfg.yoff;
-        }
-
-        node.select('rect')
-            .transition()
-            .attr(box);
-
-        node.select('g.deviceIcon')
-            .transition()
-            .attr('transform', sus.translate(dx, dy));
-    }
-
-    function updateHostLabel(d) {
-        var label = trimLabel(hostLabel(d));
-        d.el.select('text').text(label);
-    }
-
-    function updateDeviceColors(d) {
-        if (d) {
-            setDeviceColor(d);
-        } else {
-            node.filter('.device').each(function (d) {
-                setDeviceColor(d);
-            });
-        }
     }
 
     function vis(b) {
@@ -535,9 +403,9 @@
     }
 
     function cycleDeviceLabels() {
-        deviceLabelIndex = (deviceLabelIndex+1) % 3;
+        td3.incDevLabIndex();
         tms.findDevices().forEach(function (d) {
-            updateDeviceLabel(d);
+            td3.updateDeviceLabel(d);
         });
     }
 
@@ -583,84 +451,14 @@
 
     // ==========================================
 
-    var dCol = {
-        black: '#000',
-        paleblue: '#acf',
-        offwhite: '#ddd',
-        darkgrey: '#444',
-        midgrey: '#888',
-        lightgrey: '#bbb',
-        orange: '#f90'
-    };
-
-    // note: these are the device icon colors without affinity
-    var dColTheme = {
-        light: {
-            rfill: dCol.offwhite,
-            online: {
-                glyph: dCol.darkgrey,
-                rect: dCol.paleblue
-            },
-            offline: {
-                glyph: dCol.midgrey,
-                rect: dCol.lightgrey
-            }
-        },
-        dark: {
-            rfill: dCol.midgrey,
-            online: {
-                glyph: dCol.darkgrey,
-                rect: dCol.paleblue
-            },
-            offline: {
-                glyph: dCol.midgrey,
-                rect: dCol.darkgrey
-            }
-        }
-    };
-
-    function devBaseColor(d) {
-        var o = d.online ? 'online' : 'offline';
-        return dColTheme[ts.theme()][o];
-    }
-
-    function setDeviceColor(d) {
-        var o = d.online,
-            s = d.el.classed('selected'),
-            c = devBaseColor(d),
-            a = instColor(d.master, o),
-            icon = d.el.select('g.deviceIcon'),
-            g, r;
-
-        if (s) {
-            g = c.glyph;
-            r = dCol.orange;
-        } else if (tis.isVisible()) {
-            g = o ? a : c.glyph;
-            r = o ? c.rfill : a;
-        } else {
-            g = c.glyph;
-            r = c.rect;
-        }
-
-        icon.select('use').style('fill', g);
-        icon.select('rect').style('fill', r);
-    }
-
-    function instColor(id, online) {
-        return sus.cat7().getColor(id, !online, ts.theme());
-    }
-
-    // ==========================
-
     function updateNodes() {
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
 
         // operate on existing nodes:
-        node.filter('.device').each(deviceExisting);
-        node.filter('.host').each(hostExisting);
+        node.filter('.device').each(td3.deviceExisting);
+        node.filter('.host').each(td3.hostExisting);
 
         // operate on entering nodes:
         var entering = node.enter()
@@ -678,11 +476,11 @@
             .attr('opacity', 1);
 
         // augment entering nodes:
-        entering.filter('.device').each(deviceEnter);
-        entering.filter('.host').each(hostEnter);
+        entering.filter('.device').each(td3.deviceEnter);
+        entering.filter('.host').each(td3.hostEnter);
 
         // operate on both existing and new nodes:
-        updateDeviceColors();
+        td3.updateDeviceColors();
 
         // operate on exiting nodes:
         // Note that the node is removed after 2 seconds.
@@ -694,110 +492,11 @@
             .remove();
 
         // exiting node specifics:
-        exiting.filter('.host').each(hostExit);
-        exiting.filter('.device').each(deviceExit);
+        exiting.filter('.host').each(td3.hostExit);
+        exiting.filter('.device').each(td3.deviceExit);
 
         // finally, resume the force layout
         fResume();
-    }
-
-    // ==========================
-    // updateNodes - subfunctions
-
-    function deviceExisting(d) {
-        var node = d.el;
-        node.classed('online', d.online);
-        updateDeviceLabel(d);
-        tms.positionNode(d, true);
-    }
-
-    function hostExisting(d) {
-        updateHostLabel(d);
-        tms.positionNode(d, true);
-    }
-
-    function deviceEnter(d) {
-        var node = d3.select(this),
-            glyphId = d.type || 'unknown',
-            label = trimLabel(deviceLabel(d)),
-            devCfg = deviceIconConfig,
-            noLabel = !label,
-            box, dx, dy, icon;
-
-        d.el = node;
-
-        node.append('rect').attr({ rx: 5, ry: 5 });
-        node.append('text').text(label).attr('dy', '1.1em');
-        box = adjustRectToFitText(node);
-        node.select('rect').attr(box);
-
-        icon = is.addDeviceIcon(node, glyphId);
-
-        if (noLabel) {
-            dx = -icon.dim/2;
-            dy = -icon.dim/2;
-        } else {
-            box = adjustRectToFitText(node);
-            dx = box.x + devCfg.xoff;
-            dy = box.y + devCfg.yoff;
-        }
-
-        icon.attr('transform', sus.translate(dx, dy));
-    }
-
-    function hostEnter(d) {
-        var node = d3.select(this),
-            gid = d.type || 'unknown',
-            rad = icfg.host.radius,
-            r = d.type ? rad.withGlyph : rad.noGlyph,
-            textDy = r + 10;
-
-        d.el = node;
-        sus.visible(node, showHosts);
-
-        is.addHostIcon(node, r, gid);
-
-        node.append('text')
-            .text(hostLabel)
-            .attr('dy', textDy)
-            .attr('text-anchor', 'middle');
-    }
-
-    function hostExit(d) {
-        var node = d.el;
-        node.select('use')
-            .style('opacity', 0.5)
-            .transition()
-            .duration(800)
-            .style('opacity', 0);
-
-        node.select('text')
-            .style('opacity', 0.5)
-            .transition()
-            .duration(800)
-            .style('opacity', 0);
-
-        node.select('circle')
-            .style('stroke-fill', '#555')
-            .style('fill', '#888')
-            .style('opacity', 0.5)
-            .transition()
-            .duration(1500)
-            .attr('r', 0);
-    }
-
-    function deviceExit(d) {
-        var node = d.el;
-        node.select('use')
-            .style('opacity', 0.5)
-            .transition()
-            .duration(800)
-            .style('opacity', 0);
-
-        node.selectAll('rect')
-            .style('stroke-fill', '#555')
-            .style('fill', '#888')
-            .style('opacity', 0.5);
     }
 
     // ==========================
@@ -809,7 +508,7 @@
             .data(network.links, function (d) { return d.key; });
 
         // operate on existing links:
-        link.each(linkExisting);
+        link.each(td3.linkExisting);
 
         // operate on entering links:
         var entering = link.enter()
@@ -824,14 +523,13 @@
             });
 
         // augment links
-        entering.each(linkEntering);
+        entering.each(td3.linkEntering);
 
         // operate on both existing and new links:
         //link.each(...)
 
         // apply or remove labels
-        var labelData = getLabelData();
-        applyLinkLabels(labelData);
+        td3.applyLinkLabels();
 
         // operate on exiting links:
         link.exit()
@@ -848,117 +546,6 @@
             .remove();
     }
 
-    // ==========================
-    // updateLinks - subfunctions
-
-    function getLabelData() {
-        // create the backing data for showing labels..
-        var data = [];
-        link.each(function (d) {
-            if (d.label) {
-                data.push({
-                    id: 'lab-' + d.key,
-                    key: d.key,
-                    label: d.label,
-                    ldata: d
-                });
-            }
-        });
-        return data;
-    }
-
-    function linkExisting(d) {
-        // this is supposed to be an existing link, but we have observed
-        //  occasions (where links are deleted and added rapidly?) where
-        //  the DOM element has not been defined. So protection against that...
-        if (d.el) {
-            restyleLinkElement(d, true);
-        }
-    }
-
-    function linkEntering(d) {
-        var link = d3.select(this);
-        d.el = link;
-        restyleLinkElement(d);
-        if (d.type() === 'hostLink') {
-            sus.visible(link, showHosts);
-        }
-    }
-
-    //function linkExiting(d) { }
-
-    var linkLabelOffset = '0.3em';
-
-    function applyLinkLabels(data) {
-        var entering;
-
-        linkLabel = linkLabelG.selectAll('.linkLabel')
-            .data(data, function (d) { return d.id; });
-
-        // for elements already existing, we need to update the text
-        // and adjust the rectangle size to fit
-        linkLabel.each(function (d) {
-            var el = d3.select(this),
-                rect = el.select('rect'),
-                text = el.select('text');
-            text.text(d.label);
-            rect.attr(rectAroundText(el));
-        });
-
-        entering = linkLabel.enter().append('g')
-            .classed('linkLabel', true)
-            .attr('id', function (d) { return d.id; });
-
-        entering.each(function (d) {
-            var el = d3.select(this),
-                rect,
-                text,
-                parms = {
-                    x1: d.ldata.source.x,
-                    y1: d.ldata.source.y,
-                    x2: d.ldata.target.x,
-                    y2: d.ldata.target.y
-                };
-
-            if (d.ldata.type() === 'hostLink') {
-                el.classed('hostLinkLabel', true);
-                sus.visible(el, showHosts);
-            }
-
-            d.el = el;
-            rect = el.append('rect');
-            text = el.append('text').text(d.label);
-            rect.attr(rectAroundText(el));
-            text.attr('dy', linkLabelOffset);
-
-            el.attr('transform', transformLabel(parms));
-        });
-
-        // Remove any labels that are no longer required.
-        linkLabel.exit().remove();
-    }
-
-    function rectAroundText(el) {
-        var text = el.select('text'),
-            box = text.node().getBBox();
-
-        // translate the bbox so that it is centered on [x,y]
-        box.x = -box.width / 2;
-        box.y = -box.height / 2;
-
-        // add padding
-        box.x -= 1;
-        box.width += 2;
-        return box;
-    }
-
-    function transformLabel(p) {
-        var dx = p.x2 - p.x1,
-            dy = p.y2 - p.y1,
-            xMid = dx/2 + p.x1,
-            yMid = dy/2 + p.y1;
-        return sus.translate(xMid, yMid);
-    }
 
     // ==========================
     // force layout tick function
@@ -989,7 +576,7 @@
             transform: function (d) {
                 var lnk = tms.findLinkById(d.key);
                 if (lnk) {
-                    return transformLabel({
+                    return td3.transformLabel({
                         x1: lnk.source.x,
                         y1: lnk.source.y,
                         x2: lnk.target.x,
@@ -1049,6 +636,24 @@
         });
     }
 
+    function updateLinkLabelModel() {
+        // create the backing data for showing labels..
+        var data = [];
+        link.each(function (d) {
+            if (d.label) {
+                data.push({
+                    id: 'lab-' + d.key,
+                    key: d.key,
+                    label: d.label,
+                    ldata: d
+                });
+            }
+        });
+
+        linkLabel = linkLabelG.selectAll('.linkLabel')
+            .data(data, function (d) { return d.id; });
+    }
+
     // ==========================
     // Module definition
 
@@ -1061,11 +666,24 @@
         };
     }
 
+    function mkD3Api(uplink) {
+        return {
+            node: function () { return node; },
+            link: function () { return link; },
+            linkLabel: function () { return linkLabel; },
+            instVisible: function () { return tis.isVisible(); },
+            posNode: tms.positionNode,
+            showHosts: function () { return showHosts; },
+            restyleLinkElement: restyleLinkElement,
+            updateLinkLabelModel: updateLinkLabelModel
+        }
+    }
+
     function mkSelectApi(uplink) {
         return {
             node: function () { return node; },
             zoomingOrPanning: zoomingOrPanning,
-            updateDeviceColors: updateDeviceColors,
+            updateDeviceColors: td3.updateDeviceColors,
             sendEvent: uplink.sendEvent
         };
     }
@@ -1114,11 +732,11 @@
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
             'FlashService', 'TopoInstService', 'TopoModelService',
-            'TopoSelectService', 'TopoTrafficService',
+            'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService',
 
         function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_,
-                  _tis_, _tms_, _tss_, _tts_, _tos_, _fltr_) {
+                  _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
@@ -1127,6 +745,7 @@
             flash = _flash_;
             tis = _tis_;
             tms = _tms_;
+            td3 = _td3_;
             tss = _tss_;
             tts = _tts_;
             tos = _tos_;
@@ -1150,6 +769,7 @@
                 $log.debug('initForce().. dim = ' + dim);
 
                 tms.initModel(mkModelApi(uplink), dim);
+                td3.initD3(mkD3Api(uplink));
                 tss.initSelect(mkSelectApi(uplink));
                 tts.initTraffic(mkTrafficApi(uplink));
                 tos.initOblique(mkObliqueApi(uplink, fltr));
@@ -1192,6 +812,7 @@
                 tos.destroyOblique();
                 tts.destroyTraffic();
                 tss.destroySelect();
+                td3.destroyD3();
                 tms.destroyModel();
                 ts.removeListener(themeListener);
                 themeListener = null;
@@ -1202,7 +823,7 @@
                 newDim: newDim,
                 destroyForce: destroyForce,
 
-                updateDeviceColors: updateDeviceColors,
+                updateDeviceColors: td3.updateDeviceColors,
                 toggleHosts: toggleHosts,
                 toggleOffline: toggleOffline,
                 cycleDeviceLabels: cycleDeviceLabels,
