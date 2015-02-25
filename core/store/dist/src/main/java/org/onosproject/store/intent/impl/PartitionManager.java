@@ -86,6 +86,8 @@ public class PartitionManager implements PartitionService {
 
     @Deactivate
     public void deactivate() {
+        executor.shutdownNow();
+
         leadershipService.removeListener(leaderListener);
         clusterService.removeListener(clusterListener);
     }
