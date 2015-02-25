@@ -432,6 +432,13 @@
     opacity: .9;
 }
 
+.light #ov-topo svg .link.enhanced {
+    filter: url(#blue-glow);
+}
+.dark #ov-topo svg .link.enhanced {
+    filter: url(#yellow-glow);
+}
+
 #ov-topo svg .link.inactive {
     opacity: .5;
     stroke-dasharray: 8 4;

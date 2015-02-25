@@ -189,12 +189,12 @@
     }
 
     function unenhance(d) {
-        d.el.style('stroke', '#666');
+        d.el.classed('enhanced', false);
         $log.debug('UN-enhancing link: ', d.key);
     }
 
     function enhance(d) {
-        d.el.style('stroke', 'gold');
+        d.el.classed('enhanced', true);
         $log.debug('enhancing link: ', d.key);
     }
 

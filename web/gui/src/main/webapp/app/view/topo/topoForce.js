@@ -508,16 +508,23 @@
             .data(network.links, function (d) { return d.key; });
 
         // operate on existing links:
-        link.each(td3.linkExisting);
+        link.each(function (d) {
+            // this is supposed to be an existing link, but we have observed
+            //  occasions (where links are deleted and added rapidly?) where
+            //  the DOM element has not been defined. So protect against that...
+            if (d.el) {
+                restyleLinkElement(d, true);
+            }
+        });
 
         // operate on entering links:
         var entering = link.enter()
             .append('line')
             .attr({
-                x1: function (d) { return d.x1; },
-                y1: function (d) { return d.y1; },
-                x2: function (d) { return d.x2; },
-                y2: function (d) { return d.y2; },
+                x1: function (d) { return d.source.x; },
+                y1: function (d) { return d.source.y; },
+                x2: function (d) { return d.target.x; },
+                y2: function (d) { return d.target.y; },
                 stroke: linkConfig[th].inColor,
                 'stroke-width': linkConfig.inWidth
             });

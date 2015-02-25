@@ -332,15 +332,6 @@
     // ==========================
     // updateLinks - subfunctions
 
-    function linkExisting(d) {
-        // this is supposed to be an existing link, but we have observed
-        //  occasions (where links are deleted and added rapidly?) where
-        //  the DOM element has not been defined. So protection against that...
-        if (d.el) {
-            api.restyleLinkElement(d, true);
-        }
-    }
-
     function linkEntering(d) {
         var link = d3.select(this);
         d.el = link;
@@ -466,7 +457,6 @@
                 hostExit: hostExit,
                 deviceExit: deviceExit,
 
-                linkExisting: linkExisting,
                 linkEntering: linkEntering,
                 applyLinkLabels: applyLinkLabels,
 

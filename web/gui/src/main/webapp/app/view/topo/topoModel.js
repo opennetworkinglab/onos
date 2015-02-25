@@ -219,10 +219,6 @@
         return {
             source: srcNode,
             target: dstNode,
-            x1: srcNode.x,
-            y1: srcNode.y,
-            x2: dstNode.x,
-            y2: dstNode.y
         };
     }
 
