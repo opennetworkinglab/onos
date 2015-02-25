@@ -17,11 +17,13 @@
 package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.Sets;
+
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.log.FileLog;
 import net.kuujo.copycat.netty.NettyTcpProtocol;
 import net.kuujo.copycat.protocol.Consistency;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,6 +46,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -60,6 +64,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     public static final int COPYCAT_TCP_PORT = 7238; //  7238 = RAFT
     private static final String CONFIG_DIR = "../config";
     private static final String PARTITION_DEFINITION_FILE = "tablets.json";
+    private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -131,13 +136,23 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         partitionedDatabase = PartitionedDatabaseManager.create("onos-store", clusterConfig, databaseConfig);
 
+        CountDownLatch latch = new CountDownLatch(1);
         partitionedDatabase.open().whenComplete((db, error) -> {
             if (error != null) {
                 log.warn("Failed to open database.", error);
             } else {
+                latch.countDown();
                 log.info("Successfully opened database.");
             }
         });
+        try {
+            if (!latch.await(DATABASE_STARTUP_TIMEOUT_SEC, TimeUnit.SECONDS)) {
+                log.warn("Timeed out watiing for database to initialize.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Failed to complete database initialization.");
+        }
         log.info("Started");
     }
 

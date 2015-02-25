@@ -53,7 +53,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
     private final DatabaseProxy<String, byte[]> proxy;
     private final Serializer serializer;
 
-    private static final int OPERATION_TIMEOUT_MILLIS = 1000;
+    private static final int OPERATION_TIMEOUT_MILLIS = 5000;
     private static final String ERROR_NULL_KEY = "Key cannot be null";
     private static final String ERROR_NULL_VALUE = "Null values are not allowed";
 
