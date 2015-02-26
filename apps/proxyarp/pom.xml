@@ -31,4 +31,11 @@
 
     <description>ONOS simple proxy arp module</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

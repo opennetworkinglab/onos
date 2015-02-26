@@ -15,6 +15,7 @@
  */
 package org.onosproject.provider.host.impl;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Dictionary;
@@ -103,6 +104,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             label = "Enable host removal on port/device down events")
     private boolean hostRemovalEnabled = true;
 
+    @Property(name = "ipv6NeighborDiscovery", boolValue = false,
+              label = "Enable using IPv6 Neighbor Discovery by the " +
+              "Host Location Provider; default is false")
+    private boolean ipv6NeighborDiscovery = false;
 
     /**
      * Creates an OpenFlow host provider.
@@ -115,8 +120,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         appId =
             coreService.registerApplication("org.onosproject.provider.host");
+        readComponentConfiguration(context);
 
-        modified(context);
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, 1);
         deviceService.addListener(deviceListener);
@@ -127,21 +132,23 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         packetService.requestPackets(selectorBuilder.build(),
                                   PacketPriority.CONTROL, appId);
 
-        // IPv6 Neighbor Solicitation packet.
-        selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
-        packetService.requestPackets(selectorBuilder.build(),
-                                     PacketPriority.CONTROL, appId);
+        if (ipv6NeighborDiscovery) {
+            // IPv6 Neighbor Solicitation packet.
+            selectorBuilder = DefaultTrafficSelector.builder();
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+            packetService.requestPackets(selectorBuilder.build(),
+                                         PacketPriority.CONTROL, appId);
 
-        // IPv6 Neighbor Advertisement packet.
-        selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
-        packetService.requestPackets(selectorBuilder.build(),
-                                     PacketPriority.CONTROL, appId);
+            // IPv6 Neighbor Advertisement packet.
+            selectorBuilder = DefaultTrafficSelector.builder();
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+            packetService.requestPackets(selectorBuilder.build(),
+                                         PacketPriority.CONTROL, appId);
+        }
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -157,17 +164,57 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     @Modified
     public void modified(ComponentContext context) {
-        Dictionary properties = context.getProperties();
-        try {
-            String flag = (String) properties.get("hostRemovalEnabled");
-            if (flag != null) {
-                hostRemovalEnabled = flag.equals("true");
-            }
-        } catch (ClassCastException e) {
-            hostRemovalEnabled = true;
+        readComponentConfiguration(context);
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = isPropertyEnabled(properties, "hostRemovalEnabled");
+        if (flag == null) {
+            log.info("Host removal on port/device down events is not configured, " +
+                     "using current value of {}", hostRemovalEnabled);
+        } else {
+            hostRemovalEnabled = flag;
+            log.info("Configured. Host removal on port/device down events is {}",
+                     hostRemovalEnabled ? "enabled" : "disabled");
         }
-        log.info("Host removal is {}",
-                 hostRemovalEnabled ? "enabled" : "disabled");
+
+        flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
+        if (flag == null) {
+            log.info("Using IPv6 Neighbor Discovery is not configured, " +
+                     "using current value of {}", ipv6NeighborDiscovery);
+        } else {
+            ipv6NeighborDiscovery = flag;
+            log.info("Configured. Using IPv6 Neighbor Discovery is {}",
+                     ipv6NeighborDiscovery ? "enabled" : "disabled");
+        }
+    }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
+        } catch (ClassCastException e) {
+            // No propertyName defined.
+            value = null;
+        }
+        return value;
     }
 
     @Override

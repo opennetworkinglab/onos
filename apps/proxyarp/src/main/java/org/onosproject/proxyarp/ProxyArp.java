@@ -15,9 +15,13 @@
  */
 package org.onosproject.proxyarp;
 
+import java.util.Dictionary;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
@@ -32,8 +36,10 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -57,9 +63,15 @@ public class ProxyArp {
 
     private ApplicationId appId;
 
+    @Property(name = "ipv6NeighborDiscovery", boolValue = false,
+              label = "Enable IPv6 Neighbor Discovery; default is false")
+    private boolean ipv6NeighborDiscovery = false;
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         appId = coreService.registerApplication("org.onosproject.proxyarp");
+        readComponentConfiguration(context);
+
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
 
         TrafficSelector.Builder selectorBuilder =
@@ -68,21 +80,23 @@ public class ProxyArp {
         packetService.requestPackets(selectorBuilder.build(),
                                      PacketPriority.CONTROL, appId);
 
-        // IPv6 Neighbor Solicitation packet.
-        selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
-        packetService.requestPackets(selectorBuilder.build(),
-                                     PacketPriority.CONTROL, appId);
+        if (ipv6NeighborDiscovery) {
+            // IPv6 Neighbor Solicitation packet.
+            selectorBuilder = DefaultTrafficSelector.builder();
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+            packetService.requestPackets(selectorBuilder.build(),
+                                         PacketPriority.CONTROL, appId);
 
-        // IPv6 Neighbor Advertisement packet.
-        selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-        selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-        selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
-        packetService.requestPackets(selectorBuilder.build(),
-                                     PacketPriority.CONTROL, appId);
+            // IPv6 Neighbor Advertisement packet.
+            selectorBuilder = DefaultTrafficSelector.builder();
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+            packetService.requestPackets(selectorBuilder.build(),
+                                         PacketPriority.CONTROL, appId);
+        }
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -94,6 +108,50 @@ public class ProxyArp {
         log.info("Stopped");
     }
 
+    @Modified
+    public void modified(ComponentContext context) {
+        readComponentConfiguration(context);
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
+        if (flag == null) {
+            log.info("IPv6 Neighbor Discovery is not configured, " +
+                     "using current value of {}", ipv6NeighborDiscovery);
+        } else {
+            ipv6NeighborDiscovery = flag;
+            log.info("Configured. IPv6 Neighbor Discovery is {}",
+                     ipv6NeighborDiscovery ? "enabled" : "disabled");
+        }
+    }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
+        } catch (ClassCastException e) {
+            // No propertyName defined.
+            value = null;
+        }
+        return value;
+    }
 
     /**
      * Packet processor responsible for forwarding packets along their paths.
