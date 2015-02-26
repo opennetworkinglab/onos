@@ -15,42 +15,41 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.impl.IntentProcessor;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Represents a phase of requesting a withdraw of an intent.
+ * Represents a phase where an intent is being recompiled.
  */
-final class WithdrawRequest implements IntentProcessPhase {
+class Recompiling implements IntentProcessPhase {
 
     private final IntentProcessor processor;
     private final IntentData data;
     private final IntentData stored;
 
     /**
-     * Creates a withdraw request phase.
+     * Creates a intent recompiling phase.
      *
-     * @param processor  intent processor to be passed to intent process phases
-     *                   generated after this phase
-     * @param intentData intent data to be processed
-     * @param stored     intent data stored in the store
+     * @param processor intent processor that does work for recompiling
+     * @param data      intent data containing an intent to be recompiled
+     * @param stored    intent data stored in the store
      */
-    WithdrawRequest(IntentProcessor processor, IntentData intentData, IntentData stored) {
+    Recompiling(IntentProcessor processor, IntentData data, IntentData stored) {
         this.processor = checkNotNull(processor);
-        this.data = checkNotNull(intentData);
+        this.data = checkNotNull(data);
         this.stored = checkNotNull(stored);
     }
 
     @Override
     public Optional<IntentProcessPhase> execute() {
-        //TODO perhaps we want to validate that the pending and current are the
-        // same version i.e. they are the same
-        // Note: this call is not just the symmetric version of submit
-        data.setInstallables(stored.installables());
-        return Optional.of(new Withdrawing(processor, data));
+        List<Intent> compiled = processor.compile(data.intent(), stored.installables());
+        data.setInstallables(compiled);
+        return Optional.of(new Replacing(processor, data, stored));
     }
 }

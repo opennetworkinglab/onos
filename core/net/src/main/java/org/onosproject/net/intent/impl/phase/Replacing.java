@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.impl.IntentProcessor;
@@ -27,33 +26,37 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Represents a phase to create a {@link FlowRuleOperations} instance
- * with using registered intent installers.
+ * Represents a phase to replace an intent.
  */
-final class InstallCoordinating implements IntentProcessPhase {
+final class Replacing implements IntentProcessPhase {
 
-    private static final Logger log = LoggerFactory.getLogger(InstallCoordinating.class);
+    private static final Logger log = LoggerFactory.getLogger(Replacing.class);
 
     private final IntentProcessor processor;
-    private final IntentData pending;
-    private final IntentData current;
+    private final IntentData data;
+    private final IntentData stored;
 
-    InstallCoordinating(IntentProcessor processor, IntentData pending, IntentData current) {
+    /**
+     * Creates a replacing phase.
+     *
+     * @param processor intent processor that does work for replacing
+     * @param data      intent data containing an intent to be replaced
+     * @param stored    intent data stored in the store
+     */
+    Replacing(IntentProcessor processor, IntentData data, IntentData stored) {
         this.processor = checkNotNull(processor);
-        this.pending = checkNotNull(pending);
-        this.current = current;
+        this.data = checkNotNull(data);
+        this.stored = checkNotNull(stored);
     }
 
     @Override
     public Optional<IntentProcessPhase> execute() {
         try {
-            //FIXME we orphan flow rules that are currently on the data plane
-            // ... should either reuse them or remove them
-            FlowRuleOperations flowRules = processor.coordinate(current, pending);
-            return Optional.of(new Installing(processor, pending, flowRules));
+            processor.uninstall(stored);
+            return Optional.of(new Installing(processor, data));
         } catch (IntentException e) {
-            log.warn("Unable to generate a FlowRuleOperations from intent {} due to:", pending.intent().id(), e);
-            return Optional.of(new InstallingFailed(pending));
+            log.warn("Unable to generate a FlowRuleOperations from intent {} due to:", data.intent().id(), e);
+            return Optional.of(new ReplaceFailed(data));
         }
     }
 }

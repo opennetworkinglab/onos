@@ -26,15 +26,17 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -47,6 +49,7 @@ import org.onosproject.net.intent.impl.phase.IntentWorker;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +63,9 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -105,7 +110,6 @@ public class IntentManager
     private ExecutorService workerExecutor;
 
     private final CompilerRegistry compilerRegistry = new CompilerRegistry();
-    private final InstallerRegistry installerRegistry = new InstallerRegistry();
     private final InternalIntentProcessor processor = new InternalIntentProcessor();
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
     private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
@@ -212,21 +216,6 @@ public class IntentManager
     @Override
     public Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> getCompilers() {
         return compilerRegistry.getCompilers();
-    }
-
-    @Override
-    public <T extends Intent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer) {
-        installerRegistry.registerInstaller(cls, installer);
-    }
-
-    @Override
-    public <T extends Intent> void unregisterInstaller(Class<T> cls) {
-        installerRegistry.unregisterInstaller(cls);
-    }
-
-    @Override
-    public Map<Class<? extends Intent>, IntentInstaller<? extends Intent>> getInstallers() {
-        return installerRegistry.getInstallers();
     }
 
     @Override
@@ -370,18 +359,92 @@ public class IntentManager
         }
 
         @Override
-        public FlowRuleOperations coordinate(IntentData current, IntentData pending) {
-            return installerRegistry.coordinate(current, pending, store, trackerService);
+        public void install(IntentData data) {
+            IntentManager.this.install(data);
         }
 
         @Override
-        public FlowRuleOperations uninstallCoordinate(IntentData current, IntentData pending) {
-            return installerRegistry.uninstallCoordinate(current, pending, store, trackerService);
+        public void uninstall(IntentData data) {
+            IntentManager.this.uninstall(data);
         }
 
-        @Override
-        public void applyFlowRules(FlowRuleOperations flowRules) {
-            flowRuleService.apply(flowRules);
+    }
+
+    private void install(IntentData data) {
+        // need to consider if FlowRuleIntent is only one as installable intent or not
+        List<Intent> installables = data.installables();
+        if (!installables.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
+            throw new IllegalStateException("installable intents must be FlowRuleIntent");
         }
+
+        installables.forEach(x -> trackerService.addTrackedResources(data.key(), x.resources()));
+
+        List<Collection<FlowRule>> stages = installables.stream()
+                .map(x -> (FlowRuleIntent) x)
+                .map(FlowRuleIntent::flowRules)
+                .collect(Collectors.toList());
+
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        for (Collection<FlowRule> rules : stages) {
+            rules.forEach(builder::add);
+            builder.newStage();
+        }
+
+        FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.debug("Completed installing: {}", data.key());
+                data.setState(INSTALLED);
+                store.write(data);
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.warn("Failed installation: {} {} on {}", data.key(), data.intent(), ops);
+                data.setState(FAILED);
+                store.write(data);
+            }
+        });
+
+        flowRuleService.apply(operations);
+    }
+
+    private void uninstall(IntentData data) {
+        List<Intent> installables = data.installables();
+        if (!installables.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
+            throw new IllegalStateException("installable intents must be FlowRuleIntent");
+        }
+
+        installables.forEach(x -> trackerService.removeTrackedResources(data.intent().key(), x.resources()));
+
+        List<Collection<FlowRule>> stages = installables.stream()
+                .map(x -> (FlowRuleIntent) x)
+                .map(FlowRuleIntent::flowRules)
+                .collect(Collectors.toList());
+
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        for (Collection<FlowRule> rules : stages) {
+            rules.forEach(builder::remove);
+            builder.newStage();
+        }
+
+        FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.debug("Completed withdrawing: {}", data.key());
+                data.setState(WITHDRAWN);
+                data.setInstallables(Collections.emptyList());
+                store.write(data);
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.warn("Failed withdraw: {}", data.key());
+                data.setState(FAILED);
+                store.write(data);
+            }
+        });
+
+        flowRuleService.apply(operations);
     }
 }

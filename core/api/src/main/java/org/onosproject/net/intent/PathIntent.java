@@ -184,12 +184,6 @@ public class PathIntent extends ConnectivityIntent {
     }
 
     @Override
-    public boolean isInstallable() {
-        return true;
-    }
-
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())

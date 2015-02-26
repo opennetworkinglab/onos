@@ -15,14 +15,12 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.impl.IntentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,24 +33,27 @@ final class Compiling implements IntentProcessPhase {
     private static final Logger log = LoggerFactory.getLogger(Compiling.class);
 
     private final IntentProcessor processor;
-    private final IntentData pending;
-    private final IntentData current;
+    private final IntentData data;
 
-    Compiling(IntentProcessor processor, IntentData pending, IntentData current) {
+    /**
+     * Creates an compiling phase.
+     *
+     * @param processor intent processor that does work for compiling
+     * @param data      intent data containing an intent to be compiled
+     */
+    Compiling(IntentProcessor processor, IntentData data) {
         this.processor = checkNotNull(processor);
-        this.pending = checkNotNull(pending);
-        this.current = current;
+        this.data = checkNotNull(data);
     }
 
     @Override
     public Optional<IntentProcessPhase> execute() {
         try {
-            List<Intent> installables = (current != null) ? current.installables() : null;
-            pending.setInstallables(processor.compile(pending.intent(), installables));
-            return Optional.of(new InstallCoordinating(processor, pending, current));
+            data.setInstallables(processor.compile(data.intent(), null));
+            return Optional.of(new Installing(processor, data));
         } catch (IntentException e) {
-            log.debug("Unable to compile intent {} due to: {}", pending.intent(), e);
-            return Optional.of(new CompilingFailed(pending));
+            log.debug("Unable to compile intent {} due to: {}", data.intent(), e);
+            return Optional.of(new CompileFailed(data));
         }
     }
 

@@ -28,7 +28,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Intent;
@@ -46,7 +45,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.instanceOf;
@@ -55,12 +54,13 @@ import static org.junit.Assert.assertThat;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
 
 /**
  * Unit tests for InstallingCoordinating phase.
  */
-public class InstallCoordinatingTest {
+public class ReplacingTest {
 
     private final ApplicationId appId = new TestApplicationId("test");
     private final ProviderId pid = new ProviderId("of", "test");
@@ -120,12 +120,13 @@ public class InstallCoordinatingTest {
         IntentData pending = new IntentData(input, INSTALL_REQ, version);
         pending.setInstallables(Arrays.asList(compiled));
 
-        FlowRuleOperations operations = createMock(FlowRuleOperations.class);
+        IntentData current = new IntentData(input, INSTALLED, version);
+        current.setInstallables(Arrays.asList(compiled));
 
-        expect(processor.coordinate(null, pending)).andReturn(operations);
+        processor.uninstall(current);
         replay(processor);
 
-        InstallCoordinating sut = new InstallCoordinating(processor, pending, null);
+        Replacing sut = new Replacing(processor, pending, current);
 
         Optional<IntentProcessPhase> executed = sut.execute();
 
@@ -141,14 +142,17 @@ public class InstallCoordinatingTest {
         IntentData pending = new IntentData(input, INSTALL_REQ, version);
         pending.setInstallables(Arrays.asList(compiled));
 
-        expect(processor.coordinate(null, pending)).andThrow(new IntentInstallationException());
+        IntentData current = new IntentData(input, INSTALLED, version);
+
+        processor.uninstall(current);
+        expectLastCall().andThrow(new IntentInstallationException());
         replay(processor);
 
-        InstallCoordinating sut = new InstallCoordinating(processor, pending, null);
+        Replacing sut = new Replacing(processor, pending, current);
 
         Optional<IntentProcessPhase> executed = sut.execute();
 
         verify(processor);
-        assertThat(executed.get(), is(instanceOf(InstallingFailed.class)));
+        assertThat(executed.get(), is(instanceOf(ReplaceFailed.class)));
     }
 }

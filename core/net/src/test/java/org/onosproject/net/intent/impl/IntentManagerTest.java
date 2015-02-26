@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,15 +35,13 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.impl.TestCoreManager;
 import org.onosproject.event.impl.TestEventDispatcher;
 import org.onosproject.net.NetworkResource;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleOperation;
+import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentEvent.Type;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -51,7 +50,6 @@ import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -95,7 +93,6 @@ public class IntentManagerTest {
     protected IntentExtensionService extensionService;
     protected TestListener listener = new TestListener();
     protected TestIntentCompiler compiler = new TestIntentCompiler();
-    protected TestIntentInstaller installer = new TestIntentInstaller();
 
     private static class TestListener implements IntentListener {
         final Multimap<IntentEvent.Type, IntentEvent> events = HashMultimap.create();
@@ -152,14 +149,10 @@ public class IntentManagerTest {
         }
     }
 
-    private static class MockInstallableIntent extends MockIntent {
-        public MockInstallableIntent(Long number) {
-            super(number);
-        }
+    private static class MockInstallableIntent extends FlowRuleIntent {
 
-        @Override
-        public boolean isInstallable() {
-            return true;
+        public MockInstallableIntent() {
+            super(APPID, Arrays.asList(new MockFlowRule(100)));
         }
     }
 
@@ -167,7 +160,7 @@ public class IntentManagerTest {
         @Override
         public List<Intent> compile(MockIntent intent, List<Intent> installable,
                                     Set<LinkResourceAllocations> resources) {
-            return Lists.newArrayList(new MockInstallableIntent(intent.number()));
+            return Lists.newArrayList(new MockInstallableIntent());
         }
     }
 
@@ -176,53 +169,6 @@ public class IntentManagerTest {
         public List<Intent> compile(MockIntent intent, List<Intent> installable,
                                     Set<LinkResourceAllocations> resources) {
             throw new IntentCompilationException("Compilation always fails");
-        }
-    }
-
-    private static class TestIntentInstaller implements IntentInstaller<MockInstallableIntent> {
-        @Override
-        public List<Collection<org.onosproject.net.flow.FlowRuleOperation>> install(MockInstallableIntent intent) {
-            FlowRule fr = new MockFlowRule(intent.number().intValue());
-            Set<FlowRuleOperation> rules = ImmutableSet.of(
-                    new FlowRuleOperation(fr, FlowRuleOperation.Type.ADD));
-            return Lists.newArrayList(ImmutableSet.of(rules));
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> uninstall(MockInstallableIntent intent) {
-            FlowRule fr = new MockFlowRule(intent.number().intValue());
-            Set<FlowRuleOperation> rules = ImmutableSet.of(
-                    new FlowRuleOperation(fr, FlowRuleOperation.Type.REMOVE));
-            return Lists.newArrayList(ImmutableSet.of(rules));
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> replace(MockInstallableIntent oldIntent,
-                                                           MockInstallableIntent newIntent) {
-            FlowRule fr = new MockFlowRule(oldIntent.number().intValue());
-            FlowRule fr2 = new MockFlowRule(newIntent.number().intValue());
-            Set<FlowRuleOperation> rules = ImmutableSet.of(
-                    new FlowRuleOperation(fr, FlowRuleOperation.Type.REMOVE),
-                    new FlowRuleOperation(fr2, FlowRuleOperation.Type.ADD));
-            return Lists.newArrayList(ImmutableSet.of(rules));
-        }
-    }
-
-    private static class TestIntentErrorInstaller implements IntentInstaller<MockInstallableIntent> {
-        @Override
-        public List<Collection<FlowRuleOperation>> install(MockInstallableIntent intent) {
-            throw new IntentInstallationException("install() always fails");
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> uninstall(MockInstallableIntent intent) {
-            throw new IntentRemovalException("uninstall() always fails");
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> replace(MockInstallableIntent oldIntent,
-                                                           MockInstallableIntent newIntent) {
-            throw new IntentInstallationException("replace() always fails");
         }
     }
 
@@ -274,7 +220,6 @@ public class IntentManagerTest {
         manager.activate();
         service.addListener(listener);
         extensionService.registerCompiler(MockIntent.class, compiler);
-        extensionService.registerInstaller(MockInstallableIntent.class, installer);
 
         assertTrue("store should be empty",
                    Sets.newHashSet(service.getIntents()).isEmpty());
@@ -307,7 +252,6 @@ public class IntentManagerTest {
     @After
     public void tearDown() {
         extensionService.unregisterCompiler(MockIntent.class);
-        extensionService.unregisterInstaller(MockInstallableIntent.class);
         service.removeListener(listener);
         manager.deactivate();
         // TODO null the other refs?
@@ -428,22 +372,6 @@ public class IntentManagerTest {
     }
 
     /**
-     * Tests handling of an error that is generated by the intent installer.
-     */
-    @Test
-    public void errorIntentInstallFromInstaller() {
-        final TestIntentErrorInstaller errorInstaller = new TestIntentErrorInstaller();
-        extensionService.registerInstaller(MockInstallableIntent.class, errorInstaller);
-        MockIntent intent = new MockIntent(MockIntent.nextId());
-        listener.setLatch(1, Type.INSTALL_REQ);
-        listener.setLatch(1, Type.FAILED);
-        service.submit(intent);
-        listener.await(Type.INSTALL_REQ);
-        listener.await(Type.FAILED);
-        verifyState();
-    }
-
-    /**
      * Tests handling a future that contains an unresolvable error as a result of
      * installing an intent.
      */
@@ -521,9 +449,6 @@ public class IntentManagerTest {
      */
     @Test
     public void intentWithoutInstaller() {
-
-        extensionService.unregisterInstaller(MockInstallableIntent.class);
-
         MockIntent intent = new MockIntent(MockIntent.nextId());
         listener.setLatch(1, Type.INSTALL_REQ);
         listener.setLatch(1, Type.FAILED);

@@ -15,45 +15,39 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.impl.IntentProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.INSTALLING;
 
 /**
- * Represents a phase of installing an intent with calling
- * {@link org.onosproject.net.flow.FlowRuleService}.
+ * Represents a phase where an intent is being installed.
  */
-final class Installing implements IntentProcessPhase {
-
-    private static final Logger log = LoggerFactory.getLogger(Installing.class);
+class Installing extends FinalIntentProcessPhase {
 
     private final IntentProcessor processor;
-    private final IntentData pending;
-    private final FlowRuleOperations flowRules;
+    private final IntentData data;
 
-    Installing(IntentProcessor processor, IntentData pending, FlowRuleOperations flowRules) {
+    /**
+     * Create an installing phase.
+     *
+     * @param processor intent processor that does work for installing
+     * @param data      intent data containing an intent to be installed
+     */
+    Installing(IntentProcessor processor, IntentData data) {
         this.processor = checkNotNull(processor);
-        this.pending = checkNotNull(pending);
-        this.flowRules = flowRules;
+        this.data = checkNotNull(data);
+        this.data.setState(INSTALLING);
     }
 
     @Override
-    public Optional<IntentProcessPhase> execute() {
-        try {
-            processor.applyFlowRules(flowRules);
-            return Optional.of(new Installed(pending));
-        // What kinds of exceptions are thrown by FlowRuleService.apply()?
-        // Is IntentException a correct exception abstraction?
-        } catch (IntentException e) {
-            log.warn("Unable to install intent {} due to: {}", pending.intent().id(), e);
-            return Optional.of(new InstallingFailed(pending));
-        }
+    public void preExecute() {
+        processor.install(data);
+    }
+
+    @Override
+    public IntentData data() {
+        return data;
     }
 }

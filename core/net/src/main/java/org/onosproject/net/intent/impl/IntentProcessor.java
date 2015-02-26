@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 
@@ -39,30 +38,16 @@ public interface IntentProcessor {
     List<Intent> compile(Intent intent, List<Intent> previousInstallables);
 
     /**
-     * Generate a {@link FlowRuleOperations} instance from the specified intent data.
+     * Installs an intent included in the specified intent data.
      *
-     * @param current intent data stored in the store
-     * @param pending intent data being processed
-     * @return flow rule operations
+     * @param data intent data containing an intent to be installed
      */
-    FlowRuleOperations coordinate(IntentData current, IntentData pending);
+    void install(IntentData data);
 
     /**
-     * Generate a {@link FlowRuleOperations} instance from the specified intent data.
+     * Uninstalls an intent included in the specified intent data.
      *
-     * @param current intent data stored in the store
-     * @param pending intent data being processed
-     * @return flow rule operations
+     * @param data intent data containing an intent to be uninstalled
      */
-    FlowRuleOperations uninstallCoordinate(IntentData current, IntentData pending);
-
-    /**
-     * Applies a batch operation of FlowRules.
-     *
-     * @param flowRules batch operation to apply
-     */
-    // TODO: consider a better name
-    // This methods gives strangeness a bit because
-    // it doesn't receive/return intent related information
-    void applyFlowRules(FlowRuleOperations flowRules);
+    void uninstall(IntentData data);
 }

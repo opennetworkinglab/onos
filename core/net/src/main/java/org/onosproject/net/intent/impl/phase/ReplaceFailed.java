@@ -20,14 +20,14 @@ import org.onosproject.net.intent.IntentData;
 /**
  * Represent a phase where the install has failed.
  */
-class InstallingFailed extends AbstractFailed {
+class ReplaceFailed extends AbstractFailed {
 
     /**
      * Create an instance with the specified data.
      *
      * @param intentData intentData
      */
-    InstallingFailed(IntentData intentData) {
+    ReplaceFailed(IntentData intentData) {
         super(intentData);
     }
 }

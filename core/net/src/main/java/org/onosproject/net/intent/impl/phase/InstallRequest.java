@@ -27,18 +27,30 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 final class InstallRequest implements IntentProcessPhase {
 
-    private final IntentProcessor intentManager;
-    private final IntentData pending;
-    private final Optional<IntentData> current;
+    private final IntentProcessor processor;
+    private final IntentData data;
+    private final Optional<IntentData> stored;
 
-    InstallRequest(IntentProcessor processor, IntentData intentData, Optional<IntentData> current) {
-        this.intentManager = checkNotNull(processor);
-        this.pending = checkNotNull(intentData);
-        this.current = checkNotNull(current);
+    /**
+     * Creates an install request phase.
+     *
+     * @param processor  intent processor to be passed to intent process phases
+     *                   generated after this phase
+     * @param intentData intent data to be processed
+     * @param stored     intent data stored in the store
+     */
+    InstallRequest(IntentProcessor processor, IntentData intentData, Optional<IntentData> stored) {
+        this.processor = checkNotNull(processor);
+        this.data = checkNotNull(intentData);
+        this.stored = checkNotNull(stored);
     }
 
     @Override
     public Optional<IntentProcessPhase> execute() {
-        return Optional.of(new Compiling(intentManager, pending, current.orElse(null)));
+        if (!stored.isPresent() || stored.get().installables() == null || stored.get().installables().isEmpty()) {
+            return Optional.of(new Compiling(processor, data));
+        } else {
+            return Optional.of(new Recompiling(processor, data, stored.get()));
+        }
     }
 }

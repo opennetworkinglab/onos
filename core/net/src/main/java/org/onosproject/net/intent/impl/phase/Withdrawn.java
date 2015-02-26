@@ -16,29 +16,29 @@
 package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.IntentState;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.WITHDRAWING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * Represents a phase where an intent has been withdrawn.
  */
 final class Withdrawn extends FinalIntentProcessPhase {
 
-    private final IntentData intentData;
+    private final IntentData data;
 
-    Withdrawn(IntentData intentData) {
-        this(intentData, WITHDRAWING);
-    }
-
-    Withdrawn(IntentData intentData, IntentState newState) {
-        this.intentData = checkNotNull(intentData);
-        this.intentData.setState(newState);
+    /**
+     * Create a withdrawn phase.
+     *
+     * @param data intent data containing an intent to be withdrawn
+     */
+    Withdrawn(IntentData data) {
+        this.data = checkNotNull(data);
+        this.data.setState(WITHDRAWN);
     }
 
     @Override
     public IntentData data() {
-        return intentData;
+        return data;
     }
 }

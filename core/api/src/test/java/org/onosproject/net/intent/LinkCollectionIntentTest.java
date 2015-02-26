@@ -113,7 +113,7 @@ public class LinkCollectionIntentTest extends IntentTest {
 
         final Set<Link> createdLinks = collectionIntent.links();
         assertThat(createdLinks, hasSize(1));
-        assertThat(collectionIntent.isInstallable(), is(true));
+        assertThat(collectionIntent.isInstallable(), is(false));
         assertThat(collectionIntent.treatment(), is(treatment));
         assertThat(collectionIntent.selector(), is(selector));
         assertThat(collectionIntent.ingressPoints(), is(ImmutableSet.of(ingress)));
@@ -147,7 +147,7 @@ public class LinkCollectionIntentTest extends IntentTest {
 
         final Set<Link> createdLinks = collectionIntent.links();
         assertThat(createdLinks, hasSize(1));
-        assertThat(collectionIntent.isInstallable(), is(true));
+        assertThat(collectionIntent.isInstallable(), is(false));
         assertThat(collectionIntent.treatment(), is(treatment));
         assertThat(collectionIntent.selector(), is(selector));
         assertThat(collectionIntent.ingressPoints(), is(ImmutableSet.of(ingress)));
@@ -169,7 +169,7 @@ public class LinkCollectionIntentTest extends IntentTest {
 
         final Set<Link> createdLinks = collectionIntent.links();
         assertThat(createdLinks, nullValue());
-        assertThat(collectionIntent.isInstallable(), is(true));
+        assertThat(collectionIntent.isInstallable(), is(false));
         assertThat(collectionIntent.treatment(), nullValue());
         assertThat(collectionIntent.selector(), nullValue());
         assertThat(collectionIntent.ingressPoints(), nullValue());

@@ -37,8 +37,6 @@ public class FakeIntentManager implements TestableIntentService {
     private final Set<IntentListener> listeners = new HashSet<>();
 
     private final Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> compilers = new HashMap<>();
-    private final Map<Class<? extends Intent>, IntentInstaller<? extends Intent>> installers
-        = new HashMap<>();
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<IntentException> exceptions = new ArrayList<>();
@@ -88,16 +86,6 @@ public class FakeIntentManager implements TestableIntentService {
         return compiler;
     }
 
-    private <T extends Intent> IntentInstaller<T> getInstaller(T intent) {
-        @SuppressWarnings("unchecked")
-        IntentInstaller<T> installer = (IntentInstaller<T>) installers.get(intent
-                .getClass());
-        if (installer == null) {
-            throw new IntentException("no installer for class " + intent.getClass());
-        }
-        return installer;
-    }
-
     private <T extends Intent> void executeCompilingPhase(T intent) {
         setState(intent, IntentState.COMPILING);
         try {
@@ -118,10 +106,6 @@ public class FakeIntentManager implements TestableIntentService {
                                         List<Intent> installable) {
         setState(intent, IntentState.INSTALLING);
         try {
-            for (Intent ii : installable) {
-                registerSubclassInstallerIfNeeded(ii);
-                getInstaller(ii).install(ii);
-            }
             setState(intent, IntentState.INSTALLED);
             putInstallable(intent.key(), installable);
             dispatch(new IntentEvent(IntentEvent.Type.INSTALLED, intent));
@@ -136,9 +120,6 @@ public class FakeIntentManager implements TestableIntentService {
                                          List<Intent> installable) {
         setState(intent, IntentState.WITHDRAWING);
         try {
-            for (Intent ii : installable) {
-                getInstaller(ii).uninstall(ii);
-            }
             removeInstallable(intent.key());
             setState(intent, IntentState.WITHDRAWN);
             dispatch(new IntentEvent(IntentEvent.Type.WITHDRAWN, intent));
@@ -263,23 +244,6 @@ public class FakeIntentManager implements TestableIntentService {
         return Collections.unmodifiableMap(compilers);
     }
 
-    @Override
-    public <T extends Intent> void registerInstaller(Class<T> cls,
-            IntentInstaller<T> installer) {
-        installers.put(cls, installer);
-    }
-
-    @Override
-    public <T extends Intent> void unregisterInstaller(Class<T> cls) {
-        installers.remove(cls);
-    }
-
-    @Override
-    public Map<Class<? extends Intent>,
-    IntentInstaller<? extends Intent>> getInstallers() {
-        return Collections.unmodifiableMap(installers);
-    }
-
     private void registerSubclassCompilerIfNeeded(Intent intent) {
         if (!compilers.containsKey(intent.getClass())) {
             Class<?> cls = intent.getClass();
@@ -296,23 +260,4 @@ public class FakeIntentManager implements TestableIntentService {
             }
         }
     }
-
-    private void registerSubclassInstallerIfNeeded(Intent intent) {
-        if (!installers.containsKey(intent.getClass())) {
-            Class<?> cls = intent.getClass();
-            while (cls != Object.class) {
-                // As long as we're within the Intent class
-                // descendants
-                if (Intent.class.isAssignableFrom(cls)) {
-                    IntentInstaller<?> installer = installers.get(cls);
-                    if (installer != null) {
-                        installers.put(intent.getClass(), installer);
-                        return;
-                    }
-                }
-                cls = cls.getSuperclass();
-            }
-        }
-    }
-
 }

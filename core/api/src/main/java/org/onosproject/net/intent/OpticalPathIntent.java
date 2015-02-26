@@ -154,11 +154,6 @@ public final class OpticalPathIntent extends Intent {
     }
 
     @Override
-    public boolean isInstallable() {
-        return true;
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())

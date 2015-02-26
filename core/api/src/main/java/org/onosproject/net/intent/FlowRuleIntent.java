@@ -1,0 +1,87 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.net.intent;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.NetworkResource;
+import org.onosproject.net.flow.FlowRule;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * An intent that enables to tell flow level operation.
+ * This instance holds a collection of flow rules that may be executed in parallel.
+ */
+public class FlowRuleIntent extends Intent {
+
+    private final Collection<FlowRule> flowRules;
+
+    /**
+     * Creates an flow rule intent with the specified flow rules to be set.
+     *
+     * @param appId     application id
+     * @param flowRules flow rules to be set.
+     */
+    public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules) {
+        this(appId, null, flowRules, Collections.emptyList());
+    }
+
+    /**
+     * Creates an flow rule intent with the specified key, flow rules to be set, and
+     * required network resources.
+     *
+     * @param appId     application id
+     * @param key       key
+     * @param flowRules flow rules
+     * @param resources network resources
+     */
+    public FlowRuleIntent(ApplicationId appId, Key key, Collection<FlowRule> flowRules,
+                          Collection<NetworkResource> resources) {
+        super(appId, key, resources, DEFAULT_INTENT_PRIORITY);
+        this.flowRules = ImmutableList.copyOf(checkNotNull(flowRules));
+    }
+
+    /**
+     * Returns a collection of flow rules to be set.
+     *
+     * @return a collection of flow rules
+     */
+    public Collection<FlowRule> flowRules() {
+        return flowRules;
+    }
+
+    @Override
+    public boolean isInstallable() {
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id())
+                .add("key", key())
+                .add("appId", appId())
+                .add("resources", resources())
+                .add("flowRule", flowRules)
+                .toString();
+    }
+}

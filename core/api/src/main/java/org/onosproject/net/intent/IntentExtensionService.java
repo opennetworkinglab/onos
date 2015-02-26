@@ -45,28 +45,4 @@ public interface IntentExtensionService {
      * @return the set of compiler bindings
      */
     Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> getCompilers();
-
-    /**
-     * Registers the specified installer for the given installable intent class.
-     *
-     * @param cls       installable intent class
-     * @param installer intent installer
-     * @param <T>       the type of installable intent
-     */
-    <T extends Intent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer);
-
-    /**
-     * Unregisters the installer for the given installable intent class.
-     *
-     * @param cls installable intent class
-     * @param <T> the type of installable intent
-     */
-    <T extends Intent> void unregisterInstaller(Class<T> cls);
-
-    /**
-     * Returns immutable set of bindings of currently registered intent installers.
-     *
-     * @return the set of installer bindings
-     */
-    Map<Class<? extends Intent>, IntentInstaller<? extends Intent>> getInstallers();
 }

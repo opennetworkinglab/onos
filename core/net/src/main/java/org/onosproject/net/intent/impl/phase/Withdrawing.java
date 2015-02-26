@@ -15,33 +15,40 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.impl.IntentProcessor;
 
-import java.util.Optional;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 
 /**
- * Represents a phase of withdrawing an intent with calling
- * {@link org.onosproject.net.flow.FlowRuleService}.
+ * Represents a phase where an intent is withdrawing.
  */
-class Withdrawing implements IntentProcessPhase {
+class Withdrawing extends FinalIntentProcessPhase {
 
     private final IntentProcessor processor;
-    private final IntentData pending;
-    private final FlowRuleOperations flowRules;
+    private final IntentData data;
 
-    Withdrawing(IntentProcessor processor, IntentData pending, FlowRuleOperations flowRules) {
+    /**
+     * Creates a withdrawing phase.
+     *
+     * @param processor intent processor that does work for withdrawing
+     * @param data      intent data containing an intent to be withdrawn
+     */
+    Withdrawing(IntentProcessor processor, IntentData data) {
         this.processor = checkNotNull(processor);
-        this.pending = checkNotNull(pending);
-        this.flowRules = checkNotNull(flowRules);
+        this.data = checkNotNull(data);
+
+        this.data.setState(WITHDRAWING);
     }
 
     @Override
-    public Optional<IntentProcessPhase> execute() {
-        processor.applyFlowRules(flowRules);
-        return Optional.of(new Withdrawn(pending));
+    protected void preExecute() {
+        processor.uninstall(data);
+    }
+
+    @Override
+    public IntentData data() {
+        return data;
     }
 }

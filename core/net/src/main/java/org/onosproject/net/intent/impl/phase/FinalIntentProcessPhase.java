@@ -26,8 +26,19 @@ public abstract class FinalIntentProcessPhase implements IntentProcessPhase {
 
     @Override
     public final Optional<IntentProcessPhase> execute() {
+        preExecute();
         return Optional.empty();
     }
 
+    /**
+     * Executes operations that must take place before the phase starts.
+     */
+    protected void preExecute() {}
+
+    /**
+     * Returns the IntentData object being acted on by this phase.
+     *
+     * @return intent data object for the phase
+     */
     public abstract IntentData data();
 }

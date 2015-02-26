@@ -19,12 +19,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -76,7 +74,6 @@ public class IntentServiceTest {
 
         // Register a compiler and an installer both setup for success.
         service.registerCompiler(TestIntent.class, new TestCompiler(new TestInstallableIntent(INSTALLABLE_IID)));
-        service.registerInstaller(TestInstallableIntent.class, new TestInstaller(false));
 
         final Intent intent = new TestIntent(IID);
         service.submit(intent);
@@ -143,29 +140,6 @@ public class IntentServiceTest {
         validateEvents(intent, INSTALL_REQ, FAILED);
     }
 
-    @Test
-    public void failedInstallation() {
-        // Register a compiler programmed for success and installer for failure
-        service.registerCompiler(TestIntent.class, new TestCompiler(new TestInstallableIntent(INSTALLABLE_IID)));
-        service.registerInstaller(TestInstallableIntent.class, new TestInstaller(true));
-
-        // Submit an intent
-        final Intent intent = new TestIntent(IID);
-        service.submit(intent);
-
-        // Allow a small window of time until the intent is in the expected state
-        TestTools.assertAfter(GRACE_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertEquals("incorrect intent state", IntentState.FAILED,
-                             service.getIntentState(intent.key()));
-            }
-        });
-
-        // Make sure that all expected events have been emitted
-        validateEvents(intent, INSTALL_REQ, FAILED);
-    }
-
     /**
      * Validates that the test event listener has received the following events
      * for the specified intent. Events received for other intents will not be
@@ -210,36 +184,12 @@ public class IntentServiceTest {
     }
 
     @Test
-    public void installerBasics() {
-        // Make sure there are no installers
-        assertEquals("incorrect installer count", 0, service.getInstallers().size());
-
-        // Add an installer and make sure that it appears in the map
-        IntentInstaller<TestInstallableIntent> installer = new TestInstaller(false);
-        service.registerInstaller(TestInstallableIntent.class, installer);
-        assertEquals("incorrect installer", installer,
-                     service.getInstallers().get(TestInstallableIntent.class));
-
-        // Remove the same and make sure that it no longer appears in the map
-        service.unregisterInstaller(TestInstallableIntent.class);
-        assertNull("installer should not be registered",
-                   service.getInstallers().get(TestInstallableIntent.class));
-    }
-
-    @Test
     public void implicitRegistration() {
         // Add a compiler and make sure that it appears in the map
         IntentCompiler<TestIntent> compiler = new TestCompiler(new TestSubclassInstallableIntent(INSTALLABLE_IID));
         service.registerCompiler(TestIntent.class, compiler);
         assertEquals("incorrect compiler", compiler,
                      service.getCompilers().get(TestIntent.class));
-
-        // Add a installer and make sure that it appears in the map
-        IntentInstaller<TestInstallableIntent> installer = new TestInstaller(false);
-        service.registerInstaller(TestInstallableIntent.class, installer);
-        assertEquals("incorrect installer", installer,
-                     service.getInstallers().get(TestInstallableIntent.class));
-
 
         // Submit an intent which is a subclass of the one we registered
         final Intent intent = new TestSubclassIntent(IID);
@@ -258,11 +208,6 @@ public class IntentServiceTest {
         // under the intent subclass
         assertEquals("incorrect compiler", compiler,
                      service.getCompilers().get(TestSubclassIntent.class));
-
-        // Make sure that now we have an implicit registration of the installer
-        // under the intent subclass
-        assertEquals("incorrect installer", installer,
-                     service.getInstallers().get(TestSubclassInstallableIntent.class));
 
         // TODO: discuss whether or if implicit registration should require implicit unregistration
         // perhaps unregister by compiler or installer itself, rather than by class would be better
@@ -304,36 +249,4 @@ public class IntentServiceTest {
             return compiled;
         }
     }
-
-    // Controllable installer
-    private class TestInstaller implements IntentInstaller<TestInstallableIntent> {
-        private final boolean fail;
-
-        TestInstaller(boolean fail) {
-            this.fail = fail;
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> install(TestInstallableIntent intent) {
-            if (fail) {
-                throw new IntentException("install failed by design");
-            }
-            return null;
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> uninstall(TestInstallableIntent intent) {
-            if (fail) {
-                throw new IntentException("remove failed by design");
-            }
-            return null;
-        }
-
-        @Override
-        public List<Collection<FlowRuleOperation>> replace(TestInstallableIntent intent,
-                                                    TestInstallableIntent newIntent) {
-            return null;
-        }
-    }
-
 }
