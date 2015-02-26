@@ -146,9 +146,11 @@ public class SimpleLinkStore
     @Override
     public Set<Link> getEgressLinks(ConnectPoint src) {
         Set<Link> egress = new HashSet<>();
-        for (LinkKey linkKey : srcLinks.get(src.deviceId())) {
-            if (linkKey.src().equals(src)) {
-                egress.add(links.get(linkKey));
+        synchronized (srcLinks) {
+            for (LinkKey linkKey : srcLinks.get(src.deviceId())) {
+                if (linkKey.src().equals(src)) {
+                    egress.add(links.get(linkKey));
+                }
             }
         }
         return egress;
@@ -157,9 +159,11 @@ public class SimpleLinkStore
     @Override
     public Set<Link> getIngressLinks(ConnectPoint dst) {
         Set<Link> ingress = new HashSet<>();
-        for (LinkKey linkKey : dstLinks.get(dst.deviceId())) {
-            if (linkKey.dst().equals(dst)) {
-                ingress.add(links.get(linkKey));
+        synchronized (dstLinks) {
+            for (LinkKey linkKey : dstLinks.get(dst.deviceId())) {
+                if (linkKey.dst().equals(dst)) {
+                    ingress.add(links.get(linkKey));
+                }
             }
         }
         return ingress;
