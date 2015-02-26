@@ -80,8 +80,8 @@ public class MplsIntentCompilerTest extends AbstractIntentTest {
      */
     @Test
     public void testForwardPathCompilation() {
-        Optional<MplsLabel> ingressLabel = Optional.ofNullable(MplsLabel.mplsLabel(10));
-        Optional<MplsLabel> egressLabel = Optional.ofNullable(MplsLabel.mplsLabel(20));
+        Optional<MplsLabel> ingressLabel = Optional.of(MplsLabel.mplsLabel(10));
+        Optional<MplsLabel> egressLabel = Optional.of(MplsLabel.mplsLabel(20));
 
         MplsIntent intent = makeIntent("d1", ingressLabel, "d8", egressLabel);
         assertThat(intent, is(notNullValue()));
@@ -117,8 +117,8 @@ public class MplsIntentCompilerTest extends AbstractIntentTest {
      */
     @Test
     public void testReversePathCompilation() {
-        Optional<MplsLabel> ingressLabel = Optional.ofNullable(MplsLabel.mplsLabel(10));
-        Optional<MplsLabel> egressLabel = Optional.ofNullable(MplsLabel.mplsLabel(20));
+        Optional<MplsLabel> ingressLabel = Optional.of(MplsLabel.mplsLabel(10));
+        Optional<MplsLabel> egressLabel = Optional.of(MplsLabel.mplsLabel(20));
 
         MplsIntent intent = makeIntent("d8", ingressLabel, "d1", egressLabel);
         assertThat(intent, is(notNullValue()));

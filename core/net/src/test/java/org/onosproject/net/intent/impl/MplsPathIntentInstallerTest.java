@@ -48,9 +48,9 @@ public class  MplsPathIntentInstallerTest extends IntentInstallerTest {
     MplsPathIntentInstaller installer;
 
     private final Optional<MplsLabel> ingressLabel =
-            Optional.ofNullable(MplsLabel.mplsLabel(10));
+            Optional.of(MplsLabel.mplsLabel(10));
     private final Optional<MplsLabel> egressLabel =
-            Optional.ofNullable(MplsLabel.mplsLabel(20));
+            Optional.of(MplsLabel.mplsLabel(20));
 
     private final List<Link> links = Arrays.asList(
             new DefaultLink(PID, d1p1, d2p0, DIRECT),
