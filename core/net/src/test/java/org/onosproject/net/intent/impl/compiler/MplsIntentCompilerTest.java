@@ -96,7 +96,8 @@ public class MplsIntentCompilerTest extends AbstractIntentTest {
         Intent forwardResultIntent = result.get(0);
         assertThat(forwardResultIntent instanceof MplsPathIntent, is(true));
 
-        if (forwardResultIntent instanceof MplsIntent) {
+        // if statement suppresses static analysis warnings about unchecked cast
+        if (forwardResultIntent instanceof MplsPathIntent) {
             MplsPathIntent forwardPathIntent = (MplsPathIntent) forwardResultIntent;
             // 7 links for the hops, plus one default lnk on ingress and egress
             assertThat(forwardPathIntent.path().links(), hasSize(hops.length + 1));
@@ -133,7 +134,8 @@ public class MplsIntentCompilerTest extends AbstractIntentTest {
         Intent reverseResultIntent = result.get(0);
         assertThat(reverseResultIntent instanceof MplsPathIntent, is(true));
 
-        if (reverseResultIntent instanceof MplsIntent) {
+        // if statement suppresses static analysis warnings about unchecked cast
+        if (reverseResultIntent instanceof MplsPathIntent) {
             MplsPathIntent reversePathIntent = (MplsPathIntent) reverseResultIntent;
             assertThat(reversePathIntent.path().links(), hasSize(hops.length + 1));
             assertThat(reversePathIntent.path().links(), linksHasPath("d2", "d1"));
