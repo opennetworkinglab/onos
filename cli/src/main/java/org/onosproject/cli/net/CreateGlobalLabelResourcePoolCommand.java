@@ -12,11 +12,11 @@ import org.onosproject.net.resource.LabelResourceService;
 @Command(scope = "onos", name = "create-global-label-resource-pool",
 description = "create global label resource pool by specific device id")
 public class CreateGlobalLabelResourcePoolCommand extends AbstractShellCommand {
-    @Argument(index = 1, name = "beginLabel",
+    @Argument(index = 0, name = "beginLabel",
             description = "beginning Number",
             required = true, multiValued = false)
     String beginLabel = null;
-    @Argument(index = 2, name = "endLabel",
+    @Argument(index = 1, name = "endLabel",
             description = "end Number",
             required = true, multiValued = false)
     String endLabel = null;

@@ -13,7 +13,7 @@ import org.onosproject.net.resource.LabelResourceService;
 @Command(scope = "onos", name = "apply-global-label-resource-pool",
       description = "apply global label resource pool by specific device id")
 public class ApplyGlobalLabelResourceCommand extends AbstractShellCommand {
-    @Argument(index = 1, name = "applyNum",
+    @Argument(index = 0, name = "applyNum",
             description = "applyNum", required = true, multiValued = false)
     String applyNum = null;
 

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.resource.LabelResourcePool;
 import org.onosproject.store.Store;
 
 import com.google.common.collect.Multimap;
@@ -86,7 +87,7 @@ public interface LabelResourceStore
      * @param release release the collection of releasing labels
      * @return success or fail
      */
-    boolean releaseToGlobalPool(Set<DefaultLabelResource> release);
+    boolean releaseToGlobalPool(Set<LabelResourceId> release);
 
     /**
      * judge if the pool of a specific device id is full.
@@ -126,4 +127,10 @@ public interface LabelResourceStore
      * @return the global label resource pool
      */
     LabelResourcePool getGlobalLabelResourcePool();
+
+    /**
+     * get all resource pools.
+     * @return all resource pools
+     */
+    Set<LabelResourcePool> getAllLabelResourcePool();
 }

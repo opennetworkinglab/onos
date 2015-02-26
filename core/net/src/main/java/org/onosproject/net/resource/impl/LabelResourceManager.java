@@ -131,7 +131,7 @@ public class LabelResourceManager
     }
 
     @Override
-    public boolean releaseToGlobalPool(Set<DefaultLabelResource> release) {
+    public boolean releaseToGlobalPool(Set<LabelResourceId> release) {
         // TODO Auto-generated method stub
         return store.releaseToGlobalPool(release);
     }
@@ -200,7 +200,13 @@ public class LabelResourceManager
 
     }
 
-    private class InternalDeviceListener implements DeviceListener {
+    @Override
+	public Set<LabelResourcePool> getAllLabelResourcePool() {
+		// TODO Auto-generated method stub
+		return store.getAllLabelResourcePool();
+	}
+
+	private class InternalDeviceListener implements DeviceListener {
 
         @Override
         public void event(DeviceEvent event) {
