@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, ts;
+    var $log, fs, sus, ts, flash;
 
     var api,
         td3,
@@ -31,52 +31,32 @@
         enhancedLink = null;    // the link which the mouse is hovering over
 
     // SVG elements;
-    var svg, mouseG;
+    var svg;
+
+    // internal state
+    var showPorts = true;       // enable port highlighting by default
 
 
     // ======== ALGORITHM TO FIND LINK CLOSEST TO MOUSE ========
 
-    function setupMouse(forceG, zoomer) {
-        $log.debug('set up mouse handlers for mouse move');
-        mouseG = forceG.append('g').attr('id', 'topo-mouse');
-        //mouseG.append('circle')
-        //    .attr({
-        //        r: 5,
-        //        opacity: 0
-        //    })
-        //    .style('fill', 'red');
-
-        svg.on('mouseenter', function () {
-            //$log.log('M--ENTER');
-            //mouseG.selectAll('circle').attr('opacity', 1);
-        })
-            .on('mouseleave', function () {
-                //$log.log('M--LEAVE');
-                //mouseG.selectAll('circle').attr('opacity', 0);
-            })
-            .on('mousemove', function () {
-                var m = d3.mouse(this),
-                    sc = zoomer.scale(),
-                    tr = zoomer.translate(),
-                    mx = (m[0] - tr[0]) / sc,
-                    my = (m[1] - tr[1]) / sc;
-
-                //$log.log('M--MOVE', m);
-
-                //mouseG.selectAll('circle')
-                //    .attr({
-                //        cx: mx,
-                //        cy: my
-                //    });
-                updatePerps({x: mx, y: my}, zoomer);
-            });
+    function mouseMoveHandler() {
+        var m = d3.mouse(this),
+            sc = api.zoomer.scale(),
+            tr = api.zoomer.translate(),
+            mx = (m[0] - tr[0]) / sc,
+            my = (m[1] - tr[1]) / sc;
+        computeNearestLink({x: mx, y: my});
     }
 
-    function updatePerps(mouse, zoomer) {
-        var proximity = 30 / zoomer.scale(),
-            perpData, perps, nearest, minDist;
+    function computeNearestLink(mouse) {
+        var proximity = 30 / api.zoomer.scale(),
+            nearest, minDist;
 
         function sq(x) { return x * x; }
+
+        function mdist(p, m) {
+            return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
+        }
 
         function pdrop(line, mouse) {
             var x1 = line.x1,
@@ -90,10 +70,6 @@
                 x4 = x3 - k * (y2-y1),
                 y4 = y3 + k * (x2-x1);
             return {x:x4, y:y4};
-        }
-
-        function mdist(p, m) {
-            return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
         }
 
         function lineSeg(d) {
@@ -115,7 +91,6 @@
         }
 
         if (network.links.length) {
-            perpData = [];
             nearest = null;
             minDist = proximity * 2;
 
@@ -135,40 +110,8 @@
                         minDist = dist;
                         nearest = d;
                     }
-                    /*
-                     perpData.push({
-                     key: d.key,
-                     x1: mouse.x,
-                     y1: mouse.y,
-                     x2: point.x,
-                     y2: point.y
-                     });
-                     */
                 }
             });
-
-            /*
-             perps = mouseG.selectAll('line')
-             .data(perpData, function (d) { return d.key; })
-             .attr({
-             x1: function (d) { return d.x1; },
-             y1: function (d) { return d.y1; },
-             x2: function (d) { return d.x2; },
-             y2: function (d) { return d.y2; }
-             });
-
-             perps.enter().append('line')
-             .attr({
-             x1: function (d) { return d.x1; },
-             y1: function (d) { return d.y1; },
-             x2: function (d) { return d.x2; },
-             y2: function (d) { return d.y2; }
-             })
-             .style('stroke-width', 2)
-             .style('stroke', 'limegreen');
-
-             perps.exit().remove();
-             */
 
             enhanceNearestLink(nearest);
         }
@@ -245,36 +188,52 @@
         return {x: k * dx + ln.x, y: k * dy + ln.y};
     }
 
+    function togglePorts() {
+        showPorts = !showPorts;
+
+        var what = showPorts ? 'Enable' : 'Disable',
+            handler = showPorts ? mouseMoveHandler : null;
+
+        if (!showPorts) {
+            enhanceNearestLink(null);
+        }
+        svg.on('mousemove', handler);
+        flash.flash(what + ' port highlighting');
+    }
+
     // ==========================
     // Module definition
 
     angular.module('ovTopo')
         .factory('TopoLinkService',
-        ['$log', 'FnService', 'SvgUtilService', 'ThemeService',
+        ['$log', 'FnService', 'SvgUtilService', 'ThemeService', 'FlashService',
 
-            function (_$log_, _fs_, _sus_, _ts_) {
-                $log = _$log_;
-                fs = _fs_;
-                sus = _sus_;
-                ts = _ts_;
+        function (_$log_, _fs_, _sus_, _ts_, _flash_) {
+            $log = _$log_;
+            fs = _fs_;
+            sus = _sus_;
+            ts = _ts_;
+            flash = _flash_;
 
-                function initLink(_api_, _td3_) {
-                    api = _api_;
-                    td3 = _td3_;
-                    svg = api.svg;
-                    network = api.network;
-                    setupMouse(api.forceG, api.zoomer);
+            function initLink(_api_, _td3_) {
+                api = _api_;
+                td3 = _td3_;
+                svg = api.svg;
+                network = api.network;
+                if (showPorts) {
+                    svg.on('mousemove', mouseMoveHandler);
                 }
+            }
 
-                function destroyLink() {
-                    svg.on('mouseenter', null)
-                        .on('mouseleave', null)
-                        .on('mousemove', null);
-                }
+            function destroyLink() {
+                // unconditionally remove any mousemove event handler
+                svg.on('mousemove', null);
+            }
 
-                return {
-                    initLink: initLink,
-                    destroyLink: destroyLink
-                };
-            }]);
+            return {
+                initLink: initLink,
+                destroyLink: destroyLink,
+                togglePorts: togglePorts
+            };
+        }]);
 }());

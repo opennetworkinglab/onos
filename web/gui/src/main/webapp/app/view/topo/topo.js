@@ -49,7 +49,7 @@
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
             B: [toggleMap, 'Toggle background map'],
-            //P: togglePorts,
+            P: [tfs.togglePorts, 'Toggle Port Highlighting'],
 
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
             Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
@@ -69,7 +69,7 @@
             esc: handleEscape,
 
             _helpFormat: [
-                ['O', 'I', 'D', '-', 'H', 'M', 'B', 'P' ],
+                ['O', 'I', 'D', '-', 'H', 'M', 'P', 'B' ],
                 ['X', 'Z', 'L', 'U', 'R' ],
                 ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
             ]

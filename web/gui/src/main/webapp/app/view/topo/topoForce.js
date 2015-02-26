@@ -735,10 +735,9 @@
         };
     }
 
-    function mkLinkApi(svg, forceG, uplink) {
+    function mkLinkApi(svg, uplink) {
         return {
             svg: svg,
-            forceG: forceG,
             zoomer: uplink.zoomer(),
             network: network,
             portLabelG: function () { return portLabelG; },
@@ -793,7 +792,7 @@
                 tts.initTraffic(mkTrafficApi(uplink));
                 tos.initOblique(mkObliqueApi(uplink, fltr));
                 fltr.initFilter(mkFilterApi(uplink), d3.select('#mast-right'));
-                tls.initLink(mkLinkApi(svg, forceG, uplink), td3);
+                tls.initLink(mkLinkApi(svg, uplink), td3);
 
                 settings = angular.extend({}, defaultSettings, opts);
 
@@ -847,6 +846,7 @@
 
                 updateDeviceColors: td3.updateDeviceColors,
                 toggleHosts: toggleHosts,
+                togglePorts: tls.togglePorts,
                 toggleOffline: toggleOffline,
                 cycleDeviceLabels: cycleDeviceLabels,
                 unpin: unpin,
