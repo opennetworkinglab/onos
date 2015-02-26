@@ -1,0 +1,52 @@
+#!/usr/bin/env python 
+'''
+  Generate the partitions json file from the $OC* environment variables
+  
+  Usage: onos-gen-partitions [output file]
+  If output file is not provided, the json is written to stdout.
+'''
+
+from os import environ
+from collections import deque, OrderedDict
+import re
+import json
+import sys
+
+convert = lambda text: int(text) if text.isdigit() else text.lower() 
+alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)] 
+
+def get_OC_vars():
+  vars = []
+  for var in environ:
+    if re.match(r"OC[0-9]+", var):
+      vars.append(var)
+  return sorted(vars, key=alphanum_key)
+
+def get_nodes(vars, port=7238):
+  node = lambda k: { 'id': k, 'ip': k, 'tcpPort': port }
+  return [ node(environ[v]) for v in vars ]
+
+def generate_permutations(nodes, k):
+  l = deque(nodes)
+  perms = {}
+  for i in range(1, len(nodes)+1):
+    perms['p%d' % i] = list(l)[:k]
+    l.rotate(-1)
+  return OrderedDict(sorted(perms.iteritems(), key=lambda (k, v): alphanum_key(k)))
+
+if __name__ == '__main__':
+  vars = get_OC_vars()
+  nodes = get_nodes(vars)
+  partitions = generate_permutations(nodes, 3)
+  data = { 
+           'nodes': nodes,
+           'partitions': partitions 
+         }
+  output = json.dumps(data, indent=4)
+
+  if len(sys.argv) == 2:
+    filename = sys.argv[1]
+    with open(filename, 'w') as f:
+      f.write(output)
+  else:
+    print output
