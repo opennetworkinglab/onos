@@ -20,8 +20,10 @@
 (function () {
     'use strict';
 
+    // injected refs
     var $log, fs, is;
 
+    // configuration
     var btnSize = 25,
         btnPadding = 4;
 
@@ -178,18 +180,20 @@
     }
 
     angular.module('onosWidget')
-        .factory('ButtonService', ['$log', 'FnService', 'IconService',
-            function (_$log_, _fs_, _is_) {
-                $log = _$log_;
-                fs = _fs_;
-                is = _is_;
+    .factory('ButtonService',
+        ['$log', 'FnService', 'IconService',
 
-                return {
-                    button: button,
-                    toggle: toggle,
-                    radioSet: radioSet,
-                    width: width
-                };
-            }]);
+        function (_$log_, _fs_, _is_) {
+            $log = _$log_;
+            fs = _fs_;
+            is = _is_;
+
+            return {
+                button: button,
+                toggle: toggle,
+                radioSet: radioSet,
+                width: width
+            };
+        }]);
 
 }());

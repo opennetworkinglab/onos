@@ -161,6 +161,7 @@
             width: width
         }
     }
+
     function destroyToolbar(id) {
         ps.destroyPanel(id);
         tbarDiv = null;
@@ -170,14 +171,17 @@
         tbarPanel.show(cb);
         rotateArrowLeft();
     }
+
     function hide(cb) {
         tbarPanel.hide(cb);
         rotateArrowRight();
     }
+
     function toggleTools(cb) {
         if (tbarPanel.isVisible()) { hide(cb); }
         else { show(cb) }
     }
+
     function displayTools() {
         if (settings.shown) { show(); }
         else { hide(); }
@@ -187,6 +191,7 @@
         if (w) { tbarPanel.width(w); }
         return tbarPanel.width();
     }
+
     function addToWidth(size) {
         if (!(settings.width > (fs.windowSize(0, 500).width))) {
             settings.width = width() + size + btnPadding;
@@ -195,19 +200,20 @@
     }
 
     angular.module('onosWidget')
-        .factory('ToolbarService', ['$log', 'FnService',
-            'PanelService', 'ButtonService', 'IconService',
-            function (_$log_, _fs_, _ps_, _bns_, _is_) {
-                $log = _$log_;
-                fs = _fs_;
-                ps = _ps_;
-                bns = _bns_;
-                is = _is_;
+    .factory('ToolbarService',
+        ['$log', 'FnService', 'PanelService', 'ButtonService', 'IconService',
 
-                return {
-                    init: init,
-                    createToolbar: createToolbar,
-                    destroyToolbar: destroyToolbar
-                };
-            }]);
+        function (_$log_, _fs_, _ps_, _bns_, _is_) {
+            $log = _$log_;
+            fs = _fs_;
+            ps = _ps_;
+            bns = _bns_;
+            is = _is_;
+
+            return {
+                init: init,
+                createToolbar: createToolbar,
+                destroyToolbar: destroyToolbar
+            };
+        }]);
 }());

@@ -32,11 +32,11 @@
 .toggleButton,
 .radioSet {
     display: inline-block;
-    padding: 0 4px 0 4px;
+    padding: 0 4px;
 }
 .radioButton {
     display: inline-block;
-    padding: 0 2px 0 2px;
+    padding: 0 2px;
 }
 
 .button svg.embeddedIcon,
