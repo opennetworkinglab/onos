@@ -58,6 +58,16 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
+    public boolean isLocal(Key intentKey) {
+        return false;
+    }
+
+    @Override
+    public Iterable<Intent> getPending() {
+        return null;
+    }
+
+    @Override
     public void addListener(IntentListener listener) {
 
     }

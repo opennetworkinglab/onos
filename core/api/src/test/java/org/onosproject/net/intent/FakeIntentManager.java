@@ -211,6 +211,16 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public boolean isLocal(Key intentKey) {
+        return true;
+    }
+
+    @Override
+    public Iterable<Intent> getPending() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public void addListener(IntentListener listener) {
         listeners.add(listener);
     }

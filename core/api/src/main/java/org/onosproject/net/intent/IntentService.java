@@ -16,7 +16,6 @@
 package org.onosproject.net.intent;
 
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -83,19 +82,22 @@ public interface IntentService {
      */
     List<Intent> getInstallableIntents(Key intentKey);
 
-    // TODO remove defaults
-    default boolean isLocal(Key intentKey) {
-        return true;
-    }
+    /**
+     * Signifies whether the local node is responsible for processing the given
+     * intent key.
+     *
+     * @param intentKey intent key to check
+     * @return true if the local node is responsible for the intent key,
+     * otherwise false
+     */
+    boolean isLocal(Key intentKey);
 
     /**
      * Returns the list of intent requests pending processing.
      *
      * @return intents pending processing
      */
-    default Iterable<Intent> getPending() {
-        return Collections.emptyList();
-    }
+    Iterable<Intent> getPending();
 
     /**
      * Adds the specified listener for intent events.
