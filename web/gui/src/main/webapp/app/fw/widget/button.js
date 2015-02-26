@@ -27,7 +27,15 @@
     var btnSize = 25,
         btnPadding = 4;
 
-    function noop() {}
+
+    // === Helper Functions
+
+    function divExists(div, msg) {
+        if (!div) {
+            $log.warn('div undefined (' + msg + ')');
+        }
+        return !!div;
+    }
 
     function createDiv(div, cls, id) {
         return div.append('div')
@@ -35,11 +43,22 @@
             .attr('id', id);
     }
 
+    function noop() {}
+
+    function buttonWidth() {
+        return btnSize + 2 * btnPadding;
+    }
+
+
+    // === BUTTON =================================================
+
+    // div is where to put the button (d3.selection of a DIV element)
+    // id should be globally unique
+    // gid is glyph ID (from Glyph Service)
+    // cb is callback function on click
+    // tooltip is text for tooltip
     function button(div, id, gid, cb, tooltip) {
-        if (!div) {
-            $log.warn('Button cannot append to div');
-            return null;
-        }
+        if (!divExists(div, 'button')) return null;
 
         var btnDiv = createDiv(div, 'button', id),
             cbFnc = fs.isF(cb) || noop;
@@ -50,16 +69,21 @@
 
         return {
             id: id,
-            click: cbFnc,
-            el: btnDiv
+            width: buttonWidth
         }
     }
 
+
+    // === TOGGLE BUTTON ==========================================
+
+    // div is where to put the button (d3.selection of a DIV element)
+    // id should be globally unique
+    // gid is glyph ID (from Glyph Service)
+    // initState is whether the toggle is on or not to begin
+    // cb is callback function on click
+    // tooltip is text for tooltip
     function toggle(div, id, gid, initState, cb, tooltip) {
-        if (!div) {
-            $log.warn('Toggle cannot append to div');
-            return null;
-        }
+        if (!divExists(div, 'toggle button')) return null;
 
         var sel = !!initState,
             togDiv = createDiv(div, 'toggleButton', id),
@@ -69,115 +93,143 @@
         togDiv.classed('selected', sel);
 
         function _toggle(b) {
-            if (b === undefined) {
-                sel = !sel;
-            } else {
-                sel = !!b;
-            }
-            cbFnc(sel);
+            sel = (b === undefined) ? !sel : !!b;
             togDiv.classed('selected', sel);
+            cbFnc(sel);
         }
 
         togDiv.on('click', _toggle);
 
         return {
             id: id,
-            el: togDiv,
+            width: buttonWidth,
             selected: function () { return sel; },
             toggle: _toggle
         }
     }
 
+
+    // === RADIO BUTTON SET =======================================
+
+
+    // div is where to put the button (d3.selection of a DIV element)
+    // id should be globally unique
+    // rset is an array of button descriptors of the following form:
+    //     {
+    //       gid: glyphId,
+    //       tooltip: tooltipText,
+    //       cb:  callbackFunction
+    //     }
     function radioSet(div, id, rset) {
-        if (!div) {
-            $log.warn('Radio buttons cannot append to div');
+        if (!divExists(div, 'radio button set')) return null;
+
+        if (!fs.isA(rset) || !rset.length) {
+            $log.warn('invalid array (radio button set)');
             return null;
         }
-        if (!fs.isA(rset)) {
-            $log.warn('Radio button set is not an array');
-            return null;
-        }
-        if (rset.length === 0) {
-            $log.warn('Cannot create radio button set from empty array');
-            return null;
-        }
-        var rDiv = div.append('div').classed('radioSet', true),
+
+        var rDiv = createDiv(div, 'radioSet', id),
             rads = [],
-            sel;
+            idxByKey = {},
+            currIdx = 0;
 
-        function _selected(s) {
-            var curr = d3.select(this),
-                currId = curr.attr('id'),
-                selIndex = _getIndex(),
-                currIndex = _getIndex(currId);
+        function rsetWidth() {
+            return ((btnSize + btnPadding) * rads.length) + btnPadding;
+        }
 
-            // I have it going by id's because I couldn't think of a way
-            // to get the radio button's index from the div element
-                // We could look at the end of the radio button id for its number
-                // but I didn't know how to get the end of the string's number
-            if (!s) {
-                if (sel !== currId) {
-                    rads[selIndex].el.classed('selected', false);
-                    curr.classed('selected', true);
-                    rads[currIndex].cb();
-                    sel = currId;
-                }
-            } else {
-                if (!rads[s].el.classed('selected')) {
-                    rads[selIndex].el.classed('selected', false);
-                    rads[s].el.classed('selected', true);
-                    rads[s].cb();
-                    sel = rads[s].id;
-                }
+        function rbclick() {
+            var id = d3.select(this).attr('id'),
+                m = /^.*-(\d+)$/.exec(id),
+                idx = Number(m[1]);
+
+            if (idx !== currIdx) {
+                rads[currIdx].el.classed('selected', false);
+                currIdx = idx;
+                rads[currIdx].el.classed('selected', true);
+                invokeCurrent();
             }
         }
 
-        // given the id, will get the index of element
-        // without the id, will get the index of sel
-        function _getIndex(id) {
-            if (!id) {
-                for (var i = 0; i < rads.length; i++) {
-                    if (rads[i].id === sel) { return i; }
-                }
-            } else {
-                for (var j = 0; j < rads.length; j++) {
-                    if (rads[j].id === id) { return j; }
-                }
-            }
-        }
+         // {
+         //     gid: gid,
+         //     tooltip: ...,       (optional)
+         //     key: ...,           (optional)
+         //     cb: cb
+         //     id: ...             (added by us)
+         //     index: ...          (added by us)
+         // }
 
         rset.forEach(function (btn, index) {
-            var rid = {id: id + '-' + index},
-                rbtn = angular.extend({}, btn, rid),
-                istate = (index === 0),
-                rBtnDiv = createDiv(rDiv, 'radioButton', rbtn.id);
 
-            if (istate) { rBtnDiv.classed('selected', true); }
-            is.loadIcon(rBtnDiv, rbtn.gid, btnSize, true);
-            rbtn.el = rBtnDiv;
-            rbtn.cb = fs.isF(rbtn.cb) || noop;
+            if (!fs.isO(btn)) {
+                $log.warn('radio button descriptor at index ' + index +
+                            ' not an object');
+                return;
+            }
 
-            rBtnDiv.on('click', _selected);
+            var rid = id + '-' + index,
+                initSel = (index === 0),
+                rbdiv = createDiv(rDiv, 'radioButton', rid);
 
-            rads.push(rbtn);
+            rbdiv.classed('selected', initSel);
+            rbdiv.on('click', rbclick);
+            is.loadIcon(rbdiv, btn.gid, btnSize, true);
+            angular.extend(btn, {
+                el: rbdiv,
+                id: rid,
+                cb: fs.isF(btn.cb) || noop,
+                index: index
+            });
+
+            if (btn.key) {
+                idxByKey[btn.key] = index;
+            }
+
+            rads.push(btn);
         });
-        sel = rads[0].id;
-        rads[0].cb();
+
+
+        function invokeCurrent() {
+            var curr = rads[currIdx];
+            curr.cb(curr.index, curr.key);
+        }
+
+        function selected(x) {
+            var curr = rads[currIdx],
+                idx;
+
+            if (x === undefined) {
+                return curr.key || curr.index;
+            } else {
+                idx = idxByKey[x];
+                if (idx === undefined) {
+                    $log.warn('no radio button with key "' + x + '"');
+                } else {
+                    selectedIndex(idx);
+                }
+            }
+        }
+
+        function selectedIndex(x) {
+            if (x === undefined) {
+                return currIdx;
+            } else {
+                if (x >= 0 && x < rads.length) {
+                    currIdx = x;
+                    invokeCurrent();
+                } else {
+                    $log.warn('invalid radio button index', x);
+                }
+            }
+        }
 
         return {
-            rads: rads,
-            width: (((btnSize + btnPadding) * rads.length) + btnPadding),
-            selected: function (i) {
-                if (i === undefined) { _getIndex(); }
-                else { _selected(i); }
-            }
+            width: rsetWidth,
+            selected: selected,
+            selectedIndex: selectedIndex
         }
     }
 
-    function width(s) {
-        if (s) { btnSize = s; }
-        return btnSize;
-    }
 
     angular.module('onosWidget')
     .factory('ButtonService',
@@ -191,8 +243,7 @@
             return {
                 button: button,
                 toggle: toggle,
-                radioSet: radioSet,
-                width: width
+                radioSet: radioSet
             };
         }]);
 

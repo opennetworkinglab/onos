@@ -88,7 +88,7 @@
         if (!validId(btnId, 'addButton')) { return null; }
         ids.push(btnId);
         button =  bns.button(tbarDiv, btnId, gid, cb, tooltip);
-        if (button) { addToWidth(bns.width()); }
+        if (button) { addToWidth(button.width()); }
         displayTools();
         return button;
     }
@@ -99,7 +99,7 @@
         if (!validId(togId, 'addToggle')) { return null; }
         ids.push(togId);
         toggle =  bns.toggle(tbarDiv, togId, gid, initState, cb, tooltip);
-        if (toggle) { addToWidth(bns.width()); }
+        if (toggle) { addToWidth(toggle.width()); }
         displayTools();
         return toggle;
     }
@@ -110,7 +110,7 @@
         if (!validId(radId, 'addRadioSet')) { return null; }
         ids.push(radId);
         radios = bns.radioSet(tbarDiv, radId, rset);
-        if (radios) { addToWidth(radios.width); }
+        if (radios) { addToWidth(radios.width()); }
         displayTools();
         return radios;
     }
