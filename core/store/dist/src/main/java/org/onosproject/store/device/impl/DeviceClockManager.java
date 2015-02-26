@@ -62,7 +62,7 @@ public class DeviceClockManager implements DeviceClockService, DeviceClockProvid
         log.trace("term info for {} is: {}", deviceId, term);
 
         if (term == null) {
-            throw new IllegalStateException("Requesting timestamp for a deviceId without mastership");
+            throw new IllegalStateException("Requesting timestamp for " + deviceId + " without mastership");
         }
         return new MastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
     }
