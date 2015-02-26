@@ -238,13 +238,26 @@ public class GossipLinkStore
     @Override
     public Set<Link> getEgressLinks(ConnectPoint src) {
         Set<Link> egress = new HashSet<>();
-        for (LinkKey linkKey : srcLinks.get(src.deviceId())) {
-            if (linkKey.src().equals(src)) {
-                Link link = links.get(linkKey);
-                if (link != null) {
-                    egress.add(link);
-                } else {
-                    log.debug("Egress link for {} was null, skipped", linkKey);
+        //
+        // Change `srcLinks` to ConcurrentMap<DeviceId, (Concurrent)Set>
+        // to remove this synchronized block, if we hit performance issue.
+        // SetMultiMap#get returns wrapped collection to provide modifiable-view.
+        // And the wrapped collection is not concurrent access safe.
+        //
+        // Our use case here does not require returned collection to be modifiable,
+        // so the wrapped collection forces us to lock the whole multiset,
+        // for benefit we don't need.
+        //
+        // Same applies to `dstLinks`
+        synchronized (srcLinks) {
+            for (LinkKey linkKey : srcLinks.get(src.deviceId())) {
+                if (linkKey.src().equals(src)) {
+                    Link link = links.get(linkKey);
+                    if (link != null) {
+                        egress.add(link);
+                    } else {
+                        log.debug("Egress link for {} was null, skipped", linkKey);
+                    }
                 }
             }
         }
@@ -254,13 +267,15 @@ public class GossipLinkStore
     @Override
     public Set<Link> getIngressLinks(ConnectPoint dst) {
         Set<Link> ingress = new HashSet<>();
-        for (LinkKey linkKey : dstLinks.get(dst.deviceId())) {
-            if (linkKey.dst().equals(dst)) {
-                Link link = links.get(linkKey);
-                if (link != null) {
-                    ingress.add(link);
-                } else {
-                    log.debug("Ingress link for {} was null, skipped", linkKey);
+        synchronized (dstLinks) {
+            for (LinkKey linkKey : dstLinks.get(dst.deviceId())) {
+                if (linkKey.dst().equals(dst)) {
+                    Link link = links.get(linkKey);
+                    if (link != null) {
+                        ingress.add(link);
+                    } else {
+                        log.debug("Ingress link for {} was null, skipped", linkKey);
+                    }
                 }
             }
         }
