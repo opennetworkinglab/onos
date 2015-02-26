@@ -190,36 +190,60 @@
     }
 
     function unenhance(d) {
-        d.el.classed('enhanced', false);
+        // guard against link element not set
+        if (d.el) {
+            d.el.classed('enhanced', false);
+        }
         api.portLabelG().selectAll('.portLabel').remove();
     }
 
     function enhance(d) {
+        var data = [],
+            point;
+
+        // guard against link element not set
+        if (!d.el) return;
+
         d.el.classed('enhanced', true);
         $log.debug('[' + (d.srcPort || 'H') + '] ---> [' + d.tgtPort + ']', d.key);
 
         // Define port label data objects.
         // NOTE: src port is absent in the case of host-links.
 
-        var data = [{
+        point = locatePortLabel(d);
+        angular.extend(point, {
             id: 'topo-port-tgt',
-            num: d.tgtPort,
-            baseX: d.target.x,
-            baseY: d.target.y
-        }];
+            num: d.tgtPort
+        });
+        data.push(point);
 
         if (d.srcPort) {
-            data.push({
+            point = locatePortLabel(d, 1);
+            angular.extend(point, {
                 id: 'topo-port-src',
-                num: d.srcPort,
-                baseX: d.source.x,
-                baseY: d.source.y
+                num: d.srcPort
             });
+            data.push(point);
         }
 
         td3.applyPortLabels(data, api.portLabelG());
     }
 
+    function locatePortLabel(link, src) {
+        var near = src ? 'source' : 'target',
+            far = src ? 'target' : 'source',
+            ln = link[near],
+            lf = link[far],
+            offset = 32;
+
+        function dist(x, y) { return Math.sqrt(x*x + y*y); }
+
+        var dx = lf.x - ln.x,
+            dy = lf.y - ln.y,
+            k = offset / dist(dx, dy);
+
+        return {x: k * dx + ln.x, y: k * dy + ln.y};
+    }
 
     // ==========================
     // Module definition

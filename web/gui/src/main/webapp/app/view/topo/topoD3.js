@@ -426,13 +426,8 @@
 
             rect.attr(rectAroundText(el));
             text.attr('dy', linkLabelOffset);
-            el.attr('transform', transformPort(d));
+            el.attr('transform', sus.translate(d.x, d.y));
         });
-    }
-
-    function transformPort(d) {
-        // TODO: offset along the link, away from the node
-        return sus.translate(d.baseX, d.baseY);
     }
 
     // ==========================

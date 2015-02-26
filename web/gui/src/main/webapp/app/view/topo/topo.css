@@ -517,13 +517,13 @@
     fill: #eee;
 }
 .dark #ov-topo svg .portLabel rect {
-    fill: #555;
+    fill: #222;
 }
 
 #ov-topo svg .portLabel text {
     text-anchor: middle;
     stroke-width: 0.1;
-    font-size: 9pt;
+    font-size: 11pt;
 }
 .light #ov-topo svg .portLabel text {
     fill: #444;
