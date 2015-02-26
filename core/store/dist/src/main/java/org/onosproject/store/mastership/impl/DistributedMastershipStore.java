@@ -19,8 +19,11 @@ import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.putIfAbsent;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -358,6 +361,26 @@ public class DistributedMastershipStore
         } finally {
             roleMap.unlock(deviceId);
         }
+    }
+
+    @Override
+    public void relinquishAllRole(NodeId nodeId) {
+
+        List<MastershipEvent> events = new ArrayList<>();
+        for (Entry<DeviceId, RoleValue> entry : roleMap.entrySet()) {
+            final DeviceId deviceId = entry.getKey();
+            final RoleValue roleValue = entry.getValue();
+
+            if (roleValue.contains(MASTER, nodeId) ||
+                roleValue.contains(STANDBY, nodeId)) {
+
+                MastershipEvent event = relinquishRole(nodeId, deviceId);
+                if (event != null) {
+                    events.add(event);
+                }
+            }
+        }
+        notifyDelegate(events);
     }
 
     // TODO: Consider moving this to RoleValue method

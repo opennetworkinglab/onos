@@ -113,4 +113,12 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      */
     MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId);
 
+    /**
+     * Removes all the roles for the specified controller instance.
+     * If the role was MASTER, another controller instance will be selected
+     * as a candidate master.
+     *
+     * @param nodeId the controller instance identifier
+     */
+    void relinquishAllRole(NodeId nodeId);
 }

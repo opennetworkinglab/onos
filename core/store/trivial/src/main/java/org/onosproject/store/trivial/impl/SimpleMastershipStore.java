@@ -352,4 +352,27 @@ public class SimpleMastershipStore
         }
         return null;
     }
+
+    @Override
+    public synchronized void relinquishAllRole(NodeId nodeId) {
+        List<MastershipEvent> events = new ArrayList<>();
+        Set<DeviceId> toRelinquish = new HashSet<>();
+
+        masterMap.entrySet().stream()
+            .filter(entry -> nodeId.equals(entry.getValue()))
+            .forEach(entry -> toRelinquish.add(entry.getKey()));
+
+        backups.entrySet().stream()
+            .filter(entry -> entry.getValue().contains(nodeId))
+            .forEach(entry -> toRelinquish.add(entry.getKey()));
+
+        toRelinquish.forEach(deviceId -> {
+            MastershipEvent event = relinquishRole(nodeId, deviceId);
+            if (event != null) {
+                events.add(event);
+            }
+        });
+
+        notifyDelegate(events);
+    }
 }

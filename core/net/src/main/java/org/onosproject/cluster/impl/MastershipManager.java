@@ -304,38 +304,18 @@ public class MastershipManager
                 case INSTANCE_REMOVED:
                 case INSTANCE_DEACTIVATED:
                     ControllerNode node = event.subject();
+                    log.info("instance {} removed/deactivated", node);
+                    store.relinquishAllRole(node.id());
 
-                    if (node.equals(clusterService.getLocalNode())) {
-                        //If we are in smaller cluster, relinquish and return
-                        for (DeviceId device : getDevicesOf(node.id())) {
-                            if (!isInMajority()) {
-                                //own DeviceManager should catch event and tell switch
-                                store.relinquishRole(node.id(), device);
-                            }
-                        }
-                        log.info("broke off from cluster, relinquished devices");
-                        break;
-                    }
-
-                    // if we are the larger one and the removed node(s) are brain dead,
-                    // force relinquish on behalf of disabled node.
-                    // check network channel to do this?
-                    for (DeviceId device : getDevicesOf(node.id())) {
-                        //some things to check:
-                        // 1. we didn't break off as well while we're at it
-                        // 2. others don't pile in and try too - maybe a lock
-                        if (isInMajority()) {
-                            store.relinquishRole(node.id(), device);
-                        }
-                    }
                     clusterSize.decrementAndGet();
-                    log.info("instance {} removed/deactivated", event.subject());
                     break;
                 default:
                     log.warn("unknown cluster event {}", event);
             }
         }
 
+        // Can be removed if we go with naive split-brain handling: only majority
+        // assigns mastership
         private boolean isInMajority() {
             if (clusterService.getNodes().size() > (clusterSize.intValue() / 2)) {
                 return true;
