@@ -1,4 +1,4 @@
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.installer;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;

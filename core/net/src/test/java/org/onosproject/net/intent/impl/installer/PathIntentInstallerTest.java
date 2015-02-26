@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent.impl.installer;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.MplsLabel;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.FlowRuleOperation;
-import org.onosproject.net.intent.IntentTestsMocks;
-import org.onosproject.net.intent.MplsPathIntent;
-import org.onosproject.store.trivial.impl.SimpleLinkStore;
+import org.onosproject.net.intent.PathIntent;
 
 import com.google.common.collect.ImmutableList;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.PID;
@@ -43,38 +40,29 @@ import static org.onosproject.net.NetTestTools.PID;
 /**
  * Unit tests for path intent installer.
  */
-public class  MplsPathIntentInstallerTest extends IntentInstallerTest {
+public class PathIntentInstallerTest extends IntentInstallerTest {
 
-    MplsPathIntentInstaller installer;
-
-    private final Optional<MplsLabel> ingressLabel =
-            Optional.of(MplsLabel.mplsLabel(10));
-    private final Optional<MplsLabel> egressLabel =
-            Optional.of(MplsLabel.mplsLabel(20));
+    PathIntentInstaller installer;
 
     private final List<Link> links = Arrays.asList(
+            createEdgeLink(d1p0, true),
             new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT)
+            new DefaultLink(PID, d2p1, d3p1, DIRECT),
+            createEdgeLink(d3p0, false)
     );
     private final int hops = links.size() - 1;
-    private MplsPathIntent intent;
+    private PathIntent intent;
 
     /**
      * Configures objects used in all the test cases.
      */
     @Before
     public void localSetUp() {
-        installer = new MplsPathIntentInstaller();
+        installer = new PathIntentInstaller();
         installer.coreService = testCoreService;
-        installer.intentManager = new MockIntentManager(MplsPathIntent.class);
-        installer.linkStore = new SimpleLinkStore();
-        installer.resourceService = new IntentTestsMocks.MockResourceService();
-
-        intent = new MplsPathIntent(APP_ID, selector, treatment,
-                new DefaultPath(PID, links, hops),
-                ingressLabel,
-                egressLabel,
-                ImmutableList.of());
+        installer.intentManager = new MockIntentManager(PathIntent.class);
+        intent = new PathIntent(APP_ID, selector, treatment,
+                new DefaultPath(PID, links, hops), ImmutableList.of());
     }
 
     /**
@@ -87,14 +75,14 @@ public class  MplsPathIntentInstallerTest extends IntentInstallerTest {
     }
 
     /**
-     * Tests installation operation of the MPLS path intent installer.
+     * Tests installation operation of the path intent installer.
      */
     @Test
     public void install() {
         installer.activate();
 
         List<Collection<FlowRuleOperation>> operations =
-                installer.install(intent);
+            installer.install(intent);
         assertThat(operations, notNullValue());
         assertThat(operations, hasSize(1));
 
@@ -104,7 +92,13 @@ public class  MplsPathIntentInstallerTest extends IntentInstallerTest {
                 flowRuleOpsCollection.toArray(new FlowRuleOperation[hops]);
 
         FlowRuleOperation op0 = flowRuleOps[0];
-        checkFlowOperation(op0, FlowRuleOperation.Type.ADD, d2p0.deviceId());
+        checkFlowOperation(op0, FlowRuleOperation.Type.ADD, d1p0.deviceId());
+
+        FlowRuleOperation op1 = flowRuleOps[1];
+        checkFlowOperation(op1, FlowRuleOperation.Type.ADD, d2p0.deviceId());
+
+        FlowRuleOperation op2 = flowRuleOps[2];
+        checkFlowOperation(op2, FlowRuleOperation.Type.ADD, d3p0.deviceId());
 
         installer.deactivate();
     }
@@ -127,7 +121,13 @@ public class  MplsPathIntentInstallerTest extends IntentInstallerTest {
                 flowRuleOpsCollection.toArray(new FlowRuleOperation[hops]);
 
         FlowRuleOperation op0 = flowRuleOps[0];
-        checkFlowOperation(op0, FlowRuleOperation.Type.REMOVE, d2p0.deviceId());
+        checkFlowOperation(op0, FlowRuleOperation.Type.REMOVE, d1p0.deviceId());
+
+        FlowRuleOperation op1 = flowRuleOps[1];
+        checkFlowOperation(op1, FlowRuleOperation.Type.REMOVE, d2p0.deviceId());
+
+        FlowRuleOperation op2 = flowRuleOps[2];
+        checkFlowOperation(op2, FlowRuleOperation.Type.REMOVE, d3p0.deviceId());
 
         installer.deactivate();
     }
