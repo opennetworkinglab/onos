@@ -73,7 +73,9 @@ describe('factory: fw/layer/panel.js', function () {
             edge: 'right',
             width: 200,
             margin: 20,
-            xtnTime: 750
+            hideMargin: 20,
+            xtnTime: 750,
+            fade: true
         });
 
         // check basic properties
@@ -128,7 +130,9 @@ describe('factory: fw/layer/panel.js', function () {
             edge: 'left',
             width: 250,
             margin: 20,
-            xtnTime: 750
+            hideMargin: 20,
+            xtnTime: 750,
+            fade: true
         });
     });
 

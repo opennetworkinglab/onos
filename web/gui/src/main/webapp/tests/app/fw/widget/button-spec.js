@@ -18,27 +18,27 @@
  ONOS GUI -- Widget -- Button Service - Unit Tests
  */
 describe('factory: fw/widget/button.js', function () {
-    var $log, fs, bns, gs,
-        d3Elem;
+    var $log, fs, bns, d3Elem;
 
     beforeEach(module('onosWidget', 'onosSvg'));
 
-    beforeEach(inject(function (_$log_, FnService,
-                                ButtonService, GlyphService) {
+    beforeEach(inject(function (_$log_, FnService, ButtonService) {
         $log = _$log_;
         fs = FnService;
         bns = ButtonService;
-        gs = GlyphService;
     }));
 
     beforeEach(function () {
-        gs.init();
-        d3Elem = d3.select('body').append('div').attr('id', 'testToolbar');
+        d3Elem = d3.select('body').append('div').attr('id', 'testDiv');
     });
 
     afterEach(function () {
-        d3.select('#testToolbar').remove();
+        d3.select('#testDiv').remove();
     });
+
+
+    // re-usable null function
+    function nullFunc () {}
 
     it('should define ButtonService', function () {
         expect(bns).toBeDefined();
@@ -51,19 +51,21 @@ describe('factory: fw/widget/button.js', function () {
     });
 
     it('should verify button glyph', function () {
-        var btn = bns.button(d3Elem, 'tbar0-btn-0', 'crown', function () {});
-        expect((btn.el).classed('btn')).toBeTruthy();
-        expect((btn.el).attr('id')).toBe('tbar0-btn-0');
-        expect((btn.el).select('svg')).toBeTruthy();
-        expect((btn.el).select('use')).toBeTruthy();
-        expect((btn.el).select('use').classed('glyph')).toBeTruthy();
-        expect((btn.el).select('use').attr('xlink:href')).toBe('#crown');
+        var btn = bns.button(d3Elem, 'foo-id', 'crown', nullFunc);
+        var el = d3Elem.select('#foo-id');
+        expect(el.classed('button')).toBeTruthy();
+        expect(el.attr('id')).toBe('foo-id');
+        expect(el.select('svg')).toBeTruthy();
+        expect(el.select('use')).toBeTruthy();
+        expect(el.select('use').classed('glyph')).toBeTruthy();
+        expect(el.select('use').attr('xlink:href')).toBe('#crown');
     });
+
 
     it('should not append button to an undefined div', function () {
         spyOn($log, 'warn');
-        expect(bns.button(undefined, 'id', 'gid', function () {})).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Button cannot append to div');
+        expect(bns.button(null, 'id', 'gid', nullFunc)).toBeNull();
+        expect($log.warn).toHaveBeenCalledWith('div undefined (button)');
     });
 
     it('should verify button callback', function () {
@@ -71,7 +73,7 @@ describe('factory: fw/widget/button.js', function () {
         function cb() { count++; }
         var btn = bns.button(d3Elem, 'test', 'nothing', cb);
         expect(count).toBe(0);
-        btn.click();
+        d3Elem.select('#test').on('click')();
         expect(count).toBe(1);
     });
 
@@ -79,26 +81,25 @@ describe('factory: fw/widget/button.js', function () {
         var count = 0;
         var btn = bns.button(d3Elem, 'test', 'nothing', 'foo');
         expect(count).toBe(0);
-        btn.click();
+        d3Elem.select('#test').on('click')();
         expect(count).toBe(0);
     });
 
     it('should not append toggle to an undefined div', function () {
         spyOn($log, 'warn');
-        expect(bns.toggle(undefined, 'id', 'gid', false,
-            function () {})).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Toggle cannot append to div');
+        expect(bns.toggle(undefined, 'id', 'gid', false, nullFunc)).toBeNull();
+        expect($log.warn).toHaveBeenCalledWith('div undefined (toggle button)');
     });
 
     it('should verify toggle glyph', function () {
-        var tog = bns.toggle(d3Elem, 'tbar0-tog-0', 'crown',
-            false, function () {});
-        expect((tog.el).classed('tog')).toBeTruthy();
-        expect((tog.el).attr('id')).toBe('tbar0-tog-0');
-        expect((tog.el).select('svg')).toBeTruthy();
-        expect((tog.el).select('use')).toBeTruthy();
-        expect((tog.el).select('use').classed('glyph')).toBeTruthy();
-        expect((tog.el).select('use').attr('xlink:href')).toBe('#crown');
+        var tog = bns.toggle(d3Elem, 'foo-id', 'crown', false, nullFunc);
+        var el = d3Elem.select('#foo-id');
+        expect(el.classed('toggleButton')).toBeTruthy();
+        expect(el.attr('id')).toBe('foo-id');
+        expect(el.select('svg')).toBeTruthy();
+        expect(el.select('use')).toBeTruthy();
+        expect(el.select('use').classed('glyph')).toBeTruthy();
+        expect(el.select('use').attr('xlink:href')).toBe('#crown');
     });
 
     it('should toggle the selected state', function () {
@@ -138,26 +139,30 @@ describe('factory: fw/widget/button.js', function () {
     it('should not append radio button set to an undefined div', function () {
         spyOn($log, 'warn');
         expect(bns.radioSet(undefined, 'id', [])).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Radio buttons cannot append ' +
-                                                'to div');
+        expect($log.warn).toHaveBeenCalledWith('div undefined (radio button set)');
     });
 
     it('should not create radio button set from a non-array', function () {
         var rads = {test: 'test'};
+        var warning = 'invalid array (radio button set)';
+
         spyOn($log, 'warn');
 
         expect(bns.radioSet(d3Elem, 'test', rads)).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Radio button set is not ' +
-                                                'an array');
+        expect($log.warn).toHaveBeenCalledWith(warning);
         rads = 'rads';
         expect(bns.radioSet(d3Elem, 'test', rads)).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Radio button set is not ' +
-                                                'an array');
+        expect($log.warn).toHaveBeenCalledWith(warning);
         rads = {arr: [1, 2, 3]};
         expect(bns.radioSet(d3Elem, 'test', rads)).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Radio button set is not ' +
-                                                'an array');
+        expect($log.warn).toHaveBeenCalledWith(warning);
     });
+
+    // ===================================================================
+    // ===================================================================
+    // ===================================================================
+
+
 
     it('should not create radio button set from empty array', function () {
         var rads = [];
