@@ -61,6 +61,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostDescription;
@@ -286,6 +287,12 @@ public class HostLocationProviderTest {
         @Override
         public void requestPackets(TrafficSelector selector,
                                    PacketPriority priority, ApplicationId appId) {
+        }
+
+        @Override
+        public void requestPackets(TrafficSelector selector,
+                                   PacketPriority priority, ApplicationId appId,
+                                   FlowRule.Type tableType) {
         }
     }
 

@@ -47,6 +47,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
@@ -265,6 +266,12 @@ public class HostMonitorTest {
         @Override
         public void requestPackets(TrafficSelector selector,
                                    PacketPriority priority, ApplicationId appId) {
+        }
+
+        @Override
+        public void requestPackets(TrafficSelector selector,
+                                   PacketPriority priority, ApplicationId appId,
+                                   FlowRule.Type tableType) {
         }
     }
 

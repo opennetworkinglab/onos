@@ -55,7 +55,7 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
 
     @Override
     public void write(List<OFMessage> msgs) {
-            channel.write(msgs);
+        channel.write(msgs);
     }
 
     @Override

@@ -16,6 +16,7 @@
 package org.onosproject.net.packet;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 
 /**
@@ -57,6 +58,22 @@ public interface PacketService {
      */
     void requestPackets(TrafficSelector selector, PacketPriority priority,
                         ApplicationId appId);
+
+    /**
+     * Requests that packets matching the given selector are punted from the
+     * dataplane to the controller. Clients of the PacketService should use
+     * this call to hint at the tableType in the dataplane valid for the selector.
+     *
+     * @param selector the traffic selector used to match packets
+     * @param priority the priority of the rule
+     * @param appId the application ID of the requester
+     * @param tableType the abstract table Type in the dataplane where flowrules
+     *                  should be inserted to punt the selector packets to the
+     *                  control plane
+     */
+    void requestPackets(TrafficSelector selector, PacketPriority priority,
+                        ApplicationId appId, FlowRule.Type tableType);
+
 
     // TODO add API to allow applications to revoke requests when they deactivate
 

@@ -73,7 +73,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     private static final String PROP_USE_BDDP = "useBDDP";
-
+    private static final String PROP_DISABLE_LD = "disableLinkDiscovery";
     private static final String PROP_LLDP_SUPPRESSION = "lldpSuppression";
 
     private static final String DEFAULT_LLDP_SUPPRESSION_CONFIG = "../config/lldp_suppression.json";
@@ -99,14 +99,16 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     private ScheduledExecutorService executor;
 
-    @Property(name = PROP_USE_BDDP, boolValue = true,
-            label = "use BDDP for link discovery")
+    @Property(name = PROP_USE_BDDP, label = "use BDDP for link discovery")
     private boolean useBDDP = true;
+
+    @Property(name = PROP_DISABLE_LD, label = "permanently disable link discovery")
+    private boolean disableLD = false;
 
     private static final long INIT_DELAY = 5;
     private static final long DELAY = 5;
 
-    @Property(name = PROP_LLDP_SUPPRESSION, value = DEFAULT_LLDP_SUPPRESSION_CONFIG,
+    @Property(name = PROP_LLDP_SUPPRESSION,
             label = "Path to LLDP suppression configuration file")
     private String filePath = DEFAULT_LLDP_SUPPRESSION_CONFIG;
 
@@ -128,11 +130,16 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     }
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         appId =
             coreService.registerApplication("org.onosproject.provider.lldp");
 
-        loadSuppressionRules();
+        // to load configuration at startup
+        modified(context);
+        if (disableLD) {
+            log.info("Link Discovery has been permanently disabled by configuration");
+            return;
+        }
 
         providerService = providerRegistry.register(this);
         deviceService.addListener(listener);
@@ -170,6 +177,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Deactivate
     public void deactivate() {
+        if (disableLD) {
+            return;
+        }
         executor.shutdownNow();
         for (LinkDiscovery ld : discoverers.values()) {
             ld.stop();
@@ -186,21 +196,22 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
+            loadSuppressionRules();
             return;
         }
         @SuppressWarnings("rawtypes")
         Dictionary properties = context.getProperties();
 
-        String s = (String) properties.get(PROP_USE_BDDP);
-        if (Strings.isNullOrEmpty(s)) {
-            useBDDP = true;
-        } else {
+        String s = (String) properties.get(PROP_DISABLE_LD);
+        if (!Strings.isNullOrEmpty(s)) {
+            disableLD = Boolean.valueOf(s);
+        }
+        s = (String) properties.get(PROP_USE_BDDP);
+        if (!Strings.isNullOrEmpty(s)) {
             useBDDP = Boolean.valueOf(s);
         }
         s = (String) properties.get(PROP_LLDP_SUPPRESSION);
-        if (Strings.isNullOrEmpty(s)) {
-            filePath = DEFAULT_LLDP_SUPPRESSION_CONFIG;
-        } else {
+        if (!Strings.isNullOrEmpty(s)) {
             filePath = s;
         }
 
@@ -210,6 +221,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     private void loadSuppressionRules() {
         SuppressionRulesStore store = new SuppressionRulesStore(filePath);
         try {
+            log.info("Reading suppression rules from {}", filePath);
             rules = store.read();
         } catch (IOException e) {
             log.info("Failed to load {}, using built-in rules", filePath);

@@ -23,6 +23,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -73,7 +74,7 @@ public class TunnellingConnectivityManager {
         selector.matchTcpSrc(BGP_PORT);
 
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
-                                     appId);
+                                     appId, FlowRule.Type.ACL);
 
         selector = DefaultTrafficSelector.builder();
 
@@ -83,7 +84,7 @@ public class TunnellingConnectivityManager {
         selector.matchTcpDst(BGP_PORT);
 
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
-                                     appId);
+                                     appId, FlowRule.Type.ACL);
     }
 
     public void stop() {

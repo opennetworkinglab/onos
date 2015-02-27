@@ -88,12 +88,14 @@ implements PacketService, PacketProviderRegistry {
         private final TrafficSelector selector;
         private final PacketPriority priority;
         private final ApplicationId appId;
+        private final FlowRule.Type tableType;
 
         public PacketRequest(TrafficSelector selector, PacketPriority priority,
-                             ApplicationId appId) {
+                             ApplicationId appId, FlowRule.Type tableType) {
             this.selector = selector;
             this.priority = priority;
             this.appId = appId;
+            this.tableType = tableType;
         }
 
         public TrafficSelector selector() {
@@ -106,6 +108,10 @@ implements PacketService, PacketProviderRegistry {
 
         public ApplicationId appId() {
             return appId;
+        }
+
+        public FlowRule.Type tableType() {
+            return tableType;
         }
 
         @Override
@@ -170,7 +176,22 @@ implements PacketService, PacketProviderRegistry {
         checkNotNull(appId, "Application ID cannot be null");
 
         PacketRequest request =
-                new PacketRequest(selector, priority, appId);
+                new PacketRequest(selector, priority, appId, FlowRule.Type.DEFAULT);
+
+        packetRequests.add(request);
+        pushToAllDevices(request);
+    }
+
+    @Override
+    public void requestPackets(TrafficSelector selector, PacketPriority priority,
+                               ApplicationId appId, FlowRule.Type tableType) {
+        checkNotNull(selector, "Selector cannot be null");
+        checkNotNull(appId, "Application ID cannot be null");
+        checkNotNull(tableType, "Table Type cannot be null. For requesting packets +"
+                + "without table hints, use other methods in the packetService API");
+
+        PacketRequest request =
+                new PacketRequest(selector, priority, appId, tableType);
 
         packetRequests.add(request);
         pushToAllDevices(request);
@@ -204,7 +225,7 @@ implements PacketService, PacketProviderRegistry {
                                 treatment,
                                 request.priority().priorityValue(),
                                 request.appId(),
-                                0, true);
+                                0, true, request.tableType());
 
         flowService.applyFlowRules(flow);
     }
