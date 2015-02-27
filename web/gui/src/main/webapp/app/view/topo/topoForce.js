@@ -24,7 +24,7 @@
 
     // injected refs
     var $log, fs, sus, is, ts, flash, tis, tms, td3, tss, tts, tos, fltr, tls,
-        icfg, uplink;
+        icfg, uplink, svg;
 
     // configuration
     var linkConfig = {
@@ -52,8 +52,8 @@
             lookup: {},
             revLinkToKey: {}
         },
-        lu = network.lookup,    // shorthand
-        rlk = network.revLinkToKey,
+        lu,                     // shorthand for lookup
+        rlk,                    // shorthand for revLinktoKey
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         nodeLock = false,       // whether nodes can be dragged or not (locked)
@@ -595,9 +595,10 @@
     };
 
     function tick() {
-        node.attr(tickStuff.nodeAttr);
-        link.attr(tickStuff.linkAttr);
-        linkLabel.attr(tickStuff.linkLabelAttr);
+        // guard against null (which can happen when our view pages out)...
+        if (node) node.attr(tickStuff.nodeAttr);
+        if (link) link.attr(tickStuff.linkAttr);
+        if (linkLabel) linkLabel.attr(tickStuff.linkLabelAttr);
     }
 
 
@@ -780,9 +781,13 @@
             // uplink is the api from the main topo source file
             // dim is the initial dimensions of the SVG as [w,h]
             // opts are, well, optional :)
-            function initForce(svg, forceG, _uplink_, _dim_, opts) {
+            function initForce(_svg_, forceG, _uplink_, _dim_, opts) {
                 uplink = _uplink_;
                 dim = _dim_;
+                svg = _svg_;
+
+                lu = network.lookup;
+                rlk = network.revLinkToKey;
 
                 $log.debug('initForce().. dim = ' + dim);
 
@@ -824,10 +829,11 @@
                 dim = _dim_;
                 force.size(dim);
                 tms.newDim(dim);
-                // Review -- do we need to nudge the layout ?
             }
 
             function destroyForce() {
+                force.stop();
+
                 tls.destroyLink();
                 fltr.destroyFilter();
                 tos.destroyOblique();
@@ -837,6 +843,20 @@
                 tms.destroyModel();
                 ts.removeListener(themeListener);
                 themeListener = null;
+
+                // clean up the DOM
+                svg.selectAll('g').remove();
+                svg.selectAll('defs').remove();
+
+                // clean up internal state
+                network.nodes = [];
+                network.links = [];
+                network.lookup = {};
+                network.revLinkToKey = {};
+
+                linkG = linkLabelG = nodeG = portLabelG = null;
+                link = linkLabel = node = null;
+                force = drag = null;
             }
 
             return {

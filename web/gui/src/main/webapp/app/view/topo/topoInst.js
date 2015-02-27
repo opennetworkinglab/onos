@@ -303,6 +303,10 @@
 
         ps.destroyPanel(idIns);
         oiBox = null;
+
+        onosInstances = {};
+        onosOrder = [];
+        oiShowMaster = false;
     }
 
     // ==========================
