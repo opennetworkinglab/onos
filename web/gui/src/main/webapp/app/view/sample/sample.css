@@ -18,7 +18,27 @@
  ONOS GUI -- Sample View -- CSS file
  */
 
+.light #ov-sample {
+    color: navy;
+}
+
+.dark #ov-sample {
+    color: #1e5e6f;
+}
+
+.dark a {
+    color: #88c;
+}
+
 #ov-sample .msg {
-    font-style: italic;
     color: darkorange;
 }
+
+.light #ov-sample .msg {
+    color: darkorange;
+}
+
+.dark #ov-sample .msg {
+    color: #904e00;
+}
+
