@@ -22,100 +22,14 @@
 
     var $log;
 
-
-    // TODO: remove temporary test code
-    var fakeData = {
-        '1': {
-            "devices": [{
-                "id": "of:0000000000000001",
-                "available": true,
-                "_iconid_available": "deviceOnline",
-                "role": "MASTER",
-                "mfr": "Nicira, Inc.",
-                "hw": "Open vSwitch",
-                "sw": "2.0.1",
-                "serial": "None",
-                "annotations": {
-                    "protocol": "OF_10"
-                }
-            },
-            {
-                "id": "of:0000000000000004",
-                "available": false,
-                "_iconid_available": "deviceOffline",
-                "role": "MASTER",
-                "mfr": "Nicira, Inc.",
-                "hw": "Open vSwitch",
-                "sw": "2.0.1",
-                "serial": "None",
-                "annotations": {
-                    "protocol": "OF_10"
-                }
-            },
-            {
-                "id": "of:0000000000000092",
-                "available": false,
-                "_iconid_available": "deviceOffline",
-                "role": "MASTER",
-                "mfr": "Nicira, Inc.",
-                "hw": "Open vSwitch",
-                "sw": "2.0.1",
-                "serial": "None",
-                "annotations": {
-                    "protocol": "OF_10"
-                }
-            }]
-        },
-        '2': {
-            "devices": [{
-                "id": "of:0000000000000002",
-                "available": true,
-                "_iconid_available": "deviceOnline",
-                "role": "MASTER",
-                "mfr": "Nicira, Inc.",
-                "hw": "Open vSwitch",
-                "sw": "2.0.0",
-                "serial": "None",
-                "annotations": {
-                    "protocol": "OF_10"
-                }
-            },
-            {
-                "id": "of:0000000000000006",
-                "available": true,
-                "_iconid_available": "deviceOnline",
-                "role": "MASTER",
-                "mfr": "Nicira, Inc.",
-                "hw": "Open vSwitch",
-                "sw": "2.1.1",
-                "serial": "None",
-                "annotations": {
-                    "protocol": "OF_10"
-                }
-            }]
-        },
-        'empty': {
-            devices: []
-        }
-    };
-
-    function getFakeData(url) {
-        var id = url.slice(5);
-
-        return fakeData[id] || fakeData.empty;
-    }
-
     angular.module('onosRemote')
-        .factory('RestService', ['$log', '$http', 'UrlFnService',
+    .factory('RestService',
+        ['$log', '$http', 'UrlFnService',
+
         function (_$log_, $http, ufs) {
             $log = _$log_;
 
-            function get(url, callback) {
-                // TODO: remove temporary test code
-                if (url.match(/^test\//)) {
-                    callback(getFakeData(url));
-                    return;
-                }
+            function get(url, callback, errorCb) {
                 var fullUrl = ufs.rsUrl(url);
 
                 $http.get(fullUrl).then(function (response) {
@@ -123,8 +37,11 @@
                     callback(response.data);
                 }, function (response) {
                     // error
-                    $log.warn('Failed to retrieve JSON data: ' + fullUrl,
-                        response.status, response.data);
+                    var  emsg = 'Failed to retrieve JSON data: ' + fullUrl;
+                    $log.warn(emsg, response.status, response.data);
+                    if (errorCb) {
+                        errorCb(emsg);
+                    }
                 });
             }
 
@@ -132,5 +49,4 @@
                 get: get
             };
         }]);
-
 }());

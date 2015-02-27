@@ -24,7 +24,7 @@
     'use strict';
 
     // injected references
-    var $log, fs, ks;
+    var $log, $route, fs, ks;
 
     var veil, pdiv, svg;
 
@@ -46,12 +46,23 @@
         ks.enableKeys(true);
     }
 
+    // function that only invokes the veil if the caller is the current view
+    function lostServer(ctrlName, msg) {
+        if ($route.current.$$route.controller === ctrlName) {
+            $log.debug('VEIL-service: ', ctrlName);
+            show(msg)
+        } else {
+            $log.debug('VEIL-service: IGNORING ', ctrlName);
+        }
+    }
+
     angular.module('onosLayer')
     .factory('VeilService',
-        ['$log', 'FnService', 'KeyService', 'GlyphService',
+        ['$log', '$route', 'FnService', 'KeyService', 'GlyphService',
 
-        function (_$log_, _fs_, _ks_, gs) {
+        function (_$log_, _$route_, _fs_, _ks_, gs) {
             $log = _$log_;
+            $route = _$route_;
             fs = _fs_;
             ks = _ks_;
 
@@ -76,7 +87,8 @@
 
             return {
                 show: show,
-                hide: hide
+                hide: hide,
+                lostServer: lostServer
             };
     }]);
 

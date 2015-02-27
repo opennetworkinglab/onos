@@ -99,7 +99,7 @@
     function onWsClose(reason) {
         $log.log('web socket closed; reason=', reason);
         wsock = null;
-        vs.show([
+        vs.lostServer('OvTopoCtrl', [
             'Oops!',
             'Web-socket connection to server closed...',
             'Try refreshing the page.'
