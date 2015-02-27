@@ -99,6 +99,7 @@ public class DistributedApplicationIdStore
         ApplicationId appId = appIds.get(id);
         if (appId == null) {
             primeAppIds();
+            return appIds.get(id);
         }
         return appId;
     }
@@ -110,7 +111,7 @@ public class DistributedApplicationIdStore
 
     private void primeAppIds() {
         for (DefaultApplicationId appId : appIdsByName.values()) {
-            appIds.put(appId.id(), appId);
+            appIds.putIfAbsent(appId.id(), appId);
         }
     }
 
