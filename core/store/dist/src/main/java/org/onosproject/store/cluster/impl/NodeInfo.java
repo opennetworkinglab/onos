@@ -35,6 +35,15 @@ public final class NodeInfo {
         this.tcpPort = port;
     }
 
+    /*
+     * Needed for serialization.
+     */
+    private NodeInfo() {
+        id = null;
+        ip = null;
+        tcpPort = 0;
+    }
+
     /**
      * Creates a new instance.
      * @param id node id
