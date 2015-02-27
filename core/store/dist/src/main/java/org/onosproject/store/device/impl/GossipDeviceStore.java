@@ -21,6 +21,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -549,7 +550,7 @@ public class GossipDeviceStore
             // redo ONOS-490
             if (deviceNode == null) {
                 // silently ignore
-                return null;
+                return Collections.emptyList();
             }
 
             PortInjectedEvent portInjectedEvent = new PortInjectedEvent(providerId, deviceId, portDescriptions);
@@ -564,7 +565,7 @@ public class GossipDeviceStore
             }
         }
 
-        return deviceEvents;
+        return deviceEvents == null ? Collections.emptyList() : deviceEvents;
     }
 
     private List<DeviceEvent> updatePortsInternal(ProviderId providerId,
