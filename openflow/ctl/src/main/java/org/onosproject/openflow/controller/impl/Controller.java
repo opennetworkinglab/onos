@@ -89,7 +89,7 @@ public class Controller {
         // We return a copy of the mapping so we can guarantee that
         // the mapping return is the same as one that will be (or was)
         // dispatched to IHAListeners
-        HashMap<String, String> retval = new HashMap<String, String>();
+        HashMap<String, String> retval = new HashMap<>();
         synchronized (controllerNodeIPsCache) {
             retval.putAll(controllerNodeIPsCache);
         }
@@ -152,6 +152,15 @@ public class Controller {
         if (ofPort != null) {
             this.openFlowPort = Integer.parseInt(ofPort);
         }
+        String corsaDpid = configParams.get("corsaDpid");
+        if (corsaDpid != null) {
+            try {
+                DriverManager.setCorsaDpid(new Dpid(corsaDpid));
+                log.info("Corsa DPID set to {}", corsaDpid);
+            } catch (NumberFormatException e) {
+                log.warn("Malformed Corsa DPID string", e);
+            }
+        }
         log.debug("OpenFlow port set to {}", this.openFlowPort);
         String threads = configParams.get("workerthreads");
         this.workerThreads = threads != null ? Integer.parseInt(threads) : 16;
@@ -161,18 +170,13 @@ public class Controller {
 
     /**
      * Initialize internal data structures.
-     *
-     * @param configParams configuration parameters
      */
-    public void init(Map<String, String> configParams) {
+    public void init() {
         // These data structures are initialized here because other
         // module's startUp() might be called before ours
-        this.controllerNodeIPsCache = new HashMap<String, String>();
+        this.controllerNodeIPsCache = new HashMap<>();
 
-        setConfigParams(configParams);
         this.systemStartTime = System.currentTimeMillis();
-
-
     }
 
     // **************
@@ -180,7 +184,7 @@ public class Controller {
     // **************
 
     public Map<String, Long> getMemory() {
-        Map<String, Long> m = new HashMap<String, Long>();
+        Map<String, Long> m = new HashMap<>();
         Runtime runtime = Runtime.getRuntime();
         m.put("total", runtime.totalMemory());
         m.put("free", runtime.freeMemory());
@@ -213,7 +217,7 @@ public class Controller {
     public void start(OpenFlowAgent ag) {
         log.info("Starting OpenFlow IO");
         this.agent = ag;
-        this.init(new HashMap<String, String>());
+        this.init();
         this.run();
     }
 

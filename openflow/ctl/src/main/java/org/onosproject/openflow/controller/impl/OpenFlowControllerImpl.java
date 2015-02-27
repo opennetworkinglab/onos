@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
@@ -33,6 +34,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
+import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
@@ -52,7 +54,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -102,13 +107,41 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private final Controller ctrl = new Controller();
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        Map<String, String> properties = readComponentConfiguration(context);
+        ctrl.setConfigParams(properties);
         ctrl.start(agent);
     }
 
     @Deactivate
     public void deactivate() {
         ctrl.stop();
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private Map<String, String> readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Map<String, String> outProperties = new HashMap<>();
+        try {
+            String strDpid = (String) properties.get("corsaDpid");
+            if (strDpid != null) {
+                outProperties.put("corsaDpid", strDpid);
+            }
+        } catch (ClassCastException e) {
+            return outProperties;
+        }
+        return outProperties;
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        // Blank @Modified method to catch modifications to the context.
+        // If no @Modified method exists, @Activate is called again
+        // when the context is modified.
     }
 
     @Override

@@ -16,9 +16,6 @@
 package org.onosproject.openflow.drivers;
 
 
-import java.util.Collections;
-import java.util.List;
-
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -33,6 +30,9 @@ import org.projectfloodlight.openflow.types.TableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A simple implementation of a driver manager that differentiates between
  * connected switches using the OF Description Statistics Reply message.
@@ -42,6 +42,8 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
     private static final Logger log = LoggerFactory.getLogger(DriverManager.class);
 
     private static final int LOWEST_PRIORITY = 0;
+
+    private static Dpid corsaDpid = new Dpid();
 
     /**
      * Return an IOFSwitch object based on switch's manufacturer description
@@ -56,6 +58,11 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             OFDescStatsReply desc, OFVersion ofv) {
         String vendor = desc.getMfrDesc();
         String hw = desc.getHwDesc();
+
+        if (dpid.equals(corsaDpid)) {
+            return new OFCorsaSwitchDriver(dpid, desc);
+        }
+
         if (vendor.startsWith("Stanford University, Ericsson Research and CPqD Research")
                 &&
                 hw.startsWith("OpenFlow 1.3 Reference Userspace Switch")) {
@@ -83,7 +90,7 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
         }
 
         log.warn("DriverManager could not identify switch desc: {}. "
-                + "Assigning AbstractOpenFlowSwich", desc);
+                         + "Assigning AbstractOpenFlowSwich", desc);
         return new AbstractOpenFlowSwitch(dpid, desc) {
 
             @Override
@@ -155,6 +162,10 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
     public static OpenFlowSwitchDriver getSwitch(Dpid dpid,
             OFDescStatsReply desc, OFVersion ofv) {
         return new DriverManager().getOFSwitchImpl(dpid, desc, ofv);
+    }
+
+    public static void setCorsaDpid(Dpid dpid) {
+        corsaDpid = dpid;
     }
 
 }
