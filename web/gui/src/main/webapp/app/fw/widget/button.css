@@ -18,16 +18,6 @@
  ONOS GUI -- Button Service -- CSS file
  */
 
-.tbarArrow {
-    padding: 0 10px 0 10px;
-}
-.light .tbarArrow svg.embeddedIcon .icon.tableColSortAsc .glyph {
-    fill: #838383;
-}
-.dark .tbarArrow svg.embeddedIcon .icon.tableColSortAsc .glyph {
-    fill: #B2B2B2;
-}
-
 .button,
 .toggleButton,
 .radioSet {

@@ -87,6 +87,9 @@
                 toolbar.addToggle('demo-toggle', 'chain', false, togFn);
                 toolbar.addSeparator();
                 toolbar.addRadioSet('demo-radio', rset);
+                toolbar.hide();
+
+                checkFn();
 
              $log.log('OvSampleCtrl has been created');
         }]);
