@@ -18,6 +18,7 @@
 
 package org.onlab.packet;
 
+import org.onlab.packet.ipv6.IExtensionHeader;
 import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.Redirect;
@@ -52,6 +53,8 @@ public class ICMP6 extends BasePacket {
     protected byte icmpType;
     protected byte icmpCode;
     protected short checksum;
+
+    private static final byte[] ZERO_ADDRESS = new byte[Ip6Address.BYTE_LENGTH];
 
     /**
      * Gets ICMP6 type.
@@ -138,8 +141,21 @@ public class ICMP6 extends BasePacket {
         // Creating IPv6 Pseudo Header for checksum calculation according
         // to RFC 4443 and RFC 2460
         //
-        bbChecksum.put(((IPv6) this.parent).getSourceAddress());
-        bbChecksum.put(((IPv6) this.parent).getDestinationAddress());
+        IPv6 ipv6Parent = null;
+        for (IPacket p = this.parent; p != null; p = p.getParent()) {
+            if (p instanceof IPv6) {
+                ipv6Parent = (IPv6) p;
+                break;
+            }
+        }
+        if (ipv6Parent != null) {
+            bbChecksum.put(((IPv6) ipv6Parent).getSourceAddress());
+            bbChecksum.put(((IPv6) ipv6Parent).getDestinationAddress());
+        } else {
+            // NOTE: IPv6 source and destination addresses unknown. Use zeroes.
+            bbChecksum.put(ZERO_ADDRESS);
+            bbChecksum.put(ZERO_ADDRESS);
+        }
         bbChecksum.putInt(HEADER_LENGTH + payloadLength);
         bbChecksum.put((byte) 0);
         bbChecksum.put((byte) 0);
@@ -158,8 +174,12 @@ public class ICMP6 extends BasePacket {
             bbChecksum.put(payloadData);
         }
 
-        if (this.parent != null && this.parent instanceof IPv6) {
-            ((IPv6) this.parent).setNextHeader(IPv6.PROTOCOL_ICMP6);
+        if (this.parent != null) {
+            if (this.parent instanceof IPv6) {
+                ((IPv6) this.parent).setNextHeader(IPv6.PROTOCOL_ICMP6);
+            } else if (this.parent instanceof IExtensionHeader) {
+                ((IExtensionHeader) this.parent).setNextHeader(IPv6.PROTOCOL_ICMP6);
+            }
         }
 
         // compute checksum if needed
