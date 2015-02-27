@@ -31,8 +31,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.store.cluster.impl.NodeInfo;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
@@ -69,8 +68,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    protected String nodeToUri(ControllerNode node) {
-        return String.format("tcp://%s:%d", node.ip(), COPYCAT_TCP_PORT);
+    protected String nodeToUri(NodeInfo node) {
+        return String.format("tcp://%s:%d", node.getIp(), COPYCAT_TCP_PORT);
     }
 
     @Activate
@@ -82,12 +81,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         File file = new File(CONFIG_DIR, PARTITION_DEFINITION_FILE);
         log.info("Loading database definition: {}", file.getAbsolutePath());
 
-        DatabaseDefinitionStore databaseDef = new DatabaseDefinitionStore(file);
-        Map<String, Set<DefaultControllerNode>> partitionMap;
+        Map<String, Set<NodeInfo>> partitionMap;
         try {
-            partitionMap = databaseDef.read();
+            DatabaseDefinitionStore databaseDef = new DatabaseDefinitionStore(file);
+            partitionMap = databaseDef.read().getPartitions();
         } catch (IOException e) {
-            log.error("Failed to load database config {}", file);
             throw new IllegalStateException("Failed to load database config", e);
         }
 
@@ -99,7 +97,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                     .map(this::nodeToUri)
                     .toArray(String[]::new);
 
-        String localNodeUri = nodeToUri(clusterService.getLocalNode());
+        String localNodeUri = nodeToUri(NodeInfo.of(clusterService.getLocalNode()));
 
         ClusterConfig clusterConfig = new ClusterConfig()
             .withProtocol(new NettyTcpProtocol()

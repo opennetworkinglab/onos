@@ -39,18 +39,7 @@ ssh $remote "
 
 # Generate a default tablets.json from the ON* environment variables
 TDEF_FILE=/tmp/${remote}.tablets.json
-nodes=( $(env | sort | egrep "OC[0-9]+" | cut -d= -f2) )
-echo "{ \"default\":[" > $TDEF_FILE
-while [ ${#nodes[@]} -gt 0 ]; do
-    node=${nodes[0]}
-    nodes=( ${nodes[@]:1} )
-    if [ "${#nodes[@]}" -ne "0" ]; then
-      echo "  { \"id\": \"$node\", \"ip\": \"$node\", \"tcpPort\": 9876 }," >> $TDEF_FILE
-    else
-      echo "  { \"id\": \"$node\", \"ip\": \"$node\", \"tcpPort\": 9876 }" >> $TDEF_FILE
-    fi
-done
-echo "]}" >> $TDEF_FILE
+onos-gen-partitions $TDEF_FILE
 scp -q $TDEF_FILE $remote:$ONOS_INSTALL_DIR/config/tablets.json
 
 

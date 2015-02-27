@@ -127,7 +127,13 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
         try {
             clusterDefinition = new ClusterDefinitionStore(clusterDefinitionFile.getPath()).read();
-            seedNodes = ImmutableSet.copyOf(clusterDefinition.nodes());
+            seedNodes = ImmutableSet.copyOf(clusterDefinition.getNodes())
+                            .stream()
+                            .map(nodeInfo -> new DefaultControllerNode(
+                                        new NodeId(nodeInfo.getId()),
+                                        IpAddress.valueOf(nodeInfo.getIp()),
+                                        nodeInfo.getTcpPort()))
+                            .collect(Collectors.toSet());
         } catch (IOException e) {
             log.warn("Failed to read cluster definition.", e);
         }
@@ -330,7 +336,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
             Enumeration<InetAddress> inetAddresses =  iface.getInetAddresses();
             while (inetAddresses.hasMoreElements()) {
                 IpAddress ip = IpAddress.valueOf(inetAddresses.nextElement());
-                if (AddressUtil.matchInterface(ip.toString(), clusterDefinition.ipPrefix())) {
+                if (AddressUtil.matchInterface(ip.toString(), clusterDefinition.getIpPrefix())) {
                     return ip;
                 }
             }
