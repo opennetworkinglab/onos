@@ -135,7 +135,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
                                         nodeInfo.getTcpPort()))
                             .collect(Collectors.toSet());
         } catch (IOException e) {
-            log.warn("Failed to read cluster definition.", e);
+            throw new IllegalStateException("Failed to read cluster definition.", e);
         }
 
         seedNodes.forEach(node -> {
@@ -278,7 +278,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
                 }
             });
         } catch (Exception e) {
-            log.trace("Failed to send heartbeat", e);
+            log.debug("Failed to send heartbeat", e);
         }
     }
 
@@ -295,7 +295,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
         try {
             messagingService.sendAsync(remoteEp, HEARTBEAT_MESSAGE, messagePayload);
         } catch (IOException e) {
-            log.trace("Sending heartbeat to {} failed", remoteEp, e);
+            log.debug("Sending heartbeat to {} failed", remoteEp, e);
         }
     }
 

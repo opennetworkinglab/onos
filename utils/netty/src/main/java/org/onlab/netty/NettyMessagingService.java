@@ -222,7 +222,7 @@ public class NettyMessagingService implements MessagingService {
                     try {
                         handler.handle(message);
                     } catch (Exception e) {
-                        log.warn("Failed to process message of type {}", type, e);
+                        log.debug("Failed to process message of type {}", type, e);
                     }
                 });
             }

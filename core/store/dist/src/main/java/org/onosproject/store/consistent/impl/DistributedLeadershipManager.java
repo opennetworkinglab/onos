@@ -190,7 +190,7 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     @Override
     public void runForLeadership(String path) {
-        log.trace("Running for leadership for topic: {}", path);
+        log.debug("Running for leadership for topic: {}", path);
         activeTopics.add(path);
         tryLeaderLock(path);
     }
@@ -358,7 +358,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                     }
                 }
                 if (localNodeId.equals(nodeId) && !activeTopics.contains(path)) {
-                    log.info("Lock for {} is held by {} when it not running for leadership.", path, nodeId);
+                    log.debug("Lock for {} is held by {} when it not running for leadership.", path, nodeId);
                     try {
                         if (lockMap.remove(path, epoch)) {
                             log.info("Purged stale lock held by {} for {}", nodeId, path);
