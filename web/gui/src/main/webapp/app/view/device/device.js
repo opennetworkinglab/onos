@@ -22,7 +22,9 @@
     'use strict';
 
     angular.module('ovDevice', [])
-        .controller('OvDeviceCtrl', ['$log', '$scope', '$location', 'RestService',
+    .controller('OvDeviceCtrl',
+        ['$log', '$scope', '$location', 'RestService',
+
         function ($log, $scope, $location, rs) {
             var self = this;
             self.deviceData = [];
@@ -37,6 +39,11 @@
                 });
             };
             $scope.sortCallback();
+
+            // Cleanup on destroyed scope
+            $scope.$on('$destroy', function () {
+
+            });
 
             $log.log('OvDeviceCtrl has been created');
         }]);

@@ -24,6 +24,9 @@
     // injected refs
     var $log, tbs, flash;
 
+    // configuration
+    var tbid = 'sample-toolbar';
+
     // internal state
     var togFnDiv, radFnP;
 
@@ -50,47 +53,57 @@
             .style('color', '#369');
     }
 
+
+    // define the controller
+
     angular.module('ovSample', ['onosUtil'])
-        .controller('OvSampleCtrl', ['$log', 'ToolbarService', 'FlashService',
-            function (_$log_, _tbs_, _flash_) {
-                var self = this,
-                    toolbar,
-                    rset;
+    .controller('OvSampleCtrl',
+        ['$scope', '$log', 'ToolbarService', 'FlashService',
 
-                $log = _$log_;
-                tbs = _tbs_;
-                flash = _flash_;
+        function ($scope, _$log_, _tbs_, _flash_) {
+            var self = this,
+                toolbar,
+                rset;
 
-                self.message = 'Hey there folks!';
+            $log = _$log_;
+            tbs = _tbs_;
+            flash = _flash_;
 
-                togFnDiv = d3.select('#ov-sample')
-                    .append('div')
-                    .text('Look at me!')
-                    .style({
-                        display: 'none',
-                        color: 'rgb(204, 89, 81)',
-                        'font-size': '20pt'
-                    });
+            self.message = 'Hey there folks!';
 
-                radFnP = d3.select('#ov-sample')
-                    .append('p')
-                    .style('font-size', '16pt');
+            togFnDiv = d3.select('#ov-sample')
+                .append('div')
+                .text('Look at me!')
+                .style({
+                    display: 'none',
+                    color: 'rgb(204, 89, 81)',
+                    'font-size': '20pt'
+                });
 
-                toolbar = tbs.createToolbar('sample');
-                rset = [
-                    { gid: 'checkMark', cb: checkFn },
-                    { gid: 'xMark', cb: xMarkFn },
-                    { gid: 'bird', cb: birdFn }
-                ];
+            radFnP = d3.select('#ov-sample')
+                .append('p')
+                .style('font-size', '16pt');
 
-                toolbar.addButton('demo-button', 'crown', btnFn);
-                toolbar.addToggle('demo-toggle', 'chain', false, togFn);
-                toolbar.addSeparator();
-                toolbar.addRadioSet('demo-radio', rset);
-                toolbar.hide();
+            toolbar = tbs.createToolbar(tbid);
+            rset = [
+                { gid: 'checkMark', cb: checkFn },
+                { gid: 'xMark', cb: xMarkFn },
+                { gid: 'bird', cb: birdFn }
+            ];
 
-                checkFn();
+            toolbar.addButton('demo-button', 'crown', btnFn);
+            toolbar.addToggle('demo-toggle', 'chain', false, togFn);
+            toolbar.addSeparator();
+            toolbar.addRadioSet('demo-radio', rset);
+            toolbar.hide();
 
-             $log.log('OvSampleCtrl has been created');
-        }]);
+            checkFn();
+
+            // Clean up on destroyed scope
+            $scope.$on('$destroy', function () {
+                tbs.destroyToolbar(tbid);
+            });
+
+         $log.log('OvSampleCtrl has been created');
+    }]);
 }());
