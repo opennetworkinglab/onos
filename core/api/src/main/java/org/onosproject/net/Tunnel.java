@@ -15,6 +15,7 @@
  */
 package org.onosproject.net;
 
+
 /**
  * Abstraction of a generalized network tunnel.
  */
@@ -28,9 +29,17 @@ public interface Tunnel extends Link {
     }
 
     /**
+     * Returns the tunnel type.
+     *
+     * @return tunnel type
+     */
+    Type tunnelType();
+
+    /**
      * Network resource backing the tunnel, e.g. lambda, VLAN id, MPLS tag.
      *
      * @return backing resource
+     * @deprecated
      */
     NetworkResource resource();
 
