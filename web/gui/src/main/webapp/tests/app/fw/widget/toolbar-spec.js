@@ -18,8 +18,7 @@
  ONOS GUI -- Widget -- Toolbar Service - Unit Tests
  */
 describe('factory: fw/widget/toolbar.js', function () {
-    var $log, fs, tbs, ps, bns, is,
-        d3Elem;
+    var $log, fs, tbs, ps, bns, is;
 
     beforeEach(module('onosWidget', 'onosUtil', 'onosLayer', 'onosSvg'));
 
@@ -33,19 +32,20 @@ describe('factory: fw/widget/toolbar.js', function () {
         is = IconService;
     }));
 
-    // TODO: figure out solution for calling tests with new info instead of calling init
-
     beforeEach(function () {
-        d3Elem = d3.select('body').append('div').attr('id', 'testToolbar');
+        // panel service expects #floatpanels div into which panels are placed
+        d3.select('body').append('div').attr('id', 'floatpanels');
         tbs.init();
         ps.init();
     });
 
     afterEach(function () {
-        d3.select('#testToolbar').remove();
         tbs.init();
         ps.init();
+        d3.select('#floatpanels').remove();
     });
+
+    function nullFunc() { }
 
     it('should define ToolbarService', function () {
         expect(tbs).toBeDefined();
@@ -58,107 +58,96 @@ describe('factory: fw/widget/toolbar.js', function () {
         ])).toBeTruthy();
     });
 
-    it('should warn if createToolbar id is invalid', function () {
+    it('should warn when no id is given', function () {
         spyOn($log, 'warn');
         expect(tbs.createToolbar()).toBeNull();
         expect($log.warn).toHaveBeenCalledWith('createToolbar: ' +
-                                                'no ID given: [undefined]');
+                                    'no ID given: [undefined]');
+    });
 
+    it('should warn when a duplicate id is given', function () {
+        spyOn($log, 'warn');
         expect(tbs.createToolbar('test')).toBeTruthy();
         expect(tbs.createToolbar('test')).toBeNull();
         expect($log.warn).toHaveBeenCalledWith('createToolbar: ' +
-                                            'duplicate ID given: [undefined]');
-    });
-
-    it('should create an unpopulated toolbar', function () {
-        spyOn($log, 'warn');
-        expect(tbs.createToolbar('test')).toBeTruthy();
-        expect($log.warn).not.toHaveBeenCalled();
+                                    'duplicate ID given: [test]');
     });
 
     it('should verify the toolbar arrow div exists', function () {
         tbs.createToolbar('test');
 
-        var arrow = d3Elem.select('.tbarArrow');
-        expect(arrow).toBeTruthy();
-        expect(arrow.select('svg')).toBeTruthy();
-        expect(arrow.select('svg').select('g')
-            .classed('tableColSortAsc')).toBeTruthy();
+        // NOTE: toolbar service prefixes id with 'toolbar-'
+        var tbar = d3.select('#toolbar-test'),
+            arrow = tbar.select('.tbarArrow');
+
+        expect(arrow.size()).toBe(1);
+        expect(arrow.select('svg').size()).toBe(1);
+        expect(arrow.select('svg').select('g').select('use')
+            .attr('xlink:href')).toEqual('#triangleUp');
     });
+
 
     it('should create a button', function () {
         spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test'),
-            btn = toolbar.addButton('btn0', 'gid', function () {});
+        var toolbar = tbs.createToolbar('foo'),
+            btn = toolbar.addButton('btn0', 'gid');
         expect(btn).not.toBeNull();
-        expect(btn.id).toBe('tbar-test-btn0');
+        expect(btn.id).toBe('toolbar-foo-btn0');
         expect($log.warn).not.toHaveBeenCalled();
     });
 
-    it('should not create a button with a duplicate id', function () {
+    it('should not create an item with a duplicate id', function () {
         spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test'),
-            btn = toolbar.addButton('btn0', 'gid', function () {}),
-            btn1 = toolbar.addButton('btn0', 'gid', function () {});
+        var toolbar = tbs.createToolbar('foo'),
+            btn = toolbar.addButton('btn0', 'gid'),
+            dup;
         expect(btn).not.toBeNull();
-        expect(btn.id).toBe('tbar-test-btn0');
-        expect($log.warn).toHaveBeenCalledWith('addButton: ID already exists');
-        expect(btn1).toBeNull();
+        expect(btn.id).toBe('toolbar-foo-btn0');
+
+        dup = toolbar.addButton('btn0', 'gid');
+        expect($log.warn).toHaveBeenCalledWith('addButton: duplicate ID:', 'btn0');
+        expect(dup).toBeNull();
+
+        dup = toolbar.addToggle('btn0', 'gid');
+        expect($log.warn).toHaveBeenCalledWith('addToggle: duplicate ID:', 'btn0');
+        expect(dup).toBeNull();
+
+        dup = toolbar.addRadioSet('btn0', []);
+        expect($log.warn).toHaveBeenCalledWith('addRadioSet: duplicate ID:', 'btn0');
+        expect(dup).toBeNull();
     });
 
     it('should create a toggle', function () {
         spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test'),
-            tog = toolbar.addButton('tog0', 'gid', false, function () {});
+        var toolbar = tbs.createToolbar('foo'),
+            tog = toolbar.addButton('tog0', 'gid');
         expect(tog).not.toBeNull();
-        expect(tog.id).toBe('tbar-test-tog0');
+        expect(tog.id).toBe('toolbar-foo-tog0');
         expect($log.warn).not.toHaveBeenCalled();
     });
 
-    it('should not create a toggle with a duplicate id', function () {
-        spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test'),
-            tog = toolbar.addToggle('tog0', 'gid', false, function () {}),
-            tog1 = toolbar.addToggle('tog0', 'gid', true, function () {});
-        expect(tog).not.toBeNull();
-        expect(tog.id).toBe('tbar-test-tog0');
-        expect($log.warn).toHaveBeenCalledWith('addToggle: ID already exists');
-        expect(tog1).toBeNull();
-    });
-
-
     it('should create a radio button set', function () {
         spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test'),
+        var toolbar = tbs.createToolbar('foo'),
             rset = [
-                { gid: 'crown', cb: function () {}, tooltip: 'nothing' },
-                { gid: 'bird', cb: function () {}, tooltip: 'nothing' }
+                { gid: 'crown', cb: nullFunc, tooltip: 'A Crown' },
+                { gid: 'bird', cb: nullFunc, tooltip: 'A Bird' }
             ],
             rad = toolbar.addRadioSet('rad0', rset);
         expect(rad).not.toBeNull();
-        expect(rad.rads[0].id).toBe('tbar-test-rad0-0');
-        expect(rad.rads[1].id).toBe('tbar-test-rad0-1');
+        expect(rad.selectedIndex()).toBe(0);
         expect($log.warn).not.toHaveBeenCalled();
     });
 
     it('should create a separator div', function () {
         spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test'),
-            sep = toolbar.addSeparator();
-        expect(sep).not.toBeNull();
+        var toolbar = tbs.createToolbar('foo');
+        var tbar = d3.select('#toolbar-foo');
+
+        toolbar.addSeparator();
         expect($log.warn).not.toHaveBeenCalled();
 
-        expect(d3Elem.select('.sep')).toBeTruthy();
-        expect(d3Elem.select('.sep').style('width')).toBe('2px');
-    });
-
-    it('should not append to a destroyed toolbar', function () {
-        spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('test');
-        expect(toolbar).not.toBeNull();
-        tbs.destroyToolbar('tbar-test');
-        expect(toolbar.addButton('btn', 'gid', function () {})).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Button cannot append to div');
+        expect(tbar.select('.separator').size()).toBe(1);
     });
 
 });

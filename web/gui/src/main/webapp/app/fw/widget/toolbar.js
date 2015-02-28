@@ -79,10 +79,11 @@
     // ==================================
 
     function createToolbar(id, opts) {
-        if (!id) return warn('no ID given', id);
+        if (!id) return warn('no ID given');
         if (tbars[id]) return warn('duplicate ID given', id);
 
         var settings = angular.extend({}, defaultSettings, fs.isO(opts)),
+            items = {},
             tbid = 'toolbar-' + id,
             panel = ps.createPanel(tbid, settings),
             arrowDiv = createArrow(panel),
@@ -94,6 +95,7 @@
         // add a descriptor for this toolbar
         tbars[id] = {
             settings: settings,
+            items: items,
             panel: panel,
             panelId: tbid
         };
@@ -102,27 +104,47 @@
             .style('top', settings.top);
 
 
+        function dupId(id, caller) {
+            if (items[id]) {
+                $log.warn(caller + ': duplicate ID:', id);
+                return true;
+            }
+            return false;
+        }
+
         // API functions
 
         function addButton(id, gid, cb, tooltip) {
+            if (dupId(id, 'addButton')) return null;
+
             var bid = tbid + '-' + id,
                 btn = bns.button(panel, bid, gid, cb, tooltip);
+
+            items[id] = btn;
             tbWidth += btn.width();
             panel.width(tbWidth);
             return btn;
         }
 
         function addToggle(id, gid, initState, cb, tooltip) {
+            if (dupId(id, 'addToggle')) return null;
+
             var tid = tbid + '-' + id,
                 tog = bns.toggle(panel, tid, gid, initState, cb, tooltip);
+
+            items[id] = tog;
             tbWidth += tog.width();
             panel.width(tbWidth);
             return tog;
         }
 
         function addRadioSet(id, rset) {
+            if (dupId(id, 'addRadioSet')) return null;
+
             var rid = tbid + '-' + id,
                 rad = bns.radioSet(panel, rid, rset);
+
+            items[id] = rad;
             tbWidth += rad.width();
             panel.width(tbWidth);
             return rad;
