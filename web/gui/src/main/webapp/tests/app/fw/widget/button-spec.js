@@ -158,34 +158,26 @@ describe('factory: fw/widget/button.js', function () {
         expect($log.warn).toHaveBeenCalledWith(warning);
     });
 
-    // ===================================================================
-    // ===================================================================
-    // ===================================================================
-
-
-
     it('should not create radio button set from empty array', function () {
         var rads = [];
         spyOn($log, 'warn');
         expect(bns.radioSet(d3Elem, 'test', rads)).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('Cannot create radio button ' +
-                                                'set from empty array');
+        expect($log.warn).toHaveBeenCalledWith('invalid array (radio button set)');
     });
 
     it('should verify radio button glyph structure', function () {
         var rads = [
-            { gid: 'crown', cb: function () {}, tooltip: 'n/a'}
+            { gid: 'crown', cb: nullFunc, tooltip: 'n/a'}
         ], rdiv;
 
         spyOn($log, 'warn');
-        expect(bns.radioSet(d3Elem, 'test', rads)).toBeTruthy();
+        expect(bns.radioSet(d3Elem, 'foo', rads)).toBeTruthy();
         expect($log.warn).not.toHaveBeenCalled();
 
         rdiv = d3Elem.select('div');
-        expect(rdiv.classed('rset')).toBe(true);
-        expect(rdiv.select('div').classed('rad')).toBe(true);
-        expect(rdiv.select('div').classed('tog')).toBe(false);
-        expect(rdiv.select('div').attr('id')).toBe('test-0');
+        expect(rdiv.classed('radioSet')).toBe(true);
+        expect(rdiv.select('div').classed('radioButton')).toBe(true);
+        expect(rdiv.select('div').attr('id')).toBe('foo-0');
         expect(rdiv.select('div').select('svg')).toBeTruthy();
         expect(rdiv.select('use').classed('glyph')).toBeTruthy();
         expect(rdiv.select('use').attr('xlink:href')).toBe('#crown');
@@ -193,75 +185,116 @@ describe('factory: fw/widget/button.js', function () {
 
     it('should verify more than one radio button glyph was added', function () {
         var rads = [
-                { gid: 'crown', cb: function () {}, tooltip: 'n/a'},
-                { gid: 'router', cb: function () {}, tooltip: 'n/a'}
+            { gid: 'crown', cb: nullFunc, tooltip: 'n/a'},
+            { gid: 'router', cb: nullFunc, tooltip: 'n/a'}
         ], rdiv;
 
-        expect(bns.radioSet(d3Elem, 'test', rads)).toBeTruthy();
+        expect(bns.radioSet(d3Elem, 'foo', rads)).toBeTruthy();
         rdiv = d3Elem.select('div');
-        expect(rdiv.select('#test-0')).toBeTruthy();
-        expect(rdiv.select('#test-1')).toBeTruthy();
+        expect(rdiv.select('#foo-0')).toBeTruthy();
+        expect(rdiv.select('#foo-1')).toBeTruthy();
 
-        expect(rdiv.select('#test-0')
+        expect(rdiv.select('#foo-0')
             .select('use')
             .classed('glyph'))
             .toBeTruthy();
-        expect(rdiv.select('#test-0')
+        expect(rdiv.select('#foo-0')
             .select('use')
             .attr('xlink:href'))
             .toBe('#crown');
 
-        expect(rdiv.select('#test-1')
+        expect(rdiv.select('#foo-1')
             .select('use')
             .classed('glyph'))
             .toBeTruthy();
-        expect(rdiv.select('#test-1')
+        expect(rdiv.select('#foo-1')
             .select('use')
             .attr('xlink:href'))
             .toBe('#router');
     });
 
-    it('should select the correct radio button', function () {
+    it('should select radio button by index', function () {
         var count0 = 0,
             count1 = 9;
         function cb0() { count0++; }
         function cb1() { count1++; }
 
+        function validate(expSel, exp0, exp1) {
+            expect(rset.selected()).toBe(expSel);
+            expect(count0).toBe(exp0);
+            expect(count1).toBe(exp1);
+        }
+
+        function checkWarn(msg, index) {
+            expect($log.warn).toHaveBeenCalledWith(msg, index);
+        }
+
         var rads = [
-            { gid: 'crown', cb: cb0, tooltip: 'n/a'},
-            { gid: 'router', cb: cb1, tooltip: 'n/a'}
+                { gid: 'crown', cb: cb0, tooltip: 'n/a'},
+                { gid: 'router', cb: cb1, tooltip: 'n/a'}
             ],
             rset = bns.radioSet(d3Elem, 'test', rads);
-        spyOn($log, 'error');
+        spyOn($log, 'warn');
 
-        expect(rset.selected()).toBe(0);
-        expect(count0).toBe(0);
-        expect(count1).toBe(9);
-        rset.selected(0);
-        expect(rset.selected()).toBe(0);
-        expect(count0).toBe(0);
-        expect(count1).toBe(9);
+        validate(0, 0, 9);
+        rset.selectedIndex(0);
+        validate(0, 0, 9);
 
-        rset.selected(1);
-        expect(rset.selected()).toBe(1);
-        expect(count0).toBe(1);
-        expect(count1).toBe(10);
+        rset.selectedIndex(1);
+        validate(1, 0, 10);
 
-        rset.selected(-1);
-        expect($log.error).toHaveBeenCalledWith('Cannot select radio button ' +
-                                                'of index -1');
-        expect(rset.selected()).toBe(1);
-        expect(count0).toBe(1);
-        expect(count1).toBe(10);
+        rset.selectedIndex(-1);
+        checkWarn('invalid radio button index:', -1);
+        validate(1, 0, 10);
 
-        rset.selected(66);
-        expect($log.error).toHaveBeenCalledWith('Cannot select radio button ' +
-                                                'of index 66');
-        expect(rset.selected()).toBe(1);
-        expect(count0).toBe(1);
-        expect(count1).toBe(10);
+        rset.selectedIndex(66);
+        checkWarn('invalid radio button index:', 66);
+        validate(1, 0, 10);
+
+        rset.selectedIndex(0);
+        validate(0, 1, 10);
     });
 
-    // TODO: figure out how to trigger d3 onclick for buttons and toggles
+    it('should select radio button by key', function () {
+        var count0 = 0,
+            count1 = 9;
+        function cb0() { count0++; }
+        function cb1() { count1++; }
+
+        function validate(expSel, exp0, exp1) {
+            expect(rset.selected()).toBe(expSel);
+            expect(count0).toBe(exp0);
+            expect(count1).toBe(exp1);
+        }
+
+        function checkWarn(msg, index) {
+            expect($log.warn).toHaveBeenCalledWith(msg, index);
+        }
+
+        var rads = [
+                { key: 'foo', gid: 'crown', cb: cb0, tooltip: 'n/a'},
+                { key: 'bar', gid: 'router', cb: cb1, tooltip: 'n/a'}
+            ],
+            rset = bns.radioSet(d3Elem, 'test', rads);
+        spyOn($log, 'warn');
+
+        validate('foo', 0, 9);
+        rset.selected('foo');
+        validate('foo', 0, 9);
+
+        rset.selected('bar');
+        validate('bar', 0, 10);
+
+        rset.selected('blob');
+        checkWarn('no radio button with key:', 'blob');
+        validate('bar', 0, 10);
+
+        rset.selected('foo');
+        validate('foo', 1, 10);
+
+        rset.selected('foo');
+        validate('foo', 1, 10);
+        checkWarn('current index already selected:', 0);
+    });
 
 });

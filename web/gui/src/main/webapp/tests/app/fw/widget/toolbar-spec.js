@@ -36,13 +36,13 @@ describe('factory: fw/widget/toolbar.js', function () {
     // TODO: figure out solution for calling tests with new info instead of calling init
 
     beforeEach(function () {
-        d3Elem = d3.select('body').append('div').attr('id', 'floatpanels');
+        d3Elem = d3.select('body').append('div').attr('id', 'testToolbar');
         tbs.init();
         ps.init();
     });
 
     afterEach(function () {
-        d3.select('#floatpanels').remove();
+        d3.select('#testToolbar').remove();
         tbs.init();
         ps.init();
     });
@@ -61,11 +61,13 @@ describe('factory: fw/widget/toolbar.js', function () {
     it('should warn if createToolbar id is invalid', function () {
         spyOn($log, 'warn');
         expect(tbs.createToolbar()).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('createToolbar: no ID given');
+        expect($log.warn).toHaveBeenCalledWith('createToolbar: ' +
+                                                'no ID given: [undefined]');
 
         expect(tbs.createToolbar('test')).toBeTruthy();
         expect(tbs.createToolbar('test')).toBeNull();
-        expect($log.warn).toHaveBeenCalledWith('createToolbar: ID already exists');
+        expect($log.warn).toHaveBeenCalledWith('createToolbar: ' +
+                                            'duplicate ID given: [undefined]');
     });
 
     it('should create an unpopulated toolbar', function () {

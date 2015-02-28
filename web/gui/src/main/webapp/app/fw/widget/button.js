@@ -203,7 +203,7 @@
             } else {
                 idx = idxByKey[x];
                 if (idx === undefined) {
-                    $log.warn('no radio button with key "' + x + '"');
+                    $log.warn('no radio button with key:', x);
                 } else {
                     selectedIndex(idx);
                 }
@@ -215,10 +215,14 @@
                 return currIdx;
             } else {
                 if (x >= 0 && x < rads.length) {
-                    currIdx = x;
-                    invokeCurrent();
+                    if (currIdx !== x) {
+                        currIdx = x;
+                        invokeCurrent();
+                    } else {
+                        $log.warn('current index already selected:', x);
+                    }
                 } else {
-                    $log.warn('invalid radio button index', x);
+                    $log.warn('invalid radio button index:', x);
                 }
             }
         }
