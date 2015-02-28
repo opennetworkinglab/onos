@@ -899,6 +899,13 @@ public class GossipLinkStore
             ProviderId providerId = linkInjectedEvent.providerId();
             LinkDescription linkDescription = linkInjectedEvent.linkDescription();
 
+            final DeviceId deviceId = linkDescription.dst().deviceId();
+            if (!deviceClockService.isTimestampAvailable(deviceId)) {
+                // workaround for ONOS-1208
+                log.warn("Not ready to accept update. Dropping {}", linkDescription);
+                return;
+            }
+
             try {
                 createOrUpdateLink(providerId, linkDescription);
             } catch (Exception e) {
