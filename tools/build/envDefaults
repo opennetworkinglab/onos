@@ -19,7 +19,7 @@ export BUILD_NUMBER=${BUILD_NUMBER:-$(id -un)~$(date +'%Y/%m/%d@%H:%M')}
 
 # ONOS Version and onos.tar.gz staging environment
 export ONOS_POM_VERSION="1.1.0-SNAPSHOT"
-export ONOS_VERSION=${ONOS_VERSION:-1.1.0.$BUILD_NUMBER}
+export ONOS_VERSION=${ONOS_VERSION:-1.1.0-rc1.$BUILD_NUMBER}
 export ONOS_BITS=onos-${ONOS_VERSION%~*}
 export ONOS_STAGE_ROOT=${ONOS_STAGE_ROOT:-/tmp}
 export ONOS_STAGE=$ONOS_STAGE_ROOT/$ONOS_BITS
