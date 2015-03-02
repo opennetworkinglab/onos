@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
@@ -126,13 +127,18 @@ public class FlowsListCommand extends AbstractShellCommand {
             instr.add(i.toString());
         }
 
+        ApplicationId appCoreId = coreService.getAppId(flow.appId());
+        String appName = appCoreId == null ?
+                Short.toString(flow.appId())
+                : appCoreId.name();
+
         result.put("flowId", Long.toHexString(flow.id().value()))
                 .put("state", flow.state().toString())
                 .put("bytes", flow.bytes())
                 .put("packets", flow.packets())
                 .put("life", flow.life())
                 .put("tableId", flow.type().toString())
-                .put("appId", coreService.getAppId(flow.appId()).name());
+                .put("appId", appName);
         result.set("selector", crit);
         result.set("treatment", instr);
         return result;
