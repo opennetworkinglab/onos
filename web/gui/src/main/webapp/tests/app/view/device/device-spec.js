@@ -18,9 +18,6 @@
  ONOS GUI -- Device Controller - Unit Tests
  */
 describe('Controller: OvDeviceCtrl', function () {
-    // instantiate the Device module
-    beforeEach(module('ovDevice', 'onosRemote'));
-
     var $log, $scope, $controller, ctrl, $mockHttp;
 
     var fakeData = {
@@ -40,6 +37,9 @@ describe('Controller: OvDeviceCtrl', function () {
         }]
     };
 
+    // instantiate the Device module
+    beforeEach(module('ovDevice', 'onosRemote', 'onosLayer', 'onosSvg', 'ngRoute'));
+
     beforeEach(inject(function(_$log_, $rootScope, _$controller_, $httpBackend) {
         $log = _$log_;
         $scope = $rootScope.$new();
@@ -48,7 +48,6 @@ describe('Controller: OvDeviceCtrl', function () {
     }));
 
     beforeEach(function() {
-        $scope = {};
         ctrl = $controller('OvDeviceCtrl', { $scope: $scope });
         $mockHttp.whenGET(/\/device$/).respond(fakeData);
     });

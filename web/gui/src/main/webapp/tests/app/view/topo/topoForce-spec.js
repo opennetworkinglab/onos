@@ -20,7 +20,7 @@
 describe('factory: view/topo/topoForce.js', function() {
     var $log, fs, tfs;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute'));
 
     beforeEach(inject(function (_$log_, FnService, TopoForceService) {
         $log = _$log_;
@@ -36,7 +36,8 @@ describe('factory: view/topo/topoForce.js', function() {
         expect(fs.areFunctions(tfs, [
             'initForce', 'newDim', 'destroyForce',
 
-            'updateDeviceColors', 'toggleHosts', 'toggleOffline',
+            'updateDeviceColors', 'toggleHosts',
+            'togglePorts', 'toggleOffline',
             'cycleDeviceLabels', 'unpin', 'showMastership',
 
             'addDevice', 'updateDevice', 'removeDevice',

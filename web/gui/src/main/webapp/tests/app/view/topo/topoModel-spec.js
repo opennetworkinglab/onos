@@ -138,8 +138,10 @@ describe('factory: view/topo/topoModel.js', function() {
                     compare: function (actual, xy1, xy2) {
                         var result = {};
 
-                        result.pass = (actual.x1 === xy1[0]) && (actual.y1 === xy1[1]) &&
-                                      (actual.x2 === xy2[0]) && (actual.y2 === xy2[1]);
+                        result.pass = (actual.source.x === xy1[0]) &&
+                                      (actual.source.y === xy1[1]) &&
+                                      (actual.target.x === xy2[0]) &&
+                                      (actual.target.y === xy2[1]);
 
                         if (result.pass) {
                             // for negation with ".not"

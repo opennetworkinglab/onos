@@ -35,7 +35,6 @@
 
     // view IDs.. note the first view listed is loaded at startup
     var viewIds = [
-        // TODO: inject view IDs server side
         // {INJECTED-VIEW-IDS-START}
         'sample',
         'topo',
