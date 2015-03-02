@@ -73,7 +73,7 @@ import static org.onlab.util.Tools.groupedThreads;
  * the current leader (e.g., for informational purpose).
  * </p>
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class HazelcastLeadershipService implements LeadershipService {
     private static final Logger log =

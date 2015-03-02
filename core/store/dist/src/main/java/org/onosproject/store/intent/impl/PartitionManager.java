@@ -33,6 +33,8 @@ import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
+
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -169,7 +171,7 @@ public class PartitionManager implements PartitionService {
         public void event(LeadershipEvent event) {
             Leadership leadership = event.subject();
 
-            if (leadership.leader().equals(clusterService.getLocalNode().id()) &&
+            if (Objects.equal(leadership.leader(), clusterService.getLocalNode().id()) &&
                     leadership.topic().startsWith(ELECTION_PREFIX)) {
 
                 // See if we need to let some partitions go

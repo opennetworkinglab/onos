@@ -145,7 +145,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         });
         try {
             if (!latch.await(DATABASE_STARTUP_TIMEOUT_SEC, TimeUnit.SECONDS)) {
-                log.warn("Timeed out watiing for database to initialize.");
+                log.warn("Timed out waiting for database to initialize.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

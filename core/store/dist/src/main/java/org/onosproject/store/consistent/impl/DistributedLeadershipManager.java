@@ -52,7 +52,7 @@ import com.google.common.collect.Sets;
  * detection capabilities to detect and purge stale locks.
  * TODO: Ensure lock safety and liveness.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class DistributedLeadershipManager implements LeadershipService {
 

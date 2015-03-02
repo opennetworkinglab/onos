@@ -36,6 +36,8 @@ import com.google.common.collect.Sets;
 
 import net.kuujo.copycat.cluster.internal.coordinator.ClusterCoordinator;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * A database that partitions the keys across one or more database partitions.
  */
@@ -44,9 +46,19 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
     private Partitioner<String> partitioner;
     private final ClusterCoordinator coordinator;
     private final Map<String, Database> partitions = Maps.newConcurrentMap();
+    private final AtomicBoolean isOpen = new AtomicBoolean(false);
+    private static final String DB_NOT_OPEN = "Database is not open";
 
     protected PartitionedDatabase(ClusterCoordinator coordinator) {
         this.coordinator = coordinator;
+    }
+
+    /**
+     * Returns true if the database is open.
+     * @return true if open, false otherwise
+     */
+    public boolean isOpen() {
+        return isOpen.get();
     }
 
     @Override
@@ -61,6 +73,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Integer> size(String tableName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         AtomicInteger totalSize = new AtomicInteger(0);
         return CompletableFuture.allOf(partitions
                     .values()
@@ -72,16 +85,19 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Boolean> isEmpty(String tableName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return size(tableName).thenApply(size -> size == 0);
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String tableName, String key) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).containsKey(tableName, key);
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(String tableName, byte[] value) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         AtomicBoolean containsValue = new AtomicBoolean(false);
         return CompletableFuture.allOf(partitions
                     .values()
@@ -93,21 +109,25 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Versioned<byte[]>> get(String tableName, String key) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).get(tableName, key);
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> put(String tableName, String key, byte[] value) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).put(tableName, key, value);
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> remove(String tableName, String key) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).remove(tableName, key);
     }
 
     @Override
     public CompletableFuture<Void> clear(String tableName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return CompletableFuture.allOf(partitions
                     .values()
                     .stream()
@@ -117,6 +137,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Set<String>> keySet(String tableName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         Set<String> keySet = Sets.newConcurrentHashSet();
         return CompletableFuture.allOf(partitions
                     .values()
@@ -128,6 +149,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Collection<Versioned<byte[]>>> values(String tableName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         List<Versioned<byte[]>> values = new CopyOnWriteArrayList<>();
         return CompletableFuture.allOf(partitions
                     .values()
@@ -139,6 +161,7 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Set<Entry<String, Versioned<byte[]>>>> entrySet(String tableName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         Set<Entry<String, Versioned<byte[]>>> entrySet = Sets.newConcurrentHashSet();
         return CompletableFuture.allOf(partitions
                     .values()
@@ -150,31 +173,37 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
 
     @Override
     public CompletableFuture<Versioned<byte[]>> putIfAbsent(String tableName, String key, byte[] value) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).putIfAbsent(tableName, key, value);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String tableName, String key, byte[] value) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).remove(tableName, key, value);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String tableName, String key, long version) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).remove(tableName, key, version);
     }
 
     @Override
     public CompletableFuture<Boolean> replace(String tableName, String key, byte[] oldValue, byte[] newValue) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).replace(tableName, key, oldValue, newValue);
     }
 
     @Override
     public CompletableFuture<Boolean> replace(String tableName, String key, long oldVersion, byte[] newValue) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).replace(tableName, key, oldVersion, newValue);
     }
 
     @Override
     public CompletableFuture<Boolean> atomicBatchUpdate(List<UpdateOperation<String, byte[]>> updates) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         Map<Database, List<UpdateOperation<String, byte[]>>> perPartitionUpdates = Maps.newHashMap();
         for (UpdateOperation<String, byte[]> update : updates) {
             Database partition = partitioner.getPartition(update.tableName(), update.key());
@@ -207,12 +236,15 @@ public class PartitionedDatabase implements DatabaseProxy<String, byte[]>, Parti
                                                         .stream()
                                                         .map(Database::open)
                                                         .toArray(CompletableFuture[]::new))
-                                 .thenApply(v -> this));
+                                 .thenApply(v -> {
+                                     isOpen.set(true);
+                                     return this; }));
 
     }
 
     @Override
     public CompletableFuture<Void> close() {
+        checkState(isOpen.get(), DB_NOT_OPEN);
         CompletableFuture<Void> closePartitions = CompletableFuture.allOf(partitions
                 .values()
                 .stream()
