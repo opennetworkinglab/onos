@@ -82,7 +82,7 @@ import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
  *
  *  in general, verify intents store, flow store, and work queue
  */
-@Ignore
+
 public class IntentManagerTest {
 
     private static final ApplicationId APPID = new TestApplicationId("manager-test");
