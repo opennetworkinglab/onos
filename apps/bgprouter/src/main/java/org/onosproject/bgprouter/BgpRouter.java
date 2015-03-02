@@ -285,7 +285,7 @@ public class BgpRouter {
             processTableZero(install);
             processTableOne(install);
             processTableTwo(install);
-            processTableThree(install);
+            processTableFour(install);
             processTableFive(install);
             processTableSix(install);
             processTableNine(install);
@@ -305,7 +305,7 @@ public class BgpRouter {
             FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
                                                 treatment.build(),
                                                 CONTROLLER_PRIORITY, appId, 0,
-                                                true);
+                                                true, FlowRule.Type.FIRST);
 
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
 
@@ -319,7 +319,7 @@ public class BgpRouter {
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
                                        treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.VLAN_MPLS);
+                                       0, true, FlowRule.Type.FIRST);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -433,7 +433,7 @@ public class BgpRouter {
             }));
         }
 
-        private void processTableThree(boolean install) {
+        private void processTableFour(boolean install) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                     .builder();
@@ -469,7 +469,7 @@ public class BgpRouter {
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
                                        treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.VLAN_MPLS);
+                                       0, true, FlowRule.Type.ETHER);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 

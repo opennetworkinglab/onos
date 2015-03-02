@@ -97,18 +97,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
         List<OFInstruction> instructions = buildInstructions();
+
         // FIXME had to revert back to using apply-actions instead of
         // write-actions because LINC-OE apparently doesn't support
         // write-actions. I would prefer to change this back in the future
         // because apply-actions is an optional instruction in OF 1.3.
 
-        OFInstruction applyActions =
-                factory().instructions().applyActions(actions);
-
-        instructions.add(applyActions);
+        if (actions != null) {
+            OFInstruction applyActions =
+                    factory().instructions().applyActions(actions);
+            instructions.add(applyActions);
+        }
 
         long cookie = flowRule().id().value();
-
 
         OFFlowAdd fm = factory().buildFlowAdd()
                 .setXid(xid)
@@ -129,13 +130,14 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         Match match = buildMatch();
         List<OFAction> actions = buildActions();
         List<OFInstruction> instructions = buildInstructions();
-        OFInstruction applyActions =
-                factory().instructions().applyActions(actions);
 
-        instructions.add(applyActions);
+        if (actions != null) {
+            OFInstruction applyActions =
+                    factory().instructions().applyActions(actions);
+            instructions.add(applyActions);
+        }
 
         long cookie = flowRule().id().value();
-
 
         OFFlowMod fm = factory().buildFlowModify()
                 .setXid(xid)
@@ -189,6 +191,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
     private List<OFAction> buildActions() {
         List<OFAction> actions = new LinkedList<>();
+        boolean tableFound = false;
         if (treatment == null) {
             return actions;
         }
@@ -223,12 +226,17 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                     break;
                 case TABLE:
                     //FIXME: should not occur here.
+                    tableFound = true;
                     break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());
             }
         }
-
+        if (tableFound && actions.isEmpty()) {
+            // handles the case where there are no actions, but there is
+            // a goto instruction for the next table
+            return null;
+        }
         return actions;
     }
 

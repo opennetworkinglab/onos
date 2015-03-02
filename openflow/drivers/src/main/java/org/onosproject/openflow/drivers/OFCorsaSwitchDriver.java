@@ -63,7 +63,7 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
         if (msg.getType() == OFType.FLOW_MOD) {
             OFFlowMod flowMod = (OFFlowMod) msg;
             OFFlowMod.Builder builder = flowMod.createBuilder();
-            List<OFInstruction> instructions = builder.getInstructions();
+            List<OFInstruction> instructions = flowMod.getInstructions();
             List<OFInstruction> newInstructions = Lists.newArrayList();
             for (OFInstruction i : instructions) {
                 if (i instanceof OFInstructionGotoTable) {
@@ -106,9 +106,11 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
                                             .setTableId(TableId.of(LOCAL_TABLE)).build());
                             break;
                         case NONE:
-                            newInstructions.add(
+                            log.error("Should never have to go to Table 0");
+                            /*newInstructions.add(
                                     gotoTable.createBuilder()
                                             .setTableId(TableId.of(0)).build());
+                            */
                             break;
                         default:
                             log.warn("Unknown table type: {}", tid);
@@ -147,8 +149,10 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
                     log.warn("Unknown table type: {}", type);
             }
             builder.setInstructions(newInstructions);
-            this.write(builder.build());
-            log.info("Installed {}", builder.build());
+            OFMessage msgnew = builder.build();
+            this.write(msgnew);
+            log.debug("Installed {}", msgnew);
+
         } else {
             this.write(msg);
         }

@@ -33,7 +33,8 @@ public interface FlowRule {
      * For single table switch, Default is used.
      */
     public static enum Type {
-        /* Default type - used in flow rule for single table switch */
+        /* Default type - used in flow rule for single table switch
+         * NOTE: this setting should not be used as Table 0 in a multi-table pipeline*/
         DEFAULT,
         /* Used in flow entry for IP table */
         IP,
@@ -48,11 +49,14 @@ public interface FlowRule {
         /* VLAN table */
         VLAN,
 
-        /* L2 table */
+        /* Ethtype table */
         ETHER,
 
         /* Class of Service table */
         COS,
+
+        /* Table 0 in a multi-table pipeline */
+        FIRST,
     }
 
     //TODO: build cookie value

@@ -180,11 +180,11 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public int hashCode() {
-        return Objects.hash(deviceId, selector, priority);
+        return Objects.hash(deviceId, selector, priority, type);
     }
 
     public int hash() {
-        return Objects.hash(deviceId, selector, treatment);
+        return Objects.hash(deviceId, selector, treatment, type);
     }
 
     @Override
@@ -202,7 +202,8 @@ public class DefaultFlowRule implements FlowRule {
             DefaultFlowRule that = (DefaultFlowRule) obj;
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(priority, that.priority) &&
-                    Objects.equals(selector, that.selector);
+                    Objects.equals(selector, that.selector) &&
+                    Objects.equals(type, that.type);
 
         }
         return false;
@@ -216,6 +217,7 @@ public class DefaultFlowRule implements FlowRule {
                 .add("priority", priority)
                 .add("selector", selector.criteria())
                 .add("treatment", treatment == null ? "N/A" : treatment.instructions())
+                .add("table type", type)
                 .add("created", created)
                 .toString();
     }
