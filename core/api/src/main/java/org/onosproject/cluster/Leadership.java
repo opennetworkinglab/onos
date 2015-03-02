@@ -17,6 +17,8 @@ package org.onosproject.cluster;
 
 import java.util.Objects;
 
+import org.joda.time.DateTime;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -27,11 +29,13 @@ public class Leadership {
     private final String topic;
     private final NodeId leader;
     private final long epoch;
+    private final long electedTime;
 
-    public Leadership(String topic, NodeId leader, long epoch) {
+    public Leadership(String topic, NodeId leader, long epoch, long electedTime) {
         this.topic = topic;
         this.leader = leader;
         this.epoch = epoch;
+        this.electedTime = electedTime;
     }
 
     /**
@@ -52,10 +56,29 @@ public class Leadership {
 
     /**
      * The epoch when the leadership was assumed.
+     * <p>
+     * Comparing epochs is only appropriate for leadership
+     * events for the same topic. The system guarantees that
+     * for any given topic the epoch for a new term is higher
+     * (not necessarily by 1) than the epoch for any previous term.
      * @return leadership epoch
      */
     public long epoch() {
         return epoch;
+    }
+
+    /**
+     * The system time when the term started.
+     * <p>
+     * The elected time is initially set on the node coordinating
+     * the leader election using its local system time. Due to possible
+     * clock skew, relying on this value for determining event ordering
+     * is discouraged. Epoch is more appropriate for determining
+     * event ordering.
+     * @return elected time.
+     */
+    public long electedTime() {
+        return electedTime;
     }
 
     @Override
@@ -72,7 +95,8 @@ public class Leadership {
             final Leadership other = (Leadership) obj;
             return Objects.equals(this.topic, other.topic) &&
                     Objects.equals(this.leader, other.leader) &&
-                    Objects.equals(this.epoch, other.epoch);
+                    Objects.equals(this.epoch, other.epoch) &&
+                    Objects.equals(this.electedTime, other.electedTime);
         }
         return false;
     }
@@ -83,6 +107,7 @@ public class Leadership {
             .add("topic", topic)
             .add("leader", leader)
             .add("epoch", epoch)
+            .add("electedTime", new DateTime(electedTime))
             .toString();
     }
 }

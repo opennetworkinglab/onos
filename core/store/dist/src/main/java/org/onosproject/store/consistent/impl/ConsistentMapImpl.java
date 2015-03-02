@@ -105,7 +105,13 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
     public Versioned<V> get(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
         Versioned<byte[]> value = complete(proxy.get(name, keyCache.getUnchecked(key)));
-        return (value != null) ? new Versioned<>(serializer.decode(value.value()), value.version()) : null;
+        if (value == null) {
+            return null;
+        }
+        return new Versioned<>(
+                serializer.decode(value.value()),
+                value.version(),
+                value.creationTime());
     }
 
     @Override
@@ -114,16 +120,26 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
         checkNotNull(value, ERROR_NULL_VALUE);
         Versioned<byte[]> previousValue =
                 complete(proxy.put(name, keyCache.getUnchecked(key), serializer.encode(value)));
-        return (previousValue != null) ?
-                new Versioned<>(serializer.decode(previousValue.value()), previousValue.version()) : null;
-
+        if (previousValue == null) {
+            return null;
+        }
+        return new Versioned<>(
+                serializer.decode(previousValue.value()),
+                previousValue.version(),
+                previousValue.creationTime());
     }
 
     @Override
     public Versioned<V> remove(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
         Versioned<byte[]> value = complete(proxy.remove(name, keyCache.getUnchecked(key)));
-        return (value != null) ? new Versioned<>(serializer.decode(value.value()), value.version()) : null;
+        if (value == null) {
+            return null;
+        }
+        return new Versioned<>(
+                serializer.decode(value.value()),
+                value.version(),
+                value.creationTime());
     }
 
     @Override
@@ -143,7 +159,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
     public Collection<Versioned<V>> values() {
         return Collections.unmodifiableList(complete(proxy.values(name))
             .stream()
-            .map(v -> new Versioned<V>(serializer.decode(v.value()), v.version()))
+            .map(v -> new Versioned<V>(serializer.decode(v.value()), v.version(), v.creationTime()))
             .collect(Collectors.toList()));
     }
 
@@ -161,8 +177,13 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
         checkNotNull(value, ERROR_NULL_VALUE);
         Versioned<byte[]> existingValue = complete(proxy.putIfAbsent(
                 name, keyCache.getUnchecked(key), serializer.encode(value)));
-        return (existingValue != null) ?
-                new Versioned<>(serializer.decode(existingValue.value()), existingValue.version()) : null;
+        if (existingValue == null) {
+            return null;
+        }
+        return new Versioned<>(
+                serializer.decode(existingValue.value()),
+                existingValue.version(),
+                existingValue.creationTime());
     }
 
     @Override
@@ -212,6 +233,7 @@ public class ConsistentMapImpl<K, V> implements ConsistentMap<K, V> {
                 dK(e.getKey()),
                 new Versioned<>(
                         serializer.decode(e.getValue().value()),
-                        e.getValue().version()));
+                        e.getValue().version(),
+                        e.getValue().creationTime()));
     }
 }

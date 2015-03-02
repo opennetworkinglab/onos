@@ -16,6 +16,8 @@
 
 package org.onosproject.store.service;
 
+import org.joda.time.DateTime;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -27,6 +29,20 @@ public class Versioned<V> {
 
     private final V value;
     private final long version;
+    private final long creationTime;
+
+    /**
+     * Constructs a new versioned value.
+     * @param value value
+     * @param version version
+     * @param creationTime milliseconds of the creation event
+     *  from the Java epoch of 1970-01-01T00:00:00Z
+     */
+    public Versioned(V value, long version, long creationTime) {
+        this.value = value;
+        this.version = version;
+        this.creationTime = System.currentTimeMillis();
+    }
 
     /**
      * Constructs a new versioned value.
@@ -34,8 +50,7 @@ public class Versioned<V> {
      * @param version version
      */
     public Versioned(V value, long version) {
-        this.value = value;
-        this.version = version;
+        this(value, version, System.currentTimeMillis());
     }
 
     /**
@@ -56,11 +71,26 @@ public class Versioned<V> {
         return version;
     }
 
+    /**
+     * Returns the system time when this version was created.
+     * <p>
+     * Care should be taken when relying on creationTime to
+     * implement any behavior in a distributed setting. Due
+     * to the possibility of clock skew it is likely that
+     * even creationTimes of causally related versions can be
+     * out or order.
+     * @return creation time
+     */
+    public long creationTime() {
+        return creationTime;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
             .add("value", value)
             .add("version", version)
+            .add("creationTime", new DateTime(creationTime))
             .toString();
     }
 }

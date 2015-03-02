@@ -170,7 +170,8 @@ public class HazelcastLeadershipService implements LeadershipService {
         if (topic != null) {
             return new Leadership(topic.topicName(),
                     topic.leader(),
-                    topic.term());
+                    topic.term(),
+                    0);
         }
         return null;
     }
@@ -215,7 +216,8 @@ public class HazelcastLeadershipService implements LeadershipService {
         for (Topic topic : topics.values()) {
             Leadership leadership = new Leadership(topic.topicName(),
                                                    topic.leader(),
-                                                   topic.term());
+                                                   topic.term(),
+                                                   0);
             result.put(topic.topicName(), leadership);
         }
         return result;
@@ -412,7 +414,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                             //
                             leadershipEvent = new LeadershipEvent(
                                 LeadershipEvent.Type.LEADER_REELECTED,
-                                new Leadership(topicName, localNodeId, myLastLeaderTerm));
+                                new Leadership(topicName, localNodeId, myLastLeaderTerm, 0));
                             // Dispatch to all instances
 
                             clusterCommunicator.broadcastIncludeSelf(
@@ -431,7 +433,7 @@ public class HazelcastLeadershipService implements LeadershipService {
                                           topicName, leader);
                                 leadershipEvent = new LeadershipEvent(
                                         LeadershipEvent.Type.LEADER_BOOTED,
-                                        new Leadership(topicName, leader, myLastLeaderTerm));
+                                        new Leadership(topicName, leader, myLastLeaderTerm, 0));
                                 // Dispatch only to the local listener(s)
                                 eventDispatcher.post(leadershipEvent);
                                 leader = null;
@@ -486,8 +488,8 @@ public class HazelcastLeadershipService implements LeadershipService {
 
                         leader = localNodeId;
                         leadershipEvent = new LeadershipEvent(
-                                                              LeadershipEvent.Type.LEADER_ELECTED,
-                                                              new Leadership(topicName, localNodeId, myLastLeaderTerm));
+                                             LeadershipEvent.Type.LEADER_ELECTED,
+                                             new Leadership(topicName, localNodeId, myLastLeaderTerm, 0));
                         clusterCommunicator.broadcastIncludeSelf(
                                 new ClusterMessage(
                                         clusterService.getLocalNode().id(),
@@ -514,8 +516,8 @@ public class HazelcastLeadershipService implements LeadershipService {
                             leader = null;
                         }
                         leadershipEvent = new LeadershipEvent(
-                                                              LeadershipEvent.Type.LEADER_BOOTED,
-                                                              new Leadership(topicName, localNodeId, myLastLeaderTerm));
+                                                 LeadershipEvent.Type.LEADER_BOOTED,
+                                                 new Leadership(topicName, localNodeId, myLastLeaderTerm, 0));
                         clusterCommunicator.broadcastIncludeSelf(
                                 new ClusterMessage(
                                         clusterService.getLocalNode().id(),

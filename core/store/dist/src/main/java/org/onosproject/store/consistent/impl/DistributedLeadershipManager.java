@@ -227,7 +227,7 @@ public class DistributedLeadershipManager implements LeadershipService {
             if (currentLeader != null) {
                 if (localNodeId.equals(currentLeader.value())) {
                     log.info("Already has leadership for {}", path);
-                    notifyNewLeader(path, localNodeId, currentLeader.version());
+                    notifyNewLeader(path, localNodeId, currentLeader.version(), currentLeader.creationTime());
                 } else {
                     // someone else has leadership. will retry after sometime.
                     retry(path);
@@ -237,7 +237,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                     log.info("Assumed leadership for {}", path);
                     // do a get again to get the version (epoch)
                     Versioned<NodeId> newLeader = lockMap.get(path);
-                    notifyNewLeader(path, localNodeId, newLeader.version());
+                    notifyNewLeader(path, localNodeId, newLeader.version(), newLeader.creationTime());
                 } else {
                     // someone beat us to it.
                     retry(path);
@@ -249,8 +249,8 @@ public class DistributedLeadershipManager implements LeadershipService {
         }
     }
 
-    private void notifyNewLeader(String path, NodeId leader, long epoch) {
-        Leadership newLeadership = new Leadership(path, leader, epoch);
+    private void notifyNewLeader(String path, NodeId leader, long epoch, long electedTime) {
+        Leadership newLeadership = new Leadership(path, leader, epoch, electedTime);
         boolean updatedLeader = false;
         synchronized (leaderBoard) {
             Leadership currentLeader = leaderBoard.get(path);
@@ -271,8 +271,8 @@ public class DistributedLeadershipManager implements LeadershipService {
         }
     }
 
-    private void notifyRemovedLeader(String path, NodeId leader, long epoch) {
-        Leadership oldLeadership = new Leadership(path, leader, epoch);
+    private void notifyRemovedLeader(String path, NodeId leader, long epoch, long electedTime) {
+        Leadership oldLeadership = new Leadership(path, leader, epoch, electedTime);
         boolean updatedLeader = false;
         synchronized (leaderBoard) {
             Leadership currentLeader = leaderBoard.get(path);
@@ -346,12 +346,13 @@ public class DistributedLeadershipManager implements LeadershipService {
                 String path = entry.getKey();
                 NodeId nodeId = entry.getValue().value();
                 long epoch = entry.getValue().version();
+                long creationTime = entry.getValue().creationTime();
                 if (clusterService.getState(nodeId) == ControllerNode.State.INACTIVE) {
                     log.info("Lock for {} is held by {} which is currently inactive", path, nodeId);
                     try {
                         if (lockMap.remove(path, epoch)) {
                             log.info("Purged stale lock held by {} for {}", nodeId, path);
-                            notifyRemovedLeader(path, nodeId, epoch);
+                            notifyRemovedLeader(path, nodeId, epoch, creationTime);
                         }
                     } catch (Exception e) {
                         log.warn("Failed to purge stale lock held by {} for {}", nodeId, path, e);
@@ -362,7 +363,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                     try {
                         if (lockMap.remove(path, epoch)) {
                             log.info("Purged stale lock held by {} for {}", nodeId, path);
-                            notifyRemovedLeader(path, nodeId, epoch);
+                            notifyRemovedLeader(path, nodeId, epoch, creationTime);
                         }
                     } catch (Exception e) {
                         log.warn("Failed to purge stale lock held by {} for {}", nodeId, path, e);

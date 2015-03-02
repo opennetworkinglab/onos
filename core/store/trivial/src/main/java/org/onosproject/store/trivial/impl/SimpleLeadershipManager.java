@@ -61,7 +61,7 @@ public class SimpleLeadershipManager implements LeadershipService {
     @Override
     public Leadership getLeadership(String path) {
         checkArgument(path != null);
-        return elections.get(path) ? new Leadership(path, clusterService.getLocalNode().id(), 0) : null;
+        return elections.get(path) ? new Leadership(path, clusterService.getLocalNode().id(), 0, 0) : null;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SimpleLeadershipManager implements LeadershipService {
         elections.put(path, true);
         for (LeadershipEventListener listener : listeners) {
             listener.event(new LeadershipEvent(Type.LEADER_ELECTED,
-                    new Leadership(path, clusterService.getLocalNode().id(), 0)));
+                    new Leadership(path, clusterService.getLocalNode().id(), 0, 0)));
         }
     }
 
@@ -88,7 +88,7 @@ public class SimpleLeadershipManager implements LeadershipService {
         elections.remove(path);
         for (LeadershipEventListener listener : listeners) {
             listener.event(new LeadershipEvent(Type.LEADER_BOOTED,
-                    new Leadership(path, clusterService.getLocalNode().id(), 0)));
+                    new Leadership(path, clusterService.getLocalNode().id(), 0, 0)));
         }
     }
 
