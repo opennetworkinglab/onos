@@ -69,7 +69,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * ClusterService implementation that employs an accrual failure
  * detector to identify cluster member up/down status.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class ClusterManager implements ClusterService, ClusterAdminService {
 
