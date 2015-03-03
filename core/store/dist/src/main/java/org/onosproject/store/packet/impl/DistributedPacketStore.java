@@ -15,19 +15,13 @@
  */
 package org.onosproject.store.packet.impl;
 
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -43,8 +37,13 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.onlab.util.Tools.groupedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Distributed packet store implementation allowing packets to be sent to
@@ -118,12 +117,10 @@ public class DistributedPacketStore
             return;
         }
 
-        try {
-            communicationService.unicast(new ClusterMessage(
-                    myId, PACKET_OUT_SUBJECT, SERIALIZER.encode(packet)), master);
-        } catch (IOException e) {
-            log.warn("Failed to send packet-out to {}", master);
-        }
+        // TODO check unicast return value
+        communicationService.unicast(new ClusterMessage(
+                myId, PACKET_OUT_SUBJECT, SERIALIZER.encode(packet)), master);
+        // error log: log.warn("Failed to send packet-out to {}", master);
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.intent.impl;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.intent.Key;
 
 /**
@@ -30,6 +31,14 @@ public interface PartitionService {
      * @return true if the key is owned by this instance, otherwise false
      */
     boolean isMine(Key intentKey);
+
+    /**
+     * Returns the leader for a particular key.
+     *
+     * @param intentKey intent key to query
+     * @return the leader node
+     */
+    NodeId getLeader(Key intentKey);
 
     // TODO add API for rebalancing partitions
 }

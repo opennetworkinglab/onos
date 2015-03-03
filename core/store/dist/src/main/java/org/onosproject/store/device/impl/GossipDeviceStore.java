@@ -21,7 +21,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -305,14 +304,13 @@ public class GossipDeviceStore
             ClusterMessage clusterMessage = new ClusterMessage(localNode, DEVICE_INJECTED,
                     SERIALIZER.encode(deviceInjectedEvent));
 
-            try {
-                clusterCommunicator.unicast(clusterMessage, deviceNode);
-            } catch (IOException e) {
-                log.warn("Failed to process injected device id: {} desc: {} " +
-                                "(cluster messaging failed: {})",
-                        deviceId, deviceDescription, e);
-            }
-
+            // TODO check unicast return value
+            clusterCommunicator.unicast(clusterMessage, deviceNode);
+            /* error log:
+            log.warn("Failed to process injected device id: {} desc: {} " +
+                            "(cluster messaging failed: {})",
+                    deviceId, deviceDescription, e);
+            */
         }
 
         return deviceEvent;
@@ -556,13 +554,14 @@ public class GossipDeviceStore
             PortInjectedEvent portInjectedEvent = new PortInjectedEvent(providerId, deviceId, portDescriptions);
             ClusterMessage clusterMessage = new ClusterMessage(
                     localNode, PORT_INJECTED, SERIALIZER.encode(portInjectedEvent));
-            try {
-                clusterCommunicator.unicast(clusterMessage, deviceNode);
-            } catch (IOException e) {
-                log.warn("Failed to process injected ports of device id: {} " +
-                                "(cluster messaging failed: {})",
-                        deviceId, e);
-            }
+
+            //TODO check unicast return value
+            clusterCommunicator.unicast(clusterMessage, deviceNode);
+            /* error log:
+            log.warn("Failed to process injected ports of device id: {} " +
+                            "(cluster messaging failed: {})",
+                    deviceId, e);
+            */
         }
 
         return deviceEvents == null ? Collections.emptyList() : deviceEvents;
@@ -842,13 +841,13 @@ public class GossipDeviceStore
                      DEVICE_REMOVE_REQ,
                      SERIALIZER.encode(deviceId));
 
-             try {
-                 clusterCommunicator.unicast(message, master);
-             } catch (IOException e) {
-                 log.error("Failed to forward {} remove request to {}", deviceId, master, e);
-             }
+            // TODO check unicast return value
+            clusterCommunicator.unicast(message, master);
+             /* error log:
+             log.error("Failed to forward {} remove request to {}", deviceId, master, e);
+             */
 
-             // event will be triggered after master processes it.
+            // event will be triggered after master processes it.
              return null;
         }
 

@@ -337,13 +337,13 @@ public class GossipLinkStore
             ClusterMessage linkInjectedMessage = new ClusterMessage(localNode,
                     GossipLinkStoreMessageSubjects.LINK_INJECTED, SERIALIZER.encode(linkInjectedEvent));
 
-            try {
-                clusterCommunicator.unicast(linkInjectedMessage, dstNode);
-            } catch (IOException e) {
-                log.warn("Failed to process link update between src: {} and dst: {} " +
-                                "(cluster messaging failed: {})",
-                        linkDescription.src(), linkDescription.dst(), e);
-            }
+            // TODO check unicast return value
+            clusterCommunicator.unicast(linkInjectedMessage, dstNode);
+            /* error log:
+            log.warn("Failed to process link update between src: {} and dst: {} " +
+                            "(cluster messaging failed: {})",
+                    linkDescription.src(), linkDescription.dst(), e);
+            */
 
         }
 

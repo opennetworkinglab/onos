@@ -16,11 +16,9 @@
 package org.onosproject.store.cluster.messaging;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
 import org.onosproject.cluster.NodeId;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 // TODO: remove IOExceptions?
@@ -51,9 +49,8 @@ public interface ClusterCommunicationService {
      * @param message  message to send
      * @param toNodeId node identifier
      * @return true if the message was sent successfully; false otherwise.
-     * @throws IOException when I/O exception of some sort has occurred
      */
-    boolean unicast(ClusterMessage message, NodeId toNodeId) throws IOException;
+    boolean unicast(ClusterMessage message, NodeId toNodeId);
 
     /**
      * Multicast a message to a set of controller nodes.
@@ -62,7 +59,7 @@ public interface ClusterCommunicationService {
      * @param nodeIds  recipient node identifiers
      * @return true if the message was sent successfully to all nodes in the group; false otherwise.
      */
-    boolean multicast(ClusterMessage message, Set<NodeId> nodeIds);
+    boolean multicast(ClusterMessage message, Iterable<NodeId> nodeIds);
 
     /**
      * Sends a message synchronously.

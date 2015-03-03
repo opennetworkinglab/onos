@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.BoundedThreadPool;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.NewConcurrentHashMap;
 import org.onosproject.cluster.ClusterService;
@@ -138,7 +139,8 @@ public class DistributedFlowRuleStore
     private ExecutorService messageHandlingExecutor;
 
     private final ExecutorService backupExecutors =
-            Executors.newSingleThreadExecutor(groupedThreads("onos/flow", "async-backups"));
+            BoundedThreadPool.newSingleThreadExecutor(groupedThreads("onos/flow", "async-backups"));
+            //Executors.newSingleThreadExecutor(groupedThreads("onos/flow", "async-backups"));
 
     private boolean syncBackup = false;
 
@@ -385,12 +387,8 @@ public class DistributedFlowRuleStore
                 SERIALIZER.encode(operation));
 
 
-        try {
-
-            clusterCommunicator.unicast(message, replicaInfo.master().get());
-
-        } catch (IOException e) {
-            log.warn("Failed to storeBatch: {}", e.getMessage());
+        if (!clusterCommunicator.unicast(message, replicaInfo.master().get())) {
+            log.warn("Failed to storeBatch: {} to {}", message, replicaInfo.master());
 
             Set<FlowRule> allFailures = operation.getOperations().stream()
                     .map(op -> op.target())
@@ -401,7 +399,6 @@ public class DistributedFlowRuleStore
                     new CompletedBatchOperation(false, allFailures, deviceId)));
             return;
         }
-
     }
 
     private void storeBatchInternal(FlowRuleBatchOperation operation) {
@@ -576,15 +573,13 @@ public class DistributedFlowRuleStore
         if (nodeId == null) {
             notifyDelegate(event);
         } else {
-            try {
-                ClusterMessage message = new ClusterMessage(
-                        clusterService.getLocalNode().id(),
-                        REMOTE_APPLY_COMPLETED,
-                        SERIALIZER.encode(event));
-                clusterCommunicator.unicast(message, nodeId);
-            } catch (IOException e) {
-                log.warn("Failed to respond to peer for batch operation result");
-            }
+            ClusterMessage message = new ClusterMessage(
+                    clusterService.getLocalNode().id(),
+                    REMOTE_APPLY_COMPLETED,
+                    SERIALIZER.encode(event));
+            // TODO check unicast return value
+            clusterCommunicator.unicast(message, nodeId);
+            //error log: log.warn("Failed to respond to peer for batch operation result");
         }
     }
 

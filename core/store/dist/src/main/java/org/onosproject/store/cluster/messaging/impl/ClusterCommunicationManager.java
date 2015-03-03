@@ -16,7 +16,6 @@
 package org.onosproject.store.cluster.messaging.impl;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -39,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -107,7 +105,7 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean multicast(ClusterMessage message, Set<NodeId> nodes) {
+    public boolean multicast(ClusterMessage message, Iterable<NodeId> nodes) {
         boolean ok = true;
         final ControllerNode localNode = clusterService.getLocalNode();
         byte[] payload = message.getBytes();
@@ -120,8 +118,8 @@ public class ClusterCommunicationManager
     }
 
     @Override
-    public boolean unicast(ClusterMessage message, NodeId toNodeId) throws IOException {
-        return unicast(message.subject(), message.getBytes(), toNodeId);
+    public boolean unicast(ClusterMessage message, NodeId toNodeId) {
+        return unicastUnchecked(message.subject(), message.getBytes(), toNodeId);
     }
 
     private boolean unicast(MessageSubject subject, byte[] payload, NodeId toNodeId) throws IOException {
@@ -136,7 +134,6 @@ public class ClusterCommunicationManager
             throw e;
         }
     }
-
 
     private boolean unicastUnchecked(MessageSubject subject, byte[] payload, NodeId toNodeId) {
         try {

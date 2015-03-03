@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.store.Timestamp;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class IntentData { //FIXME need to make this "immutable"
 
     private IntentState state;
     private Timestamp version;
+    private NodeId origin;
 
     private List<Intent> installables;
 
@@ -59,6 +61,19 @@ public class IntentData { //FIXME need to make this "immutable"
 
     public Timestamp version() {
         return version;
+    }
+
+    /**
+     * Sets the origin, which is the node that created the instance.
+     *
+     * @param origin origin instance
+     */
+    public void setOrigin(NodeId origin) {
+        this.origin = origin;
+    }
+
+    public NodeId origin() {
+        return origin;
     }
 
     public void setState(IntentState newState) {

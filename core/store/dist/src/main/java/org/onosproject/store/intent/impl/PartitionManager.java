@@ -29,13 +29,13 @@ import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
-
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -109,8 +109,13 @@ public class PartitionManager implements PartitionService {
 
     @Override
     public boolean isMine(Key intentKey) {
-        return Objects.equal(leadershipService.getLeader(getPartitionPath(getPartitionForKey(intentKey))),
-                             clusterService.getLocalNode().id());
+        return Objects.equals(leadershipService.getLeader(getPartitionPath(getPartitionForKey(intentKey))),
+                              clusterService.getLocalNode().id());
+    }
+
+    @Override
+    public NodeId getLeader(Key intentKey) {
+        return leadershipService.getLeader(getPartitionPath(getPartitionForKey(intentKey)));
     }
 
     private void doRelinquish() {
@@ -171,7 +176,7 @@ public class PartitionManager implements PartitionService {
         public void event(LeadershipEvent event) {
             Leadership leadership = event.subject();
 
-            if (Objects.equal(leadership.leader(), clusterService.getLocalNode().id()) &&
+            if (Objects.equals(leadership.leader(), clusterService.getLocalNode().id()) &&
                     leadership.topic().startsWith(ELECTION_PREFIX)) {
 
                 // See if we need to let some partitions go

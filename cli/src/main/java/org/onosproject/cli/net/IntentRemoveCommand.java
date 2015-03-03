@@ -84,14 +84,13 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         Key key = Key.of(new BigInteger(id, 16).longValue(), appId);
         Intent intent = intentService.getIntent(key);
 
-
         if (intent != null) {
             // set up latch and listener to track uninstall progress
             CountDownLatch latch = new CountDownLatch(1);
             IntentListener listener = (IntentEvent event) -> {
                 if (Objects.equals(event.subject().key(), key) &&
-                        (event.type() == IntentEvent.Type.WITHDRAWN
-                                || event.type() == IntentEvent.Type.WITHDRAWN)) {
+                        (event.type() == IntentEvent.Type.WITHDRAWN ||
+                         event.type() == IntentEvent.Type.FAILED)) {
                     latch.countDown();
                 }
             };
