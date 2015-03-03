@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of point-to-point connectivity.
  */
-public class PointToPointIntent extends ConnectivityIntent {
+public final class PointToPointIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;
     private final ConnectPoint egressPoint;

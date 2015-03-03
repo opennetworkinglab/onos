@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of single source, multiple destination connectivity intent.
  */
-public class SinglePointToMultiPointIntent extends ConnectivityIntent {
+public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;
     private final Set<ConnectPoint> egressPoints;

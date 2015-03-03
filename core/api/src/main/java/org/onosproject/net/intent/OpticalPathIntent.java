@@ -24,7 +24,7 @@ import org.onosproject.net.Path;
 
 import java.util.Collection;
 
-public class OpticalPathIntent extends Intent {
+public final class OpticalPathIntent extends Intent {
 
     private final ConnectPoint src;
     private final ConnectPoint dst;

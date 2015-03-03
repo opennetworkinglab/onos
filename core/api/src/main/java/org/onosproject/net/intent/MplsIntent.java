@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Abstraction of MPLS label-switched connectivity.
  */
-public class MplsIntent extends ConnectivityIntent {
+public final class MplsIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;
     private final Optional<MplsLabel> ingressLabel;

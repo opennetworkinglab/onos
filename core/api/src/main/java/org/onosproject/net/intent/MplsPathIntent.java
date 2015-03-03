@@ -18,10 +18,10 @@ import org.onosproject.net.flow.TrafficTreatment;
  * Abstraction of explicit MPLS label-switched path.
  */
 
-public class MplsPathIntent extends PathIntent {
+public final class MplsPathIntent extends PathIntent {
 
-    private Optional<MplsLabel> ingressLabel;
-    private Optional<MplsLabel> egressLabel;
+    private final Optional<MplsLabel> ingressLabel;
+    private final Optional<MplsLabel> egressLabel;
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
