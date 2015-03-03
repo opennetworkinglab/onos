@@ -85,6 +85,7 @@ import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
 
 public class IntentManagerTest {
 
+    private static final int SUBMIT_TIMEOUT_MS = 1000;
     private static final ApplicationId APPID = new TestApplicationId("manager-test");
 
     private IntentManager manager;
@@ -380,7 +381,7 @@ public class IntentManagerTest {
             service.withdraw(intent);
         }
 
-        assertAfter(100, () -> {
+        assertAfter(SUBMIT_TIMEOUT_MS, () -> {
             assertEquals(1L, service.getIntentCount());
             assertEquals(0L, flowRuleService.getFlowRuleCount());
         });
