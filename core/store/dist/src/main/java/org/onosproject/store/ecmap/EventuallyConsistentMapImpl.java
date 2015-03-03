@@ -19,6 +19,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.SlidingWindowCounter;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -49,6 +50,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -99,6 +101,12 @@ public class EventuallyConsistentMapImpl<K, V>
     private long initialDelaySec = 5;
     private long periodSec = 5;
     private boolean lightweightAntiEntropy = true;
+
+    private static final int WINDOW_SIZE = 5;
+    private static final int HIGH_LOAD_THRESHOLD = 0;
+    private static final int LOAD_WINDOW = 2;
+    SlidingWindowCounter counter = new SlidingWindowCounter(WINDOW_SIZE);
+    AtomicLong operations = new AtomicLong();
 
     /**
      * Creates a new eventually consistent map shared amongst multiple instances.
@@ -162,7 +170,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 //FIXME anti-entropy can take >60 seconds and it blocks fg workers
                 // ... dropping minPriority to try to help until this can be parallel
                 newSingleThreadScheduledExecutor(//minPriority(
-                        groupedThreads("onos/ecm", mapName + "-bg-%d"))/*)*/;
+                                                 groupedThreads("onos/ecm", mapName + "-bg-%d"))/*)*/;
 
         // start anti-entropy thread
         //TODO disable anti-entropy for now in testing (it is unstable)
@@ -271,6 +279,7 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private boolean putInternal(K key, V value, Timestamp timestamp) {
+        counter.incrementCount();
         Timestamp removed = removedItems.get(key);
         if (removed != null && removed.isNewerThan(timestamp)) {
             log.debug("ecmap - removed was newer {}", value);
@@ -318,6 +327,7 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private boolean removeInternal(K key, Timestamp timestamp) {
+        counter.incrementCount();
         final MutableBoolean updated = new MutableBoolean(false);
 
         items.compute(key, (k, existing) -> {
@@ -515,11 +525,19 @@ public class EventuallyConsistentMapImpl<K, V>
         clusterCommunicator.unicast(message, peer);
     }
 
+    private boolean underHighLoad() {
+        return counter.get(LOAD_WINDOW) > HIGH_LOAD_THRESHOLD;
+    }
+
     private final class SendAdvertisementTask implements Runnable {
         @Override
         public void run() {
             if (Thread.currentThread().isInterrupted()) {
                 log.info("Interrupted, quitting");
+                return;
+            }
+
+            if (underHighLoad()) {
                 return;
             }
 
@@ -745,7 +763,9 @@ public class EventuallyConsistentMapImpl<K, V>
                       message.sender());
             AntiEntropyAdvertisement<K> advertisement = serializer.decode(message.payload());
             try {
-                handleAntiEntropyAdvertisement(advertisement);
+                if (!underHighLoad()) {
+                    handleAntiEntropyAdvertisement(advertisement);
+                }
             } catch (Exception e) {
                 log.warn("Exception thrown handling advertisements", e);
             }
