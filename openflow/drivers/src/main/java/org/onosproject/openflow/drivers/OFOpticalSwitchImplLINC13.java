@@ -30,6 +30,7 @@ import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.types.TableId;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -209,5 +210,15 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
         return true;
     }
 
+    @Override
+    public TableType getTableType(TableId tid) {
+        return TableType.NONE;
+    }
+
+    @Override
+    public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

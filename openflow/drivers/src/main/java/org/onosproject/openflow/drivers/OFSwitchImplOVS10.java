@@ -24,6 +24,7 @@ import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.types.TableId;
 
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Nicira, Inc. Make
@@ -85,5 +86,15 @@ public class OFSwitchImplOVS10 extends AbstractOpenFlowSwitch {
         return Collections.unmodifiableList(features.getPorts());
     }
 
+    @Override
+    public TableType getTableType(TableId tid) {
+        return TableType.NONE;
+    }
+
+    @Override
+    public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

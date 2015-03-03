@@ -29,6 +29,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.types.TableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,6 +125,17 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
                 } else {
                     return Collections.unmodifiableList(ports.getEntries());
                 }
+            }
+
+            @Override
+            public TableType getTableType(TableId tid) {
+                return TableType.NONE;
+            }
+
+            @Override
+            public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+                // TODO Auto-generated method stub
+
             }
         };
     }

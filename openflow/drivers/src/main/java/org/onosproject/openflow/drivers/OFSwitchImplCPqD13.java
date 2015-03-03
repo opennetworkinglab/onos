@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.OpenFlowSwitch.TableType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
@@ -1216,4 +1217,15 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         this.channel.write(msgs);
     }
 
+
+    @Override
+    public TableType getTableType(TableId tid) {
+        return TableType.NONE; // XXX this needs to be fixed
+    }
+
+    @Override
+    public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+        // TODO Auto-generated method stub
+
+    }
 }

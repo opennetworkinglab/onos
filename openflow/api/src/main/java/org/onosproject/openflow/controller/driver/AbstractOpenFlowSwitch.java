@@ -110,13 +110,6 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     }
 
     @Override
-    public void sendMsg(OFMessage msg, TableType tableType) {
-        if (role == RoleState.MASTER) {
-            this.write(msg);
-        }
-    }
-
-    @Override
     public abstract void write(OFMessage msg);
 
     @Override

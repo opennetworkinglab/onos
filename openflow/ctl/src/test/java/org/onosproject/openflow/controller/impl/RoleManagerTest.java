@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.OpenFlowSwitch.TableType;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.RoleHandler;
@@ -38,6 +39,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U64;
 
 import static org.junit.Assert.assertEquals;
@@ -111,7 +113,7 @@ public class RoleManagerTest {
         }
 
         @Override
-        public void sendMsg(OFMessage msg, TableType tableType) {
+        public void transformAndSendMsg(OFMessage msg, TableType tableType) {
         }
 
         @Override
@@ -309,6 +311,10 @@ public class RoleManagerTest {
             return "1.2.3.4:1";
         }
 
+        @Override
+        public TableType getTableType(TableId tid) {
+            return TableType.NONE;
+        }
 
     }
 }

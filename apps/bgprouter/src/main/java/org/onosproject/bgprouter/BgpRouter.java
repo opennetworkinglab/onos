@@ -557,7 +557,7 @@ public class BgpRouter {
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
                                        treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.ACL);
+                                       appId, 0, true, FlowRule.Type.DEFAULT);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 

@@ -16,6 +16,7 @@
 package org.onosproject.openflow.drivers;
 
 import com.google.common.collect.Lists;
+
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
@@ -26,6 +27,7 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionGotoTable;
 import org.projectfloodlight.openflow.types.TableId;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,7 +35,7 @@ import java.util.List;
  * Corsa switch driver for BGP Router deployment.
  */
 public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
-
+    private static final int FIRST_TABLE = 0;
     private static final int VLAN_MPLS_TABLE = 1;
     private static final int VLAN_TABLE = 2;
     private static final int MPLS_TABLE = 3;
@@ -48,18 +50,45 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
         setSwitchDescription(desc);
     }
 
+    /**
+     * Used by the default sendMsg to 'write' to the switch.
+     * This method is indirectly used by generic onos services like proxyarp
+     * to request packets from the default flow table. In a multi-table
+     * pipeline, these requests are redirected to the correct table.
+     *
+     * For the Corsa switch, the equivalent table is the LOCAL TABLE
+     *
+     */
     @Override
     public void write(OFMessage msg) {
-        this.write(Collections.singletonList(msg));
+        if (msg.getType() == OFType.FLOW_MOD) {
+            OFFlowMod flowMod = (OFFlowMod) msg;
+            OFFlowMod.Builder builder = flowMod.createBuilder();
+            builder.setTableId(TableId.of(LOCAL_TABLE));
+            channel.write(Collections.singletonList(builder.build()));
+        } else {
+            channel.write(Collections.singletonList(msg));
+        }
     }
 
     @Override
     public void write(List<OFMessage> msgs) {
-        channel.write(msgs);
+        List<OFMessage> newMsgs = new ArrayList<OFMessage>();
+        for (OFMessage msg : msgs) {
+            if (msg.getType() == OFType.FLOW_MOD) {
+                OFFlowMod flowMod = (OFFlowMod) msg;
+                OFFlowMod.Builder builder = flowMod.createBuilder();
+                builder.setTableId(TableId.of(LOCAL_TABLE));
+                newMsgs.add(builder.build());
+            } else {
+                newMsgs.add(msg);
+            }
+        }
+        channel.write(newMsgs);
     }
 
     @Override
-    public void sendMsg(OFMessage msg, TableType type) {
+    public void transformAndSendMsg(OFMessage msg, TableType type) {
         if (msg.getType() == OFType.FLOW_MOD) {
             OFFlowMod flowMod = (OFFlowMod) msg;
             OFFlowMod.Builder builder = flowMod.createBuilder();
@@ -142,19 +171,47 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
                 case ACL:
                     builder.setTableId(TableId.of(LOCAL_TABLE));
                     break;
+                case FIRST:
+                    builder.setTableId(TableId.of(FIRST_TABLE));
+                    break;
                 case NONE:
-                    builder.setTableId(TableId.of(0));
+                    builder.setTableId(TableId.of(LOCAL_TABLE));
                     break;
                 default:
                     log.warn("Unknown table type: {}", type);
             }
             builder.setInstructions(newInstructions);
             OFMessage msgnew = builder.build();
-            this.write(msgnew);
+            channel.write(Collections.singletonList(msgnew));
             log.debug("Installed {}", msgnew);
 
         } else {
-            this.write(msg);
+            channel.write(Collections.singletonList(msg));
+        }
+    }
+
+    @Override
+    public TableType getTableType(TableId tid) {
+        switch (tid.getValue()) {
+        case VLAN_MPLS_TABLE:
+            return TableType.VLAN_MPLS;
+        case VLAN_TABLE:
+            return TableType.VLAN;
+        case ETHER_TABLE:
+            return TableType.ETHER;
+        case COS_MAP_TABLE:
+            return TableType.COS;
+        case FIB_TABLE:
+            return TableType.IP;
+        case MPLS_TABLE:
+            return TableType.MPLS;
+        case LOCAL_TABLE:
+            return TableType.NONE;
+        case FIRST_TABLE:
+            return TableType.FIRST;
+        default:
+            log.warn("Unknown table type: {}", tid.getValue());
+            return TableType.NONE;
         }
     }
 

@@ -237,4 +237,15 @@ public class OFSwitchImplOVS13 extends AbstractOpenFlowSwitch {
         write(tableMissEntry);
     }
 
+    @Override
+    public TableType getTableType(TableId tid) {
+        return TableType.NONE;
+    }
+
+    @Override
+    public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+        // TODO Auto-generated method stub
+
+    }
+
 }

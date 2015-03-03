@@ -34,6 +34,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRule.Type;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openflow.controller.Dpid;
@@ -87,6 +88,7 @@ public class FlowEntryBuilder {
     public enum FlowType { STAT, REMOVED, MOD }
 
     private final FlowType type;
+    private Type tableType = FlowRule.Type.DEFAULT;
 
 
     public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
@@ -97,6 +99,17 @@ public class FlowEntryBuilder {
         this.removed = null;
         this.flowMod = null;
         this.type = FlowType.STAT;
+    }
+
+    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry, Type tableType) {
+        this.stat = entry;
+        this.match = entry.getMatch();
+        this.actions = getActions(entry);
+        this.dpid = dpid;
+        this.removed = null;
+        this.flowMod = null;
+        this.type = FlowType.STAT;
+        this.tableType = tableType;
     }
 
     public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed) {
@@ -127,7 +140,8 @@ public class FlowEntryBuilder {
             case STAT:
                 rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                                       buildSelector(), buildTreatment(), stat.getPriority(),
-                                      stat.getCookie().getValue(), stat.getIdleTimeout(), false);
+                                      stat.getCookie().getValue(), stat.getIdleTimeout(), false,
+                                      tableType);
                 return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
                                       stat.getDurationSec(), stat.getPacketCount().getValue(),
                                       stat.getByteCount().getValue());

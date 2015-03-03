@@ -46,6 +46,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.OpenflowControllerAdapter;
 import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.OpenFlowSwitch.TableType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONLabLddp;
 import org.projectfloodlight.openflow.protocol.OFFactory;
@@ -56,6 +57,7 @@ import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.ver10.OFFactoryVer10;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.TableId;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -414,10 +416,6 @@ public class OpenFlowLinkProviderTest {
         }
 
         @Override
-        public void sendMsg(OFMessage msg, TableType tableType) {
-        }
-
-        @Override
         public void handleMessage(OFMessage fromSwitch) {
         }
 
@@ -499,6 +497,15 @@ public class OpenFlowLinkProviderTest {
             return "1.2.3.4:1";
         }
 
+        @Override
+        public TableType getTableType(TableId tid) {
+            return TableType.NONE;
+        }
+
+        @Override
+        public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+            // TODO Auto-generated method stub
+        }
 
     }
 }

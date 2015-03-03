@@ -74,7 +74,7 @@ public class TunnellingConnectivityManager {
         selector.matchTcpSrc(BGP_PORT);
 
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
-                                     appId, FlowRule.Type.ACL);
+                                     appId, FlowRule.Type.DEFAULT);
 
         selector = DefaultTrafficSelector.builder();
 
@@ -84,7 +84,7 @@ public class TunnellingConnectivityManager {
         selector.matchTcpDst(BGP_PORT);
 
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
-                                     appId, FlowRule.Type.ACL);
+                                     appId, FlowRule.Type.DEFAULT);
     }
 
     public void stop() {

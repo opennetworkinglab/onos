@@ -1,6 +1,7 @@
 package org.onosproject.provider.of.group.impl;
 
 import com.google.common.collect.Lists;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.errormsg.OFGroupModFailedErrorMsg;
 import org.projectfloodlight.openflow.types.OFGroup;
+import org.projectfloodlight.openflow.types.TableId;
 
 import java.util.Collection;
 import java.util.List;
@@ -310,11 +312,6 @@ public class OpenFlowGroupProviderTest {
         }
 
         @Override
-        public void sendMsg(OFMessage msg, TableType tableType) {
-
-        }
-
-        @Override
         public void handleMessage(OFMessage fromSwitch) {
 
         }
@@ -397,6 +394,16 @@ public class OpenFlowGroupProviderTest {
         @Override
         public String channelId() {
             return null;
+        }
+
+        @Override
+        public TableType getTableType(TableId tid) {
+            return TableType.NONE;
+        }
+
+        @Override
+        public void transformAndSendMsg(OFMessage msg, TableType tableType) {
+            // TODO Auto-generated method stub
         }
     }
 }

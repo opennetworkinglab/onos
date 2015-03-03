@@ -355,31 +355,29 @@ public class FlowRuleManager
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
             Set<FlowEntry> storedRules = Sets.newHashSet(store.getFlowEntries(deviceId));
-
-
-                for (FlowEntry rule : flowEntries) {
-                    try {
-                        if (storedRules.remove(rule)) {
-                            // we both have the rule, let's update some info then.
-                            flowAdded(rule);
-                        } else {
-                            // the device has a rule the store does not have
-                            extraneousFlow(rule);
-                        }
-                    } catch (Throwable e) {
-                        log.debug("Can't process added or extra rule {}", e.getMessage());
-                        continue;
+            for (FlowEntry rule : flowEntries) {
+                try {
+                    if (storedRules.remove(rule)) {
+                        // we both have the rule, let's update some info then.
+                        flowAdded(rule);
+                    } else {
+                        // the device has a rule the store does not have
+                        extraneousFlow(rule);
                     }
+                } catch (Throwable e) {
+                    log.debug("Can't process added or extra rule {}", e.getMessage());
+                    continue;
                 }
-                for (FlowEntry rule : storedRules) {
-                    try {
-                        // there are rules in the store that aren't on the switch
-                        flowMissing(rule);
-                    } catch (Throwable e) {
-                        log.debug("Can't add missing flow rule {}", e.getMessage());
-                        continue;
-                    }
+            }
+            for (FlowEntry rule : storedRules) {
+                try {
+                    // there are rules in the store that aren't on the switch
+                    flowMissing(rule);
+                } catch (Throwable e) {
+                    log.debug("Can't add missing flow rule {}", e.getMessage());
+                    continue;
                 }
+            }
 
         }
 

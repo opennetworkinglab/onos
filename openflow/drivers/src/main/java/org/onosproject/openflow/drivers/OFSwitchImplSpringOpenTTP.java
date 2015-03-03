@@ -17,6 +17,7 @@ package org.onosproject.openflow.drivers;
 
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.OpenFlowSwitch.TableType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
@@ -167,7 +168,7 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
     }
 
     @Override
-    public void sendMsg(OFMessage m, TableType tableType) {
+    public void transformAndSendMsg(OFMessage m, TableType tableType) {
 
         if (m.getType() == OFType.FLOW_MOD) {
             OFFlowMod flowMod = (OFFlowMod) m;
@@ -571,4 +572,10 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
                 .build();
         write(br);
     }
+
+    @Override
+    public TableType getTableType(TableId tid) {
+        return TableType.NONE; // XXX this needs to be fixed
+    }
+
 }

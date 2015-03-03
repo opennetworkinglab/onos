@@ -45,26 +45,17 @@ import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
-import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
-import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
-import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.protocol.action.OFAction;
-import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.errormsg.OFFlowModFailedErrorMsg;
-import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
-import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
-import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -84,8 +75,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class OpenFlowRuleProvider extends AbstractProvider implements FlowRuleProvider {
-
-    private static final int LOWEST_PRIORITY = 0;
 
     private final Logger log = getLogger(getClass());
 
@@ -160,7 +149,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                     Optional.empty()).buildFlowAdd());
         } else {
             OpenFlowSwitch.TableType type = getTableType(flowRule.type());
-            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+            sw.transformAndSendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                                               Optional.empty()).buildFlowAdd(),
                                               type);
         }
@@ -181,7 +170,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowDel());
         } else {
-            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+            sw.transformAndSendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowDel(), getTableType(flowRule.type()));
         }
     }
@@ -225,7 +214,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             if (fbe.target().type() == FlowRule.Type.DEFAULT) {
                 sw.sendMsg(mod);
             } else {
-                sw.sendMsg(mod, getTableType(fbe.target().type()));
+                sw.transformAndSendMsg(mod, getTableType(fbe.target().type()));
             }
         }
         OFBarrierRequest.Builder builder = sw.factory()
@@ -253,12 +242,38 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 return OpenFlowSwitch.TableType.ETHER;
             case COS:
                 return OpenFlowSwitch.TableType.COS;
+            case FIRST:
+                return OpenFlowSwitch.TableType.FIRST;
             default:
                 return OpenFlowSwitch.TableType.NONE;
         }
     }
 
+    private FlowRule.Type getType(OpenFlowSwitch.TableType tableType) {
+        switch (tableType) {
 
+        case NONE:
+            return FlowRule.Type.DEFAULT;
+        case IP:
+            return FlowRule.Type.IP;
+        case MPLS:
+            return FlowRule.Type.MPLS;
+        case ACL:
+            return FlowRule.Type.ACL;
+        case VLAN_MPLS:
+            return FlowRule.Type.VLAN_MPLS;
+        case VLAN:
+            return FlowRule.Type.VLAN;
+        case ETHER:
+            return FlowRule.Type.ETHER;
+        case COS:
+            return FlowRule.Type.COS;
+        case FIRST:
+            return FlowRule.Type.FIRST;
+        default:
+            return FlowRule.Type.DEFAULT;
+        }
+    }
 
 
     private class InternalFlowProvider
@@ -354,39 +369,16 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         private void pushFlowMetrics(Dpid dpid, OFFlowStatsReply replies) {
 
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
 
             List<FlowEntry> flowEntries = replies.getEntries().stream()
-                    .filter(entry -> !tableMissRule(dpid, entry))
-                    .map(entry -> new FlowEntryBuilder(dpid, entry).build())
+                    .map(entry -> new FlowEntryBuilder(dpid, entry,
+                                        getType(sw.getTableType(entry.getTableId())))
+                                        .build())
                     .collect(Collectors.toList());
 
             providerService.pushFlowMetrics(did, flowEntries);
 
-        }
-
-        private boolean tableMissRule(Dpid dpid, OFFlowStatsEntry reply) {
-            if (reply.getMatch().getMatchFields().iterator().hasNext()) {
-                return false;
-            }
-            if (reply.getVersion().equals(OFVersion.OF_10)) {
-                return reply.getPriority() == LOWEST_PRIORITY
-                        && reply.getActions().isEmpty();
-            }
-            for (OFInstruction ins : reply.getInstructions()) {
-                if (ins.getType() == OFInstructionType.APPLY_ACTIONS) {
-                    OFInstructionApplyActions apply = (OFInstructionApplyActions) ins;
-                    List<OFAction> acts = apply.getActions();
-                    for (OFAction act : acts) {
-                        if (act.getType() == OFActionType.OUTPUT) {
-                            OFActionOutput out = (OFActionOutput) act;
-                            if (out.getPort() == OFPort.CONTROLLER) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
         }
 
     }

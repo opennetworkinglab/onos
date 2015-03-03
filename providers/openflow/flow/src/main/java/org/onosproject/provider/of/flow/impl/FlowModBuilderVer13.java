@@ -266,6 +266,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 return OpenFlowSwitch.TableType.ETHER;
             case COS:
                 return OpenFlowSwitch.TableType.COS;
+            case FIRST:
+                return OpenFlowSwitch.TableType.FIRST;
             default:
                 return OpenFlowSwitch.TableType.NONE;
         }

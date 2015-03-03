@@ -61,6 +61,23 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+                           TrafficTreatment treatment, int priority, long flowId,
+                           int timeout, boolean permanent, Type tableType) {
+        this.deviceId = deviceId;
+        this.priority = priority;
+        this.selector = selector;
+        this.treatment = treatment;
+        this.timeout = timeout;
+        this.permanent = permanent;
+        this.created = System.currentTimeMillis();
+
+        this.appId = (short) (flowId >>> 48);
+        this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
+        this.id = FlowId.valueOf(flowId);
+        this.type = tableType;
+    }
+
+    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            int timeout, boolean permanent) {
         this(deviceId, selector, treatment, priority, appId, new DefaultGroupId(0),
