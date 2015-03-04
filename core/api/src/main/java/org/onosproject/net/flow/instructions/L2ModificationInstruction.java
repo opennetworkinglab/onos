@@ -70,8 +70,12 @@ public abstract class L2ModificationInstruction implements Instruction {
         /**
          * MPLS TTL modification.
          */
-        DEC_MPLS_TTL
+        DEC_MPLS_TTL,
 
+        /**
+         * VLAN Pop modification.
+         */
+        VLAN_POP
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory
@@ -269,6 +273,44 @@ public abstract class L2ModificationInstruction implements Instruction {
         }
     }
 
+    /**
+     * Represents a VLAN POP modification instruction.
+     */
+    public static final class PopVlanInstruction extends L2ModificationInstruction {
+        private final L2SubType subtype;
+
+        PopVlanInstruction(L2SubType subType) {
+            this.subtype = subType;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return subtype;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof PushHeaderInstructions) {
+                PushHeaderInstructions that = (PushHeaderInstructions) obj;
+                return  Objects.equals(subtype, that.subtype);
+            }
+            return false;
+        }
+    }
 
     /**
      * Represents a MPLS label modification.

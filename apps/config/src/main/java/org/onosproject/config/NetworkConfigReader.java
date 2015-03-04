@@ -64,12 +64,11 @@ public class NetworkConfigReader implements NetworkConfigService {
 
     @Activate
     protected void activate() {
-        log.info("Started network config reader");
-
         AddressConfiguration config = readNetworkConfig();
         if (config != null) {
             applyNetworkConfig(config);
         }
+        log.info("Started network config reader");
     }
 
     @Deactivate

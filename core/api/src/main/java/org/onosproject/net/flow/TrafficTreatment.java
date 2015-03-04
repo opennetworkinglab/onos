@@ -205,6 +205,13 @@ public interface TrafficTreatment {
         public Builder transition(FlowRule.Type type);
 
         /**
+         * Pops outermost VLAN tag.
+         *
+         * @return a treatment builder.
+         */
+        public Builder popVlan();
+
+        /**
          * Builds an immutable traffic treatment descriptor.
          *
          * @return traffic treatment

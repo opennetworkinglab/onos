@@ -255,6 +255,19 @@ public final class Instructions {
         return new PushHeaderInstructions(L2SubType.MPLS_POP, etherType);
     }
 
+    /**
+     * Creates a vlan header instruction.
+     * @return a L2 modification.
+     */
+    public static Instruction popVlan() {
+        return new PopVlanInstruction(L2SubType.VLAN_POP);
+    }
+
+    /**
+     * Sends the packet to the table described in 'type'.
+     * @param type
+     * @return
+     */
     public static Instruction transition(FlowRule.Type type) {
         checkNotNull(type, "Table type cannot be null");
         return new TableTypeTransition(type);

@@ -265,10 +265,12 @@ public class FlowEntryBuilder {
                 OFActionGroup group = (OFActionGroup) act;
                 builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
                 break;
+            case POP_VLAN:
+                builder.popVlan();
+                break;
             case SET_TP_DST:
             case SET_TP_SRC:
             case POP_PBB:
-            case POP_VLAN:
             case PUSH_PBB:
             case PUSH_VLAN:
             case SET_MPLS_LABEL:

@@ -20,6 +20,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,6 +30,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
@@ -41,6 +43,7 @@ import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.FlowRule.Type;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.Group;
@@ -51,19 +54,24 @@ import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.BgpSpeaker;
 import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
+import org.onosproject.config.NetworkConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * BgpRouter component.
@@ -95,6 +103,14 @@ public class BgpRouter {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
+    //
+    // NOTE: Unused reference - needed to guarantee that the
+    // NetworkConfigReader component is activated and the network configuration
+    // is read.
+    //
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
+
     private ApplicationId appId;
 
     // Reference count for how many times a next hop is used by a route
@@ -109,7 +125,12 @@ public class BgpRouter {
     // Stores FIB updates that are waiting for groups to be set up
     private final Multimap<GroupKey, FibEntry> pendingUpdates = HashMultimap.create();
 
-    private DeviceId deviceId = DeviceId.deviceId("of:0000000000000001"); // TODO config
+    // Device id of data-plane switch - should be learned from config
+    private DeviceId deviceId;
+
+    // Device id of control-plane switch (OVS) connected to BGP Speaker - should be
+    // learned from config
+    private DeviceId ctrlDeviceId;
 
     private final GroupListener groupListener = new InternalGroupListener();
 
@@ -120,10 +141,11 @@ public class BgpRouter {
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(BGP_ROUTER_APP);
+        getDeviceConfiguration(configService.getBgpSpeakers());
 
         groupService.addListener(groupListener);
 
-        provisionStaticTables.provision(true);
+        provisionStaticTables.provision(true, configService.getInterfaces());
 
         connectivityManager = new TunnellingConnectivityManager(appId,
                                                                 configService,
@@ -140,11 +162,29 @@ public class BgpRouter {
     protected void deactivate() {
         routingService.stop();
         connectivityManager.stop();
-        provisionStaticTables.provision(false);
+        provisionStaticTables.provision(false, configService.getInterfaces());
 
         groupService.removeListener(groupListener);
 
         log.info("BgpRouter stopped");
+    }
+
+    private void getDeviceConfiguration(Map<String, BgpSpeaker> bgps) {
+        if (bgps == null || bgps.values().isEmpty()) {
+            log.error("BGP speakers configuration is missing");
+            return;
+        }
+        for (BgpSpeaker s : bgps.values()) {
+            ctrlDeviceId = s.connectPoint().deviceId();
+            if (s.interfaceAddresses() == null || s.interfaceAddresses().isEmpty()) {
+                log.error("BGP Router must have interfaces configured");
+                return;
+            }
+            deviceId = s.interfaceAddresses().get(0).connectPoint().deviceId();
+            break;
+        }
+        log.info("Router dpid: {}", deviceId);
+        log.info("Control Plane OVS dpid: {}", ctrlDeviceId);
     }
 
     private void updateFibEntry(Collection<FibUpdate> updates) {
@@ -279,9 +319,13 @@ public class BgpRouter {
 
         private static final int CONTROLLER_PRIORITY = 255;
         private static final int DROP_PRIORITY = 0;
+        private static final int HIGHEST_PRIORITY = 0xffff;
+        private Set<InterfaceIpAddress> intfIps = new HashSet<InterfaceIpAddress>();
+        private Set<MacAddress> intfMacs = new HashSet<MacAddress>();
+        private Set<VlanId> intfVlans = new HashSet<VlanId>();
 
-        public void provision(boolean install) {
-
+        public void provision(boolean install, Set<Interface> intfs) {
+            getIntefaceConfig(intfs);
             processTableZero(install);
             processTableOne(install);
             processTableTwo(install);
@@ -292,10 +336,20 @@ public class BgpRouter {
 
         }
 
+        private void getIntefaceConfig(Set<Interface> intfs) {
+            log.info("Processing {} router interfaces", intfs.size());
+            for (Interface intf : intfs) {
+                intfIps.addAll(intf.ipAddresses());
+                intfMacs.add(intf.mac());
+                intfVlans.add(intf.vlan());
+            }
+        }
+
         private void processTableZero(boolean install) {
             TrafficSelector.Builder selector;
             TrafficTreatment.Builder treatment;
 
+            // Bcast rule
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
 
@@ -310,6 +364,23 @@ public class BgpRouter {
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
 
             ops = install ? ops.add(rule) : ops.remove(rule);
+
+            // Interface MACs
+            for (MacAddress mac : intfMacs) {
+                log.debug("adding rule for MAC: {}", mac);
+                selector = DefaultTrafficSelector.builder();
+                treatment = DefaultTrafficTreatment.builder();
+
+                selector.matchEthDst(mac);
+                treatment.transition(FlowRule.Type.VLAN_MPLS);
+
+                rule = new DefaultFlowRule(deviceId, selector.build(),
+                                           treatment.build(),
+                                           CONTROLLER_PRIORITY, appId, 0,
+                                           true, FlowRule.Type.FIRST);
+
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            }
 
             //Drop rule
             selector = DefaultTrafficSelector.builder();
@@ -404,13 +475,31 @@ public class BgpRouter {
         }
 
         private void processTableTwo(boolean install) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                    .builder();
+            TrafficSelector.Builder selector;
+            TrafficTreatment.Builder treatment;
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
+            //Interface Vlans
+            for (VlanId vid : intfVlans) {
+                log.debug("adding rule for VLAN: {}", vid);
+                selector = DefaultTrafficSelector.builder();
+                treatment = DefaultTrafficTreatment.builder();
+
+                selector.matchVlanId(vid);
+                treatment.popVlan();
+                treatment.transition(Type.ETHER);
+
+                rule = new DefaultFlowRule(deviceId, selector.build(),
+                                           treatment.build(), CONTROLLER_PRIORITY, appId,
+                                           0, true, FlowRule.Type.VLAN);
+
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            }
+
             //Drop rule
+            selector = DefaultTrafficSelector.builder();
+            treatment = DefaultTrafficTreatment.builder();
 
             treatment.drop();
 
@@ -517,13 +606,33 @@ public class BgpRouter {
         }
 
         private void processTableSix(boolean install) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                    .builder();
+            TrafficSelector.Builder selector;
+            TrafficTreatment.Builder treatment;
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
+
+            //Interface IPs
+            for (InterfaceIpAddress ipAddr : intfIps) {
+                log.debug("adding rule for IPs: {}", ipAddr.ipAddress());
+                selector = DefaultTrafficSelector.builder();
+                treatment = DefaultTrafficTreatment.builder();
+
+                selector.matchEthType(Ethernet.TYPE_IPV4);
+                selector.matchIPDst(IpPrefix.valueOf(ipAddr.ipAddress(), 32));
+                treatment.transition(Type.ACL);
+
+                rule = new DefaultFlowRule(deviceId, selector.build(),
+                                           treatment.build(), HIGHEST_PRIORITY, appId,
+                                           0, true, FlowRule.Type.IP);
+
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            }
+
+
             //Drop rule
+            selector = DefaultTrafficSelector.builder();
+            treatment = DefaultTrafficTreatment.builder();
 
             treatment.drop();
 

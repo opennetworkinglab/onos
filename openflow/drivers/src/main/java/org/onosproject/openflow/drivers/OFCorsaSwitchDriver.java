@@ -89,6 +89,7 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
 
     @Override
     public void transformAndSendMsg(OFMessage msg, TableType type) {
+        log.trace("Trying to send {} of TableType {}", msg, type);
         if (msg.getType() == OFType.FLOW_MOD) {
             OFFlowMod flowMod = (OFFlowMod) msg;
             OFFlowMod.Builder builder = flowMod.createBuilder();

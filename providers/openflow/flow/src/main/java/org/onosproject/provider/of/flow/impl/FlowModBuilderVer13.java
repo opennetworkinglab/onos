@@ -327,6 +327,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 break;
             case DEC_MPLS_TTL:
                 return factory().actions().decMplsTtl();
+            case VLAN_POP:
+                return factory().actions().popVlan();
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;
