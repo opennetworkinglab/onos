@@ -87,9 +87,7 @@ public class NettyMessagingService implements MessagingService {
             .build();
 
     private final LoadingCache<String, Long> messageTypeLookupCache = CacheBuilder.newBuilder()
-            .softValues()
             .build(new CacheLoader<String, Long>() {
-
                 @Override
                 public Long load(String type) {
                     return hashToLong(type);
@@ -171,6 +169,10 @@ public class NettyMessagingService implements MessagingService {
     }
 
     protected void sendAsync(Endpoint ep, InternalMessage message) throws IOException {
+        if (ep.equals(localEp)) {
+            dispatchLocally(message);
+            return;
+        }
         Channel channel = null;
         try {
             try {
@@ -329,35 +331,39 @@ public class NettyMessagingService implements MessagingService {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, InternalMessage message) throws Exception {
-            long type = message.type();
-            if (type == InternalMessage.REPLY_MESSAGE_TYPE) {
-                try {
-                    SettableFuture<byte[]> futureResponse =
-                        NettyMessagingService.this.responseFutures.getIfPresent(message.id());
-                    if (futureResponse != null) {
-                        futureResponse.set(message.payload());
-                    } else {
-                        log.warn("Received a reply for message id:[{}]. "
-                                + " from {}. But was unable to locate the"
-                                + " request handle", message.id(), message.sender());
-                    }
-                } finally {
-                    NettyMessagingService.this.responseFutures.invalidate(message.id());
-                }
-                return;
-            }
-            MessageHandler handler = NettyMessagingService.this.getMessageHandler(type);
-            if (handler != null) {
-                handler.handle(message);
-            } else {
-                log.debug("No handler registered for {}", type);
-            }
+            dispatchLocally(message);
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
             log.error("Exception inside channel handling pipeline.", cause);
             context.close();
+        }
+    }
+
+    private void dispatchLocally(InternalMessage message) throws IOException {
+        long type = message.type();
+        if (type == InternalMessage.REPLY_MESSAGE_TYPE) {
+            try {
+                SettableFuture<byte[]> futureResponse =
+                    NettyMessagingService.this.responseFutures.getIfPresent(message.id());
+                if (futureResponse != null) {
+                    futureResponse.set(message.payload());
+                } else {
+                    log.warn("Received a reply for message id:[{}]. "
+                            + " from {}. But was unable to locate the"
+                            + " request handle", message.id(), message.sender());
+                }
+            } finally {
+                NettyMessagingService.this.responseFutures.invalidate(message.id());
+            }
+            return;
+        }
+        MessageHandler handler = NettyMessagingService.this.getMessageHandler(type);
+        if (handler != null) {
+            handler.handle(message);
+        } else {
+            log.debug("No handler registered for {}", type);
         }
     }
 

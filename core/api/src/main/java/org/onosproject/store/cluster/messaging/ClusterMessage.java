@@ -15,13 +15,16 @@
  */
 package org.onosproject.store.cluster.messaging;
 
-import com.google.common.base.MoreObjects;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Objects;
+
 import org.onlab.util.ByteArraySizeHashPrinter;
 import org.onosproject.cluster.NodeId;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
+import com.google.common.base.Charsets;
+import com.google.common.base.MoreObjects;
 
 // TODO: Should payload type be ByteBuffer?
 /**
@@ -103,6 +106,43 @@ public class ClusterMessage {
         return Objects.equals(this.sender, that.sender) &&
                 Objects.equals(this.subject, that.subject) &&
                 Arrays.equals(this.payload, that.payload);
+    }
+
+    /**
+     * Serializes this instance.
+     * @return bytes
+     */
+    public byte[] getBytes() {
+        byte[] senderBytes = sender.toString().getBytes(Charsets.UTF_8);
+        byte[] subjectBytes = subject.value().getBytes(Charsets.UTF_8);
+        int capacity = 12 + senderBytes.length + subjectBytes.length + payload.length;
+        ByteBuffer buffer = ByteBuffer.allocate(capacity);
+        buffer.putInt(senderBytes.length);
+        buffer.put(senderBytes);
+        buffer.putInt(subjectBytes.length);
+        buffer.put(subjectBytes);
+        buffer.putInt(payload.length);
+        buffer.put(payload);
+        return buffer.array();
+    }
+
+    /**
+     * Decodes a new ClusterMessage from raw bytes.
+     * @param bytes raw bytes
+     * @return cluster message
+     */
+    public static ClusterMessage fromBytes(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        byte[] senderBytes = new byte[buffer.getInt()];
+        buffer.get(senderBytes);
+        byte[] subjectBytes = new byte[buffer.getInt()];
+        buffer.get(subjectBytes);
+        byte[] payloadBytes = new byte[buffer.getInt()];
+        buffer.get(payloadBytes);
+
+        return new ClusterMessage(new NodeId(new String(senderBytes, Charsets.UTF_8)),
+                new MessageSubject(new String(senderBytes, Charsets.UTF_8)),
+                payloadBytes);
     }
 
     @Override
