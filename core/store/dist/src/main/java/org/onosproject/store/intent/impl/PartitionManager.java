@@ -109,8 +109,8 @@ public class PartitionManager implements PartitionService {
 
     @Override
     public boolean isMine(Key intentKey) {
-        return leadershipService.getLeader(getPartitionPath(getPartitionForKey(intentKey)))
-                .equals(clusterService.getLocalNode().id());
+        return Objects.equal(leadershipService.getLeader(getPartitionPath(getPartitionForKey(intentKey))),
+                             clusterService.getLocalNode().id());
     }
 
     private void doRelinquish() {
