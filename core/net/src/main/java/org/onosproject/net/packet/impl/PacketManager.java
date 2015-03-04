@@ -15,14 +15,6 @@
  */
 package org.onosproject.net.packet.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Device;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -54,6 +47,14 @@ import org.onosproject.net.packet.PacketStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides a basic implementation of the packet SB &amp; NB APIs.
@@ -193,8 +194,9 @@ implements PacketService, PacketProviderRegistry {
         PacketRequest request =
                 new PacketRequest(selector, priority, appId, tableType);
 
-        packetRequests.add(request);
-        pushToAllDevices(request);
+        if (packetRequests.add(request)) {
+            pushToAllDevices(request);
+        }
     }
 
     /**
@@ -204,7 +206,9 @@ implements PacketService, PacketProviderRegistry {
      */
     private void pushToAllDevices(PacketRequest request) {
         for (Device device : deviceService.getDevices()) {
-            pushRule(device, request);
+            if (deviceService.getRole(device.id()) == MastershipRole.MASTER) {
+                pushRule(device, request);
+            }
         }
     }
 
