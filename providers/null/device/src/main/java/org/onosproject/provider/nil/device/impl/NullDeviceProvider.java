@@ -78,8 +78,6 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     private ExecutorService deviceBuilder =
             Executors.newFixedThreadPool(1, groupedThreads("onos/null", "device-creator"));
 
-
-    //currently hardcoded. will be made configurable via rest/cli.
     private static final String SCHEME = "null";
     private static final int DEF_NUMDEVICES = 10;
     private static final int DEF_NUMPORTS = 10;
@@ -98,7 +96,6 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     private int numPorts = DEF_NUMPORTS;
 
     private DeviceCreator creator;
-
 
     /**
      *
@@ -238,11 +235,10 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
             ChassisId cid;
 
             // nodeIdHash takes into account for nodeID to avoid collisions when running multi-node providers.
-            long nodeIdHash = clusterService.getLocalNode().hashCode() << 16;
+            long nodeIdHash = clusterService.getLocalNode().id().hashCode() << 16;
 
             for (int i = 0; i < numDevices; i++) {
-                // mark 'last' device to facilitate chaining of islands together
-                long id = (i + 1 == numDevices) ? nodeIdHash | 0xffff : nodeIdHash | i;
+                long id = nodeIdHash | i;
 
                 did = DeviceId.deviceId(new URI(SCHEME, toHex(id), null));
                 cid = new ChassisId(i);

@@ -15,9 +15,9 @@
  */
 package org.onosproject.provider.nil.link.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -32,48 +32,55 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
-import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.toHex;
 import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.Link.Type.DIRECT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which advertises fake/nonexistent links to the core. To be used for
  * benchmarking only.
+ *
+ * This provider takes a topology graph file with a DOT-like syntax.
  */
 @Component(immediate = true)
 public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     private final Logger log = getLogger(getClass());
+
+    private static final String CFG_PATH = "/opt/onos/apache-karaf-3.0.2/etc/linkGraph.cfg";
+
+    private static final int CHECK_DURATION = 10;
+    private static final int DEFAULT_RATE = 0;
+    private static final int REFRESH_RATE = 3000000; // in us
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -86,17 +93,10 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry providerRegistry;
-    private LinkService linkService;
 
     private LinkProviderService providerService;
 
-    private static final int DEFAULT_RATE = 0;
-    // For now, static switch port values
-    private static final PortNumber SRCPORT = PortNumber.portNumber(5);
-    private static final PortNumber DSTPORT = PortNumber.portNumber(6);
-
     private final InternalLinkProvider linkProvider = new InternalLinkProvider();
-    private final InternalLinkListener listener = new InternalLinkListener();
 
     // True for device with Driver, false otherwise.
     private final ConcurrentMap<DeviceId, Boolean> driverMap = Maps
@@ -106,25 +106,18 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     private final ConcurrentMap<DeviceId, Set<LinkDescription>> linkDescrs = Maps
             .newConcurrentMap();
 
-    // Local Device ID's that have been seen so far
-    private final List<DeviceId> devices = Lists.newArrayList();
-    // tail ends of other islands
-    private final List<ConnectPoint> tails = Lists.newArrayList();
-
-    private final int checkRateDuration = 10;
-
     private ExecutorService linkDriver =
             Executors.newCachedThreadPool(groupedThreads("onos/null", "link-driver-%d"));
 
     // For flicker = true, duration between events in msec.
-    @Property(name = "eventRate", value = "0",
-            label = "Duration between Link Event")
+    @Property(name = "eventRate", value = "0", label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
 
-    // For flicker = true, duration between events in msec.
-    @Property(name = "neighbors", value = "",
-            label = "Node ID of instance for neighboring island ")
-    private String neighbor = "";
+    // topology configuration file
+    @Property(name = "cfgFile",
+            value = "/opt/onos/apache-karaf-3.0.2/etc/linkGraph.cfg",
+            label = "Topology file location")
+    private String cfgFile = CFG_PATH;
 
     // flag checked to create a LinkDriver, if rate is non-zero.
     private boolean flicker = false;
@@ -136,9 +129,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     @Activate
     public void activate(ComponentContext context) {
         providerService = providerRegistry.register(this);
-        linkService = (LinkService) providerRegistry;
         modified(context);
-        linkService.addListener(listener);
         deviceService.addListener(linkProvider);
 
         log.info("started");
@@ -155,9 +146,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         }
         deviceService.removeListener(linkProvider);
         providerRegistry.unregister(this);
-        linkService.removeListener(listener);
         deviceService = null;
-        linkService = null;
 
         log.info("stopped");
     }
@@ -169,140 +158,175 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             return;
         }
         Dictionary<?, ?> properties = context.getProperties();
-
         int newRate;
-        String newNbor;
+        String newPath;
         try {
             String s = (String) properties.get("eventRate");
             newRate = isNullOrEmpty(s) ? eventRate : Integer.parseInt(s.trim());
-            s = (String) properties.get("neighbors");
-            newNbor = isNullOrEmpty(s) ? neighbor : getNeighbor(s.trim());
+            s = (String) properties.get("cfgFile");
+            newPath = s.trim();
         } catch (NumberFormatException | ClassCastException e) {
             log.warn(e.getMessage());
             newRate = eventRate;
-            newNbor = neighbor;
+            newPath = cfgFile;
         }
 
-        if (newNbor != neighbor) {
-            neighbor = newNbor;
+        // topology file configuration
+        if (!newPath.equals(cfgFile)) {
+            cfgFile = newPath;
         }
-        if (newRate != 0 & eventRate != newRate) {
+        readGraph(cfgFile, nodeService.getLocalNode().id());
+
+        // test mode configuration
+        if (eventRate != newRate && newRate > 0) {
+            driverMap.replaceAll((k, v) -> false);
             eventRate = newRate;
             flicker = true;
-            // try to find and add drivers for current devices
-            for (Device dev : deviceService.getDevices()) {
-                DeviceId did = dev.id();
-                synchronized (this) {
-                    if (driverMap.get(did) == null || !driverMap.get(did)) {
-                        driverMap.put(dev.id(), true);
-                        linkDriver.submit(new LinkDriver(dev));
-                    }
-                }
-            }
         } else if (newRate == 0) {
             driverMap.replaceAll((k, v) -> false);
-        } else {
-            log.warn("Invalid link flicker rate {}", newRate);
+            flicker = false;
         }
 
-        log.info("Using new settings: eventRate={}", eventRate);
-    }
-
-    // pick out substring from Deviceid
-    private String part(String devId) {
-        return devId.split(":")[1].substring(12, 16);
-    }
-
-    // pick out substring from Deviceid
-    private String nIdPart(String devId) {
-        return devId.split(":")[1].substring(9, 12);
-    }
-
-    // pick out the next node ID in string, return hash (i.e. what's
-    // in a Device ID
-    private String getNeighbor(String nbors) {
-        String me = nodeService.getLocalNode().id().toString();
-        String mynb = "";
-        String[] nodes = nbors.split(",");
-        for (int i = 0; i < nodes.length; i++) {
-            if (i != 0 & nodes[i].equals(me)) {
-                mynb = nodes[i - 1];
-                break;
+        log.info("Using settings: eventRate={}, topofile={}", eventRate, cfgFile);
+        for (Device dev : deviceService.getDevices()) {
+            DeviceId did = dev.id();
+            synchronized (this) {
+                if (driverMap.get(did) == null || !driverMap.get(did)) {
+                    driverMap.put(dev.id(), true);
+                    linkDriver.submit(new LinkDriver(dev));
+                }
             }
         }
-        // return as hash string.
-        if (!mynb.isEmpty()) {
-            return toHex((Objects.hash(new NodeId(mynb)))).substring(13, 16);
-        }
-        return "";
     }
 
+    // parse simplified dot-like topology graph
+    private void readGraph(String path, NodeId me) {
+        log.info("path: {}, local: {}", path, me);
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(path));
+            String cur = br.readLine();
+            while (cur != null) {
+                if (cur.startsWith("#")) {
+                    cur = br.readLine();
+                    continue;
+                }
+                String[] parts = cur.trim().split(" ");
+                if (parts.length < 1) {
+                    continue;
+                }
+                if (parts[0].equals("graph")) {
+                    String node = parts[1].trim();
+                    if (node.equals(me.toString())) {
+                        cur = br.readLine(); // move to next line, start of links list
+                        while (cur != null) {
+                            if (cur.trim().contains("}")) {
+                                break;
+                            }
+                            readLink(cur.trim().split(" "), me);
+                            cur = br.readLine();
+                        }
+                    } else {
+                        while (cur != null) {
+                            if (cur.trim().equals("}")) {
+                                break;
+                            }
+                            cur = br.readLine();
+                        }
+                    }
+                }
+                cur = br.readLine();
+            }
+        } catch (IOException e) {
+            log.warn("Could not find topology file: {}", e);
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException e) {
+                log.warn("Could not close topology file: {}", e);
+            }
+        }
+    }
+
+    // parses a link descriptor to make a LinkDescription
+    private void readLink(String[] linkArr, NodeId me) {
+        if (linkArr[0].startsWith("#")) {
+            return;
+        }
+        if (linkArr.length != 3) {
+            log.warn("Malformed link descriptor:"
+                    + " link should be of format src:port [--|->] dst:port,"
+                    + " skipping");
+            return;
+        }
+
+        String op = linkArr[1];
+        String[] cp1 = linkArr[0].split(":");
+        String[] cp2 = linkArr[2].split(":");
+
+        log.debug("cp1:{} cp2:{}", cp1, cp2);
+        if (cp1.length != 2 && (cp2.length != 2 || cp2.length != 3)) {
+            log.warn("Malformed endpoint descriptor(s):"
+                    + "endpoint format should be DeviceId:port or DeviceId:port:NodeId,"
+                    + "skipping");
+            return;
+        }
+        // read in hints about topology.
+        NodeId adj = null;
+        if (cp2.length == 3) {
+            adj = new NodeId(cp2[2]);
+            log.debug("found an island: {}", adj);
+        }
+
+        // reconstruct deviceIDs. Convention is based on NullDeviceProvider.
+        DeviceId sdev = recover(cp1[0], me);
+        DeviceId ddev = (adj == null) ? recover(cp2[0], me) : recover(cp2[0], adj);
+        ConnectPoint src = new ConnectPoint(sdev, PortNumber.portNumber(cp1[1]));
+        ConnectPoint dst = new ConnectPoint(ddev, PortNumber.portNumber(cp2[1]));
+
+        if (op.equals("--")) {
+            // bidirectional - within our node's island
+            LinkDescription out = new DefaultLinkDescription(src, dst, DIRECT);
+            LinkDescription in = new DefaultLinkDescription(dst, src, DIRECT);
+            addLdesc(sdev, out);
+            addLdesc(ddev, in);
+            log.info("Created bidirectional link: {}", out);
+        } else if (op.equals("->")) {
+            // unidirectional - likely from another island
+            LinkDescription in = new DefaultLinkDescription(dst, src, DIRECT);
+            addLdesc(ddev, in);
+            log.info("Created unidirectional link: {}", in);
+        } else {
+            log.warn("Unknown link descriptor operand:"
+                    + " operand must be '--' or '->', skipping");
+            return;
+        }
+    }
+
+    // recover DeviceId from configs and NodeID
+    private DeviceId recover(String base, NodeId node) {
+        long hash = node.hashCode() << 16;
+        int dev = Integer.valueOf(base);
+        log.debug("hash: {}, dev: {}, {}", hash, dev, toHex(hash | dev));
+        try {
+            return DeviceId.deviceId(new URI("null", toHex(hash | dev), null));
+        } catch (URISyntaxException e) {
+            log.warn("could not create a DeviceID for descriptor {}", dev);
+            return DeviceId.NONE;
+        }
+    }
+
+    // add LinkDescriptions to map
     private boolean addLdesc(DeviceId did, LinkDescription ldesc) {
         Set<LinkDescription> ldescs = ConcurrentUtils.putIfAbsent(
                 linkDescrs, did, Sets.newConcurrentHashSet());
         return ldescs.add(ldesc);
     }
 
-    private void addLink(Device current) {
-        DeviceId did = current.id();
-        if (!MASTER.equals(roleService.getLocalRole(did))) {
-
-            String part = part(did.toString());
-            String npart = nIdPart(did.toString());
-            if (part.equals("ffff") && npart.equals(neighbor)) {
-                // 'tail' of our neighboring island - link us <- tail
-                tails.add(new ConnectPoint(did, SRCPORT));
-            }
-            tryLinkTail();
-            return;
-        }
-        devices.add(did);
-
-        if (devices.size() == 1) {
-            return;
-        }
-
-        // Normal flow - attach new device to the last-seen device
-        DeviceId prev = devices.get(devices.size() - 2);
-        ConnectPoint src = new ConnectPoint(prev, SRCPORT);
-        ConnectPoint dst = new ConnectPoint(did, DSTPORT);
-
-        LinkDescription fdesc = new DefaultLinkDescription(src, dst,
-                Link.Type.DIRECT);
-        LinkDescription rdesc = new DefaultLinkDescription(dst, src,
-                Link.Type.DIRECT);
-        addLdesc(prev, fdesc);
-        addLdesc(did, rdesc);
-
-        providerService.linkDetected(fdesc);
-        providerService.linkDetected(rdesc);
-    }
-
-    // try to link to a tail to first element
-    private void tryLinkTail() {
-        if (tails.isEmpty() || devices.isEmpty()) {
-            return;
-        }
-        ConnectPoint first = new ConnectPoint(devices.get(0), DSTPORT);
-        boolean added = false;
-        for (ConnectPoint cp : tails) {
-            if (!linkService.getLinks(cp).isEmpty()) {
-                continue;
-            }
-            LinkDescription ld = new DefaultLinkDescription(cp, first,
-                    Link.Type.DIRECT);
-            addLdesc(cp.deviceId(), ld);
-            providerService.linkDetected(ld);
-            added = true;
-            break;
-        }
-        if (added) {
-            tails.clear();
-        }
-    }
-
     /**
-     * Adds links as devices are found, and generates LinkEvents.
+     * Generate LinkEvents using configurations when devices are found.
      */
     private class InternalLinkProvider implements DeviceListener {
 
@@ -312,72 +336,24 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             switch (event.type()) {
             case DEVICE_ADDED:
                 synchronized (this) {
-                    if (flicker && !driverMap.getOrDefault(dev.id(), false)) {
+                    if (!driverMap.getOrDefault(dev.id(), false)) {
                         driverMap.put(dev.id(), true);
                         linkDriver.submit(new LinkDriver(dev));
                     }
                 }
-                addLink(dev);
                 break;
             case DEVICE_REMOVED:
                 driverMap.put(dev.id(), false);
-                removeLink(dev);
-                break;
-            default:
-                break;
-            }
-        }
-
-        private void removeLink(Device device) {
-            if (!MASTER.equals(roleService.getLocalRole(device.id()))) {
-                return;
-            }
-            providerService.linksVanished(device.id());
-            devices.remove(device.id());
-            synchronized (linkDescrs) {
-                Set<LinkDescription> lds = linkDescrs.remove(device.id());
-                for (LinkDescription ld : lds) {
-                    ConnectPoint src = ld.src();
-                    DeviceId dst = ld.dst().deviceId();
-                    Iterator<LinkDescription> it = linkDescrs.get(dst).iterator();
-                    while (it.hasNext()) {
-                        if (it.next().dst().equals(src)) {
-                            it.remove();
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    private class InternalLinkListener implements LinkListener {
-
-        @Override
-        public void event(LinkEvent event) {
-            switch (event.type()) {
-            case LINK_ADDED:
-                // If a link from another island, cast one back.
-                DeviceId sdid = event.subject().src().deviceId();
-                PortNumber pn = event.subject().src().port();
-
-                if (roleService.getLocalRole(sdid).equals(MASTER)) {
-                    String part = part(sdid.toString());
-                    if (part.equals("ffff") && SRCPORT.equals(pn)) {
-                        LinkDescription ld = new DefaultLinkDescription(event
-                                .subject().dst(), event.subject().src(),
-                                Link.Type.DIRECT);
-                        addLdesc(event.subject().dst().deviceId(), ld);
-                        providerService.linkDetected(ld);
-                    }
+                if (!MASTER.equals(roleService.getLocalRole(dev.id()))) {
                     return;
                 }
+                // no need to remove static links, just stop advertising them
+                providerService.linksVanished(dev.id());
                 break;
             default:
                 break;
             }
         }
-
     }
 
     /**
@@ -392,32 +368,31 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         @Override
         public void run() {
             log.info("Thread started for dev {}", myDev.id());
+            if (flicker) {
+                flicker();
+            } else {
+                refresh();
+            }
+        }
+
+        private void flicker() {
             long startTime = System.currentTimeMillis();
             long countEvent = 0;
             float effLoad = 0;
 
             while (!linkDriver.isShutdown() && driverMap.get(myDev.id())) {
-                if (linkDescrs.get(myDev.id()) == null) {
-                    addLink(myDev);
+                if (!flicker) {
+                    break;
                 }
-
                 //Assuming eventRate is in microsecond unit
-                if (countEvent <= checkRateDuration * 1000000 / eventRate) {
+                if (countEvent <= CHECK_DURATION * 1000000 / eventRate) {
                     for (LinkDescription desc : linkDescrs.get(myDev.id())) {
                         providerService.linkVanished(desc);
                         countEvent++;
-                        try {
-                            TimeUnit.MICROSECONDS.sleep(eventRate);
-                        } catch (InterruptedException e) {
-                            log.warn(String.valueOf(e));
-                        }
+                        sleepFor(eventRate);
                         providerService.linkDetected(desc);
                         countEvent++;
-                        try {
-                            TimeUnit.MICROSECONDS.sleep(eventRate);
-                        } catch (InterruptedException e) {
-                            log.warn(String.valueOf(e));
-                        }
+                        sleepFor(eventRate);
                     }
                 } else {
                     // log in WARN the effective load generation rate in events/sec, every 10 seconds
@@ -430,5 +405,26 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                 }
             }
         }
+
+        private void refresh() {
+            while (!linkDriver.isShutdown() && driverMap.get(myDev.id())) {
+                if (flicker) {
+                    break;
+                }
+                for (LinkDescription desc : linkDescrs.get(myDev.id())) {
+                    providerService.linkDetected(desc);
+                    sleepFor(REFRESH_RATE);
+                }
+            }
+        }
+
+        private void sleepFor(int time) {
+            try {
+                TimeUnit.MICROSECONDS.sleep(time);
+            } catch (InterruptedException e) {
+                log.warn(String.valueOf(e));
+            }
+        }
     }
+
 }
