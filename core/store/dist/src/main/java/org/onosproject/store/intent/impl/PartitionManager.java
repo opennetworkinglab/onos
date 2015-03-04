@@ -57,7 +57,7 @@ public class PartitionManager implements PartitionService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    private static final int NUM_PARTITIONS = 14;
+    static final int NUM_PARTITIONS = 14;
     private static final int BACKOFF_TIME = 2;
     private static final int CHECK_PERIOD = 10;
 
@@ -88,6 +88,17 @@ public class PartitionManager implements PartitionService {
 
         leadershipService.removeListener(leaderListener);
         clusterService.removeListener(clusterListener);
+    }
+
+    /**
+     * Sets the specified executor to be used for scheduling background tasks.
+     *
+     * @param executor scheduled executor service for background tasks
+     * @return this PartitionManager
+     */
+    public PartitionManager withScheduledExecutor(ScheduledExecutorService executor) {
+        this.executor = executor;
+        return this;
     }
 
     private String getPartitionPath(int i) {
