@@ -1,18 +1,8 @@
 package org.onosproject.store.consistent.impl;
 
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-import static com.google.common.base.Preconditions.checkArgument;
-
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,9 +31,19 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Distributed Lock Manager implemented on top of ConsistentMap.
@@ -199,8 +199,12 @@ public class DistributedLeadershipManager implements LeadershipService {
     public void withdraw(String path) {
         activeTopics.remove(path);
         try {
-            if (lockMap.remove(path, localNodeId)) {
-                log.info("Gave up leadership for {}", path);
+            Versioned<NodeId> leader = lockMap.get(path);
+            if (Objects.equals(leader.value(), localNodeId)) {
+                if (lockMap.remove(path, leader.version())) {
+                    log.info("Gave up leadership for {}", path);
+                    notifyRemovedLeader(path, localNodeId, leader.version(), leader.creationTime());
+                }
             }
             // else we are not the current owner.
         } catch (Exception e) {
