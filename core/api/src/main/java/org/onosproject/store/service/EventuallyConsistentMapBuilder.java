@@ -166,6 +166,16 @@ public interface EventuallyConsistentMapBuilder<K, V> {
     public EventuallyConsistentMapBuilder<K, V> withFasterConvergence();
 
     /**
+     * Configure the map to persist data to disk.
+     * <p>
+     * The default behavior is no persistence
+     * </p>
+     *
+     * @return this EventuallyConsistentMapBuilder
+     */
+    public EventuallyConsistentMapBuilder<K, V> withPersistence();
+
+    /**
      * Builds an eventually consistent map based on the configuration options
      * supplied to this builder.
      *

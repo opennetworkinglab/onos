@@ -51,6 +51,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     private long antiEntropyPeriod = 5;
     private TimeUnit antiEntropyTimeUnit = TimeUnit.SECONDS;
     private boolean convergeFaster = false;
+    private boolean persistent = false;
 
     /**
      * Creates a new eventually consistent map builder.
@@ -131,6 +132,12 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     }
 
     @Override
+    public EventuallyConsistentMapBuilder<K, V> withPersistence() {
+        persistent = true;
+        return this;
+    }
+
+    @Override
     public EventuallyConsistentMap<K, V> build() {
         checkNotNull(name, "name is a mandatory parameter");
         checkNotNull(serializerBuilder, "serializerBuilder is a mandatory parameter");
@@ -148,6 +155,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
                                                  tombstonesDisabled,
                                                  antiEntropyPeriod,
                                                  antiEntropyTimeUnit,
-                                                 convergeFaster);
+                                                 convergeFaster,
+                                                 persistent);
     }
 }
