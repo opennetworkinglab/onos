@@ -265,8 +265,8 @@ public final class Instructions {
 
     /**
      * Sends the packet to the table described in 'type'.
-     * @param type
-     * @return
+     * @param type flow rule table type
+     * @return table type transition instruction
      */
     public static Instruction transition(FlowRule.Type type) {
         checkNotNull(type, "Table type cannot be null");

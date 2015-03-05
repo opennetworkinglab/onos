@@ -40,7 +40,7 @@ public class BlockingBoolean extends AbstractQueuedSynchronizer {
      * value unless the thread is {@linkplain Thread#interrupt interrupted}.
      *
      * @param value specified value
-     * @throws InterruptedException
+     * @throws InterruptedException if interrupted while waiting
      */
     public void await(boolean value) throws InterruptedException {
         acquireSharedInterruptibly(value ? TRUE : FALSE);
@@ -56,7 +56,7 @@ public class BlockingBoolean extends AbstractQueuedSynchronizer {
      * @param unit the time unit of the {@code timeout} argument
      * @return {@code true} if the count reached zero and {@code false}
      *         if the waiting time elapsed before the count reached zero
-     * @throws InterruptedException
+     * @throws InterruptedException if interrupted while waiting
      */
     public boolean await(boolean value, long timeout, TimeUnit unit)
             throws InterruptedException {

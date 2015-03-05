@@ -66,7 +66,8 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
     /**
      * Returns a fixed-size, bounded executor service.
      *
-     * @param threadFactory thread factory for the worker threads.
+     * @param numberOfThreads number of threads in the pool
+     * @param threadFactory   thread factory for the worker threads.
      * @return the bounded thread pool
      */
     public static BoundedThreadPool newFixedThreadPool(int numberOfThreads, ThreadFactory threadFactory) {
@@ -112,6 +113,7 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
 
     // TODO schedule this with a fixed delay from a scheduled executor
     private final AtomicLong lastPrinted = new AtomicLong(0L);
+
     private void periodicallyPrintStats() {
         long now = System.currentTimeMillis();
         long prev = lastPrinted.get();
