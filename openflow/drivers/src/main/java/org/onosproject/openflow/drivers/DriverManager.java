@@ -76,6 +76,12 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             return new OFOpticalSwitchImplLINC13(dpid, desc);
         }
 
+        if (vendor.startsWith("Corsa") && hw.startsWith("Corsa Element")
+                && sw.startsWith("2.3.1")) {
+            log.warn("Corsa Switch 2.3.1 found");
+            return new OFCorsaSwitchDriver(dpid, desc);
+        }
+
         log.warn("DriverManager could not identify switch desc: {}. "
                 + "Assigning AbstractOpenFlowSwich", desc);
         return new AbstractOpenFlowSwitch(dpid, desc) {
