@@ -319,6 +319,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                         (PushHeaderInstructions) l2m;
                 return factory().actions().popMpls(EthType.of(popHeaderInstructions
                                                               .ethernetType()));
+            case STRIP_VLAN:
+                return factory().actions().stripVlan();
             case MPLS_LABEL:
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;

@@ -21,15 +21,11 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.TCP;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.config.BgpPeer;
@@ -65,26 +61,6 @@ public class TunnellingConnectivityManager {
 
     public void start() {
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 3);
-
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-
-        // Request packets with BGP port as their TCP source port
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPProtocol(IPv4.PROTOCOL_TCP);
-        selector.matchTcpSrc(BGP_PORT);
-
-        packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
-                                     appId, FlowRule.Type.DEFAULT);
-
-        selector = DefaultTrafficSelector.builder();
-
-        // Request packets with BGP port as their TCP destination port
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPProtocol(IPv4.PROTOCOL_TCP);
-        selector.matchTcpDst(BGP_PORT);
-
-        packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
-                                     appId, FlowRule.Type.DEFAULT);
     }
 
     public void stop() {

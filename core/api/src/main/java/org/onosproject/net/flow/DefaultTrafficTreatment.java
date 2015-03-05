@@ -189,6 +189,10 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.modVlanPcp(pcp));
         }
 
+        public Builder stripVlan() {
+            return add(Instructions.stripVlanId());
+        }
+
         @Override
         public Builder setIpSrc(IpAddress addr) {
             return add(Instructions.modL3Src(addr));

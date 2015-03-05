@@ -53,6 +53,11 @@ public abstract class L2ModificationInstruction implements Instruction {
         VLAN_PCP,
 
         /**
+         * Strips the vlan.
+         */
+        STRIP_VLAN,
+
+        /**
          * MPLS Label modification.
          */
         MPLS_LABEL,
@@ -269,6 +274,33 @@ public abstract class L2ModificationInstruction implements Instruction {
                 ModVlanPcpInstruction that = (ModVlanPcpInstruction) obj;
                 return  Objects.equals(vlanPcp, that.vlanPcp);
             }
+            return false;
+        }
+    }
+
+    public static final class StripVlanInstruction extends L2ModificationInstruction {
+
+        @Override
+        public L2SubType subtype() {
+            return L2SubType.STRIP_VLAN;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+
             return false;
         }
     }

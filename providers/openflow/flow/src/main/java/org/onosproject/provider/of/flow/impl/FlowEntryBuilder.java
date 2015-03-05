@@ -268,6 +268,9 @@ public class FlowEntryBuilder {
             case POP_VLAN:
                 builder.popVlan();
                 break;
+            case STRIP_VLAN:
+                builder.stripVlan();
+                break;
             case SET_TP_DST:
             case SET_TP_SRC:
             case POP_PBB:
@@ -280,7 +283,7 @@ public class FlowEntryBuilder {
             case SET_NW_TOS:
             case SET_NW_TTL:
             case SET_QUEUE:
-            case STRIP_VLAN:
+
             case ENQUEUE:
             default:
                 log.warn("Action type {} not yet implemented.", act.getType());

@@ -415,28 +415,6 @@ public class BgpRouter {
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
-            selector.matchEthType(Ethernet.TYPE_IPV4);
-            treatment.transition(FlowRule.Type.VLAN);
-
-            rule = new DefaultFlowRule(deviceId, selector.build(), treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            selector.matchEthType(Ethernet.TYPE_ARP);
-            treatment.transition(FlowRule.Type.VLAN);
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
 
             selector.matchEthType(Ethernet.TYPE_VLAN);
             treatment.transition(FlowRule.Type.VLAN);
@@ -444,18 +422,6 @@ public class BgpRouter {
             rule = new DefaultFlowRule(deviceId, selector.build(),
                                        treatment.build(), CONTROLLER_PRIORITY,
                                        appId, 0, true, FlowRule.Type.VLAN_MPLS);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            //Drop rule
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            treatment.drop();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.VLAN_MPLS);
 
             ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -487,7 +453,7 @@ public class BgpRouter {
                 treatment = DefaultTrafficTreatment.builder();
 
                 selector.matchVlanId(vid);
-                treatment.popVlan();
+                treatment.stripVlan();
                 treatment.transition(Type.ETHER);
 
                 rule = new DefaultFlowRule(deviceId, selector.build(),

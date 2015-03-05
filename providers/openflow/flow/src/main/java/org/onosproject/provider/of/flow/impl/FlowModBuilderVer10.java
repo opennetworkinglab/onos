@@ -207,6 +207,8 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
         case VLAN_PCP:
             ModVlanPcpInstruction vlanPcp = (ModVlanPcpInstruction) l2m;
             return factory().actions().setVlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
+        case STRIP_VLAN:
+            return factory().actions().stripVlan();
         default:
             log.warn("Unimplemented action type {}.", l2m.subtype());
             break;

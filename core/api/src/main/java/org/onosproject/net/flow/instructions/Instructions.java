@@ -130,6 +130,14 @@ public final class Instructions {
     }
 
     /**
+     * Strips the VLAN tag if one is present.
+     * @return a L2 modification
+     */
+    public static L2ModificationInstruction stripVlanId() {
+        return new StripVlanInstruction();
+    }
+
+    /**
      * Creates a MPLS label modification.
      * @param mplsLabel to set.
      * @return a L2 Modification
