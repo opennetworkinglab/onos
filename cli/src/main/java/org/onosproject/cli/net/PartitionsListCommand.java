@@ -15,12 +15,17 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.StorageAdminService;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Command to list the database partitions in the system.
@@ -31,11 +36,12 @@ public class PartitionsListCommand extends AbstractShellCommand {
 
     private static final String FMT = "%-20s %8s %25s %s";
 
-    @Override
-    protected void execute() {
-        StorageAdminService storageAdminService = get(StorageAdminService.class);
-        List<PartitionInfo> partitionInfo = storageAdminService.getPartitionInfo();
-
+    /**
+     * Displays partition info as text.
+     *
+     * @param partitionInfo partition descriptions
+     */
+    private void displayPartitions(List<PartitionInfo> partitionInfo) {
         print(FMT, "Name", "Term", "Members", "");
 
         for (PartitionInfo info : partitionInfo) {
@@ -43,13 +49,56 @@ public class PartitionsListCommand extends AbstractShellCommand {
             for (String member : info.members()) {
                 if (first) {
                     print(FMT, info.name(), info.term(), member,
-                          member.equals(info.leader()) ? "*" : "");
+                            member.equals(info.leader()) ? "*" : "");
                     first = false;
                 } else {
                     print(FMT, "", "", member,
-                          member.equals(info.leader()) ? "*" : "");
+                            member.equals(info.leader()) ? "*" : "");
                 }
             }
+        }
+    }
+
+    /**
+     * Converts partition info into a JSON object.
+     *
+     * @param partitionInfo partition descriptions
+     */
+    private JsonNode json(List<PartitionInfo> partitionInfo) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode partitions = mapper.createArrayNode();
+
+        // Create a JSON node for each partition
+        partitionInfo.stream()
+            .forEach(info -> {
+                ObjectNode partition = mapper.createObjectNode();
+
+                // Add each member to the "members" array for this partition
+                ArrayNode members = partition.putArray("members");
+                info.members()
+                        .stream()
+                        .forEach(members::add);
+
+                // Complete the partition attributes and add it to the array
+                partition.put("name", info.name())
+                         .put("term", info.term())
+                         .put("leader", info.leader());
+                partitions.add(partition);
+
+            });
+
+        return partitions;
+    }
+
+    @Override
+    protected void execute() {
+        StorageAdminService storageAdminService = get(StorageAdminService.class);
+        List<PartitionInfo> partitionInfo = storageAdminService.getPartitionInfo();
+
+        if (outputJson()) {
+            print("%s", json(partitionInfo));
+        } else {
+            displayPartitions(partitionInfo);
         }
     }
 }
