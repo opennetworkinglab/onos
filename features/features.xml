@@ -264,6 +264,12 @@
         <bundle>mvn:org.onosproject/onos-app-intent-perf/@ONOS-VERSION</bundle>
     </feature>
 
+    <feature name="onos-app-database-perf" version="@FEATURE-VERSION"
+             description="ONOS partitioned database perf application">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onosproject/onos-app-database-perf/@ONOS-VERSION</bundle>
+    </feature>
+
     <feature name="onos-app-election" version="@FEATURE-VERSION"
              description="ONOS app leadership election test">
         <feature>onos-api</feature>
