@@ -18,15 +18,10 @@ package org.onosproject.store.ecmap;
 import com.google.common.base.MoreObjects;
 import org.onosproject.store.Timestamp;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Describes a single remove event in an EventuallyConsistentMap.
  */
-final class RemoveEntry<K> {
-    private final K key;
-    private final Timestamp timestamp;
-
+final class RemoveEntry<K, V> extends AbstractEntry<K, V> {
     /**
      * Creates a new remove entry.
      *
@@ -34,40 +29,20 @@ final class RemoveEntry<K> {
      * @param timestamp timestamp of the remove event
      */
     public RemoveEntry(K key, Timestamp timestamp) {
-        this.key = checkNotNull(key);
-        this.timestamp = checkNotNull(timestamp);
+        super(key, timestamp);
     }
 
     // Needed for serialization.
     @SuppressWarnings("unused")
     private RemoveEntry() {
-        this.key = null;
-        this.timestamp = null;
-    }
-
-    /**
-     * Returns the key of the entry.
-     *
-     * @return the key
-     */
-    public K key() {
-        return key;
-    }
-
-    /**
-     * Returns the timestamp of the event.
-     *
-     * @return the timestamp
-     */
-    public Timestamp timestamp() {
-        return timestamp;
+        super();
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("key", key)
-                .add("timestamp", timestamp)
+                .add("key", key())
+                .add("timestamp", timestamp())
                 .toString();
     }
 }

@@ -15,51 +15,55 @@
  */
 package org.onosproject.store.ecmap;
 
-import com.google.common.base.MoreObjects;
 import org.onosproject.store.Timestamp;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Describes a single put event in an EventuallyConsistentMap.
+ * Base class for events in an EventuallyConsistentMap.
  */
-final class PutEntry<K, V> extends AbstractEntry<K, V> {
-    private final V value;
+public abstract class AbstractEntry<K, V> implements Comparable<AbstractEntry<K, V>> {
+    private final K key;
+    private final Timestamp timestamp;
 
     /**
      * Creates a new put entry.
      *
      * @param key key of the entry
-     * @param value value of the entry
      * @param timestamp timestamp of the put event
      */
-    public PutEntry(K key, V value, Timestamp timestamp) {
-        super(key, timestamp);
-        this.value = checkNotNull(value);
+    public AbstractEntry(K key, Timestamp timestamp) {
+        this.key = checkNotNull(key);
+        this.timestamp = checkNotNull(timestamp);
     }
 
     // Needed for serialization.
     @SuppressWarnings("unused")
-    private PutEntry() {
-        super();
-        this.value = null;
+    protected AbstractEntry() {
+        this.key = null;
+        this.timestamp = null;
     }
 
     /**
-     * Returns the value of the entry.
+     * Returns the key of the entry.
      *
-     * @return the value
+     * @return the key
      */
-    public V value() {
-        return value;
+    public K key() {
+        return key;
+    }
+
+    /**
+     * Returns the timestamp of the event.
+     *
+     * @return the timestamp
+     */
+    public Timestamp timestamp() {
+        return timestamp;
     }
 
     @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("key", key())
-                .add("value", value)
-                .add("timestamp", timestamp())
-                .toString();
+    public int compareTo(AbstractEntry<K, V> o) {
+        return this.timestamp.compareTo(o.timestamp);
     }
 }
