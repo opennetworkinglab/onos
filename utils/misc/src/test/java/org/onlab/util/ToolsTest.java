@@ -21,6 +21,7 @@ import org.onlab.junit.TestTools;
 import java.util.concurrent.ThreadFactory;
 
 import static org.junit.Assert.*;
+import static org.onlab.junit.TestTools.assertAfter;
 
 /**
  * Test of the miscellaneous tools.
@@ -47,18 +48,29 @@ public class ToolsTest {
     }
 
     @Test
-    public  void namedThreads() {
+    public void namedThreads() {
         ThreadFactory f = Tools.namedThreads("foo-%d");
         Thread t = f.newThread(() -> TestTools.print("yo"));
         assertTrue("wrong pattern", t.getName().startsWith("foo-"));
     }
 
     @Test
-    public  void groupedThreads() {
+    public void groupedThreads() {
         ThreadFactory f = Tools.groupedThreads("foo/bar-me", "foo-%d");
         Thread t = f.newThread(() -> TestTools.print("yo"));
         assertTrue("wrong pattern", t.getName().startsWith("foo-bar-me-foo-"));
         assertTrue("wrong group", t.getThreadGroup().getName().equals("foo/bar-me"));
+    }
+
+    @Test
+    public void exceptionHandler() throws InterruptedException {
+        ThreadFactory f = Tools.namedThreads("foo");
+        Thread t = f.newThread(() -> {
+            throw new IllegalStateException("BOOM!");
+        });
+        assertNotNull("thread should have exception handler", t.getUncaughtExceptionHandler());
+        t.start();
+        assertAfter(100, () -> assertEquals("incorrect thread state", Thread.State.TERMINATED, t.getState()));
     }
 
 }

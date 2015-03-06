@@ -18,7 +18,6 @@ package org.onlab.util;
 import com.google.common.base.Strings;
 import com.google.common.primitives.UnsignedLongs;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
@@ -64,8 +63,8 @@ public abstract class Tools {
     public static ThreadFactory namedThreads(String pattern) {
         return new ThreadFactoryBuilder()
                 .setNameFormat(pattern)
-                        // FIXME remove UncaughtExceptionHandler before release
-                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on {}", t.getName(), e)).build();
+                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on " + t.getName(), e))
+                .build();
     }
 
     /**
@@ -84,8 +83,8 @@ public abstract class Tools {
         return new ThreadFactoryBuilder()
                 .setThreadFactory(groupedThreadFactory(groupName))
                 .setNameFormat(groupName.replace(GroupedThreadFactory.DELIMITER, "-") + "-" + pattern)
-                        // FIXME remove UncaughtExceptionHandler before release
-                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on {}", t.getName(), e)).build();
+                .setUncaughtExceptionHandler((t, e) -> log.error("Uncaught exception on " + t.getName(), e))
+                .build();
     }
 
     /**
@@ -242,6 +241,7 @@ public abstract class Tools {
 
     /**
      * Returns a human friendly time ago string for a specified system time.
+     *
      * @param unixTime system time in millis
      * @return human friendly time ago
      */
