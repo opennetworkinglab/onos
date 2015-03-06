@@ -45,6 +45,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -158,6 +159,7 @@ public class GossipIntentStore
         if (original.installables() != null) {
             result.setInstallables(original.installables());
         }
+        result.setOrigin(original.origin());
         return result;
     }
 
@@ -248,7 +250,7 @@ public class GossipIntentStore
         }
     }
 
-    private Iterable<NodeId> getPeerNodes(Key key, IntentData data) {
+    private Collection<NodeId> getPeerNodes(Key key, IntentData data) {
         NodeId master = partitionService.getLeader(key);
         NodeId origin = (data != null) ? data.origin() : null;
         NodeId me = clusterService.getLocalNode().id();
@@ -257,7 +259,7 @@ public class GossipIntentStore
         if (isMaster && isOrigin) {
             return ImmutableList.of(getRandomNode());
         } else if (isMaster) {
-            return ImmutableList.of(origin);
+            return origin != null ? ImmutableList.of(origin) : ImmutableList.of(getRandomNode());
         } else if (isOrigin) {
             return ImmutableList.of(master);
         } else {
