@@ -220,6 +220,11 @@ implements PacketService, PacketProviderRegistry {
      * @param request the packet request
      */
     private void pushRule(Device device, PacketRequest request) {
+        // Everything is pre-provisioned on ROADMs
+        if (device.type().equals(Device.Type.ROADM)) {
+            return;
+        }
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                                                             .punt()
                                                             .build();

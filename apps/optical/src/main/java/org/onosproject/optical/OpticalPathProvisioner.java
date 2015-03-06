@@ -20,8 +20,11 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
@@ -74,6 +77,12 @@ public class OpticalPathProvisioner {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
     private ApplicationId appId;
 
     // TODO use a shared map for distributed operation
@@ -89,11 +98,10 @@ public class OpticalPathProvisioner {
 
     @Activate
     protected void activate() {
-        // TODO elect a leader and have one instance do the provisioning
         intentService.addListener(pathProvisioner);
         appId = coreService.registerApplication("org.onosproject.optical");
         initTport();
-        log.info("Starting optical path provisoning...");
+        log.info("Starting optical path provisioning...");
     }
 
     protected void initTport() {
@@ -178,17 +186,27 @@ public class OpticalPathProvisioner {
             // Low speed LLDP may cause multiple calls which are not expected
 
             if (!IntentState.FAILED.equals(intentService.getIntentState(intent.key()))) {
-                   return;
+                return;
             }
+
+            NodeId localNode = clusterService.getLocalNode().id();
 
             List<Intent> intents = Lists.newArrayList();
             if (intent instanceof HostToHostIntent) {
                 HostToHostIntent hostToHostIntent = (HostToHostIntent) intent;
+
                 Host one = hostService.getHost(hostToHostIntent.one());
                 Host two = hostService.getHost(hostToHostIntent.two());
                 if (one == null || two == null) {
                     return; //FIXME
                 }
+
+                // Ignore if we're not the master for the intent's origin device
+                NodeId sourceMaster = mastershipService.getMasterFor(one.location().deviceId());
+                if (!localNode.equals(sourceMaster)) {
+                    return;
+                }
+
                 // provision both directions
                 intents.addAll(getOpticalPath(one.location(), two.location()));
                 // note: bi-directional intent is set up
@@ -196,6 +214,13 @@ public class OpticalPathProvisioner {
                 //intents.addAll(getOpticalPath(two.location(), one.location()));
             } else if (intent instanceof PointToPointIntent) {
                 PointToPointIntent p2pIntent = (PointToPointIntent) intent;
+
+                // Ignore if we're not the master for the intent's origin device
+                NodeId sourceMaster = mastershipService.getMasterFor(p2pIntent.ingressPoint().deviceId());
+                if (!localNode.equals(sourceMaster)) {
+                    return;
+                }
+
                 intents.addAll(getOpticalPath(p2pIntent.ingressPoint(), p2pIntent.egressPoint()));
             } else {
                 log.info("Unsupported intent type: {}", intent.getClass());

@@ -112,7 +112,7 @@ public class LLDPLinkProviderTest {
         provider.coreService = coreService;
 
         provider.deviceService = deviceService;
-        provider.packetSevice = packetService;
+        provider.packetService = packetService;
         provider.providerRegistry = linkService;
         provider.masterService = masterService;
 
@@ -204,7 +204,7 @@ public class LLDPLinkProviderTest {
         provider.coreService = null;
         provider.providerRegistry = null;
         provider.deviceService = null;
-        provider.packetSevice = null;
+        provider.packetService = null;
     }
 
     private DeviceEvent deviceEvent(DeviceEvent.Type type, DeviceId did) {

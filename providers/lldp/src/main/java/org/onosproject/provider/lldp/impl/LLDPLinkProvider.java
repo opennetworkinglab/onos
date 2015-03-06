@@ -90,7 +90,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PacketService packetSevice;
+    protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService masterService;
@@ -143,7 +143,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
         providerService = providerRegistry.register(this);
         deviceService.addListener(listener);
-        packetSevice.addProcessor(listener, 0);
+        packetService.addProcessor(listener, 0);
         masterService.addListener(roleListener);
 
         LinkDiscovery ld;
@@ -152,7 +152,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                 log.debug("LinkDiscovery from {} disabled by configuration", device.id());
                 continue;
             }
-            ld = new LinkDiscovery(device, packetSevice, masterService,
+            ld = new LinkDiscovery(device, packetService, masterService,
                               providerService, useBDDP);
             discoverers.put(device.id(), ld);
             for (Port p : deviceService.getPorts(device.id())) {
@@ -186,7 +186,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         }
         providerRegistry.unregister(this);
         deviceService.removeListener(listener);
-        packetSevice.removeProcessor(listener);
+        packetService.removeProcessor(listener);
         masterService.removeListener(roleListener);
         providerService = null;
 
@@ -237,14 +237,14 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     private void requestPackets() {
         TrafficSelector.Builder lldpSelector = DefaultTrafficSelector.builder();
         lldpSelector.matchEthType(Ethernet.TYPE_LLDP);
-        packetSevice.requestPackets(lldpSelector.build(),
-                                    PacketPriority.CONTROL, appId);
+        packetService.requestPackets(lldpSelector.build(),
+                PacketPriority.CONTROL, appId);
 
         if (useBDDP) {
             TrafficSelector.Builder bddpSelector = DefaultTrafficSelector.builder();
             bddpSelector.matchEthType(Ethernet.TYPE_BSN);
-            packetSevice.requestPackets(bddpSelector.build(),
-                                        PacketPriority.CONTROL, appId);
+            packetService.requestPackets(bddpSelector.build(),
+                    PacketPriority.CONTROL, appId);
         }
     }
 
@@ -273,7 +273,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     log.debug("Device mastership changed ({}) {}",
                             event.type(), deviceId);
                     discoverers.put(deviceId, new LinkDiscovery(device,
-                            packetSevice, masterService, providerService,
+                            packetService, masterService, providerService,
                             useBDDP));
                 }
             }
@@ -307,8 +307,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                             log.debug("Device added ({}) {}", event.type(),
                                       deviceId);
                             discoverers.put(deviceId, new LinkDiscovery(device,
-                                                                        packetSevice, masterService, providerService,
-                                                                        useBDDP));
+                                    packetService, masterService, providerService, useBDDP));
                         } else {
                             if (ld.isStopped()) {
                                 log.debug("Device restarted ({}) {}", event.type(),
@@ -412,7 +411,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     DeviceId did = dev.id();
                     synchronized (discoverers) {
                         if (!discoverers.containsKey(did)) {
-                            ld = new LinkDiscovery(dev, packetSevice,
+                            ld = new LinkDiscovery(dev, packetService,
                                     masterService, providerService, useBDDP);
                             discoverers.put(did, ld);
                             for (Port p : deviceService.getPorts(did)) {

@@ -15,17 +15,6 @@
  */
 package org.onosproject.net.resource.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -56,6 +45,17 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of link resources allocation.
@@ -197,7 +197,10 @@ public class LinkResourceManager implements LinkResourceService {
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         for (Link link : req.links()) {
             allocations.put(link, new HashSet<ResourceAllocation>(allocs));
-            allocations.get(link).addAll(allocsPerLink.get(link));
+            Set<ResourceAllocation> linkAllocs = allocsPerLink.get(link);
+            if (linkAllocs != null) {
+                allocations.get(link).addAll(linkAllocs);
+            }
         }
         LinkResourceAllocations result =
                 new DefaultLinkResourceAllocations(req, allocations);
