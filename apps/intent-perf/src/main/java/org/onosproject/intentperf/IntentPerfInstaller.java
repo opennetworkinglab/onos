@@ -72,7 +72,7 @@ public class IntentPerfInstaller {
 
     //FIXME make this configurable
     private static final int NUM_WORKERS = 1;
-    private static final int NUM_KEYS = 20_000;
+    private static final int NUM_KEYS = 40_000;
 
     public static final int START_DELAY = 5_000; // ms
     private static final int REPORT_PERIOD = 5_000; //ms
@@ -189,8 +189,11 @@ public class IntentPerfInstaller {
         }
         checkState(ingressDevice != null, "There are no local devices");
 
+        // prefix based on node id
+        long prefix = ((long) clusterService.getLocalNode().ip().getIp4Address().toInt()) << 32;
         for (int count = 0, k = firstKey; count < numberOfKeys; k++) {
-            Key key = Key.of(k, appId);
+            Key key = Key.of(prefix + k, appId);
+            //FIXME comment this out for spread of keys
             if (!intentService.isLocal(key)) {
                 // Bail if the key is not local
                 continue;
@@ -302,9 +305,9 @@ public class IntentPerfInstaller {
         private void adjustRates() {
             //FIXME need to iron out the rate adjustment
             if (++cycleCount % 5 == 0) { //TODO: maybe use a timer (we should do this every 5-10 sec)
-                if (listener.requestThroughput() - listener.processedThroughput() <= 500 &&
+                if (listener.requestThroughput() - listener.processedThroughput() <= 2000 && //was 500
                         lastDuration <= GOAL_CYCLE_PERIOD) {
-                    lastCount = Math.min(lastCount + 100, intents.size() / 2);
+                    lastCount = Math.min(lastCount + 1000, intents.size() / 2);
                 } else {
                     lastCount *= 0.8;
                 }
