@@ -69,9 +69,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * BgpRouter component.
@@ -189,6 +191,8 @@ public class BgpRouter {
     }
 
     private void updateFibEntry(Collection<FibUpdate> updates) {
+        Map<FibEntry, Group> toInstall = new HashMap<>(updates.size());
+
         for (FibUpdate update : updates) {
             FibEntry entry = update.entry();
 
@@ -206,17 +210,30 @@ public class BgpRouter {
                 }
             }
 
-            installFlow(update.entry(), group);
+            toInstall.put(update.entry(), group);
         }
+
+        installFlows(toInstall);
     }
 
-    private void installFlow(FibEntry entry, Group group) {
-        FlowRule flowRule = generateRibFlowRule(entry.prefix(), group);
+    private void installFlows(Map<FibEntry, Group> entriesToInstall) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
 
-        flowService.applyFlowRules(flowRule);
+        for (Map.Entry<FibEntry, Group> entry : entriesToInstall.entrySet()) {
+            FibEntry fibEntry = entry.getKey();
+            Group group = entry.getValue();
+
+            FlowRule flowRule = generateRibFlowRule(fibEntry.prefix(), group);
+
+            builder.add(flowRule);
+        }
+
+        flowService.apply(builder.build());
     }
 
     private synchronized void deleteFibEntry(Collection<FibUpdate> withdraws) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+
         for (FibUpdate update : withdraws) {
             FibEntry entry = update.entry();
 
@@ -228,8 +245,10 @@ public class BgpRouter {
 
             FlowRule flowRule = generateRibFlowRule(entry.prefix(), group);
 
-            flowService.removeFlowRules(flowRule);
+            builder.remove(flowRule);
         }
+
+        flowService.apply(builder.build());
     }
 
     private FlowRule generateRibFlowRule(IpPrefix prefix, Group group) {
@@ -332,7 +351,7 @@ public class BgpRouter {
         private Map<PortNumber, VlanId> portVlanPair = Maps.newHashMap();
 
         public void provision(boolean install, Set<Interface> intfs) {
-            getIntefaceConfig(intfs);
+            getInterfaceConfig(intfs);
             processTableZero(install);
             processTableOne(install);
             processTableTwo(install);
@@ -342,7 +361,7 @@ public class BgpRouter {
             processTableNine(install);
         }
 
-        private void getIntefaceConfig(Set<Interface> intfs) {
+        private void getInterfaceConfig(Set<Interface> intfs) {
             log.info("Processing {} router interfaces", intfs.size());
             for (Interface intf : intfs) {
                 intfIps.addAll(intf.ipAddresses());
@@ -665,8 +684,14 @@ public class BgpRouter {
             if (event.type() == GroupEvent.Type.GROUP_ADDED ||
                     event.type() == GroupEvent.Type.GROUP_UPDATED) {
                 synchronized (pendingUpdates) {
-                    pendingUpdates.removeAll(group.appCookie())
-                            .forEach((entry) -> installFlow(entry, group));
+
+                    Map<FibEntry, Group> entriesToInstall =
+                            pendingUpdates.removeAll(group.appCookie())
+                                    .stream()
+                                    .collect(Collectors
+                                                     .toMap(e -> e, e -> group));
+
+                    installFlows(entriesToInstall);
                 }
             }
         }
