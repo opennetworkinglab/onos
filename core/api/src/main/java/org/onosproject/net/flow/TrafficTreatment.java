@@ -25,6 +25,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.flow.instructions.Instructions;
 
 /**
  * Abstraction of network traffic treatment.
@@ -36,7 +37,35 @@ public interface TrafficTreatment {
      *
      * @return list of treatment instructions
      */
+    @Deprecated
     List<Instruction> instructions();
+
+    /**
+     * Returns the list of treatment instructions that will be applied
+     * further down the pipeline.
+     * @return list of treatment instructions
+     */
+    List<Instruction> deferred();
+
+    /**
+     * Returns the list of treatment instructions that will be applied
+     * immediately.
+     * @return list of treatment instructions
+     */
+    List<Instruction> immediate();
+
+    /**
+     * Returns the next table in the pipeline.
+     * @return a table transition; may be null.
+     */
+    Instructions.TableTypeTransition tableTransition();
+
+    /**
+     * Whether the deferred treatment instructions will be cleared
+     * by the device.
+     * @return a boolean
+     */
+    Boolean clearedDeferred();
 
     /**
      * Builder of traffic treatment entities.
@@ -216,6 +245,25 @@ public interface TrafficTreatment {
          * @return a treatment builder.
          */
         public Builder popVlan();
+
+        /**
+         * Any instructions preceded by this method call will be deferred.
+         * @return a treatment builder
+         */
+        public Builder deferred();
+
+        /**
+         * Any instructions preceded by this method call will be immediate.
+         * @return a treatment builder
+         */
+        public Builder immediate();
+
+
+        /**
+         * Instructs the device to clear the deferred instructions set.
+         * @return a treatment builder
+         */
+        public Builder wipeDeferred();
 
         /**
          * Builds an immutable traffic treatment descriptor.

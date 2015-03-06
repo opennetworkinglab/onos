@@ -16,7 +16,6 @@
 package org.onosproject.provider.of.flow.impl;
 
 import com.google.common.collect.Lists;
-
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
@@ -41,7 +40,6 @@ import org.onosproject.openflow.controller.Dpid;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
-import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
@@ -57,10 +55,12 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteActions;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
+import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
@@ -81,7 +81,12 @@ public class FlowEntryBuilder {
     private final OFFlowMod flowMod;
 
     private final Match match;
-    private final List<OFAction> actions;
+
+    /*
+    All actions are contained in an OFInstruction. For OF1.0
+     the instruction type is apply instruction (immediate set in ONOS speak)
+     */
+    private final List<OFInstruction> instructions;
 
     private final Dpid dpid;
 
@@ -94,7 +99,7 @@ public class FlowEntryBuilder {
     public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
         this.stat = entry;
         this.match = entry.getMatch();
-        this.actions = getActions(entry);
+        this.instructions = getInstructions(entry);
         this.dpid = dpid;
         this.removed = null;
         this.flowMod = null;
@@ -104,7 +109,7 @@ public class FlowEntryBuilder {
     public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry, Type tableType) {
         this.stat = entry;
         this.match = entry.getMatch();
-        this.actions = getActions(entry);
+        this.instructions = getInstructions(entry);
         this.dpid = dpid;
         this.removed = null;
         this.flowMod = null;
@@ -117,7 +122,7 @@ public class FlowEntryBuilder {
         this.removed = removed;
 
         this.dpid = dpid;
-        this.actions = null;
+        this.instructions = null;
         this.stat = null;
         this.flowMod = null;
         this.type = FlowType.REMOVED;
@@ -127,7 +132,7 @@ public class FlowEntryBuilder {
     public FlowEntryBuilder(Dpid dpid, OFFlowMod fm) {
         this.match = fm.getMatch();
         this.dpid = dpid;
-        this.actions = fm.getActions();
+        this.instructions = getInstructions(fm);
         this.type = FlowType.MOD;
         this.flowMod = fm;
         this.stat = null;
@@ -164,21 +169,30 @@ public class FlowEntryBuilder {
 
     }
 
-    private List<OFAction> getActions(OFFlowStatsEntry entry) {
+    private List<OFInstruction> getInstructions(OFFlowMod entry) {
         switch (entry.getVersion()) {
             case OF_10:
-                return entry.getActions();
+                return Lists.newArrayList(
+                        OFFactoryVer13.INSTANCE.instructions().applyActions(entry.getActions()));
             case OF_11:
             case OF_12:
             case OF_13:
-                List<OFInstruction> ins = entry.getInstructions();
-                for (OFInstruction in : ins) {
-                    if (in.getType().equals(OFInstructionType.APPLY_ACTIONS)) {
-                        OFInstructionApplyActions apply = (OFInstructionApplyActions) in;
-                        return apply.getActions();
-                    }
-                }
-                return Lists.newLinkedList();
+                return entry.getInstructions();
+            default:
+                log.warn("Unknown OF version {}", entry.getVersion());
+        }
+        return Lists.newLinkedList();
+    }
+
+    private List<OFInstruction> getInstructions(OFFlowStatsEntry entry) {
+        switch (entry.getVersion()) {
+            case OF_10:
+                return Lists.newArrayList(
+                        OFFactoryVer13.INSTANCE.instructions().applyActions(entry.getActions()));
+            case OF_11:
+            case OF_12:
+            case OF_13:
+                return entry.getInstructions();
             default:
                 log.warn("Unknown OF version {}", entry.getVersion());
         }
@@ -188,110 +202,144 @@ public class FlowEntryBuilder {
     private TrafficTreatment buildTreatment() {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         // If this is a drop rule
-        if (actions.size() == 0) {
+        if (instructions.size() == 0) {
             builder.drop();
             return builder.build();
         }
-        for (OFAction act : actions) {
-            switch (act.getType()) {
-            case OUTPUT:
-                OFActionOutput out = (OFActionOutput) act;
-                builder.setOutput(
-                        PortNumber.portNumber(out.getPort().getPortNumber()));
-                break;
-            case SET_VLAN_VID:
-                OFActionSetVlanVid vlan = (OFActionSetVlanVid) act;
-                builder.setVlanId(VlanId.vlanId(vlan.getVlanVid().getVlan()));
-                break;
-            case SET_VLAN_PCP:
-                OFActionSetVlanPcp pcp = (OFActionSetVlanPcp) act;
-                builder.setVlanPcp(pcp.getVlanPcp().getValue());
-                break;
-            case SET_DL_DST:
-                OFActionSetDlDst dldst = (OFActionSetDlDst) act;
-                builder.setEthDst(
-                        MacAddress.valueOf(dldst.getDlAddr().getLong()));
-                break;
-            case SET_DL_SRC:
-                OFActionSetDlSrc dlsrc = (OFActionSetDlSrc) act;
-                builder.setEthSrc(
-                        MacAddress.valueOf(dlsrc.getDlAddr().getLong()));
-
-                break;
-            case SET_NW_DST:
-                OFActionSetNwDst nwdst = (OFActionSetNwDst) act;
-                IPv4Address di = nwdst.getNwAddr();
-                builder.setIpDst(Ip4Address.valueOf(di.getInt()));
-                break;
-            case SET_NW_SRC:
-                OFActionSetNwSrc nwsrc = (OFActionSetNwSrc) act;
-                IPv4Address si = nwsrc.getNwAddr();
-                builder.setIpSrc(Ip4Address.valueOf(si.getInt()));
-                break;
-            case EXPERIMENTER:
-                OFActionExperimenter exp = (OFActionExperimenter) act;
-                if (exp.getExperimenter() == 0x80005A06 ||
-                        exp.getExperimenter() == 0x748771) {
-                    OFActionCircuit ct = (OFActionCircuit) exp;
-                    builder.setLambda(((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber());
-                } else {
-                    log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
-                }
-                break;
-            case SET_FIELD:
-                OFActionSetField setField = (OFActionSetField) act;
-                handleSetField(builder, setField.getField());
-                break;
-            case POP_MPLS:
-                OFActionPopMpls popMpls = (OFActionPopMpls) act;
-                builder.popMpls((short) popMpls.getEthertype().getValue());
-                break;
-            case PUSH_MPLS:
-                builder.pushMpls();
-                break;
-            case COPY_TTL_IN:
-                builder.copyTtlIn();
-                break;
-            case COPY_TTL_OUT:
-                builder.copyTtlOut();
-                break;
-            case DEC_MPLS_TTL:
-                builder.decMplsTtl();
-                break;
-            case DEC_NW_TTL:
-                builder.decNwTtl();
-                break;
-            case GROUP:
-                OFActionGroup group = (OFActionGroup) act;
-                builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
-                break;
-            case POP_VLAN:
-                builder.popVlan();
-                break;
-            case STRIP_VLAN:
-                builder.stripVlan();
-                break;
-            case SET_TP_DST:
-            case SET_TP_SRC:
-            case POP_PBB:
-            case PUSH_PBB:
-            case PUSH_VLAN:
-            case SET_MPLS_LABEL:
-            case SET_MPLS_TC:
-            case SET_MPLS_TTL:
-            case SET_NW_ECN:
-            case SET_NW_TOS:
-            case SET_NW_TTL:
-            case SET_QUEUE:
-
-            case ENQUEUE:
-            default:
-                log.warn("Action type {} not yet implemented.", act.getType());
+        for (OFInstruction in : instructions) {
+            switch (in.getType()) {
+                case GOTO_TABLE:
+                    builder.transition(tableType);
+                    break;
+                case WRITE_METADATA:
+                    break;
+                case WRITE_ACTIONS:
+                    builder.deferred();
+                    buildActions(((OFInstructionWriteActions) in).getActions(),
+                                 builder);
+                    break;
+                case APPLY_ACTIONS:
+                    builder.immediate();
+                    buildActions(((OFInstructionApplyActions) in).getActions(),
+                                 builder);
+                    break;
+                case CLEAR_ACTIONS:
+                    builder.wipeDeferred();
+                    break;
+                case EXPERIMENTER:
+                    break;
+                case METER:
+                    break;
+                default:
+                    log.warn("Unknown instructions type {}", in.getType());
             }
         }
 
         return builder.build();
     }
+
+    private TrafficTreatment.Builder buildActions(List<OFAction> actions,
+                                                  TrafficTreatment.Builder builder) {
+        for (OFAction act : actions) {
+            switch (act.getType()) {
+                case OUTPUT:
+                    OFActionOutput out = (OFActionOutput) act;
+                    builder.setOutput(
+                            PortNumber.portNumber(out.getPort().getPortNumber()));
+                    break;
+                case SET_VLAN_VID:
+                    OFActionSetVlanVid vlan = (OFActionSetVlanVid) act;
+                    builder.setVlanId(VlanId.vlanId(vlan.getVlanVid().getVlan()));
+                    break;
+                case SET_VLAN_PCP:
+                    OFActionSetVlanPcp pcp = (OFActionSetVlanPcp) act;
+                    builder.setVlanPcp(pcp.getVlanPcp().getValue());
+                    break;
+                case SET_DL_DST:
+                    OFActionSetDlDst dldst = (OFActionSetDlDst) act;
+                    builder.setEthDst(
+                            MacAddress.valueOf(dldst.getDlAddr().getLong()));
+                    break;
+                case SET_DL_SRC:
+                    OFActionSetDlSrc dlsrc = (OFActionSetDlSrc) act;
+                    builder.setEthSrc(
+                            MacAddress.valueOf(dlsrc.getDlAddr().getLong()));
+
+                    break;
+                case SET_NW_DST:
+                    OFActionSetNwDst nwdst = (OFActionSetNwDst) act;
+                    IPv4Address di = nwdst.getNwAddr();
+                    builder.setIpDst(Ip4Address.valueOf(di.getInt()));
+                    break;
+                case SET_NW_SRC:
+                    OFActionSetNwSrc nwsrc = (OFActionSetNwSrc) act;
+                    IPv4Address si = nwsrc.getNwAddr();
+                    builder.setIpSrc(Ip4Address.valueOf(si.getInt()));
+                    break;
+                case EXPERIMENTER:
+                    OFActionExperimenter exp = (OFActionExperimenter) act;
+                    if (exp.getExperimenter() == 0x80005A06 ||
+                            exp.getExperimenter() == 0x748771) {
+                        OFActionCircuit ct = (OFActionCircuit) exp;
+                        builder.setLambda(((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber());
+                    } else {
+                        log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
+                    }
+                    break;
+                case SET_FIELD:
+                    OFActionSetField setField = (OFActionSetField) act;
+                    handleSetField(builder, setField.getField());
+                    break;
+                case POP_MPLS:
+                    OFActionPopMpls popMpls = (OFActionPopMpls) act;
+                    builder.popMpls((short) popMpls.getEthertype().getValue());
+                    break;
+                case PUSH_MPLS:
+                    builder.pushMpls();
+                    break;
+                case COPY_TTL_IN:
+                    builder.copyTtlIn();
+                    break;
+                case COPY_TTL_OUT:
+                    builder.copyTtlOut();
+                    break;
+                case DEC_MPLS_TTL:
+                    builder.decMplsTtl();
+                    break;
+                case DEC_NW_TTL:
+                    builder.decNwTtl();
+                    break;
+                case GROUP:
+                    OFActionGroup group = (OFActionGroup) act;
+                    builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
+                    break;
+                case POP_VLAN:
+                    builder.popVlan();
+                    break;
+                case STRIP_VLAN:
+                    builder.stripVlan();
+                    break;
+                case SET_TP_DST:
+                case SET_TP_SRC:
+                case POP_PBB:
+                case PUSH_PBB:
+                case PUSH_VLAN:
+                case SET_MPLS_LABEL:
+                case SET_MPLS_TC:
+                case SET_MPLS_TTL:
+                case SET_NW_ECN:
+                case SET_NW_TOS:
+                case SET_NW_TTL:
+                case SET_QUEUE:
+
+                case ENQUEUE:
+                default:
+                    log.warn("Action type {} not yet implemented.", act.getType());
+            }
+        }
+        return builder;
+    }
+
 
     private void handleSetField(TrafficTreatment.Builder builder, OFOxm<?> oxm) {
         switch (oxm.getMatchField().id) {

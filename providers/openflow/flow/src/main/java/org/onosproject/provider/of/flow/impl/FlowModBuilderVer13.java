@@ -15,6 +15,7 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.net.PortNumber;
@@ -95,18 +96,22 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     @Override
     public OFFlowAdd buildFlowAdd() {
         Match match = buildMatch();
-        List<OFAction> actions = buildActions();
-        List<OFInstruction> instructions = buildInstructions();
+        List<OFAction> deferredActions = buildActions(treatment.deferred());
+        List<OFAction> immediateActions = buildActions(treatment.immediate());
+        List<OFInstruction> instructions = Lists.newLinkedList();
 
-        // FIXME had to revert back to using apply-actions instead of
-        // write-actions because LINC-OE apparently doesn't support
-        // write-actions. I would prefer to change this back in the future
-        // because apply-actions is an optional instruction in OF 1.3.
 
-        if (actions != null) {
-            OFInstruction applyActions =
-                    factory().instructions().applyActions(actions);
-            instructions.add(applyActions);
+        if (immediateActions.size() > 0) {
+            instructions.add(factory().instructions().applyActions(immediateActions));
+        }
+        if (treatment.clearedDeferred()) {
+            instructions.add(factory().instructions().clearActions());
+        }
+        if (deferredActions.size() > 0) {
+            instructions.add(factory().instructions().writeActions(deferredActions));
+        }
+        if (treatment.tableTransition() != null) {
+            instructions.add(buildTableGoto(treatment.tableTransition()));
         }
 
         long cookie = flowRule().id().value();
@@ -128,13 +133,22 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     @Override
     public OFFlowMod buildFlowMod() {
         Match match = buildMatch();
-        List<OFAction> actions = buildActions();
-        List<OFInstruction> instructions = buildInstructions();
+        List<OFAction> deferredActions = buildActions(treatment.deferred());
+        List<OFAction> immediateActions = buildActions(treatment.immediate());
+        List<OFInstruction> instructions = Lists.newLinkedList();
 
-        if (actions != null) {
-            OFInstruction applyActions =
-                    factory().instructions().applyActions(actions);
-            instructions.add(applyActions);
+
+        if (immediateActions.size() > 0) {
+            instructions.add(factory().instructions().applyActions(immediateActions));
+        }
+        if (treatment.clearedDeferred()) {
+            instructions.add(factory().instructions().clearActions());
+        }
+        if (deferredActions.size() > 0) {
+            instructions.add(factory().instructions().writeActions(deferredActions));
+        }
+        if (treatment.tableTransition() != null) {
+            instructions.add(buildTableGoto(treatment.tableTransition()));
         }
 
         long cookie = flowRule().id().value();
@@ -189,13 +203,13 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return instructions;
     }
 
-    private List<OFAction> buildActions() {
+    private List<OFAction> buildActions(List<Instruction> treatments) {
         List<OFAction> actions = new LinkedList<>();
         boolean tableFound = false;
         if (treatment == null) {
             return actions;
         }
-        for (Instruction i : treatment.instructions()) {
+        for (Instruction i : treatments) {
             switch (i.type()) {
                 case DROP:
                     log.warn("Saw drop action; assigning drop action");
@@ -320,7 +334,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 return factory().actions().popMpls(EthType.of(popHeaderInstructions
                                                               .ethernetType()));
             case STRIP_VLAN:
-                return factory().actions().stripVlan();
+                return factory().actions().popVlan();
             case MPLS_LABEL:
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;

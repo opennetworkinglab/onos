@@ -15,17 +15,16 @@
  */
 package org.onosproject.net.flow;
 
-import java.util.List;
-
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 
-import com.google.common.testing.EqualsTester;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -83,7 +82,7 @@ public class DefaultTrafficTreatmentTest {
         builder1.add(instruction1);
 
         final List<Instruction> instructions2 = builder1.build().instructions();
-        assertThat(instructions2, hasSize(8));
+        assertThat(instructions2, hasSize(11));
     }
 
     /**

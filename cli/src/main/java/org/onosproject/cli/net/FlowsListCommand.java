@@ -195,7 +195,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                       f.bytes(), f.packets(), f.life(), f.priority(), f.type(),
                       coreService.getAppId(f.appId()).name());
                 print(SFMT, f.selector().criteria());
-                print(TFMT, f.treatment().instructions());
+                print(TFMT, f.treatment());
             }
         }
     }

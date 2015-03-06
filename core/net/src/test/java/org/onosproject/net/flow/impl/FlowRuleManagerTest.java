@@ -63,6 +63,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.impl.SimpleFlowRuleStore;
@@ -558,6 +559,26 @@ public class FlowRuleManagerTest {
 
         @Override
         public List<Instruction> instructions() {
+            return null;
+        }
+
+        @Override
+        public List<Instruction> deferred() {
+            return null;
+        }
+
+        @Override
+        public List<Instruction> immediate() {
+            return null;
+        }
+
+        @Override
+        public Instructions.TableTypeTransition tableTransition() {
+            return null;
+        }
+
+        @Override
+        public Boolean clearedDeferred() {
             return null;
         }
 

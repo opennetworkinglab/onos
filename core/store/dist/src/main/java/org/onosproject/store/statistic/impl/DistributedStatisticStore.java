@@ -16,13 +16,14 @@
 package org.onosproject.store.statistic.impl;
 
 import com.google.common.collect.Sets;
-
+import org.apache.commons.collections.ListUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -39,12 +40,12 @@ import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
-import org.onlab.util.KryoNamespace;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -305,7 +306,9 @@ public class DistributedStatisticStore implements StatisticStore {
     }
 
     private PortNumber getOutput(FlowRule rule) {
-        for (Instruction i : rule.treatment().instructions()) {
+        List<Instruction> all = ListUtils.union(rule.treatment().immediate(),
+                                                rule.treatment().deferred());
+        for (Instruction i : all) {
             if (i.type() == Instruction.Type.OUTPUT) {
                 Instructions.OutputInstruction out = (Instructions.OutputInstruction) i;
                 return out.port();

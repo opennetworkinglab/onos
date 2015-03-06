@@ -45,6 +45,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.Lambda;
@@ -95,6 +96,26 @@ public class IntentTestsMocks {
         @Override
         public List<Instruction> instructions() {
             return new ArrayList<>();
+        }
+
+        @Override
+        public List<Instruction> deferred() {
+            return null;
+        }
+
+        @Override
+        public List<Instruction> immediate() {
+            return null;
+        }
+
+        @Override
+        public Instructions.TableTypeTransition tableTransition() {
+            return null;
+        }
+
+        @Override
+        public Boolean clearedDeferred() {
+            return null;
         }
     }
 

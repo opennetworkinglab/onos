@@ -34,6 +34,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -322,7 +323,7 @@ public class BgpRouter {
         private static final int HIGHEST_PRIORITY = 0xffff;
         private Set<InterfaceIpAddress> intfIps = new HashSet<InterfaceIpAddress>();
         private Set<MacAddress> intfMacs = new HashSet<MacAddress>();
-        private Set<VlanId> intfVlans = new HashSet<VlanId>();
+        private Map<PortNumber, VlanId> portVlanPair = Maps.newHashMap();
 
         public void provision(boolean install, Set<Interface> intfs) {
             getIntefaceConfig(intfs);
@@ -341,7 +342,7 @@ public class BgpRouter {
             for (Interface intf : intfs) {
                 intfIps.addAll(intf.ipAddresses());
                 intfMacs.add(intf.mac());
-                intfVlans.add(intf.vlan());
+                portVlanPair.put(intf.connectPoint().port(), intf.vlan());
             }
         }
 
@@ -447,14 +448,15 @@ public class BgpRouter {
             FlowRule rule;
 
             //Interface Vlans
-            for (VlanId vid : intfVlans) {
-                log.debug("adding rule for VLAN: {}", vid);
+            for (Map.Entry<PortNumber, VlanId> portVlan : portVlanPair.entrySet()) {
+                log.debug("adding rule for VLAN: {}", portVlan);
                 selector = DefaultTrafficSelector.builder();
                 treatment = DefaultTrafficTreatment.builder();
 
-                selector.matchVlanId(vid);
-                treatment.stripVlan();
+                selector.matchVlanId(portVlan.getValue());
+                selector.matchInPort(portVlan.getKey());
                 treatment.transition(Type.ETHER);
+                treatment.deferred().popVlan();
 
                 rule = new DefaultFlowRule(deviceId, selector.build(),
                                            treatment.build(), CONTROLLER_PRIORITY, appId,

@@ -295,7 +295,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type()).toString();
+            return toStringHelper(type().toString()).toString();
 
         }
 

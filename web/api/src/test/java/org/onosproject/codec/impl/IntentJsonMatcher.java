@@ -380,7 +380,7 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
 
         for (Instruction instruction : instructions) {
             boolean instructionFound = false;
-            for (int instructionIndex = 0; instructionIndex < jsonCriteria.size(); instructionIndex++) {
+            for (int instructionIndex = 0; instructionIndex < jsonInstructions.size(); instructionIndex++) {
                 final InstructionJsonMatcher instructionMatcher =
                         InstructionJsonMatcher.matchesInstruction(instruction);
                 if (instructionMatcher.matches(jsonInstructions.get(instructionIndex))) {
