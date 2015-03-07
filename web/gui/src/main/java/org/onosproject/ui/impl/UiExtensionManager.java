@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +51,18 @@ public class UiExtensionManager implements UiExtensionService {
     private final Map<String, UiExtension> views = Maps.newHashMap();
 
     // Core views & core extension
-    private final List<UiView> coreViews = of(new UiView("sample", "Sample"),
-                                              new UiView("topo", "Topology View"),
-                                              new UiView("device", "Devices"));
+    private final UiExtension core = createCoreExtension();
 
-    private final UiExtension core = new UiExtension(coreViews, "core",
-                                                     getClass().getClassLoader());
+
+    // Creates core UI extension
+    private static UiExtension createCoreExtension() {
+        List<UiView> coreViews = of(new UiView("sample", "Sample"),
+                                    new UiView("topo", "Topology View"),
+                                    new UiView("device", "Devices"));
+        UiMessageHandlerFactory messageHandlerFactory = null;
+        return new UiExtension(coreViews, messageHandlerFactory, "core",
+                               UiExtensionManager.class.getClassLoader());
+    }
 
     @Activate
     public void activate() {

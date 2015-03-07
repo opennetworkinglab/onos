@@ -32,16 +32,20 @@ public class UiExtension {
     private final String prefix;
     private final ClassLoader classLoader;
     private final List<UiView> views;
+    private final UiMessageHandlerFactory messageHandlerFactory;
 
     /**
      * Creates a user interface extension for loading CSS and JS injections
      * from {@code css.html} and {@code js.html} resources, respectively.
      *
-     * @param views       list of contributed views
-     * @param classLoader class-loader for user interface resources
+     * @param views                 list of contributed views
+     * @param messageHandlerFactory optional message handler factory
+     * @param classLoader           class-loader for user interface resources
      */
-    public UiExtension(List<UiView> views, ClassLoader classLoader) {
-        this(views, null, classLoader);
+    public UiExtension(List<UiView> views,
+                       UiMessageHandlerFactory messageHandlerFactory,
+                       ClassLoader classLoader) {
+        this(views, messageHandlerFactory, null, classLoader);
     }
 
     /**
@@ -49,12 +53,16 @@ public class UiExtension {
      * loads CSS and JS injections from {@code path/css.html} and
      * {@code prefix/js.html} resources, respectively.
      *
-     * @param views       list of user interface views
-     * @param path        resource path prefix
-     * @param classLoader class-loader for user interface resources
+     * @param views                 list of user interface views
+     * @param messageHandlerFactory optional message handler factory
+     * @param path                  resource path prefix
+     * @param classLoader           class-loader for user interface resources
      */
-    public UiExtension(List<UiView> views, String path, ClassLoader classLoader) {
+    public UiExtension(List<UiView> views,
+                       UiMessageHandlerFactory messageHandlerFactory,
+                       String path, ClassLoader classLoader) {
         this.views = checkNotNull(ImmutableList.copyOf(views), "Views cannot be null");
+        this.messageHandlerFactory = messageHandlerFactory;
         this.prefix = path != null ? (path + "/") : "";
         this.classLoader = checkNotNull(classLoader, "Class loader must be specified");
     }
@@ -98,4 +106,12 @@ public class UiExtension {
         return is;
     }
 
+    /**
+     * Returns message handler factory.
+     *
+     * @return message handlers
+     */
+    public UiMessageHandlerFactory messageHandlerFactory() {
+        return messageHandlerFactory;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.osgi;
+package org.onosproject.ui;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Simple abstraction of a service directory where service implementations can
- * be found by the class name of the interfaces they provide.
+ * Abstraction of a user interface session connection.
  */
-public interface ServiceDirectory {
+public interface UiConnection {
 
     /**
-     * Returns implementation of the specified service class.
+     * Sends the specified JSON message to the user interface client.
      *
-     * @param serviceClass service class
-     * @param <T>          type of service
-     * @return implementation class
-     * @throws ServiceNotFoundException if no implementation found
+     * @param message message to send
      */
-    <T> T get(Class<T> serviceClass);
+    void sendMessage(ObjectNode message);
 
 }

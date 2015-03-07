@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.osgi;
+package org.onosproject.ui;
+
+import java.util.Collection;
 
 /**
- * Simple abstraction of a service directory where service implementations can
- * be found by the class name of the interfaces they provide.
+ * Abstraction of an entity capable of producing a set of message handlers
+ * specific to the given user interface connection.
  */
-public interface ServiceDirectory {
+public interface UiMessageHandlerFactory {
 
     /**
-     * Returns implementation of the specified service class.
+     * Produces a collection of new message handlers.
      *
-     * @param serviceClass service class
-     * @param <T>          type of service
-     * @return implementation class
-     * @throws ServiceNotFoundException if no implementation found
+     * @return collection of new handlers
      */
-    <T> T get(Class<T> serviceClass);
+    Collection<UiMessageHandler> newHandlers();
 
 }
