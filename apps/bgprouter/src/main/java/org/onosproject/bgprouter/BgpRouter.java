@@ -149,7 +149,8 @@ public class BgpRouter {
 
         connectivityManager = new TunnellingConnectivityManager(appId,
                                                                 configService,
-                                                                packetService);
+                                                                packetService,
+                                                                flowService);
 
         routingService.start(new InternalFibListener());
 
