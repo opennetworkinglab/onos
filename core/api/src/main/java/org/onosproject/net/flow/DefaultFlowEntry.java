@@ -22,7 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 
 public class DefaultFlowEntry extends DefaultFlowRule
-    implements FlowEntry, StoredFlowEntry {
+    implements StoredFlowEntry {
 
     private static final Logger log = getLogger(DefaultFlowEntry.class);
 

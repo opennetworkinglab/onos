@@ -357,6 +357,10 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private boolean removeInternal(K key, Timestamp timestamp) {
+        if (timestamp == null) {
+            return false;
+        }
+
         counter.incrementCount();
         final MutableBoolean updated = new MutableBoolean(false);
 
