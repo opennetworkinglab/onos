@@ -15,17 +15,16 @@
  */
 package org.onosproject.net.flow;
 
-import java.util.List;
-
-import org.onosproject.core.GroupId;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultTrafficTreatment.Builder;
-import org.onosproject.net.flow.instructions.Instruction;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+
+import java.util.List;
 
 /**
  * Abstraction of network traffic treatment.
@@ -245,6 +244,13 @@ public interface TrafficTreatment {
          * @return a treatment builder.
          */
         public Builder popVlan();
+
+        /**
+         * Pushes a new VLAN tag.
+         *
+         * @return a treatment builder.
+         */
+        public Builder pushVlan();
 
         /**
          * Any instructions preceded by this method call will be deferred.

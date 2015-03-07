@@ -15,13 +15,13 @@
  */
 package org.onosproject.net.flow.instructions;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Objects;
-
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Abstraction of a single traffic treatment step.
@@ -80,7 +80,12 @@ public abstract class L2ModificationInstruction implements Instruction {
         /**
          * VLAN Pop modification.
          */
-        VLAN_POP
+        VLAN_POP,
+
+        /**
+         * VLAN Push modification.
+         */
+        VLAN_PUSH
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory

@@ -15,12 +15,11 @@
  */
 package org.onosproject.net.flow.instructions;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
-
-import java.util.Objects;
-
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
@@ -33,11 +32,17 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInst
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
 
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.MplsLabel;
-import org.onlab.packet.VlanId;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsTtlInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.PopVlanInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.StripVlanInstruction;
 
 /**
  * Factory class for creating various traffic treatment instructions.
@@ -62,6 +67,7 @@ public final class Instructions {
 
     /**
      * Creates a drop instruction.
+     *
      * @return drop instruction
      */
     public static DropInstruction createDrop() {
@@ -81,7 +87,8 @@ public final class Instructions {
 
     /**
      * Creates a l0 modification.
-     * @param lambda the lambda to modify to.
+     *
+     * @param lambda the lambda to modify to
      * @return a l0 modification
      */
     public static L0ModificationInstruction modL0Lambda(short lambda) {
@@ -91,7 +98,8 @@ public final class Instructions {
 
     /**
      * Creates a l2 src modification.
-     * @param addr the mac address to modify to.
+     *
+     * @param addr the mac address to modify to
      * @return a l2 modification
      */
     public static L2ModificationInstruction modL2Src(MacAddress addr) {
@@ -101,7 +109,8 @@ public final class Instructions {
 
     /**
      * Creates a L2 dst modification.
-     * @param addr the mac address to modify to.
+     *
+     * @param addr the mac address to modify to
      * @return a L2 modification
      */
     public static L2ModificationInstruction modL2Dst(MacAddress addr) {
@@ -110,8 +119,9 @@ public final class Instructions {
     }
 
     /**
-     * Creates a Vlan id modification.
-     * @param vlanId the vlan id to modify to.
+     * Creates a VLAN ID modification.
+     *
+     * @param vlanId the VLAN ID to modify to
      * @return a L2 modification
      */
     public static L2ModificationInstruction modVlanId(VlanId vlanId) {
@@ -120,8 +130,9 @@ public final class Instructions {
     }
 
     /**
-     * Creates a Vlan pcp modification.
-     * @param vlanPcp the pcp to modify to.
+     * Creates a VLAN PCP modification.
+     *
+     * @param vlanPcp the PCP to modify to
      * @return a L2 modification
      */
     public static L2ModificationInstruction modVlanPcp(Byte vlanPcp) {
@@ -131,6 +142,7 @@ public final class Instructions {
 
     /**
      * Strips the VLAN tag if one is present.
+     *
      * @return a L2 modification
      */
     public static L2ModificationInstruction stripVlanId() {
@@ -139,7 +151,8 @@ public final class Instructions {
 
     /**
      * Creates a MPLS label modification.
-     * @param mplsLabel to set.
+     *
+     * @param mplsLabel MPLS label to set
      * @return a L2 Modification
      */
     public static L2ModificationInstruction modMplsLabel(MplsLabel mplsLabel) {
@@ -148,7 +161,7 @@ public final class Instructions {
     }
 
     /**
-     * Creates a MPLS TTL modification.
+     * Creates a MPLS decrement TTL modification.
      *
      * @return a L2 Modification
      */
@@ -211,7 +224,8 @@ public final class Instructions {
     }
 
     /**
-     * Creates a L3 TTL modification.
+     * Creates a L3 decrement TTL modification.
+     *
      * @return a L3 modification
      */
     public static L3ModificationInstruction decNwTtl() {
@@ -219,7 +233,8 @@ public final class Instructions {
     }
 
     /**
-     * Creates a L3 TTL modification.
+     * Creates a L3 copy TTL to outer header modification.
+     *
      * @return a L3 modification
      */
     public static L3ModificationInstruction copyTtlOut() {
@@ -227,7 +242,8 @@ public final class Instructions {
     }
 
     /**
-     * Creates a L3 TTL modification.
+     * Creates a L3 copy TTL to inner header modification.
+     *
      * @return a L3 modification
      */
     public static L3ModificationInstruction copyTtlIn() {
@@ -235,7 +251,8 @@ public final class Instructions {
     }
 
     /**
-     * Creates a mpls header instruction.
+     * Creates a push MPLS header instruction.
+     *
      * @return a L2 modification.
      */
     public static Instruction pushMpls() {
@@ -244,7 +261,8 @@ public final class Instructions {
     }
 
     /**
-     * Creates a mpls header instruction.
+     * Creates a pop MPLS header instruction.
+     *
      * @return a L2 modification.
      */
     public static Instruction popMpls() {
@@ -253,7 +271,7 @@ public final class Instructions {
     }
 
     /**
-     * Creates a mpls header instruction.
+     * Creates a pop MPLS header instruction with a particular ethertype.
      *
      * @param etherType Ethernet type to set
      * @return a L2 modification.
@@ -264,15 +282,26 @@ public final class Instructions {
     }
 
     /**
-     * Creates a vlan header instruction.
-     * @return a L2 modification.
+     * Creates a pop VLAN header instruction.
+     *
+     * @return a L2 modification
      */
     public static Instruction popVlan() {
         return new PopVlanInstruction(L2SubType.VLAN_POP);
     }
 
     /**
+     * Creates a push VLAN header instruction.
+     *
+     * @return a L2 modification
+     */
+    public static Instruction pushVlan() {
+        return new PushHeaderInstructions(L2SubType.VLAN_PUSH, Ethernet.TYPE_VLAN);
+    }
+
+    /**
      * Sends the packet to the table described in 'type'.
+     *
      * @param type flow rule table type
      * @return table type transition instruction
      */
@@ -296,7 +325,6 @@ public final class Instructions {
         @Override
         public String toString() {
             return toStringHelper(type().toString()).toString();
-
         }
 
         @Override

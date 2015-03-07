@@ -300,6 +300,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder pushVlan() {
+            return add(Instructions.pushVlan());
+        }
+
+        @Override
         public Builder transition(FlowRule.Type type) {
             return add(Instructions.transition(type));
         }

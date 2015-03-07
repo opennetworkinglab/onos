@@ -183,6 +183,7 @@ public final class GroupModBuilder {
         if (treatment == null) {
             return actions;
         }
+
         for (Instruction i : treatment.instructions()) {
             switch (i.type()) {
                 case DROP:
@@ -254,6 +255,13 @@ public final class GroupModBuilder {
                         (L2ModificationInstruction.ModVlanPcpInstruction) l2m;
                 oxm = factory.oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
                 break;
+            case VLAN_POP:
+                return factory.actions().popVlan();
+            case VLAN_PUSH:
+                L2ModificationInstruction.PushHeaderInstructions pushVlanInstruction
+                        = (L2ModificationInstruction.PushHeaderInstructions) l2m;
+                return factory.actions().pushVlan(
+                        EthType.of(pushVlanInstruction.ethernetType()));
             case MPLS_PUSH:
                 L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) l2m;

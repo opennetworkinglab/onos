@@ -20,17 +20,17 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
@@ -39,12 +39,12 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRule.Type;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.FlowRule.Type;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.Group;
@@ -64,7 +64,6 @@ import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpSpeaker;
 import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
-import org.onosproject.config.NetworkConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,6 +263,7 @@ public class BgpRouter {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setEthSrc(egressIntf.mac())
                     .setEthDst(nextHop.mac())
+                    .pushVlan()
                     .setVlanId(egressIntf.vlan())
                     .setOutput(egressIntf.connectPoint().port())
                     .build();
@@ -334,7 +334,6 @@ public class BgpRouter {
             processTableFive(install);
             processTableSix(install);
             processTableNine(install);
-
         }
 
         private void getIntefaceConfig(Set<Interface> intfs) {
@@ -415,7 +414,6 @@ public class BgpRouter {
                     .builder();
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
-
 
             selector.matchEthType(Ethernet.TYPE_VLAN);
             treatment.transition(FlowRule.Type.VLAN);

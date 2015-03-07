@@ -345,6 +345,10 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 return factory().actions().decMplsTtl();
             case VLAN_POP:
                 return factory().actions().popVlan();
+            case VLAN_PUSH:
+                PushHeaderInstructions pushVlanInstruction = (PushHeaderInstructions) l2m;
+                return factory().actions().pushVlan(
+                        EthType.of(pushVlanInstruction.ethernetType()));
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;
