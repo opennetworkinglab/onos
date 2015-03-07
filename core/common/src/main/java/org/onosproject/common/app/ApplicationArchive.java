@@ -121,6 +121,17 @@ public class ApplicationArchive
     }
 
     /**
+     * Returns the timestamp in millis since start of epoch, of when the
+     * specified application was last modified or changed state.
+     *
+     * @param appName application name
+     * @return number of millis since start of epoch
+     */
+    public long getUpdateTime(String appName) {
+        return appFile(appName, APP_XML).lastModified();
+    }
+
+    /**
      * Loads the application descriptor from the specified application archive
      * stream and saves the stream in the appropriate application archive
      * directory.
@@ -313,7 +324,7 @@ public class ApplicationArchive
      */
     protected boolean setActive(String appName) {
         try {
-            return appFile(appName, "active").createNewFile();
+            return appFile(appName, "active").createNewFile() && updateTime(appName);
         } catch (IOException e) {
             throw new ApplicationException("Unable to mark app as active", e);
         }
@@ -326,7 +337,17 @@ public class ApplicationArchive
      * @return true if file was deleted
      */
     protected boolean clearActive(String appName) {
-        return appFile(appName, "active").delete();
+        return appFile(appName, "active").delete() && updateTime(appName);
+    }
+
+    /**
+     * Updates the time-stamp of the app descriptor file.
+     *
+     * @param appName application name
+     * @return true if the app descriptor was updated
+     */
+    private boolean updateTime(String appName) {
+        return appFile(appName, APP_XML).setLastModified(System.currentTimeMillis());
     }
 
     /**
