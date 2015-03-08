@@ -15,7 +15,11 @@
  */
 package org.onosproject.cli.net;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -23,18 +27,20 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyProvider;
 import org.onosproject.net.topology.TopologyService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Lists summary of the current topology.
  */
 @Command(scope = "onos", name = "topology",
-         description = "Lists summary of the current topology")
+description = "Lists summary of the current topology")
 public class TopologyCommand extends AbstractShellCommand {
 
-    private static final String FMT =
-            "time=%s, devices=%d, links=%d, clusters=%d";
+    private static final String FMT = "created=%s, uptime=%s, devices=%d, links=%d, clusters=%d";
 
-    @Option(name = "-r", aliases = "--recompute", description = "Trigger topology re-computation",
-            required = false, multiValued = false)
+    @Option(name = "-r", aliases = "--recompute",
+            description = "Trigger topology re-computation", required = false,
+            multiValued = false)
     private boolean recompute = false;
 
     protected TopologyService service;
@@ -51,19 +57,75 @@ public class TopologyCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         init();
+        long topologyUptime =
+                Math.max(0, (System.currentTimeMillis() - topology.creationTime()));
         if (recompute) {
             get(TopologyProvider.class).triggerRecompute();
 
         } else if (outputJson()) {
-            print("%s", new ObjectMapper().createObjectNode()
-                    .put("time", topology.time())
-                    .put("deviceCount", topology.deviceCount())
-                    .put("linkCount", topology.linkCount())
-                    .put("clusterCount", topology.clusterCount()));
+            print("%s",
+                    new ObjectMapper()
+                            .createObjectNode()
+                            .put("time", topology.time())
+                            .put("created", formatCreationTime(topology.creationTime()))
+                            .put("uptime", formatElapsedTime(topologyUptime))
+                            .put("deviceCount", topology.deviceCount())
+                            .put("linkCount", topology.linkCount())
+                            .put("clusterCount", topology.clusterCount()));
         } else {
-            print(FMT, topology.time(), topology.deviceCount(), topology.linkCount(),
-                  topology.clusterCount());
+            print(FMT, formatCreationTime(topology.creationTime()),
+                    formatElapsedTime(topologyUptime),
+                    topology.deviceCount(), topology.linkCount(),
+                    topology.clusterCount());
         }
     }
 
+    /**
+     * Converts millis to a formatted elapsed time string.
+     *
+     * @param millis Duration in millis to convert to a string
+     *
+     * @return Formatted string: "D days, H hrs, M mins, S secs".
+     */
+    private static String formatElapsedTime(long millis) {
+        if (millis < 0) {
+            throw new IllegalArgumentException("Interval less than zero. "
+                    + "Possible unsynchronized timestamps");
+        }
+
+        final long days = TimeUnit.MILLISECONDS.toDays(millis);
+        millis -= TimeUnit.DAYS.toMillis(days);
+        final long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        millis -= TimeUnit.HOURS.toMillis(hours);
+        final long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
+        millis -= TimeUnit.MINUTES.toMillis(minutes);
+        final long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
+
+        final StringBuilder topologyUptimeString = new StringBuilder(64);
+        topologyUptimeString.append(days);
+        topologyUptimeString.append(" days, ");
+        topologyUptimeString.append(hours);
+        topologyUptimeString.append(" hrs, ");
+        topologyUptimeString.append(minutes);
+        topologyUptimeString.append(" mins, ");
+        topologyUptimeString.append(seconds);
+        topologyUptimeString.append(" secs");
+
+        return (topologyUptimeString.toString());
+    }
+
+    /**
+     * Converts millis to a formatted Date String.
+     *
+     * @param millis Duration in millis to convert to a string
+     *
+     * @return Formatted string: yyyy-MM-dd HH:mm:ss.
+     */
+    private static String formatCreationTime(long millis) {
+        final DateFormat dateFormatter =
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(millis);
+        return (dateFormatter.format(calendar.getTime()));
+    }
 }

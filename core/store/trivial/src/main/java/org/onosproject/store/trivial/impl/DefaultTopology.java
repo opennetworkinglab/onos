@@ -15,11 +15,18 @@
  */
 package org.onosproject.store.trivial.impl;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
+import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.Link.State.INACTIVE;
+import static org.onosproject.net.Link.Type.INDIRECT;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
@@ -43,32 +50,25 @@ import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyVertex;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.collect.ImmutableSetMultimap.Builder;
-import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
-import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
-import static org.onosproject.net.Link.State.ACTIVE;
-import static org.onosproject.net.Link.State.INACTIVE;
-import static org.onosproject.net.Link.Type.INDIRECT;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSetMultimap.Builder;
 
 // FIXME: Move to onos-core-common when ready
 /**
- * Default implementation of the topology descriptor. This carries the
- * backing topology data.
+ * Default implementation of the topology descriptor. This carries the backing
+ * topology data.
  */
 public class DefaultTopology extends AbstractModel implements Topology {
 
-    private static final DijkstraGraphSearch<TopologyVertex, TopologyEdge> DIJKSTRA =
-            new DijkstraGraphSearch<>();
-    private static final TarjanGraphSearch<TopologyVertex, TopologyEdge> TARJAN =
-            new TarjanGraphSearch<>();
+    private static final DijkstraGraphSearch<TopologyVertex, TopologyEdge> DIJKSTRA = new DijkstraGraphSearch<>();
+    private static final TarjanGraphSearch<TopologyVertex, TopologyEdge> TARJAN = new TarjanGraphSearch<>();
 
     private final long time;
+    private final long creationTime;
     private final long computeCost;
     private final TopologyGraph graph;
 
@@ -83,16 +83,19 @@ public class DefaultTopology extends AbstractModel implements Topology {
     /**
      * Creates a topology descriptor attributed to the specified provider.
      *
-     * @param providerId  identity of the provider
-     * @param description data describing the new topology
+     * @param providerId
+     *            identity of the provider
+     * @param description
+     *            data describing the new topology
      */
     DefaultTopology(ProviderId providerId, GraphDescription description) {
         super(providerId);
         this.time = description.timestamp();
+        this.creationTime = description.creationTime();
 
         // Build the graph
         this.graph = new DefaultTopologyGraph(description.vertexes(),
-                                              description.edges());
+                description.edges());
 
         this.clusterResults = Suppliers.memoize(() -> searchForClusters());
         this.clusters = Suppliers.memoize(() -> buildTopologyClusters());
@@ -101,13 +104,19 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         this.weight = new HopCountLinkWeight(graph.getVertexes().size());
         this.broadcastSets = Suppliers.memoize(() -> buildBroadcastSets());
-        this.infrastructurePoints = Suppliers.memoize(() -> findInfrastructurePoints());
+        this.infrastructurePoints = Suppliers
+                .memoize(() -> findInfrastructurePoints());
         this.computeCost = Math.max(0, System.nanoTime() - time);
     }
 
     @Override
     public long time() {
         return time;
+    }
+
+    @Override
+    public long creationTime() {
+        return creationTime;
     }
 
     @Override
@@ -164,6 +173,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the specified topology cluster.
      *
      * @param clusterId cluster identifier
+     *
      * @return topology cluster
      */
     TopologyCluster getCluster(ClusterId clusterId) {
@@ -174,6 +184,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the topology cluster that contains the given device.
      *
      * @param deviceId device identifier
+     *
      * @return topology cluster
      */
     TopologyCluster getCluster(DeviceId deviceId) {
@@ -184,6 +195,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the set of cluster devices.
      *
      * @param cluster topology cluster
+     *
      * @return cluster devices
      */
     Set<DeviceId> getClusterDevices(TopologyCluster cluster) {
@@ -194,6 +206,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the set of cluster links.
      *
      * @param cluster topology cluster
+     *
      * @return cluster links
      */
     Set<Link> getClusterLinks(TopologyCluster cluster) {
@@ -204,6 +217,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Indicates whether the given point is an infrastructure link end-point.
      *
      * @param connectPoint connection point
+     *
      * @return true if infrastructure
      */
     boolean isInfrastructure(ConnectPoint connectPoint) {
@@ -214,6 +228,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Indicates whether the given point is part of a broadcast set.
      *
      * @param connectPoint connection point
+     *
      * @return true if in broadcast set
      */
     boolean isBroadcastPoint(ConnectPoint connectPoint) {
@@ -225,19 +240,21 @@ public class DefaultTopology extends AbstractModel implements Topology {
         // Find the cluster to which the device belongs.
         TopologyCluster cluster = clustersByDevice().get(connectPoint.deviceId());
         if (cluster == null) {
-            throw new IllegalArgumentException("No cluster found for device " + connectPoint.deviceId());
+            throw new IllegalArgumentException("No cluster found for device "
+                    + connectPoint.deviceId());
         }
 
         // If the broadcast set is null or empty, or if the point explicitly
         // belongs to it, return true;
         Set<ConnectPoint> points = broadcastSets.get().get(cluster.id());
-        return points == null || points.isEmpty() || points.contains(connectPoint);
+        return (points == null) || points.isEmpty() || points.contains(connectPoint);
     }
 
     /**
      * Returns the size of the cluster broadcast set.
      *
      * @param clusterId cluster identifier
+     *
      * @return size of the cluster broadcast set
      */
     int broadcastSetSize(ClusterId clusterId) {
@@ -249,7 +266,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * destination devices.
      *
      * @param src source device
+     *
      * @param dst destination device
+     *
      * @return set of shortest paths
      */
     Set<Path> getPaths(DeviceId src, DeviceId dst) {
@@ -260,9 +279,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest paths between source and
      * destination devices.
      *
-     * @param src    source device
-     * @param dst    destination device
+     * @param src source device
+     *
+     * @param dst destination device
+     *
      * @param weight link weight function
+     *
      * @return set of shortest paths
      */
     Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
@@ -283,7 +305,6 @@ public class DefaultTopology extends AbstractModel implements Topology {
         return builder.build();
     }
 
-
     // Converts graph path to a network path with the same cost.
     private Path networkPath(org.onlab.graph.Path<TopologyVertex, TopologyEdge> path) {
         List<Link> links = new ArrayList<>();
@@ -292,7 +313,6 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
         return new DefaultPath(CORE_PROVIDER_ID, links, path.cost());
     }
-
 
     // Searches for SCC clusters in the network topology graph using Tarjan
     // algorithm.
@@ -315,9 +335,10 @@ public class DefaultTopology extends AbstractModel implements Topology {
             Set<TopologyEdge> edgeSet = clusterEdges.get(i);
 
             ClusterId cid = ClusterId.clusterId(i);
-            DefaultTopologyCluster cluster =
-                    new DefaultTopologyCluster(cid, vertexSet.size(), edgeSet.size(),
-                                               findRoot(vertexSet));
+            DefaultTopologyCluster cluster = new DefaultTopologyCluster(cid,
+                                                                        vertexSet.size(),
+                                                                        edgeSet.size(),
+                                                                        findRoot(vertexSet));
             clusterBuilder.put(cid, cluster);
         }
         return clusterBuilder.build();
@@ -328,9 +349,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private TopologyVertex findRoot(Set<TopologyVertex> vertexSet) {
         TopologyVertex minVertex = null;
         for (TopologyVertex vertex : vertexSet) {
-            if (minVertex == null ||
-                    minVertex.deviceId().toString()
-                            .compareTo(minVertex.deviceId().toString()) < 0) {
+            if ((minVertex == null) || (minVertex.deviceId().toString()
+                    .compareTo(minVertex.deviceId().toString()) < 0)) {
                 minVertex = vertex;
             }
         }
@@ -349,8 +369,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     // Finds all broadcast points for the cluster. These are those connection
     // points which lie along the shortest paths between the cluster root and
     // all other devices within the cluster.
-    private void addClusterBroadcastSet(TopologyCluster cluster,
-                                        Builder<ClusterId, ConnectPoint> builder) {
+    private void addClusterBroadcastSet(TopologyCluster cluster, Builder<ClusterId, ConnectPoint> builder) {
         // Use the graph root search results to build the broadcast set.
         Result<TopologyVertex, TopologyEdge> result =
                 DIJKSTRA.search(graph, cluster.root(), null, weight, 1);
@@ -389,9 +408,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
     // Builds cluster-devices, cluster-links and device-cluster indexes.
     private ClusterIndexes buildIndexes() {
         // Prepare the index builders
-        ImmutableMap.Builder<DeviceId, TopologyCluster> clusterBuilder = ImmutableMap.builder();
-        ImmutableSetMultimap.Builder<TopologyCluster, DeviceId> devicesBuilder = ImmutableSetMultimap.builder();
-        ImmutableSetMultimap.Builder<TopologyCluster, Link> linksBuilder = ImmutableSetMultimap.builder();
+        ImmutableMap.Builder<DeviceId, TopologyCluster> clusterBuilder =
+                ImmutableMap.builder();
+        ImmutableSetMultimap.Builder<TopologyCluster, DeviceId> devicesBuilder =
+                ImmutableSetMultimap.builder();
+        ImmutableSetMultimap.Builder<TopologyCluster, Link> linksBuilder =
+                ImmutableSetMultimap.builder();
 
         // Now scan through all the clusters
         for (TopologyCluster cluster : clusters.get().values()) {
@@ -411,8 +433,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Finalize all indexes.
         return new ClusterIndexes(clusterBuilder.build(),
-                                  devicesBuilder.build(),
-                                  linksBuilder.build());
+                devicesBuilder.build(), linksBuilder.build());
     }
 
     // Link weight for measuring link cost as hop count with indirect links
@@ -428,8 +449,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
         public double weight(TopologyEdge edge) {
             // To force preference to use direct paths first, make indirect
             // links as expensive as the linear vertex traversal.
-            return edge.link().state() == ACTIVE ?
-                    (edge.link().type() == INDIRECT ? indirectLinkCost : 1) : -1;
+            return edge.link().state() ==
+                    ACTIVE ? (edge.link().type() ==
+                    INDIRECT ? indirectLinkCost : 1) : -1;
         }
     }
 
@@ -437,7 +459,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private static class NoIndirectLinksWeight implements LinkWeight {
         @Override
         public double weight(TopologyEdge edge) {
-            return edge.link().state() == INACTIVE || edge.link().type() == INDIRECT ? -1 : 1;
+            return (edge.link().state() == INACTIVE)
+                    || (edge.link().type() == INDIRECT) ? -1 : 1;
         }
     }
 
@@ -446,9 +469,10 @@ public class DefaultTopology extends AbstractModel implements Topology {
         final ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster;
         final ImmutableSetMultimap<TopologyCluster, Link> linksByCluster;
 
-        public ClusterIndexes(ImmutableMap<DeviceId, TopologyCluster> clustersByDevice,
-                              ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster,
-                              ImmutableSetMultimap<TopologyCluster, Link> linksByCluster) {
+        public ClusterIndexes(
+                ImmutableMap<DeviceId, TopologyCluster> clustersByDevice,
+                ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster,
+                ImmutableSetMultimap<TopologyCluster, Link> linksByCluster) {
             this.clustersByDevice = clustersByDevice;
             this.devicesByCluster = devicesByCluster;
             this.linksByCluster = linksByCluster;
@@ -459,10 +483,10 @@ public class DefaultTopology extends AbstractModel implements Topology {
     public String toString() {
         return toStringHelper(this)
                 .add("time", time)
+                .add("created", creationTime)
                 .add("computeCost", computeCost)
                 .add("clusters", clusterCount())
                 .add("devices", deviceCount())
-                .add("links", linkCount())
-                .toString();
+                .add("links", linkCount()).toString();
     }
 }

@@ -23,16 +23,24 @@ import org.onosproject.net.Provided;
 public interface Topology extends Provided {
 
     /**
-     * Returns the time, specified in system nanos of when the topology
-     * became available.
+     * Returns the time, specified in system nanos of when the topology became
+     * available.
      *
      * @return time in system nanos
      */
     long time();
 
     /**
-     * Returns the time, specified in system nanos of how long the topology
-     * took to compute.
+     * Returns the time, specified in system millis of when the topology became
+     * available.
+     *
+     * @return time in system nanos
+     */
+    long creationTime();
+
+    /**
+     * Returns the time, specified in system nanos of how long the topology took
+     * to compute.
      *
      * @return elapsed time in system nanos
      */
@@ -52,7 +60,6 @@ public interface Topology extends Provided {
      * @return number of devices
      */
     int deviceCount();
-
 
     /**
      * Returns the number of infrastructure links in the topology.

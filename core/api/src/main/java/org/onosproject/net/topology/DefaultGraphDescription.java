@@ -34,30 +34,60 @@ import com.google.common.collect.Maps;
  * Default implementation of an immutable topology graph data carrier.
  */
 public class DefaultGraphDescription extends AbstractDescription
-        implements GraphDescription {
+implements GraphDescription {
 
     private static final Logger log = getLogger(DefaultGraphDescription.class);
 
     private final long nanos;
+    private final long creationTime;
     private final ImmutableSet<TopologyVertex> vertexes;
     private final ImmutableSet<TopologyEdge> edges;
 
-    private final Map<DeviceId, TopologyVertex> vertexesById = Maps.newHashMap();
+    private final Map<DeviceId, TopologyVertex> vertexesById = Maps
+            .newHashMap();
 
     /**
      * Creates a minimal topology graph description to allow core to construct
      * and process the topology graph.
      *
-     * @param nanos       time in nanos of when the topology description was created
-     * @param devices     collection of infrastructure devices
-     * @param links       collection of infrastructure links
+     * @param nanos time in nanos of when the topology description was created
+     *
+     * @param devices collection of infrastructure devices
+     *
+     * @param links collection of infrastructure links
+     *
      * @param annotations optional key/value annotations map
+     *
      */
+    @Deprecated
     public DefaultGraphDescription(long nanos, Iterable<Device> devices,
-                                   Iterable<Link> links,
-                                   SparseAnnotations... annotations) {
+            Iterable<Link> links,
+            SparseAnnotations... annotations) {
+        this(nanos, System.currentTimeMillis(), devices, links, annotations);
+    }
+
+    /**
+     * Creates a minimal topology graph description to allow core to construct
+     * and process the topology graph.
+     *
+     * @param nanos time in nanos of when the topology description was created
+     *
+     * @param millis time in millis of when the topology description was created
+     *
+     * @param devices collection of infrastructure devices
+     *
+     * @param links collection of infrastructure links
+     *
+     * @param annotations optional key/value annotations map
+     *
+     */
+    public DefaultGraphDescription(long nanos, long millis,
+            Iterable<Device> devices,
+            Iterable<Link> links,
+            SparseAnnotations... annotations) {
         super(annotations);
         this.nanos = nanos;
+        this.creationTime = millis;
         this.vertexes = buildVertexes(devices);
         this.edges = buildEdges(links);
         vertexesById.clear();
@@ -66,6 +96,11 @@ public class DefaultGraphDescription extends AbstractDescription
     @Override
     public long timestamp() {
         return nanos;
+    }
+
+    @Override
+    public long creationTime() {
+        return creationTime;
     }
 
     @Override
@@ -79,7 +114,8 @@ public class DefaultGraphDescription extends AbstractDescription
     }
 
     // Builds a set of topology vertexes from the specified list of devices
-    private ImmutableSet<TopologyVertex> buildVertexes(Iterable<Device> devices) {
+    private ImmutableSet<TopologyVertex>
+            buildVertexes(Iterable<Device> devices) {
         ImmutableSet.Builder<TopologyVertex> vertexes = ImmutableSet.builder();
         for (Device device : devices) {
             TopologyVertex vertex = new DefaultTopologyVertex(device.id());
@@ -95,7 +131,8 @@ public class DefaultGraphDescription extends AbstractDescription
         for (Link link : links) {
             try {
                 edges.add(new DefaultTopologyEdge(vertexOf(link.src()),
-                                                  vertexOf(link.dst()), link));
+                                                  vertexOf(link.dst()),
+                                                  link));
             } catch (IllegalArgumentException e) {
                 log.debug("Ignoring {}, missing vertex", link);
             }

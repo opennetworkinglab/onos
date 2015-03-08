@@ -15,8 +15,9 @@
  */
 package org.onosproject.net.topology;
 
-import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.Description;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Describes attribute(s) of a network graph.
@@ -30,6 +31,14 @@ public interface GraphDescription extends Description {
      * @return graph description creation timestamp
      */
     long timestamp();
+
+    /**
+     * Returns the creation timestamp of the graph description. This is
+     * expressed in system millis to allow proper date and time formatting.
+     *
+     * @return graph description creation timestamp in millis
+     */
+    long creationTime();
 
     /**
      * Returns the set of topology graph vertexes.
@@ -46,4 +55,3 @@ public interface GraphDescription extends Description {
     ImmutableSet<TopologyEdge> edges();
 
 }
-

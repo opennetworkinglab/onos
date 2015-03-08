@@ -61,6 +61,11 @@ public class TopologyResourceTest extends ResourceTest {
         }
 
         @Override
+        public long creationTime() {
+            return 22222L;
+        }
+
+        @Override
         public long computeCost() {
             return 0;
         }

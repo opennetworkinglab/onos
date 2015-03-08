@@ -15,7 +15,21 @@
  */
 package org.onosproject.net.topology.impl;
 
-import com.google.common.collect.ImmutableList;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.Timer;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,28 +56,16 @@ import org.onosproject.net.topology.TopologyProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.List;
-import java.util.Timer;
-import java.util.concurrent.ExecutorService;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableList;
 
 /**
- * Default implementation of a network topology provider that feeds off
- * device and link subsystem events to trigger assembly and computation of
- * new topology snapshots.
+ * Default implementation of a network topology provider that feeds off device
+ * and link subsystem events to trigger assembly and computation of new topology
+ * snapshots.
  */
 @Component(immediate = true)
 @Service
-public class DefaultTopologyProvider extends AbstractProvider
-        implements TopologyProvider {
+public class DefaultTopologyProvider extends AbstractProvider implements TopologyProvider {
 
     private static final int MAX_THREADS = 8;
     private static final int DEFAULT_MAX_EVENTS = 1000;
@@ -71,7 +73,8 @@ public class DefaultTopologyProvider extends AbstractProvider
     private static final int DEFAULT_MAX_BATCH_MS = 50;
 
     // FIXME: Replace with a system-wide timer instance;
-    // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
+    // TODO: Convert to use HashedWheelTimer or produce a variant of that; then
+    // decide which we want to adopt
     private static final Timer TIMER = new Timer("onos-topo-event-batching");
 
     @Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
@@ -100,8 +103,8 @@ public class DefaultTopologyProvider extends AbstractProvider
     private volatile boolean isStarted = false;
 
     private TopologyProviderService providerService;
-    private DeviceListener deviceListener = new InternalDeviceListener();
-    private LinkListener linkListener = new InternalLinkListener();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+    private final LinkListener linkListener = new InternalLinkListener();
 
     private Accumulator<Event> accumulator;
     private ExecutorService executor;
@@ -115,7 +118,8 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     @Activate
     public synchronized void activate(ComponentContext context) {
-        executor = newFixedThreadPool(MAX_THREADS, groupedThreads("onos/topo", "build-%d"));
+        executor = newFixedThreadPool(MAX_THREADS,
+                groupedThreads("onos/topo", "build-%d"));
         accumulator = new TopologyChangeAccumulator();
         logConfig("Configured");
 
@@ -171,20 +175,22 @@ public class DefaultTopologyProvider extends AbstractProvider
             newMaxIdleMs = DEFAULT_MAX_IDLE_MS;
         }
 
-        if (newMaxEvents != maxEvents || newMaxBatchMs != maxBatchMs || newMaxIdleMs != maxIdleMs) {
+        if ((newMaxEvents != maxEvents) || (newMaxBatchMs != maxBatchMs)
+                || (newMaxIdleMs != maxIdleMs)) {
             maxEvents = newMaxEvents;
             maxBatchMs = newMaxBatchMs;
             maxIdleMs = newMaxIdleMs;
-            accumulator = maxEvents > 1 ? new TopologyChangeAccumulator() : null;
+            accumulator = maxEvents > 1 ? new TopologyChangeAccumulator()
+            : null;
             logConfig("Reconfigured");
         }
     }
 
     private void logConfig(String prefix) {
-        log.info("{} with maxEvents = {}; maxBatchMs = {}; maxIdleMs = {}; accumulator={}",
-                 prefix, maxEvents, maxBatchMs, maxIdleMs, accumulator != null);
+        log.info(
+                "{} with maxEvents = {}; maxBatchMs = {}; maxIdleMs = {}; accumulator={}",
+                prefix, maxEvents, maxBatchMs, maxIdleMs, accumulator != null);
     }
-
 
     @Override
     public void triggerRecompute() {
@@ -195,7 +201,8 @@ public class DefaultTopologyProvider extends AbstractProvider
      * Triggers assembly of topology data citing the specified events as the
      * reason.
      *
-     * @param reasons events which triggered the topology change
+     * @param reasons
+     *            events which triggered the topology change
      */
     private synchronized void triggerTopologyBuild(List<Event> reasons) {
         if (executor != null) {
@@ -209,8 +216,9 @@ public class DefaultTopologyProvider extends AbstractProvider
         if (isStarted) {
             GraphDescription desc =
                     new DefaultGraphDescription(System.nanoTime(),
-                                                deviceService.getAvailableDevices(),
-                                                linkService.getActiveLinks());
+                            System.currentTimeMillis(),
+                            deviceService.getAvailableDevices(),
+                            linkService.getActiveLinks());
             providerService.topologyChanged(desc, reasons);
         }
     }
@@ -228,8 +236,8 @@ public class DefaultTopologyProvider extends AbstractProvider
         @Override
         public void event(DeviceEvent event) {
             DeviceEvent.Type type = event.type();
-            if (type == DEVICE_ADDED || type == DEVICE_REMOVED ||
-                    type == DEVICE_AVAILABILITY_CHANGED) {
+            if ((type == DEVICE_ADDED) || (type == DEVICE_REMOVED) ||
+                    (type == DEVICE_AVAILABILITY_CHANGED)) {
                 processEvent(event);
             }
         }
@@ -268,7 +276,8 @@ public class DefaultTopologyProvider extends AbstractProvider
             try {
                 buildTopology(reasons);
             } catch (Exception e) {
-                log.warn("Unable to compute topology due to: {}", e.getMessage());
+                log.warn("Unable to compute topology due to: {}",
+                        e.getMessage());
                 log.debug("Unable to compute topology", e);
             }
         }
