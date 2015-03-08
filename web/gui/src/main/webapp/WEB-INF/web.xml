@@ -50,6 +50,7 @@
     -->
 
     <!--
+    -->
     <servlet>
         <servlet-name>Index Page</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
@@ -125,7 +126,6 @@
         <servlet-name>View Module</servlet-name>
         <url-pattern>/app/view/*</url-pattern>
     </servlet-mapping>
-    -->
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>

@@ -45,7 +45,7 @@ public class MainNavResource extends AbstractInjectionResource {
 
 
     private static final String NAV_FORMAT =
-            "    <li> <a ng-click=\"navCtrl.hideNav()\" href=\"#/%s\">%s</a></li>";
+            "<a ng-click=\"navCtrl.hideNav()\" href=\"#/%s\">%s</a>\n";
 
     @GET
     @Produces(MediaType.TEXT_HTML)

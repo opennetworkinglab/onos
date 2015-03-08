@@ -41,7 +41,7 @@ public class AbstractInjectionResource extends BaseResource {
      */
     protected int split(String string, int start, String stopPattern) {
         int i = stopPattern != null ? string.indexOf(stopPattern, start) : string.length();
-        checkArgument(i > 0, "Unable to locate stop pattern %s", stopPattern);
+        checkArgument(i >= 0, "Unable to locate pattern %s", stopPattern);
         return i + (stopPattern != null ? stopPattern.length() : 0);
     }
 
