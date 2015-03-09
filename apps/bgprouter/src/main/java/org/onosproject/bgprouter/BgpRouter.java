@@ -138,6 +138,8 @@ public class BgpRouter {
 
     private TunnellingConnectivityManager connectivityManager;
 
+    private IcmpHandler icmpHandler;
+
     private InternalTableHandler provisionStaticTables = new InternalTableHandler();
 
     @Activate
@@ -154,9 +156,13 @@ public class BgpRouter {
                                                                 packetService,
                                                                 flowService);
 
+        icmpHandler = new IcmpHandler(configService, packetService);
+
         routingService.start(new InternalFibListener());
 
         connectivityManager.start();
+
+        icmpHandler.start();
 
         log.info("BgpRouter started");
     }
@@ -165,6 +171,7 @@ public class BgpRouter {
     protected void deactivate() {
         routingService.stop();
         connectivityManager.stop();
+        icmpHandler.stop();
         provisionStaticTables.provision(false, configService.getInterfaces());
 
         groupService.removeListener(groupListener);
@@ -186,6 +193,7 @@ public class BgpRouter {
             deviceId = s.interfaceAddresses().get(0).connectPoint().deviceId();
             break;
         }
+
         log.info("Router dpid: {}", deviceId);
         log.info("Control Plane OVS dpid: {}", ctrlDeviceId);
     }
