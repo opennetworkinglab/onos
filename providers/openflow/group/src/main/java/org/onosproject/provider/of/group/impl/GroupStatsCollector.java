@@ -96,7 +96,7 @@ public class GroupStatsCollector implements TimerTask {
      * Starts the collector.
      */
     public void start() {
-        log.info("Staring Group Stats collection thread for {}", sw.getStringId());
+        log.info("Starting Group Stats collection thread for {}", sw.getStringId());
         timeout = timer.newTimeout(this, 1, TimeUnit.SECONDS);
     }
 

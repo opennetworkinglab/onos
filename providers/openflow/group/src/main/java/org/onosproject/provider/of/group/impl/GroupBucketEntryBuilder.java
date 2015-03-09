@@ -144,6 +144,12 @@ public class GroupBucketEntryBuilder {
                     OFActionSetVlanPcp pcp = (OFActionSetVlanPcp) act;
                     builder.setVlanPcp(pcp.getVlanPcp().getValue());
                     break;
+                case POP_VLAN:
+                    builder.popVlan();
+                    break;
+                case PUSH_VLAN:
+                    builder.pushVlan();
+                    break;
                 case SET_DL_DST:
                     OFActionSetDlDst dldst = (OFActionSetDlDst) act;
                     builder.setEthDst(
@@ -206,9 +212,7 @@ public class GroupBucketEntryBuilder {
                 case SET_TP_DST:
                 case SET_TP_SRC:
                 case POP_PBB:
-                case POP_VLAN:
                 case PUSH_PBB:
-                case PUSH_VLAN:
                 case SET_MPLS_LABEL:
                 case SET_MPLS_TC:
                 case SET_MPLS_TTL:
@@ -218,7 +222,6 @@ public class GroupBucketEntryBuilder {
                 case SET_QUEUE:
                 case STRIP_VLAN:
                 case ENQUEUE:
-
                 case GROUP:
                 default:
                     log.warn("Action type {} not yet implemented.", act.getType());
