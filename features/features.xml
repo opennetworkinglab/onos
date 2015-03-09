@@ -71,9 +71,10 @@
              description="ONOS 3rd party dependencies">
         <feature>war</feature>
         <feature>onos-thirdparty-base</feature>
-        <bundle>mvn:com.sun.jersey/jersey-core/1.18.1</bundle>
-        <bundle>mvn:com.sun.jersey/jersey-server/1.18.1</bundle>
-        <bundle>mvn:com.sun.jersey/jersey-servlet/1.18.1</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-core/1.19</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-server/1.19</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-servlet/1.19</bundle>
+        <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
     </feature>
 
     <feature name="onos-api" version="@FEATURE-VERSION"

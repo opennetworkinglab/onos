@@ -15,6 +15,11 @@
  */
 package org.onosproject.rest;
 
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -26,11 +31,19 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * REST resource for interacting with the inventory of intents.
@@ -38,6 +51,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Path("intents")
 public class IntentsWebResource extends AbstractWebResource {
+    private static final Logger log = getLogger(IntentsWebResource.class);
+    private static final int WITHDRAW_EVENT_TIMEOUT_SECONDS = 5;
+
     public static final String INTENT_NOT_FOUND = "Intent is not found";
 
     /**
@@ -84,4 +100,79 @@ public class IntentsWebResource extends AbstractWebResource {
         }
         return ok(root).build();
     }
+
+    class DeleteListener implements IntentListener {
+        final Key key;
+        final CountDownLatch latch;
+
+        DeleteListener(Key key, CountDownLatch latch) {
+            this.key = key;
+            this.latch = latch;
+        }
+
+        @Override
+        public void event(IntentEvent event) {
+            if (Objects.equals(event.subject().key(), key) &&
+                (event.type() == IntentEvent.Type.WITHDRAWN ||
+                        event.type() == IntentEvent.Type.FAILED)) {
+                latch.countDown();
+            }
+        }
+    }
+
+    /**
+     * Uninstalls a single intent by Id.
+     *
+     * @param appId the Application ID
+     * @param keyString the Intent key value to look up
+     */
+    @DELETE
+    @Path("{appId}/{key}")
+    public void deleteIntentById(@PathParam("appId") Short appId,
+                                  @PathParam("key") String keyString) {
+        final ApplicationId app = get(CoreService.class).getAppId(appId);
+
+        Intent intent = get(IntentService.class).getIntent(Key.of(keyString, app));
+        IntentService service = get(IntentService.class);
+
+        if (intent == null) {
+            intent = service
+                    .getIntent(Key.of(Long.parseLong(keyString), app));
+        }
+        if (intent == null) {
+            // No such intent.  REST standards recommend a positive status code
+            // in this case.
+            return;
+        }
+
+
+        Key key = intent.key();
+
+        // set up latch and listener to track uninstall progress
+        CountDownLatch latch = new CountDownLatch(1);
+
+        IntentListener listener = new DeleteListener(key, latch);
+        service.addListener(listener);
+
+        try {
+            // request the withdraw
+            service.withdraw(intent);
+
+            try {
+                latch.await(WITHDRAW_EVENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.info("REST Delete operation timed out waiting for intent {}", key);
+            }
+            // double check the state
+            IntentState state = service.getIntentState(key);
+            if (state == WITHDRAWN || state == FAILED) {
+                service.purge(intent);
+            }
+
+        } finally {
+            // clean up the listener
+            service.removeListener(listener);
+        }
+    }
+
 }
