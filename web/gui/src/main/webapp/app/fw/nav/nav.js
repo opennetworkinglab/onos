@@ -44,6 +44,13 @@
         navShown = !navShown;
         updatePane();
     }
+    function hideIfShown() {
+        if (navShown) {
+            hideNav();
+            return true;
+        }
+        return false;
+    }
 
     angular.module('onosNav', [])
         .controller('NavCtrl', [
@@ -61,7 +68,8 @@
             return {
                 showNav: showNav,
                 hideNav: hideNav,
-                toggleNav: toggleNav
+                toggleNav: toggleNav,
+                hideIfShown: hideIfShown
             };
         }]);
 

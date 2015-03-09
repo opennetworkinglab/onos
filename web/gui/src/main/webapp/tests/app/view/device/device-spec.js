@@ -38,7 +38,8 @@ describe('Controller: OvDeviceCtrl', function () {
     };
 
     // instantiate the Device module
-    beforeEach(module('ovDevice', 'onosRemote', 'onosLayer', 'onosSvg', 'ngRoute'));
+    beforeEach(module('ovDevice', 'onosRemote', 'onosLayer', 'onosSvg',
+                      'onosNav', 'ngRoute'));
 
     beforeEach(inject(function(_$log_, $rootScope, _$controller_, $httpBackend) {
         $log = _$log_;

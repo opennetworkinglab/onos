@@ -22,7 +22,7 @@ describe('factory: fw/util/keys.js', function() {
         d3Elem, elem, last;
   
 
-    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer', 'onosNav'));
 
     beforeEach(inject(function (_$log_, KeyService, FnService, QuickHelpService) {
         $log = _$log_;
