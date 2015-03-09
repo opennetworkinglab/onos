@@ -84,7 +84,7 @@ public class GroupBucketEntryBuilder {
     /**
      * Builds a GroupBuckets.
      *
-     * @return GroupBuckets object, a list of GroupBuck
+     * @return GroupBuckets object, a list of GroupBuckets
      */
     public GroupBuckets build() {
         List<GroupBucket> bucketList = Lists.newArrayList();

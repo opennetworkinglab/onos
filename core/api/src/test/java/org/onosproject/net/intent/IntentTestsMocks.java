@@ -15,21 +15,8 @@
  */
 package org.onosproject.net.intent;
 
-import static org.onosproject.net.NetTestTools.createPath;
-import static org.onosproject.net.NetTestTools.did;
-import static org.onosproject.net.NetTestTools.link;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
@@ -67,8 +54,20 @@ import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.onosproject.net.NetTestTools.createPath;
+import static org.onosproject.net.NetTestTools.did;
+import static org.onosproject.net.NetTestTools.link;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -105,6 +104,11 @@ public class IntentTestsMocks {
 
         @Override
         public List<Instruction> immediate() {
+            return null;
+        }
+
+        @Override
+        public List<Instruction> allInstructions() {
             return null;
         }
 

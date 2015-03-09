@@ -18,6 +18,7 @@ package org.onosproject.net.flow;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.ListUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -81,6 +82,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     @Override
     public List<Instruction> immediate() {
         return immediate;
+    }
+
+    @Override
+    public List<Instruction> allInstructions() {
+        return ListUtils.union(immediate, deferred);
     }
 
     @Override

@@ -54,6 +54,14 @@ public interface TrafficTreatment {
     List<Instruction> immediate();
 
     /**
+     * Returns the list of all instructions in the treatment, both immediate and
+     * deferred.
+     *
+     * @return list of treatment instructions
+     */
+    List<Instruction> allInstructions();
+
+    /**
      * Returns the next table in the pipeline.
      * @return a table transition; may be null.
      */

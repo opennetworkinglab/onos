@@ -16,7 +16,6 @@
 package org.onosproject.store.statistic.impl;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.collections.ListUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,7 +44,6 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -290,15 +288,7 @@ public class DistributedStatisticStore implements StatisticStore {
     private ConnectPoint buildConnectPoint(FlowRule rule) {
         PortNumber port = getOutput(rule);
 
-        boolean hasGoto = rule.treatment().instructions()
-                .stream()
-                .anyMatch(i -> (i instanceof Instructions.GroupInstruction)
-                        || (i instanceof Instructions.TableTypeTransition));
-
         if (port == null) {
-            if (!hasGoto) {
-                log.debug("Rule {} has no output.", rule);
-            }
             return null;
         }
         ConnectPoint cp = new ConnectPoint(rule.deviceId(), port);
@@ -306,9 +296,7 @@ public class DistributedStatisticStore implements StatisticStore {
     }
 
     private PortNumber getOutput(FlowRule rule) {
-        List<Instruction> all = ListUtils.union(rule.treatment().immediate(),
-                                                rule.treatment().deferred());
-        for (Instruction i : all) {
+        for (Instruction i : rule.treatment().allInstructions()) {
             if (i.type() == Instruction.Type.OUTPUT) {
                 Instructions.OutputInstruction out = (Instructions.OutputInstruction) i;
                 return out.port();

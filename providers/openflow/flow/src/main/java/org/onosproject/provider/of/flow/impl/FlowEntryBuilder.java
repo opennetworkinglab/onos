@@ -172,8 +172,9 @@ public class FlowEntryBuilder {
     private List<OFInstruction> getInstructions(OFFlowMod entry) {
         switch (entry.getVersion()) {
             case OF_10:
-                return Lists.newArrayList(
-                        OFFactoryVer13.INSTANCE.instructions().applyActions(entry.getActions()));
+                return Lists.newArrayList(OFFactoryVer13.INSTANCE.instructions()
+                                                  .applyActions(
+                                                          entry.getActions()));
             case OF_11:
             case OF_12:
             case OF_13:
@@ -316,6 +317,9 @@ public class FlowEntryBuilder {
                 case POP_VLAN:
                     builder.popVlan();
                     break;
+                case PUSH_VLAN:
+                    builder.pushVlan();
+                    break;
                 case STRIP_VLAN:
                     builder.stripVlan();
                     break;
@@ -323,7 +327,6 @@ public class FlowEntryBuilder {
                 case SET_TP_SRC:
                 case POP_PBB:
                 case PUSH_PBB:
-                case PUSH_VLAN:
                 case SET_MPLS_LABEL:
                 case SET_MPLS_TC:
                 case SET_MPLS_TTL:

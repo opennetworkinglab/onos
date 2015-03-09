@@ -15,14 +15,14 @@
  */
 package org.onosproject.net.flow;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Objects;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
+
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 public class DefaultFlowRule implements FlowRule {
 
@@ -233,7 +233,7 @@ public class DefaultFlowRule implements FlowRule {
                 .add("deviceId", deviceId)
                 .add("priority", priority)
                 .add("selector", selector.criteria())
-                .add("treatment", treatment == null ? "N/A" : treatment.instructions())
+                .add("treatment", treatment == null ? "N/A" : treatment.allInstructions())
                 .add("table type", type)
                 .add("created", created)
                 .toString();
