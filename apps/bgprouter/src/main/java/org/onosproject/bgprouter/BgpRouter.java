@@ -211,18 +211,7 @@ public class BgpRouter {
     }
 
     private void installFlow(FibEntry entry, Group group) {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(entry.prefix())
-                .build();
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .group(group.id())
-                .build();
-
-        FlowRule flowRule = new DefaultFlowRule(deviceId, selector, treatment,
-                                                PRIORITY, appId, 0, true,
-                                                FlowRule.Type.IP);
+        FlowRule flowRule = generateRibFlowRule(entry.prefix(), group);
 
         flowService.applyFlowRules(flowRule);
     }
@@ -231,19 +220,31 @@ public class BgpRouter {
         for (FibUpdate update : withdraws) {
             FibEntry entry = update.entry();
 
-            deleteNextHop(entry.prefix());
+            Group group = deleteNextHop(entry.prefix());
+            if (group == null) {
+                log.warn("Group not found when deleting {}", entry);
+                return;
+            }
 
-            TrafficSelector selector = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(update.entry().prefix())
-                    .build();
-
-            FlowRule flowRule = new DefaultFlowRule(deviceId, selector, null,
-                                                    PRIORITY, appId, 0, true,
-                                                    FlowRule.Type.IP);
+            FlowRule flowRule = generateRibFlowRule(entry.prefix(), group);
 
             flowService.removeFlowRules(flowRule);
         }
+    }
+
+    private FlowRule generateRibFlowRule(IpPrefix prefix, Group group) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(prefix)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .group(group.id())
+                .build();
+
+        return new DefaultFlowRule(deviceId, selector, treatment,
+                                   PRIORITY, appId, 0, true,
+                                   FlowRule.Type.IP);
     }
 
     private synchronized void addNextHop(FibEntry entry) {
@@ -288,13 +289,15 @@ public class BgpRouter {
         nextHopsCount.add(entry.nextHopIp());
     }
 
-    private synchronized void deleteNextHop(IpPrefix prefix) {
+    private synchronized Group deleteNextHop(IpPrefix prefix) {
         IpAddress nextHopIp = prefixToNextHop.remove(prefix);
         NextHop nextHop = nextHops.get(nextHopIp);
         if (nextHop == null) {
             log.warn("No next hop found when removing prefix {}", prefix);
-            return;
+            return null;
         }
+
+        Group group = groupService.getGroup(deviceId, nextHop.group());
 
         if (nextHopsCount.remove(nextHopIp, 1) <= 1) {
             // There was one or less next hops, so there are now none
@@ -305,6 +308,8 @@ public class BgpRouter {
 
             groupService.removeGroup(deviceId, nextHop.group(), appId);
         }
+
+        return group;
     }
 
     private class InternalFibListener implements FibListener {

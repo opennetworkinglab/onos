@@ -180,6 +180,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 .setMatch(match)
                 .setFlags(Collections.singleton(OFFlowModFlags.SEND_FLOW_REM))
                 .setPriority(flowRule().priority())
+                .setTableId(TableId.of(flowRule().type().ordinal()))
                 .build();
 
         return fm;
