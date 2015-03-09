@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.event.Event;
 import org.onosproject.event.impl.TestEventDispatcher;
 import org.onosproject.net.Device;
@@ -67,6 +68,7 @@ public class DefaultTopologyProviderTest {
         provider.deviceService = deviceService;
         provider.linkService = linkService;
         provider.providerRegistry = topologyService;
+        provider.cfgService = new ComponentConfigAdapter();
         provider.activate(null);
     }
 
@@ -76,6 +78,7 @@ public class DefaultTopologyProviderTest {
         provider.providerRegistry = null;
         provider.deviceService = null;
         provider.linkService = null;
+        provider.cfgService = null;
     }
 
     private void validateSubmission() {

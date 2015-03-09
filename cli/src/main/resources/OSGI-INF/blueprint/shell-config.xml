@@ -33,31 +33,14 @@
             </completers>
         </command>
 
-        <!--
         <command>
-            <action class="org.onosproject.cli.app.ApplicationActivateCommand"/>
+            <action class="org.onosproject.cli.cfg.ComponentConfigCommand"/>
             <completers>
-                <ref component-id="appNameCompleter"/>
+                <ref component-id="cfgCommandCompleter"/>
+                <ref component-id="componentNameCompleter"/>
                 <null/>
             </completers>
         </command>
-
-        <command>
-            <action class="org.onosproject.cli.app.ApplicationDeactivateCommand"/>
-            <completers>
-                <ref component-id="appNameCompleter"/>
-                <null/>
-            </completers>
-        </command>
-
-        <command>
-            <action class="org.onosproject.cli.app.ApplicationUninstallCommand"/>
-            <completers>
-                <ref component-id="appNameCompleter"/>
-                <null/>
-            </completers>
-        </command>
-        -->
 
         <command>
             <action class="org.onosproject.cli.MetricsListCommand"/>
@@ -309,6 +292,8 @@
     <bean id="appCommandCompleter" class="org.onosproject.cli.app.ApplicationCommandCompleter"/>
     <bean id="appNameCompleter" class="org.onosproject.cli.app.ApplicationNameCompleter"/>
     <bean id="appIdNameCompleter" class="org.onosproject.cli.app.ApplicationIdNameCompleter"/>
+    <bean id="cfgCommandCompleter" class="org.onosproject.cli.cfg.ComponentConfigCommandCompleter"/>
+    <bean id="componentNameCompleter" class="org.onosproject.cli.cfg.ComponentNameCompleter"/>
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="clusterIdCompleter" class="org.onosproject.cli.net.ClusterIdCompleter"/>
