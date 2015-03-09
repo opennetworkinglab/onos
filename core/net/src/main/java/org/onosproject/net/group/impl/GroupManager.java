@@ -15,13 +15,7 @@
  */
 package org.onosproject.net.group.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -54,7 +48,12 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the group service APIs.
@@ -203,6 +202,11 @@ public class GroupManager
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId,
                                      ApplicationId appId) {
+        return store.getGroups(deviceId);
+    }
+
+    @Override
+    public Iterable<Group> getGroups(DeviceId deviceId) {
         return store.getGroups(deviceId);
     }
 

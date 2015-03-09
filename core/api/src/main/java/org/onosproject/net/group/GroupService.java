@@ -127,6 +127,14 @@ public interface GroupService {
     Iterable<Group> getGroups(DeviceId deviceId, ApplicationId appId);
 
     /**
+     * Returns all groups associated with the given device.
+     *
+     * @param deviceId device ID to get groups for
+     * @return iterable of device's groups
+     */
+    Iterable<Group> getGroups(DeviceId deviceId);
+
+    /**
      * Adds the specified group listener.
      *
      * @param listener group listener

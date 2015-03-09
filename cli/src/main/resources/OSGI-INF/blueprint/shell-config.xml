@@ -276,6 +276,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.GroupsListCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.FlowsListCommand"/>
             <completers>
                 <ref component-id="flowRuleStatusCompleter"/>
