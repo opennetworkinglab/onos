@@ -36,10 +36,10 @@ import static org.onosproject.net.PortNumber.portNumber;
 
 
 @Command(scope = "onos", name = "add-single-to-multi-intent",
-        description = "Installs connectivity intent between multiple egress devices and a single ingress device")
+        description = "Installs connectivity intent between a single ingress device and multiple egress devices")
 public class AddSinglePointToMultiPointIntentCommand extends ConnectivityIntentCommand {
-    @Argument(index = 0, name = "egressDevices ingressDevice",
-            description = "egressDevice/Port...egressDevice/Port ingressDevice/port",
+    @Argument(index = 0, name = "ingressDevice egressDevices",
+            description = "ingressDevice/Port egressDevice/Port...egressDevice/Port",
             required = true, multiValued = true)
     String[] deviceStrings = null;
 
@@ -51,14 +51,14 @@ public class AddSinglePointToMultiPointIntentCommand extends ConnectivityIntentC
             return;
         }
 
-        String ingressDeviceString = deviceStrings[deviceStrings.length - 1];
+        String ingressDeviceString = deviceStrings[0];
         DeviceId ingressDeviceId = deviceId(getDeviceId(ingressDeviceString));
         PortNumber ingressPortNumber = portNumber(getPortNumber(ingressDeviceString));
         ConnectPoint ingressPoint = new ConnectPoint(ingressDeviceId,
                                                      ingressPortNumber);
 
         Set<ConnectPoint> egressPoints = new HashSet<>();
-        for (int index = 0; index < deviceStrings.length - 1; index++) {
+        for (int index = 1; index < deviceStrings.length; index++) {
             String egressDeviceString = deviceStrings[index];
             DeviceId egressDeviceId = deviceId(getDeviceId(egressDeviceString));
             PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));

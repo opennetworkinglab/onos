@@ -180,6 +180,7 @@
             </completers>
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
+                <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
             </optional-completers>
         </command>
         <command>
