@@ -22,6 +22,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.UiMessageHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +118,7 @@ public class UiWebSocket
         lastActive = System.currentTimeMillis();
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
-            String type = message.path("type").asText("unknown");
+            String type = message.path("event").asText("unknown");
             UiMessageHandler handler = handlers.get(type);
             if (handler != null) {
                 handler.process(message);
@@ -146,10 +147,15 @@ public class UiWebSocket
     private void createHandlers() {
         handlers = new HashMap<>();
         UiExtensionService service = directory.get(UiExtensionService.class);
-        service.getExtensions().forEach(ext -> ext.messageHandlerFactory().newHandlers().forEach(handler -> {
-            handler.init(this, directory);
-            handler.messageTypes().forEach(type -> handlers.put(type, handler));
-        }));
+        service.getExtensions().forEach(ext -> {
+            UiMessageHandlerFactory factory = ext.messageHandlerFactory();
+            if (factory != null) {
+                factory.newHandlers().forEach(handler -> {
+                    handler.init(this, directory);
+                    handler.messageTypes().forEach(type -> handlers.put(type, handler));
+                });
+            }
+        });
     }
 
     // Destroys message handlers.

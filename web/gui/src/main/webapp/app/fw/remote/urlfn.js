@@ -22,7 +22,7 @@
 
     var uiContext = '/onos/ui/',
         rsSuffix = uiContext + 'rs/',
-        wsSuffix = uiContext + 'ws/';
+        wsSuffix = uiContext + 'websock/';
 
     angular.module('onosRemote')
         .factory('UrlFnService', ['$location', function ($loc) {

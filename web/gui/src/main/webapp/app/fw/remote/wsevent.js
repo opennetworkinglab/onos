@@ -15,6 +15,7 @@
  */
 
 /*
+ DEPRECATED: to be deleted
  ONOS GUI -- Remote -- Web Socket Event Service
  */
 (function () {

@@ -31,6 +31,7 @@ import java.util.TimerTask;
 /**
  * Web socket servlet capable of creating various sockets for the user interface.
  */
+@Deprecated
 public class GuiWebSocketServlet extends WebSocketServlet {
 
     private static final long PING_DELAY_MS = 5000;

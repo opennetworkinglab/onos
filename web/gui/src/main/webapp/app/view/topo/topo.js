@@ -263,7 +263,7 @@
             // Cleanup on destroyed scope..
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
-                tes.closeSock();
+                tes.stop();
                 tps.destroyPanels();
                 tis.destroyInst();
                 tfs.destroyForce();
@@ -291,7 +291,7 @@
             tfs.initForce(svg, forceG, uplink, dim);
             tis.initInst({ showMastership: tfs.showMastership });
             tps.initPanels({ sendEvent: tes.sendEvent });
-            tes.openSock();
+            tes.start();
 
             $log.log('OvTopoCtrl has been created');
         }]);

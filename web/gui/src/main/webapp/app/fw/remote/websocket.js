@@ -20,62 +20,105 @@
 (function () {
     'use strict';
 
-    var fs;
+    // injected refs
+    var fs, $log;
 
-    function fnOpen(f) {
-        // wrap the onOpen function; we will handle any housekeeping here...
-        if (!fs.isF(f)) {
-            return null;
-        }
+    // internal state
+    var ws, sws, sid = 0,
+        handlers = {};
 
-        return function (openEvent) {
-            // NOTE: nothing worth passing to the caller?
-            f();
-        };
+    function resetSid() {
+        sid = 0;
     }
 
-    function fnMessage(f) {
-        // wrap the onMessage function; we will attempt to decode the
-        // message event payload as JSON and pass that in...
-        if (!fs.isF(f)) {
-            return null;
-        }
+    // Binds the specified message handlers.
+    function bindHandlers(handlerMap) {
+        var m = d3.map(handlerMap),
+            dups = [];
 
-        return function (msgEvent) {
-            var ev;
-            try {
-                ev = JSON.parse(msgEvent.data);
-            } catch (e) {
-                ev = {
-                    error: 'Failed to parse JSON',
-                    e: e
-                };
+        m.forEach(function (key, value) {
+            var fn = fs.isF(value[key]);
+            if (!fn) {
+                $log.warn(key + ' binding not a function on ' + value);
+                return;
             }
-            f(ev);
-        };
+
+            if (handlers[key]) {
+                dups.push(key);
+            } else {
+                handlers[key] = fn;
+            }
+        });
+        if (dups.length) {
+            $log.warn('duplicate bindings ignored:', dups);
+        }
     }
 
-    function fnClose(f) {
-        // wrap the onClose function; we will handle any parameters to the
-        // close event here...
-        if (!fs.isF(f)) {
-            return null;
-        }
+    // Unbinds the specified message handlers.
+    function unbindHandlers(handlerMap) {
+        var m = d3.map(handlerMap);
+        m.forEach(function (key) {
+            delete handlers[key];
+        });
+    }
 
-        return function (closeEvent) {
-            // NOTE: only seen {reason == ""} so far, nevertheless...
-            f(closeEvent.reason);
-        };
+    // Formulates an event message and sends it via the shared web-socket.
+    function sendEvent(evType, payload) {
+        var p = payload || {};
+        if (sws) {
+            $log.debug(' *Tx* >> ', evType, payload);
+            sws.send({
+                event: evType,
+                sid: ++sid,
+                payload: p
+            });
+        } else {
+            $log.warn('sendEvent: no websocket open:', evType, payload);
+        }
+    }
+
+
+    // Handles the specified message using handler bindings.
+    function handleMessage(msgEvent) {
+        var ev;
+        try {
+            ev = JSON.parse(msgEvent.data);
+            $log.debug(' *Rx* >> ', ev.event, ev.payload);
+            dispatchToHandler(ev);
+        } catch (e) {
+            $log.error('message is not valid JSON', msgEvent);
+        }
+    }
+
+    // Dispatches the message to the appropriate handler.
+    function dispatchToHandler(event) {
+        var handler = handlers[event.event];
+        if (handler) {
+            handler(event.payload);
+        } else {
+            $log.warn('unhandled event:', event);
+        }
+    }
+
+    function handleOpen() {
+        $log.info('web socket open');
+        // FIXME: implement calling external hooks
+    }
+
+    function handleClose() {
+        $log.info('web socket closed');
+        // FIXME: implement reconnect logic
     }
 
     angular.module('onosRemote')
     .factory('WebSocketService',
             ['$log', '$location', 'UrlFnService', 'FnService',
 
-        function ($log, $loc, ufs, _fs_) {
+        function (_$log_, $loc, ufs, _fs_) {
             fs = _fs_;
+            $log = _$log_;
 
-            // creates a web socket for the given path, returning a "handle".
+            // Creates a web socket for the given path, returning a "handle".
             // opts contains the event handler callbacks, etc.
             function createWebSocket(path, opts) {
                 var o = opts || {},
@@ -85,8 +128,7 @@
                         meta: { path: fullUrl, ws: null },
                         send: send,
                         close: close
-                    },
-                    ws;
+                    };
 
                 try {
                     ws = new WebSocket(fullUrl);
@@ -97,23 +139,21 @@
                 $log.debug('Attempting to open websocket to: ' + fullUrl);
 
                 if (ws) {
-                    ws.onopen = fnOpen(o.onOpen);
-                    ws.onmessage = fnMessage(o.onMessage);
-                    ws.onclose = fnClose(o.onClose);
+                    ws.onopen = handleOpen;
+                    ws.onmessage = handleMessage;
+                    ws.onclose = handleClose;
                 }
 
-                // messages are expected to be event objects..
+                // Sends a formulated event message via the backing web-socket.
                 function send(ev) {
-                    if (ev) {
-                        if (ws) {
-                            ws.send(JSON.stringify(ev));
-                        } else {
-                            $log.warn('ws.send() no web socket open!',
-                                fullUrl, ev);
-                        }
+                    if (ev && ws) {
+                        ws.send(JSON.stringify(ev));
+                    } else if (!ws) {
+                        $log.warn('ws.send() no web socket open!', fullUrl, ev);
                     }
                 }
 
+                // Closes the backing web-socket.
                 function close() {
                     if (ws) {
                         ws.close();
@@ -122,11 +162,16 @@
                     }
                 }
 
+                sws = api; // Make the shared web-socket accessible
                 return api;
             }
 
             return {
-                createWebSocket: createWebSocket
+                resetSid: resetSid,
+                createWebSocket: createWebSocket,
+                bindHandlers: bindHandlers,
+                unbindHandlers: unbindHandlers,
+                sendEvent: sendEvent
             };
     }]);
 

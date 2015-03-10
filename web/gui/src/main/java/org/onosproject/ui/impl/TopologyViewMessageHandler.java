@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.eclipse.jetty.websocket.WebSocket;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.AbstractAccumulator;
 import org.onlab.util.Accumulator;
@@ -54,8 +54,8 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
+import org.onosproject.ui.UiConnection;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -77,16 +77,7 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 /**
  * Web socket capable of interacting with the GUI topology view.
  */
-@Deprecated
-public class TopologyViewWebSocket
-        extends TopologyViewMessages
-        implements WebSocket.OnTextMessage, WebSocket.OnControl {
-
-    private static final long MAX_AGE_MS = 15000;
-
-    private static final byte PING = 0x9;
-    private static final byte PONG = 0xA;
-    private static final byte[] PING_DATA = new byte[]{(byte) 0xde, (byte) 0xad};
+public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private static final String APP_ID = "org.onosproject.gui";
 
@@ -108,10 +99,7 @@ public class TopologyViewWebSocket
     private static final int MAX_BATCH_MS = 5000;
     private static final int MAX_IDLE_MS = 1000;
 
-    private final ApplicationId appId;
-
-    private Connection connection;
-    private FrameConnection control;
+    private ApplicationId appId;
 
     private final ClusterEventListener clusterListener = new InternalClusterListener();
     private final MastershipListener mastershipListener = new InternalMastershipListener();
@@ -129,7 +117,6 @@ public class TopologyViewWebSocket
     private TimerTask summaryTask;
     private ObjectNode summaryEvent;
 
-    private long lastActive = System.currentTimeMillis();
     private boolean listenersRemoved = false;
 
     private TopologyViewIntentFilter intentFilter;
@@ -142,84 +129,43 @@ public class TopologyViewWebSocket
 
     /**
      * Creates a new web-socket for serving data to GUI topology view.
-     *
-     * @param directory service directory
      */
-    public TopologyViewWebSocket(ServiceDirectory directory) {
-        super(directory);
+    public TopologyViewMessageHandler() {
+        super(ImmutableSet.of("topoStart", "topoStop",
+                              "requestDetails",
+                              "updateMeta",
+                              "addHostIntent",
+                              "addMultiSourceIntent",
+                              "requestRelatedIntents",
+                              "requestNextRelatedIntent",
+                              "requestPrevRelatedIntent",
+                              "requestSelectedIntentTraffic",
+                              "requestAllTraffic",
+                              "requestDeviceLinkFlows",
+                              "cancelTraffic",
+                              "requestSummary",
+                              "cancelSummary",
+                              "equalizeMasters"
+        ));
+    }
+
+    @Override
+    public void init(UiConnection connection, ServiceDirectory directory) {
+        super.init(connection, directory);
         intentFilter = new TopologyViewIntentFilter(intentService, deviceService,
                                                     hostService, linkService);
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
     }
 
-    /**
-     * Issues a close on the connection.
-     */
-    synchronized void close() {
-        removeListeners();
-        if (connection.isOpen()) {
-            connection.close();
-        }
-    }
-
-    /**
-     * Indicates if this connection is idle.
-     *
-     * @return true if idle or closed
-     */
-    synchronized boolean isIdle() {
-        boolean idle = (System.currentTimeMillis() - lastActive) > MAX_AGE_MS;
-        if (idle || (connection != null && !connection.isOpen())) {
-            return true;
-        } else if (connection != null) {
-            try {
-                control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
-            } catch (IOException e) {
-                log.warn("Unable to send ping message due to: ", e);
-            }
-        }
-        return false;
-    }
-
     @Override
-    public void onOpen(Connection connection) {
-        log.info("GUI client connected");
-        this.connection = connection;
-        this.control = (FrameConnection) connection;
-        addListeners();
-
-        sendAllInstances(null);
-        sendAllDevices();
-        sendAllLinks();
-        sendAllHosts();
-    }
-
-    @Override
-    public synchronized void onClose(int closeCode, String message) {
-        removeListeners();
-        timer.cancel();
-        log.info("GUI client disconnected");
-    }
-
-    @Override
-    public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
-        lastActive = System.currentTimeMillis();
-        return true;
-    }
-
-    @Override
-    public void onMessage(String data) {
-        lastActive = System.currentTimeMillis();
-        try {
-            processMessage((ObjectNode) mapper.reader().readTree(data));
-        } catch (Exception e) {
-            log.warn("Unable to parse GUI request {} due to {}", data, e);
-            log.debug("Boom!!!", e);
-        }
+    public void destroy() {
+        cancelAllRequests();
+        super.destroy();
     }
 
     // Processes the specified event.
-    private void processMessage(ObjectNode event) {
+    @Override
+    public void process(ObjectNode event) {
         String type = string(event, "event", "unknown");
         if (type.equals("requestDetails")) {
             requestDetails(event);
@@ -264,19 +210,35 @@ public class TopologyViewWebSocket
 
         } else if (type.equals("equalizeMasters")) {
             equalizeMasters(event);
+
+        } else if (type.equals("topoStart")) {
+            sendAllInitialData();
+        } else if (type.equals("topoStop")) {
+            cancelAllRequests();
         }
     }
 
     // Sends the specified data to the client.
     protected synchronized void sendMessage(ObjectNode data) {
-        try {
-            if (connection.isOpen()) {
-                connection.sendMessage(data.toString());
-            }
-        } catch (IOException e) {
-            log.warn("Unable to send message {} to GUI due to {}", data, e);
-            log.debug("Boom!!!", e);
+        UiConnection connection = connection();
+        if (connection != null) {
+            connection.sendMessage(data);
         }
+    }
+
+    private void sendAllInitialData() {
+        addListeners();
+        sendAllInstances(null);
+        sendAllDevices();
+        sendAllLinks();
+        sendAllHosts();
+
+    }
+
+    private void cancelAllRequests() {
+        stopSummaryMonitoring();
+        stopTrafficMonitoring();
+        removeListeners();
     }
 
     // Sends all controller nodes to the client as node-added messages.
@@ -701,7 +663,7 @@ public class TopologyViewWebSocket
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle traffic request due to {}", e.getMessage());
-                log.debug("Boom!", e);
+                log.warn("Boom!", e);
             }
         }
     }
@@ -716,7 +678,7 @@ public class TopologyViewWebSocket
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
-                log.debug("Boom!", e);
+                log.warn("Boom!", e);
             }
         }
     }

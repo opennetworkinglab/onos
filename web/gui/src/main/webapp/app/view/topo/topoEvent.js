@@ -27,15 +27,15 @@
     'use strict';
 
     // injected refs
-    var $log, wss, wes, vs, tps, tis, tfs, tss, tts;
+    var $log, vs, wss, tps, tis, tfs, tss, tts;
 
     // internal state
-    var wsock, evApis;
+    var handlers;
 
     // ==========================
 
-    function bindApis() {
-        evApis = {
+    function createHandlers() {
+        handlers = {
             showSummary: tps,
 
             showDetails: tss,
@@ -58,103 +58,43 @@
         };
     }
 
-    var nilApi = {},
-        dispatcher = {
-            handleEvent: function (ev) {
-                var eid = ev.event,
-                    api = evApis[eid] || nilApi,
-                    eh = api[eid];
-
-                if (eh) {
-                    $log.debug(' << *Rx* ', eid, ev.payload);
-                    eh(ev.payload);
-                } else {
-                    $log.warn('Unknown event (ignored):', ev);
-                }
-            },
-
-            sendEvent: function (evType, payload) {
-                if (wsock) {
-                    $log.debug(' *Tx* >> ', evType, payload);
-                    wes.sendEvent(wsock, evType, payload);
-                } else {
-                    $log.warn('sendEvent: no websocket open:', evType, payload);
-                }
-            }
-        };
-
-    // ===  Web Socket functions ===
-
-    function onWsOpen() {
-        $log.debug('web socket opened...');
-        // start by requesting periodic summary data...
-        dispatcher.sendEvent('requestSummary');
-        vs.hide();
-    }
-
-    function onWsMessage(ev) {
-        dispatcher.handleEvent(ev);
-    }
-
-    function onWsClose(reason) {
-        $log.log('web socket closed; reason=', reason);
-        wsock = null;
-        vs.lostServer('OvTopoCtrl', [
-            'Oops!',
-            'Web-socket connection to server closed...',
-            'Try refreshing the page.'
-        ]);
-    }
-
-    // ==========================
+    var nilApi = {};
 
     angular.module('ovTopo')
     .factory('TopoEventService',
-        ['$log', '$location', 'WebSocketService', 'WsEventService', 'VeilService',
+        ['$log', '$location', 'VeilService', 'WebSocketService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
             'TopoSelectService', 'TopoTrafficService',
 
-        function (_$log_, $loc, _wss_, _wes_, _vs_,
-                  _tps_, _tis_, _tfs_, _tss_, _tts_) {
+        function (_$log_, $loc, _vs_, _wss_, _tps_, _tis_, _tfs_, _tss_, _tts_) {
             $log = _$log_;
-            wss = _wss_;
-            wes = _wes_;
             vs = _vs_;
+            wss = _wss_;
             tps = _tps_;
             tis = _tis_;
             tfs = _tfs_;
             tss = _tss_;
             tts = _tts_;
 
-            bindApis();
+            createHandlers();
 
-            // TODO: handle "guiSuccessor" functionality (replace host)
-            // TODO: implement retry on close functionality
-
-            function openSock() {
-                wsock = wss.createWebSocket('topology', {
-                    onOpen: onWsOpen,
-                    onMessage: onWsMessage,
-                    onClose: onWsClose,
-                    wsport: $loc.search().wsport
-                });
-                $log.debug('web socket opened:', wsock);
+            // FIXME: need to handle async socket open to avoid race
+            function start() {
+                wss.bindHandlers(handlers);
+                wss.sendEvent('topoStart');
+                $log.debug('topo comms started');
             }
 
-            function closeSock() {
-                var path;
-                if (wsock) {
-                    path = wsock.meta.path;
-                    wsock.close();
-                    wsock = null;
-                    $log.debug('web socket closed. path:', path);
-                }
+            function stop() {
+                wss.unbindHandlers();
+                wss.sendEvent('topoStop');
+                $log.debug('topo comms stopped');
             }
 
             return {
-                openSock: openSock,
-                closeSock: closeSock,
-                sendEvent: dispatcher.sendEvent
+                start: start,
+                stop: stop,
+                sendEvent: wss.sendEvent
             };
         }]);
 }());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014,2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ import org.onosproject.net.statistic.Load;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.ui.UiConnection;
+import org.onosproject.ui.UiMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,10 +100,9 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 /**
  * Facility for creating messages bound for the topology viewer.
  */
-@Deprecated
-public abstract class TopologyViewMessages {
+public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
-    protected static final Logger log = LoggerFactory.getLogger(TopologyViewMessages.class);
+    protected static final Logger log = LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
 
     private static final ProviderId PID = new ProviderId("core", "org.onosproject.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
@@ -115,22 +116,31 @@ public abstract class TopologyViewMessages {
     private static final String KB_UNIT = "KB";
     private static final String B_UNIT = "B";
 
-    protected final ServiceDirectory directory;
-    protected final ClusterService clusterService;
-    protected final DeviceService deviceService;
-    protected final LinkService linkService;
-    protected final HostService hostService;
-    protected final MastershipService mastershipService;
-    protected final IntentService intentService;
-    protected final FlowRuleService flowService;
-    protected final StatisticService statService;
-    protected final TopologyService topologyService;
+    protected ServiceDirectory directory;
+    protected ClusterService clusterService;
+    protected DeviceService deviceService;
+    protected LinkService linkService;
+    protected HostService hostService;
+    protected MastershipService mastershipService;
+    protected IntentService intentService;
+    protected FlowRuleService flowService;
+    protected StatisticService statService;
+    protected TopologyService topologyService;
 
     protected final ObjectMapper mapper = new ObjectMapper();
-    private final String version;
+    private String version;
 
     // TODO: extract into an external & durable state; good enough for now and demo
     private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
+
+    /**
+     * Creates a new message handler for the specified set of message types.
+     *
+     * @param messageTypes set of message types
+     */
+    protected TopologyViewMessageHandlerBase(Set<String> messageTypes) {
+        super(messageTypes);
+    }
 
     /**
      * Returns read-only view of the meta-ui information.
@@ -141,12 +151,9 @@ public abstract class TopologyViewMessages {
         return Collections.unmodifiableMap(metaUi);
     }
 
-    /**
-     * Creates a messaging facility for creating messages for topology viewer.
-     *
-     * @param directory service directory
-     */
-    protected TopologyViewMessages(ServiceDirectory directory) {
+    @Override
+    public void init(UiConnection connection, ServiceDirectory directory) {
+        super.init(connection, directory);
         this.directory = checkNotNull(directory, "Directory cannot be null");
         clusterService = directory.get(ClusterService.class);
         deviceService = directory.get(DeviceService.class);

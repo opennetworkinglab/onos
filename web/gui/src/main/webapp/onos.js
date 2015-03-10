@@ -64,10 +64,10 @@
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'PanelService',
-            'FlashService', 'QuickHelpService',
+            'FlashService', 'QuickHelpService', 'WebSocketService',
 
             function ($log, $route, $routeParams, $location,
-                      ks, ts, gs, ps, flash, qhs) {
+                      ks, ts, gs, ps, flash, qhs, wss) {
                 var self = this;
 
                 self.$route = $route;
@@ -83,6 +83,13 @@
                 ps.init();
                 flash.initFlash();
                 qhs.initQuickHelp();
+
+                // TODO: register handlers for initial messages: instances, settings, etc.
+
+                // TODO: opts?
+                wss.createWebSocket('core', {
+                    wsport: $location.search().wsport
+                });
 
                 $log.log('OnosCtrl has been created');
 
