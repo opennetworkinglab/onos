@@ -78,6 +78,38 @@ public class IpAddressTest {
     }
 
     /**
+     * Tests whether the IP version of an address is IPv4.
+     */
+    @Test
+    public void testIsIp4() {
+        IpAddress ipAddress;
+
+        // IPv4
+        ipAddress = IpAddress.valueOf("0.0.0.0");
+        assertTrue(ipAddress.isIp4());
+
+        // IPv6
+        ipAddress = IpAddress.valueOf("::");
+        assertFalse(ipAddress.isIp4());
+    }
+
+    /**
+     * Tests whether the IP version of an address is IPv6.
+     */
+    @Test
+    public void testIsIp6() {
+        IpAddress ipAddress;
+
+        // IPv4
+        ipAddress = IpAddress.valueOf("0.0.0.0");
+        assertFalse(ipAddress.isIp6());
+
+        // IPv6
+        ipAddress = IpAddress.valueOf("::");
+        assertTrue(ipAddress.isIp6());
+    }
+
+    /**
      * Tests getting the Ip4Address and Ip6Address view of the IP address.
      */
     @Test

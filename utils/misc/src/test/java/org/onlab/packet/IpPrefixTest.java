@@ -65,6 +65,38 @@ public class IpPrefixTest {
     }
 
     /**
+     * Tests whether the IP version of a prefix is IPv4.
+     */
+    @Test
+    public void testIsIp4() {
+        IpPrefix ipPrefix;
+
+        // IPv4
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertTrue(ipPrefix.isIp4());
+
+        // IPv6
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertFalse(ipPrefix.isIp4());
+    }
+
+    /**
+     * Tests whether the IP version of a prefix is IPv6.
+     */
+    @Test
+    public void testIsIp6() {
+        IpPrefix ipPrefix;
+
+        // IPv4
+        ipPrefix = IpPrefix.valueOf("0.0.0.0/0");
+        assertFalse(ipPrefix.isIp6());
+
+        // IPv6
+        ipPrefix = IpPrefix.valueOf("::/0");
+        assertTrue(ipPrefix.isIp6());
+    }
+
+    /**
      * Tests returning the IP address value and IP address prefix length of
      * an IPv4 prefix.
      */

@@ -80,6 +80,24 @@ public class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
+     * Tests whether the IP version of this address is IPv4.
+     *
+     * @return true if the IP version of this address is IPv4, otherwise false.
+     */
+    public boolean isIp4() {
+        return (version() == Ip4Address.VERSION);
+    }
+
+    /**
+     * Tests whether the IP version of this address is IPv6.
+     *
+     * @return true if the IP version of this address is IPv6, otherwise false.
+     */
+    public boolean isIp6() {
+        return (version() == Ip6Address.VERSION);
+    }
+
+    /**
      * Gets the {@link Ip4Address} view of the IP address.
      *
      * @return the {@link Ip4Address} view of the IP address if it is IPv4,

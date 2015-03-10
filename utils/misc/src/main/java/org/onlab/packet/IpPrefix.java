@@ -57,6 +57,24 @@ public class IpPrefix {
     }
 
     /**
+     * Tests whether the IP version of this prefix is IPv4.
+     *
+     * @return true if the IP version of this prefix is IPv4, otherwise false.
+     */
+    public boolean isIp4() {
+        return address.isIp4();
+    }
+
+    /**
+     * Tests whether the IP version of this prefix is IPv6.
+     *
+     * @return true if the IP version of this prefix is IPv6, otherwise false.
+     */
+    public boolean isIp6() {
+        return address.isIp6();
+    }
+
+    /**
      * Returns the IP address value of the prefix.
      *
      * @return the IP address value of the prefix
