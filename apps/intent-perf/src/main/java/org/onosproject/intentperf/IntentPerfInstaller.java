@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
+import org.onlab.packet.MacAddress;
 import org.onlab.util.Counter;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -200,7 +201,8 @@ public class IntentPerfInstaller {
             }
 
             //FIXME we currently ignore the path length and always use the same device
-            TrafficSelector selector = DefaultTrafficSelector.builder().build();
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthDst(MacAddress.valueOf(count)).build();
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
             ConnectPoint ingress = new ConnectPoint(ingressDevice.id(), PortNumber.portNumber(1));
             ConnectPoint egress = new ConnectPoint(ingressDevice.id(), PortNumber.portNumber(2));

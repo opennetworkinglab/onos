@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -53,7 +53,6 @@ import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
@@ -625,15 +624,8 @@ public class DistributedFlowRuleStore
                 .register(MastershipBasedTimestamp.class);
 
         private final ClockService<FlowId, StoredFlowEntry> clockService =
-            new ClockService<FlowId, StoredFlowEntry>() {
-                @Override
-                public Timestamp getTimestamp(FlowId flowId, StoredFlowEntry flowEntry) {
-                    if (flowEntry == null) {
-                        return null;
-                    }
-                    return deviceClockService.getTimestamp(flowEntry.deviceId());
-                }
-            };
+                (flowId, flowEntry) ->
+                        (flowEntry == null) ? null : deviceClockService.getTimestamp(flowEntry.deviceId());
 
         private final EventuallyConsistentMap<FlowId, StoredFlowEntry> backupMap =
                 new EventuallyConsistentMapImpl<>("flow-backup",
@@ -653,8 +645,8 @@ public class DistributedFlowRuleStore
             if (nodes.isEmpty()) {
                 return ImmutableList.of();
             } else {
-                Collections.shuffle(nodes);
-                return ImmutableList.of(nodes.get(0));
+                // get a random peer
+                return ImmutableList.of(nodes.get(RandomUtils.nextInt(nodes.size())));
             }
         }
 
