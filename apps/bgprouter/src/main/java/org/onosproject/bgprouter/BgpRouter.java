@@ -85,7 +85,8 @@ public class BgpRouter {
 
     private static final String BGP_ROUTER_APP = "org.onosproject.bgprouter";
 
-    private static final int PRIORITY = 1;
+    private static final int PRIORITY_OFFSET = 100;
+    private static final int PRIORITY_MULTIPLIER = 5;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -269,8 +270,11 @@ public class BgpRouter {
                 .group(group.id())
                 .build();
 
+
+        int priority = prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
+
         return new DefaultFlowRule(deviceId, selector, treatment,
-                                   PRIORITY, appId, 0, true,
+                                   priority, appId, 0, true,
                                    FlowRule.Type.IP);
     }
 
