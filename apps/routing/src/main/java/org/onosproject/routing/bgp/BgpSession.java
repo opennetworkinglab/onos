@@ -175,7 +175,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @return the BGP routing entry if found, otherwise null
      */
     public BgpRouteEntry findBgpRoute(IpPrefix prefix) {
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             // IPv4 prefix
             Ip4Prefix ip4Prefix = prefix.getIp4Prefix();
             return bgpRibIn4.get(ip4Prefix);
@@ -192,7 +192,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @param bgpRouteEntry the BGP route entry to use
      */
     void addBgpRoute(BgpRouteEntry bgpRouteEntry) {
-        if (bgpRouteEntry.version() == Ip4Address.VERSION) {
+        if (bgpRouteEntry.isIp4()) {
             // IPv4 route
             Ip4Prefix ip4Prefix = bgpRouteEntry.prefix().getIp4Prefix();
             bgpRibIn4.put(ip4Prefix, bgpRouteEntry);
@@ -230,7 +230,7 @@ public class BgpSession extends SimpleChannelHandler {
      * @return true if the route was found and removed, otherwise false
      */
     boolean removeBgpRoute(IpPrefix prefix) {
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             return (bgpRibIn4.remove(prefix.getIp4Prefix()) != null);   // IPv4
         }
         return (bgpRibIn6.remove(prefix.getIp6Prefix()) != null);       // IPv6

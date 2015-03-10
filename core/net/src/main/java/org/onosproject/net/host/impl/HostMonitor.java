@@ -21,7 +21,6 @@ import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -205,7 +204,7 @@ public class HostMonitor implements TimerTask {
                                  VlanId vlan) {
         Ethernet probePacket = null;
 
-        if (targetIp.version() == Ip4Address.VERSION) {
+        if (targetIp.isIp4()) {
             // IPv4: Use ARP
             probePacket = buildArpRequest(targetIp, sourceIp, sourceMac,
                                           vlan);

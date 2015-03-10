@@ -51,6 +51,24 @@ public class RouteEntry {
     }
 
     /**
+     * Tests whether the IP version of this address is IPv4.
+     *
+     * @return true if the IP version of this address is IPv4, otherwise false.
+     */
+    public boolean isIp4() {
+        return nextHop.isIp4();
+    }
+
+    /**
+     * Tests whether the IP version of this address is IPv6.
+     *
+     * @return true if the IP version of this address is IPv6, otherwise false.
+     */
+    public boolean isIp6() {
+        return nextHop.isIp6();
+    }
+
+    /**
      * Returns the IP prefix of the route.
      *
      * @return the IP prefix of the route

@@ -572,7 +572,7 @@ public class IntentSyncTest extends AbstractIntentTest {
 
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        if (ipPrefix.version() == Ip4Address.VERSION) {
+        if (ipPrefix.isIp4()) {
             selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);   // IPv4
             selectorBuilder.matchIPDst(ipPrefix);
         } else {

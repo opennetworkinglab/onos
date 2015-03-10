@@ -29,7 +29,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -241,7 +240,7 @@ public class Router implements RoutingService {
      */
     RouteEntry findRibRoute(IpPrefix prefix) {
         String binaryString = RouteEntry.createBinaryString(prefix);
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             // IPv4
             return ribTable4.getValueForExactKey(binaryString);
         }
@@ -255,7 +254,7 @@ public class Router implements RoutingService {
      * @param routeEntry the route entry to use
      */
     void addRibRoute(RouteEntry routeEntry) {
-        if (routeEntry.prefix().version() == Ip4Address.VERSION) {
+        if (routeEntry.isIp4()) {
             // IPv4
             ribTable4.put(RouteEntry.createBinaryString(routeEntry.prefix()),
                           routeEntry);
@@ -274,7 +273,7 @@ public class Router implements RoutingService {
      * @return true if the route was found and removed, otherwise false
      */
     boolean removeRibRoute(IpPrefix prefix) {
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             // IPv4
             return ribTable4.remove(RouteEntry.createBinaryString(prefix));
         }

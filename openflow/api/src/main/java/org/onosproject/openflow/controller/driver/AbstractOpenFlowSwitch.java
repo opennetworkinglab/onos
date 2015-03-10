@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
@@ -132,7 +131,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         if (address instanceof InetSocketAddress) {
             final InetSocketAddress inetAddress = (InetSocketAddress) address;
             final IpAddress ipAddress = IpAddress.valueOf(inetAddress.getAddress());
-            if (ipAddress.version() == Ip4Address.VERSION) {
+            if (ipAddress.isIp4()) {
                 channelId = ipAddress.toString() + ':' + inetAddress.getPort();
             } else {
                 channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();

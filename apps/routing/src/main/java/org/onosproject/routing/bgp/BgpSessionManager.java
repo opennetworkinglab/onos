@@ -170,7 +170,7 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
      * @return the BGP route if found, otherwise null
      */
     BgpRouteEntry findBgpRoute(IpPrefix prefix) {
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             return bgpRoutes4.get(prefix.getIp4Prefix());               // IPv4
         }
         return bgpRoutes6.get(prefix.getIp6Prefix());                   // IPv6
@@ -182,7 +182,7 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
      * @param bgpRouteEntry the BGP route entry to use
      */
     void addBgpRoute(BgpRouteEntry bgpRouteEntry) {
-        if (bgpRouteEntry.version() == Ip4Address.VERSION) {
+        if (bgpRouteEntry.isIp4()) {
             bgpRoutes4.put(bgpRouteEntry.prefix().getIp4Prefix(),       // IPv4
                            bgpRouteEntry);
         } else {
@@ -198,7 +198,7 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
      * @return true if the route was found and removed, otherwise false
      */
     boolean removeBgpRoute(IpPrefix prefix) {
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             return (bgpRoutes4.remove(prefix.getIp4Prefix()) != null);  // IPv4
         }
         return (bgpRoutes6.remove(prefix.getIp6Prefix()) != null);      // IPv6

@@ -99,7 +99,7 @@ public class IpPrefix {
      * otherwise null
      */
     public Ip4Prefix getIp4Prefix() {
-        if (version() != Ip4Prefix.VERSION) {
+        if (!isIp4()) {
             return null;
         }
 
@@ -117,7 +117,7 @@ public class IpPrefix {
      * otherwise null
      */
     public Ip6Prefix getIp6Prefix() {
-        if (version() != Ip6Prefix.VERSION) {
+        if (!isIp6()) {
             return null;
         }
 

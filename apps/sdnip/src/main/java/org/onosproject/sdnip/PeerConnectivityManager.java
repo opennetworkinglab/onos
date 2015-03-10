@@ -18,7 +18,6 @@ package org.onosproject.sdnip;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
@@ -175,7 +174,7 @@ public class PeerConnectivityManager {
         byte tcpProtocol;
         byte icmpProtocol;
 
-        if (bgpdAddress.version() == Ip4Address.VERSION) {
+        if (bgpdAddress.isIp4()) {
             tcpProtocol = IPv4.PROTOCOL_TCP;
             icmpProtocol = IPv4.PROTOCOL_ICMP;
         } else {
@@ -261,7 +260,7 @@ public class PeerConnectivityManager {
                                           Short dstTcpPort) {
         TrafficSelector.Builder builder = null;
 
-        if (dstIp.version() == Ip4Address.VERSION) {
+        if (dstIp.isIp4()) {
             builder = DefaultTrafficSelector.builder()
                     .matchEthType(Ethernet.TYPE_IPV4)
                     .matchIPProtocol(ipProto)

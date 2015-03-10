@@ -17,7 +17,6 @@ package org.onosproject.sdnip;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -315,7 +314,7 @@ public class IntentSynchronizer implements FibListener {
 
         // Match the destination IP prefix at the first hop
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        if (prefix.version() == Ip4Address.VERSION) {
+        if (prefix.isIp4()) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
             selector.matchIPDst(prefix);
         } else {

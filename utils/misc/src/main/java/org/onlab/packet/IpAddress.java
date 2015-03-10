@@ -104,7 +104,7 @@ public class IpAddress implements Comparable<IpAddress> {
      * otherwise null
      */
     public Ip4Address getIp4Address() {
-        if (version() != Ip4Address.VERSION) {
+        if (!isIp4()) {
             return null;
         }
 
@@ -122,7 +122,7 @@ public class IpAddress implements Comparable<IpAddress> {
      * otherwise null
      */
     public Ip6Address getIp6Address() {
-        if (version() != Ip6Address.VERSION) {
+        if (!isIp6()) {
             return null;
         }
 
