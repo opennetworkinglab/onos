@@ -157,8 +157,8 @@ public class IntentReactiveForwarding {
 
     // Install a rule forwarding the packet to the specified port.
     private void setUpConnectivity(PacketContext context, HostId srcId, HostId dstId) {
-        TrafficSelector selector = DefaultTrafficSelector.builder().build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         HostToHostIntent intent = new HostToHostIntent(appId, srcId, dstId,
                                                        selector, treatment);

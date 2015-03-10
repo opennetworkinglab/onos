@@ -15,22 +15,22 @@
  */
 package org.onosproject.net.flow;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip6Address;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.MplsLabel;
-import org.onlab.packet.VlanId;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Default traffic selector implementation.
@@ -38,6 +38,9 @@ import com.google.common.collect.ImmutableSet;
 public final class DefaultTrafficSelector implements TrafficSelector {
 
     private final Set<Criterion> criteria;
+
+    private static final TrafficSelector EMPTY
+            = new DefaultTrafficSelector(Collections.emptySet());
 
     /**
      * Creates a new traffic selector with the specified criteria.
@@ -95,6 +98,15 @@ public final class DefaultTrafficSelector implements TrafficSelector {
      */
     public static TrafficSelector.Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Returns an empty traffic selector.
+     *
+     * @return empty traffic selector
+     */
+    public static TrafficSelector emptySelector() {
+        return EMPTY;
     }
 
     /**

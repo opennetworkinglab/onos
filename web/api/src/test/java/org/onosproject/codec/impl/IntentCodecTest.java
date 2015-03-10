@@ -67,9 +67,9 @@ public class IntentCodecTest extends AbstractIntentTest {
     private final HostId id2 = hid("12:34:56:78:92:ab/1");
     private final ApplicationId appId = new DefaultApplicationId(3, "test");
     final TrafficSelector emptySelector =
-            DefaultTrafficSelector.builder().build();
+            DefaultTrafficSelector.emptySelector();
     final TrafficTreatment emptyTreatment =
-            DefaultTrafficTreatment.builder().build();
+            DefaultTrafficTreatment.emptyTreatment();
     private final CodecContext context = new MockCodecContext();
 
     /**

@@ -68,7 +68,7 @@ public class AddSinglePointToMultiPointIntentCommand extends ConnectivityIntentC
         }
 
         TrafficSelector selector = buildTrafficSelector();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
         List<Constraint> constraints = buildConstraints();
 
         SinglePointToMultiPointIntent intent =

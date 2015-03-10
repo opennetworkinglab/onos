@@ -205,8 +205,8 @@ public class DemoInstaller implements DemoAPI {
 
         @Override
         public void run() {
-            TrafficSelector selector = DefaultTrafficSelector.builder().build();
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+            TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+            TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
             List<Constraint> constraint = Lists.newArrayList();
             List<Host> hosts = Lists.newArrayList(hostService.getHosts());
             while (!hosts.isEmpty()) {
@@ -405,8 +405,8 @@ public class DemoInstaller implements DemoAPI {
             private final Host src;
             private final Host dst;
 
-            private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
-            private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+            private final TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+            private final TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
             private final List<Constraint> constraint = Lists.newArrayList();
             private final HostToHostIntent intent;
 

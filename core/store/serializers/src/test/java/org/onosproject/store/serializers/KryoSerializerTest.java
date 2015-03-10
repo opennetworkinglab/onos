@@ -205,8 +205,8 @@ public class KryoSerializerTest {
     @Test
     public void testFlowRuleBatchEntry() {
         final FlowRule rule1 =
-                new DefaultFlowRule(DID1, DefaultTrafficSelector.builder().build(),
-                        DefaultTrafficTreatment.builder().build(), 0, 0, 0, true);
+                new DefaultFlowRule(DID1, DefaultTrafficSelector.emptySelector(),
+                        DefaultTrafficTreatment.emptyTreatment(), 0, 0, 0, true);
         final FlowRuleBatchEntry entry1 =
                 new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule1);
         final FlowRuleBatchEntry entry2 =

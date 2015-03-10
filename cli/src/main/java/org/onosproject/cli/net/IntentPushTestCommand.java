@@ -129,7 +129,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     private List<Intent> generateIntents(ConnectPoint ingress, ConnectPoint egress) {
         TrafficSelector.Builder selectorBldr = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4);
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         List<Intent> intents = Lists.newArrayList();
         for (int i = 0; i < count; i++) {

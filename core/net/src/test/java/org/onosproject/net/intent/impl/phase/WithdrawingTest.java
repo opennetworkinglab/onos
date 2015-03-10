@@ -63,8 +63,8 @@ public class WithdrawingTest {
 
     private final ApplicationId appId = new TestApplicationId("test");
     private final ProviderId pid = new ProviderId("of", "test");
-    private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
-    private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+    private final TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+    private final TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
     private final ConnectPoint cp1 = new ConnectPoint(deviceId("1"), portNumber(1));
     private final ConnectPoint cp2 = new ConnectPoint(deviceId("1"), portNumber(2));
     private final ConnectPoint cp3 = new ConnectPoint(deviceId("2"), portNumber(1));

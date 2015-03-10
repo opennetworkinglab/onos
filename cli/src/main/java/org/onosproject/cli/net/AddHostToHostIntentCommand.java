@@ -50,8 +50,8 @@ public class AddHostToHostIntentCommand extends ConnectivityIntentCommand {
         HostId oneId = HostId.hostId(one);
         HostId twoId = HostId.hostId(two);
 
-        TrafficSelector selector = DefaultTrafficSelector.builder().build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
         List<Constraint> constraints = buildConstraints();
 
         HostToHostIntent intent = new HostToHostIntent(appId(), key(),

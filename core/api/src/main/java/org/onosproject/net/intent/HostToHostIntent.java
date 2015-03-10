@@ -50,8 +50,8 @@ public final class HostToHostIntent extends ConnectivityIntent {
      */
     public HostToHostIntent(ApplicationId appId, HostId one, HostId two) {
         this(appId, one, two,
-             DefaultTrafficSelector.builder().build(),
-             DefaultTrafficTreatment.builder().build(),
+             DefaultTrafficSelector.emptySelector(),
+             DefaultTrafficTreatment.emptyTreatment(),
              ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)));
     }
 

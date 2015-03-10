@@ -203,7 +203,7 @@ public class IntentPerfInstaller {
             //FIXME we currently ignore the path length and always use the same device
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthDst(MacAddress.valueOf(count)).build();
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+            TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
             ConnectPoint ingress = new ConnectPoint(ingressDevice.id(), PortNumber.portNumber(1));
             ConnectPoint egress = new ConnectPoint(ingressDevice.id(), PortNumber.portNumber(2));
 

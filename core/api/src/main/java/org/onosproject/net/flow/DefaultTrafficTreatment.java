@@ -27,6 +27,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,6 +41,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     private final Instructions.TableTypeTransition table;
 
     private final boolean hasClear;
+
+    private static final DefaultTrafficTreatment EMPTY
+            = new DefaultTrafficTreatment(Collections.emptyList());
 
     /**
      * Creates a new traffic treatment from the specified list of instructions.
@@ -96,6 +100,15 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
      */
     public static TrafficTreatment.Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Returns an empty traffic treatment.
+     *
+     * @return empty traffic treatment
+     */
+    public static TrafficTreatment emptyTreatment() {
+        return EMPTY;
     }
 
     /**

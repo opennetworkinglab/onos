@@ -108,7 +108,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
             new ConnectPoint(deviceId2, PortNumber.portNumber(1));
 
     private final TrafficTreatment noTreatment =
-            DefaultTrafficTreatment.builder().build();
+            DefaultTrafficTreatment.emptyTreatment();
 
     @Before
     public void setUp() throws Exception {

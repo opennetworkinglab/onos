@@ -67,8 +67,8 @@ public class RandomIntentCommand extends AbstractShellCommand {
     }
 
     private Collection<Intent> generateIntents() {
-        TrafficSelector selector = DefaultTrafficSelector.builder().build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         List<Host> hosts = Lists.newArrayList(hostService.getHosts());
         List<Intent> fullMesh = Lists.newArrayList();

@@ -51,8 +51,8 @@ public final class TwoWayP2PIntent extends ConnectivityIntent {
      */
     public TwoWayP2PIntent(ApplicationId appId, ConnectPoint one, ConnectPoint two) {
         this(appId, one, two,
-             DefaultTrafficSelector.builder().build(),
-             DefaultTrafficTreatment.builder().build(),
+             DefaultTrafficSelector.emptySelector(),
+             DefaultTrafficTreatment.emptyTreatment(),
              ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)));
     }
 

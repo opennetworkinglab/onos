@@ -166,8 +166,7 @@ public class PeerConnectivityManager {
             return intents;
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         TrafficSelector selector;
 

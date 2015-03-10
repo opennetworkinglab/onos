@@ -273,12 +273,14 @@ public interface TrafficTreatment {
 
         /**
          * Builds an immutable traffic treatment descriptor.
+         * <p>
+         * If the treatment is empty when build() is called, it will add a default
+         * drop rule automatically. For a treatment that is actually empty, use
+         * {@link org.onosproject.net.flow.DefaultTrafficTreatment#emptyTreatment}.
+         * </p>
          *
          * @return traffic treatment
          */
         TrafficTreatment build();
-
-
     }
-
 }
