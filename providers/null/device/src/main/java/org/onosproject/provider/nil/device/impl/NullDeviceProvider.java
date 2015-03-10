@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.Device;
@@ -73,6 +74,9 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private DeviceProviderService providerService;
 
     private ExecutorService deviceBuilder =
@@ -88,11 +92,11 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
     private final Map<Integer, DeviceDescription> descriptions = Maps.newHashMap();
 
     @Property(name = "devConfigs", value = "", label = "Instance-specific configurations")
-    private String devConfigs = "";
+    private String devConfigs = null;
 
     private int numDevices = DEF_NUMDEVICES;
 
-    @Property(name = "numPorts", value = "10", label = "Number of ports per devices")
+    @Property(name = "numPorts", intValue = 10, label = "Number of ports per devices")
     private int numPorts = DEF_NUMPORTS;
 
     private DeviceCreator creator;
@@ -108,6 +112,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         if (!modified(context)) {
             deviceBuilder.submit(new DeviceCreator(true));
@@ -118,6 +123,7 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
 
     @Deactivate
     public void deactivate(ComponentContext context) {
+        cfgService.unregisterProperties(getClass(), false);
         deviceBuilder.submit(new DeviceCreator(false));
         try {
             deviceBuilder.awaitTermination(1000, TimeUnit.MILLISECONDS);

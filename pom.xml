@@ -47,6 +47,7 @@
     <description>Open Network Operating System root project</description>
 
     <modules>
+        <module>tools/package/maven-plugin</module>
         <module>utils</module>
         <module>core</module>
         <module>web</module>
@@ -539,38 +540,19 @@
                     </configuration>
                 </plugin>
 
-                <!-- TODO: add findbugs plugin for static code analysis; for explicit invocation only -->
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-                <!--
                 <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.jacoco</groupId>
-                                        <artifactId>
-                                            jacoco-maven-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [0.7.1.201405082137,)
-                                        </versionRange>
-                                        <goals>
-                                            <goal>prepare-agent</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore></ignore>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
+                    <groupId>org.onosproject</groupId>
+                    <artifactId>onos-maven-plugin</artifactId>
+                    <version>${project.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-resources</phase>
+                            <goals>
+                                <goal>cfg</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
-                -->
             </plugins>
         </pluginManagement>
 

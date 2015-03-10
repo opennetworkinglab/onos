@@ -1,4 +1,0 @@
-# Temporary: to be auto-generated in near future
-maxEvents|INTEGER|1000|Maximum number of events to accumulate
-maxIdleMs|INTEGER|10|Maximum number of millis between events
-maxBatchMs|INTEGER|50|Maximum number of millis for whole batch
