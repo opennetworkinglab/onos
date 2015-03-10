@@ -3,9 +3,8 @@
 # Starts ONOS Apache Karaf container
 # -----------------------------------------------------------------------------
 
-#export JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-openjdk-amd64/}
-export JAVA_OPTS="${JAVA_OPTS:--Xms512m -Xmx2G}"
-# export JAVA_OPTS="${JAVA_OPTS:--Xms2G -Xmx8G}" # -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+PrintGCDetails -XX:+PrintGCTimeStamps}"
+# uncomment the following line for performance testing
+#export JAVA_OPTS="${JAVA_OPTS:--Xms8G -Xmx8G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+PrintGCDetails -XX:+PrintGCTimeStamps}"
 
 ONOS_HOME=/opt/onos
 
