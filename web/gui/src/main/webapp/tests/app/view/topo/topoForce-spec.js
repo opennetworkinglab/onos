@@ -20,7 +20,7 @@
 describe('factory: view/topo/topoForce.js', function() {
     var $log, fs, tfs;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
 
     beforeEach(inject(function (_$log_, FnService, TopoForceService) {
         $log = _$log_;

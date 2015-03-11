@@ -20,10 +20,10 @@
 describe('factory: fw/remote/websocket.js', function () {
     var $log, fs, wss;
 
-    beforeEach(module('onosRemote'));
+    beforeEach(module('onosRemote', 'onosLayer', 'ngRoute', 'onosNav', 'onosSvg'));
 
     beforeEach(module(function($provide) {
-        $provide.factory('$location', function (){
+        $provide.factory('$location', function () {
             return {
                 protocol: function () { return 'http'; },
                 host: function () { return 'foo'; },
@@ -45,107 +45,21 @@ describe('factory: fw/remote/websocket.js', function () {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(wss, [
-            'createWebSocket'
+            'resetSid', 'createWebSocket', 'bindHandlers', 'unbindHandlers',
+            'sendEvent'
         ])).toBeTruthy();
     });
 
     it('should use the appropriate URL', function () {
-        var ws = wss.createWebSocket('foo/path');
-        expect(ws.meta.path).toEqual('ws://foo:80/onos/ui/ws/foo/path');
+        var url = wss.createWebSocket();
+        expect(url).toEqual('ws://foo:80/onos/ui/websock/core');
     });
 
     it('should use the appropriate URL with modified port', function () {
-        var ws = wss.createWebSocket('foo/path', { wsport: 1243 });
-        expect(ws.meta.path).toEqual('ws://foo:1243/onos/ui/ws/foo/path');
+        var url = wss.createWebSocket({ wsport: 1243 });
+        expect(url).toEqual('ws://foo:1243/onos/ui/websock/core');
     });
 
-    var oCalled, mCalled, cCalled, json, reason;
+    // TODO: inject mock WSock service and write more tests ...
 
-    function oo() {
-        oCalled++;
-    }
-    function om(j) {
-        mCalled++;
-        json = j;
-    }
-    function oc(r) {
-        cCalled++;
-        reason = r;
-    }
-
-    function resetCounters() {
-        oCalled = mCalled = cCalled = 0;
-        json = reason = null;
-    }
-
-    function validateCallbacks(ws, op, msg, cl) {
-        // we have to cheat a little, by digging into the websocket structure
-        var onO = fs.isF(ws.meta.ws.onopen),
-            onM = fs.isF(ws.meta.ws.onmessage),
-            onC = fs.isF(ws.meta.ws.onclose);
-
-        expect(!!onO).toEqual(op);
-        expect(!!onM).toEqual(msg);
-        expect(!!onC).toEqual(cl);
-
-        onO && onO({});
-        onM && onM({ data: '{ "item": "ivalue" }'});
-        onC && onC({ reason: 'rvalue' });
-
-        expect(oCalled).toEqual(op ? 1 : 0);
-        expect(mCalled).toEqual(msg ? 1 : 0);
-        expect(cCalled).toEqual(cl ? 1 : 0);
-
-        expect(json).toEqual(msg ? { item: 'ivalue' } : null);
-        expect(reason).toEqual(cl ? 'rvalue' : null);
-    }
-
-    it('should install the appropriate callbacks', function () {
-        resetCounters();
-
-        var ws = wss.createWebSocket('foo', {
-            onOpen: oo,
-            onMessage: om,
-            onClose: oc
-        });
-
-        validateCallbacks(ws, true, true, true);
-    });
-
-    it('should install partial callbacks', function () {
-        resetCounters();
-
-        var ws = wss.createWebSocket('foo', {
-            onOpen: oo,
-            onMessage: om
-        });
-
-        validateCallbacks(ws, true, true, false);
-    });
-
-    it('should install no callbacks', function () {
-        resetCounters();
-
-        var ws = wss.createWebSocket('foo');
-
-        validateCallbacks(ws, false, false, false);
-    });
-
-    // can't really test send without faking out the WebSocket.
-/*
-    it('should stringify objects for sending', function () {
-        var ws = wss.createWebSocket('foo');
-        ws.send({ item: 'itemVal' });
-
-        // what to assert?
-    });
-*/
-
-    it('should remove websocket reference on close', function () {
-        var ws = wss.createWebSocket('foo');
-        expect(ws.meta.ws instanceof WebSocket).toBeTruthy();
-
-        ws.close();
-        expect(ws.meta.ws).toBeNull();
-    });
 });

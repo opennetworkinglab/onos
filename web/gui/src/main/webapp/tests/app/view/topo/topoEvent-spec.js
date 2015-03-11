@@ -34,7 +34,7 @@ describe('factory: view/topo/topoEvent.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tes, [
-            'openSock', 'closeSock', 'sendEvent'
+            'start', 'stop'
         ])).toBeTruthy();
     });
 

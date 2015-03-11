@@ -20,7 +20,7 @@
 describe('factory: view/topo/topoSelect.js', function() {
     var $log, fs, tss;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
 
     beforeEach(inject(function (_$log_, FnService, TopoSelectService) {
         $log = _$log_;

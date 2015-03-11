@@ -51,17 +51,22 @@
 
         try {
             ev = JSON.parse(msgEvent.data);
-            $log.debug(' *Rx* >> ', ev.event, ev.payload);
-
-            if (h = handlers[ev.event]) {
-                h(ev.payload);
-            } else {
-                $log.warn('Unhandled event:', ev);
-            }
-
         } catch (e) {
-            $log.error('Message.data is (probably) not valid JSON', msgEvent);
+            $log.error('Message.data is not valid JSON', msgEvent.data, e);
+            return;
         }
+        $log.debug(' *Rx* >> ', ev.event, ev.payload);
+
+        if (h = handlers[ev.event]) {
+            try {
+                h(ev.payload);
+            } catch (e) {
+                $log.error('Problem handling event:', ev, e);
+            }
+        } else {
+            $log.warn('Unhandled event:', ev);
+        }
+
     }
 
     function handleClose() {
@@ -111,6 +116,7 @@
             ws.onclose = handleClose;
         }
         // Note: Wsock logs an error if the new WebSocket call fails
+        return url;
     }
 
     // Binds the specified message handlers.

@@ -29,7 +29,7 @@ describe('factory: view/topo/topoFilter.js', function() {
             classed: function () {}
         };
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
 
     beforeEach(inject(function (_$log_, FnService, TopoFilterService) {
         $log = _$log_;
