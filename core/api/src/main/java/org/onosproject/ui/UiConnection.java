@@ -29,4 +29,13 @@ public interface UiConnection {
      */
     void sendMessage(ObjectNode message);
 
+    /**
+     * Composes a message into JSON and sends it to the user interface client.
+     *
+     * @param type    message type
+     * @param sid     message sequence number
+     * @param payload message payload
+     */
+    void sendMessage(String type, long sid, ObjectNode payload);
+
 }

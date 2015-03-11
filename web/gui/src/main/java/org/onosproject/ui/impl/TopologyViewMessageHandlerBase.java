@@ -305,7 +305,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
                 .put("online", clusterService.getState(node.id()) == ACTIVE)
-                .put("uiAttached", event.subject().equals(clusterService.getLocalNode()))
+                .put("uiAttached", node.equals(clusterService.getLocalNode()))
                 .put("switches", switchCount);
 
         ArrayNode labels = mapper.createArrayNode();

@@ -29,8 +29,14 @@
         sid = 0,                // event sequence identifier
         handlers = {},          // event handler bindings
         pendingEvents = [],     // events TX'd while socket not up
-        url;                    // web socket URL
+        url,                    // web socket URL
+        instances = [];
 
+    var builtinHandlers = {
+            onosInstances: function (data) {
+                instances = data.instances;
+            }
+    }
 
     // ==========================
     // === Web socket callbacks
@@ -185,6 +191,11 @@
             ufs = _ufs_;
             wsock = _wsock_;
             vs = _vs_;
+
+            // Bind instance handlers
+            bindHandlers({
+                onosInstances: builtinHandlers
+            });
 
             return {
                 resetSid: resetSid,

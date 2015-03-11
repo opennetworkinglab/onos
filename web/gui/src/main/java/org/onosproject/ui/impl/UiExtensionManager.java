@@ -61,7 +61,6 @@ public class UiExtensionManager implements UiExtensionService {
                                     new UiView("device", "Devices"));
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
-                        new BootstrapMessageHandler(),
                         new TopologyViewMessageHandler()
                 );
         return new UiExtension(coreViews, messageHandlerFactory, "core",

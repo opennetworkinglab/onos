@@ -16,9 +16,12 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
@@ -99,6 +102,7 @@ public class UiWebSocket
         this.connection = connection;
         this.control = (FrameConnection) connection;
         createHandlers();
+        sendInstanceData();
     }
 
     @Override
@@ -143,6 +147,18 @@ public class UiWebSocket
         }
     }
 
+    @Override
+    public void sendMessage(String type, long sid, ObjectNode payload) {
+        ObjectNode message = mapper.createObjectNode();
+        message.put("event", type);
+        if (sid > 0) {
+            message.put("sid", sid);
+        }
+        message.set("payload", payload);
+        sendMessage(message);
+
+    }
+
     // Creates new message handlers.
     private void createHandlers() {
         handlers = new HashMap<>();
@@ -163,5 +179,24 @@ public class UiWebSocket
         handlers.forEach((type, handler) -> handler.destroy());
         handlers.clear();
     }
+
+    // Sends cluster node/instance information to allow GUI to fail-over.
+    private void sendInstanceData() {
+        ClusterService service = directory.get(ClusterService.class);
+        ArrayNode instances = mapper.createArrayNode();
+
+        for (ControllerNode node : service.getNodes()) {
+            ObjectNode instance = mapper.createObjectNode()
+                    .put("id", node.id().toString())
+                    .put("ip", node.ip().toString())
+                    .put("uiAttached", node.equals(service.getLocalNode()));
+            instances.add(instance);
+        }
+
+        ObjectNode payload = mapper.createObjectNode();
+        payload.set("instances", instances);
+        sendMessage("onosInstances", 0, payload);
+    }
+
 }
 
