@@ -152,7 +152,7 @@ public class DistributedFlowRuleStore
     @Activate
     public void activate() {
 
-        flowTable = new InternalFlowTable();
+        flowTable = new InternalFlowTable(); // .withBackupsEnabled(false);
 
         idGenerator = coreService.getIdGenerator(FlowRuleService.FLOW_OP_TOPIC);
 
@@ -616,6 +616,18 @@ public class DistributedFlowRuleStore
 
     private class InternalFlowTable {
 
+        private boolean backupsEnabled = true;
+
+        /**
+         * Turns backups on or off.
+         * @param backupsEnabled whether backups should be enabled or not
+         * @return this instance
+         */
+        public InternalFlowTable withBackupsEnabled(boolean backupsEnabled) {
+            this.backupsEnabled = backupsEnabled;
+            return this;
+        }
+
         private final Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>>
                 flowEntries = Maps.newConcurrentMap();
 
@@ -627,13 +639,14 @@ public class DistributedFlowRuleStore
                 (flowId, flowEntry) ->
                         (flowEntry == null) ? null : deviceClockService.getTimestamp(flowEntry.deviceId());
 
-        private final EventuallyConsistentMap<FlowId, StoredFlowEntry> backupMap =
+        private final EventuallyConsistentMap<FlowId, StoredFlowEntry> backupMap = backupsEnabled ?
                 new EventuallyConsistentMapImpl<>("flow-backup",
                         clusterService,
                         clusterCommunicator,
                         flowSerializer,
                         clockService,
-                        (key, flowEntry) -> getPeerNodes());
+                        (key, flowEntry) -> getPeerNodes()).withTombstonesDisabled(true)
+                      : null;
 
         private Collection<NodeId> getPeerNodes() {
             List<NodeId> nodes = clusterService.getNodes()
@@ -651,6 +664,10 @@ public class DistributedFlowRuleStore
         }
 
         public void loadFromBackup(DeviceId deviceId) {
+            if (!backupsEnabled) {
+                return;
+            }
+
             ConcurrentMap<FlowId, Set<StoredFlowEntry>> flowTable = new ConcurrentHashMap<>();
 
             backupMap.values()
@@ -699,18 +716,19 @@ public class DistributedFlowRuleStore
 
         public void add(StoredFlowEntry rule) {
             getFlowEntriesInternal(rule.deviceId(), rule.id()).add(rule);
-
-            try {
-                backupMap.put(rule.id(), rule);
-            } catch (Exception e) {
-                log.warn("Failed to backup flow rule", e);
+            if (backupsEnabled) {
+                try {
+                    backupMap.put(rule.id(), rule);
+                } catch (Exception e) {
+                    log.warn("Failed to backup flow rule", e);
+                }
             }
         }
 
         public boolean remove(DeviceId deviceId, FlowEntry rule) {
             boolean status =
                     getFlowEntriesInternal(deviceId, rule.id()).remove(rule);
-            if (status) {
+            if (backupsEnabled && status) {
                 try {
                     backupMap.remove(rule.id(), (DefaultFlowEntry) rule);
                 } catch (Exception e) {

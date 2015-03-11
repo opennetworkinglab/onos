@@ -107,6 +107,7 @@ public class EventuallyConsistentMapImpl<K, V>
     private long initialDelaySec = 5;
     private long periodSec = 5;
     private boolean lightweightAntiEntropy = true;
+    private boolean tombstonesDisabled = false;
 
     private static final int WINDOW_SIZE = 5;
     private static final int HIGH_LOAD_THRESHOLD = 0;
@@ -221,6 +222,11 @@ public class EventuallyConsistentMapImpl<K, V>
                      .map(ControllerNode::id)
                      .filter(nodeId -> !nodeId.equals(clusterService.getLocalNode().id()))
                      .collect(Collectors.toList()));
+    }
+
+    public EventuallyConsistentMapImpl<K, V> withTombstonesDisabled(boolean status) {
+        tombstonesDisabled = status;
+        return this;
     }
 
     private KryoSerializer createSerializer(KryoNamespace.Builder builder) {
@@ -379,14 +385,18 @@ public class EventuallyConsistentMapImpl<K, V>
             return false;
         }
 
-        Timestamp removedTimestamp = removedItems.get(key);
-        if (removedTimestamp == null) {
-            return removedItems.putIfAbsent(key, timestamp) == null;
-        } else if (timestamp.isNewerThan(removedTimestamp)) {
-            return removedItems.replace(key, removedTimestamp, timestamp);
-        } else {
-            return false;
+        if (!tombstonesDisabled) {
+            Timestamp removedTimestamp = removedItems.get(key);
+            if (removedTimestamp == null) {
+                return removedItems.putIfAbsent(key, timestamp) == null;
+            } else if (timestamp.isNewerThan(removedTimestamp)) {
+                return removedItems.replace(key, removedTimestamp, timestamp);
+            } else {
+                return false;
+            }
         }
+
+        return updated.booleanValue();
     }
 
     @Override
