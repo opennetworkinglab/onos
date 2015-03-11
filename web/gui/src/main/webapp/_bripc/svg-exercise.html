@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+  ONOS -- SVG mouse over d3 exercise html
+  -->
+
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Upgrade Performance</title>
+
+    <script type="text/javascript" src="../tp/angular.js"></script>
+    <script type="text/javascript" src="../tp/d3.js"></script>
+    <script type="text/javascript" src="svg-exercise.js"></script>
+    <script type="text/javascript" src="../app/fw/util/util.js"></script>
+    <script type="text/javascript" src="../app/fw/util/fn.js"></script>
+
+
+    <style>
+        html,
+        body {
+            background-color: #eee;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+        }
+        .button {
+            fill: #369;
+            /* TODO: figure out why svg filters are not working */
+            /*filter: url(#innerbevel);*/
+        }
+        svg text {
+            fill: white;
+            letter-spacing: .005em;
+        }
+        defs {
+            display: none;
+        }
+    </style>
+</head>
+
+<body ng-app="svgExercise">
+<div id="svgExDiv" ng-controller="svgExCtrl as ctrl">
+    <improve-performance></improve-performance>
+</div>
+
+<svg>
+    <defs>
+        <filter id="innerbevel" x0="-50%" y0="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+            <feOffset dy="-1" dx="-1"/>
+            <feComposite in2="SourceAlpha" operator="arithmetic"
+                         k2="-1" k3="1" result="hlDiff"/>
+            <feFlood flood-color="white" flood-opacity=".7"/>
+            <feComposite in2="hlDiff" operator="in"/>
+            <feComposite in2="SourceGraphic" operator="over" result="withGlow"/>
+
+            <feOffset in="blur" dy="3" dx="3"/>
+            <feComposite in2="SourceAlpha" operator="arithmetic"
+                         k2="-1" k3="1" result="shadowDiff"/>
+            <feFlood flood-color="black" flood-opacity="1"/>
+            <feComposite in2="shadowDiff" operator="in"/>
+            <feComposite in2="withGlow" operator="over"/>
+        </filter>
+    </defs>
+</svg>
+
+</body>
+</html>
