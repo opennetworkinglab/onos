@@ -1,0 +1,3 @@
+numKeys|INTEGER|40000|Number of keys (i.e. unique intents) to generate per instance
+cyclePeriod|INTEGER|1000|Goal for cycle period (in ms)
+numNeighbors|INTEGER|0|Number of neighbors to generate intents for
