@@ -24,30 +24,45 @@
     var $log, $loc, fs, ufs, wsock, vs;
 
     // internal state
-    var ws = null,              // web socket reference
+    var webSockOpts,            // web socket options
+        ws = null,              // web socket reference
         wsUp = false,           // web socket is good to go
         sid = 0,                // event sequence identifier
         handlers = {},          // event handler bindings
         pendingEvents = [],     // events TX'd while socket not up
         url,                    // web socket URL
-        instances = [];
+        clusterNodes = [],      // ONOS instances data for failover
+        clusterIndex = -1,      // the instance to which we are connected
+        connectRetries = 0;
+
+    // =======================
+    // === Bootstrap Handler
 
     var builtinHandlers = {
-            onosInstances: function (data) {
-                instances = data.instances;
-            }
-    }
+        bootstrap: function (data) {
+            clusterNodes = data.instances;
+            clusterNodes.forEach(function (d, i) {
+                if (d.uiAttached) {
+                    clusterIndex = i;
+                }
+            });
+        }
+    };
 
     // ==========================
     // === Web socket callbacks
 
     function handleOpen() {
         $log.info('Web socket open');
+        vs.hide();
+
         $log.debug('Sending ' + pendingEvents.length + ' pending event(s)...');
         pendingEvents.forEach(function (ev) {
             _send(ev);
         });
         pendingEvents = [];
+
+        connectRetries = 0;
         wsUp = true;
     }
 
@@ -76,22 +91,41 @@
     }
 
     function handleClose() {
+        var gsucc;
+
         $log.info('Web socket closed');
         wsUp = false;
 
-        // FIXME: implement controller failover logic
-
-        // If no controllers left to contact, show the Veil...
-        vs.show([
-            'Oops!',
-            'Web-socket connection to server closed...',
-            'Try refreshing the page.'
-        ]);
+        if (gsucc = findGuiSuccessor()) {
+            createWebSocket(webSockOpts, gsucc);
+        } else {
+            // If no controllers left to contact, show the Veil...
+            vs.show([
+                'Oops!',
+                'Web-socket connection to server closed...',
+                'Try refreshing the page.'
+            ]);
+        }
     }
 
 
     // ==============================
     // === Private Helper Functions
+
+    function findGuiSuccessor() {
+        var ncn = clusterNodes.length,
+            ip = undefined,
+            node;
+
+        while (connectRetries < ncn && !ip) {
+            connectRetries++;
+            clusterIndex = (clusterIndex + 1) % ncn;
+            node = clusterNodes[clusterIndex];
+            ip = node && node.ip;
+        }
+
+        return ip;
+    }
 
     function _send(ev) {
         $log.debug(' *Tx* >> ', ev.event, ev.payload);
@@ -109,10 +143,12 @@
 
     // Currently supported opts:
     //   wsport: web socket port (other than default 8181)
-    function createWebSocket(opts) {
+    // server: if defined, is the server address to use
+    function createWebSocket(opts, server) {
         var wsport = (opts && opts.wsport) || null;
+        webSockOpts = opts; // preserved for future calls
 
-        url = ufs.wsUrl('core', wsport);
+        url = ufs.wsUrl('core', wsport, server);
 
         $log.debug('Attempting to open websocket to: ' + url);
         ws = wsock.newWebSocket(url);
@@ -192,10 +228,7 @@
             wsock = _wsock_;
             vs = _vs_;
 
-            // Bind instance handlers
-            bindHandlers({
-                onosInstances: builtinHandlers
-            });
+            bindHandlers(builtinHandlers);
 
             return {
                 resetSid: resetSid,

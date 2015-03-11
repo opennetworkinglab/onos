@@ -81,4 +81,9 @@ describe('factory: fw/remote/urlfn.js', function () {
         setLoc('http', 'foo', '123');
         expect(ufs.wsUrl('xyyzy', 456)).toEqual('ws://foo:456/onos/ui/websock/xyyzy');
     });
+
+    it('should allow us to define an alternate host', function () {
+        setLoc('http', 'foo', '123');
+        expect(ufs.wsUrl('core', 456, 'bar')).toEqual('ws://bar:456/onos/ui/websock/core');
+    });
 });
