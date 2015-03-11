@@ -130,7 +130,8 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public Set<ConfigProperty> getProperties(String componentName) {
-        return ImmutableSet.copyOf(properties.get(componentName).values());
+        Map<String, ConfigProperty> map = properties.get(componentName);
+        return map != null ? ImmutableSet.copyOf(map.values()) : null;
     }
 
     @Override
