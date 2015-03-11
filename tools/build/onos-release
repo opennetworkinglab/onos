@@ -18,6 +18,7 @@ cd $ONOS_ROOT
 
 # Change the version
 onos-change-version $NEW_VERSION
+export ONOS_VERSION=$NEW_VERSION
 
 # Build ONOS & deploy to staging repo using the release profile.
 onos-build && onos-package && mvn -Prelease clean deploy -DskipTests

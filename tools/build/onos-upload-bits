@@ -2,9 +2,11 @@
 # -----------------------------------------------------------------------------
 # Uploads ONOS distributable bits.
 # -----------------------------------------------------------------------------
-
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-# TODO: upload to EC2
+#FIXME need to export s3Creds
+#FIXME verify that ONOS_VERSION is set
 
+# upload to EC2
+upload-to-s3 -d release/ /tmp/onos-$ONOS_VERSION.*
