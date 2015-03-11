@@ -139,7 +139,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
             intents.add(new PointToPointIntent(appId(), Key.of(i + keyOffset, appId()),
                                                selector, treatment,
                                                ingress, egress,
-                                               Collections.emptyList()));
+                                               Collections.emptyList(),
+                                               Intent.DEFAULT_INTENT_PRIORITY));
 
         }
         return intents;

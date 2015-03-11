@@ -70,7 +70,9 @@ public class SinglePointToMultiPointIntentCompiler
                                                  intent.selector(),
                                                  intent.treatment(), links,
                                                  ImmutableSet.of(intent.ingressPoint()),
-                                                 intent.egressPoints(), Collections.emptyList());
+                                                 intent.egressPoints(),
+                                                 Collections.emptyList(),
+                                                 intent.priority());
 
         return Arrays.asList(result);
     }

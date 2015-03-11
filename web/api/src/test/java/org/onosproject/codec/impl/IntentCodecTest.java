@@ -38,6 +38,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.AbstractIntentTest;
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
@@ -147,7 +148,8 @@ public class IntentCodecTest extends AbstractIntentTest {
 
         final PointToPointIntent intent =
                 new PointToPointIntent(appId, selector, treatment,
-                                       ingress, egress, constraints);
+                                       ingress, egress, constraints,
+                                       Intent.DEFAULT_INTENT_PRIORITY);
 
         final CodecContext context = new MockCodecContext();
         final JsonCodec<PointToPointIntent> intentCodec =

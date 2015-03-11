@@ -210,7 +210,8 @@ public class IntentPerfInstaller {
             Intent intent = new PointToPointIntent(appId, key,
                                                    selector, treatment,
                                                    ingress, egress,
-                                                   Collections.emptyList());
+                                                   Collections.emptyList(),
+                                                   Intent.DEFAULT_INTENT_PRIORITY);
             result.add(intent);
 
             // Bump up the counter and remember this as the last key used.

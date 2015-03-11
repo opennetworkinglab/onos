@@ -62,7 +62,8 @@ public class PathIntentInstallerTest extends IntentInstallerTest {
         installer.coreService = testCoreService;
         installer.intentManager = new MockIntentManager(PathIntent.class);
         intent = new PathIntent(APP_ID, selector, treatment,
-                new DefaultPath(PID, links, hops), ImmutableList.of());
+                new DefaultPath(PID, links, hops), ImmutableList.of(),
+                77);
     }
 
     /**

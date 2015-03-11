@@ -186,7 +186,7 @@ public class LinkCollectionIntentInstaller
                 treatment = intentTreatment;
             }
             FlowRule rule = new DefaultFlowRule(deviceId,
-                selector, treatment, 123, appId,
+                selector, treatment, intent.priority(), appId,
                 new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
                 0, true);
             result.add(new FlowRuleOperation(rule, operation));

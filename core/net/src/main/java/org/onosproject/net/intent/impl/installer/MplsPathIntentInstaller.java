@@ -280,7 +280,7 @@ public class MplsPathIntentInstaller implements IntentInstaller<MplsPathIntent> 
                                             deviceId,
                                             selector,
                                             treat,
-                                            123, // FIXME 123
+                                            intent.priority(),
                                             appId,
                                             0,
                                             true);

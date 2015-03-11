@@ -75,7 +75,8 @@ public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentC
         Intent intent = new MultiPointToSinglePointIntent(appId(), key(),
                                                           selector, treatment,
                                                           ingressPoints, egress,
-                                                          constraints);
+                                                          constraints,
+                                                          priority());
         service.submit(intent);
         print("Multipoint to single point intent submitted:\n%s", intent.toString());
     }

@@ -70,7 +70,8 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
         Intent intent = new PointToPointIntent(appId(),
                 key(),
                 selector, treatment,
-                ingress, egress, constraints);
+                ingress, egress, constraints,
+                priority());
         service.submit(intent);
         print("Point to point intent submitted:\n%s", intent.toString());
     }

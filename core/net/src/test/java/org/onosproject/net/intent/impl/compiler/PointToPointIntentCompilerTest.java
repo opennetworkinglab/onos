@@ -90,7 +90,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         return new PointToPointIntent(APPID, selector, treatment,
                 connectPoint(ingressIdString, 1),
                 connectPoint(egressIdString, 1),
-                constraints);
+                constraints, Intent.DEFAULT_INTENT_PRIORITY);
     }
 
     /**

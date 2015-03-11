@@ -15,6 +15,10 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
@@ -26,10 +30,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
@@ -79,7 +79,8 @@ public class AddSinglePointToMultiPointIntentCommand extends ConnectivityIntentC
                         treatment,
                         ingressPoint,
                         egressPoints,
-                        constraints);
+                        constraints,
+                        priority());
         service.submit(intent);
         print("Single point to multipoint intent submitted:\n%s", intent.toString());
     }

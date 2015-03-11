@@ -54,7 +54,7 @@ public final class OpticalConnectivityIntent extends Intent {
     public OpticalConnectivityIntent(ApplicationId appId,
                                      Key key,
                                      ConnectPoint src, ConnectPoint dst) {
-        super(appId, key, Collections.emptyList());
+        super(appId, key, Collections.emptyList(), DEFAULT_INTENT_PRIORITY);
         this.src = src;
         this.dst = dst;
     }

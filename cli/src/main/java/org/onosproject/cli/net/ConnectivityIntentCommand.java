@@ -28,6 +28,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
@@ -95,6 +96,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "--setEthDst", description = "Rewrite Destination MAC Address",
             required = false, multiValued = false)
     private String setEthDstString = null;
+
+    // Priorities
+    @Option(name = "-p", aliases = "--priority", description = "Priority",
+            required = false, multiValued = false)
+    private int priority = Intent.DEFAULT_INTENT_PRIORITY;
 
     /**
      * Constructs a traffic selector based on the command line arguments
@@ -199,5 +205,14 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             key = Key.of(intentKey, appId());
         }
         return key;
+    }
+
+    /**
+     * Gets the priority to use for the intent.
+     *
+     * @return priority
+     */
+    protected int priority() {
+        return priority;
     }
 }

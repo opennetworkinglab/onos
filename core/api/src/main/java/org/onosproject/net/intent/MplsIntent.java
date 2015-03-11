@@ -74,7 +74,8 @@ public final class MplsIntent extends ConnectivityIntent {
                               Optional<MplsLabel> egressLabel,
                               List<Constraint> constraints) {
 
-        super(appId, Collections.emptyList(), selector, treatment, constraints);
+        super(appId, Collections.emptyList(), selector, treatment, constraints,
+                DEFAULT_INTENT_PRIORITY);
 
         checkNotNull(ingressPoint);
         checkNotNull(egressPoint);
@@ -144,6 +145,7 @@ public final class MplsIntent extends ConnectivityIntent {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("appId", appId())
+                .add("priority", priority())
                 .add("selector", selector())
                 .add("treatment", treatment())
                 .add("ingressPoint", ingressPoint)

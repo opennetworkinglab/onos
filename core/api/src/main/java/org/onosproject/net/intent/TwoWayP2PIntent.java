@@ -107,7 +107,8 @@ public final class TwoWayP2PIntent extends ConnectivityIntent {
                            TrafficSelector selector,
                            TrafficTreatment treatment,
                            List<Constraint> constraints) {
-        super(appId, key, Collections.emptyList(), selector, treatment, constraints);
+        super(appId, key, Collections.emptyList(), selector, treatment, constraints,
+                DEFAULT_INTENT_PRIORITY);
 
         // TODO: consider whether the case one and two are same is allowed
         this.one = checkNotNull(one);
@@ -147,6 +148,7 @@ public final class TwoWayP2PIntent extends ConnectivityIntent {
                 .add("id", id())
                 .add("key", key())
                 .add("appId", appId())
+                .add("priority", priority())
                 .add("resources", resources())
                 .add("selector", selector())
                 .add("treatment", treatment())

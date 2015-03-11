@@ -22,6 +22,7 @@ import org.onosproject.net.NetworkResource;
 import java.util.Collection;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -38,6 +39,11 @@ public abstract class Intent {
     private final ApplicationId appId;
     private final Key key;
 
+    private final int priority;
+    public static final int DEFAULT_INTENT_PRIORITY = 100;
+    public static final int MAX_PRIORITY = (1 << 16) - 1;
+    public static final int MIN_PRIORITY = 1;
+
     private final Collection<NetworkResource> resources;
 
     private static IdGenerator idGenerator;
@@ -50,6 +56,7 @@ public abstract class Intent {
         this.appId = null;
         this.key = null;
         this.resources = null;
+        this.priority = DEFAULT_INTENT_PRIORITY;
     }
 
     /**
@@ -60,7 +67,7 @@ public abstract class Intent {
      */
     protected Intent(ApplicationId appId,
                      Collection<NetworkResource> resources) {
-        this(appId, null, resources);
+        this(appId, null, resources, DEFAULT_INTENT_PRIORITY);
     }
 
         /**
@@ -72,11 +79,14 @@ public abstract class Intent {
          */
     protected Intent(ApplicationId appId,
                      Key key,
-                     Collection<NetworkResource> resources) {
+                     Collection<NetworkResource> resources,
+                     int priority) {
         checkState(idGenerator != null, "Id generator is not bound.");
+        checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY);
         this.id = IntentId.valueOf(idGenerator.getNewId());
         this.appId = checkNotNull(appId, "Application ID cannot be null");
         this.key = (key != null) ? key : Key.of(id.fingerprint(), appId);
+        this.priority = priority;
         this.resources = checkNotNull(resources);
     }
 
@@ -96,6 +106,15 @@ public abstract class Intent {
      */
     public ApplicationId appId() {
         return appId;
+    }
+
+    /**
+     * Returns the priority of the intent.
+     *
+     * @return intent priority
+     */
+    public int priority() {
+        return priority;
     }
 
     /**

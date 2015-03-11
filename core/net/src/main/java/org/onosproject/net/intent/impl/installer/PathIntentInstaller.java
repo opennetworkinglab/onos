@@ -99,7 +99,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
                     .setOutput(link.src().port()).build();
 
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                    builder.build(), treatment, 123, //FIXME 123
+                    builder.build(), treatment, intent.priority(),
                     appId,
                     new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
                     0, true);
@@ -127,7 +127,7 @@ public class PathIntentInstaller implements IntentInstaller<PathIntent> {
                     (links.hasNext() ? builder() : builder(intent.treatment()))
                             .setOutput(link.src().port()).build();
             FlowRule rule = new DefaultFlowRule(link.src().deviceId(),
-                    builder.build(), treatment, 123, appId,
+                    builder.build(), treatment, intent.priority(), appId,
                     new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)),
                     0, true);
             rules.add(new FlowRuleOperation(rule, FlowRuleOperation.Type.REMOVE));

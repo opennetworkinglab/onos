@@ -89,12 +89,14 @@ public class MultiPointToSinglePointIntentCompiler
             }
         }
 
+        Set<ConnectPoint> egress = ImmutableSet.of(intent.egressPoint());
         Intent result = new LinkCollectionIntent(intent.appId(),
                                                  intent.selector(), intent.treatment(),
                                                  Sets.newHashSet(links.values()),
                                                  intent.ingressPoints(),
                                                  ImmutableSet.of(intent.egressPoint()),
-                                                 Collections.emptyList());
+                                                 Collections.emptyList(),
+                                                 intent.priority());
         return Arrays.asList(result);
     }
 

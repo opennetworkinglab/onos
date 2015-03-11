@@ -48,7 +48,8 @@ public class PathIntent extends ConnectivityIntent {
      */
     public PathIntent(ApplicationId appId, TrafficSelector selector,
                       TrafficTreatment treatment, Path path) {
-        this(appId, selector, treatment, path, Collections.emptyList());
+        this(appId, selector, treatment, path, Collections.emptyList(),
+                DEFAULT_INTENT_PRIORITY);
     }
 
     /**
@@ -60,11 +61,14 @@ public class PathIntent extends ConnectivityIntent {
      * @param treatment treatment
      * @param path      traversed links
      * @param constraints  optional list of constraints
+     * @param priority  priority to use for the generated flows
      * @throws NullPointerException {@code path} is null
      */
     public PathIntent(ApplicationId appId, TrafficSelector selector,
-                      TrafficTreatment treatment, Path path, List<Constraint> constraints) {
-        super(appId, resources(path.links()), selector, treatment, constraints);
+                      TrafficTreatment treatment, Path path, List<Constraint> constraints,
+                      int priority) {
+        super(appId, resources(path.links()), selector, treatment, constraints,
+                priority);
         PathIntent.validate(path.links());
         this.path = path;
     }
@@ -123,6 +127,7 @@ public class PathIntent extends ConnectivityIntent {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("appId", appId())
+                .add("priority", priority())
                 .add("resources", resources())
                 .add("selector", selector())
                 .add("treatment", treatment())

@@ -59,7 +59,8 @@ public final class MplsPathIntent extends PathIntent {
     public MplsPathIntent(ApplicationId appId, TrafficSelector selector,
             TrafficTreatment treatment, Path path, Optional<MplsLabel> ingressLabel,
             Optional<MplsLabel> egressLabel, List<Constraint> constraints) {
-        super(appId, selector, treatment, path, constraints);
+        super(appId, selector, treatment, path, constraints,
+                DEFAULT_INTENT_PRIORITY);
 
         checkNotNull(ingressLabel);
         checkNotNull(egressLabel);

@@ -93,7 +93,8 @@ public class PointToPointIntentCompiler
                                     PointToPointIntent intent) {
         return new PathIntent(intent.appId(),
                               intent.selector(), intent.treatment(), path,
-                              intent.constraints());
+                              intent.constraints(),
+                              intent.priority());
     }
 
 }

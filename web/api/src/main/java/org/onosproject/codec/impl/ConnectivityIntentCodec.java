@@ -52,6 +52,8 @@ public final class ConnectivityIntentCodec extends JsonCodec<ConnectivityIntent>
             result.set("treatment", treatmentCodec.encode(intent.treatment(), context));
         }
 
+        result.put("priority", intent.priority());
+
         if (intent.constraints() != null) {
             final ArrayNode jsonConstraints = result.putArray("constraints");
 

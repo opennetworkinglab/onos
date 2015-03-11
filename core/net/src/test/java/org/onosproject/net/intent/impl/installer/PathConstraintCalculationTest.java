@@ -74,7 +74,7 @@ public class PathConstraintCalculationTest extends AbstractIntentTest {
     private PathIntent createPathIntent(List<Link> links, List<Constraint> constraints) {
         int hops = links.size() - 1;
         return new PathIntent(APP_ID, selector, treatment,
-                              new DefaultPath(PID, links, hops), constraints);
+                              new DefaultPath(PID, links, hops), constraints, 333);
     }
 
     /**

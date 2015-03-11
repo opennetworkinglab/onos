@@ -134,7 +134,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                         links1,
                         ingress,
                         egress,
-                        constraints);
+                        constraints,
+                        8888);
 
         final Set<Link> createdLinks = collectionIntent.links();
         assertThat(createdLinks, hasSize(1));
