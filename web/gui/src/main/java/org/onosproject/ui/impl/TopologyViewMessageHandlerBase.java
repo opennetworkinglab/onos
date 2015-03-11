@@ -127,7 +127,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected StatisticService statService;
     protected TopologyService topologyService;
 
-    protected final ObjectMapper mapper = new ObjectMapper();
     private String version;
 
     // TODO: extract into an external & durable state; good enough for now and demo

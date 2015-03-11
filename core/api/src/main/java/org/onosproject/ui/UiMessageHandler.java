@@ -15,6 +15,7 @@
  */
 package org.onosproject.ui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
 
@@ -43,6 +44,9 @@ public abstract class UiMessageHandler {
     private final Set<String> messageTypes;
     private UiConnection connection;
     private ServiceDirectory directory;
+
+    /** Mapper for creating ObjectNodes and ArrayNodes etc. */
+    protected final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Creates a new message handler for the specified set of message types.
@@ -119,6 +123,25 @@ public abstract class UiMessageHandler {
      */
     protected <T> T get(Class<T> serviceClass) {
         return directory.get(serviceClass);
+    }
+
+    /**
+     * Wraps a message payload into an event structure for the given event
+     * type and sequence ID. Generally the
+     *
+     * @param type event type
+     * @param sid sequence ID
+     * @param payload event payload
+     * @return the object node representation
+     */
+    protected ObjectNode envelope(String type, long sid, ObjectNode payload) {
+        ObjectNode event = mapper.createObjectNode();
+        event.put("event", type);
+        if (sid > 0) {
+            event.put("sid", sid);
+        }
+        event.set("payload", payload);
+        return event;
     }
 
 }

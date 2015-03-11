@@ -59,7 +59,11 @@ public class UiExtensionManager implements UiExtensionService {
         List<UiView> coreViews = of(new UiView("sample", "Sample"),
                                     new UiView("topo", "Topology View"),
                                     new UiView("device", "Devices"));
-        UiMessageHandlerFactory messageHandlerFactory = () -> ImmutableList.of(new TopologyViewMessageHandler());
+        UiMessageHandlerFactory messageHandlerFactory =
+                () -> ImmutableList.of(
+                        new BootstrapMessageHandler(),
+                        new TopologyViewMessageHandler()
+                );
         return new UiExtension(coreViews, messageHandlerFactory, "core",
                                UiExtensionManager.class.getClassLoader());
     }
