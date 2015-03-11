@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
@@ -65,6 +66,9 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry providerRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private HostProviderService providerService;
 
     //make sure the device has enough ports to accomodate all of them.
@@ -90,6 +94,7 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
 
     @Activate
     public void activate() {
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         for (Device dev : deviceService.getDevices()) {
             addHosts(dev);
@@ -101,6 +106,7 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         providerRegistry.unregister(this);
         deviceService.removeListener(hostProvider);
         providerService = null;

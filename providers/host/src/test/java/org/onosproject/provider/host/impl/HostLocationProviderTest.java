@@ -46,6 +46,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
@@ -145,6 +146,7 @@ public class HostLocationProviderTest {
             .andReturn(appId).anyTimes();
         replay(coreService);
 
+        provider.cfgService = new ComponentConfigAdapter();
         provider.coreService = coreService;
 
         provider.providerRegistry = hostRegistry;

@@ -62,21 +62,22 @@ public abstract class Intent {
     /**
      * Creates a new intent.
      *
-     * @param appId         application identifier
-     * @param resources     required network resources (optional)
+     * @param appId     application identifier
+     * @param resources required network resources (optional)
      */
     protected Intent(ApplicationId appId,
                      Collection<NetworkResource> resources) {
         this(appId, null, resources, DEFAULT_INTENT_PRIORITY);
     }
 
-        /**
-         * Creates a new intent.
-         *
-         * @param appId         application identifier
-         * @param key           optional key
-         * @param resources     required network resources (optional)
-         */
+    /**
+     * Creates a new intent.
+     *
+     * @param appId     application identifier
+     * @param key       optional key
+     * @param resources required network resources (optional)
+     * @param priority  flow rule priority
+     */
     protected Intent(ApplicationId appId,
                      Key key,
                      Collection<NetworkResource> resources,
@@ -156,6 +157,7 @@ public abstract class Intent {
      * Binds an id generator for unique intent id generation.
      *
      * Note: A generator cannot be bound if there is already a generator bound.
+     *
      * @param newIdGenerator id generator
      */
     public static void bindIdGenerator(IdGenerator newIdGenerator) {
@@ -167,6 +169,7 @@ public abstract class Intent {
      * Unbinds an id generator.
      *
      * Note: The caller must provide the old id generator to succeed.
+     *
      * @param oldIdGenerator the current id generator
      */
     public static void unbindIdGenerator(IdGenerator oldIdGenerator) {

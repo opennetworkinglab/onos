@@ -1,0 +1,4 @@
+# Temporary: to be auto-generated in near future
+useBDDP|BOOLEAN|true|Use BDDP for link discovery
+disableLinkDiscovery|BOOLEAN|false|Permanently disable link discovery
+lldpSuppression|STRING|../config/lldp_suppression.json|Path to LLDP suppression configuration file

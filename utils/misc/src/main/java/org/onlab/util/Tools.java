@@ -35,6 +35,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
 
@@ -139,6 +140,20 @@ public abstract class Tools {
      */
     public static String toHex(long value, int width) {
         return Strings.padStart(UnsignedLongs.toString(value, 16), width, '0');
+    }
+
+    /**
+     * Get property as a string value.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static String get(Dictionary<?, ?> properties, String propertyName) {
+        Object v = properties.get(propertyName);
+        String s = (v instanceof String) ? (String) v :
+                v != null ? v.toString() : null;
+        return Strings.isNullOrEmpty(s) ? null : s.trim();
     }
 
     /**

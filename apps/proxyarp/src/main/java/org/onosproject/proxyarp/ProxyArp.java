@@ -15,8 +15,6 @@
  */
 package org.onosproject.proxyarp;
 
-import java.util.Dictionary;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -27,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -38,6 +37,8 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.util.Dictionary;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -61,14 +62,18 @@ public class ProxyArp {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private ApplicationId appId;
 
     @Property(name = "ipv6NeighborDiscovery", boolValue = false,
-              label = "Enable IPv6 Neighbor Discovery; default is false")
+            label = "Enable IPv6 Neighbor Discovery; default is false")
     private boolean ipv6NeighborDiscovery = false;
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.proxyarp");
         readComponentConfiguration(context);
 
@@ -103,6 +108,7 @@ public class ProxyArp {
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         packetService.removeProcessor(processor);
         processor = null;
         log.info("Stopped");
@@ -125,7 +131,7 @@ public class ProxyArp {
         flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
         if (flag == null) {
             log.info("IPv6 Neighbor Discovery is not configured, " +
-                     "using current value of {}", ipv6NeighborDiscovery);
+                             "using current value of {}", ipv6NeighborDiscovery);
         } else {
             ipv6NeighborDiscovery = flag;
             log.info("Configured. IPv6 Neighbor Discovery is {}",
@@ -136,7 +142,7 @@ public class ProxyArp {
     /**
      * Check property name is defined and set to true.
      *
-     * @param properties properties to be looked up
+     * @param properties   properties to be looked up
      * @param propertyName the name of the property to look up
      * @return value when the propertyName is defined or return null
      */

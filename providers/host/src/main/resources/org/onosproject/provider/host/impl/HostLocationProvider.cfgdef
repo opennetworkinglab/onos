@@ -1,0 +1,3 @@
+# Temporary: to be auto-generated in near future
+hostRemovalEnabled|BOOLEAN|true|Enable host removal on port/device down events
+ipv6NeighborDiscovery|BOOLEAN|false|Enable using IPv6 Neighbor Discovery by the Host Location Provider; default is false

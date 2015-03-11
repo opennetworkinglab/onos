@@ -17,6 +17,7 @@ package org.onosproject.net.topology.impl;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
@@ -162,16 +163,16 @@ public class DefaultTopologyProvider extends AbstractProvider
             return;
         }
 
-        Dictionary properties = context.getProperties();
+        Dictionary<?, ?> properties = context.getProperties();
         int newMaxEvents, newMaxBatchMs, newMaxIdleMs;
         try {
-            String s = (String) properties.get("maxEvents");
+            String s = get(properties, "maxEvents");
             newMaxEvents = isNullOrEmpty(s) ? maxEvents : Integer.parseInt(s.trim());
 
-            s = (String) properties.get("maxBatchMs");
+            s = get(properties, "maxBatchMs");
             newMaxBatchMs = isNullOrEmpty(s) ? maxBatchMs : Integer.parseInt(s.trim());
 
-            s = (String) properties.get("maxIdleMs");
+            s = get(properties, "maxIdleMs");
             newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {

@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
@@ -77,6 +78,9 @@ public class NullPacketProvider extends AbstractProvider implements
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     // Rate to generate PacketEvents, per second
     @Property(name = "pktRate", intValue = DEFAULT_RATE,
             label = "Rate of PacketEvent generation")
@@ -91,6 +95,7 @@ public class NullPacketProvider extends AbstractProvider implements
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         if (!modified(context)) {
             packetDriver.submit(new PacketDriver());
@@ -100,6 +105,7 @@ public class NullPacketProvider extends AbstractProvider implements
 
     @Deactivate
     public void deactivate(ComponentContext context) {
+        cfgService.unregisterProperties(getClass(), false);
         try {
             packetDriver.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {

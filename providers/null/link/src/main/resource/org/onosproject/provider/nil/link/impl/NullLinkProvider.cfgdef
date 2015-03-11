@@ -1,0 +1,3 @@
+# Temporary: to be auto-generated in near future
+  "eventRate"|INTEGER|0|Duration between Link Event
+  "cfgFile"|STRING|"/opt/onos/apache-karaf-3.0.2/etc/linkGraph.cfg"|Topology file location

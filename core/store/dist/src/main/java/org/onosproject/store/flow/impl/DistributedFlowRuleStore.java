@@ -95,6 +95,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.onosproject.store.flow.impl.FlowStoreMessageSubjects.*;
@@ -267,10 +268,10 @@ public class DistributedFlowRuleStore
         int newPoolSize;
         boolean newBackupEnabled;
         try {
-            String s = (String) properties.get("msgHandlerPoolSize");
+            String s = get(properties, "msgHandlerPoolSize");
             newPoolSize = isNullOrEmpty(s) ? msgHandlerPoolSize : Integer.parseInt(s.trim());
 
-            s = (String) properties.get("backupEnabled");
+            s = get(properties, "backupEnabled");
             newBackupEnabled = isNullOrEmpty(s) ? backupEnabled : Boolean.parseBoolean(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {

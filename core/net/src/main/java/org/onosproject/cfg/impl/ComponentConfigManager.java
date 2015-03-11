@@ -203,9 +203,8 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     // Loads existing property values that may have been set.
     private void loadExistingValues(String componentName) {
-        // FIXME: implement this by talking to the config admin.
         try {
-            Configuration cfg = cfgAdmin.getConfiguration(componentName);
+            Configuration cfg = cfgAdmin.getConfiguration(componentName, null);
             Map<String, ConfigProperty> map = properties.get(componentName);
             Dictionary<String, Object> props = cfg.getProperties();
             if (props != null) {
@@ -229,7 +228,7 @@ public class ComponentConfigManager implements ComponentConfigService {
     // after each other.
     private void triggerUpdate(String componentName) {
         try {
-            Configuration cfg = cfgAdmin.getConfiguration(componentName);
+            Configuration cfg = cfgAdmin.getConfiguration(componentName, null);
             Map<String, ConfigProperty> map = properties.get(componentName);
             Dictionary<String, Object> props = new Hashtable<>();
             map.values().forEach(p -> props.put(p.name(), p.value()));

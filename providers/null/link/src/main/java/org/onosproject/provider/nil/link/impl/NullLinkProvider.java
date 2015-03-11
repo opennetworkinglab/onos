@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -101,6 +102,9 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkProviderRegistry providerRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private LinkProviderService providerService;
 
     private final InternalLinkProvider linkProvider = new InternalLinkProvider();
@@ -119,7 +123,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             Executors.newScheduledThreadPool(THREADS, groupedThreads("onos/null", "link-driver-%d"));
 
     // For flicker = true, duration between events in msec.
-    @Property(name = "eventRate", value = "0", label = "Duration between Link Event")
+    @Property(name = "eventRate", intValue = 0, label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
 
     // topology configuration file
@@ -137,6 +141,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         modified(context);
 
@@ -166,6 +171,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Deactivate
     public void deactivate(ComponentContext context) {
+        cfgService.unregisterProperties(getClass(), false);
         linkDriver.shutdown();
         try {
             linkDriver.awaitTermination(1000, TimeUnit.MILLISECONDS);

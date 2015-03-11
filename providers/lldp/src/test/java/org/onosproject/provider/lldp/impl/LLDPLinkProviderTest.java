@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONOSLLDP;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.ApplicationId;
@@ -103,12 +104,12 @@ public class LLDPLinkProviderTest {
 
     @Before
     public void setUp() {
-
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication(appId.name()))
             .andReturn(appId).anyTimes();
         replay(coreService);
 
+        provider.cfgService = new ComponentConfigAdapter();
         provider.coreService = coreService;
 
         provider.deviceService = deviceService;

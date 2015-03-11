@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipEvent;
@@ -61,9 +62,9 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
-
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -95,22 +96,27 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService masterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private LinkProviderService providerService;
 
     private ScheduledExecutorService executor;
 
-    @Property(name = PROP_USE_BDDP, label = "use BDDP for link discovery")
+    @Property(name = PROP_USE_BDDP, boolValue = true,
+            label = "Use BDDP for link discovery")
     private boolean useBDDP = true;
 
-    @Property(name = PROP_DISABLE_LD, label = "permanently disable link discovery")
-    private boolean disableLD = false;
+    @Property(name = PROP_DISABLE_LD, boolValue = false,
+            label = "Permanently disable link discovery")
+    private boolean disableLinkDiscovery = false;
 
     private static final long INIT_DELAY = 5;
     private static final long DELAY = 5;
 
-    @Property(name = PROP_LLDP_SUPPRESSION,
+    @Property(name = PROP_LLDP_SUPPRESSION, value = DEFAULT_LLDP_SUPPRESSION_CONFIG,
             label = "Path to LLDP suppression configuration file")
-    private String filePath = DEFAULT_LLDP_SUPPRESSION_CONFIG;
+    private String lldpSuppression = DEFAULT_LLDP_SUPPRESSION_CONFIG;
 
 
     private final InternalLinkProvider listener = new InternalLinkProvider();
@@ -131,12 +137,12 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Activate
     public void activate(ComponentContext context) {
-        appId =
-            coreService.registerApplication("org.onosproject.provider.lldp");
+        cfgService.registerProperties(getClass());
+        appId = coreService.registerApplication("org.onosproject.provider.lldp");
 
         // to load configuration at startup
         modified(context);
-        if (disableLD) {
+        if (disableLinkDiscovery) {
             log.info("Link Discovery has been permanently disabled by configuration");
             return;
         }
@@ -153,7 +159,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                 continue;
             }
             ld = new LinkDiscovery(device, packetService, masterService,
-                              providerService, useBDDP);
+                                   providerService, useBDDP);
             discoverers.put(device.id(), ld);
             for (Port p : deviceService.getPorts(device.id())) {
                 if (rules.isSuppressed(p)) {
@@ -177,7 +183,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Deactivate
     public void deactivate() {
-        if (disableLD) {
+        cfgService.unregisterProperties(getClass(), false);
+        if (disableLinkDiscovery) {
             return;
         }
         executor.shutdownNow();
@@ -202,29 +209,29 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         @SuppressWarnings("rawtypes")
         Dictionary properties = context.getProperties();
 
-        String s = (String) properties.get(PROP_DISABLE_LD);
+        String s = get(properties, PROP_DISABLE_LD);
         if (!Strings.isNullOrEmpty(s)) {
-            disableLD = Boolean.valueOf(s);
+            disableLinkDiscovery = Boolean.valueOf(s);
         }
-        s = (String) properties.get(PROP_USE_BDDP);
+        s = get(properties, PROP_USE_BDDP);
         if (!Strings.isNullOrEmpty(s)) {
             useBDDP = Boolean.valueOf(s);
         }
-        s = (String) properties.get(PROP_LLDP_SUPPRESSION);
+        s = get(properties, PROP_LLDP_SUPPRESSION);
         if (!Strings.isNullOrEmpty(s)) {
-            filePath = s;
+            lldpSuppression = s;
         }
 
         loadSuppressionRules();
     }
 
     private void loadSuppressionRules() {
-        SuppressionRulesStore store = new SuppressionRulesStore(filePath);
+        SuppressionRulesStore store = new SuppressionRulesStore(lldpSuppression);
         try {
-            log.info("Reading suppression rules from {}", filePath);
+            log.info("Reading suppression rules from {}", lldpSuppression);
             rules = store.read();
         } catch (IOException e) {
-            log.info("Failed to load {}, using built-in rules", filePath);
+            log.info("Failed to load {}, using built-in rules", lldpSuppression);
             // default rule to suppress ROADM to maintain compatibility
             rules = new SuppressionRules(ImmutableSet.of(),
                                          EnumSet.of(Device.Type.ROADM),
@@ -238,13 +245,13 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         TrafficSelector.Builder lldpSelector = DefaultTrafficSelector.builder();
         lldpSelector.matchEthType(Ethernet.TYPE_LLDP);
         packetService.requestPackets(lldpSelector.build(),
-                PacketPriority.CONTROL, appId);
+                                     PacketPriority.CONTROL, appId);
 
         if (useBDDP) {
             TrafficSelector.Builder bddpSelector = DefaultTrafficSelector.builder();
             bddpSelector.matchEthType(Ethernet.TYPE_BSN);
             packetService.requestPackets(bddpSelector.build(),
-                    PacketPriority.CONTROL, appId);
+                                         PacketPriority.CONTROL, appId);
         }
     }
 
@@ -271,10 +278,10 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                 if (!discoverers.containsKey(deviceId)) {
                     // ideally, should never reach here
                     log.debug("Device mastership changed ({}) {}",
-                            event.type(), deviceId);
+                              event.type(), deviceId);
                     discoverers.put(deviceId, new LinkDiscovery(device,
-                            packetService, masterService, providerService,
-                            useBDDP));
+                                                                packetService, masterService, providerService,
+                                                                useBDDP));
                 }
             }
         }
@@ -307,7 +314,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                             log.debug("Device added ({}) {}", event.type(),
                                       deviceId);
                             discoverers.put(deviceId, new LinkDiscovery(device,
-                                    packetService, masterService, providerService, useBDDP));
+                                                                        packetService, masterService,
+                                                                        providerService, useBDDP));
                         } else {
                             if (ld.isStopped()) {
                                 log.debug("Device restarted ({}) {}", event.type(),
@@ -412,7 +420,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     synchronized (discoverers) {
                         if (!discoverers.containsKey(did)) {
                             ld = new LinkDiscovery(dev, packetService,
-                                    masterService, providerService, useBDDP);
+                                                   masterService, providerService, useBDDP);
                             discoverers.put(did, ld);
                             for (Port p : deviceService.getPorts(did)) {
                                 if (rules.isSuppressed(p)) {

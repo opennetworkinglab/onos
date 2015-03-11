@@ -38,6 +38,7 @@ import org.onlab.packet.ICMP6;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Host;
@@ -86,6 +87,9 @@ public class ReactiveForwarding {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
@@ -150,6 +154,7 @@ public class ReactiveForwarding {
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.fwd");
 
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
@@ -174,6 +179,7 @@ public class ReactiveForwarding {
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         flowRuleService.removeFlowRulesById(appId);
         packetService.removeProcessor(processor);
         processor = null;
