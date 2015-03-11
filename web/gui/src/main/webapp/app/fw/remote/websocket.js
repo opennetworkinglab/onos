@@ -40,10 +40,12 @@
 
     var builtinHandlers = {
         bootstrap: function (data) {
-            clusterNodes = data.instances;
+            clusterNodes = data.clusterNodes;
             clusterNodes.forEach(function (d, i) {
                 if (d.uiAttached) {
                     clusterIndex = i;
+                    $log.info('Connected to cluster node ' + d.ip);
+                    // TODO: add connect info to masthead somewhere
                 }
             });
         }
@@ -228,7 +230,11 @@
             wsock = _wsock_;
             vs = _vs_;
 
-            bindHandlers(builtinHandlers);
+            // TODO: Consider how to simplify handler structure
+            // Now it is an object of key -> object that has a method named 'key'.
+            bindHandlers({
+                bootstrap: builtinHandlers
+            });
 
             return {
                 resetSid: resetSid,

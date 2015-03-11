@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
@@ -43,8 +42,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.util.Tools.toHex;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Null provider to advertise fake hosts.
@@ -65,9 +64,6 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry providerRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
 
     private HostProviderService providerService;
 
@@ -94,7 +90,6 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
 
     @Activate
     public void activate() {
-        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         for (Device dev : deviceService.getDevices()) {
             addHosts(dev);
@@ -106,7 +101,6 @@ public class NullHostProvider extends AbstractProvider implements HostProvider {
 
     @Deactivate
     public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
         providerRegistry.unregister(this);
         deviceService.removeListener(hostProvider);
         providerService = null;

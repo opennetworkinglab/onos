@@ -194,8 +194,8 @@ public class UiWebSocket
         }
 
         ObjectNode payload = mapper.createObjectNode();
-        payload.set("instances", instances);
-        sendMessage("onosInstances", 0, payload);
+        payload.set("clusterNodes", instances);
+        sendMessage("bootstrap", 0, payload);
     }
 
 }
