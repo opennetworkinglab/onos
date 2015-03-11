@@ -146,47 +146,25 @@ public class ProxyArpManager implements ProxyArpService {
 
         VlanId vlan = VlanId.vlanId(eth.getVlanID());
 
-        // If the request came from outside the network, only reply if it was
-        // for one of our external addresses.
         if (isOutsidePort(inPort)) {
+            // If the request came from outside the network, only reply if it was
+            // for one of our external addresses.
             Set<PortAddresses> addressSet =
-                hostService.getAddressBindingsForPort(inPort);
+                    hostService.getAddressBindingsForPort(inPort);
 
             for (PortAddresses addresses : addressSet) {
                 for (InterfaceIpAddress ia : addresses.ipAddresses()) {
                     if (ia.ipAddress().equals(targetAddress)) {
                         Ethernet arpReply =
-                            buildArpReply(targetAddress, addresses.mac(), eth);
+                                buildArpReply(targetAddress, addresses.mac(), eth);
                         sendTo(arpReply, inPort);
                     }
                 }
             }
             return;
-        } else {
-            // If the source address matches one of our external addresses
-            // it could be a request from an internal host to an external
-            // address. Forward it over to the correct ports.
-            Ip4Address source =
-                Ip4Address.valueOf(arp.getSenderProtocolAddress());
-            Set<PortAddresses> sourceAddresses = findPortsInSubnet(source);
-            boolean matched = false;
-            for (PortAddresses pa : sourceAddresses) {
-                for (InterfaceIpAddress ia : pa.ipAddresses()) {
-                    if (ia.ipAddress().equals(source) &&
-                            pa.vlan().equals(vlan)) {
-                        matched = true;
-                        sendTo(eth, pa.connectPoint());
-                        break;
-                    }
-                }
-            }
-
-            if (matched) {
-                return;
-            }
         }
 
-        // Continue with normal proxy ARP case
+        // See if we have the target host in the host store
 
         Set<Host> hosts = hostService.getHostsByIp(targetAddress);
 
@@ -201,20 +179,41 @@ public class ProxyArpManager implements ProxyArpService {
             }
         }
 
-        if (src == null || dst == null) {
-            //
-            // The request couldn't be resolved.
-            // Flood the request on all ports except the incoming ports.
-            //
-            flood(eth, inPort);
+        if (src != null && dst != null) {
+            // We know the target host so we can respond
+            Ethernet arpReply = buildArpReply(targetAddress, dst.mac(), eth);
+            sendTo(arpReply, inPort);
+            return;
+        }
+
+        // If the source address matches one of our external addresses
+        // it could be a request from an internal host to an external
+        // address. Forward it over to the correct port.
+        Ip4Address source =
+                Ip4Address.valueOf(arp.getSenderProtocolAddress());
+        Set<PortAddresses> sourceAddresses = findPortsInSubnet(source);
+        boolean matched = false;
+        for (PortAddresses pa : sourceAddresses) {
+            for (InterfaceIpAddress ia : pa.ipAddresses()) {
+                if (ia.ipAddress().equals(source) &&
+                        pa.vlan().equals(vlan)) {
+                    matched = true;
+                    sendTo(eth, pa.connectPoint());
+                    break;
+                }
+            }
+        }
+
+        if (matched) {
             return;
         }
 
         //
-        // Reply on the port the request was received on
+        // The request couldn't be resolved.
+        // Flood the request on all ports except the incoming port.
         //
-        Ethernet arpReply = buildArpReply(targetAddress, dst.mac(), eth);
-        sendTo(arpReply, inPort);
+        flood(eth, inPort);
+        return;
     }
 
     private void replyNdp(Ethernet eth, ConnectPoint inPort) {

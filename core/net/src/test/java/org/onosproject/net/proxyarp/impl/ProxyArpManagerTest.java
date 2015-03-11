@@ -242,8 +242,8 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#isKnown(Ip4Address)} in the case where the
-     * IP address is not known.
+     * Tests {@link ProxyArpManager#isKnown(org.onlab.packet.IpAddress)} in the
+     * case where the IP address is not known.
      * Verifies the method returns false.
      */
     @Test
@@ -255,8 +255,8 @@ public class ProxyArpManagerTest {
     }
 
     /**
-     * Tests {@link ProxyArpManager#isKnown(Ip4Address)} in the case where the
-     * IP address is known.
+     * Tests {@link ProxyArpManager#isKnown(org.onlab.packet.IpAddress)} in the
+     * case where the IP address is known.
      * Verifies the method returns true.
      */
     @Test
@@ -403,11 +403,13 @@ public class ProxyArpManagerTest {
 
     @Test
     public void testReplyToRequestFromUs() {
-        replay(hostService); // no further host service expectations
-
         Ip4Address ourIp = Ip4Address.valueOf("10.0.1.1");
         MacAddress ourMac = MacAddress.valueOf(1L);
         Ip4Address theirIp = Ip4Address.valueOf("10.0.1.100");
+
+        expect(hostService.getHostsByIp(theirIp)).andReturn(Collections.emptySet());
+        expect(hostService.getHost(HostId.hostId(ourMac, VLAN1))).andReturn(null);
+        replay(hostService);
 
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
