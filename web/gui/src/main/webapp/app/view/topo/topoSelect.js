@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, tps, tts;
+    var $log, fs, flash, wss, tps, tts;
 
     // api to topoForce
     var api;
@@ -31,7 +31,6 @@
        node()                         // get ref to D3 selection of nodes
        zoomingOrPanning( ev )
        updateDeviceColors( [dev] )
-       sendEvent( type, {payload} )
      */
 
     // internal state
@@ -143,7 +142,7 @@
 
     function requestDetails() {
         var data = getSel(0).obj;
-        api.sendEvent('requestDetails', {
+        wss.sendEvent('requestDetails', {
             id: data.id,
             class: data.class
         });
@@ -245,13 +244,14 @@
 
     angular.module('ovTopo')
     .factory('TopoSelectService',
-        ['$log', 'FnService', 'FlashService', 'TopoPanelService',
-            'TopoTrafficService',
+        ['$log', 'FnService', 'FlashService', 'WebSocketService',
+            'TopoPanelService', 'TopoTrafficService',
 
-        function (_$log_, _fs_, _flash_, _tps_, _tts_) {
+        function (_$log_, _fs_, _flash_, _wss_, _tps_, _tts_) {
             $log = _$log_;
             fs = _fs_;
             flash = _flash_;
+            wss = _wss_;
             tps = _tps_;
             tts = _tts_;
 

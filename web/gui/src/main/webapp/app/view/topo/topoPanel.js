@@ -23,12 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, ps, gs;
-
-    var api;
-    /*
-      sendEvent( event, {payload} )
-     */
+    var $log, fs, ps, gs, wss;
 
     // constants
     var pCls = 'topo-p',
@@ -147,7 +142,7 @@
             hideSummaryPanel();
         } else {
             // ask server to start sending summary data.
-            api.sendEvent('requestSummary');
+            wss.sendEvent('requestSummary');
             // note: the summary panel will appear, once data arrives
         }
     }
@@ -165,7 +160,7 @@
 
     function hideSummaryPanel() {
         // instruct server to stop sending summary data
-        api.sendEvent("cancelSummary");
+        wss.sendEvent("cancelSummary");
         summaryPanel.hide(detailPanel.up);
     }
 
@@ -208,9 +203,7 @@
 
     // ==========================
 
-    function initPanels(_api_) {
-        api = _api_;
-
+    function initPanels() {
         summaryPanel = ps.createPanel(idSum, panelOpts);
         detailPanel = ps.createPanel(idDet, panelOpts);
 
@@ -230,13 +223,14 @@
 
     angular.module('ovTopo')
     .factory('TopoPanelService',
-        ['$log', 'FnService', 'PanelService', 'GlyphService',
+        ['$log', 'FnService', 'PanelService', 'GlyphService', 'WebSocketService',
 
-        function (_$log_, _fs_, _ps_, _gs_) {
+        function (_$log_, _fs_, _ps_, _gs_, _wss_) {
             $log = _$log_;
             fs = _fs_;
             ps = _ps_;
             gs = _gs_;
+            wss = _wss_;
 
             return {
                 initPanels: initPanels,

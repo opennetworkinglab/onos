@@ -90,8 +90,7 @@
 
             return {
                 start: start,
-                stop: stop,
-                sendEvent: wss.sendEvent
+                stop: stop
             };
         }]);
 }());

@@ -28,7 +28,8 @@
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, flash, tes, tfs, tps, tis, tss, tts, tos;
+    var $log, fs, ks, zs, gs, ms, sus, flash, wss,
+        tes, tfs, tps, tis, tss, tts, tos;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -102,7 +103,7 @@
     }
 
     function equalizeMasters() {
-        tes.sendEvent('equalizeMasters');
+        wss.sendEvent('equalizeMasters');
         flash.flash('Equalizing master roles');
     }
 
@@ -213,16 +214,16 @@
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
-        .controller('OvTopoCtrl', [
-            '$scope', '$log', '$location', '$timeout',
+        .controller('OvTopoCtrl', ['$scope', '$log', '$location', '$timeout',
             'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
+            'WebSocketService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _sus_, _flash_,
+                  _ks_, _zs_, _gs_, _ms_, _sus_, _flash_, _wss_,
                   _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_, _tos_) {
             var self = this,
                 projection,
@@ -233,8 +234,7 @@
                     projection: function () { return projection; },
                     zoomLayer: function () { return zoomLayer; },
                     zoomer: function () { return zoomer; },
-                    opacifyMap: opacifyMap,
-                    sendEvent: _tes_.sendEvent
+                    opacifyMap: opacifyMap
                 };
 
             $log = _$log_;
@@ -245,6 +245,7 @@
             ms = _ms_;
             sus = _sus_;
             flash = _flash_;
+            wss = _wss_;
             tes = _tes_;
             tfs = _tfs_;
             // TODO: consider funnelling actions through TopoForceService...
@@ -290,7 +291,7 @@
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);
             tis.initInst({ showMastership: tfs.showMastership });
-            tps.initPanels({ sendEvent: tes.sendEvent });
+            tps.initPanels();
             tes.start();
 
             $log.log('OvTopoCtrl has been created');

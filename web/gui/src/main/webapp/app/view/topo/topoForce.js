@@ -23,7 +23,8 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, tis, tms, td3, tss, tts, tos, fltr, tls,
+    var $log, fs, sus, is, ts, flash, wss,
+        tis, tms, td3, tss, tts, tos, fltr, tls,
         icfg, uplink, svg;
 
     // configuration
@@ -374,7 +375,7 @@
             metaUi = {x: d.x, y: d.y, lng: ll[0], lat: ll[1]};
         }
         d.metaUi = metaUi;
-        uplink.sendEvent('updateMeta', {
+        wss.sendEvent('updateMeta', {
             id: d.id,
             'class': d.class,
             memento: metaUi
@@ -691,8 +692,7 @@
         return {
             node: function () { return node; },
             zoomingOrPanning: zoomingOrPanning,
-            updateDeviceColors: td3.updateDeviceColors,
-            sendEvent: uplink.sendEvent
+            updateDeviceColors: td3.updateDeviceColors
         };
     }
 
@@ -704,8 +704,7 @@
             findLinkById: tms.findLinkById,
             hovered: tss.hovered,
             validateSelectionContext: tss.validateSelectionContext,
-            selectOrder: tss.selectOrder,
-            sendEvent: uplink.sendEvent
+            selectOrder: tss.selectOrder
         }
     }
 
@@ -749,11 +748,12 @@
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
-            'FlashService', 'TopoInstService', 'TopoModelService',
+            'FlashService', 'WebSocketService',
+            'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_,
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _wss_,
                   _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
             $log = _$log_;
             fs = _fs_;
@@ -761,6 +761,7 @@
             is = _is_;
             ts = _ts_;
             flash = _flash_;
+            wss = _wss_;
             tis = _tis_;
             tms = _tms_;
             td3 = _td3_;

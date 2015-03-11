@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash;
+    var $log, fs, flash, wss;
 
     // api to topoForce
     var api;
@@ -34,7 +34,6 @@
      findLinkById( id )
      hovered()
      validateSelectionContext()
-     sendEvent( type, {payload} )
      */
 
     // constants
@@ -86,7 +85,7 @@
         }
 
         if (api.validateSelectionContext()) {
-            api.sendEvent('requestDeviceLinkFlows', {
+            wss.sendEvent('requestDeviceLinkFlows', {
                 ids: api.selectOrder(),
                 hover: hoverValid() ? hov.id : ''
             });
@@ -102,7 +101,7 @@
         }
 
         if (api.validateSelectionContext()) {
-            api.sendEvent('requestRelatedIntents', {
+            wss.sendEvent('requestRelatedIntents', {
                 ids: api.selectOrder(),
                 hover: hoverValid() ? hov.id : ''
             });
@@ -114,7 +113,7 @@
     //  Traffic requests
 
     function cancelTraffic() {
-        api.sendEvent('cancelTraffic');
+        wss.sendEvent('cancelTraffic');
     }
 
     // invoked in response to change in selection and/or mouseover/out:
@@ -132,28 +131,28 @@
     // keystroke-right-arrow (see topo.js)
     function showNextIntentAction() {
         hoverMode = hoverModeNone;
-        api.sendEvent('requestNextRelatedIntent');
+        wss.sendEvent('requestNextRelatedIntent');
         flash.flash('>');
     }
 
     // keystroke-left-arrow (see topo.js)
     function showPrevIntentAction() {
         hoverMode = hoverModeNone;
-        api.sendEvent('requestPrevRelatedIntent');
+        wss.sendEvent('requestPrevRelatedIntent');
         flash.flash('<');
     }
 
     // keystroke-W (see topo.js)
     function showSelectedIntentTrafficAction() {
         hoverMode = hoverModeNone;
-        api.sendEvent('requestSelectedIntentTraffic');
+        wss.sendEvent('requestSelectedIntentTraffic');
         flash.flash('Traffic on Selected Path');
     }
 
     // keystroke-A (see topo.js)
     function showAllTrafficAction() {
         hoverMode = hoverModeAll;
-        api.sendEvent('requestAllTraffic');
+        wss.sendEvent('requestAllTraffic');
         flash.flash('All Traffic');
     }
 
@@ -169,7 +168,7 @@
 
     function addHostIntentAction () {
         var so = api.selectOrder();
-        api.sendEvent('addHostIntent', {
+        wss.sendEvent('addHostIntent', {
             one: so[0],
             two: so[1],
             ids: so
@@ -179,7 +178,7 @@
 
     function addMultiSourceIntentAction () {
         var so = api.selectOrder();
-        api.sendEvent('addMultiSourceIntent', {
+        wss.sendEvent('addMultiSourceIntent', {
             src: so.slice(0, so.length - 1),
             dst: so[so.length - 1],
             ids: so
@@ -200,12 +199,13 @@
 
     angular.module('ovTopo')
     .factory('TopoTrafficService',
-        ['$log', 'FnService', 'FlashService',
+        ['$log', 'FnService', 'FlashService', 'WebSocketService',
 
-        function (_$log_, _fs_, _flash_) {
+        function (_$log_, _fs_, _flash_, _wss_) {
             $log = _$log_;
             fs = _fs_;
             flash = _flash_;
+            wss = _wss_;
 
             function initTraffic(_api_) {
                 api = _api_;
