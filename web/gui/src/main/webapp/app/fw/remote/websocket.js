@@ -30,10 +30,13 @@
         sid = 0,                // event sequence identifier
         handlers = {},          // event handler bindings
         pendingEvents = [],     // events TX'd while socket not up
+        host,                   // web socket host
         url,                    // web socket URL
         clusterNodes = [],      // ONOS instances data for failover
         clusterIndex = -1,      // the instance to which we are connected
-        connectRetries = 0;
+        connectRetries = 0,     // limit our attempts at reconnecting
+        openListeners = {},     // registered listeners for websocket open()
+        nextListenerId = 1;     // internal ID for open listeners
 
     // =======================
     // === Bootstrap Handler
@@ -55,7 +58,7 @@
     // === Web socket callbacks
 
     function handleOpen() {
-        $log.info('Web socket open');
+        $log.info('Web socket open - ', url);
         vs.hide();
 
         $log.debug('Sending ' + pendingEvents.length + ' pending event(s)...');
@@ -66,6 +69,7 @@
 
         connectRetries = 0;
         wsUp = true;
+        informListeners(host, url);
     }
 
     // Handles the specified (incoming) message using handler bindings.
@@ -78,7 +82,7 @@
             $log.error('Message.data is not valid JSON', msgEvent.data, e);
             return;
         }
-        $log.debug(' *Rx* >> ', ev.event, ev.payload);
+        $log.debug(' << *Rx* ', ev.event, ev.payload);
 
         if (h = handlers[ev.event]) {
             try {
@@ -129,11 +133,16 @@
         return ip;
     }
 
+    function informListeners(host, url) {
+        angular.forEach(openListeners, function(lsnr) {
+            lsnr.cb(host, url);
+        });
+    }
+
     function _send(ev) {
         $log.debug(' *Tx* >> ', ev.event, ev.payload);
         ws.send(JSON.stringify(ev));
     }
-
 
     // ===================
     // === API Functions
@@ -145,12 +154,14 @@
 
     // Currently supported opts:
     //   wsport: web socket port (other than default 8181)
-    // server: if defined, is the server address to use
-    function createWebSocket(opts, server) {
+    // host: if defined, is the host address to use
+    function createWebSocket(opts, _host_) {
         var wsport = (opts && opts.wsport) || null;
+
         webSockOpts = opts; // preserved for future calls
 
-        url = ufs.wsUrl('core', wsport, server);
+        host = _host_ || $loc.host();
+        url = ufs.wsUrl('core', wsport, _host_);
 
         $log.debug('Attempting to open websocket to: ' + url);
         ws = wsock.newWebSocket(url);
@@ -163,15 +174,18 @@
         return url;
     }
 
-    // Binds the specified message handlers.
-    //   keys are the event IDs
-    //   values are the API on which the handler function is a property
+    // Binds the message handlers to their message type (event type) as
+    //  specified in the given map. Note that keys are the event IDs; values
+    //  are either:
+    //     * the event handler function, or
+    //     * an API object which has an event handler for the key
+    //
     function bindHandlers(handlerMap) {
         var m = d3.map(handlerMap),
             dups = [];
 
         m.forEach(function (eventId, api) {
-            var fn = fs.isF(api[eventId]);
+            var fn = fs.isF(api) || fs.isF(api[eventId]);
             if (!fn) {
                 $log.warn(eventId + ' handler not a function');
                 return;
@@ -196,6 +210,28 @@
         m.forEach(function (eventId) {
             delete handlers[eventId];
         });
+    }
+
+    function addOpenListener(callback) {
+        var id = nextListenerId++,
+            cb = fs.isF(callback),
+            o = { id: id, cb: cb };
+
+        if (cb) {
+            openListeners[id] = o;
+        } else {
+            $log.error('WSS.addOpenListener(): callback not a function');
+            o.error = 'No callback defined';
+        }
+        return o;
+    }
+
+    function removeOpenListener(lsnr) {
+        var id = lsnr && lsnr.id,
+            o = openListeners[id];
+        if (o) {
+            delete openListeners[id];
+        }
     }
 
     // Formulates an event message and sends it via the web-socket.
@@ -230,17 +266,15 @@
             wsock = _wsock_;
             vs = _vs_;
 
-            // TODO: Consider how to simplify handler structure
-            // Now it is an object of key -> object that has a method named 'key'.
-            bindHandlers({
-                bootstrap: builtinHandlers
-            });
+            bindHandlers(builtinHandlers);
 
             return {
                 resetSid: resetSid,
                 createWebSocket: createWebSocket,
                 bindHandlers: bindHandlers,
                 unbindHandlers: unbindHandlers,
+                addOpenListener: addOpenListener,
+                removeOpenListener: removeOpenListener,
                 sendEvent: sendEvent
             };
         }

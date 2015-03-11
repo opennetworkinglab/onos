@@ -46,7 +46,7 @@ describe('factory: fw/remote/websocket.js', function () {
     it('should define api functions', function () {
         expect(fs.areFunctions(wss, [
             'resetSid', 'createWebSocket', 'bindHandlers', 'unbindHandlers',
-            'sendEvent'
+            'addOpenListener', 'removeOpenListener', 'sendEvent'
         ])).toBeTruthy();
     });
 

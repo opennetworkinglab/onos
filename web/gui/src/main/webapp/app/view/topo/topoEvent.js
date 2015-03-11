@@ -30,7 +30,8 @@
     var $log, wss, tps, tis, tfs, tss, tts;
 
     // internal state
-    var handlerMap;
+    var handlerMap,
+        openListener;
 
     // ==========================
 
@@ -58,6 +59,14 @@
         };
     }
 
+    function wsOpen(host, url) {
+        $log.debug('TOPO: web socket open - cluster node:', host, 'URL:', url);
+
+        // TODO: request "instanceUpdate" events for all instances
+        // this should give us the updated uiAttached icon placement
+
+    }
+
     angular.module('ovTopo')
     .factory('TopoEventService',
         ['$log', '$location', 'WebSocketService',
@@ -76,6 +85,7 @@
             createHandlerMap();
 
             function start() {
+                openListener = wss.addOpenListener(wsOpen);
                 wss.bindHandlers(handlerMap);
                 wss.sendEvent('topoStart');
                 wss.sendEvent('requestSummary');
@@ -85,6 +95,8 @@
             function stop() {
                 wss.sendEvent('topoStop');
                 wss.unbindHandlers(handlerMap);
+                wss.removeOpenListener(openListener);
+                openListener = null;
                 $log.debug('topo comms stopped');
             }
 
