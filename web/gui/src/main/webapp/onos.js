@@ -84,10 +84,9 @@
                 flash.initFlash();
                 qhs.initQuickHelp();
 
-                // TODO: register handlers for initial messages: instances, settings, etc.
+                // TODO: register handler for user settings, etc.
 
-                // TODO: opts?
-                wss.createWebSocket('core', {
+                wss.createWebSocket({
                     wsport: $location.search().wsport
                 });
 

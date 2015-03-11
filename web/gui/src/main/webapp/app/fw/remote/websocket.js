@@ -21,32 +21,116 @@
     'use strict';
 
     // injected refs
-    var fs, $log;
+    var $log, $loc, fs, ufs, wsock, vs;
 
     // internal state
-    var ws, sws, sid = 0,
-        handlers = {};
+    var ws = null,              // web socket reference
+        wsUp = false,           // web socket is good to go
+        sid = 0,                // event sequence identifier
+        handlers = {},          // event handler bindings
+        pendingEvents = [],     // events TX'd while socket not up
+        url;                    // web socket URL
 
+
+    // ==========================
+    // === Web socket callbacks
+
+    function handleOpen() {
+        $log.info('Web socket open');
+        $log.debug('Sending ' + pendingEvents.length + ' pending event(s)...');
+        pendingEvents.forEach(function (ev) {
+            _send(ev);
+        });
+        pendingEvents = [];
+        wsUp = true;
+    }
+
+    // Handles the specified (incoming) message using handler bindings.
+    function handleMessage(msgEvent) {
+        var ev, h;
+
+        try {
+            ev = JSON.parse(msgEvent.data);
+            $log.debug(' *Rx* >> ', ev.event, ev.payload);
+
+            if (h = handlers[ev.event]) {
+                h(ev.payload);
+            } else {
+                $log.warn('Unhandled event:', ev);
+            }
+
+        } catch (e) {
+            $log.error('Message.data is (probably) not valid JSON', msgEvent);
+        }
+    }
+
+    function handleClose() {
+        $log.info('Web socket closed');
+        wsUp = false;
+
+        // FIXME: implement controller failover logic
+
+        // If no controllers left to contact, show the Veil...
+        vs.show([
+            'Oops!',
+            'Web-socket connection to server closed...',
+            'Try refreshing the page.'
+        ]);
+    }
+
+
+    // ==============================
+    // === Private Helper Functions
+
+    function _send(ev) {
+        $log.debug(' *Tx* >> ', ev.event, ev.payload);
+        ws.send(JSON.stringify(ev));
+    }
+
+
+    // ===================
+    // === API Functions
+
+    // Required for unit tests to set to known state
     function resetSid() {
         sid = 0;
     }
 
+    // Currently supported opts:
+    //   wsport: web socket port (other than default 8181)
+    function createWebSocket(opts) {
+        var wsport = (opts && opts.wsport) || null;
+
+        url = ufs.wsUrl('core', wsport);
+
+        $log.debug('Attempting to open websocket to: ' + url);
+        ws = wsock.newWebSocket(url);
+        if (ws) {
+            ws.onopen = handleOpen;
+            ws.onmessage = handleMessage;
+            ws.onclose = handleClose;
+        }
+        // Note: Wsock logs an error if the new WebSocket call fails
+    }
+
     // Binds the specified message handlers.
+    //   keys are the event IDs
+    //   values are the API on which the handler function is a property
     function bindHandlers(handlerMap) {
         var m = d3.map(handlerMap),
             dups = [];
 
-        m.forEach(function (key, value) {
-            var fn = fs.isF(value[key]);
+        m.forEach(function (eventId, api) {
+            var fn = fs.isF(api[eventId]);
             if (!fn) {
-                $log.warn(key + ' binding not a function on ' + value);
+                $log.warn(eventId + ' handler not a function');
                 return;
             }
 
-            if (handlers[key]) {
-                dups.push(key);
+            if (handlers[eventId]) {
+                dups.push(eventId);
             } else {
-                handlers[key] = fn;
+                handlers[eventId] = fn;
             }
         });
         if (dups.length) {
@@ -55,116 +139,46 @@
     }
 
     // Unbinds the specified message handlers.
+    //   Expected that the same map will be used, but we only care about keys
     function unbindHandlers(handlerMap) {
         var m = d3.map(handlerMap);
-        m.forEach(function (key) {
-            delete handlers[key];
+
+        m.forEach(function (eventId) {
+            delete handlers[eventId];
         });
     }
 
-    // Formulates an event message and sends it via the shared web-socket.
+    // Formulates an event message and sends it via the web-socket.
+    //  If the websocket is not up yet, we store it in a pending list.
     function sendEvent(evType, payload) {
-        var p = payload || {};
-        if (sws) {
-            $log.debug(' *Tx* >> ', evType, payload);
-            sws.send({
+        var ev = {
                 event: evType,
                 sid: ++sid,
-                payload: p
-            });
+                payload: payload || {}
+            };
+
+        if (wsUp) {
+            _send(ev);
         } else {
-            $log.warn('sendEvent: no websocket open:', evType, payload);
+            pendingEvents.push(ev);
         }
     }
 
 
-    // Handles the specified message using handler bindings.
-    function handleMessage(msgEvent) {
-        var ev;
-        try {
-            ev = JSON.parse(msgEvent.data);
-            $log.debug(' *Rx* >> ', ev.event, ev.payload);
-            dispatchToHandler(ev);
-        } catch (e) {
-            $log.error('message is not valid JSON', msgEvent);
-        }
-    }
-
-    // Dispatches the message to the appropriate handler.
-    function dispatchToHandler(event) {
-        var handler = handlers[event.event];
-        if (handler) {
-            handler(event.payload);
-        } else {
-            $log.warn('unhandled event:', event);
-        }
-    }
-
-    function handleOpen() {
-        $log.info('web socket open');
-        // FIXME: implement calling external hooks
-    }
-
-    function handleClose() {
-        $log.info('web socket closed');
-        // FIXME: implement reconnect logic
-    }
-
+    // ============================
+    // ===== Definition of module
     angular.module('onosRemote')
     .factory('WebSocketService',
-            ['$log', '$location', 'UrlFnService', 'FnService',
+        ['$log', '$location', 'FnService', 'UrlFnService', 'WSock',
+            'VeilService',
 
-        function (_$log_, $loc, ufs, _fs_) {
-            fs = _fs_;
+        function (_$log_, _$loc_, _fs_, _ufs_, _wsock_, _vs_) {
             $log = _$log_;
-
-            // Creates a web socket for the given path, returning a "handle".
-            // opts contains the event handler callbacks, etc.
-            function createWebSocket(path, opts) {
-                var o = opts || {},
-                    wsport = opts && opts.wsport,
-                    fullUrl = ufs.wsUrl(path, wsport),
-                    api = {
-                        meta: { path: fullUrl, ws: null },
-                        send: send,
-                        close: close
-                    };
-
-                try {
-                    ws = new WebSocket(fullUrl);
-                    api.meta.ws = ws;
-                } catch (e) {
-                }
-
-                $log.debug('Attempting to open websocket to: ' + fullUrl);
-
-                if (ws) {
-                    ws.onopen = handleOpen;
-                    ws.onmessage = handleMessage;
-                    ws.onclose = handleClose;
-                }
-
-                // Sends a formulated event message via the backing web-socket.
-                function send(ev) {
-                    if (ev && ws) {
-                        ws.send(JSON.stringify(ev));
-                    } else if (!ws) {
-                        $log.warn('ws.send() no web socket open!', fullUrl, ev);
-                    }
-                }
-
-                // Closes the backing web-socket.
-                function close() {
-                    if (ws) {
-                        ws.close();
-                        ws = null;
-                        api.meta.ws = null;
-                    }
-                }
-
-                sws = api; // Make the shared web-socket accessible
-                return api;
-            }
+            $loc = _$loc_;
+            fs = _fs_;
+            ufs = _ufs_;
+            wsock = _wsock_;
+            vs = _vs_;
 
             return {
                 resetSid: resetSid,
@@ -173,6 +187,7 @@
                 unbindHandlers: unbindHandlers,
                 sendEvent: sendEvent
             };
-    }]);
+        }
+    ]);
 
 }());

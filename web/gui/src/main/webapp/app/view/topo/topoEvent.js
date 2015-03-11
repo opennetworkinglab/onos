@@ -27,15 +27,15 @@
     'use strict';
 
     // injected refs
-    var $log, vs, wss, tps, tis, tfs, tss, tts;
+    var $log, wss, tps, tis, tfs, tss, tts;
 
     // internal state
-    var handlers;
+    var handlerMap;
 
     // ==========================
 
-    function createHandlers() {
-        handlers = {
+    function createHandlerMap() {
+        handlerMap = {
             showSummary: tps,
 
             showDetails: tss,
@@ -58,17 +58,14 @@
         };
     }
 
-    var nilApi = {};
-
     angular.module('ovTopo')
     .factory('TopoEventService',
-        ['$log', '$location', 'VeilService', 'WebSocketService',
+        ['$log', '$location', 'WebSocketService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
             'TopoSelectService', 'TopoTrafficService',
 
-        function (_$log_, $loc, _vs_, _wss_, _tps_, _tis_, _tfs_, _tss_, _tts_) {
+        function (_$log_, $loc, _wss_, _tps_, _tis_, _tfs_, _tss_, _tts_) {
             $log = _$log_;
-            vs = _vs_;
             wss = _wss_;
             tps = _tps_;
             tis = _tis_;
@@ -76,18 +73,18 @@
             tss = _tss_;
             tts = _tts_;
 
-            createHandlers();
+            createHandlerMap();
 
-            // FIXME: need to handle async socket open to avoid race
             function start() {
-                wss.bindHandlers(handlers);
+                wss.bindHandlers(handlerMap);
                 wss.sendEvent('topoStart');
+                wss.sendEvent('requestSummary');
                 $log.debug('topo comms started');
             }
 
             function stop() {
-                wss.unbindHandlers();
                 wss.sendEvent('topoStop');
+                wss.unbindHandlers(handlerMap);
                 $log.debug('topo comms stopped');
             }
 
