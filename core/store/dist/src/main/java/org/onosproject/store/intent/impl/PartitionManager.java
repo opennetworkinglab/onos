@@ -31,6 +31,7 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.PartitionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

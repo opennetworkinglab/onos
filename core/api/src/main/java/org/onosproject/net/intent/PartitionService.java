@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.intent.impl;
+package org.onosproject.net.intent;
 
 import org.onosproject.cluster.NodeId;
-import org.onosproject.net.intent.Key;
 
 /**
  * Service for interacting with the partition-to-instance assignments.
