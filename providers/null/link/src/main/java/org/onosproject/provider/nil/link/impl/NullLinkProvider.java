@@ -123,13 +123,11 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
             Executors.newScheduledThreadPool(THREADS, groupedThreads("onos/null", "link-driver-%d"));
 
     // For flicker = true, duration between events in msec.
-    @Property(name = "eventRate", intValue = 0, label = "Duration between Link Event")
+    @Property(name = "eventRate", intValue = DEFAULT_RATE, label = "Duration between Link Event")
     private int eventRate = DEFAULT_RATE;
 
     // topology configuration file
-    @Property(name = "cfgFile",
-            value = "/opt/onos/apache-karaf-3.0.2/etc/linkGraph.cfg",
-            label = "Topology file location")
+    @Property(name = "cfgFile", value = CFG_PATH, label = "Topology file location")
     private String cfgFile = CFG_PATH;
 
     // flag checked to create a LinkDriver, if rate is non-zero.

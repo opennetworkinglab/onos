@@ -1,3 +1,0 @@
-# Temporary: to be auto-generated in near future
-msgHandlerPoolSize|INTEGER|8|Number of threads in the message handler pool
-backupEnabled|BOOLEAN|DEFAULT_BACKUP_ENABLED|Indicates whether backups are enabled or not
