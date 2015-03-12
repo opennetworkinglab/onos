@@ -28,6 +28,8 @@ public enum EthType {
     RARP(Ethernet.TYPE_RARP),
     /** IPV4. */
     IPV4(Ethernet.TYPE_IPV4),
+    /** IPV6. */
+    IPV6(Ethernet.TYPE_IPV6),
     /** LLDP. */
     LLDP(Ethernet.TYPE_LLDP),
     /** BSN. */
