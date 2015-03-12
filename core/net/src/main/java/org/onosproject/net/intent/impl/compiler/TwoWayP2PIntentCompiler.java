@@ -51,11 +51,11 @@ public class TwoWayP2PIntentCompiler
                 new PointToPointIntent(intent.appId(), intent.key(),
                                        intent.selector(), intent.treatment(),
                                        intent.one(), intent.two(),
-                                       intent.constraints(), Intent.DEFAULT_INTENT_PRIORITY),
+                                       intent.constraints(), intent.priority()),
                 new PointToPointIntent(intent.appId(), intent.key(),
                                        intent.selector(), intent.treatment(),
                                        intent.two(), intent.one(),
-                                       intent.constraints(), Intent.DEFAULT_INTENT_PRIORITY));
+                                       intent.constraints(), intent.priority()));
 
     }
 }

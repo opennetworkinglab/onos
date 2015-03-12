@@ -1,15 +1,11 @@
 package org.onosproject.cli.net;
 
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-
 import java.util.List;
 import java.util.Optional;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-
 import org.onlab.packet.MplsLabel;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -19,6 +15,9 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.MplsIntent;
+
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 @Command(scope = "onos", name = "add-mpls-intent", description = "Installs mpls connectivity intent")
 public class AddMplsIntent extends ConnectivityIntentCommand {
@@ -78,7 +77,8 @@ public class AddMplsIntent extends ConnectivityIntentCommand {
 
         MplsIntent intent = new MplsIntent(appId(), selector, treatment,
                                            ingress, ingressLabel, egress,
-                                           egressLabel, constraints);
+                                           egressLabel, constraints,
+                                           priority());
         service.submit(intent);
     }
 

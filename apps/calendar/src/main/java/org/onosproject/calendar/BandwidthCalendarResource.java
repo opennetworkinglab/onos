@@ -231,12 +231,14 @@ public class BandwidthCalendarResource extends BaseResource {
             HostId srcPoint = HostId.hostId(src);
             HostId dstPoint = HostId.hostId(dst);
             return new HostToHostIntent(appId(), key, srcPoint, dstPoint,
-                                        selector, treatment, constraints);
+                                        selector, treatment, constraints,
+                                        Intent.DEFAULT_INTENT_PRIORITY);
         } else {
             ConnectPoint srcPoint = new ConnectPoint(deviceId(src), portNumber(srcPort));
             ConnectPoint dstPoint = new ConnectPoint(deviceId(dst), portNumber(dstPort));
             return new TwoWayP2PIntent(appId(), key, srcPoint, dstPoint,
-                                       selector, treatment, constraints);
+                                       selector, treatment, constraints,
+                                       Intent.DEFAULT_INTENT_PRIORITY);
         }
     }
 

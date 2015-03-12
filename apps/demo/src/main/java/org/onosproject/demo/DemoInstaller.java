@@ -214,7 +214,8 @@ public class DemoInstaller implements DemoAPI {
                 for (Host dst : hosts) {
                     HostToHostIntent intent = new HostToHostIntent(appId, src.id(), dst.id(),
                                                                    selector, treatment,
-                                                                   constraint);
+                                                                   constraint,
+                                                                   Intent.DEFAULT_INTENT_PRIORITY);
                     existingIntents.add(intent);
                     intentService.submit(intent);
                 }
@@ -414,7 +415,8 @@ public class DemoInstaller implements DemoAPI {
                 this.src = src;
                 this.dst = dst;
                 this.intent = new HostToHostIntent(appId, src.id(), dst.id(),
-                                                   selector, treatment, constraint);
+                                                   selector, treatment, constraint,
+                                                   Intent.DEFAULT_INTENT_PRIORITY);
             }
 
             public HostToHostIntent h2hIntent() {
