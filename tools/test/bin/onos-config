@@ -8,6 +8,10 @@
 
 remote=$ONOS_USER@${1:-$OCI}
 
+# Customize features
+export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow}"
+
+
 # Generate a cluster.json from the ON* environment variables
 CDEF_FILE=/tmp/${remote}.cluster.json
 echo "{ \"ipPrefix\": \"$ONOS_NIC\"," > $CDEF_FILE
@@ -35,13 +39,16 @@ ssh $remote "
     # Suppress Hazelcast multicast joiner warning
     echo "log4j.logger.com.hazelcast.cluster.impl.MulticastService= ERROR" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
+
+    # Patch the Apache Karaf distribution file to load ONOS features
+    perl -pi.old -e \"s|^(featuresBoot=.*,management)(,webconsole,.*)|\1,$ONOS_FEATURES|\" \
+        $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 "
 
 # Generate a default tablets.json from the ON* environment variables
 TDEF_FILE=/tmp/${remote}.tablets.json
 onos-gen-partitions $TDEF_FILE
 scp -q $TDEF_FILE $remote:$ONOS_INSTALL_DIR/config/tablets.json
-
 
 # copy tools/package/config/ to remote
 scp -qr ${ONOS_ROOT}/tools/package/config/ $remote:$ONOS_INSTALL_DIR/

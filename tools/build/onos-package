@@ -1,6 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Packages ONOS distributable into onos.tar.gz
+# Packages ONOS distributable into onos.tar.gz and onos.zip
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
@@ -57,8 +57,6 @@ find $M2_REPO/org/onosproject/ -type d -name $ONOS_POM_VERSION | while read line
         $KARAF_DIST/system/org/onosproject/$artifact/$ONOS_POM_VERSION
 done
 
-export ONOS_FEATURES="${ONOS_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow,onos-app-fwd,onos-app-foo}"
-
 # ONOS Patching ----------------------------------------------------------------
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
@@ -66,6 +64,7 @@ perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-featur
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
 
 # Patch the Apache Karaf distribution file to load ONOS features
+export ONOS_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow"
 perl -pi.old -e "s|^(featuresBoot=.*)|\1,$ONOS_FEATURES|" \
     $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 

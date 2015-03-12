@@ -20,11 +20,19 @@ export BUILD_NUMBER=${BUILD_NUMBER:-$(id -un)~$(date +'%Y/%m/%d@%H:%M')}
 # ONOS Version and onos.tar.gz staging environment
 export ONOS_POM_VERSION="1.1.0-SNAPSHOT"
 export ONOS_VERSION=${ONOS_VERSION:-1.1.0.$BUILD_NUMBER}
+
+# ONOS production bits (onos.tar.gz & onos.zip) staging environment
 export ONOS_BITS=onos-${ONOS_VERSION%~*}
 export ONOS_STAGE_ROOT=${ONOS_STAGE_ROOT:-/tmp}
 export ONOS_STAGE=$ONOS_STAGE_ROOT/$ONOS_BITS
 export ONOS_TAR=$ONOS_STAGE.tar.gz
 export ONOS_ZIP=$ONOS_STAGE.zip
+
+# ONOS test bits (onos-test.tar.gz) staging environment
+export ONOS_TEST_BITS=onos-test-${ONOS_VERSION%~*}
+export ONOS_TEST_STAGE_ROOT=${ONOS_TEST_STAGE_ROOT:-/tmp}
+export ONOS_TEST_STAGE=$ONOS_STAGE_ROOT/$ONOS_TEST_BITS
+export ONOS_TEST_TAR=$ONOS_TEST_STAGE.tar.gz
 
 # Defaults for ONOS testing using remote machines.
 # if [ -n "${ONOS_CELL}" -a -f $ONOS_ROOT/tools/test/cells/${ONOS_CELL} ]; then

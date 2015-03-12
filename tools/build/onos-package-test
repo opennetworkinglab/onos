@@ -1,0 +1,29 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Packages ONOS test facilities into onos-test.tar.gz
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+# Bail on any errors
+set -e
+
+rm -fr $ONOS_TEST_STAGE # Remove this when package script is completed
+
+# Create the stage directory and warp into it
+mkdir -p $ONOS_TEST_STAGE/tools/test \
+    $ONOS_TEST_STAGE/tools/dev \
+    $ONOS_TEST_STAGE/tools/build \
+    $ONOS_TEST_STAGE/tools/package/config
+
+cp -r $ONOS_ROOT/tools/test $ONOS_TEST_STAGE/tools
+cp $ONOS_ROOT/tools/dev/bash_profile $ONOS_TEST_STAGE/tools/dev
+cp $ONOS_ROOT/tools/build/envDefaults $ONOS_TEST_STAGE/tools/build
+
+cd $ONOS_TEST_STAGE_ROOT
+
+# Now package up the ONOS test tools tar file
+COPYFILE_DISABLE=1 tar zcf $ONOS_TEST_TAR $ONOS_TEST_BITS
+cd $ONOS_TEST_STAGE_ROOT
+# rm -r $ONOS_TEST_STAGE
