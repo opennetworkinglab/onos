@@ -37,12 +37,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Manages the connectivity requirements between peers.
  */
 public class PeerConnectivityManager {
+    private static final int PRIORITY_OFFSET = 1000;
 
     private static final Logger log = LoggerFactory.getLogger(
             PeerConnectivityManager.class);
@@ -188,8 +190,13 @@ public class PeerConnectivityManager {
                                  null,
                                  BGP_PORT);
 
+        int priority = PRIORITY_OFFSET;
+
         intents.add(new PointToPointIntent(appId, selector, treatment,
-                               bgpdConnectPoint, bgpdPeerConnectPoint));
+                                           bgpdConnectPoint,
+                                           bgpdPeerConnectPoint,
+                                           Collections.emptyList(),
+                                           priority));
 
         // Path from BGP speaker to BGP peer matching source TCP port 179
         selector = buildSelector(tcpProtocol,
@@ -199,7 +206,10 @@ public class PeerConnectivityManager {
                                  null);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
-                               bgpdConnectPoint, bgpdPeerConnectPoint));
+                                           bgpdConnectPoint,
+                                           bgpdPeerConnectPoint,
+                                           Collections.emptyList(),
+                                           priority));
 
         // Path from BGP peer to BGP speaker matching destination TCP port 179
         selector = buildSelector(tcpProtocol,
@@ -209,7 +219,10 @@ public class PeerConnectivityManager {
                                  BGP_PORT);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
-                               bgpdPeerConnectPoint, bgpdConnectPoint));
+                                           bgpdPeerConnectPoint,
+                                           bgpdConnectPoint,
+                                           Collections.emptyList(),
+                                           priority));
 
         // Path from BGP peer to BGP speaker matching source TCP port 179
         selector = buildSelector(tcpProtocol,
@@ -219,7 +232,10 @@ public class PeerConnectivityManager {
                                  null);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
-                               bgpdPeerConnectPoint, bgpdConnectPoint));
+                                           bgpdPeerConnectPoint,
+                                           bgpdConnectPoint,
+                                           Collections.emptyList(),
+                                           priority));
 
         // ICMP path from BGP speaker to BGP peer
         selector = buildSelector(icmpProtocol,
@@ -229,7 +245,10 @@ public class PeerConnectivityManager {
                                  null);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
-                               bgpdConnectPoint, bgpdPeerConnectPoint));
+                                           bgpdConnectPoint,
+                                           bgpdPeerConnectPoint,
+                                           Collections.emptyList(),
+                                           priority));
 
         // ICMP path from BGP peer to BGP speaker
         selector = buildSelector(icmpProtocol,
@@ -239,7 +258,10 @@ public class PeerConnectivityManager {
                                  null);
 
         intents.add(new PointToPointIntent(appId, selector, treatment,
-                               bgpdPeerConnectPoint, bgpdConnectPoint));
+                                           bgpdPeerConnectPoint,
+                                           bgpdConnectPoint,
+                                           Collections.emptyList(),
+                                           priority));
 
         return intents;
     }
