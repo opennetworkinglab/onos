@@ -1488,6 +1488,11 @@ public class GossipDeviceStore
             ProviderId providerId = event.providerId();
             DeviceId deviceId = event.deviceId();
             DeviceDescription deviceDescription = event.deviceDescription();
+            if (!deviceClockService.isTimestampAvailable(deviceId)) {
+                // workaround for ONOS-1208
+                log.warn("Not ready to accept update. Dropping {}", deviceDescription);
+                return;
+            }
 
             try {
                 createOrUpdateDevice(providerId, deviceId, deviceDescription);
@@ -1508,6 +1513,11 @@ public class GossipDeviceStore
             ProviderId providerId = event.providerId();
             DeviceId deviceId = event.deviceId();
             List<PortDescription> portDescriptions = event.portDescriptions();
+            if (!deviceClockService.isTimestampAvailable(deviceId)) {
+                // workaround for ONOS-1208
+                log.warn("Not ready to accept update. Dropping {}", portDescriptions);
+                return;
+            }
 
             try {
                 updatePorts(providerId, deviceId, portDescriptions);
