@@ -653,7 +653,6 @@ public class DistributedFlowRuleStore
             switch (event.type()) {
                 case MASTER_CHANGED:
                     if (local.equals(rInfo.master().orNull())) {
-                        log.info("{} is now the master for {}. Will load flow rules from backup", local, did);
                         // This node is the new master, populate local structure
                         // from backup
                         flowTable.loadFromBackup(did);
@@ -725,6 +724,7 @@ public class DistributedFlowRuleStore
             if (!backupsEnabled) {
                 return;
             }
+            log.info("We are now the master for {}. Will load flow rules from backup", deviceId);
 
             ConcurrentMap<FlowId, Set<StoredFlowEntry>> flowTable = new ConcurrentHashMap<>();
 

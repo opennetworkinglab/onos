@@ -181,7 +181,6 @@ public class IntentPerfInstaller {
     }
 
     public void start() {
-        // TODO perhaps move to start(), but need to call before logConfig
         // adjust numNeighbors and generate list of neighbors
         numNeighbors = Math.min(clusterService.getNodes().size() - 1, numNeighbors);
 
@@ -232,13 +231,12 @@ public class IntentPerfInstaller {
                 node1.toString().compareTo(node2.toString()));
         // rotate the local node to index 0
         Collections.rotate(nodes, -1 * nodes.indexOf(clusterService.getLocalNode().id()));
-        log.info("neighbors (raw): {}", nodes); //TODO remove
+        log.debug("neighbors (raw): {}", nodes); //TODO remove
         // generate the sub-list that will contain local node and selected neighbors
         nodes = nodes.subList(0, numNeighbors + 1);
-        log.info("neighbors: {}", nodes); //TODO remove
+        log.debug("neighbors: {}", nodes); //TODO remove
         return nodes;
     }
-
 
     private Intent createIntent(Key key, long mac, NodeId node, Multimap<NodeId, Device> devices) {
         // choose a random device for which this node is master
@@ -309,8 +307,6 @@ public class IntentPerfInstaller {
         checkState(intents.values().size() == numberOfKeys,
                    "Generated wrong number of intents");
         log.info("Created {} intents", numberOfKeys);
-
-        //FIXME remove this
         intents.keySet().forEach(node -> log.info("\t{}\t{}", node, intents.get(node).size()));
 
         return Sets.newHashSet(intents.values());
@@ -336,7 +332,11 @@ public class IntentPerfInstaller {
         public void run() {
             prime();
             while (!stopped) {
-                cycle();
+                try {
+                    cycle();
+                } catch (Exception e) {
+                    log.warn("Exception during cycle", e);
+                }
             }
             clear();
         }
@@ -402,14 +402,19 @@ public class IntentPerfInstaller {
 
         int cycleCount = 0;
         private void adjustRates() {
+
+            int addDelta = Math.max(1000 - cycleCount, 10);
+            double multRatio = Math.min(0.8 + cycleCount * 0.0002, 0.995);
+
             //FIXME need to iron out the rate adjustment
             //FIXME we should taper the adjustments over time
+            //FIXME don't just use the lastDuration, take an average
             if (++cycleCount % 5 == 0) { //TODO: maybe use a timer (we should do this every 5-10 sec)
                 if (listener.requestThroughput() - listener.processedThroughput() <= 2000 && //was 500
                         lastDuration <= cyclePeriod) {
-                    lastCount = Math.min(lastCount + 1000, intents.size() / 2);
+                    lastCount = Math.min(lastCount + addDelta, intents.size() / 2);
                 } else {
-                    lastCount *= 0.8;
+                    lastCount *= multRatio;
                 }
                 log.info("last count: {}, last duration: {} ms (sub: {} vs inst: {})",
                          lastCount, lastDuration, listener.requestThroughput(), listener.processedThroughput());

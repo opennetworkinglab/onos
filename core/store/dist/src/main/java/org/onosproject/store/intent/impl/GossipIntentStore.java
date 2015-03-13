@@ -16,6 +16,7 @@
 package org.onosproject.store.intent.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,9 +46,7 @@ import org.onosproject.store.impl.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -102,7 +101,7 @@ public class GossipIntentStore
         pendingMap = new EventuallyConsistentMapImpl<>("intent-pending",
                                                        clusterService,
                                                        clusterCommunicator,
-                                                       intentSerializer, // TODO
+                                                       intentSerializer,
                                                        new IntentDataClockManager<>(),
                                                        (key, intentData) -> getPeerNodes(key, intentData));
 
@@ -254,29 +253,36 @@ public class GossipIntentStore
     private Collection<NodeId> getPeerNodes(Key key, IntentData data) {
         NodeId master = partitionService.getLeader(key);
         NodeId origin = (data != null) ? data.origin() : null;
+        if (master == null || origin == null) {
+            log.warn("Intent {} has no home; master = {}, origin = {}",
+                     data.key(), master, origin);
+        }
+
         NodeId me = clusterService.getLocalNode().id();
         boolean isMaster = Objects.equals(master, me);
         boolean isOrigin = Objects.equals(origin, me);
         if (isMaster && isOrigin) {
-            return ImmutableList.of(getRandomNode());
+            return getRandomNode();
         } else if (isMaster) {
-            return origin != null ? ImmutableList.of(origin) : ImmutableList.of(getRandomNode());
+            return origin != null ? ImmutableList.of(origin) : getRandomNode();
         } else if (isOrigin) {
-            return ImmutableList.of(master);
+            return master != null ? ImmutableList.of(master) : getRandomNode();
         } else {
-            // FIXME: why are we here? log error?
+            log.warn("Not master or origin for intent {}", data.key());
             return ImmutableList.of(master);
         }
     }
 
-    private NodeId getRandomNode() {
+    private List<NodeId> getRandomNode() {
+        NodeId me = clusterService.getLocalNode().id();
         List<NodeId> nodes = clusterService.getNodes().stream()
-                                .map(ControllerNode::id)
-                .collect(Collectors.toCollection(ArrayList::new));
-        Collections.shuffle(nodes);
-        // FIXME check if self
-        // FIXME verify nodes.size() > 0
-        return nodes.get(0);
+                .map(ControllerNode::id)
+                .filter(node -> !Objects.equals(node, me))
+                .collect(Collectors.toList());
+        if (nodes.size() == 0) {
+            return null;
+        }
+        return ImmutableList.of(nodes.get(RandomUtils.nextInt(nodes.size())));
     }
 
     @Override
