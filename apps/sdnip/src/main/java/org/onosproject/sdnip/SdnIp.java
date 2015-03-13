@@ -29,6 +29,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RoutingConfigurationService;
@@ -51,6 +52,9 @@ public class SdnIp implements SdnIpService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -89,6 +93,7 @@ public class SdnIp implements SdnIpService {
         localControllerNode = clusterService.getLocalNode();
 
         intentSynchronizer = new IntentSynchronizer(appId, intentService,
+                                                    hostService,
                                                     config);
         intentSynchronizer.start();
 
@@ -97,7 +102,9 @@ public class SdnIp implements SdnIpService {
                                                        config);
         peerConnectivity.start();
 
-        routingService.start(intentSynchronizer);
+        routingService.addFibListener(intentSynchronizer);
+        routingService.addIntentRequestListener(intentSynchronizer);
+        routingService.start();
 
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());

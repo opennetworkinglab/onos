@@ -118,7 +118,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         intentService = createMock(IntentService.class);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    routingConfig);
+                                                    null, routingConfig);
     }
 
     /**

@@ -172,7 +172,8 @@ public class BgpRouter {
 
         icmpHandler = new IcmpHandler(configService, packetService);
 
-        routingService.start(new InternalFibListener());
+        routingService.addFibListener(new InternalFibListener());
+        routingService.start();
 
         connectivityManager.start();
 

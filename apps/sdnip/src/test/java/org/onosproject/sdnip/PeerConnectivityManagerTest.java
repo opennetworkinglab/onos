@@ -555,7 +555,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(intentService);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    routingConfig);
+                                                    null, routingConfig);
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 

@@ -16,6 +16,7 @@
 package org.onosproject.routing.config;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.Map;
@@ -39,6 +40,22 @@ public interface RoutingConfigurationService {
      * @return the map from peer IP address to BgpPeer object
      */
     public Map<IpAddress, BgpPeer> getBgpPeers();
+
+    /**
+     * Evaluates whether an IP address belongs to local SDN network.
+     *
+     * @param ipAddress the IP address to evaluate
+     * @return true if the IP address belongs to local SDN network, otherwise false
+     */
+    public boolean isIpAddressLocal(IpAddress ipAddress);
+
+    /**
+     * Evaluates whether an IP prefix belongs to local SDN network.
+     *
+     * @param ipPrefix the IP prefix to evaluate
+     * @return true if the IP prefix belongs to local SDN network, otherwise false
+     */
+    public boolean isIpPrefixLocal(IpPrefix ipPrefix);
 
     /**
      * Retrieves the entire set of interfaces in the network.

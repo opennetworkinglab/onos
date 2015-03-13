@@ -62,5 +62,21 @@
             ]
             
         }
+    ],
+    "ip4LocalPrefixes" : [
+        {
+                "ipPrefix" : "100.0.0.0/24",
+                "type" : "PUBLIC"
+        },
+        {
+                "ipPrefix" : "200.0.0.0/8",
+                "type" : "PUBLIC"
+        },
+        {
+                "ipPrefix" : "192.0.0.0/24",
+                "type" : "PRIVATE"
+        }
+    ],
+    "ip6LocalPrefixes" : [
     ]
 }

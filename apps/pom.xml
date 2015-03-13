@@ -42,6 +42,7 @@
         <module>oecfg</module>
         <module>routing</module>
         <module>routing-api</module>
+        <module>reactive-routing</module>
         <module>bgprouter</module>
         <module>test</module>
     </modules>

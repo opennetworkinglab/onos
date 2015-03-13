@@ -35,12 +35,14 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -49,6 +51,7 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.IntentRequestListener;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
@@ -58,12 +61,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Synchronizes intents between the in-memory intent store and the
  * IntentService.
  */
-public class IntentSynchronizer implements FibListener {
+public class IntentSynchronizer implements FibListener, IntentRequestListener {
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
 
@@ -72,6 +76,7 @@ public class IntentSynchronizer implements FibListener {
 
     private final ApplicationId appId;
     private final IntentService intentService;
+    private final HostService hostService;
     private final Map<IntentKey, PointToPointIntent> peerIntents;
     private final Map<IpPrefix, MultiPointToSinglePointIntent> routeIntents;
 
@@ -90,12 +95,15 @@ public class IntentSynchronizer implements FibListener {
      *
      * @param appId the Application ID
      * @param intentService the intent service
+     * @param hostService the host service
      * @param configService the SDN-IP configuration service
      */
     IntentSynchronizer(ApplicationId appId, IntentService intentService,
+                       HostService hostService,
                        RoutingConfigurationService configService) {
         this.appId = appId;
         this.intentService = intentService;
+        this.hostService = hostService;
         peerIntents = new ConcurrentHashMap<>();
         routeIntents = new ConcurrentHashMap<>();
 
@@ -264,6 +272,25 @@ public class IntentSynchronizer implements FibListener {
     }
 
     /**
+     * Submits a MultiPointToSinglePointIntent for reactive routing.
+     *
+     * @param ipPrefix the IP prefix to match in a MultiPointToSinglePointIntent
+     * @param intent the intent to submit
+     */
+    void submitReactiveIntent(IpPrefix ipPrefix, MultiPointToSinglePointIntent intent) {
+        synchronized (this) {
+            // Store the intent in memory
+            routeIntents.put(ipPrefix, intent);
+
+            // Push the intent
+            if (isElectedLeader && isActivatedLeader) {
+                log.trace("SDN-IP submitting reactive routing intent: {}", intent);
+                intentService.submit(intent);
+            }
+        }
+    }
+
+    /**
      * Generates a route intent for a prefix, the next hop IP address, and
      * the next hop MAC address.
      * <p/>
@@ -350,6 +377,62 @@ public class IntentSynchronizer implements FibListener {
                 .priority(priority)
                 .build();
     }
+
+    @Override
+    public void setUpConnectivityInternetToHost(IpAddress hostIpAddress) {
+        checkNotNull(hostIpAddress);
+        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
+        for (Interface intf : configService.getInterfaces()) {
+            ConnectPoint srcPoint = intf.connectPoint();
+            ingressPoints.add(srcPoint);
+        }
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+
+        if (hostIpAddress.isIp4()) {
+            selector.matchEthType(Ethernet.TYPE_IPV4);
+        } else {
+            selector.matchEthType(Ethernet.TYPE_IPV6);
+        }
+
+        // Match the destination IP prefix at the first hop
+        IpPrefix ipPrefix = hostIpAddress.toIpPrefix();
+        selector.matchIPDst(ipPrefix);
+
+        // Rewrite the destination MAC address
+        MacAddress hostMac = null;
+        ConnectPoint egressPoint = null;
+        for (Host host : hostService.getHostsByIp(hostIpAddress)) {
+            if (host.mac() != null) {
+                hostMac = host.mac();
+                egressPoint = host.location();
+                break;
+            }
+        }
+        if (hostMac == null) {
+            hostService.startMonitoringIp(hostIpAddress);
+            return;
+        }
+
+        TrafficTreatment.Builder treatment =
+                DefaultTrafficTreatment.builder().setEthDst(hostMac);
+        Key key = Key.of(ipPrefix.toString(), appId);
+        int priority = ipPrefix.prefixLength() * PRIORITY_MULTIPLIER
+                + PRIORITY_OFFSET;
+        MultiPointToSinglePointIntent intent =
+                MultiPointToSinglePointIntent.builder()
+                .appId(appId)
+                .key(key)
+                .selector(selector.build())
+                .treatment(treatment.build())
+                .ingressPoints(ingressPoints)
+                .egressPoint(egressPoint)
+                .priority(priority)
+                .build();
+
+        log.trace("Generates ConnectivityInternetToHost intent {}", intent);
+        submitReactiveIntent(ipPrefix, intent);
+    }
+
 
     @Override
     public void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
@@ -737,5 +820,168 @@ public class IntentSynchronizer implements FibListener {
             checkArgument(false, "Intent type not recognized", intent);
             return false;
         }
+    }
+
+    @Override
+    public void setUpConnectivityHostToHost(IpAddress dstIpAddress,
+                                            IpAddress srcIpAddress,
+                                            MacAddress srcMacAddress,
+                                            ConnectPoint srcConnectPoint) {
+        checkNotNull(dstIpAddress);
+        checkNotNull(srcIpAddress);
+        checkNotNull(srcMacAddress);
+        checkNotNull(srcConnectPoint);
+
+        IpPrefix srcIpPrefix = srcIpAddress.toIpPrefix();
+        IpPrefix dstIpPrefix = dstIpAddress.toIpPrefix();
+        ConnectPoint dstConnectPoint = null;
+        MacAddress dstMacAddress = null;
+
+        for (Host host : hostService.getHostsByIp(dstIpAddress)) {
+            if (host.mac() != null) {
+                dstMacAddress = host.mac();
+                dstConnectPoint = host.location();
+                break;
+            }
+        }
+        if (dstMacAddress == null) {
+            hostService.startMonitoringIp(dstIpAddress);
+            return;
+        }
+
+        //
+        // Handle intent from source host to destination host
+        //
+        MultiPointToSinglePointIntent srcToDstIntent =
+                hostToHostIntentGenerator(dstIpAddress, dstConnectPoint,
+                                    dstMacAddress, srcConnectPoint);
+        submitReactiveIntent(dstIpPrefix, srcToDstIntent);
+
+        //
+        // Handle intent from destination host to source host
+        //
+
+        // Since we proactively handle the intent from destination host to
+        // source host, we should check whether there is an exiting intent
+        // first.
+        if (mp2pIntentExists(srcIpPrefix)) {
+            updateExistingMp2pIntent(srcIpPrefix, dstConnectPoint);
+            return;
+        } else {
+            // There is no existing intent, create a new one.
+            MultiPointToSinglePointIntent dstToSrcIntent =
+                    hostToHostIntentGenerator(srcIpAddress, srcConnectPoint,
+                                        srcMacAddress, dstConnectPoint);
+            submitReactiveIntent(srcIpPrefix, dstToSrcIntent);
+        }
+    }
+
+    /**
+     * Generates MultiPointToSinglePointIntent for both source host and
+     * destination host located in local SDN network.
+     *
+     * @param dstIpAddress the destination IP address
+     * @param dstConnectPoint the destination host connect point
+     * @param dstMacAddress the MAC address of destination host
+     * @param srcConnectPoint the connect point where packet-in from
+     * @return the generated MultiPointToSinglePointIntent
+     */
+    private MultiPointToSinglePointIntent hostToHostIntentGenerator(
+                                       IpAddress dstIpAddress,
+                                       ConnectPoint dstConnectPoint,
+                                       MacAddress dstMacAddress,
+                                       ConnectPoint srcConnectPoint) {
+        checkNotNull(dstIpAddress);
+        checkNotNull(dstConnectPoint);
+        checkNotNull(dstMacAddress);
+        checkNotNull(srcConnectPoint);
+
+        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
+        ingressPoints.add(srcConnectPoint);
+        IpPrefix dstIpPrefix = dstIpAddress.toIpPrefix();
+
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        if (dstIpAddress.isIp4()) {
+            selector.matchEthType(Ethernet.TYPE_IPV4);
+            selector.matchIPDst(dstIpPrefix);
+        } else {
+            selector.matchEthType(Ethernet.TYPE_IPV6);
+            selector.matchIPv6Dst(dstIpPrefix);
+        }
+
+        // Rewrite the destination MAC address
+        TrafficTreatment.Builder treatment =
+                DefaultTrafficTreatment.builder().setEthDst(dstMacAddress);
+
+        Key key = Key.of(dstIpPrefix.toString(), appId);
+        int priority = dstIpPrefix.prefixLength() * PRIORITY_MULTIPLIER
+                + PRIORITY_OFFSET;
+        MultiPointToSinglePointIntent intent =
+                MultiPointToSinglePointIntent.builder()
+                .appId(appId)
+                .key(key)
+                .selector(selector.build())
+                .treatment(treatment.build())
+                .ingressPoints(ingressPoints)
+                .egressPoint(dstConnectPoint)
+                .priority(priority)
+                .build();
+
+        log.trace("Generates ConnectivityHostToHost = {} ", intent);
+        return intent;
+    }
+
+    @Override
+    public void updateExistingMp2pIntent(IpPrefix ipPrefix,
+                                         ConnectPoint ingressConnectPoint) {
+        checkNotNull(ipPrefix);
+        checkNotNull(ingressConnectPoint);
+
+        MultiPointToSinglePointIntent existingIntent =
+                getExistingMp2pIntent(ipPrefix);
+        if (existingIntent != null) {
+            Set<ConnectPoint> ingressPoints = existingIntent.ingressPoints();
+            // Add host connect point into ingressPoints of the existing intent
+            if (ingressPoints.add(ingressConnectPoint)) {
+                MultiPointToSinglePointIntent updatedMp2pIntent =
+                        MultiPointToSinglePointIntent.builder()
+                        .appId(appId)
+                        .key(existingIntent.key())
+                        .selector(existingIntent.selector())
+                        .treatment(existingIntent.treatment())
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(existingIntent.egressPoint())
+                        .priority(existingIntent.priority())
+                        .build();
+
+                log.trace("Update an existing MultiPointToSinglePointIntent "
+                        + "to new intent = {} ", updatedMp2pIntent);
+                submitReactiveIntent(ipPrefix, updatedMp2pIntent);
+            }
+            // If adding ingressConnectPoint to ingressPoints failed, it
+            // because between the time interval from checking existing intent
+            // to generating new intent, onos updated this intent due to other
+            // packet-in and the new intent also includes the
+            // ingressConnectPoint. This will not affect reactive routing.
+        }
+    }
+
+    @Override
+    public boolean mp2pIntentExists(IpPrefix ipPrefix) {
+        checkNotNull(ipPrefix);
+        return routeIntents.get(ipPrefix) == null ? false : true;
+    }
+
+    /**
+     * Gets the existing MultiPointToSinglePointIntent from memory for a given
+     * IP prefix.
+     *
+     * @param ipPrefix the IP prefix used to find MultiPointToSinglePointIntent
+     * @return the MultiPointToSinglePointIntent if found, otherwise null
+     */
+    private MultiPointToSinglePointIntent getExistingMp2pIntent(IpPrefix
+                                                                ipPrefix) {
+        checkNotNull(ipPrefix);
+        return routeIntents.get(ipPrefix);
     }
 }

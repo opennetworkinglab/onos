@@ -16,17 +16,25 @@
 package org.onosproject.routing.config.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
 import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.LocalIpPrefixEntry;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +46,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.onosproject.routing.RouteEntry.createBinaryString;
 
 /**
  * Implementation of RoutingConfigurationService which reads routing
@@ -58,6 +68,13 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
 
     private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
     private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
+
+    private InvertedRadixTree<LocalIpPrefixEntry>
+            localPrefixTable4 = new ConcurrentInvertedRadixTree<>(
+                    new DefaultByteArrayNodeFactory());
+    private InvertedRadixTree<LocalIpPrefixEntry>
+            localPrefixTable6 = new ConcurrentInvertedRadixTree<>(
+                    new DefaultByteArrayNodeFactory());
 
     private HostToInterfaceAdaptor hostAdaptor;
 
@@ -88,6 +105,16 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
             for (BgpPeer peer : config.getPeers()) {
                 bgpPeers.put(peer.ipAddress(), peer);
             }
+
+            for (LocalIpPrefixEntry entry : config.getLocalIp4PrefixEntries()) {
+                localPrefixTable4.put(createBinaryString(entry.ipPrefix()),
+                                      entry);
+            }
+            for (LocalIpPrefixEntry entry : config.getLocalIp6PrefixEntries()) {
+                localPrefixTable6.put(createBinaryString(entry.ipPrefix()),
+                                      entry);
+            }
+
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
         } catch (IOException e) {
@@ -96,7 +123,8 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     }
 
     /**
-     * Instructs the configuration reader to read the configuration from the file.
+     * Instructs the configuration reader to read the configuration from the
+     * file.
      */
     public void readConfiguration() {
         readConfiguration(configFileName);
@@ -125,6 +153,29 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     @Override
     public Interface getMatchingInterface(IpAddress ipAddress) {
         return hostAdaptor.getMatchingInterface(ipAddress);
+    }
+
+    @Override
+    public boolean isIpAddressLocal(IpAddress ipAddress) {
+        if (ipAddress.isIp4()) {
+            return localPrefixTable4.getValuesForKeysPrefixing(
+                    createBinaryString(
+                    IpPrefix.valueOf(ipAddress, Ip4Address.BIT_LENGTH)))
+                    .iterator().hasNext();
+        } else {
+            return localPrefixTable6.getValuesForKeysPrefixing(
+                    createBinaryString(
+                    IpPrefix.valueOf(ipAddress, Ip6Address.BIT_LENGTH)))
+                    .iterator().hasNext();
+        }
+    }
+
+    @Override
+    public boolean isIpPrefixLocal(IpPrefix ipPrefix) {
+        return (localPrefixTable4.getValueForExactKey(
+                createBinaryString(ipPrefix)) != null ||
+                localPrefixTable6.getValueForExactKey(
+                createBinaryString(ipPrefix)) != null);
     }
 
 }

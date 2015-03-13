@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
 
 /**
- * Service interface exported by SDN-IP.
+ * Application to enable (1) hosts in local SDN network to talk to other hosts
+ * in Internet, and (2) hosts in local SDN network to talk to each other.
  */
-public interface SdnIpService {
-
-    /**
-     * Changes whether this SDN-IP instance is the primary or not based on the
-     * boolean parameter.
-     *
-     * @param isPrimary true if the instance is primary, false if it is not
-     */
-    public void modifyPrimary(boolean isPrimary);
-
-}
+package org.onosproject.reactive.routing;

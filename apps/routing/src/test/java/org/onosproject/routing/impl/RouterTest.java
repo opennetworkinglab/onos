@@ -16,6 +16,7 @@
 package org.onosproject.routing.impl;
 
 import com.google.common.collect.Sets;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,7 @@ import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RouteListener;
 import org.onosproject.routing.RouteUpdate;
+import org.onosproject.routing.config.RoutingConfigurationService;
 
 import java.util.Collections;
 
@@ -58,6 +60,7 @@ import static org.junit.Assert.assertTrue;
 public class RouterTest {
 
     private HostService hostService;
+    private RoutingConfigurationService routingConfigurationService;
 
     private FibListener fibListener;
 
@@ -82,6 +85,8 @@ public class RouterTest {
     @Before
     public void setUp() throws Exception {
         setUpHostService();
+        routingConfigurationService =
+                createMock(RoutingConfigurationService.class);
 
         BgpService bgpService = createMock(BgpService.class);
         bgpService.start(anyObject(RouteListener.class));
@@ -92,10 +97,12 @@ public class RouterTest {
 
         router = new Router();
         router.hostService = hostService;
+        router.routingConfigurationService = routingConfigurationService;
         router.bgpService = bgpService;
         router.activate();
 
-        router.start(fibListener);
+        router.addFibListener(fibListener);
+        router.start();
     }
 
     @After
@@ -207,8 +214,12 @@ public class RouterTest {
                                     FibUpdate.Type.UPDATE, updateFibEntry)),
                            Collections.singletonList(new FibUpdate(
                                     FibUpdate.Type.DELETE, withdrawFibEntry)));
-
         replay(fibListener);
+
+        reset(routingConfigurationService);
+        expect(routingConfigurationService.isIpPrefixLocal(
+                anyObject(IpPrefix.class))).andReturn(false);
+        replay(routingConfigurationService);
 
         router.processRouteUpdates(Collections.singletonList(new RouteUpdate(
                 RouteUpdate.Type.UPDATE, routeEntryUpdate)));
@@ -255,6 +266,11 @@ public class RouterTest {
 
         // No methods on the FIB listener should be called
         replay(fibListener);
+
+        reset(routingConfigurationService);
+        expect(routingConfigurationService.isIpPrefixLocal(
+                anyObject(IpPrefix.class))).andReturn(true);
+        replay(routingConfigurationService);
 
         // Call the processRouteUpdates() method in Router class
         RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,

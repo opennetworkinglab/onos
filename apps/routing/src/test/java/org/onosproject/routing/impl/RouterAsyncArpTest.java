@@ -16,6 +16,7 @@
 package org.onosproject.routing.impl;
 
 import com.google.common.collect.Sets;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.onosproject.routing.impl.Router.InternalHostListener;
 import org.onosproject.routing.BgpService;
 import org.onosproject.routing.FibEntry;
@@ -57,6 +59,7 @@ public class RouterAsyncArpTest {
 
     private HostService hostService;
     private FibListener fibListener;
+    private RoutingConfigurationService routingConfigurationService;
 
     private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
             DeviceId.deviceId("of:0000000000000001"),
@@ -76,6 +79,8 @@ public class RouterAsyncArpTest {
     @Before
     public void setUp() throws Exception {
         hostService = createMock(HostService.class);
+        routingConfigurationService =
+                createMock(RoutingConfigurationService.class);
 
         BgpService bgpService = createMock(BgpService.class);
         bgpService.start(anyObject(RouteListener.class));
@@ -86,10 +91,12 @@ public class RouterAsyncArpTest {
 
         router = new Router();
         router.hostService = hostService;
+        router.routingConfigurationService = routingConfigurationService;
         router.bgpService = bgpService;
         router.activate();
 
-        router.start(fibListener);
+        router.addFibListener(fibListener);
+        router.start();
 
         internalHostListener = router.new InternalHostListener();
     }
@@ -121,6 +128,10 @@ public class RouterAsyncArpTest {
         hostService.startMonitoringIp(IpAddress.valueOf("192.168.10.1"));
         replay(hostService);
 
+        reset(routingConfigurationService);
+        expect(routingConfigurationService.isIpPrefixLocal(
+                anyObject(IpPrefix.class))).andReturn(false);
+        replay(routingConfigurationService);
 
         // Initially when we add the route, no FIB update will be sent
         replay(fibListener);
@@ -175,6 +186,10 @@ public class RouterAsyncArpTest {
         hostService.startMonitoringIp(IpAddress.valueOf("192.168.20.1"));
         replay(hostService);
 
+        reset(routingConfigurationService);
+        expect(routingConfigurationService.isIpPrefixLocal(
+                anyObject(IpPrefix.class))).andReturn(false);
+        replay(routingConfigurationService);
 
         // Initially when we add the route, the DELETE FIB update will be sent
         // but the UPDATE FIB update will come later when the MAC is resolved

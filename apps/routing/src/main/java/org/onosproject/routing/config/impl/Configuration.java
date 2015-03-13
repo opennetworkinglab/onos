@@ -16,8 +16,10 @@
 package org.onosproject.routing.config.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
+import org.onosproject.routing.config.LocalIpPrefixEntry;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +33,12 @@ public class Configuration {
     // the BGP routers outside our SDN network the BGP peers.
     private List<BgpSpeaker> bgpSpeakers;
     private List<BgpPeer> peers;
+
+    // All IP prefixes from the configuration are local
+    private List<LocalIpPrefixEntry> localIp4PrefixEntries =
+            Collections.emptyList();
+    private List<LocalIpPrefixEntry> localIp6PrefixEntries =
+            Collections.emptyList();
 
     /**
      * Default constructor.
@@ -76,6 +84,53 @@ public class Configuration {
     @JsonProperty("bgpPeers")
     public void setPeers(List<BgpPeer> peers) {
         this.peers = peers;
+    }
+
+    /**
+     * Gets a list of local IPv4 prefix entries configured for local
+     * SDN network.
+     * <p>
+     * IP prefix entries are represented by {@link LocalIpPrefixEntry}
+     * objects.
+     * </p>
+     *
+     * @return the list of local IPv4 prefix entries
+     */
+    public List<LocalIpPrefixEntry> getLocalIp4PrefixEntries() {
+        return Collections.unmodifiableList(localIp4PrefixEntries);
+    }
+
+    /**
+     * Sets a list of IPv4 prefix entries configured for local SDN network.
+     *
+     * @param ip4PrefixEntries the list of Ipv4 prefix entries
+     */
+    @JsonProperty("ip4LocalPrefixes")
+    public void setLocalIp4PrefixEntries(List<LocalIpPrefixEntry> ip4PrefixEntries) {
+        this.localIp4PrefixEntries = ip4PrefixEntries;
+    }
+
+    /**
+     * Gets a list of IPv6 prefix entries configured for local SDN network.
+     * <p>
+     * IP prefix entries are represented by {@link LocalIpPrefixEntry}
+     * objects.
+     * </p>
+     *
+     * @return the list of IPv6 prefix entries
+     */
+    public List<LocalIpPrefixEntry> getLocalIp6PrefixEntries() {
+        return Collections.unmodifiableList(localIp6PrefixEntries);
+    }
+
+    /**
+     * Sets a list of IPv6 prefix entries configured for local SDN network.
+     *
+     * @param ip6PrefixEntries the list of Ipv6 prefix entries
+     */
+    @JsonProperty("ip6LocalPrefixes")
+    public void setLocalIp6PrefixEntries(List<LocalIpPrefixEntry> ip6PrefixEntries) {
+        this.localIp6PrefixEntries = ip6PrefixEntries;
     }
 
 }

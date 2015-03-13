@@ -36,9 +36,12 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
@@ -47,10 +50,13 @@ import org.onosproject.routing.BgpService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.IntentRequestListener;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RouteListener;
 import org.onosproject.routing.RouteUpdate;
 import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.Interface;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +68,8 @@ import com.googlecode.concurrenttrees.common.KeyValuePair;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+
+import static org.onosproject.routing.RouteEntry.createBinaryString;
 
 /**
  * This class processes route updates and maintains a Routing Information Base
@@ -80,22 +88,27 @@ public class Router implements RoutingService {
     private InvertedRadixTree<RouteEntry> ribTable6;
 
     // Stores all incoming route updates in a queue.
-    private final BlockingQueue<Collection<RouteUpdate>> routeUpdatesQueue
-            = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Collection<RouteUpdate>> routeUpdatesQueue =
+            new LinkedBlockingQueue<>();
 
-    // Next-hop IP address to route entry mapping for next hops pending MAC resolution
+    // Next-hop IP address to route entry mapping for next hops pending MAC
+    // resolution
     private SetMultimap<IpAddress, RouteEntry> routesWaitingOnArp;
 
     // The IPv4 address to MAC address mapping
     private final Map<IpAddress, MacAddress> ip2Mac = new ConcurrentHashMap<>();
 
     private FibListener fibComponent;
+    private IntentRequestListener intentRequestListener;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected BgpService bgpService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingConfigurationService routingConfigurationService;
 
     private ExecutorService bgpUpdatesExecutor;
     private final HostListener hostListener = new InternalHostListener();
@@ -106,6 +119,7 @@ public class Router implements RoutingService {
                 new DefaultByteArrayNodeFactory());
         ribTable6 = new ConcurrentInvertedRadixTree<>(
                 new DefaultByteArrayNodeFactory());
+
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
                 HashMultimap.<IpAddress, RouteEntry>create());
 
@@ -120,8 +134,18 @@ public class Router implements RoutingService {
     }
 
     @Override
-    public void start(FibListener listener) {
-        this.fibComponent = checkNotNull(listener);
+    public void addFibListener(FibListener fibListener) {
+        this.fibComponent = checkNotNull(fibListener);
+
+    }
+
+    @Override
+    public void addIntentRequestListener(IntentRequestListener intentRequestListener) {
+        this.intentRequestListener = checkNotNull(intentRequestListener);
+    }
+
+    @Override
+    public void start() {
         this.hostService.addListener(hostListener);
 
         bgpService.start(new InternalRouteListener());
@@ -146,9 +170,9 @@ public class Router implements RoutingService {
         synchronized (this) {
             // Cleanup all local state
             ribTable4 = new ConcurrentInvertedRadixTree<>(
-                new DefaultByteArrayNodeFactory());
+                    new DefaultByteArrayNodeFactory());
             ribTable6 = new ConcurrentInvertedRadixTree<>(
-                new DefaultByteArrayNodeFactory());
+                    new DefaultByteArrayNodeFactory());
             routeUpdatesQueue.clear();
             routesWaitingOnArp.clear();
             ip2Mac.clear();
@@ -178,7 +202,7 @@ public class Router implements RoutingService {
             while (!interrupted) {
                 try {
                     Collection<RouteUpdate> routeUpdates =
-                        routeUpdatesQueue.take();
+                            routeUpdatesQueue.take();
                     processRouteUpdates(routeUpdates);
                 } catch (InterruptedException e) {
                     log.error("Interrupted while taking from updates queue", e);
@@ -202,7 +226,7 @@ public class Router implements RoutingService {
     @Override
     public Collection<RouteEntry> getRoutes4() {
         Iterator<KeyValuePair<RouteEntry>> it =
-            ribTable4.getKeyValuePairsForKeysStartingWith("").iterator();
+                ribTable4.getKeyValuePairsForKeysStartingWith("").iterator();
 
         List<RouteEntry> routes = new LinkedList<>();
 
@@ -222,7 +246,7 @@ public class Router implements RoutingService {
     @Override
     public Collection<RouteEntry> getRoutes6() {
         Iterator<KeyValuePair<RouteEntry>> it =
-            ribTable6.getKeyValuePairsForKeysStartingWith("").iterator();
+                ribTable6.getKeyValuePairsForKeysStartingWith("").iterator();
 
         List<RouteEntry> routes = new LinkedList<>();
 
@@ -242,7 +266,7 @@ public class Router implements RoutingService {
      * @return the route if found, otherwise null
      */
     RouteEntry findRibRoute(IpPrefix prefix) {
-        String binaryString = RouteEntry.createBinaryString(prefix);
+        String binaryString = createBinaryString(prefix);
         if (prefix.isIp4()) {
             // IPv4
             return ribTable4.getValueForExactKey(binaryString);
@@ -259,12 +283,12 @@ public class Router implements RoutingService {
     void addRibRoute(RouteEntry routeEntry) {
         if (routeEntry.isIp4()) {
             // IPv4
-            ribTable4.put(RouteEntry.createBinaryString(routeEntry.prefix()),
-                          routeEntry);
+            ribTable4.put(createBinaryString(routeEntry.prefix()),
+                    routeEntry);
         } else {
             // IPv6
-            ribTable6.put(RouteEntry.createBinaryString(routeEntry.prefix()),
-                          routeEntry);
+            ribTable6.put(createBinaryString(routeEntry.prefix()),
+                    routeEntry);
         }
     }
 
@@ -278,10 +302,10 @@ public class Router implements RoutingService {
     boolean removeRibRoute(IpPrefix prefix) {
         if (prefix.isIp4()) {
             // IPv4
-            return ribTable4.remove(RouteEntry.createBinaryString(prefix));
+            return ribTable4.remove(createBinaryString(prefix));
         }
         // IPv6
-        return ribTable6.remove(RouteEntry.createBinaryString(prefix));
+        return ribTable6.remove(createBinaryString(prefix));
     }
 
     /**
@@ -298,8 +322,9 @@ public class Router implements RoutingService {
             for (RouteUpdate update : routeUpdates) {
                 switch (update.type()) {
                 case UPDATE:
+
                     FibEntry fib = processRouteAdd(update.routeEntry(),
-                                                    withdrawPrefixes);
+                            withdrawPrefixes);
                     if (fib != null) {
                         fibUpdates.add(new FibUpdate(FibUpdate.Type.UPDATE, fib));
                     }
@@ -341,9 +366,8 @@ public class Router implements RoutingService {
      * intents will be withdrawn
      * @return the corresponding FIB entry change, or null
      */
-    private FibEntry processRouteAdd(
-                RouteEntry routeEntry,
-                Collection<IpPrefix> withdrawPrefixes) {
+    private FibEntry processRouteAdd(RouteEntry routeEntry,
+                                     Collection<IpPrefix> withdrawPrefixes) {
         log.debug("Processing route add: {}", routeEntry);
 
         // Find the old next-hop if we are updating an old route entry
@@ -368,11 +392,12 @@ public class Router implements RoutingService {
             withdrawPrefixes.add(routeEntry.prefix());
         }
 
-        if (routeEntry.nextHop().isZero()) {
-            // Route originated by SDN domain
-            // We don't handle these at the moment
+        if (routingConfigurationService.isIpPrefixLocal(routeEntry.prefix())) {
+            // Route originated by local SDN domain
+            // We don't handle these here, reactive routing APP will handle
+            // these
             log.debug("Own route {} to {}",
-                      routeEntry.prefix(), routeEntry.nextHop());
+                    routeEntry.prefix(), routeEntry.nextHop());
             return null;
         }
 
@@ -402,7 +427,7 @@ public class Router implements RoutingService {
             return null;
         }
         return new FibEntry(routeEntry.prefix(), routeEntry.nextHop(),
-                             nextHopMacAddress);
+                nextHopMacAddress);
     }
 
     /**
@@ -446,7 +471,7 @@ public class Router implements RoutingService {
      */
     private void updateMac(IpAddress ipAddress, MacAddress macAddress) {
         log.debug("Received updated MAC info: {} => {}", ipAddress,
-                  macAddress);
+                macAddress);
 
         //
         // We synchronize on "this" to prevent changes to the Radix tree
@@ -457,23 +482,23 @@ public class Router implements RoutingService {
             Collection<FibUpdate> submitFibEntries = new LinkedList<>();
 
             Set<RouteEntry> routesToPush =
-                routesWaitingOnArp.removeAll(ipAddress);
+                    routesWaitingOnArp.removeAll(ipAddress);
 
             for (RouteEntry routeEntry : routesToPush) {
                 // These will always be adds
                 RouteEntry foundRouteEntry = findRibRoute(routeEntry.prefix());
                 if (foundRouteEntry != null &&
-                    foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
+                        foundRouteEntry.nextHop().equals(routeEntry.nextHop())) {
                     // We only push FIB updates if the prefix is still in the
                     // radix tree and the next hop is the same as our entry.
                     // The prefix could have been removed while we were waiting
                     // for the ARP, or the next hop could have changed.
                     submitFibEntries.add(new FibUpdate(FibUpdate.Type.UPDATE,
-                                                       new FibEntry(routeEntry.prefix(),
-                                                       ipAddress, macAddress)));
+                            new FibEntry(routeEntry.prefix(),
+                                    ipAddress, macAddress)));
                 } else {
                     log.debug("{} has been revoked before the MAC was resolved",
-                              routeEntry);
+                            routeEntry);
                 }
             }
 
@@ -520,6 +545,181 @@ public class Router implements RoutingService {
         @Override
         public void update(Collection<RouteUpdate> routeUpdates) {
             Router.this.update(routeUpdates);
+        }
+    }
+
+    @Override
+    public LocationType getLocationType(IpAddress ipAddress) {
+        if (routingConfigurationService.isIpAddressLocal(ipAddress)) {
+            return LocationType.LOCAL;
+        } else if (getLongestMatchableRouteEntry(ipAddress) != null) {
+            return LocationType.INTERNET;
+        } else {
+            return LocationType.NO_ROUTE;
+        }
+    }
+
+    @Override
+    public RouteEntry getLongestMatchableRouteEntry(IpAddress ipAddress) {
+        RouteEntry routeEntry = null;
+        Iterable<RouteEntry> routeEntries;
+
+        if (ipAddress.isIp4()) {
+            routeEntries = ribTable4.getValuesForKeysPrefixing(
+                    createBinaryString(
+                    IpPrefix.valueOf(ipAddress, Ip4Address.BIT_LENGTH)));
+        } else {
+            routeEntries = ribTable6.getValuesForKeysPrefixing(
+                    createBinaryString(
+                    IpPrefix.valueOf(ipAddress, Ip6Address.BIT_LENGTH)));
+        }
+        if (routeEntries == null) {
+            return null;
+        }
+        Iterator<RouteEntry> it = routeEntries.iterator();
+        while (it.hasNext()) {
+            routeEntry = it.next();
+        }
+        return routeEntry;
+    }
+
+    @Override
+    public ConnectPoint getEgressConnectPoint(IpAddress dstIpAddress) {
+        LocationType type = getLocationType(dstIpAddress);
+        if (type == LocationType.LOCAL) {
+            Set<Host> hosts = hostService.getHostsByIp(dstIpAddress);
+            if (!hosts.isEmpty()) {
+                return hosts.iterator().next().location();
+            } else {
+                hostService.startMonitoringIp(dstIpAddress);
+                return null;
+            }
+        } else if (type == LocationType.INTERNET) {
+            IpAddress nextHopIpAddress = null;
+            RouteEntry routeEntry = getLongestMatchableRouteEntry(dstIpAddress);
+            if (routeEntry != null) {
+                nextHopIpAddress = routeEntry.nextHop();
+                Interface it = routingConfigurationService
+                        .getMatchingInterface(nextHopIpAddress);
+                if (it != null) {
+                    return it.connectPoint();
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void packetReactiveProcessor(IpAddress dstIpAddress,
+                                        IpAddress srcIpAddress,
+                                        ConnectPoint srcConnectPoint,
+                                        MacAddress srcMacAddress) {
+        checkNotNull(dstIpAddress);
+        checkNotNull(srcIpAddress);
+        checkNotNull(srcConnectPoint);
+        checkNotNull(srcMacAddress);
+
+        //
+        // Step1: Try to update the existing intent first if it exists.
+        //
+        IpPrefix ipPrefix = null;
+        if (routingConfigurationService.isIpAddressLocal(dstIpAddress)) {
+            if (dstIpAddress.isIp4()) {
+                ipPrefix = IpPrefix.valueOf(dstIpAddress,
+                        Ip4Address.BIT_LENGTH);
+            } else {
+                ipPrefix = IpPrefix.valueOf(dstIpAddress,
+                        Ip6Address.BIT_LENGTH);
+            }
+        } else {
+            // Get IP prefix from BGP route table
+            RouteEntry routeEntry = getLongestMatchableRouteEntry(dstIpAddress);
+            if (routeEntry != null) {
+                ipPrefix = routeEntry.prefix();
+            }
+        }
+        if (ipPrefix != null
+                && intentRequestListener.mp2pIntentExists(ipPrefix)) {
+            intentRequestListener.updateExistingMp2pIntent(ipPrefix,
+                    srcConnectPoint);
+            return;
+        }
+
+        //
+        // Step2: There is no existing intent for the destination IP address.
+        // Check whether it is necessary to create a new one. If necessary then
+        // create a new one.
+        //
+        TrafficType trafficType =
+                trafficTypeClassifier(srcConnectPoint, dstIpAddress);
+
+        switch (trafficType) {
+        case HOST_TO_INTERNET:
+            // If the destination IP address is outside the local SDN network.
+            // The Step 1 has already handled it. We do not need to do anything here.
+            break;
+        case INTERNET_TO_HOST:
+            intentRequestListener.setUpConnectivityInternetToHost(dstIpAddress);
+            break;
+        case HOST_TO_HOST:
+            intentRequestListener.setUpConnectivityHostToHost(dstIpAddress,
+                    srcIpAddress, srcMacAddress, srcConnectPoint);
+            break;
+        case INTERNET_TO_INTERNET:
+            log.trace("This is transit traffic, "
+                    + "the intent should be preinstalled already");
+            break;
+        case DROP:
+            // TODO here should setUpDropPaccketIntent(...);
+            // We need a new type of intent here.
+            break;
+        case UNKNOWN:
+            log.trace("This is unknown traffic, so we do nothing");
+            break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Classifies the traffic and return the traffic type.
+     *
+     * @param srcConnectPoint the connect point where the packet comes from
+     * @param dstIp the destination IP address in packet
+     * @return the traffic type which this packet belongs to
+     */
+    private TrafficType trafficTypeClassifier(ConnectPoint srcConnectPoint,
+                                              IpAddress dstIp) {
+        LocationType dstIpLocationType = getLocationType(dstIp);
+        Interface srcInterface =
+                routingConfigurationService.getInterface(srcConnectPoint);
+
+        switch (dstIpLocationType) {
+        case INTERNET:
+            if (srcInterface == null) {
+                return TrafficType.HOST_TO_INTERNET;
+            } else {
+                return TrafficType.INTERNET_TO_INTERNET;
+            }
+        case LOCAL:
+            if (srcInterface == null) {
+                return TrafficType.HOST_TO_HOST;
+            } else {
+                // TODO Currently we only consider local public prefixes.
+                // In the future, we will consider the local private prefixes.
+                // If dstIpLocationType is a local private, we should return
+                // TrafficType.DROP.
+                return TrafficType.INTERNET_TO_HOST;
+            }
+        case NO_ROUTE:
+            return TrafficType.DROP;
+        default:
+            return TrafficType.UNKNOWN;
         }
     }
 }

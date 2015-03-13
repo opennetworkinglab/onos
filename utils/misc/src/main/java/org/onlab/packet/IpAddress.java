@@ -371,6 +371,22 @@ public class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
+     * Generates an IP prefix.
+     *
+     * @return the IP prefix of the IP address
+     */
+    public IpPrefix toIpPrefix() {
+
+        if (isIp4()) {
+            return IpPrefix.valueOf(new IpAddress(Version.INET, octets),
+                                    Ip4Address.BIT_LENGTH);
+        } else {
+            return IpPrefix.valueOf(new IpAddress(Version.INET6, octets),
+                                    Ip6Address.BIT_LENGTH);
+        }
+    }
+
+    /**
      * Gets the IP address name for the IP address version.
      *
      * @param version the IP address version

@@ -188,6 +188,12 @@
         <bundle>mvn:org.onosproject/onos-app-optical/@ONOS-VERSION</bundle>
     </feature>
 
+    <feature name="onos-app-reactive-routing" version="@FEATURE-VERSION"
+             description="ONOS SDN/IP reactive routing">
+        <feature>onos-app-sdnip</feature>
+        <bundle>mvn:org.onosproject/onos-app-reactive-routing/@ONOS-VERSION</bundle>
+    </feature>
+
     <feature name="onos-app-sdnip" version="@FEATURE-VERSION"
              description="SDN-IP peering application">
         <feature>onos-api</feature>
