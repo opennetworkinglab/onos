@@ -61,6 +61,7 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
+import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
@@ -466,7 +467,11 @@ public class FlowEntryBuilder {
                 break;
             case ETH_TYPE:
                 int ethType = match.get(MatchField.ETH_TYPE).getValue();
-                builder.matchEthType((short) ethType);
+                if (ethType == EthType.VLAN_FRAME.getValue()) {
+                    builder.matchVlanId(VlanId.ANY);
+                } else {
+                    builder.matchEthType((short) ethType);
+                }
                 break;
             case VLAN_VID:
                 VlanId vlanId = null;

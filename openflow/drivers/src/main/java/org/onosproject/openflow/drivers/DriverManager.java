@@ -60,7 +60,11 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
         String hw = desc.getHwDesc();
 
         if (dpid.equals(corsaDpid)) {
-            return new OFCorsaSwitchDriver(dpid, desc);
+            if (hw.startsWith("Open vSwitch")) {
+                return new OFOVSSwitchCorsaTTP(dpid, desc);
+            } else {
+                return new OFCorsaSwitchDriver(dpid, desc);
+            }
         }
 
         if (vendor.startsWith("Stanford University, Ericsson Research and CPqD Research")

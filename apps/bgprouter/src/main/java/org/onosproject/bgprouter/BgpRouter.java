@@ -453,7 +453,7 @@ public class BgpRouter {
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             FlowRule rule;
 
-            selector.matchEthType(Ethernet.TYPE_VLAN);
+            selector.matchVlanId(VlanId.ANY);
             treatment.transition(FlowRule.Type.VLAN);
 
             rule = new DefaultFlowRule(deviceId, selector.build(),
