@@ -331,7 +331,8 @@ public class BgpRouter {
 
         Group group = groupService.getGroup(deviceId, nextHop.group());
 
-        if (nextHopsCount.remove(nextHopIp, 1) <= 1) {
+        // FIXME disabling group deletes for now until we verify the logic is OK
+        /*if (nextHopsCount.remove(nextHopIp, 1) <= 1) {
             // There was one or less next hops, so there are now none
 
             log.debug("removing group for next hop {}", nextHop);
@@ -339,7 +340,7 @@ public class BgpRouter {
             nextHops.remove(nextHopIp);
 
             groupService.removeGroup(deviceId, nextHop.group(), appId);
-        }
+        }*/
 
         return group;
     }
