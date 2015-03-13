@@ -298,6 +298,7 @@ public class BgpRouter {
                     .setEthDst(nextHop.mac())
                     .pushVlan()
                     .setVlanId(egressIntf.vlan())
+                    .setVlanPcp((byte) 0)
                     .setOutput(egressIntf.connectPoint().port())
                     .build();
 

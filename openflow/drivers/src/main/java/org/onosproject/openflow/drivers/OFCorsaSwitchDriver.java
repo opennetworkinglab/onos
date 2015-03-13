@@ -16,25 +16,31 @@
 package org.onosproject.openflow.drivers;
 
 import com.google.common.collect.Lists;
-
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
+import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionGotoTable;
+import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.TableId;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Corsa switch driver for BGP Router deployment.
  */
 public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
+
     private static final int FIRST_TABLE = 0;
     private static final int VLAN_MPLS_TABLE = 1;
     private static final int VLAN_TABLE = 2;
@@ -43,6 +49,10 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
     private static final int COS_MAP_TABLE = 5;
     private static final int FIB_TABLE = 6;
     private static final int LOCAL_TABLE = 9;
+
+    private AtomicBoolean handShakeComplete = new AtomicBoolean(false);
+
+    private int barrierXid;
 
     OFCorsaSwitchDriver(Dpid dpid, OFDescStatsReply desc) {
         super(dpid);
@@ -222,13 +232,46 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
     }
 
     @Override
-    public void startDriverHandshake() {}
+    public void startDriverHandshake() {
+        if (startDriverHandshakeCalled) {
+            throw new SwitchDriverSubHandshakeAlreadyStarted();
+        }
+        startDriverHandshakeCalled = true;
+        OFFlowMod fm = factory().buildFlowDelete()
+                .setTableId(TableId.ALL)
+                .setOutGroup(OFGroup.ANY)
+                .build();
 
-    @Override
-    public boolean isDriverHandshakeComplete() {
-        return true;
+        channel.write(Collections.singletonList(fm));
+
+        barrierXid = getNextTransactionId();
+        OFBarrierRequest barrier = factory().buildBarrierRequest()
+                .setXid(barrierXid).build();
+
+
+        channel.write(Collections.singletonList(barrier));
+
     }
 
     @Override
-    public void processDriverHandshakeMessage(OFMessage m) {}
+    public boolean isDriverHandshakeComplete() {
+        if (!startDriverHandshakeCalled) {
+            throw new SwitchDriverSubHandshakeAlreadyStarted();
+        }
+        return handShakeComplete.get();
+    }
+
+    @Override
+    public void processDriverHandshakeMessage(OFMessage m) {
+        if (!startDriverHandshakeCalled) {
+            throw new SwitchDriverSubHandshakeNotStarted();
+        }
+        if (handShakeComplete.get()) {
+            throw new SwitchDriverSubHandshakeCompleted(m);
+        }
+        if (m.getType() == OFType.BARRIER_REPLY &&
+                m.getXid() == barrierXid) {
+            handShakeComplete.set(true);
+        }
+    }
 }

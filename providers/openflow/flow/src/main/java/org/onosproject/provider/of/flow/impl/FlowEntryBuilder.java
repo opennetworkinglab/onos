@@ -95,17 +95,6 @@ public class FlowEntryBuilder {
     private final FlowType type;
     private Type tableType = FlowRule.Type.DEFAULT;
 
-
-    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
-        this.stat = entry;
-        this.match = entry.getMatch();
-        this.instructions = getInstructions(entry);
-        this.dpid = dpid;
-        this.removed = null;
-        this.flowMod = null;
-        this.type = FlowType.STAT;
-    }
-
     public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry, Type tableType) {
         this.stat = entry;
         this.match = entry.getMatch();
@@ -117,7 +106,7 @@ public class FlowEntryBuilder {
         this.tableType = tableType;
     }
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed, Type tableType) {
         this.match = removed.getMatch();
         this.removed = removed;
 
@@ -126,10 +115,11 @@ public class FlowEntryBuilder {
         this.stat = null;
         this.flowMod = null;
         this.type = FlowType.REMOVED;
+        this.tableType = tableType;
 
     }
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm, Type tableType) {
         this.match = fm.getMatch();
         this.dpid = dpid;
         this.instructions = getInstructions(fm);
@@ -137,6 +127,7 @@ public class FlowEntryBuilder {
         this.flowMod = fm;
         this.stat = null;
         this.removed = null;
+        this.tableType = tableType;
     }
 
     public FlowEntry build(FlowEntryState... state) {
@@ -153,14 +144,16 @@ public class FlowEntryBuilder {
             case REMOVED:
                 rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                                       buildSelector(), null, removed.getPriority(),
-                                      removed.getCookie().getValue(), removed.getIdleTimeout(), false);
+                                      removed.getCookie().getValue(), removed.getIdleTimeout(), false,
+                                      tableType);
                 return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
                                       removed.getPacketCount().getValue(), removed.getByteCount().getValue());
             case MOD:
                 FlowEntryState flowState = state.length > 0 ? state[0] : FlowEntryState.FAILED;
                 rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
                                       buildSelector(), buildTreatment(), flowMod.getPriority(),
-                                      flowMod.getCookie().getValue(), flowMod.getIdleTimeout(), false);
+                                      flowMod.getCookie().getValue(), flowMod.getIdleTimeout(), false,
+                                      tableType);
                 return new DefaultFlowEntry(rule, flowState, 0, 0, 0);
             default:
                 log.error("Unknown flow type : {}", this.type);

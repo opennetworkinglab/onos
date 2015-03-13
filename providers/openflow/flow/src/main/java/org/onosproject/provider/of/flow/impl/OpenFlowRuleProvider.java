@@ -305,11 +305,13 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
             switch (msg.getType()) {
                 case FLOW_REMOVED:
                     OFFlowRemoved removed = (OFFlowRemoved) msg;
 
-                    FlowEntry fr = new FlowEntryBuilder(dpid, removed).build();
+                    FlowEntry fr = new FlowEntryBuilder(dpid, removed,
+                                                        getType(sw.getTableType(removed.getTableId()))).build();
                     providerService.flowRemoved(fr);
                     break;
                 case STATS_REPLY:
@@ -340,7 +342,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                             OFFlowMod fm = (OFFlowMod) m;
                             InternalCacheEntry entry = pendingBatches.getIfPresent(msg.getXid());
                             if (entry != null) {
-                                entry.appendFailure(new FlowEntryBuilder(dpid, fm).build());
+                                entry.appendFailure(new FlowEntryBuilder(dpid, fm,
+                                                                         getType(sw.getTableType(fm.getTableId())))
+                                                                         .build());
                             } else {
                                 log.error("No matching batch for this error: {}", error);
                             }
