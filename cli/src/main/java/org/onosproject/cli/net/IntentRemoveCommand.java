@@ -85,35 +85,61 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         Intent intent = intentService.getIntent(key);
 
         if (intent != null) {
-            // set up latch and listener to track uninstall progress
-            CountDownLatch latch = new CountDownLatch(1);
-            IntentListener listener = (IntentEvent event) -> {
-                if (Objects.equals(event.subject().key(), key) &&
-                        (event.type() == IntentEvent.Type.WITHDRAWN ||
-                         event.type() == IntentEvent.Type.FAILED)) {
-                    latch.countDown();
-                }
-            };
-            intentService.addListener(listener);
+            IntentListener listener = null;
+            final CountDownLatch withdrawLatch, purgeLatch;
+            if (purgeAfterRemove || sync) {
+                // set up latch and listener to track uninstall progress
+                withdrawLatch = new CountDownLatch(1);
+                purgeLatch = purgeAfterRemove ? new CountDownLatch(1) : null;
+                listener = (IntentEvent event) -> {
+                    if (Objects.equals(event.subject().key(), key)) {
+                        if (event.type() == IntentEvent.Type.WITHDRAWN ||
+                                event.type() == IntentEvent.Type.FAILED) {
+                            withdrawLatch.countDown();
+                        } else if (purgeAfterRemove &&
+                                event.type() == IntentEvent.Type.PURGED) {
+                            purgeLatch.countDown();
+                        }
+                    }
+                };
+                intentService.addListener(listener);
+            } else {
+                purgeLatch = null;
+                withdrawLatch = null;
+            }
 
             // request the withdraw
             intentService.withdraw(intent);
 
             if (purgeAfterRemove || sync) {
-                try {
-                    latch.await(5, TimeUnit.SECONDS);
+                try { // wait for withdraw event
+                    withdrawLatch.await(5, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
-                    print("Timed out waiting for intent {}", key);
+                    print("Timed out waiting for intent {} withdraw", key);
                 }
                 // double check the state
                 IntentState state = intentService.getIntentState(key);
                 if (purgeAfterRemove && (state == WITHDRAWN || state == FAILED)) {
-                    intentService.purge(key);
+                    intentService.purge(intent);
+                }
+                if (sync) { // wait for purge event
+                    /* TODO
+                       Technically, the event comes before map.remove() is called.
+                       If we depend on sync and purge working together, we will
+                       need to address this.
+                    */
+                    try {
+                        purgeLatch.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        print("Timed out waiting for intent {} purge", key);
+                    }
                 }
             }
-            // clean up the listener
-            intentService.removeListener(listener);
-        }
 
+            if (listener != null) {
+                // clean up the listener
+                intentService.removeListener(listener);
+            }
+        }
     }
 }

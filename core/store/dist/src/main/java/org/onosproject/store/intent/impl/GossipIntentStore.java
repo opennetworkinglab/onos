@@ -224,6 +224,8 @@ public class GossipIntentStore
             }
             return true;
 
+        case PURGE_REQ:
+            return true;
 
         case COMPILING:
         case RECOMPILING:
@@ -241,7 +243,11 @@ public class GossipIntentStore
         if (isUpdateAcceptable(currentData, newData)) {
             // Only the master is modifying the current state. Therefore assume
             // this always succeeds
-            currentMap.put(newData.key(), copyData(newData));
+            if (newData.state() == PURGE_REQ) {
+                currentMap.remove(newData.key(), newData);
+            } else {
+                currentMap.put(newData.key(), copyData(newData));
+            }
 
             // if current.put succeeded
             pendingMap.remove(newData.key(), newData);
@@ -323,14 +329,6 @@ public class GossipIntentStore
         return pendingMap.values().stream()
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public void purge(Key key) {
-        IntentData data = currentMap.get(key);
-        if (data.state() == WITHDRAWN || data.state() == FAILED) {
-            currentMap.remove(key, data);
-        }
     }
 
     private void notifyDelegateIfNotNull(IntentEvent event) {

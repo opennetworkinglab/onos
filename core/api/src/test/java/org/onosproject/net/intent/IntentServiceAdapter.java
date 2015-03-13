@@ -33,6 +33,11 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
+    public void purge(Intent intent) {
+
+    }
+
+    @Override
     public Iterable<Intent> getIntents() {
         return null;
     }
@@ -74,11 +79,6 @@ public class IntentServiceAdapter implements IntentService {
 
     @Override
     public void removeListener(IntentListener listener) {
-
-    }
-
-    @Override
-    public void purge(Key key) {
 
     }
 }

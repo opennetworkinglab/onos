@@ -151,6 +151,13 @@ public class IntentManager
     }
 
     @Override
+    public void purge(Intent intent) {
+        checkNotNull(intent, INTENT_NULL);
+        IntentData data = new IntentData(intent, IntentState.PURGE_REQ, null);
+        store.addPending(data);
+    }
+
+    @Override
     public Intent getIntent(Key key) {
         return store.getIntent(key);
     }
@@ -190,11 +197,6 @@ public class IntentManager
     @Override
     public void removeListener(IntentListener listener) {
         listenerRegistry.removeListener(listener);
-    }
-
-    @Override
-    public void purge(Key key) {
-        store.purge(key);
     }
 
     @Override

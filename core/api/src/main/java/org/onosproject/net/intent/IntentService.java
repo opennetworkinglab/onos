@@ -43,6 +43,14 @@ public interface IntentService {
     void withdraw(Intent intent);
 
     /**
+     * Purges a specific intent from the system if it is <b>FAILED</b> or
+     * <b>WITHDRAWN</b>. Otherwise, the intent remains in its current state.
+     *
+     * @param intent intent to purge
+     */
+    void purge(Intent intent);
+
+    /**
      * Fetches an intent based on its key.
      *
      * @param key key of the intent
@@ -112,11 +120,4 @@ public interface IntentService {
      * @param listener listener to be removed
      */
     void removeListener(IntentListener listener);
-
-    /**
-     * Purges a specific intent from the system if it is FAILED or WITHDRAWN.
-     *
-     * @param key key of the intent to purge
-     */
-    void purge(Key key);
 }

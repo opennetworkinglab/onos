@@ -412,6 +412,11 @@ public class EventuallyConsistentMapImpl<K, V>
                         peerUpdateFunction.apply(key, value));
             notifyListeners(new EventuallyConsistentMapEvent<>(
                     EventuallyConsistentMapEvent.Type.REMOVE, key, value));
+        } else {
+            // TODO remove this extra call when ONOS-1207 is resolved
+            Timestamped<V> latest = (Timestamped) items.get(key);
+            log.info("Remove of intent {} failed; request time {} vs. latest time {}",
+                    key, timestamp, latest.timestamp());
         }
     }
 

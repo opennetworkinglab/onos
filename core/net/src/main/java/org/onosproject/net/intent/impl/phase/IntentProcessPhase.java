@@ -56,6 +56,8 @@ public interface IntentProcessPhase {
                 } else {
                     return new WithdrawRequest(processor, data, current);
                 }
+            case PURGE_REQ:
+                return new PurgeRequest(data, current);
             default:
                 // illegal state
                 return new CompilingFailed(data);

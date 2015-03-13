@@ -46,7 +46,12 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
         /**
          * Signifies that an intent has been withdrawn from the system.
          */
-        WITHDRAWN
+        WITHDRAWN,
+
+        /**
+         * Signifies that an intent has been purged from the system.
+         */
+        PURGED
     }
 
     /**
@@ -109,6 +114,9 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
                 break;
             case FAILED:
                 type = Type.FAILED;
+                break;
+            case PURGE_REQ:
+                type = Type.PURGED;
                 break;
 
             // fallthrough to default from here

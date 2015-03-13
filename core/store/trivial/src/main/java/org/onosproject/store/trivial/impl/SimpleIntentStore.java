@@ -180,7 +180,11 @@ public class SimpleIntentStore
             IntentData pendingData = pending.get(newData.key());
 
             if (isUpdateAcceptable(currentData, newData)) {
-                current.put(newData.key(), copyData(newData));
+                if (pendingData.state() == PURGE_REQ) {
+                    current.remove(newData.key(), newData);
+                } else {
+                    current.put(newData.key(), copyData(newData));
+                }
 
                 if (pendingData != null
                         // pendingData version is less than or equal to newData's
@@ -252,13 +256,5 @@ public class SimpleIntentStore
         return pending.values().stream()
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public void purge(Key key) {
-        IntentData data = current.get(key);
-        if (data.state() == IntentState.WITHDRAWN || data.state() == IntentState.FAILED) {
-            current.remove(key, data);
-        }
     }
 }

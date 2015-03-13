@@ -92,5 +92,14 @@ public enum IntentState {
      * Signifies that the intent has failed compiling, installing or
      * recompiling states.
      */
-    FAILED //TODO consider renaming to UNSAT.
+    FAILED, //TODO consider renaming to UNSAT.
+
+    /**
+     * Indicates that the intent should be purged from the database.
+     * <p>
+     * Note: This operation will only be performed if the intent is already
+     * in WITHDRAWN or FAILED.
+     * </p>
+     */
+    PURGE_REQ
 }

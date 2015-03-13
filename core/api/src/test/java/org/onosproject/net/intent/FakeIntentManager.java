@@ -186,6 +186,17 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public void purge(Intent intent) {
+        IntentState currentState = intentStates.get(intent.key());
+        if (currentState == IntentState.WITHDRAWN
+                || currentState == IntentState.FAILED) {
+            intents.remove(intent.key());
+            installables.remove(intent.key());
+            intentStates.remove(intent.key());
+        }
+    }
+
+    @Override
     public Set<Intent> getIntents() {
         return Collections.unmodifiableSet(new HashSet<>(intents.values()));
     }
@@ -228,11 +239,6 @@ public class FakeIntentManager implements TestableIntentService {
     @Override
     public void removeListener(IntentListener listener) {
         listeners.remove(listener);
-    }
-
-    @Override
-    public void purge(Key key) {
-        // FIXME implement this
     }
 
     private void dispatch(IntentEvent event) {
