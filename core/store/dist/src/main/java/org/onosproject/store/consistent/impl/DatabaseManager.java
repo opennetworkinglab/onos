@@ -65,6 +65,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private static final String PARTITION_DEFINITION_FILE = "tablets.json";
     private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
 
+    private final PartitionedDatabaseConfig databaseConfig = new PartitionedDatabaseConfig();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
@@ -113,8 +115,6 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             .withHeartbeatInterval(1500)
             .withMembers(activeNodeUris)
             .withLocalMember(localNodeUri);
-
-        PartitionedDatabaseConfig databaseConfig = new PartitionedDatabaseConfig();
 
         partitionMap.forEach((name, nodes) -> {
             Set<String> replicas = nodes.stream().map(this::nodeToUri).collect(Collectors.toSet());
@@ -181,7 +181,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         return partitionedDatabase.getRegisteredPartitions()
                 .values()
                 .stream()
-                .map(DatabaseManager::toPartitionInfo)
+                .map(db -> toPartitionInfo(db, databaseConfig.partitions().get(db.name())))
                 .collect(Collectors.toList());
     }
 
@@ -191,11 +191,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
      * @param database database containing input data
      * @return PartitionInfo object
      */
-    private static PartitionInfo toPartitionInfo(Database database) {
+    private static PartitionInfo toPartitionInfo(Database database, DatabaseConfig dbConfig) {
         return new PartitionInfo(database.name(),
                           database.cluster().term(),
                           database.cluster().members().stream()
                                   .map(Member::uri)
+                                  .filter(uri -> dbConfig.getReplicas().contains(uri))
                                   .collect(Collectors.toList()),
                           database.cluster().leader() != null ?
                                   database.cluster().leader().uri() : null);
