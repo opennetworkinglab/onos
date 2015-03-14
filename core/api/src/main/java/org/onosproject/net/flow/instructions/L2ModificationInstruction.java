@@ -285,6 +285,8 @@ public abstract class L2ModificationInstruction implements Instruction {
 
     public static final class StripVlanInstruction extends L2ModificationInstruction {
 
+        StripVlanInstruction() {}
+
         @Override
         public L2SubType subtype() {
             return L2SubType.STRIP_VLAN;
@@ -292,7 +294,8 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return subtype().toString();
+            return toStringHelper(subtype().toString())
+                    .toString();
         }
 
         @Override
@@ -305,7 +308,9 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (this == obj) {
                 return true;
             }
-
+            if (obj instanceof StripVlanInstruction) {
+                return true;
+            }
             return false;
         }
     }
@@ -341,8 +346,8 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof PushHeaderInstructions) {
-                PushHeaderInstructions that = (PushHeaderInstructions) obj;
+            if (obj instanceof PopVlanInstruction) {
+                PopVlanInstruction that = (PopVlanInstruction) obj;
                 return  Objects.equals(subtype, that.subtype);
             }
             return false;
