@@ -27,6 +27,8 @@ import org.onlab.packet.IpAddress.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
+
 /**
  * Encode InternalMessage out into a byte buffer.
  */
@@ -57,8 +59,13 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         // write sender port
         out.writeInt(sender.port());
 
-        // write message type.
-        out.writeLong(message.type());
+        byte[] messageTypeBytes = message.type().getBytes(Charsets.UTF_8);
+
+        // write length of message type
+        out.writeInt(messageTypeBytes.length);
+
+        // write message type bytes
+        out.writeBytes(messageTypeBytes);
 
         byte[] payload = message.payload();
 

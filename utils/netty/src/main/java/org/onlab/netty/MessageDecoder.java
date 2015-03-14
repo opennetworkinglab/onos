@@ -27,6 +27,8 @@ import org.onlab.packet.IpAddress.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
+
 /**
  * Decoder for inbound messages.
  */
@@ -40,8 +42,9 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     private Version ipVersion;
     private IpAddress senderIp;
     private int senderPort;
+    private int messageTypeLength;
+    private String messageType;
     private int contentLength;
-    private long messageType;
 
     public MessageDecoder(NettyMessagingService messagingService) {
         super(DecoderState.READ_MESSAGE_ID);
@@ -68,9 +71,14 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             checkpoint(DecoderState.READ_SENDER_PORT);
         case READ_SENDER_PORT:
             senderPort = buffer.readInt();
+            checkpoint(DecoderState.READ_MESSAGE_TYPE_LENGTH);
+        case READ_MESSAGE_TYPE_LENGTH:
+            messageTypeLength = buffer.readInt();
             checkpoint(DecoderState.READ_MESSAGE_TYPE);
         case READ_MESSAGE_TYPE:
-            messageType = buffer.readLong();
+            byte[] messageTypeBytes = new byte[messageTypeLength];
+            buffer.readBytes(messageTypeBytes);
+            messageType = new String(messageTypeBytes, Charsets.UTF_8);
             checkpoint(DecoderState.READ_CONTENT_LENGTH);
         case READ_CONTENT_LENGTH:
             contentLength = buffer.readInt();

@@ -52,14 +52,10 @@ import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
@@ -71,7 +67,7 @@ public class NettyMessagingService implements MessagingService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Endpoint localEp;
-    private final ConcurrentMap<Long, MessageHandler> handlers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, MessageHandler> handlers = new ConcurrentHashMap<>();
     private final AtomicLong messageIdGenerator = new AtomicLong(0);
     private final Cache<Long, SettableFuture<byte[]>> responseFutures = CacheBuilder.newBuilder()
             .maximumSize(100000)
@@ -85,14 +81,6 @@ public class NettyMessagingService implements MessagingService {
                 }
             })
             .build();
-
-    private final LoadingCache<String, Long> messageTypeLookupCache = CacheBuilder.newBuilder()
-            .build(new CacheLoader<String, Long>() {
-                @Override
-                public Long load(String type) {
-                    return hashToLong(type);
-                }
-            });
 
     private final GenericKeyedObjectPool<Endpoint, Channel> channels
             = new GenericKeyedObjectPool<Endpoint, Channel>(new OnosCommunicationChannelFactory());
@@ -162,7 +150,7 @@ public class NettyMessagingService implements MessagingService {
         InternalMessage message = new InternalMessage.Builder(this)
             .withId(messageIdGenerator.incrementAndGet())
             .withSender(localEp)
-            .withType(messageTypeLookupCache.getUnchecked(type))
+            .withType(type)
             .withPayload(payload)
             .build();
         sendAsync(ep, message);
@@ -198,7 +186,7 @@ public class NettyMessagingService implements MessagingService {
         InternalMessage message = new InternalMessage.Builder(this)
             .withId(messageId)
             .withSender(localEp)
-            .withType(messageTypeLookupCache.getUnchecked(type))
+            .withType(type)
             .withPayload(payload)
             .build();
         try {
@@ -212,12 +200,12 @@ public class NettyMessagingService implements MessagingService {
 
     @Override
     public void registerHandler(String type, MessageHandler handler) {
-        handlers.putIfAbsent(hashToLong(type), handler);
+        handlers.putIfAbsent(type, handler);
     }
 
     @Override
     public void registerHandler(String type, MessageHandler handler, ExecutorService executor) {
-        handlers.putIfAbsent(hashToLong(type), new MessageHandler() {
+        handlers.putIfAbsent(type, new MessageHandler() {
             @Override
             public void handle(Message message) throws IOException {
                 executor.submit(() -> {
@@ -233,10 +221,10 @@ public class NettyMessagingService implements MessagingService {
 
     @Override
     public void unregisterHandler(String type) {
-        handlers.remove(hashToLong(type));
+        handlers.remove(type);
     }
 
-    private MessageHandler getMessageHandler(long type) {
+    private MessageHandler getMessageHandler(String type) {
         return handlers.get(type);
     }
 
@@ -342,8 +330,8 @@ public class NettyMessagingService implements MessagingService {
     }
 
     private void dispatchLocally(InternalMessage message) throws IOException {
-        long type = message.type();
-        if (type == InternalMessage.REPLY_MESSAGE_TYPE) {
+        String type = message.type();
+        if (InternalMessage.REPLY_MESSAGE_TYPE.equals(type)) {
             try {
                 SettableFuture<byte[]> futureResponse =
                     NettyMessagingService.this.responseFutures.getIfPresent(message.id());
@@ -365,14 +353,5 @@ public class NettyMessagingService implements MessagingService {
         } else {
             log.debug("No handler registered for {}", type);
         }
-    }
-
-    /**
-     * Returns the md5 hash of the specified input string as a long.
-     * @param input input string.
-     * @return md5 hash as long.
-     */
-    public static long hashToLong(String input) {
-        return Hashing.md5().hashBytes(input.getBytes(Charsets.UTF_8)).asLong();
     }
 }
