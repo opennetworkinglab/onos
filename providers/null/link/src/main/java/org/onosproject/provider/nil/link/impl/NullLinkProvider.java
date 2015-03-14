@@ -19,7 +19,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -27,6 +26,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -48,6 +48,11 @@ import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Set;
@@ -55,11 +60,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.groupedThreads;
@@ -280,11 +280,17 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                 log.warn("Could not close topology file: {}", e);
             }
         }
+        Set<LinkDescription> removedLinks = null;
         synchronized (linkDescrs) {
             if (!read.isEmpty()) {
+                removedLinks = Sets.difference(Sets.newHashSet(linkDescrs), read);
                 linkDescrs.clear();
                 linkDescrs.addAll(read);
             }
+        }
+        if (!Tools.isNullOrEmpty(removedLinks)) {
+            log.info("Removing {} old link(s)", removedLinks.size());
+            removedLinks.forEach(providerService::linkVanished);
         }
     }
 
