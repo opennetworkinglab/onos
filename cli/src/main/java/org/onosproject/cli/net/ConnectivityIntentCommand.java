@@ -25,6 +25,7 @@ import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
@@ -155,13 +156,19 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      * @return traffic treatment
      */
     protected TrafficTreatment buildTrafficTreatment() {
-        final TrafficTreatment.Builder builder = builder();
+        boolean hasEthSrc = !isNullOrEmpty(setEthSrcString);
+        boolean hasEthDst = !isNullOrEmpty(setEthDstString);
 
-        if (!isNullOrEmpty(setEthSrcString)) {
+        if (!hasEthSrc && !hasEthDst) {
+            return DefaultTrafficTreatment.emptyTreatment();
+        }
+
+        final TrafficTreatment.Builder builder = builder();
+        if (hasEthSrc) {
             final MacAddress setEthSrc = MacAddress.valueOf(setEthSrcString);
             builder.setEthSrc(setEthSrc);
         }
-        if (!isNullOrEmpty(setEthDstString)) {
+        if (hasEthDst) {
             final MacAddress setEthDst = MacAddress.valueOf(setEthDstString);
             builder.setEthDst(setEthDst);
         }
