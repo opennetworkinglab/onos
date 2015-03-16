@@ -94,7 +94,7 @@ public class IntentPerfInstaller {
     //FIXME add path length
 
     @Property(name = "numKeys", intValue = DEFAULT_NUM_KEYS,
-              label = "Number of keys (i.e. unique intents) to generate per instance")
+            label = "Number of keys (i.e. unique intents) to generate per instance")
     private int numKeys = DEFAULT_NUM_KEYS;
 
     //TODO implement numWorkers property
@@ -103,11 +103,11 @@ public class IntentPerfInstaller {
 //    private int numWokers = DEFAULT_NUM_WORKERS;
 
     @Property(name = "cyclePeriod", intValue = DEFAULT_GOAL_CYCLE_PERIOD,
-              label = "Goal for cycle period (in ms)")
+            label = "Goal for cycle period (in ms)")
     private int cyclePeriod = DEFAULT_GOAL_CYCLE_PERIOD;
 
     @Property(name = "numNeighbors", intValue = DEFAULT_NUM_NEIGHBORS,
-              label = "Number of neighbors to generate intents for")
+            label = "Number of neighbors to generate intents for")
     private int numNeighbors = DEFAULT_NUM_NEIGHBORS;
 
     @Reference(cardinality = MANDATORY_UNARY)
@@ -131,6 +131,9 @@ public class IntentPerfInstaller {
     @Reference(cardinality = MANDATORY_UNARY)
     protected ComponentConfigService configService;
 
+    @Reference(cardinality = MANDATORY_UNARY)
+    protected IntentPerfCollector sampleCollector;
+
     private ExecutorService workers;
     private ApplicationId appId;
     private Listener listener;
@@ -141,9 +144,11 @@ public class IntentPerfInstaller {
     // FIXME this variable isn't shared properly between multiple worker threads
     private int lastKey = 0;
 
+    private IntentPerfUi perfUi;
+
     @Activate
     public void activate() {
-        configService.registerProperties(getClass());
+//        configService.registerProperties(getClass());
 
         String nodeId = clusterService.getLocalNode().ip().toString();
         appId = coreService.registerApplication("org.onosproject.intentperf." + nodeId);
@@ -169,7 +174,7 @@ public class IntentPerfInstaller {
 
     @Deactivate
     public void deactivate() {
-        configService.unregisterProperties(getClass(), false);
+//        configService.unregisterProperties(getClass(), false);
         stop();
     }
 
@@ -266,19 +271,15 @@ public class IntentPerfInstaller {
      * @return set of intents
      */
     private Set<Intent> createIntents(int numberOfKeys, int pathLength, int firstKey) {
-        //Set<Intent> result = new HashSet<>();
-
         List<NodeId> neighbors = getNeighbors();
 
         Multimap<NodeId, Device> devices = ArrayListMultimap.create();
-        deviceService.getAvailableDevices().forEach(device ->
-            devices.put(mastershipService.getMasterFor(device.id()), device));
+        deviceService.getAvailableDevices()
+                .forEach(device -> devices.put(mastershipService.getMasterFor(device.id()), device));
 
         // ensure that we have at least one device per neighbor
-        neighbors.forEach(node ->
-            checkState(devices.get(node).size() > 0,
-                       "There are no devices for {}", node));
-
+        neighbors.forEach(node -> checkState(devices.get(node).size() > 0,
+                                             "There are no devices for {}", node));
 
         // TODO pull this outside so that createIntent can use it
         // prefix based on node id for keys generated on this instance
@@ -401,6 +402,7 @@ public class IntentPerfInstaller {
         }
 
         int cycleCount = 0;
+
         private void adjustRates() {
 
             int addDelta = Math.max(1000 - cycleCount, 10);
@@ -483,6 +485,10 @@ public class IntentPerfInstaller {
                      format("%.2f", runningTotal.throughput()),
                      format("%.2f", processedThroughput),
                      stringBuilder);
+
+            sampleCollector.recordSample(runningTotal.throughput(),
+                                         processedThroughput);
         }
     }
+
 }

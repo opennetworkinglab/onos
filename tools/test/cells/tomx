@@ -9,4 +9,5 @@ export OCN="10.128.11.4"
 export OCI="${OC1}"
 export OCT="${OC1}"
 
-export ONOS_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-null"
+export ONOS_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow"
+export ONOS_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-null"

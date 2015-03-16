@@ -26,6 +26,8 @@ import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.PartitionService;
 import org.onosproject.store.AbstractStore;
 import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
@@ -42,7 +44,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
-        implements ClusterStore {
+        implements ClusterStore, PartitionService {
 
     public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
@@ -91,4 +93,13 @@ public class SimpleClusterStore
     public void removeNode(NodeId nodeId) {
     }
 
+    @Override
+    public boolean isMine(Key intentKey) {
+        return true;
+    }
+
+    @Override
+    public NodeId getLeader(Key intentKey) {
+        return instance.id();
+    }
 }
