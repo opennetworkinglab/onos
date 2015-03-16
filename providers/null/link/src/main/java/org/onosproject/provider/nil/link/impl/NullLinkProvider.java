@@ -15,10 +15,13 @@
  */
 package org.onosproject.provider.nil.link.impl;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,7 +29,6 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -49,7 +51,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -61,11 +63,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.toHex;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provider which advertises fake/nonexistent links to the core. To be used for
@@ -171,21 +174,21 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         int newRate;
         String newPath;
         try {
-            String s = (String) properties.get("eventRate");
+            String s = get(properties, "eventRate");
             newRate = isNullOrEmpty(s) ? DEFAULT_RATE : Integer.parseInt(s.trim());
             s = (String) properties.get("cfgFile");
-            newPath = s.trim();
-        } catch (NumberFormatException | ClassCastException e) {
+            newPath = isNullOrEmpty(s) ? CFG_PATH : s.trim();
+        } catch (NumberFormatException e) {
             log.warn(e.getMessage());
             newRate = eventRate;
             newPath = cfgFile;
         }
-
-        // topology file configuration
+        // find/read topology file.
         if (!newPath.equals(cfgFile)) {
             cfgFile = newPath;
         }
         readGraph(cfgFile, nodeService.getLocalNode().id());
+        // check for new eventRate settings.
         if (newRate != eventRate) {
             if (eventRate < 0) {
                 log.warn("Invalid rate, ignoring and using default");
@@ -194,11 +197,22 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                 eventRate = newRate;
             }
         }
+        configureWorkers();
+        log.info("Using settings: eventRate={}, topofile={}", eventRate, cfgFile);
+    }
+
+    // Configures and schedules worker threads based on settings.
+    private void configureWorkers() {
         if (eventRate > 0) {
-            if (!flicker) { // previously not flickering
+            // now set to 'flicker', previously not flickering
+            if (!flicker) {
                 flicker = true;
                 allocateLinks();
-                driverMap.remove(DEFAULT);
+                // kill off refresh worker for symmetry
+                if (driverMap.containsKey(DEFAULT)) {
+                    driverMap.get(DEFAULT).forEach(d -> d.setTasks(Lists.newArrayList()));
+                    driverMap.remove(DEFAULT);
+                }
                 for (int i = 0; i < linkTasks.size(); i++) {
                     List<LinkDescription> links = linkTasks.get(i);
                     LinkDriver driver = new LinkDriver(links);
@@ -208,26 +222,31 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                         driverMap.computeIfAbsent(sd, k -> Sets.newConcurrentHashSet()).add(driver);
                         driverMap.computeIfAbsent(dd, k -> Sets.newConcurrentHashSet()).add(driver);
                     });
-                    try {
-                        linkDriver.schedule(driver, eventRate, TimeUnit.MICROSECONDS);
-                    } catch (Exception e) {
-                        log.warn(e.getMessage());
-                    }
+                    linkDriver.schedule(driver, eventRate, TimeUnit.MICROSECONDS);
                 }
             }
+            // no need for was flicker since eventRate will be read by workers
         } else {
+            // now set to 'refresh' was 'flicker' before
             if (flicker) {
                 driverMap.forEach((dev, lds) -> lds.forEach(l -> l.deviceRemoved(dev)));
                 driverMap.clear();
                 linkTasks.clear();
+                flicker = false;
+                LinkDriver driver = new LinkDriver(linkDescrs);
+                driverMap.computeIfAbsent(DEFAULT, k -> Sets.newConcurrentHashSet()).add(driver);
+                linkDriver.schedule(driver, DEFAULT_RATE, TimeUnit.SECONDS);
+                // was 'refresh' - something changed or we're just starting.
+            } else {
+                if (driverMap.containsKey(DEFAULT)) {
+                    driverMap.forEach((dev, ld) -> ld.forEach(d -> d.setTasks(linkDescrs)));
+                    return;
+                }
+                LinkDriver driver = new LinkDriver(linkDescrs);
+                driverMap.computeIfAbsent(DEFAULT, k -> Sets.newConcurrentHashSet()).add(driver);
+                linkDriver.schedule(driver, DEFAULT_RATE, TimeUnit.SECONDS);
             }
-            flicker = false;
-            LinkDriver driver = new LinkDriver(linkDescrs);
-            driverMap.put(DEFAULT, Sets.newHashSet(driver));
-            linkDriver.schedule(driver, REFRESH_RATE, TimeUnit.SECONDS);
         }
-
-        log.info("Using settings: eventRate={}, topofile={}", eventRate, cfgFile);
     }
 
     // parse simplified dot-like topology graph
@@ -236,7 +255,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
         Set<LinkDescription> read = Sets.newHashSet();
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(path));
+            br = Files.newReader(new File(path), Charsets.US_ASCII);
             String cur = br.readLine();
             while (cur != null) {
                 if (cur.startsWith("#")) {
@@ -280,17 +299,11 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
                 log.warn("Could not close topology file: {}", e);
             }
         }
-        Set<LinkDescription> removedLinks = null;
         synchronized (linkDescrs) {
             if (!read.isEmpty()) {
-                removedLinks = Sets.difference(Sets.newHashSet(linkDescrs), read);
                 linkDescrs.clear();
                 linkDescrs.addAll(read);
             }
-        }
-        if (!Tools.isNullOrEmpty(removedLinks)) {
-            log.info("Removing {} old link(s)", removedLinks.size());
-            removedLinks.forEach(providerService::linkVanished);
         }
     }
 
@@ -348,7 +361,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     // recover DeviceId from configs and NodeID
     private DeviceId recover(String base, NodeId node) {
         long hash = node.hashCode() << 16;
-        int dev = Integer.valueOf(base);
+        int dev = Integer.parseInt(base);
         try {
             return DeviceId.deviceId(new URI("null", toHex(hash | dev), null));
         } catch (URISyntaxException e) {
@@ -360,6 +373,7 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     // adds a LinkDescription to a worker's to-be queue, for flickering
     private void allocateLinks() {
         int index, lcount = 0;
+        linkTasks.clear();
         for (LinkDescription ld : linkDescrs) {
             index = (lcount % THREADS);
             log.info("allocation: total={}, index={}", linkDescrs.size(), lcount, index);
@@ -477,15 +491,17 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
 
         public void setTasks(List<LinkDescription> links) {
             HashMultimap<ConnectPoint, ConnectPoint> nm = HashMultimap.create();
+            List<LinkDescription> rm = Lists.newArrayList();
             links.forEach(v -> nm.put(v.src(), v.dst()));
             // remove and send linkVanished for stale links.
             for (LinkDescription l : tasks) {
                 if (!nm.containsEntry(l.src(), l.dst())) {
-                    providerService.linkVanished(l);
+                    rm.add(l);
                 }
             }
             tasks.clear();
             tasks.addAll(links);
+            rm.forEach(l -> providerService.linkVanished(l));
         }
     }
 

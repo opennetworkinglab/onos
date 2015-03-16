@@ -150,13 +150,13 @@ public class NullDeviceProvider extends AbstractProvider implements DeviceProvid
         int newDevNum = DEF_NUMDEVICES;
         int newPortNum = DEF_NUMPORTS;
         try {
-            String s = (String) properties.get("devConfigs");
+            String s = get(properties, "devConfigs");
             if (!isNullOrEmpty(s)) {
                 newDevNum = getDevicesConfig(s);
             }
-            s = (String) properties.get("numPorts");
+            s = get(properties, "numPorts");
             newPortNum = isNullOrEmpty(s) ? DEF_NUMPORTS : Integer.parseInt(s.trim());
-        } catch (NumberFormatException | ClassCastException e) {
+        } catch (NumberFormatException e) {
             log.warn(e.getMessage());
             newDevNum = numDevices;
             newPortNum = numPorts;
