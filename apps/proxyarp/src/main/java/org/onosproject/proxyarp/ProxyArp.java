@@ -30,6 +30,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
@@ -69,7 +70,7 @@ public class ProxyArp {
 
     @Property(name = "ipv6NeighborDiscovery", boolValue = false,
             label = "Enable IPv6 Neighbor Discovery; default is false")
-    private boolean ipv6NeighborDiscovery = false;
+    protected boolean ipv6NeighborDiscovery = false;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -171,7 +172,15 @@ public class ProxyArp {
             if (context.isHandled()) {
                 return;
             }
-
+            // If IPv6 NDP is disabled, don't handle IPv6 frames.
+            InboundPacket pkt = context.inPacket();
+            Ethernet ethPkt = pkt.parsed();
+            if (ethPkt == null) {
+                return;
+            }
+            if (!ipv6NeighborDiscovery && (ethPkt.getEtherType() == Ethernet.TYPE_IPV6)) {
+                return;
+            }
             //handle the arp packet.
             proxyArpService.handlePacket(context);
         }
