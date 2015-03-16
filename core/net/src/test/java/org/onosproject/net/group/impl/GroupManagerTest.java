@@ -15,6 +15,12 @@
  */
 package org.onosproject.net.group.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +44,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
@@ -57,8 +64,6 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.impl.SimpleGroupStore;
 
 import com.google.common.collect.Iterables;
-
-import static org.junit.Assert.*;
 
 /**
  * Test codifying the group service & group provider service contracts.
@@ -108,31 +113,6 @@ public class GroupManagerTest {
         mgr.eventDispatcher = null;
     }
 
-    private class TestGroupKey implements GroupKey {
-        private String groupId;
-
-        public TestGroupKey(String id) {
-            this.groupId = id;
-        }
-
-        public String id() {
-            return this.groupId;
-        }
-
-        @Override
-        public int hashCode() {
-            return groupId.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof TestGroupKey) {
-                return this.groupId.equals(((TestGroupKey) obj).id());
-            }
-            return false;
-        }
-    }
-
     /**
      * Tests group service north bound and south bound interfaces.
      * The following operations are tested:
@@ -177,7 +157,7 @@ public class GroupManagerTest {
                                PortNumber.portNumber(32)};
         PortNumber[] ports2 = {PortNumber.portNumber(41),
                                PortNumber.portNumber(42)};
-        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         List<PortNumber> outPorts = new ArrayList<PortNumber>();
         outPorts.addAll(Arrays.asList(ports1));
@@ -224,7 +204,7 @@ public class GroupManagerTest {
         providerService.pushGroupMetrics(DID, groupEntries);
         // First group metrics would trigger the device audit completion
         // post which all pending group requests are also executed.
-        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
         Group createdGroup = groupService.getGroup(DID, key);
         int createdGroupId = createdGroup.id().id();
         assertNotEquals(gId1.id(), createdGroupId);
@@ -256,7 +236,7 @@ public class GroupManagerTest {
                                             0);
         List<Group> groupEntries = Arrays.asList(group1, group2);
         providerService.pushGroupMetrics(DID, groupEntries);
-        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
         Group createdGroup = groupService.getGroup(DID, key);
         List<GroupOperation> expectedGroupOps = Arrays.asList(
                 GroupOperation.createDeleteGroupOperation(gId1,
@@ -271,7 +251,7 @@ public class GroupManagerTest {
 
     // Test AUDIT with confirmed groups
     private void testAuditWithConfirmedGroups() {
-        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
         Group createdGroup = groupService.getGroup(DID, key);
         createdGroup = new DefaultGroup(createdGroup.id(),
                                         DID,
@@ -284,9 +264,9 @@ public class GroupManagerTest {
 
     // Test group add bucket operations
     private void testAddBuckets() {
-        TestGroupKey addKey = new TestGroupKey("group1AddBuckets");
+        GroupKey addKey = new DefaultGroupKey("group1AddBuckets".getBytes());
 
-        TestGroupKey prevKey = new TestGroupKey("group1BeforeAudit");
+        GroupKey prevKey = new DefaultGroupKey("group1BeforeAudit".getBytes());
         Group createdGroup = groupService.getGroup(DID, prevKey);
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         buckets.addAll(createdGroup.buckets().buckets());
@@ -328,9 +308,9 @@ public class GroupManagerTest {
 
     // Test group remove bucket operations
     private void testRemoveBuckets() {
-        TestGroupKey removeKey = new TestGroupKey("group1RemoveBuckets");
+        GroupKey removeKey = new DefaultGroupKey("group1RemoveBuckets".getBytes());
 
-        TestGroupKey prevKey = new TestGroupKey("group1AddBuckets");
+        GroupKey prevKey = new DefaultGroupKey("group1AddBuckets".getBytes());
         Group createdGroup = groupService.getGroup(DID, prevKey);
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         buckets.addAll(createdGroup.buckets().buckets());
@@ -372,7 +352,7 @@ public class GroupManagerTest {
 
     // Test group remove operations
     private void testRemoveGroup() {
-        TestGroupKey currKey = new TestGroupKey("group1RemoveBuckets");
+        GroupKey currKey = new DefaultGroupKey("group1RemoveBuckets".getBytes());
         Group existingGroup = groupService.getGroup(DID, currKey);
         groupService.removeGroup(DID, currKey, appId);
         List<GroupOperation> expectedGroupOps = Arrays.asList(
@@ -397,7 +377,7 @@ public class GroupManagerTest {
         PortNumber[] ports2 = {PortNumber.portNumber(41),
                 PortNumber.portNumber(42)};
         // Test Group creation before AUDIT process
-        TestGroupKey key = new TestGroupKey("group1BeforeAudit");
+        GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         List<PortNumber> outPorts = new ArrayList<PortNumber>();
         outPorts.addAll(Arrays.asList(ports1));

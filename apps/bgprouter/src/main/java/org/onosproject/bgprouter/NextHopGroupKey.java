@@ -15,18 +15,18 @@
  */
 package org.onosproject.bgprouter;
 
-import com.google.common.base.MoreObjects;
-import org.onlab.packet.IpAddress;
-import org.onosproject.net.group.GroupKey;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.packet.IpAddress;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Identifier for a next hop group.
  */
-public class NextHopGroupKey implements GroupKey {
+public class NextHopGroupKey {
 
     private final IpAddress address;
 

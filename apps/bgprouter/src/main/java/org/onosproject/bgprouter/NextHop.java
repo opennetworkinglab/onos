@@ -15,12 +15,12 @@
  */
 package org.onosproject.bgprouter;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.net.group.GroupKey;
 
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Represents a next hop for routing, whose MAC address has already been resolved.
@@ -29,7 +29,7 @@ public class NextHop {
 
     private final IpAddress ip;
     private final MacAddress mac;
-    private final GroupKey group;
+    private final NextHopGroupKey group;
 
     /**
      * Creates a new next hop.
@@ -38,7 +38,7 @@ public class NextHop {
      * @param mac next hop's MAC address
      * @param group next hop's group
      */
-    public NextHop(IpAddress ip, MacAddress mac, GroupKey group) {
+    public NextHop(IpAddress ip, MacAddress mac, NextHopGroupKey group) {
         this.ip = ip;
         this.mac = mac;
         this.group = group;
@@ -67,7 +67,7 @@ public class NextHop {
      *
      * @return group
      */
-    public GroupKey group() {
+    public NextHopGroupKey group() {
         return group;
     }
 

@@ -17,8 +17,10 @@ package org.onosproject.grouphandler;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -27,10 +29,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.MacAddress;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -69,9 +74,17 @@ public class DefaultGroupHandlerApp {
     protected GroupService groupService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     private DeviceListener deviceListener = new InternalDeviceListener();
     private LinkListener linkListener = new InternalLinkListener();
+
+    protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
+                        .register(URI.class)
+                        .register(HashSet.class)
+                        .register(DeviceId.class)
+                        .register(NeighborSet.class);
 
     @Activate
     public void activate() {
@@ -80,14 +93,23 @@ public class DefaultGroupHandlerApp {
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
         for (Device device: deviceService.getDevices()) {
-            log.debug("Initiating default group handling for {}", device.id());
-            DefaultGroupHandler dgh = DefaultGroupHandler.createGroupHandler(device.id(),
-                                                              appId,
-                                                              config,
-                                                              linkService,
-                                                              groupService);
-            dgh.createGroups();
-            dghMap.put(device.id(), dgh);
+            if (mastershipService.
+                    getLocalRole(device.id()) == MastershipRole.MASTER) {
+                log.debug("Initiating default group handling for {}", device.id());
+                DefaultGroupHandler dgh = DefaultGroupHandler.createGroupHandler(device.id(),
+                                                                  appId,
+                                                                  config,
+                                                                  linkService,
+                                                                  groupService);
+                dgh.createGroups();
+                dghMap.put(device.id(), dgh);
+            } else {
+                log.debug("Activate: Local role {} "
+                        + "is not MASTER for device {}",
+                          mastershipService.
+                          getLocalRole(device.id()),
+                          device.id());
+            }
         }
         log.info("Activated");
     }
@@ -165,7 +187,15 @@ public class DefaultGroupHandlerApp {
 
         @Override
         public void event(DeviceEvent event) {
-            switch (event.type()) {
+           if (mastershipService.
+                    getLocalRole(event.subject().id()) != MastershipRole.MASTER) {
+               log.debug("Local role {} is not MASTER for device {}",
+                         mastershipService.
+                         getLocalRole(event.subject().id()),
+                         event.subject().id());
+               return;
+           }
+           switch (event.type()) {
             case DEVICE_ADDED:
                 log.debug("Initiating default group handling for {}", event.subject().id());
                 DefaultGroupHandler dgh = DefaultGroupHandler.createGroupHandler(
@@ -193,6 +223,16 @@ public class DefaultGroupHandlerApp {
 
         @Override
         public void event(LinkEvent event) {
+            if (mastershipService.
+                    getLocalRole(event.subject().src().deviceId()) !=
+                    MastershipRole.MASTER) {
+                log.debug("InternalLinkListener: Local role {} "
+                        + "is not MASTER for device {}",
+                          mastershipService.
+                          getLocalRole(event.subject().src().deviceId()),
+                          event.subject().src().deviceId());
+                return;
+            }
             switch (event.type()) {
             case LINK_ADDED:
                 if (dghMap.get(event.subject().src().deviceId()) != null) {

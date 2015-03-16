@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.group;
+package org.onosproject.store.group.impl;
+
+import org.onosproject.store.cluster.messaging.MessageSubject;
 
 /**
- * Representation of generalized Key that would be used to store
- * groups in &lt; Key, Value &gt; store. This key uses a generic
- * byte array so that applications can associate their groups with
- * any of their data by translating it into a byte array.
+ * MessageSubjects used by DistributedGroupRuleStore peer-peer communication.
  */
-public interface GroupKey  {
-    /**
-     * Returns the byte representation of key.
-     *
-     * @return byte array
-     */
-    public byte[] key();
+public final class GroupStoreMessageSubjects {
+    private GroupStoreMessageSubjects() {}
+
+    public static final  MessageSubject REMOTE_GROUP_OP_REQUEST
+        = new MessageSubject("peer-forward-group-op-req");
 }

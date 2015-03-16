@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.group.GroupKey;
 
 /**
  * Representation of a set of neighbor switch dpids along with edge node
@@ -31,9 +30,10 @@ import org.onosproject.net.group.GroupKey;
  * ECMP-group that hashes packets to a set of ports connecting to the
  * neighbors in this set.
  */
-public class NeighborSet implements GroupKey {
+public class NeighborSet {
     private final Set<DeviceId> neighbors;
     private final int edgeLabel;
+    public static final int NO_EDGE_LABEL = -1;
 
     /**
      * Constructor with set of neighbors. Edge label is
@@ -43,7 +43,7 @@ public class NeighborSet implements GroupKey {
      */
     public NeighborSet(Set<DeviceId> neighbors) {
         checkNotNull(neighbors);
-        this.edgeLabel = -1;
+        this.edgeLabel = NO_EDGE_LABEL;
         this.neighbors = new HashSet<DeviceId>();
         this.neighbors.addAll(neighbors);
     }
@@ -65,7 +65,7 @@ public class NeighborSet implements GroupKey {
      * Default constructor for kryo serialization.
      */
     public NeighborSet() {
-        this.edgeLabel = -1;
+        this.edgeLabel = NO_EDGE_LABEL;
         this.neighbors = new HashSet<DeviceId>();
     }
 

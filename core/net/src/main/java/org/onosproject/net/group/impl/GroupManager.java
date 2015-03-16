@@ -15,7 +15,13 @@
  */
 package org.onosproject.net.group.impl;
 
-import com.google.common.collect.Sets;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,12 +54,7 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Sets;
 
 /**
  * Provides implementation of the group service APIs.
@@ -103,6 +104,7 @@ public class GroupManager
      */
     @Override
     public void addGroup(GroupDescription groupDesc) {
+        log.trace("In addGroup API");
         store.storeGroupDescription(groupDesc);
     }
 
@@ -121,6 +123,7 @@ public class GroupManager
      */
     @Override
     public Group getGroup(DeviceId deviceId, GroupKey appCookie) {
+        log.trace("In getGroup API");
         return store.getGroup(deviceId, appCookie);
     }
 
@@ -142,6 +145,7 @@ public class GroupManager
                            GroupBuckets buckets,
                            GroupKey newCookie,
                            ApplicationId appId) {
+        log.trace("In addBucketsToGroup API");
         store.updateGroupDescription(deviceId,
                                      oldCookie,
                                      UpdateType.ADD,
@@ -167,6 +171,7 @@ public class GroupManager
                                 GroupBuckets buckets,
                                 GroupKey newCookie,
                                 ApplicationId appId) {
+        log.trace("In removeBucketsFromGroup API");
         store.updateGroupDescription(deviceId,
                                      oldCookie,
                                      UpdateType.REMOVE,
@@ -188,6 +193,7 @@ public class GroupManager
     public void removeGroup(DeviceId deviceId,
                             GroupKey appCookie,
                             ApplicationId appId) {
+        log.trace("In removeGroup API");
         store.deleteGroupDescription(deviceId, appCookie);
     }
 
@@ -202,11 +208,13 @@ public class GroupManager
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId,
                                      ApplicationId appId) {
+        log.trace("In getGroups API");
         return store.getGroups(deviceId);
     }
 
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
+        log.trace("In getGroups API");
         return store.getGroups(deviceId);
     }
 
@@ -217,6 +225,7 @@ public class GroupManager
      */
     @Override
     public void addListener(GroupListener listener) {
+        log.trace("In addListener API");
         listenerRegistry.addListener(listener);
     }
 
@@ -227,6 +236,7 @@ public class GroupManager
      */
     @Override
     public void removeListener(GroupListener listener) {
+        log.trace("In removeListener API");
         listenerRegistry.removeListener(listener);
     }
 
@@ -364,36 +374,52 @@ public class GroupManager
             Set<Group> extraneousStoredEntries =
                     Sets.newHashSet(store.getExtraneousGroups(deviceId));
 
-            log.trace("Displaying all southboundGroupEntries for device {}", deviceId);
+            log.trace("Displaying all ({}) southboundGroupEntries for device {}",
+                      southboundGroupEntries.size(),
+                      deviceId);
             for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
                 Group group = it.next();
                 log.trace("Group {} in device {}", group, deviceId);
             }
 
-            log.trace("Displaying all stored group entries for device {}", deviceId);
-            for (Iterator<Group> it = storedGroupEntries.iterator(); it.hasNext();) {
-                Group group = it.next();
+            log.trace("Displaying all ({}) stored group entries for device {}",
+                      storedGroupEntries.size(),
+                      deviceId);
+            for (Iterator<Group> it1 = storedGroupEntries.iterator(); it1.hasNext();) {
+                Group group = it1.next();
                 log.trace("Stored Group {} for device {}", group, deviceId);
             }
 
-            for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
-                Group group = it.next();
+            for (Iterator<Group> it2 = southboundGroupEntries.iterator(); it2.hasNext();) {
+                Group group = it2.next();
                 if (storedGroupEntries.remove(group)) {
                     // we both have the group, let's update some info then.
                     log.trace("Group AUDIT: group {} exists "
                             + "in both planes for device {}",
                             group.id(), deviceId);
                     groupAdded(group);
-                    it.remove();
+                    it2.remove();
                 }
             }
             for (Group group : southboundGroupEntries) {
-                // there are groups in the switch that aren't in the store
-                log.trace("Group AUDIT: extraneous group {} exists "
-                        + "in data plane for device {}",
-                        group.id(), deviceId);
-                extraneousStoredEntries.remove(group);
-                extraneousGroup(group);
+                if (store.getGroup(group.deviceId(), group.id()) != null) {
+                    // There is a group existing with the same id
+                    // It is possible that group update is
+                    // in progress while we got a stale info from switch
+                    if (!storedGroupEntries.remove(store.getGroup(
+                                 group.deviceId(), group.id()))) {
+                        log.warn("Group AUDIT: Inconsistent state:"
+                                + "Group exists in ID based table while "
+                                + "not present in key based table");
+                    }
+                } else {
+                    // there are groups in the switch that aren't in the store
+                    log.trace("Group AUDIT: extraneous group {} exists "
+                            + "in data plane for device {}",
+                            group.id(), deviceId);
+                    extraneousStoredEntries.remove(group);
+                    extraneousGroup(group);
+                }
             }
             for (Group group : storedGroupEntries) {
                 // there are groups in the store that aren't in the switch

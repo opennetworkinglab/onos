@@ -18,7 +18,6 @@ package org.onosproject.grouphandler;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.group.GroupKey;
 
 /**
  * Representation of policy group bucket identifier. Not exposed to
@@ -28,7 +27,7 @@ public class GroupBucketIdentifier {
     private int label;
     private BucketOutputType type;
     private PortNumber outPort;
-    private GroupKey outGroup;
+    private PolicyGroupIdentifier outGroup;
 
     protected enum BucketOutputType {
         PORT,
@@ -44,7 +43,7 @@ public class GroupBucketIdentifier {
     }
 
     protected GroupBucketIdentifier(int label,
-                                    GroupKey outGroup) {
+                                    PolicyGroupIdentifier outGroup) {
         this.label = label;
         this.type = BucketOutputType.GROUP;
         this.outPort = null;
@@ -63,7 +62,7 @@ public class GroupBucketIdentifier {
         return this.outPort;
     }
 
-    protected GroupKey outGroup() {
+    protected PolicyGroupIdentifier outGroup() {
         return this.outGroup;
     }
 }

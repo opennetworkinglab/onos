@@ -16,13 +16,11 @@
 package org.onosproject.net.group;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Objects;
 
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
-import org.slf4j.Logger;
 
 /**
  * ONOS implementation of default group that is stored in the system.
@@ -30,9 +28,8 @@ import org.slf4j.Logger;
 public class DefaultGroup extends DefaultGroupDescription
     implements Group, StoredGroupEntry {
 
-    private final Logger log = getLogger(getClass());
-
     private GroupState state;
+    private boolean isGroupStateAddedFirstTime;
     private long life;
     private long packets;
     private long bytes;
@@ -214,5 +211,15 @@ public class DefaultGroup extends DefaultGroupDescription
                 .add("groupid", id)
                 .add("state", state)
                 .toString();
+    }
+
+    @Override
+    public void setIsGroupStateAddedFirstTime(boolean isGroupStateAddedFirstTime) {
+        this.isGroupStateAddedFirstTime = isGroupStateAddedFirstTime;
+    }
+
+    @Override
+    public boolean isGroupStateAddedFirstTime() {
+        return isGroupStateAddedFirstTime;
     }
 }

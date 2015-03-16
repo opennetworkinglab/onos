@@ -124,16 +124,23 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
             tBuilder.setOutput(newNeighborLink.src().port())
                     .setEthDst(deviceConfig.getDeviceMac(
                           newNeighborLink.dst().deviceId()))
-                    .setEthSrc(nodeMacAddr)
-                    .pushMpls()
-                    .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
+                    .setEthSrc(nodeMacAddr);
+            if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
+                tBuilder.pushMpls()
+                        .setMpls(MplsLabel.
+                                 mplsLabel(ns.getEdgeLabel()));
+            }
             GroupBucket updatedBucket = DefaultGroupBucket.
                     createSelectGroupBucket(tBuilder.build());
             GroupBuckets updatedBuckets = new GroupBuckets(
                                         Arrays.asList(updatedBucket));
             log.debug("newPortToExistingNeighborAtEdgeRouter: "
                     + "groupService.addBucketsToGroup for neighborset{}", ns);
-            groupService.addBucketsToGroup(deviceId, ns, updatedBuckets, ns, appId);
+            groupService.addBucketsToGroup(deviceId,
+                                           getGroupKey(ns),
+                                           updatedBuckets,
+                                           getGroupKey(ns),
+                                           appId);
         }
     }
 

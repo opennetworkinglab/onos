@@ -36,6 +36,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
@@ -68,31 +69,6 @@ public class SimpleGroupStoreTest {
     @After
     public void tearDown() throws Exception {
         simpleGroupStore.deactivate();
-    }
-
-    public class TestGroupKey implements GroupKey {
-        private String groupId;
-
-        public TestGroupKey(String id) {
-            this.groupId = id;
-        }
-
-        public String id() {
-            return this.groupId;
-        }
-
-        @Override
-        public int hashCode() {
-            return groupId.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof TestGroupKey) {
-                return this.groupId.equals(((TestGroupKey) obj).id());
-            }
-            return false;
-        }
     }
 
     private class InternalGroupStoreDelegate
@@ -173,20 +149,20 @@ public class SimpleGroupStoreTest {
         simpleGroupStore.deviceInitialAuditCompleted(D1, true);
 
         // Testing storeGroup operation
-        TestGroupKey newKey = new TestGroupKey("group1");
+        GroupKey newKey = new DefaultGroupKey("group1".getBytes());
         testStoreAndGetGroup(newKey);
 
         // Testing addOrUpdateGroupEntry operation from southbound
-        TestGroupKey currKey = newKey;
+        GroupKey currKey = newKey;
         testAddGroupEntryFromSB(currKey);
 
         // Testing updateGroupDescription for ADD operation from northbound
-        newKey = new TestGroupKey("group1AddBuckets");
+        newKey = new DefaultGroupKey("group1AddBuckets".getBytes());
         testAddBuckets(currKey, newKey);
 
         // Testing updateGroupDescription for REMOVE operation from northbound
         currKey = newKey;
-        newKey = new TestGroupKey("group1RemoveBuckets");
+        newKey = new DefaultGroupKey("group1RemoveBuckets".getBytes());
         testRemoveBuckets(currKey, newKey);
 
         // Testing addOrUpdateGroupEntry operation from southbound
@@ -201,7 +177,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing storeGroup operation
-    private void testStoreAndGetGroup(TestGroupKey key) {
+    private void testStoreAndGetGroup(GroupKey key) {
         PortNumber[] ports = {PortNumber.portNumber(31),
                               PortNumber.portNumber(32)};
         List<PortNumber> outPorts = new ArrayList<PortNumber>();
@@ -252,7 +228,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing addOrUpdateGroupEntry operation from southbound
-    private void testAddGroupEntryFromSB(TestGroupKey currKey) {
+    private void testAddGroupEntryFromSB(GroupKey currKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
 
         InternalGroupStoreDelegate addGroupEntryDelegate =
@@ -265,7 +241,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing addOrUpdateGroupEntry operation from southbound
-    private void testUpdateGroupEntryFromSB(TestGroupKey currKey) {
+    private void testUpdateGroupEntryFromSB(GroupKey currKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
 
         InternalGroupStoreDelegate updateGroupEntryDelegate =
@@ -278,7 +254,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing updateGroupDescription for ADD operation from northbound
-    private void testAddBuckets(TestGroupKey currKey, TestGroupKey addKey) {
+    private void testAddBuckets(GroupKey currKey, GroupKey addKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         buckets.addAll(existingGroup.buckets().buckets());
@@ -316,7 +292,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing updateGroupDescription for REMOVE operation from northbound
-    private void testRemoveBuckets(TestGroupKey currKey, TestGroupKey removeKey) {
+    private void testRemoveBuckets(GroupKey currKey, GroupKey removeKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
         List<GroupBucket> buckets = new ArrayList<GroupBucket>();
         buckets.addAll(existingGroup.buckets().buckets());
@@ -343,7 +319,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing deleteGroupDescription operation from northbound
-    private void testDeleteGroup(TestGroupKey currKey) {
+    private void testDeleteGroup(GroupKey currKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
         InternalGroupStoreDelegate deleteGroupDescDelegate =
                 new InternalGroupStoreDelegate(currKey,
@@ -355,7 +331,7 @@ public class SimpleGroupStoreTest {
     }
 
     // Testing removeGroupEntry operation from southbound
-    private void testRemoveGroupFromSB(TestGroupKey currKey) {
+    private void testRemoveGroupFromSB(GroupKey currKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
         InternalGroupStoreDelegate removeGroupEntryDelegate =
                 new InternalGroupStoreDelegate(currKey,
@@ -380,7 +356,7 @@ public class SimpleGroupStoreTest {
 
         ApplicationId appId =
                 new DefaultApplicationId(2, "org.groupstore.test");
-        TestGroupKey key = new TestGroupKey("group1");
+        GroupKey key = new DefaultGroupKey("group1".getBytes());
         PortNumber[] ports = {PortNumber.portNumber(31),
                 PortNumber.portNumber(32)};
         List<PortNumber> outPorts = new ArrayList<PortNumber>();

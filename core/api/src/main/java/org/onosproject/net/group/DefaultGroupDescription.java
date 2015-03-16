@@ -41,7 +41,8 @@ public class DefaultGroupDescription implements GroupDescription {
      * @param deviceId device identifier
      * @param type type of the group
      * @param buckets immutable list of group bucket
-     * @param appCookie immutable application cookie to be associated with the group
+     * @param appCookie immutable application cookie of type DefaultGroupKey
+     * to be associated with the group
      * @param appId application id
      */
     public DefaultGroupDescription(DeviceId deviceId,

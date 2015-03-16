@@ -209,6 +209,13 @@ public class SimpleGroupStore
                       null;
     }
 
+    @Override
+    public Group getGroup(DeviceId deviceId, GroupId groupId) {
+        return (groupEntriesById.get(deviceId) != null) ?
+                      groupEntriesById.get(deviceId).get(groupId) :
+                      null;
+    }
+
     private int getFreeGroupIdValue(DeviceId deviceId) {
         int freeId = groupIdGen.incrementAndGet();
 
@@ -550,6 +557,5 @@ public class SimpleGroupStore
         return FluentIterable.from(
                   getExtraneousGroupIdTable(deviceId).values());
     }
-
 
 }

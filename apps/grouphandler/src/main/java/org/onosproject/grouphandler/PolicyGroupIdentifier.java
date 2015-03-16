@@ -17,14 +17,12 @@ package org.onosproject.grouphandler;
 
 import java.util.List;
 
-import org.onosproject.net.group.GroupKey;
-
 /**
  * Representation of policy based group identifiers.
  * Opaque to group handler applications and only the outermost
  * policy group identifier in a chain is visible to the applications.
  */
-public class PolicyGroupIdentifier implements GroupKey {
+public class PolicyGroupIdentifier {
     private String id;
     private List<PolicyGroupParams> inputParams;
     private List<GroupBucketIdentifier> bucketIds;

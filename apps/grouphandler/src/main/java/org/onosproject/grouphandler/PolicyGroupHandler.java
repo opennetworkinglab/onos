@@ -37,7 +37,6 @@ import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupEvent;
-import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.link.LinkService;
 import org.slf4j.Logger;
@@ -49,18 +48,17 @@ import org.slf4j.Logger;
 public class PolicyGroupHandler extends DefaultGroupHandler {
 
     private final Logger log = getLogger(getClass());
-    private HashMap<GroupKey, GroupKey> dependentGroups =
-            new HashMap<GroupKey, GroupKey>();
+    private HashMap<PolicyGroupIdentifier, PolicyGroupIdentifier> dependentGroups =
+            new HashMap<PolicyGroupIdentifier, PolicyGroupIdentifier>();
 
     /**
-     * Creates policy group handler object.
+     * Policy group handler constructor.
      *
      * @param deviceId device identifier
      * @param appId application identifier
      * @param config interface to retrieve the device properties
      * @param linkService link service object
      * @param groupService group service object
-     * @return policy group handler type
      */
     public PolicyGroupHandler(DeviceId deviceId,
                               ApplicationId appId,
@@ -175,9 +173,11 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                     tBuilder.setOutput(bucketId.outPort())
                             .setEthDst(deviceConfig.
                                        getDeviceMac(neighbor))
-                            .setEthSrc(nodeMacAddr)
-                            .pushMpls()
+                            .setEthSrc(nodeMacAddr);
+                    if (bucketId.label() != NeighborSet.NO_EDGE_LABEL) {
+                        tBuilder.pushMpls()
                             .setMpls(MplsLabel.mplsLabel(bucketId.label()));
+                    }
                     //TODO: BoS
                     outBuckets.add(DefaultGroupBucket.
                                    createSelectGroupBucket(tBuilder.build()));
@@ -196,8 +196,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
     protected void handleGroupEvent(GroupEvent event) {
         if (event.type() == GroupEvent.Type.GROUP_ADDED) {
             if (dependentGroups.get(event.subject().appCookie()) != null) {
-                PolicyGroupIdentifier dependentGroupKey = (PolicyGroupIdentifier)
-                        dependentGroups.get(event.subject().appCookie());
+                PolicyGroupIdentifier dependentGroupKey = dependentGroups.get(event.subject().appCookie());
                 dependentGroups.remove(event.subject().appCookie());
                 boolean fullyResolved = true;
                 for (GroupBucketIdentifier bucketId:
@@ -217,8 +216,11 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                 dependentGroupKey.bucketIds()) {
                         TrafficTreatment.Builder tBuilder =
                                 DefaultTrafficTreatment.builder();
-                        tBuilder.pushMpls()
-                                .setMpls(MplsLabel.mplsLabel(bucketId.label()));
+                        if (bucketId.label() != NeighborSet.NO_EDGE_LABEL) {
+                            tBuilder.pushMpls()
+                                    .setMpls(MplsLabel.
+                                             mplsLabel(bucketId.label()));
+                        }
                         //TODO: BoS
                         if (bucketId.type() == BucketOutputType.PORT) {
                             DeviceId neighbor = portDeviceMap.
@@ -230,12 +232,14 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                         } else {
                             if (groupService.
                                     getGroup(deviceId,
-                                             bucketId.outGroup()) == null) {
+                                             getGroupKey(bucketId.
+                                                       outGroup())) == null) {
                                 throw new IllegalStateException();
                             }
                             GroupId indirectGroupId = groupService.
                                     getGroup(deviceId,
-                                             bucketId.outGroup()).id();
+                                             getGroupKey(bucketId.
+                                                         outGroup())).id();
                             tBuilder.group(indirectGroupId);
                         }
                         outBuckets.add(DefaultGroupBucket.
@@ -251,7 +255,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
         }
     }
 
-    public GroupKey generatePolicyGroupKey(String id,
+    public PolicyGroupIdentifier generatePolicyGroupKey(String id,
                                    List<PolicyGroupParams> params) {
         List<GroupBucketIdentifier> bucketIds = new ArrayList<GroupBucketIdentifier>();
         for (PolicyGroupParams param: params) {
@@ -320,25 +324,28 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
         return innermostGroupkey;
     }
 
-    public void removeGroupChain(GroupKey key) {
+    public void removeGroupChain(PolicyGroupIdentifier key) {
         if (!(key instanceof PolicyGroupIdentifier)) {
             throw new IllegalArgumentException();
         }
-        List<GroupKey> groupsToBeDeleted = new ArrayList<GroupKey>();
+        List<PolicyGroupIdentifier> groupsToBeDeleted =
+                new ArrayList<PolicyGroupIdentifier>();
         groupsToBeDeleted.add(key);
 
-        Iterator<GroupKey> it = groupsToBeDeleted.iterator();
+        Iterator<PolicyGroupIdentifier> it =
+                groupsToBeDeleted.iterator();
 
         while (it.hasNext()) {
-            PolicyGroupIdentifier innerMostGroupKey =
-                    (PolicyGroupIdentifier) it.next();
+            PolicyGroupIdentifier innerMostGroupKey = it.next();
             for (GroupBucketIdentifier bucketId:
                         innerMostGroupKey.bucketIds()) {
                 if (bucketId.type() != BucketOutputType.GROUP) {
                     groupsToBeDeleted.add(bucketId.outGroup());
                 }
             }
-            groupService.removeGroup(deviceId, innerMostGroupKey, appId);
+            groupService.removeGroup(deviceId,
+                                     getGroupKey(innerMostGroupKey),
+                                     appId);
             it.remove();
         }
     }

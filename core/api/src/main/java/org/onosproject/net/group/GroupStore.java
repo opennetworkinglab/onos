@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.group;
 
+import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
 
@@ -58,6 +59,15 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @return a group associated with the key
      */
     Group getGroup(DeviceId deviceId, GroupKey appCookie);
+
+    /**
+     * Returns the stored group entry for an id.
+     *
+     * @param deviceId the device ID
+     * @param groupId the group identifier
+     * @return a group associated with the key
+     */
+    Group getGroup(DeviceId deviceId, GroupId groupId);
 
     /**
      * Stores a new group entry using the information from group description.

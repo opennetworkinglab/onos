@@ -29,6 +29,23 @@ public interface StoredGroupEntry extends Group {
     void setState(Group.GroupState newState);
 
     /**
+     * Sets if group has transitioned to ADDED state for the first time.
+     * This is to differentiate state transitions "from PENDING_ADD to ADDED"
+     * and "from PENDING_UPDATE to ADDED". For internal use only.
+     *
+     * @param isGroupAddedFirstTime true if group moves to ADDED state
+     * for the first time.
+     */
+    void setIsGroupStateAddedFirstTime(boolean isGroupAddedFirstTime);
+
+    /**
+     * Returns the isGroupStateAddedFirstTime value. For internal use only.
+     *
+     * @return isGroupStateAddedFirstTime value
+     */
+    boolean isGroupStateAddedFirstTime();
+
+    /**
      * Sets how long this entry has been entered in the system.
      *
      * @param life epoch time
