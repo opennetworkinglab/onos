@@ -71,15 +71,13 @@
                             </packages>
                         </group>
                         <group>
-                            <title>OpenFlow Providers &amp; Controller
-                            </title>
+                            <title>OpenFlow Providers &amp; Controller</title>
                             <packages>
                                 org.onosproject.provider.of.*:org.onosproject.openflow.*
                             </packages>
                         </group>
                         <group>
-                            <title>Null Providers
-                            </title>
+                            <title>Null Providers</title>
                             <packages>
                                 org.onosproject.provider.nil.*
                             </packages>
@@ -109,7 +107,7 @@
                             </packages>
                         </group>
                     </groups>
-                    <excludePackageNames>org.onlab.thirdparty:org.onosproject.oecfg</excludePackageNames>
+                    <excludePackageNames>org.onlab.thirdparty:org.onosproject.oecfg:org.onosproject.maven</excludePackageNames>
                 </configuration>
             </plugin>
         </plugins>
