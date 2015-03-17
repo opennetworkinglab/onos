@@ -76,12 +76,16 @@ public class IntentsListCommand extends AbstractShellCommand {
             }
             return;
         } else if (pending) {
-            service.getPending().forEach(intent ->
-            print("id=%s, key=%s, type=%s, appId=%s",
-                  intent.id(), intent.key(),
-                  intent.getClass().getSimpleName(),
-                  intent.appId().name())
-            );
+            if (outputJson()) {
+                print("%s", json(service, service.getPending()));
+            } else {
+                service.getPending().forEach(intent ->
+                                print("id=%s, key=%s, type=%s, appId=%s",
+                                        intent.id(), intent.key(),
+                                        intent.getClass().getSimpleName(),
+                                        intent.appId().name())
+                );
+            }
             return;
         }
 
