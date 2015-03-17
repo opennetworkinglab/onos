@@ -56,7 +56,7 @@ public interface IntentService {
      * @param key key of the intent
      * @return intent object if the key is found, null otherwise
      */
-    public Intent getIntent(Key key);
+    Intent getIntent(Key key);
 
     /**
      * Returns an iterable of intents currently in the system.

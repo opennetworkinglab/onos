@@ -179,8 +179,6 @@ public class IntentPerfInstaller {
         workers = Executors.newFixedThreadPool(DEFAULT_NUM_WORKERS, groupedThreads("onos/intent-perf", "worker-%d"));
 
         // disable flow backups for testing
-        log.info("flow props: {}",
-                 configService.getProperties("org.onosproject.store.flow.impl.DistributedFlowRuleStore"));
         configService.setProperty("org.onosproject.store.flow.impl.DistributedFlowRuleStore",
                                   "backupEnabled", "false");
 
