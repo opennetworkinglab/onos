@@ -61,13 +61,13 @@ public class DistributedPacketStore
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private MastershipService mastershipService;
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterService clusterService;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterCommunicationService communicationService;
+    protected ClusterCommunicationService communicationService;
 
     private static final MessageSubject PACKET_OUT_SUBJECT =
             new MessageSubject("packet-out");
@@ -90,8 +90,9 @@ public class DistributedPacketStore
                 MESSAGE_HANDLER_THREAD_POOL_SIZE,
                 groupedThreads("onos/store/packet", "message-handlers"));
 
-        communicationService.addSubscriber(
-                PACKET_OUT_SUBJECT, new InternalClusterMessageHandler(), messageHandlingExecutor);
+        communicationService.addSubscriber(PACKET_OUT_SUBJECT,
+                                           new InternalClusterMessageHandler(),
+                                           messageHandlingExecutor);
 
         log.info("Started");
     }
@@ -118,8 +119,9 @@ public class DistributedPacketStore
         }
 
         // TODO check unicast return value
-        communicationService.unicast(new ClusterMessage(
-                myId, PACKET_OUT_SUBJECT, SERIALIZER.encode(packet)), master);
+        communicationService.unicast(new ClusterMessage(myId, PACKET_OUT_SUBJECT,
+                                                        SERIALIZER.encode(packet)),
+                                     master);
         // error log: log.warn("Failed to send packet-out to {}", master);
     }
 

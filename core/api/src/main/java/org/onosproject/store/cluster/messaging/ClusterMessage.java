@@ -141,7 +141,7 @@ public class ClusterMessage {
         buffer.get(payloadBytes);
 
         return new ClusterMessage(new NodeId(new String(senderBytes, Charsets.UTF_8)),
-                new MessageSubject(new String(senderBytes, Charsets.UTF_8)),
+                new MessageSubject(new String(subjectBytes, Charsets.UTF_8)),
                 payloadBytes);
     }
 
