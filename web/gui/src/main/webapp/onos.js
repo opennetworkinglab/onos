@@ -36,9 +36,9 @@
     // view IDs.. note the first view listed is loaded at startup
     var viewIds = [
         // {INJECTED-VIEW-IDS-START}
-        'sample',
         'topo',
         'device',
+        'sample',
         // {INJECTED-VIEW-IDS-END}
 
         // dummy entry

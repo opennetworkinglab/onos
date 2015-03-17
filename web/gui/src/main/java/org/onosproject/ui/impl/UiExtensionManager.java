@@ -56,9 +56,9 @@ public class UiExtensionManager implements UiExtensionService {
 
     // Creates core UI extension
     private static UiExtension createCoreExtension() {
-        List<UiView> coreViews = of(new UiView("sample", "Sample"),
-                                    new UiView("topo", "Topology View"),
-                                    new UiView("device", "Devices"));
+        List<UiView> coreViews = of(new UiView("topo", "Topology View"),
+                                    new UiView("device", "Devices"),
+                                    new UiView("sample", "Sample"));
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler()
