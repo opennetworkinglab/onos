@@ -50,7 +50,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service(value = IntentPerfCollector.class)
 public class IntentPerfCollector {
 
-    private static final long SAMPLE_WINDOW = 5_000;
+    private static final long SAMPLE_TIME_WINDOW_MS = 5_000;
     private final Logger log = getLogger(getClass());
 
     private static final int MAX_SAMPLES = 1_000;
@@ -82,9 +82,9 @@ public class IntentPerfCollector {
 
     @Activate
     public void activate() {
-        this.nodeId = clusterService.getLocalNode().id();
-        this.newestTime = 0;
+        nodeId = clusterService.getLocalNode().id();
 
+        // TODO: replace with shared executor
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/perf", "message-handler"));
 
@@ -98,9 +98,8 @@ public class IntentPerfCollector {
         for (int i = 0; i < nodes.length; i++) {
             nodeToIndex.put(nodes[i].id(), i);
         }
-        overall = new Sample(0, nodes.length);
-        current = new Sample(0, nodes.length);
 
+        clearSamples();
         log.info("Started");
     }
 
@@ -112,19 +111,26 @@ public class IntentPerfCollector {
     }
 
     /**
+     * Clears all previously accumulated data.
+     */
+    public void clearSamples() {
+        newestTime = 0;
+        overall = new Sample(0, nodes.length);
+        current = new Sample(0, nodes.length);
+        samples.clear();
+    }
+
+
+    /**
      * Records a sample point of data about intent operation rate.
      *
      * @param overallRate overall rate
      * @param currentRate current rate
      */
     public void recordSample(double overallRate, double currentRate) {
-        try {
-            long now = System.currentTimeMillis();
-            addSample(now, nodeId, overallRate, currentRate);
-            broadcastSample(now, nodeId, overallRate, currentRate);
-        } catch (Exception e) {
-            log.error("Boom!", e);
-        }
+        long now = System.currentTimeMillis();
+        addSample(now, nodeId, overallRate, currentRate);
+        broadcastSample(now, nodeId, overallRate, currentRate);
     }
 
     /**
@@ -173,7 +179,7 @@ public class IntentPerfCollector {
     }
 
     private Sample createCurrentSampleIfNeeded(long time) {
-        Sample oldSample = time - newestTime > SAMPLE_WINDOW || current.isComplete() ? current : null;
+        Sample oldSample = time - newestTime > SAMPLE_TIME_WINDOW_MS || current.isComplete() ? current : null;
         if (oldSample != null) {
             newestTime = time;
             current = new Sample(time, nodes.length);
@@ -227,9 +233,9 @@ public class IntentPerfCollector {
         @Override
         public void handle(ClusterMessage message) {
             String[] fields = new String(message.payload()).split("\\|");
-            log.info("Received sample from {}: {}", message.sender(), fields);
+            log.debug("Received sample from {}: {}", message.sender(), fields);
             addSample(Long.parseLong(fields[0]), message.sender(),
-                      Double.parseDouble(fields[1]), Double.parseDouble(fields[1]));
+                      Double.parseDouble(fields[1]), Double.parseDouble(fields[2]));
         }
     }
 }

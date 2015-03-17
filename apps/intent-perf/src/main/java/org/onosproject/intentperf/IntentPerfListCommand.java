@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Command(scope = "onos", name = "intent-perf",
         description = "Displays accumulated performance metrics")
-public class IntentPerfCommand extends AbstractShellCommand {
+public class IntentPerfListCommand extends AbstractShellCommand {
 
     @Option(name = "-s", aliases = "--summary", description = "Output just summary",
             required = false, multiValued = false)
@@ -49,11 +49,16 @@ public class IntentPerfCommand extends AbstractShellCommand {
         List<String> headers = collector.getSampleHeaders();
         Sample overall = collector.getOverall();
         double total = 0;
+        print("%12s: %14s", "Node ID", "Overall Rate");
         for (int i = 0; i < overall.data.length; i++) {
-            print("%12s: %12.2f", headers.get(i), overall.data[i]);
-            total += overall.data[i];
+            if (overall.data[i] >= 0) {
+                print("%12s: %14.2f", headers.get(i), overall.data[i]);
+                total += overall.data[i];
+            } else {
+                print("%12s: %14s", headers.get(i), " ");
+            }
         }
-        print("%12s: %12.2f", "total", total);
+        print("%12s: %14.2f", "total", total);
     }
 
     private void printSamples() {
