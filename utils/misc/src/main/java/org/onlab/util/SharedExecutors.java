@@ -16,61 +16,66 @@
 
 package org.onlab.util;
 
-
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
- * SharedExecutors is designed to use thread pool for applications.
- * SharedExecutors is recommended for applications instead of creating new thread groups.
+ * Utility for managing a set of shared execution resources, such as a timer,
+ * single thread executor and thread pool executor for use by various parts of
+ * the platform or by applications.
+ * <p>
+ * Whenever possible, use of these shared resources is encouraged over creating
+ * separate ones.
+ * </p>
  */
 public final class SharedExecutors {
 
+    // TODO: make this configurable via setPoolSize static method
     private static int numberOfThreads = 30;
 
     private static ExecutorService singleThreadExecutor =
-            Executors.newSingleThreadExecutor(groupedThreads("onos/shared", "onos-single-executor"));
+            newSingleThreadExecutor(groupedThreads("onos/shared",
+                                                   "onos-single-executor"));
 
     private static ExecutorService poolThreadExecutor =
-            Executors.newFixedThreadPool(numberOfThreads, groupedThreads("onos/shared", "onos-pool-executor-%d"));
+            newFixedThreadPool(numberOfThreads, groupedThreads("onos/shared",
+                                                               "onos-pool-executor-%d"));
 
-    private static java.util.Timer sharedTimer =
-            new java.util.Timer("onos-shared-timer");
+    private static Timer sharedTimer = new Timer("onos-shared-timer");
 
-
-
+    // Ban public construction
     private SharedExecutors() {
-
     }
 
     /**
-     * Returns the single thread executor.
+     * Returns the shared single thread executor.
      *
      * @return shared single thread executor
      */
     public static ExecutorService getSingleThreadExecutor() {
         return singleThreadExecutor;
     }
+
     /**
-     * Returns the pool thread executor.
+     * Returns the shared thread pool executor.
      *
      * @return shared executor pool
      */
     public static ExecutorService getPoolThreadExecutor() {
         return poolThreadExecutor;
     }
+
     /**
-     * Returns the pool timer.
+     * Returns the shared timer.
      *
      * @return shared timer
      */
-    public static java.util.Timer getTimer() {
+    public static Timer getTimer() {
         return sharedTimer;
     }
-
-
-
 
 }
