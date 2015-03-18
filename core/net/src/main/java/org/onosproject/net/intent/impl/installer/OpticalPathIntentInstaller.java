@@ -149,8 +149,8 @@ public class OpticalPathIntentInstaller implements IntentInstaller<OpticalPathIn
             }
 
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            treatmentBuilder.setOutput(link.src().port());
             treatmentBuilder.setLambda((short) la.toInt());
+            treatmentBuilder.setOutput(link.src().port());
 
             FlowRule rule = new DefaultFlowRule(prev.deviceId(),
                                                 selectorBuilder.build(),
