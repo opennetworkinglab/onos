@@ -60,12 +60,16 @@ public class TopologyEventsMetricsCommand extends AbstractShellCommand {
                           service.topologyLinkEventMetric());
             result = json(mapper, result, "topologyGraphEvent",
                           service.topologyGraphEventMetric());
+            result = json(mapper, result, "topologyGraphReasonsEvent",
+                          service.topologyGraphReasonsEventMetric());
             print("%s", result);
         } else {
             printEventMetric("Device", service.topologyDeviceEventMetric());
             printEventMetric("Host", service.topologyHostEventMetric());
             printEventMetric("Link", service.topologyLinkEventMetric());
             printEventMetric("Graph", service.topologyGraphEventMetric());
+            printEventMetric("Graph Reasons",
+                             service.topologyGraphReasonsEventMetric());
         }
     }
 

@@ -91,17 +91,20 @@ public class TopologyMetrics implements TopologyMetricsService {
     private static final String FEATURE_HOST_NAME = "HostEvent";
     private static final String FEATURE_LINK_NAME = "LinkEvent";
     private static final String FEATURE_GRAPH_NAME = "GraphEvent";
+    private static final String FEATURE_GRAPH_REASONS_NAME = "GraphReasonsEvent";
     //
     // Event metrics:
     //  - Device events
     //  - Host events
     //  - Link events
     //  - Topology Graph events
+    //  - Topology Graph Reasons events
     //
     private EventMetric topologyDeviceEventMetric;
     private EventMetric topologyHostEventMetric;
     private EventMetric topologyLinkEventMetric;
     private EventMetric topologyGraphEventMetric;
+    private EventMetric topologyGraphReasonsEventMetric;
 
     @Activate
     protected void activate() {
@@ -158,6 +161,11 @@ public class TopologyMetrics implements TopologyMetricsService {
     @Override
     public EventMetric topologyGraphEventMetric() {
         return topologyGraphEventMetric;
+    }
+
+    @Override
+    public EventMetric topologyGraphReasonsEventMetric() {
+        return topologyGraphReasonsEventMetric;
     }
 
     /**
@@ -226,6 +234,7 @@ public class TopologyMetrics implements TopologyMetricsService {
             log.debug("Topology Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
             for (Event reason : event.reasons()) {
+                recordEvent(event, topologyGraphReasonsEventMetric);
                 log.debug("Topology Event Reason: time = {} type = {} event = {}",
                           reason.time(), reason.type(), reason);
             }
@@ -257,11 +266,15 @@ public class TopologyMetrics implements TopologyMetricsService {
         topologyGraphEventMetric =
             new EventMetric(metricsService, COMPONENT_NAME,
                             FEATURE_GRAPH_NAME);
+        topologyGraphReasonsEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_GRAPH_REASONS_NAME);
 
         topologyDeviceEventMetric.registerMetrics();
         topologyHostEventMetric.registerMetrics();
         topologyLinkEventMetric.registerMetrics();
         topologyGraphEventMetric.registerMetrics();
+        topologyGraphReasonsEventMetric.registerMetrics();
     }
 
     /**
@@ -272,5 +285,6 @@ public class TopologyMetrics implements TopologyMetricsService {
         topologyHostEventMetric.removeMetrics();
         topologyLinkEventMetric.removeMetrics();
         topologyGraphEventMetric.removeMetrics();
+        topologyGraphReasonsEventMetric.removeMetrics();
     }
 }
