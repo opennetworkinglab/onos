@@ -39,7 +39,6 @@
     <description>Open Network Operating System root project</description>
 
     <modules>
-        <module>tools/package/maven-plugin</module>
         <module>utils</module>
         <module>core</module>
         <module>web</module>
