@@ -28,13 +28,16 @@
     var btnWidth = 175,
         btnHeight = 50,
         hoverZone = 60,
+        sectorDivisions = 3,
         pageMargin = 20;
 
     // svg elements
-    var g;
+    var svg, g;
 
     // other variables
     var winWidth, winHeight,
+        sectorWidth, sectorHeight,
+        currSector = 4,
         mouse;
 
     // ====================================================
@@ -44,27 +47,112 @@
         return (axis / 2) - (dim / 2);
     }
 
-    function randomPos() {
+    // ====================================================
+
+    function center(elem) {
+        $log.debug(winWidth / 2);
+        $log.debug(winHeight / 2);
+        $log.debug((winWidth / 2) - ((elem.node().getBBox().width) / 2));
+        $log.debug((winHeight / 2) - ((elem.node().getBBox().height) / 2));
         return {
-            x: Math.random() * winWidth,
-            y: Math.random() * winHeight
+            x: (winWidth / 2) - ((elem.node().getBBox().width) / 2),
+            y: (winHeight / 2) - ((elem.node().getBBox().height) / 2)
         }
     }
 
-    function getPosition() {
-        var x = randomPos().x + pageMargin,
-            y = randomPos().y + pageMargin,
-            x1 = x + btnWidth,
-            y1 = y + btnHeight,
-            wwMargin = winWidth - pageMargin,
-            whMargin = winHeight - pageMargin;
+    function showSectors() {
+        svg.append('line')
+            .attr({
+                x1: winWidth / 2,
+                x2: winWidth / 2,
+                y1: 0,
+                y2: winHeight,
+                stroke: 'purple',
+                'stroke-width': '3px'
+            });
+        svg.append('line')
+            .attr({
+                x1: 0,
+                x2: winWidth,
+                y1: winHeight / 2,
+                y2: winHeight / 2,
+                stroke: 'purple',
+                'stroke-width': '3px'
+            });
+        for (var i = 1; i < 5; i++) {
+            var j;
+            if (i < 3) {
+                j = i;
+                svg.append('line')
+                    .attr({
+                        x1: sectorWidth * j,
+                        x2: sectorWidth * j,
+                        y1: 0,
+                        y2: winHeight,
+                        stroke: 'red',
+                        'stroke-width': '3px'
+                    });
+            }
+            else {
+                j = i - 2;
+                svg.append('line')
+                    .attr({
+                        x1: 0,
+                        x2: winWidth,
+                        y1: sectorHeight * j,
+                        y2: sectorHeight * j,
+                        stroke: 'red',
+                        'stroke-width': '3px'
+                    });
+            }
+        }
+    }
 
-        while (x1 >= wwMargin || y1 >= whMargin) {
-            x = randomPos().x + pageMargin;
-            y = randomPos().y + pageMargin;
+    function onMouseMove() {
+        mouse = d3.mouse(this);
+        moveButton();
+    }
+
+    function removeMouseListener() {
+        g.on('mousemove', null);
+    }
+
+    function addMouseListener() {
+        g.on('mousemove', onMouseMove);
+    }
+
+    function selectSector() {
+        var sector, row, col;
+
+        do {
+            sector = Math.floor((Math.random() * 9));
+        } while (sector === currSector);
+        $log.debug('sector after loop: ' + sector);
+        $log.debug('currSector after loop: ' + currSector);
+        currSector = sector;
+        $log.debug('currSector after assignment: ' + currSector);
+        row = Math.floor(sector / sectorDivisions);
+        col = sector % sectorDivisions;
+
+        $log.debug('row: ' + row);
+        $log.debug('col: ' + col);
+
+        return {
+            xmin: sectorWidth * col,
+            xmax: (sectorWidth * col) + sectorWidth,
+            ymin: sectorHeight * row,
+            ymax: (sectorHeight * row) + sectorHeight
+        }
+    }
+
+    function selectXY(sectorCoords) {
+        var x, y, x1, y1;
+        do {
+            x = (Math.random() * sectorCoords.xmax) + sectorCoords.xmin;
+            y = (Math.random() * sectorCoords.ymax) + sectorCoords.ymin;
             x1 = x + btnWidth;
             y1 = y + btnHeight;
-        }
+        } while (x1 >= winWidth - pageMargin || y1 >= winHeight - pageMargin);
 
         return {
             x: x,
@@ -77,13 +165,15 @@
     }
 
     function moveButton() {
-        var pos = getPosition(),
-            x = pos.x,
-            y = pos.y;
+        var sec = selectSector(),
+            pos = selectXY(sec);
+        $log.debug(pos.x, pos.y);
         g.transition()
             .duration(400)
             .ease('cubic-out')
-            .attr('transform', gTranslate(x, y));
+            .each('start', removeMouseListener)
+            .attr('transform', gTranslate(pos.x, pos.y))
+            .each('end', addMouseListener);
     }
 
     angular.module('svgExercise', ['onosUtil'])
@@ -99,16 +189,22 @@
                 link: function (scope, elem, attrs) {
                     winWidth = fs.windowSize().width;
                     winHeight = fs.windowSize().height;
-                    var svg = d3.select(elem[0])
+                    // getting rid of pageMargin to see if the math is easier
+                    // could put the padding somewhere else as in where it's ok to move the button
+                    //sectorWidth = (winWidth / sectorDivisions) - pageMargin;
+                    //sectorHeight = (winHeight / sectorDivisions) - pageMargin;
+                    sectorWidth = winWidth / sectorDivisions;
+                    sectorHeight = winHeight / sectorDivisions;
+
+                    svg = d3.select(elem[0])
                         .append('svg')
                         .attr({
                             width: winWidth + 'px',
                             height: winHeight + 'px'
                         });
-                    g = svg.append('g')
-                        .attr('transform',
-                            gTranslate(centeredOnWindow(winWidth, btnWidth),
-                                       centeredOnWindow(winHeight, btnHeight)));
+
+                    showSectors();
+                    g = svg.append('g');
 
                     var button = g.append('rect')
                             .attr({
@@ -132,13 +228,14 @@
                                 height: btnHeight + hoverZone + 'px',
                                 x: -(hoverZone / 2),
                                 y: -(hoverZone / 2)
-                            });
+                            }),
+                        centeredG = center(g);
+                    g.attr('transform',
+                        gTranslate(centeredG.x, centeredG.y));
+                    //gTranslate(centeredOnWindow(winWidth, btnWidth),
+                    //           centeredOnWindow(winHeight, btnHeight)));
 
-                        g.on('mousemove', function () {
-                        mouse = d3.mouse(this);
-                        moveButton();
-                    });
-
+                    addMouseListener();
                 }
             };
         }]);

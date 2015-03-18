@@ -29,20 +29,20 @@
 
     // references to injected services etc.
     var $log, fs, ks, zs, gs, ms, sus, flash, wss,
-        tes, tfs, tps, tis, tss, tts, tos;
+        tes, tfs, tps, tis, tss, tts, tos, ttbs;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
 
     // Internal state
-    var zoomer;
+    var zoomer, actionMap;
 
     // --- Short Cut Keys ------------------------------------------------
 
     function setUpKeys() {
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
-        ks.keyBindings({
+        actionMap = {
             O: [tps.toggleSummary, 'Toggle ONOS summary pane'],
             I: [toggleInstances, 'Toggle ONOS instances pane'],
             D: [tss.toggleDetails, 'Disable / enable details pane'],
@@ -74,7 +74,9 @@
                 ['X', 'Z', 'L', 'U', 'R' ],
                 ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
             ]
-        });
+        };
+
+        ks.keyBindings(actionMap);
 
         ks.gestureNotes([
             ['click', 'Select the item and show details'],
@@ -130,6 +132,20 @@
             // talk to Thomas about this: shouldn't it be done
             // when we deselect the node (if tss.haveDetails()...)
         }
+    }
+
+    // --- Toolbar Functions ---------------------------------------------
+
+    function getActionEntry(key) {
+        var entry = actionMap[key];
+        return fs.isA(entry) || [entry, ''];
+    }
+
+    function setUpToolbar() {
+        ttbs.init({
+            getActionEntry: getActionEntry
+        });
+        ttbs.createToolbar();
     }
 
     // --- Glyphs, Icons, and the like -----------------------------------
@@ -220,11 +236,11 @@
             'WebSocketService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoTrafficService',
-            'TopoObliqueService',
+            'TopoObliqueService', 'TopoToolbarService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast,
                   _ks_, _zs_, _gs_, _ms_, _sus_, _flash_, _wss_,
-                  _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_, _tos_) {
+                  _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_, _tos_, _ttbs_) {
             var self = this,
                 projection,
                 dim,
@@ -256,6 +272,7 @@
             tss = _tss_;
             tts = _tts_;
             tos = _tos_;
+            ttbs = _ttbs_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -278,6 +295,7 @@
             dim = [svg.attr('width'), svg.attr('height')];
 
             setUpKeys();
+            setUpToolbar();
             setUpDefs();
             setUpZoom();
             setUpNoDevs();
