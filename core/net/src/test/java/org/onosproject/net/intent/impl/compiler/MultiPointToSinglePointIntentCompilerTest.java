@@ -104,8 +104,13 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             ingressPoints.add(connectPoint(ingressId, 1));
         }
 
-        return new MultiPointToSinglePointIntent(APPID, selector, treatment,
-                                                 ingressPoints, egressPoint);
+        return MultiPointToSinglePointIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoints(ingressPoints)
+                .egressPoint(egressPoint)
+                .build();
     }
 
     /**

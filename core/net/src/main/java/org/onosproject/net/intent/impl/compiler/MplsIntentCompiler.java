@@ -75,11 +75,16 @@ public class MplsIntentCompiler  extends ConnectivityIntentCompiler<MplsIntent> 
      */
     private Intent createPathIntent(Path path,
                                     MplsIntent intent) {
-        return new MplsPathIntent(intent.appId(),
-                              intent.selector(), intent.treatment(), path,
-                              intent.ingressLabel(), intent.egressLabel(),
-                              intent.constraints(),
-                              intent.priority());
+        return MplsPathIntent.builder()
+                .appId(intent.appId())
+                .selector(intent.selector())
+                .treatment(intent.treatment())
+                .path(path)
+                .ingressLabel(intent.ingressLabel())
+                .egressLabel(intent.egressLabel())
+                .constraints(intent.constraints())
+                .priority(intent.priority())
+                .build();
     }
 
 

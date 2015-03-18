@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,14 +88,16 @@ public class MultiPointToSinglePointIntentCompiler
             }
         }
 
-        Set<ConnectPoint> egress = ImmutableSet.of(intent.egressPoint());
-        Intent result = new LinkCollectionIntent(intent.appId(),
-                                                 intent.selector(), intent.treatment(),
-                                                 Sets.newHashSet(links.values()),
-                                                 intent.ingressPoints(),
-                                                 ImmutableSet.of(intent.egressPoint()),
-                                                 Collections.emptyList(),
-                                                 intent.priority());
+        Intent result = LinkCollectionIntent.builder()
+                .appId(intent.appId())
+                .selector(intent.selector())
+                .treatment(intent.treatment())
+                .links(Sets.newHashSet(links.values()))
+                .ingressPoints(intent.ingressPoints())
+                .egressPoints(ImmutableSet.of(intent.egressPoint()))
+                .priority(intent.priority())
+                .build();
+
         return Arrays.asList(result);
     }
 

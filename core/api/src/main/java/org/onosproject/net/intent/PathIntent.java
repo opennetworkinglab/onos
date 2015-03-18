@@ -15,17 +15,17 @@
  */
 package org.onosproject.net.intent;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import java.util.List;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import java.util.Collections;
-import java.util.List;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -44,30 +44,17 @@ public class PathIntent extends ConnectivityIntent {
      * @param selector  traffic selector
      * @param treatment treatment
      * @param path      traversed links
-     * @throws NullPointerException {@code path} is null
-     */
-    public PathIntent(ApplicationId appId, TrafficSelector selector,
-                      TrafficTreatment treatment, Path path) {
-        this(appId, selector, treatment, path, Collections.emptyList(),
-                DEFAULT_INTENT_PRIORITY);
-    }
-
-    /**
-     * Creates a new point-to-point intent with the supplied ingress/egress
-     * ports and using the specified explicit path.
-     *
-     * @param appId     application identifier
-     * @param selector  traffic selector
-     * @param treatment treatment
-     * @param path      traversed links
      * @param constraints  optional list of constraints
      * @param priority  priority to use for the generated flows
      * @throws NullPointerException {@code path} is null
      */
-    public PathIntent(ApplicationId appId, TrafficSelector selector,
-                      TrafficTreatment treatment, Path path, List<Constraint> constraints,
-                      int priority) {
-        super(appId, resources(path.links()), selector, treatment, constraints,
+    protected PathIntent(ApplicationId appId,
+                         TrafficSelector selector,
+                         TrafficTreatment treatment,
+                         Path path,
+                         List<Constraint> constraints,
+                         int priority) {
+        super(appId, null, resources(path.links()), selector, treatment, constraints,
                 priority);
         PathIntent.validate(path.links());
         this.path = path;
@@ -80,6 +67,86 @@ public class PathIntent extends ConnectivityIntent {
         super();
         this.path = null;
     }
+
+    /**
+     * Returns a new host to host intent builder.
+     *
+     * @return host to host intent builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder of a host to host intent.
+     */
+    public static class Builder extends ConnectivityIntent.Builder {
+        Path path;
+
+        protected Builder() {
+            // Hide default constructor
+        }
+
+        @Override
+        public Builder appId(ApplicationId appId) {
+            return (Builder) super.appId(appId);
+        }
+
+        @Override
+        public Builder key(Key key) {
+            return (Builder) super.key(key);
+        }
+
+        @Override
+        public Builder selector(TrafficSelector selector) {
+            return (Builder) super.selector(selector);
+        }
+
+        @Override
+        public Builder treatment(TrafficTreatment treatment) {
+            return (Builder) super.treatment(treatment);
+        }
+
+        @Override
+        public Builder constraints(List<Constraint> constraints) {
+            return (Builder) super.constraints(constraints);
+        }
+
+        @Override
+        public Builder priority(int priority) {
+            return (Builder) super.priority(priority);
+        }
+
+        /**
+         * Sets the path of the intent that will be built.
+         *
+         * @param path path for the intent
+         * @return this builder
+         */
+        public Builder path(Path path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * Builds a path intent from the accumulated parameters.
+         *
+         * @return point to point intent
+         */
+        public PathIntent build() {
+
+            return new PathIntent(
+                    appId,
+                    selector,
+                    treatment,
+                    path,
+                    constraints,
+                    priority
+            );
+        }
+    }
+
+
 
     // NOTE: This methods takes linear time with the number of links.
     /**

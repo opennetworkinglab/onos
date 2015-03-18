@@ -97,7 +97,12 @@ public class CompilingTest {
                 .ingressPoint(cp1)
                 .egressPoint(cp3)
                 .build();
-        compiled = new PathIntent(appId, selector, treatment, path);
+        compiled = PathIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .path(path)
+                .build();
     }
 
 

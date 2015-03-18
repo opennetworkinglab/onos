@@ -91,10 +91,14 @@ public class PointToPointIntentCompiler
      */
     private Intent createPathIntent(Path path,
                                     PointToPointIntent intent) {
-        return new PathIntent(intent.appId(),
-                              intent.selector(), intent.treatment(), path,
-                              intent.constraints(),
-                              intent.priority());
+        return PathIntent.builder()
+                .appId(intent.appId())
+                .selector(intent.selector())
+                .treatment(intent.treatment())
+                .path(path)
+                .constraints(intent.constraints())
+                .priority(intent.priority())
+                .build();
     }
 
 }

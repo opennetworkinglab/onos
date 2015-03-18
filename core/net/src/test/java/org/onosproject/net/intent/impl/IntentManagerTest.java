@@ -502,7 +502,8 @@ public class IntentManagerTest {
     public void intentWithoutCompiler() {
         class IntentNoCompiler extends Intent {
             IntentNoCompiler() {
-                super(APPID, Collections.emptyList());
+                super(APPID, null, Collections.emptyList(),
+                        Intent.DEFAULT_INTENT_PRIORITY);
             }
         }
 

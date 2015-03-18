@@ -311,9 +311,11 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         HostId two = hostId(string(payload, "two"));
 
         HostToHostIntent intent =
-                new HostToHostIntent(appId, one, two,
-                                     DefaultTrafficSelector.emptySelector(),
-                                     DefaultTrafficTreatment.emptyTreatment());
+                HostToHostIntent.builder()
+                        .appId(appId)
+                        .one(one)
+                        .two(two)
+                        .build();
 
         intentService.submit(intent);
         startMonitoringIntent(event, intent);
@@ -336,8 +338,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(appId, selector, treatment,
-                                                  ingressPoints, dstHost.location());
+                MultiPointToSinglePointIntent.builder()
+                        .appId(appId)
+                        .selector(selector)
+                        .treatment(treatment)
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(dstHost.location())
+                        .build();
 
         intentService.submit(intent);
         startMonitoringIntent(event, intent);

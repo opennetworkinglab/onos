@@ -15,18 +15,14 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.HostId;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.IntentService;
-
-import java.util.List;
 
 /**
  * Installs host-to-host connectivity intent.
@@ -50,14 +46,16 @@ public class AddHostToHostIntentCommand extends ConnectivityIntentCommand {
         HostId oneId = HostId.hostId(one);
         HostId twoId = HostId.hostId(two);
 
-        TrafficSelector selector = DefaultTrafficSelector.emptySelector();
-        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
         List<Constraint> constraints = buildConstraints();
 
-        HostToHostIntent intent = new HostToHostIntent(appId(), key(),
-                                                       oneId, twoId,
-                                                       selector, treatment,
-                                                       constraints, priority());
+        HostToHostIntent intent = HostToHostIntent.builder()
+                .appId(appId())
+                .key(key())
+                .one(oneId)
+                .two(twoId)
+                .constraints(constraints)
+                .priority(priority())
+                .build();
         service.submit(intent);
         print("Host to Host intent submitted:\n%s", intent.toString());
     }

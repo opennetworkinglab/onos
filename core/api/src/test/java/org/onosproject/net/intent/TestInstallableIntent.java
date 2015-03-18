@@ -32,7 +32,8 @@ public class TestInstallableIntent extends Intent {
      * @param value intent ID
      */
     public TestInstallableIntent(int value) { // FIXME
-        super(new TestApplicationId("foo"), Collections.emptyList());
+        super(new TestApplicationId("foo"), null, Collections.emptyList(),
+                Intent.DEFAULT_INTENT_PRIORITY);
         this.value = value;
     }
 

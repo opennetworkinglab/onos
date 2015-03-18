@@ -27,7 +27,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.hid;
 
 /**
@@ -43,7 +42,13 @@ public class HostToHostIntentTest extends IntentTest {
     private static final ApplicationId APPID = new TestApplicationId("foo");
 
     private HostToHostIntent makeHostToHost(HostId one, HostId two) {
-        return new HostToHostIntent(APPID, one, two, selector, treatment);
+        return HostToHostIntent.builder()
+                .appId(APPID)
+                .one(one)
+                .two(two)
+                .selector(selector)
+                .treatment(treatment)
+                .build();
     }
 
     /**
@@ -75,17 +80,21 @@ public class HostToHostIntentTest extends IntentTest {
      */
     @Test
     public void testEquals() {
-        final HostToHostIntent intent1 = new HostToHostIntent(APP_ID,
-                id1,
-                id2,
-                selector,
-                treatment);
+        final HostToHostIntent intent1 = HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id2)
+                .selector(selector)
+                .treatment(treatment)
+                .build();
 
-        final HostToHostIntent intent2 = new HostToHostIntent(APP_ID,
-                id2,
-                id3,
-                selector,
-                treatment);
+        final HostToHostIntent intent2 = HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id2)
+                .two(id3)
+                .selector(selector)
+                .treatment(treatment)
+                .build();
 
         new EqualsTester()
                 .addEqualityGroup(intent1)
@@ -95,11 +104,23 @@ public class HostToHostIntentTest extends IntentTest {
 
     @Override
     protected Intent createOne() {
-        return new HostToHostIntent(APP_ID, id1, id2, selector, treatment);
+        return HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id2)
+                .selector(selector)
+                .treatment(treatment)
+                .build();
     }
 
     @Override
     protected Intent createAnother() {
-        return new HostToHostIntent(APP_ID, id1, id3, selector, treatment);
+        return HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id3)
+                .selector(selector)
+                .treatment(treatment)
+                .build();
     }
 }

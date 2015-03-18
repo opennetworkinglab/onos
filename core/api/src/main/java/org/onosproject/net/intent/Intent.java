@@ -63,17 +63,6 @@ public abstract class Intent {
      * Creates a new intent.
      *
      * @param appId     application identifier
-     * @param resources required network resources (optional)
-     */
-    protected Intent(ApplicationId appId,
-                     Collection<NetworkResource> resources) {
-        this(appId, null, resources, DEFAULT_INTENT_PRIORITY);
-    }
-
-    /**
-     * Creates a new intent.
-     *
-     * @param appId     application identifier
      * @param key       optional key
      * @param resources required network resources (optional)
      * @param priority  flow rule priority

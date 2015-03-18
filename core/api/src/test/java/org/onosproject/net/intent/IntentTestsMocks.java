@@ -419,12 +419,13 @@ public class IntentTestsMocks {
         private final Long number;
 
         public MockIntent(Long number) {
-            super(NetTestTools.APP_ID, Collections.emptyList());
+            super(NetTestTools.APP_ID, null, Collections.emptyList(),
+                    Intent.DEFAULT_INTENT_PRIORITY);
             this.number = number;
         }
 
         public MockIntent(Long number, Collection<NetworkResource> resources) {
-            super(NetTestTools.APP_ID, resources);
+            super(NetTestTools.APP_ID, null, resources, Intent.DEFAULT_INTENT_PRIORITY);
             this.number = number;
         }
 

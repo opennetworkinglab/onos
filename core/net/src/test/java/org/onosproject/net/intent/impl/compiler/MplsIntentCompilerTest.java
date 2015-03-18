@@ -55,11 +55,14 @@ public class MplsIntentCompilerTest extends AbstractIntentTest {
     private MplsIntent makeIntent(String ingressIdString,  Optional<MplsLabel> ingressLabel,
                                           String egressIdString, Optional<MplsLabel> egressLabel) {
 
-        return new MplsIntent(APPID, selector, treatment,
-                                      connectPoint(ingressIdString, 1),
-                                      ingressLabel,
-                                      connectPoint(egressIdString, 1),
-                                      egressLabel);
+        return MplsIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(connectPoint(ingressIdString, 1))
+                .ingressLabel(ingressLabel)
+                .egressPoint(connectPoint(egressIdString, 1))
+                .egressLabel(egressLabel).build();
     }
     /**
      * Creates a compiler for HostToHost intents.
@@ -157,7 +160,15 @@ public class MplsIntentCompilerTest extends AbstractIntentTest {
     public void testSameSwitchDifferentPortsIntentCompilation() {
         ConnectPoint src = new ConnectPoint(deviceId("1"), portNumber(1));
         ConnectPoint dst = new ConnectPoint(deviceId("1"), portNumber(2));
-        MplsIntent intent = new MplsIntent(APP_ID, selector, treatment, src, Optional.empty(), dst, Optional.empty());
+        MplsIntent intent = MplsIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(src)
+                .ingressLabel(Optional.empty())
+                .egressPoint(dst)
+                .egressLabel(Optional.empty())
+                .build();
 
         String[] hops = {"1"};
         MplsIntentCompiler sut = makeCompiler(hops);

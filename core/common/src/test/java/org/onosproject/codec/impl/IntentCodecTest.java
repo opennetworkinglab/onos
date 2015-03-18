@@ -78,7 +78,11 @@ public class IntentCodecTest extends AbstractIntentTest {
     @Test
     public void hostToHostIntent() {
         final HostToHostIntent intent =
-                new HostToHostIntent(appId, id1, id2);
+                HostToHostIntent.builder()
+                        .appId(appId)
+                        .one(id1)
+                        .two(id2)
+                        .build();
 
         final JsonCodec<HostToHostIntent> intentCodec =
                 context.codec(HostToHostIntent.class);

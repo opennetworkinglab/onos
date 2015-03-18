@@ -56,7 +56,14 @@ public class LinkCollectionIntentInstallerTest extends  IntentInstallerTest {
         installer.coreService = testCoreService;
         installer.intentManager =
                 new IntentInstallerTest.MockIntentManager(LinkCollectionIntent.class);
-        intent = new LinkCollectionIntent(APP_ID, selector, treatment, links, d1p1, d3p1);
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .links(links)
+                .ingressPoints(ImmutableSet.of(d1p1))
+                .egressPoints(ImmutableSet.of(d3p1))
+                .build();
     }
 
     private FlowRuleOperation findOperation(Collection<FlowRuleOperation> ops,

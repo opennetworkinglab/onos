@@ -97,9 +97,14 @@ public class HostToHostIntentCompiler
                                     HostToHostIntent intent) {
         TrafficSelector selector = builder(intent.selector())
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
-        return new PathIntent(intent.appId(), selector, intent.treatment(),
-                              path, intent.constraints(),
-                              intent.priority());
+        return PathIntent.builder()
+                .appId(intent.appId())
+                .selector(selector)
+                .treatment(intent.treatment())
+                .path(path)
+                .constraints(intent.constraints())
+                .priority(intent.priority())
+                .build();
     }
 
 }

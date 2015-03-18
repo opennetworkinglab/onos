@@ -90,8 +90,13 @@ public class HostToHostIntentCompilerTest extends AbstractIntentTest {
      * @return HostToHostIntent for the two hosts
      */
     private HostToHostIntent makeIntent(String oneIdString, String twoIdString) {
-        return new HostToHostIntent(APPID, hid(oneIdString), hid(twoIdString),
-                                    selector, treatment);
+        return HostToHostIntent.builder()
+                .appId(APPID)
+                .one(hid(oneIdString))
+                .two(hid(twoIdString))
+                .selector(selector)
+                .treatment(treatment)
+                .build();
     }
 
     /**

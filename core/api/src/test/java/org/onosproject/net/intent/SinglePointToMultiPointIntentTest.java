@@ -44,11 +44,23 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
 
     @Override
     protected SinglePointToMultiPointIntent createOne() {
-        return new SinglePointToMultiPointIntent(APPID, MATCH, NOP, P1, PS2);
+        return SinglePointToMultiPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoint(P1)
+                .egressPoints(PS2)
+                .build();
     }
 
     @Override
     protected SinglePointToMultiPointIntent createAnother() {
-        return new SinglePointToMultiPointIntent(APPID, MATCH, NOP, P2, PS1);
+        return SinglePointToMultiPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoint(P2)
+                .egressPoints(PS1)
+                .build();
     }
 }

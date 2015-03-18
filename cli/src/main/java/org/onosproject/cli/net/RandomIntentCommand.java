@@ -15,25 +15,22 @@
  */
 package org.onosproject.cli.net;
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Host;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * Installs point-to-point connectivity intents.
@@ -67,17 +64,16 @@ public class RandomIntentCommand extends AbstractShellCommand {
     }
 
     private Collection<Intent> generateIntents() {
-        TrafficSelector selector = DefaultTrafficSelector.emptySelector();
-        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
-
         List<Host> hosts = Lists.newArrayList(hostService.getHosts());
         List<Intent> fullMesh = Lists.newArrayList();
         for (int i = 0; i < hosts.size(); i++) {
             for (int j = i + 1; j < hosts.size(); j++) {
-                fullMesh.add(new HostToHostIntent(appId(),
-                                                  hosts.get(i).id(),
-                                                  hosts.get(j).id(),
-                                                  selector, treatment));
+                fullMesh.add(HostToHostIntent.builder()
+                        .appId(appId())
+                        .one(hosts.get(i).id())
+                        .two(hosts.get(j).id())
+                        .build());
+
             }
         }
         Collections.shuffle(fullMesh);

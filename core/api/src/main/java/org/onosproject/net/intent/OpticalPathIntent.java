@@ -24,6 +24,8 @@ import org.onosproject.net.Path;
 
 import java.util.Collection;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public final class OpticalPathIntent extends Intent {
 
     private final ConnectPoint src;
@@ -35,10 +37,11 @@ public final class OpticalPathIntent extends Intent {
             ConnectPoint src,
             ConnectPoint dst,
             Path path) {
-        super(appId, ImmutableSet.copyOf(path.links()));
-        this.src = src;
-        this.dst = dst;
-        this.path = path;
+        super(appId, null, ImmutableSet.copyOf(path.links()),
+                Intent.DEFAULT_INTENT_PRIORITY);
+        this.src = checkNotNull(src);
+        this.dst = checkNotNull(dst);
+        this.path = checkNotNull(path);
     }
 
     protected OpticalPathIntent() {
@@ -69,6 +72,7 @@ public final class OpticalPathIntent extends Intent {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("appId", appId())
+                .add("key", key())
                 .add("resources", resources())
                 .add("ingressPort", src)
                 .add("egressPort", dst)

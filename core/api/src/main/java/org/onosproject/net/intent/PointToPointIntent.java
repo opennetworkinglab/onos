@@ -159,13 +159,11 @@ public final class PointToPointIntent extends ConnectivityIntent {
         super(appId, key, Collections.emptyList(), selector, treatment, constraints,
                 priority);
 
-        checkNotNull(ingressPoint);
-        checkNotNull(egressPoint);
         checkArgument(!ingressPoint.equals(egressPoint),
                 "ingress and egress should be different (ingress: %s, egress: %s)", ingressPoint, egressPoint);
 
-        this.ingressPoint = ingressPoint;
-        this.egressPoint = egressPoint;
+        this.ingressPoint = checkNotNull(ingressPoint);
+        this.egressPoint = checkNotNull(egressPoint);
     }
 
     /**

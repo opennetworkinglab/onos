@@ -15,9 +15,16 @@
  */
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.eclipse.jetty.websocket.WebSocket;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.AbstractAccumulator;
@@ -55,15 +62,9 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
@@ -349,9 +350,12 @@ public class TopologyViewWebSocket
         HostId two = hostId(string(payload, "two"));
 
         HostToHostIntent intent =
-                new HostToHostIntent(appId, one, two,
-                                     DefaultTrafficSelector.emptySelector(),
-                                     DefaultTrafficTreatment.emptyTreatment());
+                HostToHostIntent.builder()
+                        .appId(appId)
+                        .one(one)
+                        .two(two)
+                        .build();
+
 
         intentService.submit(intent);
         startMonitoringIntent(event, intent);
@@ -374,8 +378,13 @@ public class TopologyViewWebSocket
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(appId, selector, treatment,
-                                                  ingressPoints, dstHost.location());
+                MultiPointToSinglePointIntent.builder()
+                        .appId(appId)
+                        .selector(selector)
+                        .treatment(treatment)
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(dstHost.location())
+                        .build();
 
         intentService.submit(intent);
         startMonitoringIntent(event, intent);

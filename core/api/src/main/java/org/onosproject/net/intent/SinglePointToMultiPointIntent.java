@@ -16,7 +16,7 @@
 package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -42,27 +42,6 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
      * Creates a new single-to-multi point connectivity intent.
      *
      * @param appId application identifier
-     * @param selector traffic selector
-     * @param treatment treatment
-     * @param ingressPoint port on which traffic will ingress
-     * @param egressPoints set of ports on which traffic will egress
-     * @throws NullPointerException if {@code ingressPoint} or
-     *             {@code egressPoints} is null
-     * @throws IllegalArgumentException if the size of {@code egressPoints} is
-     *             not more than 1
-     */
-    public SinglePointToMultiPointIntent(ApplicationId appId,
-            TrafficSelector selector, TrafficTreatment treatment,
-            ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints) {
-        this(appId, null, selector, treatment, ingressPoint, egressPoints,
-                Collections.emptyList(),
-                DEFAULT_INTENT_PRIORITY);
-    }
-
-    /**
-     * Creates a new single-to-multi point connectivity intent.
-     *
-     * @param appId application identifier
      * @param key intent key
      * @param selector traffic selector
      * @param treatment treatment
@@ -75,7 +54,7 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
      * @throws IllegalArgumentException if the size of {@code egressPoints} is
      *             not more than 1
      */
-    public SinglePointToMultiPointIntent(ApplicationId appId,
+    private SinglePointToMultiPointIntent(ApplicationId appId,
             Key key,
             TrafficSelector selector, TrafficTreatment treatment,
             ConnectPoint ingressPoint, Set<ConnectPoint> egressPoints,
@@ -90,7 +69,105 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
                 "Set of egresses should not contain ingress (ingress: %s)", ingressPoint);
 
         this.ingressPoint = checkNotNull(ingressPoint);
-        this.egressPoints = Sets.newHashSet(egressPoints);
+        this.egressPoints = egressPoints;
+    }
+
+    /**
+     * Returns a new single point to multi point intent builder. The application id,
+     * ingress point and egress points are required fields.  If they are
+     * not set by calls to the appropriate methods, an exception will
+     * be thrown.
+     *
+     * @return single point to multi point builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder of a single point to multi point intent.
+     */
+    public static final class Builder extends ConnectivityIntent.Builder {
+        ConnectPoint ingressPoint;
+        Set<ConnectPoint> egressPoints;
+
+        private Builder() {
+            // Hide constructor
+        }
+
+        @Override
+        public Builder appId(ApplicationId appId) {
+            return (Builder) super.appId(appId);
+        }
+
+        @Override
+        public Builder key(Key key) {
+            return (Builder) super.key(key);
+        }
+
+        @Override
+        public Builder selector(TrafficSelector selector) {
+            return (Builder) super.selector(selector);
+        }
+
+        @Override
+        public Builder treatment(TrafficTreatment treatment) {
+            return (Builder) super.treatment(treatment);
+        }
+
+        @Override
+        public Builder constraints(List<Constraint> constraints) {
+            return (Builder) super.constraints(constraints);
+        }
+
+        @Override
+        public Builder priority(int priority) {
+            return (Builder) super.priority(priority);
+        }
+
+        /**
+         * Sets the ingress point of the single point to multi point intent
+         * that will be built.
+         *
+         * @param ingressPoint ingress connect point
+         * @return this builder
+         */
+        public Builder ingressPoint(ConnectPoint ingressPoint) {
+            this.ingressPoint = ingressPoint;
+            return this;
+        }
+
+        /**
+         * Sets the egress points of the single point to multi point intent
+         * that will be built.
+         *
+         * @param egressPoints egress connect points
+         * @return this builder
+         */
+        public Builder egressPoints(Set<ConnectPoint> egressPoints) {
+            this.egressPoints = ImmutableSet.copyOf(egressPoints);
+            return this;
+        }
+
+        /**
+         * Builds a single point to multi point intent from the
+         * accumulated parameters.
+         *
+         * @return point to point intent
+         */
+        public SinglePointToMultiPointIntent build() {
+
+            return new SinglePointToMultiPointIntent(
+                    appId,
+                    key,
+                    selector,
+                    treatment,
+                    ingressPoint,
+                    egressPoints,
+                    constraints,
+                    priority
+            );
+        }
     }
 
     /**

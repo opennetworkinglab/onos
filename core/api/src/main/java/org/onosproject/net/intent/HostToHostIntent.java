@@ -15,19 +15,15 @@
  */
 package org.onosproject.net.intent;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.HostId;
-import org.onosproject.net.Link;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.intent.constraint.LinkTypeConstraint;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+
+import com.google.common.base.MoreObjects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -40,59 +36,98 @@ public final class HostToHostIntent extends ConnectivityIntent {
     private final HostId two;
 
     /**
-     * Creates a new host-to-host intent with the supplied host pair and no
-     * other traffic selection or treatment criteria.
+     * Returns a new host to host intent builder.
      *
-     * @param appId     application identifier
-     * @param one       first host
-     * @param two       second host
-     * @throws NullPointerException if {@code one} or {@code two} is null.
+     * @return host to host intent builder
      */
-    public HostToHostIntent(ApplicationId appId, HostId one, HostId two) {
-        this(appId, one, two,
-             DefaultTrafficSelector.emptySelector(),
-             DefaultTrafficTreatment.emptyTreatment(),
-             ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)),
-             DEFAULT_INTENT_PRIORITY);
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
-     * Creates a new host-to-host intent with the supplied host pair.
-     *
-     * @param appId     application identifier
-     * @param one       first host
-     * @param two       second host
-     * @param selector  action
-     * @param treatment ingress port
-     * @throws NullPointerException if {@code one} or {@code two} is null.
+     * Builder of a host to host intent.
      */
-    public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
-                            TrafficSelector selector,
-                            TrafficTreatment treatment) {
-        this(appId, one, two, selector, treatment,
-             ImmutableList.of(new LinkTypeConstraint(false, Link.Type.OPTICAL)),
-             DEFAULT_INTENT_PRIORITY);
+    public static final class Builder extends ConnectivityIntent.Builder {
+        HostId one;
+        HostId two;
+
+        private Builder() {
+            // Hide constructor
+        }
+
+        @Override
+        public Builder appId(ApplicationId appId) {
+            return (Builder) super.appId(appId);
+        }
+
+        @Override
+        public Builder key(Key key) {
+            return (Builder) super.key(key);
+        }
+
+        @Override
+        public Builder selector(TrafficSelector selector) {
+            return (Builder) super.selector(selector);
+        }
+
+        @Override
+        public Builder treatment(TrafficTreatment treatment) {
+            return (Builder) super.treatment(treatment);
+        }
+
+        @Override
+        public Builder constraints(List<Constraint> constraints) {
+            return (Builder) super.constraints(constraints);
+        }
+
+        @Override
+        public Builder priority(int priority) {
+            return (Builder) super.priority(priority);
+        }
+
+        /**
+         * Sets the first host of the intent that will be built.
+         *
+         * @param one first host
+         * @return this builder
+         */
+        public Builder one(HostId one) {
+            this.one = one;
+            return this;
+        }
+
+        /**
+         * Sets the second host of the intent that will be built.
+         *
+         * @param two second host
+         * @return this builder
+         */
+        public Builder two(HostId two) {
+            this.two = two;
+            return this;
+        }
+
+        /**
+         * Builds a host to host intent from the accumulated parameters.
+         *
+         * @return point to point intent
+         */
+        public HostToHostIntent build() {
+
+            return new HostToHostIntent(
+                    appId,
+                    key,
+                    one,
+                    two,
+                    selector,
+                    treatment,
+                    constraints,
+                    priority
+            );
+        }
     }
 
-    /**
-     * Creates a new host-to-host intent with the supplied host pair.
-     *
-     * @param appId       application identifier
-     * @param one         first host
-     * @param two         second host
-     * @param selector    action
-     * @param treatment   ingress port
-     * @param constraints optional prioritized list of path selection constraints
-     * @param priority    priority to use for flows generated by this intent
-     * @throws NullPointerException if {@code one} or {@code two} is null.
-     */
-    public HostToHostIntent(ApplicationId appId, HostId one, HostId two,
-                            TrafficSelector selector,
-                            TrafficTreatment treatment,
-                            List<Constraint> constraints,
-                            int priority) {
-        this(appId, null, one, two, selector, treatment, constraints, priority);
-    }
+
     /**
      * Creates a new host-to-host intent with the supplied host pair.
      *
@@ -106,7 +141,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
      * @param priority    priority to use for flows generated by this intent
      * @throws NullPointerException if {@code one} or {@code two} is null.
      */
-    public HostToHostIntent(ApplicationId appId, Key key,
+    private HostToHostIntent(ApplicationId appId, Key key,
                             HostId one, HostId two,
                             TrafficSelector selector,
                             TrafficTreatment treatment,
@@ -119,14 +154,6 @@ public final class HostToHostIntent extends ConnectivityIntent {
         this.one = checkNotNull(one);
         this.two = checkNotNull(two);
 
-    }
-
-    private static HostId min(HostId one, HostId two) {
-        return one.hashCode() < two.hashCode() ? one : two;
-    }
-
-    private static HostId max(HostId one, HostId two) {
-        return one.hashCode() >= two.hashCode() ? one : two;
     }
 
     /**

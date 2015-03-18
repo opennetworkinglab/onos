@@ -72,11 +72,16 @@ public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentC
         TrafficTreatment treatment = buildTrafficTreatment();
         List<Constraint> constraints = buildConstraints();
 
-        Intent intent = new MultiPointToSinglePointIntent(appId(), key(),
-                                                          selector, treatment,
-                                                          ingressPoints, egress,
-                                                          constraints,
-                                                          priority());
+        Intent intent = MultiPointToSinglePointIntent.builder()
+                .appId(appId())
+                .key(key())
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoints(ingressPoints)
+                .egressPoint(egress)
+                .constraints(constraints)
+                .priority(priority())
+                .build();
         service.submit(intent);
         print("Multipoint to single point intent submitted:\n%s", intent.toString());
     }

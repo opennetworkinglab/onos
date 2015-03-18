@@ -15,7 +15,19 @@
  */
 package org.onosproject.sdnip;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -43,19 +55,7 @@ import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -340,11 +340,15 @@ public class IntentSynchronizer implements FibListener {
         int priority =
             prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
         Key key = Key.of(prefix.toString(), appId);
-        return new MultiPointToSinglePointIntent(appId, key, selector.build(),
-                                                 treatment.build(),
-                                                 ingressPorts, egressPort,
-                                                 Collections.emptyList(),
-                                                 priority);
+        return MultiPointToSinglePointIntent.builder()
+                .appId(appId)
+                .key(key)
+                .selector(selector.build())
+                .treatment(treatment.build())
+                .ingressPoints(ingressPorts)
+                .egressPoint(egressPort)
+                .priority(priority)
+                .build();
     }
 
     @Override

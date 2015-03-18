@@ -27,8 +27,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.intent.PathIntent;
 
-import com.google.common.collect.ImmutableList;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
@@ -61,9 +59,13 @@ public class PathIntentInstallerTest extends IntentInstallerTest {
         installer = new PathIntentInstaller();
         installer.coreService = testCoreService;
         installer.intentManager = new MockIntentManager(PathIntent.class);
-        intent = new PathIntent(APP_ID, selector, treatment,
-                new DefaultPath(PID, links, hops), ImmutableList.of(),
-                77);
+        intent = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .path(new DefaultPath(PID, links, hops))
+                .priority(77)
+                .build();
     }
 
     /**

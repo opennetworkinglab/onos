@@ -75,10 +75,17 @@ public class AddMplsIntent extends ConnectivityIntentCommand {
 
         List<Constraint> constraints = buildConstraints();
 
-        MplsIntent intent = new MplsIntent(appId(), selector, treatment,
-                                           ingress, ingressLabel, egress,
-                                           egressLabel, constraints,
-                                           priority());
+        MplsIntent intent = MplsIntent.builder()
+                .appId(appId())
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(ingress)
+                .ingressLabel(ingressLabel)
+                .egressPoint(egress)
+                .egressLabel(egressLabel)
+                .constraints(constraints)
+                .priority(priority())
+                .build();
         service.submit(intent);
     }
 

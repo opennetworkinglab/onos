@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.intent;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
@@ -24,8 +26,6 @@ import org.onosproject.net.NetTestTools;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -65,12 +65,22 @@ public class PathIntentTest extends ConnectivityIntentTest {
 
     @Override
     protected PathIntent createOne() {
-        return new PathIntent(APPID, MATCH, NOP, PATH1);
+        return PathIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .path(PATH1)
+                .build();
     }
 
     @Override
     protected PathIntent createAnother() {
-        return new PathIntent(APPID, MATCH, NOP, PATH2);
+        return PathIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .path(PATH2)
+                .build();
     }
 
     /**
@@ -79,7 +89,12 @@ public class PathIntentTest extends ConnectivityIntentTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testRaiseExceptionWhenSameDevices() {
-        new PathIntent(APPID, MATCH, NOP, new DefaultPath(provider1, Arrays.asList(link1), cost));
+        PathIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .path(new DefaultPath(provider1, Arrays.asList(link1), cost))
+                .build();
     }
 
     /**
@@ -88,7 +103,12 @@ public class PathIntentTest extends ConnectivityIntentTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testRaiseExceptionWhenDifferentDevice() {
-        new PathIntent(APPID, MATCH, NOP, new DefaultPath(provider1, Arrays.asList(link1, link2), cost));
+        PathIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .path(new DefaultPath(provider1, Arrays.asList(link1, link2), cost))
+                .build();
     }
 
 }

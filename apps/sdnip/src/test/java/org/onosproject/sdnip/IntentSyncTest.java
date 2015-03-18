@@ -233,9 +233,13 @@ public class IntentSyncTest extends AbstractIntentTest {
         ingressPoints.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(APPID,
-                                                  selectorBuilder.build(), treatmentBuilder.build(),
-                                                  ingressPoints, SW1_ETH1);
+                MultiPointToSinglePointIntent.builder()
+                        .appId(APPID)
+                        .selector(selectorBuilder.build())
+                        .treatment(treatmentBuilder.build())
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(SW1_ETH1)
+                        .build();
 
         // Setup the expected intents
         intentService.submit(eqExceptId(intent));
@@ -291,9 +295,13 @@ public class IntentSyncTest extends AbstractIntentTest {
         ingressPoints.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(APPID,
-                        selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, SW4_ETH1);
+                MultiPointToSinglePointIntent.builder()
+                        .appId(APPID)
+                        .selector(selectorBuilder.build())
+                        .treatment(treatmentBuilder.build())
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(SW4_ETH1)
+                        .build();
 
         // Setup the expected intents
         intentService.submit(eqExceptId(intent));
@@ -357,10 +365,13 @@ public class IntentSyncTest extends AbstractIntentTest {
         ingressPointsNew.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent intentNew =
-                new MultiPointToSinglePointIntent(APPID,
-                                                  selectorBuilderNew.build(),
-                                                  treatmentBuilderNew.build(),
-                                                  ingressPointsNew, SW2_ETH1);
+                MultiPointToSinglePointIntent.builder()
+                        .appId(APPID)
+                        .selector(selectorBuilderNew.build())
+                        .treatment(treatmentBuilderNew.build())
+                        .ingressPoints(ingressPointsNew)
+                        .egressPoint(SW2_ETH1)
+                        .build();
 
         // Set up test expectation
         reset(intentService);
@@ -592,9 +603,13 @@ public class IntentSyncTest extends AbstractIntentTest {
             }
         }
         MultiPointToSinglePointIntent intent =
-                new MultiPointToSinglePointIntent(APPID,
-                        selectorBuilder.build(), treatmentBuilder.build(),
-                        ingressPoints, egressPoint);
+                MultiPointToSinglePointIntent.builder()
+                        .appId(APPID)
+                        .selector(selectorBuilder.build())
+                        .treatment(treatmentBuilder.build())
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(egressPoint)
+                        .build();
         return intent;
     }
 

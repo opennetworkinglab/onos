@@ -31,8 +31,6 @@ import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.store.trivial.impl.SimpleLinkStore;
 
-import com.google.common.collect.ImmutableList;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
@@ -70,12 +68,15 @@ public class  MplsPathIntentInstallerTest extends IntentInstallerTest {
         installer.linkStore = new SimpleLinkStore();
         installer.resourceService = new IntentTestsMocks.MockResourceService();
 
-        intent = new MplsPathIntent(APP_ID, selector, treatment,
-                new DefaultPath(PID, links, hops),
-                ingressLabel,
-                egressLabel,
-                ImmutableList.of(),
-                55);
+        intent = MplsPathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .path(new DefaultPath(PID, links, hops))
+                .ingressLabel(ingressLabel)
+                .egressLabel(egressLabel)
+                .priority(55)
+                .build();
     }
 
     /**
