@@ -35,10 +35,9 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
-import org.onosproject.net.intent.AbstractIntentTest;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
@@ -53,11 +52,11 @@ import org.onosproject.net.resource.Lambda;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.codec.impl.IntentJsonMatcher.matchesIntent;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.hid;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Unit tests for the host to host intent class codec.
@@ -98,8 +97,12 @@ public class IntentCodecTest extends AbstractIntentTest {
         ConnectPoint egress = NetTestTools.connectPoint("egress", 2);
 
         final PointToPointIntent intent =
-                new PointToPointIntent(appId, emptySelector,
-                        emptyTreatment, ingress, egress);
+                PointToPointIntent.builder()
+                        .appId(appId)
+                        .selector(emptySelector)
+                        .treatment(emptyTreatment)
+                        .ingressPoint(ingress)
+                        .egressPoint(egress).build();
 
         final CodecContext context = new MockCodecContext();
         final JsonCodec<PointToPointIntent> intentCodec =
@@ -147,9 +150,15 @@ public class IntentCodecTest extends AbstractIntentTest {
                     new WaypointConstraint(did3));
 
         final PointToPointIntent intent =
-                new PointToPointIntent(appId, selector, treatment,
-                                       ingress, egress, constraints,
-                                       Intent.DEFAULT_INTENT_PRIORITY);
+                PointToPointIntent.builder()
+                        .appId(appId)
+                        .selector(selector)
+                        .treatment(treatment)
+                        .ingressPoint(ingress)
+                        .egressPoint(egress)
+                        .constraints(constraints)
+                        .build();
+
 
         final CodecContext context = new MockCodecContext();
         final JsonCodec<PointToPointIntent> intentCodec =

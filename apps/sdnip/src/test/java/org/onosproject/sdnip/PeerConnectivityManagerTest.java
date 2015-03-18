@@ -15,7 +15,13 @@
  */
 package org.onosproject.sdnip;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,14 +52,13 @@ import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.InterfaceAddress;
 import org.onosproject.routing.config.RoutingConfigurationService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Sets;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
 
 /**
@@ -285,9 +290,13 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
             builder.matchTcpDst(dstTcpPort);
         }
 
-        PointToPointIntent intent = new PointToPointIntent(
-                APPID, builder.build(), noTreatment,
-                srcConnectPoint, dstConnectPoint);
+        PointToPointIntent intent = PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(builder.build())
+                .treatment(noTreatment)
+                .ingressPoint(srcConnectPoint)
+                .egressPoint(dstConnectPoint)
+                .build();
 
         intentList.add(intent);
     }
@@ -457,9 +466,13 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf(dstPrefix))
                 .build();
 
-        PointToPointIntent intent = new PointToPointIntent(
-                APPID, selector, noTreatment,
-                srcConnectPoint, dstConnectPoint);
+        PointToPointIntent intent = PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(noTreatment)
+                .ingressPoint(srcConnectPoint)
+                .egressPoint(dstConnectPoint)
+                .build();
 
         intentList.add(intent);
     }

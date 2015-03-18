@@ -15,10 +15,13 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -110,6 +113,65 @@ public abstract class ConnectivityIntent extends Intent {
         this.treatment = null;
         this.constraints = Collections.emptyList();
     }
+
+    /**
+     * Abstract builder for connectivity intents.
+     */
+    public abstract static class Builder extends Intent.Builder {
+        protected TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+        protected TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+        protected List<Constraint> constraints = ImmutableList.of();
+
+        @Override
+        public Builder appId(ApplicationId appId) {
+            return (Builder) super.appId(appId);
+        }
+
+        @Override
+        public Builder key(Key key) {
+            return (Builder) super.key(key);
+        }
+
+        @Override
+        public Builder priority(int priority) {
+            return (Builder) super.priority(priority);
+        }
+
+
+        /**
+         * Sets the traffic selector for the intent that will be built.
+         *
+         * @param selector selector to use for built intent
+         * @return this builder
+         */
+        public Builder selector(TrafficSelector selector) {
+            this.selector = selector;
+            return this;
+        }
+
+        /**
+         * Sets the traffic treatment for the intent that will be built.
+         *
+         * @param treatment treatment to use for built intent
+         * @return this builder
+         */
+        public Builder treatment(TrafficTreatment treatment) {
+            this.treatment = treatment;
+            return this;
+        }
+
+        /**
+         * Sets the constraints for the intent that will be built.
+         *
+         * @param constraints constraints to use for built intent
+         * @return this builder
+         */
+        public Builder constraints(List<Constraint> constraints) {
+            this.constraints = ImmutableList.copyOf(constraints);
+            return this;
+        }
+    }
+
 
     /**
      * Returns the match specifying the type of traffic.

@@ -44,11 +44,23 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
 
     @Override
     protected PointToPointIntent createOne() {
-        return new PointToPointIntent(APPID, MATCH, NOP, P1, P2);
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoint(P1)
+                .egressPoint(P2)
+                .build();
     }
 
     @Override
     protected PointToPointIntent createAnother() {
-        return new PointToPointIntent(APPID, MATCH, NOP, P2, P1);
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoint(P2)
+                .egressPoint(P1)
+                .build();
     }
 }

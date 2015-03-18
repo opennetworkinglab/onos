@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -130,8 +129,8 @@ public class PeerConnectivityManager {
      * @return the intents to install
      */
     private Collection<PointToPointIntent> buildPeerIntents(
-                                                BgpSpeaker bgpSpeaker,
-                                                BgpPeer bgpPeer) {
+            BgpSpeaker bgpSpeaker,
+            BgpPeer bgpPeer) {
         List<PointToPointIntent> intents = new ArrayList<>();
 
         ConnectPoint bgpdConnectPoint = bgpSpeaker.connectPoint();
@@ -157,7 +156,7 @@ public class PeerConnectivityManager {
         }
         if (bgpdAddress == null) {
             log.debug("No IP address found for peer {} on interface {}",
-                      bgpPeer, bgpPeer.connectPoint());
+                    bgpPeer, bgpPeer.connectPoint());
             return intents;
         }
 
@@ -185,83 +184,101 @@ public class PeerConnectivityManager {
 
         // Path from BGP speaker to BGP peer matching destination TCP port 179
         selector = buildSelector(tcpProtocol,
-                                 bgpdAddress,
-                                 bgpdPeerAddress,
-                                 null,
-                                 BGP_PORT);
+                bgpdAddress,
+                bgpdPeerAddress,
+                null,
+                BGP_PORT);
 
         int priority = PRIORITY_OFFSET;
 
-        intents.add(new PointToPointIntent(appId, selector, treatment,
-                                           bgpdConnectPoint,
-                                           bgpdPeerConnectPoint,
-                                           Collections.emptyList(),
-                                           priority));
+        intents.add(PointToPointIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(bgpdConnectPoint)
+                .egressPoint(bgpdPeerConnectPoint)
+                .priority(priority)
+                .build());
 
         // Path from BGP speaker to BGP peer matching source TCP port 179
         selector = buildSelector(tcpProtocol,
-                                 bgpdAddress,
-                                 bgpdPeerAddress,
-                                 BGP_PORT,
-                                 null);
+                bgpdAddress,
+                bgpdPeerAddress,
+                BGP_PORT,
+                null);
 
-        intents.add(new PointToPointIntent(appId, selector, treatment,
-                                           bgpdConnectPoint,
-                                           bgpdPeerConnectPoint,
-                                           Collections.emptyList(),
-                                           priority));
+        intents.add(PointToPointIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(bgpdConnectPoint)
+                .egressPoint(bgpdPeerConnectPoint)
+                .priority(priority)
+                .build());
 
         // Path from BGP peer to BGP speaker matching destination TCP port 179
         selector = buildSelector(tcpProtocol,
-                                 bgpdPeerAddress,
-                                 bgpdAddress,
-                                 null,
-                                 BGP_PORT);
+                bgpdPeerAddress,
+                bgpdAddress,
+                null,
+                BGP_PORT);
 
-        intents.add(new PointToPointIntent(appId, selector, treatment,
-                                           bgpdPeerConnectPoint,
-                                           bgpdConnectPoint,
-                                           Collections.emptyList(),
-                                           priority));
+        intents.add(PointToPointIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(bgpdPeerConnectPoint)
+                .egressPoint(bgpdConnectPoint)
+                .priority(priority)
+                .build());
 
         // Path from BGP peer to BGP speaker matching source TCP port 179
         selector = buildSelector(tcpProtocol,
-                                 bgpdPeerAddress,
-                                 bgpdAddress,
-                                 BGP_PORT,
-                                 null);
+                bgpdPeerAddress,
+                bgpdAddress,
+                BGP_PORT,
+                null);
 
-        intents.add(new PointToPointIntent(appId, selector, treatment,
-                                           bgpdPeerConnectPoint,
-                                           bgpdConnectPoint,
-                                           Collections.emptyList(),
-                                           priority));
+        intents.add(PointToPointIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(bgpdPeerConnectPoint)
+                .egressPoint(bgpdConnectPoint)
+                .priority(priority)
+                .build());
 
         // ICMP path from BGP speaker to BGP peer
         selector = buildSelector(icmpProtocol,
-                                 bgpdAddress,
-                                 bgpdPeerAddress,
-                                 null,
-                                 null);
+                bgpdAddress,
+                bgpdPeerAddress,
+                null,
+                null);
 
-        intents.add(new PointToPointIntent(appId, selector, treatment,
-                                           bgpdConnectPoint,
-                                           bgpdPeerConnectPoint,
-                                           Collections.emptyList(),
-                                           priority));
+        intents.add(PointToPointIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(bgpdConnectPoint)
+                .egressPoint(bgpdPeerConnectPoint)
+                .priority(priority)
+                .build());
 
         // ICMP path from BGP peer to BGP speaker
         selector = buildSelector(icmpProtocol,
-                                 bgpdPeerAddress,
-                                 bgpdAddress,
-                                 null,
-                                 null);
+                bgpdPeerAddress,
+                bgpdAddress,
+                null,
+                null);
 
-        intents.add(new PointToPointIntent(appId, selector, treatment,
-                                           bgpdPeerConnectPoint,
-                                           bgpdConnectPoint,
-                                           Collections.emptyList(),
-                                           priority));
+        intents.add(PointToPointIntent.builder()
+                .appId(appId)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(bgpdPeerConnectPoint)
+                .egressPoint(bgpdConnectPoint)
+                .priority(priority)
+                .build());
 
         return intents;
     }

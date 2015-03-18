@@ -15,7 +15,11 @@
  */
 package org.onosproject.cli.net;
 
-import com.google.common.collect.Lists;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.Ethernet;
@@ -36,11 +40,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.common.collect.Lists;
 
 import static org.onlab.util.Tools.delay;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -127,11 +127,16 @@ public class IntentCycleCommand extends AbstractShellCommand
             TrafficSelector selector = selectorBldr
                     .matchEthSrc(MacAddress.valueOf(i + keyOffset))
                     .build();
-            intents.add(new PointToPointIntent(appId(), Key.of(i + keyOffset, appId()),
-                                               selector, treatment,
-                                               ingress, egress,
-                                               Collections.emptyList(),
-                                               Intent.DEFAULT_INTENT_PRIORITY));
+            intents.add(
+                    PointToPointIntent.builder()
+                        .appId(appId())
+                        .key(Key.of(i + keyOffset, appId()))
+                        .selector(selector)
+                        .treatment(treatment)
+                        .ingressPoint(ingress)
+                        .egressPoint(egress)
+                        .build());
+
 
         }
         return intents;

@@ -67,11 +67,16 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
 
         List<Constraint> constraints = buildConstraints();
 
-        Intent intent = new PointToPointIntent(appId(),
-                key(),
-                selector, treatment,
-                ingress, egress, constraints,
-                priority());
+        Intent intent = PointToPointIntent.builder()
+                .appId(appId())
+                .key(key())
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(ingress)
+                .egressPoint(egress)
+                .constraints(constraints)
+                .priority(priority())
+                .build();
         service.submit(intent);
         print("Point to point intent submitted:\n%s", intent.toString());
     }

@@ -48,14 +48,25 @@ public class TwoWayP2PIntentCompiler
     public List<Intent> compile(TwoWayP2PIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
         return Lists.newArrayList(
-                new PointToPointIntent(intent.appId(), intent.key(),
-                                       intent.selector(), intent.treatment(),
-                                       intent.one(), intent.two(),
-                                       intent.constraints(), intent.priority()),
-                new PointToPointIntent(intent.appId(), intent.key(),
-                                       intent.selector(), intent.treatment(),
-                                       intent.two(), intent.one(),
-                                       intent.constraints(), intent.priority()));
-
+                PointToPointIntent.builder()
+                        .appId(intent.appId())
+                        .key(intent.key())
+                        .selector(intent.selector())
+                        .treatment(intent.treatment())
+                        .ingressPoint(intent.one())
+                        .egressPoint(intent.two())
+                        .constraints(intent.constraints())
+                        .priority(intent.priority())
+                        .build(),
+                PointToPointIntent.builder()
+                        .appId(intent.appId())
+                        .key(intent.key())
+                        .selector(intent.selector())
+                        .treatment(intent.treatment())
+                        .ingressPoint(intent.two())
+                        .egressPoint(intent.one())
+                        .constraints(intent.constraints())
+                        .priority(intent.priority())
+                        .build());
     }
 }

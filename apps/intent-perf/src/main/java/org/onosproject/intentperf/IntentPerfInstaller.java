@@ -324,11 +324,15 @@ public class IntentPerfInstaller {
         ConnectPoint ingress = new ConnectPoint(device.id(), PortNumber.portNumber(1));
         ConnectPoint egress = new ConnectPoint(device.id(), PortNumber.portNumber(2));
 
-        return new PointToPointIntent(appId, key,
-                                      selector, treatment,
-                                      ingress, egress,
-                                      Collections.emptyList(),
-                                      Intent.DEFAULT_INTENT_PRIORITY);
+        return PointToPointIntent.builder()
+                        .appId(appId)
+                        .key(key)
+                        .selector(selector)
+                        .treatment(treatment)
+                        .ingressPoint(ingress)
+                        .egressPoint(egress)
+                        .build();
+
     }
 
     /**

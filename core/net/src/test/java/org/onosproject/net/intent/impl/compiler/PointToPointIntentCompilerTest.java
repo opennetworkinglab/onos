@@ -72,9 +72,13 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
      */
     private PointToPointIntent makeIntent(String ingressIdString,
                                           String egressIdString) {
-        return new PointToPointIntent(APPID, selector, treatment,
-                                      connectPoint(ingressIdString, 1),
-                                      connectPoint(egressIdString, 1));
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(connectPoint(ingressIdString, 1))
+                .egressPoint(connectPoint(egressIdString, 1))
+                .build();
     }
 
     /**
@@ -87,10 +91,14 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
      */
     private PointToPointIntent makeIntent(String ingressIdString,
                                           String egressIdString, List<Constraint> constraints) {
-        return new PointToPointIntent(APPID, selector, treatment,
-                connectPoint(ingressIdString, 1),
-                connectPoint(egressIdString, 1),
-                constraints, Intent.DEFAULT_INTENT_PRIORITY);
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(connectPoint(ingressIdString, 1))
+                .egressPoint(connectPoint(egressIdString, 1))
+                .constraints(constraints)
+                .build();
     }
 
     /**
@@ -187,7 +195,13 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     public void testSameSwitchDifferentPortsIntentCompilation() {
         ConnectPoint src = new ConnectPoint(deviceId("1"), portNumber(1));
         ConnectPoint dst = new ConnectPoint(deviceId("1"), portNumber(2));
-        PointToPointIntent intent = new PointToPointIntent(APP_ID, selector, treatment, src, dst);
+        PointToPointIntent intent = PointToPointIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .ingressPoint(src)
+                .egressPoint(dst)
+                .build();
 
         String[] hops = {"1"};
         PointToPointIntentCompiler sut = makeCompiler(hops);

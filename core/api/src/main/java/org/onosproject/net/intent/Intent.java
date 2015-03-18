@@ -15,12 +15,12 @@
  */
 package org.onosproject.net.intent;
 
+import java.util.Collection;
+import java.util.Objects;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
-
-import java.util.Collection;
-import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -89,6 +89,49 @@ public abstract class Intent {
         this.key = (key != null) ? key : Key.of(id.fingerprint(), appId);
         this.priority = priority;
         this.resources = checkNotNull(resources);
+    }
+
+    /**
+     * Abstract builder for intents.
+     */
+    public abstract static class Builder {
+        protected ApplicationId appId;
+        protected Key key;
+        protected int priority = Intent.DEFAULT_INTENT_PRIORITY;
+
+        /**
+         * Sets the application id for the intent that will be built.
+         *
+         * @param appId application id to use for built intent
+         * @return this builder
+         */
+        public Builder appId(ApplicationId appId) {
+            this.appId = appId;
+            return this;
+        }
+
+        /**
+         * Sets the key for the intent that will be built.
+         *
+         * @param key key to use for built intent
+         * @return this builder
+         */
+        public Builder key(Key key) {
+            this.key = key;
+            return this;
+        }
+
+        /**
+         * Sets the priority for the intent that will be built.
+         *
+         * @param priority priority to use for built intent
+         * @return this builder
+         */
+        public Builder priority(int priority) {
+            this.priority = priority;
+            return this;
+        }
+
     }
 
     /**
