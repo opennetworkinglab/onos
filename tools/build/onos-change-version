@@ -26,6 +26,7 @@ done
 sed -i "" -E "s/ONOS_VERSION:-[^$]*/ONOS_VERSION:-$NEW_VERSION_SHORT./" $ONOS_ROOT/tools/build/envDefaults
 sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools/test/topos/onos.py
 sed -i "" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
+sed -i "" -E "s/ONOS_POM_VERSION=.*\"/ONOS_POM_VERSION=\"$NEW_VERSION\"/" $ONOS_ROOT/tools/build/envDefaults
 
 # Augment the version in archetypes tree.
 mvn -f tools/package/archetypes/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
