@@ -22,10 +22,7 @@ cd $ONOS_STAGE
 # Check if Apache Karaf bits are available and if not, fetch them.
 if [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ]; then
     echo "Downloading $KARAF_TAR..."
-    karafURL=$(curl -s http://www.apache.org/dyn/closer.cgi/karaf/$KARAF_VERSION/apache-karaf-$KARAF_VERSION.tar.gz |
-                grep "<a href=\".*apache-karaf-$KARAF_VERSION.tar.gz\"" |
-                head -n 1 | sed 's/.*<a href="//g;s/".*//g')
-    curl -s $karafURL > $KARAF_TAR
+    curl -sL http://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz > $KARAF_TAR
 fi
 [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && \
     echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
@@ -79,5 +76,5 @@ echo $ONOS_VERSION > $ONOS_STAGE/VERSION
 cd $ONOS_STAGE_ROOT
 COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
 which zip >/dev/null && zip -rq $ONOS_ZIP $ONOS_BITS
-ls -l $ONOS_TAR $ONOS_ZIP >&2
+ls -l $ONOS_TAR $ONOS_ZIP 2>/dev/null
 rm -r $ONOS_STAGE
