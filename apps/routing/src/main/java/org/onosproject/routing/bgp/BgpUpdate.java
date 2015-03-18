@@ -758,9 +758,9 @@ final class BgpUpdate {
             // 4-octet AS number handling.
             int asPathLen;
             if (bgpSession.isAs4OctetCapable()) {
-                asPathLen = BgpConstants.Update.AsPath.AS_4OCTET_LENGTH;
+                asPathLen = BgpConstants.Update.AS_4OCTET_LENGTH;
             } else {
-                asPathLen = BgpConstants.Update.AsPath.AS_LENGTH;
+                asPathLen = BgpConstants.Update.AS_LENGTH;
             }
 
             // Parse the AS numbers
@@ -774,7 +774,7 @@ final class BgpUpdate {
             ArrayList<Long> segmentAsNumbers = new ArrayList<>();
             while (pathSegmentLength-- > 0) {
                 long asNumber;
-                if (asPathLen == BgpConstants.Update.AsPath.AS_4OCTET_LENGTH) {
+                if (asPathLen == BgpConstants.Update.AS_4OCTET_LENGTH) {
                     asNumber = message.readUnsignedInt();
                 } else {
                     asNumber = message.readUnsignedShort();
@@ -967,9 +967,16 @@ final class BgpUpdate {
                                                 int attrFlags,
                                                 ChannelBuffer message)
         throws BgpMessage.BgpParseException {
+        int expectedAttrLen;
+
+        if (bgpSession.isAs4OctetCapable()) {
+            expectedAttrLen = BgpConstants.Update.Aggregator.AS4_LENGTH;
+        } else {
+            expectedAttrLen = BgpConstants.Update.Aggregator.AS2_LENGTH;
+        }
 
         // Check the Attribute Length
-        if (attrLen != BgpConstants.Update.Aggregator.LENGTH) {
+        if (attrLen != expectedAttrLen) {
             // ERROR: Attribute Length Error
             actionsBgpUpdateAttributeLengthError(
                 bgpSession, ctx, attrTypeCode, attrLen, attrFlags, message);
@@ -978,7 +985,12 @@ final class BgpUpdate {
         }
 
         // The AGGREGATOR AS number
-        long aggregatorAsNumber = message.readUnsignedShort();
+        long aggregatorAsNumber;
+        if (bgpSession.isAs4OctetCapable()) {
+            aggregatorAsNumber = message.readUnsignedInt();
+        } else {
+            aggregatorAsNumber = message.readUnsignedShort();
+        }
         // The AGGREGATOR IP address
         Ip4Address aggregatorIpAddress =
             Ip4Address.valueOf((int) message.readUnsignedInt());

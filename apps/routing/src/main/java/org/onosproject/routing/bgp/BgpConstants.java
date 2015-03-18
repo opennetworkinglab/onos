@@ -157,6 +157,12 @@ public final class BgpConstants {
         private Update() {
         }
 
+        /** BGP AS length. */
+        public static final int AS_LENGTH = 2;
+
+        /** BGP 4 Octet AS length (RFC 6793). */
+        public static final int AS_4OCTET_LENGTH = 4;
+
         /**
          * BGP UPDATE: ORIGIN related constants.
          */
@@ -226,12 +232,6 @@ public final class BgpConstants {
 
             /** BGP UPDATE Attributes Type Code AS_PATH. */
             public static final int TYPE = 2;
-
-            /** BGP AS length. */
-            public static final int AS_LENGTH = 2;
-
-            /** BGP 4 Octet AS length (RFC 6793). */
-            public static final int AS_4OCTET_LENGTH = 4;
 
             /** BGP UPDATE AS_PATH Type: AS_SET. */
             public static final int AS_SET = 1;
@@ -373,8 +373,11 @@ public final class BgpConstants {
             /** BGP UPDATE Attributes Type Code AGGREGATOR. */
             public static final int TYPE = 7;
 
-            /** BGP UPDATE Attributes Type Code AGGREGATOR length. */
-            public static final int LENGTH = 6;
+            /** BGP UPDATE Attributes Type Code AGGREGATOR length: 2 octet AS. */
+            public static final int AS2_LENGTH = 6;
+
+            /** BGP UPDATE Attributes Type Code AGGREGATOR length: 4 octet AS. */
+            public static final int AS4_LENGTH = 8;
         }
 
         /**
