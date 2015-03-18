@@ -531,6 +531,7 @@
                     </configuration>
                 </plugin>
 
+                <!-- This version needs to be updated manually when changes are made to onos-maven-plugin -->
                 <plugin>
                     <groupId>org.onosproject</groupId>
                     <artifactId>onos-maven-plugin</artifactId>
