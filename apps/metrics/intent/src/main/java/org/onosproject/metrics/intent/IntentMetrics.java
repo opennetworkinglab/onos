@@ -69,6 +69,7 @@ public class IntentMetrics implements IntentMetricsService,
     private static final String FEATURE_WITHDRAW_REQUESTED_NAME =
         "WithdrawRequested";
     private static final String FEATURE_WITHDRAWN_NAME = "Withdrawn";
+    private static final String FEATURE_PURGED_NAME = "Purged";
     //
     // Event metrics:
     //  - Intent Submitted API operation
@@ -76,12 +77,14 @@ public class IntentMetrics implements IntentMetricsService,
     //  - Intent Failed compilation or installation
     //  - Intent Withdraw Requested API operation
     //  - Intent Withdrawn operation completion
+    //  - Intent Purged operation completion
     //
     private EventMetric intentSubmittedEventMetric;
     private EventMetric intentInstalledEventMetric;
     private EventMetric intentFailedEventMetric;
     private EventMetric intentWithdrawRequestedEventMetric;
     private EventMetric intentWithdrawnEventMetric;
+    private EventMetric intentPurgedEventMetric;
 
     @Activate
     protected void activate() {
@@ -135,6 +138,11 @@ public class IntentMetrics implements IntentMetricsService,
     }
 
     @Override
+    public EventMetric intentPurgedEventMetric() {
+        return intentPurgedEventMetric;
+    }
+
+    @Override
     public void event(IntentEvent event) {
         synchronized (lastEvents) {
             switch (event.type()) {
@@ -152,6 +160,9 @@ public class IntentMetrics implements IntentMetricsService,
                 break;
             case WITHDRAWN:
                 intentWithdrawnEventMetric.eventReceived();
+                break;
+            case PURGED:
+                intentPurgedEventMetric.eventReceived();
                 break;
             default:
                 break;
@@ -198,12 +209,16 @@ public class IntentMetrics implements IntentMetricsService,
         intentWithdrawnEventMetric =
             new EventMetric(metricsService, COMPONENT_NAME,
                             FEATURE_WITHDRAWN_NAME);
+        intentPurgedEventMetric =
+            new EventMetric(metricsService, COMPONENT_NAME,
+                            FEATURE_PURGED_NAME);
 
         intentSubmittedEventMetric.registerMetrics();
         intentInstalledEventMetric.registerMetrics();
         intentFailedEventMetric.registerMetrics();
         intentWithdrawRequestedEventMetric.registerMetrics();
         intentWithdrawnEventMetric.registerMetrics();
+        intentPurgedEventMetric.registerMetrics();
     }
 
     /**
@@ -215,5 +230,6 @@ public class IntentMetrics implements IntentMetricsService,
         intentFailedEventMetric.removeMetrics();
         intentWithdrawRequestedEventMetric.removeMetrics();
         intentWithdrawnEventMetric.removeMetrics();
+        intentPurgedEventMetric.removeMetrics();
     }
 }

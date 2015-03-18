@@ -62,6 +62,8 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
                           service.intentWithdrawRequestedEventMetric());
             result = json(mapper, result, "intentWithdrawn",
                           service.intentWithdrawnEventMetric());
+            result = json(mapper, result, "intentPurged",
+                          service.intentPurgedEventMetric());
             print("%s", result);
         } else {
             printEventMetric("Submitted",
@@ -74,6 +76,8 @@ public class IntentEventsMetricsCommand extends AbstractShellCommand {
                              service.intentWithdrawRequestedEventMetric());
             printEventMetric("Withdrawn",
                              service.intentWithdrawnEventMetric());
+            printEventMetric("Purged",
+                             service.intentPurgedEventMetric());
         }
     }
 
