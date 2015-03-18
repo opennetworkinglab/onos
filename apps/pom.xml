@@ -32,24 +32,17 @@
     <description>ONOS sample applications</description>
 
     <modules>
-        <module>tvue</module>
         <module>fwd</module>
-        <module>ifwd</module>
         <module>mobility</module>
         <module>proxyarp</module>
         <module>config</module>
         <module>sdnip</module>
-        <module>calendar</module>
         <module>optical</module>
         <module>metrics</module>
         <module>oecfg</module>
-        <module>demo</module>
-        <module>election</module>
         <module>routing</module>
         <module>routing-api</module>
         <module>bgprouter</module>
-        <module>intent-perf</module>
-        <module>database-perf</module>
     </modules>
 
     <properties>
