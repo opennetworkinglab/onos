@@ -15,23 +15,21 @@
  */
 package org.onosproject.rest;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.codec.impl.FlowEntryCodec;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * REST resource for interacting with the inventory of flows.
@@ -44,7 +42,6 @@ public class FlowsWebResource extends AbstractWebResource {
     final FlowRuleService service = get(FlowRuleService.class);
     final ObjectNode root = mapper().createObjectNode();
     final ArrayNode flowsNode = root.putArray("flows");
-    final FlowEntryCodec flowEntryCodec = new FlowEntryCodec();
 
     /**
      * Gets an array containing all the intents in the system.
@@ -60,7 +57,7 @@ public class FlowsWebResource extends AbstractWebResource {
             final Iterable<FlowEntry> deviceEntries = service.getFlowEntries(device.id());
             if (deviceEntries != null) {
                 for (final FlowEntry entry : deviceEntries) {
-                    flowsNode.add(flowEntryCodec.encode(entry, this));
+                    flowsNode.add(codec(FlowEntry.class).encode(entry, this));
                 }
             }
         }
@@ -85,7 +82,7 @@ public class FlowsWebResource extends AbstractWebResource {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
         for (final FlowEntry entry : deviceEntries) {
-            flowsNode.add(flowEntryCodec.encode(entry, this));
+            flowsNode.add(codec(FlowEntry.class).encode(entry, this));
         }
         return ok(root).build();
     }
@@ -94,7 +91,7 @@ public class FlowsWebResource extends AbstractWebResource {
      * Gets the flows for a device, where the device is specified by Id.
      *
      * @param deviceId Id of device to look up
-     * @param flowId Id of flow to look up
+     * @param flowId   Id of flow to look up
      * @return flow data as an array
      */
     @GET
@@ -110,7 +107,7 @@ public class FlowsWebResource extends AbstractWebResource {
         }
         for (final FlowEntry entry : deviceEntries) {
             if (entry.id().value() == flowId) {
-                flowsNode.add(flowEntryCodec.encode(entry, this));
+                flowsNode.add(codec(FlowEntry.class).encode(entry, this));
             }
         }
         return ok(root).build();
