@@ -29,14 +29,14 @@
 
     // key to button mapping data
     var k2b = {
-        O: { id: 'summary-tog', gid: 'unknown', isel: true},
+        O: { id: 'summary-tog', gid: 'summary', isel: true},
         I: { id: 'instance-tog', gid: 'uiAttached', isel: true },
-        D: { id: 'details-tog', gid: 'unknown', isel: true },
+        D: { id: 'details-tog', gid: 'details', isel: true },
 
         H: { id: 'hosts-tog', gid: 'endstation', isel: false },
         M: { id: 'offline-tog', gid: 'switch', isel: true },
-        P: { id: 'ports-tog', gid: 'unknown', isel: true },
-        B: { id: 'bkgrnd-tog', gid: 'unknown', isel: true }
+        P: { id: 'ports-tog', gid: 'ports', isel: true },
+        B: { id: 'bkgrnd-tog', gid: 'map', isel: true }
     };
 
     function init(_api_) {

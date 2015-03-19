@@ -20,10 +20,12 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 15,
+    var numBaseGlyphs = 19,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
+        longPrefix = 'M95.8,9.2H14.2c-2.8,0-5,2.2-5,5v81.5c0,2.8,2.2,5,5,' +
+            '5h81.5c2.8,0,5-2.2,5-5V14.2C100.8,11.5,98.5,9.2,95.8,9.2z ',
         prefixLookup = {
             bird: 'M427.7,300.4',
             unknown: 'M35,40a5',
@@ -35,6 +37,11 @@ describe('factory: fw/svg/glyph.js', function() {
             bgpSpeaker: 'M10,40a45,35',
             chain: 'M60.4,77.6c-',
             crown: 'M99.5,21.6c0,',
+            summary: longPrefix + 'M16.7',
+            details: longPrefix + 'M16.9',
+            ports: 'M98,9.2H79.6c',
+            map: 'M95.8,9.2H14.2c-2.8,0-5,2.2-5,5v66',
+
             uiAttached: 'M2,2.5a.5,.5',
             checkMark: 'M2.6,4.5c0',
             xMark: 'M9.0,7.2C8.2',
@@ -140,6 +147,22 @@ describe('factory: fw/svg/glyph.js', function() {
     it('should load the crown glyph', function() {
         gs.init();
         verifyGlyphLoadedInCache('crown', vbGlyph);
+    });
+    it('should load the summary glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('summary', vbGlyph);
+    });
+    it('should load the details glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('details', vbGlyph);
+    });
+    it('should load the ports glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('ports', vbGlyph);
+    });
+    it('should load the map glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('map', vbGlyph);
     });
     it('should load the uiAttached glyph', function() {
         gs.init();
