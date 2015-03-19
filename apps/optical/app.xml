@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.app.optical" origin="ON.Lab" version="1.1.0"
+<app name="org.onosproject.optical" origin="ON.Lab" version="1.2.0"
         features="onos-app-optical">
     <description>ONOS Packet/Optical use-case application</description>
 </app>

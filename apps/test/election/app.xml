@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.config" origin="ON.Lab" version="1.2.0"
-        features="onos-app-config">
-    <description>ONOS network configuration application</description>
+<app name="org.onosproject.election" origin="ON.Lab" version="1.2.0"
+        features="onos-app-metrics">
+    <description>ONOS master election test application</description>
 </app>

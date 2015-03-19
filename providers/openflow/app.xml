@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.app.metrics.topology" origin="ON.Lab" version="1.1.0"
-        features="onos-app-metrics-topology">
-    <description>ONOS topology metrics test application</description>
+<app name="org.onosproject.openflow" origin="ON.Lab" version="1.2.0"
+        features="onos-openflow">
+    <description>ONOS OpenFlow protocol southbound providers</description>
 </app>

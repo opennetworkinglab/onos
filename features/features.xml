@@ -155,7 +155,7 @@
         <bundle>mvn:org.onosproject/onos-of-provider-group/@ONOS-VERSION</bundle>
     </feature>
 
-    <!-- ONOS built-in apps -->
+    <!-- ONOS built-in app features -->
 
     <feature name="onos-app-fwd" version="@FEATURE-VERSION"
              description="ONOS sample forwarding application">
@@ -225,7 +225,23 @@
         <bundle>mvn:org.onosproject/onos-app-metrics-topology/@ONOS-VERSION</bundle>
     </feature>
 
-    <!-- Sample apps: to be moved to a different repo -->
+
+    <!-- ONOS test app features -->
+
+    <feature name="onos-app-intent-perf" version="@FEATURE-VERSION"
+             description="ONOS intent perf applications">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onosproject/onos-app-intent-perf/@ONOS-VERSION</bundle>
+    </feature>
+
+    <feature name="onos-app-election" version="@FEATURE-VERSION"
+             description="ONOS app leadership election test">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onosproject/onos-app-election/@ONOS-VERSION</bundle>
+    </feature>
+
+
+    <!-- ONOS sample app features: to be moved to a different repo -->
 
     <feature name="onos-app-tvue" version="@FEATURE-VERSION"
              description="ONOS sample topology viewer application">
@@ -248,22 +264,10 @@
         <bundle>mvn:org.onosproject/onos-app-demo/@ONOS-VERSION</bundle>
     </feature>
 
-    <feature name="onos-app-intent-perf" version="@FEATURE-VERSION"
-             description="ONOS intent perf applications">
-        <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-intent-perf/@ONOS-VERSION</bundle>
-    </feature>
-
     <feature name="onos-app-database-perf" version="@FEATURE-VERSION"
              description="ONOS partitioned database perf application">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-app-database-perf/@ONOS-VERSION</bundle>
-    </feature>
-
-    <feature name="onos-app-election" version="@FEATURE-VERSION"
-             description="ONOS app leadership election test">
-        <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-app-election/@ONOS-VERSION</bundle>
     </feature>
 
     <feature name="onos-app-calendar" version="@FEATURE-VERSION"

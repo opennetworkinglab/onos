@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.app.proxyarp" origin="ON.Lab" version="1.1.0"
+<app name="org.onosproject.proxyarp" origin="ON.Lab" version="1.2.0"
         features="onos-app-proxyarp">
-    <description>ONOS proxy ARP application</description>
+    <description>ONOS proxy ARP/NDP application</description>
 </app>
