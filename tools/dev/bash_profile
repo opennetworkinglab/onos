@@ -71,23 +71,32 @@ alias gui='onos-gui'
 alias sshctl='onos-ssh'
 alias sshnet='onos-ssh $OCN'
 
+
+# Sets the primary instance to the specified instance number.
+function setPrimaryInstance {
+    export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
+    echo $OCI
+}
+
 # Applies the settings in the specified cell file or lists current cell definition
 # if no cell file is given.
 function cell {
     if [ -n "$1" ]; then
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
-        unset ONOS_CELL ONOS_NIC ONOS_FEATURES ONOS_USER ONOS_GROUP
-        unset OCI OCN
+        unset ONOS_CELL ONOS_NIC ONOS_APPS ONOS_BOOT_FEATURES ONOS_USER ONOS_GROUP
+        unset OCI OCN OCT
+        unset ONOS_FEATURES # deprecated
         unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
         export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
+        setPrimaryInstance 1 >/dev/null
         cell
     else
         env | egrep "ONOS_CELL"
         env | egrep "OCI"
         env | egrep "OC[0-9]+" | sort
-        env | egrep "OCN"
+        env | egrep "OC[NT]"
         env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL'
     fi
 }
@@ -97,16 +106,10 @@ cell local >/dev/null  # Default cell is the local VMs
 # Lists available cells
 function cells {
     for cell in $(ls -1 $ONOS_ROOT/tools/test/cells); do
-        printf "%-12s  %s\n" \
+        printf "%-16s  %s\n" \
             "$([ $cell = $ONOS_CELL ] && echo $cell '*' || echo $cell)" \
             "$(grep '^#' $ONOS_ROOT/tools/test/cells/$cell | head -n 1)"
     done
-}
-
-# Sets the primary instance to the specified instance number.
-function setPrimaryInstance {
-    export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
-    echo $OCI
 }
 
 # Miscellaneous

@@ -1,7 +1,7 @@
-# Bare metal cluster
+# Bare metal cluster (3-node)
 
-# Use the 10G NIC for cluster communications
-export ONOS_NIC="192.168.200.*"
+# Use the 1G NIC for cluster communications
+export ONOS_NIC="10.254.1.*"
 
 # ONOS Test proxy
 export OCT=10.254.1.200
@@ -11,6 +11,4 @@ export OC1=10.254.1.201
 export OC2=10.254.1.202
 export OC3=10.254.1.203
 
-export OCI=${OC1}
-
-export ONOS_FEATURES=webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-null
+export ONOS_APPS=null,intentperf

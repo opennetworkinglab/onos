@@ -51,5 +51,7 @@ for n in $( seq 0 ${max} ); do
     fi
 done
 echo "OCN=${OCN}"
+echo "OCT=${OCT}"
 echo "OCI=${OCI}"
-echo "ONOS_FEATURES=${ONOS_FEATURES}"
+echo "ONOS_APPS=${ONOS_APPS}"
+echo "ONOS_BOOT_FEATURES=${ONOS_BOOT_FEATURES}"

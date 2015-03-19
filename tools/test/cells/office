@@ -1,7 +1,7 @@
-# ProxMox-based cell of ONOS instance; no mininet-box
+# ONLAB_OF Wifi ProxMox-based cell; single node; no mininet-box
 
 export ONOS_NIC="10.1.10.*"
 export OC1="10.1.10.223"
-export OCI="${OC1}"
 
-export ONOS_FEATURES="webconsole,onos-api,onos-core-trivial,onos-cli,onos-openflow,onos-app-fwd,onos-app-mobility,onos-app-gui,onos-app-proxyarp"
+export ONOS_APPS="openflow,fwd,proxyarp,mobility"
+

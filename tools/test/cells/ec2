@@ -1,4 +1,4 @@
-# Bare metal cluster
+# EC2-based cluster (7-node)
 
 # Use the 10G NIC for cluster communications
 export ONOS_NIC="192.168.200.*"
@@ -15,6 +15,4 @@ export OC5=192.168.200.105
 export OC6=192.168.200.106
 export OC7=192.168.200.107
 
-export OCI=${OC1}
-
-export ONOS_FEATURES=webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-null
+export ONOS_APPS=null,intentperf

@@ -1,4 +1,4 @@
-# Bare metal cluster (7-node)
+# Bare metal cluster (5-node)
 
 # Use the 1G NIC for cluster communications
 export ONOS_NIC="10.254.1.*"
@@ -12,7 +12,5 @@ export OC2=10.254.1.202
 export OC3=10.254.1.203
 export OC4=10.254.1.204
 export OC5=10.254.1.205
-export OC6=10.254.1.206
-export OC7=10.254.1.207
 
 export ONOS_APPS=null,intentperf
