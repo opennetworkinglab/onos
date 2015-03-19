@@ -76,9 +76,9 @@ public class ApplicationArchive
     private static final String APP_XML = "app.xml";
     private static final String M2_PREFIX = "m2";
 
-    private static final String KARAF_ROOT = ".";
+    private static final String KARAF_ROOT = "../";
     private static final String M2_ROOT = "system/";
-    private static final String APPS_ROOT = "data/apps/";
+    private static final String APPS_ROOT = "apps/";
 
     private File karafRoot = new File(KARAF_ROOT);
     private File m2Dir = new File(karafRoot, M2_ROOT);
