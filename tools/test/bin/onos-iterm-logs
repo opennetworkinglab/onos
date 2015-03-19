@@ -1,0 +1,42 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Test utility to spawn an iTerm window for monitoring logs of current cell.
+#-------------------------------------------------------------------------------
+
+cellName=$ONOS_CELL
+nodeCount=$(env | egrep "OC[0-9]+" | wc -l | tr -d ' ')
+
+osascript -e "
+tell application \"iTerm\"
+
+  set cellName to \"$cellName\"
+  set paneCount to $nodeCount
+
+  set theTerm to (make new terminal)
+
+  tell theTerm
+    set number of columns to 292
+    set number of rows to 64
+    launch session \"Default\"
+    tell the current session
+      set name to \"ONOS Log 1\"
+      write text \"cell \" & cellName
+      write text \"oi 1 && clear && echo Node \$OCI && ol\"
+    end tell
+  end tell
+
+  tell theTerm
+    repeat with thePane from 2 to paneCount
+      tell the current session
+        tell application \"System Events\" to keystroke \"D\" using command down
+        set name to \"ONOS Log \" & thePane
+        write text \"cell \" & cellName
+        write text \"oi \" & thePane & \" && clear && echo Node \$OCI && ol\"
+      end tell
+    end repeat
+  end tell
+
+  tell application \"System Events\" to keystroke \"I\" using command down
+
+end tell
+"
