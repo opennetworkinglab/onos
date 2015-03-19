@@ -14,3 +14,4 @@ dependency-reduced-pom.xml
 *.DS_Store
 
 core/store/trivial/data/
+core/store/apps
