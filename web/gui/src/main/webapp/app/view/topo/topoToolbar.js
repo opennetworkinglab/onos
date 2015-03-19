@@ -26,14 +26,17 @@
 
     var api, toolbar;
 
-    // buttons (named for keystroke)
-    var O, I, D, H, M, P, B;
+    // buttons
     var togSummary, togInstances, togDetails,
         togHosts, togOffline, togPorts, togBackground;
 
     function init(_api_) {
         api = _api_;
     }
+
+    // TODO: fix toggle and radio sets to be selected based on the current state
+    // current bug: first toggle button, then toggle with key, toggle button doesn't update appearance
+
 
     function getActions() {
         togSummary = api.getActionEntry('O');
@@ -54,13 +57,10 @@
         return entry[1];
     }
 
-    function createToolbar() {
-        getActions();
-        // in actions, function reference is entry[0], tooltip is entry[1]
-        toolbar = tbs.createToolbar('topo-tbar');
+    function addFirstRow() {
         toolbar.addToggle('summary-tog', 'unknown', true,
             entryCallback(togSummary), entryToolTip(togSummary));
-        toolbar.addToggle('instance-tog', 'unknown', true,
+        toolbar.addToggle('instance-tog', 'uiAttached', true,
             entryCallback(togInstances), entryToolTip(togInstances));
         toolbar.addToggle('details-tog', 'unknown', true,
             entryCallback(togDetails), entryToolTip(togDetails));
@@ -68,14 +68,19 @@
 
         toolbar.addToggle('hosts-tog', 'endstation', false,
             entryCallback(togHosts), entryToolTip(togHosts));
-        toolbar.addToggle('offline-tog', 'unknown', true,
+        toolbar.addToggle('offline-tog', 'switch', true,
             entryCallback(togOffline), entryToolTip(togOffline));
         toolbar.addToggle('ports-tog', 'unknown', true,
             entryCallback(togPorts), entryToolTip(togPorts));
         toolbar.addToggle('bkgrnd-tog', 'unknown', true,
             entryCallback(togBackground), entryToolTip(togBackground));
+    }
 
-        toolbar.hide();
+    function createToolbar() {
+        getActions();
+        toolbar = tbs.createToolbar('topo-tbar');
+        addFirstRow();
+        toolbar.show();
     }
 
     angular.module('ovTopo')
