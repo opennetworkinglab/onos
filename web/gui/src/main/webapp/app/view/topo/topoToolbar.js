@@ -27,6 +27,9 @@
     // internal state
     var toolbar, keyData;
 
+    // constants
+    var name = 'topo-tbar';
+
     // key to button mapping data
     var k2b = {
         O: { id: 'summary-tog', gid: 'summary', isel: true},
@@ -71,9 +74,13 @@
 
     function createToolbar() {
         initKeyData();
-        toolbar = tbs.createToolbar('topo-tbar');
+        toolbar = tbs.createToolbar(name);
         addFirstRow();
         toolbar.show();
+    }
+
+    function destroyToolbar() {
+        tbs.destroyToolbar(name);
     }
 
     // allows us to ensure the button states track key strokes
@@ -99,6 +106,7 @@
             return {
                 init: init,
                 createToolbar: createToolbar,
+                destroyToolbar: destroyToolbar,
                 keyListener: keyListener
             };
         }]);

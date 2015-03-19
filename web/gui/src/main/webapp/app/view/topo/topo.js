@@ -287,6 +287,7 @@
                 tps.destroyPanels();
                 tis.destroyInst();
                 tfs.destroyForce();
+                ttbs.destroyToolbar();
             });
 
             // svg layer and initialization of components
