@@ -16,9 +16,18 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.onlab.packet.ChassisId;
 import org.onosproject.codec.CodecContext;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultPort;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.Port.Type;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.provider.ProviderId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -27,19 +36,125 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class PortCodec extends AnnotatedCodec<Port> {
 
+    // JSON field names
+    private static final String ELEMENT = "element"; // DeviceId
+    private static final String PORT_NAME = "port";
+    private static final String IS_ENABLED = "isEnabled";
+    private static final String TYPE = "type";
+    private static final String PORT_SPEED = "portSpeed";
+
+    // Special port name alias
+    private static final String PORT_NAME_LOCAL = "local";
+
     @Override
     public ObjectNode encode(Port port, CodecContext context) {
         checkNotNull(port, "Port cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put("port", portName(port.number()))
-                .put("isEnabled", port.isEnabled())
-                .put("type", port.type().toString().toLowerCase())
-                .put("portSpeed", port.portSpeed());
+                .put(ELEMENT, port.element().id().toString())
+                .put(PORT_NAME, portName(port.number()))
+                .put(IS_ENABLED, port.isEnabled())
+                .put(TYPE, port.type().toString().toLowerCase())
+                .put(PORT_SPEED, port.portSpeed());
         return annotate(result, port, context);
     }
 
     private String portName(PortNumber port) {
-        return port.equals(PortNumber.LOCAL) ? "local" : port.toString();
+        return port.equals(PortNumber.LOCAL) ? PORT_NAME_LOCAL : port.toString();
     }
 
+    private static PortNumber portNumber(String portName) {
+        if (portName.equalsIgnoreCase(PORT_NAME_LOCAL)) {
+            return PortNumber.LOCAL;
+        }
+
+        return PortNumber.portNumber(portName);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * Note: Result of {@link Port#element()} returned Port object,
+     *       is not a full Device object.
+     *       Only it's DeviceId can be used.
+     */
+    @Override
+    public Port decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        DeviceId did = DeviceId.deviceId(json.get(ELEMENT).asText());
+        Device device = new DummyDevice(did);
+        PortNumber number = portNumber(json.get(PORT_NAME).asText());
+        boolean isEnabled = json.get(IS_ENABLED).asBoolean();
+        Type type = Type.valueOf(json.get(TYPE).asText().toUpperCase());
+        long portSpeed = json.get(PORT_SPEED).asLong();
+        Annotations annotations = extractAnnotations(json, context);
+
+        return new DefaultPort(device, number, isEnabled, type, portSpeed, annotations);
+    }
+
+
+    /**
+     * Dummy Device which only holds DeviceId.
+     */
+    private static final class DummyDevice implements Device {
+
+        private final DeviceId did;
+
+        /**
+         * Constructs Dummy Device which only holds DeviceId.
+         *
+         * @param did device Id
+         */
+        public DummyDevice(DeviceId did) {
+            this.did = did;
+        }
+
+        @Override
+        public Annotations annotations() {
+            return DefaultAnnotations.EMPTY;
+        }
+
+        @Override
+        public ProviderId providerId() {
+            return new ProviderId(did.uri().getScheme(), "PortCodec");
+        }
+
+        @Override
+        public DeviceId id() {
+            return did;
+        }
+
+        @Override
+        public Type type() {
+            return Type.SWITCH;
+        }
+
+        @Override
+        public String manufacturer() {
+            return "dummy";
+        }
+
+        @Override
+        public String hwVersion() {
+            return "0";
+        }
+
+        @Override
+        public String swVersion() {
+            return "0";
+        }
+
+        @Override
+        public String serialNumber() {
+            return "0";
+        }
+
+        @Override
+        public ChassisId chassisId() {
+            return new ChassisId();
+        }
+    }
 }

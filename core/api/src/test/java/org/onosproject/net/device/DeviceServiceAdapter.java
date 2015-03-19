@@ -17,12 +17,14 @@ package org.onosproject.net.device;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,7 +38,7 @@ public class DeviceServiceAdapter implements DeviceService {
 
     @Override
     public Iterable<Device> getDevices() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -58,12 +60,12 @@ public class DeviceServiceAdapter implements DeviceService {
 
     @Override
     public MastershipRole getRole(DeviceId deviceId) {
-        return null;
+        return MastershipRole.NONE;
     }
 
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

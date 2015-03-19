@@ -343,7 +343,6 @@ public class DevicesResourceTest extends ResourceTest {
         for (int portIndex = 0; portIndex < jsonPorts.size(); portIndex++) {
             JsonObject jsonPort = jsonPorts.get(portIndex).asObject();
 
-            assertThat(jsonPort.size(), is(4));
             assertThat(jsonPort.get("port").asString(),
                        is(Integer.toString(portIndex + 1)));
             assertThat(jsonPort.get("isEnabled").asBoolean(),

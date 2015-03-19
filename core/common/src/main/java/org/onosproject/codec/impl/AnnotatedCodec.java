@@ -16,10 +16,12 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
 
 /**
  * Base JSON codec for annotated entities.
@@ -40,6 +42,23 @@ public abstract class AnnotatedCodec<T extends Annotated> extends JsonCodec<T> {
             node.set("annotations", codec.encode(entity.annotations(), context));
         }
         return node;
+    }
+
+    /**
+     * Extracts annotations of given Object.
+     *
+     * @param objNode annotated JSON object node
+     * @param context decode context
+     * @return extracted Annotations
+     */
+    protected Annotations extractAnnotations(ObjectNode objNode, CodecContext context) {
+
+        JsonCodec<Annotations> codec = context.codec(Annotations.class);
+        if (objNode.has("annotations") && objNode.isObject()) {
+            return codec.decode((ObjectNode) objNode.get("annotations"), context);
+        } else {
+            return DefaultAnnotations.EMPTY;
+        }
     }
 
 }

@@ -15,6 +15,9 @@
  */
 package org.onosproject.codec.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 
@@ -25,8 +28,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class MockCodecContext implements CodecContext {
 
-    private ObjectMapper mapper = new ObjectMapper();
-    private CodecManager manager = new CodecManager();
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final CodecManager manager = new CodecManager();
+    private final Map<Class<? extends Object>, Object> services = new HashMap<>();
 
     /**
      * Constructs a new mock codec context.
@@ -46,9 +50,15 @@ public class MockCodecContext implements CodecContext {
         return manager.getCodec(entityClass);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T get(Class<T> serviceClass) {
-        return null;
+        return (T) services.get(serviceClass);
+    }
+
+    // for registering mock services
+    public <T> void registerService(Class<T> serviceClass, T impl) {
+        services.put(serviceClass, impl);
     }
 
 }

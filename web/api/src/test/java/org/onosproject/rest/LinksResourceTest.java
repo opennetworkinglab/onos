@@ -123,11 +123,6 @@ public class LinksResourceTest extends ResourceTest {
 
                 JsonObject jsonLink = json.get(jsonLinkIndex).asObject();
 
-                if (jsonLink.names().size() != expectedAttributes) {
-                    reason = "Found a link with the wrong number of attributes";
-                    return false;
-                }
-
                 if (matchesLink(link).matchesSafely(jsonLink)) {
                     return true;
                 }

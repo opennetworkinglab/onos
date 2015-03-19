@@ -16,11 +16,15 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
-import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.Link.Type;
+import org.onosproject.net.provider.ProviderId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -29,15 +33,44 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class LinkCodec extends AnnotatedCodec<Link> {
 
+    // JSON field names
+    private static final String SRC = "src";
+    private static final String DST = "dst";
+    private static final String TYPE = "type";
+
     @Override
     public ObjectNode encode(Link link, CodecContext context) {
         checkNotNull(link, "Link cannot be null");
-        DeviceService service = context.get(DeviceService.class);
         JsonCodec<ConnectPoint> codec = context.codec(ConnectPoint.class);
         ObjectNode result = context.mapper().createObjectNode();
-        result.set("src", codec.encode(link.src(), context));
-        result.set("dst", codec.encode(link.dst(), context));
+        result.set(SRC, codec.encode(link.src(), context));
+        result.set(DST, codec.encode(link.dst(), context));
+        result.put(TYPE, link.type().toString());
         return annotate(result, link, context);
     }
 
+
+    /**
+     * {@inheritDoc}
+     *
+     * Note: ProviderId is not part of JSON representation.
+     *       Returned object will have random ProviderId set.
+     */
+    @Override
+    public Link decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        JsonCodec<ConnectPoint> codec = context.codec(ConnectPoint.class);
+        // TODO: add providerId to JSON if we need to recover them.
+        ProviderId pid = new ProviderId("json", "LinkCodec");
+
+        ConnectPoint src = codec.decode((ObjectNode) json.get(SRC), context);
+        ConnectPoint dst = codec.decode((ObjectNode) json.get(DST), context);
+        Type type = Type.valueOf(json.get(TYPE).asText());
+        Annotations annotations = extractAnnotations(json, context);
+
+        return new DefaultLink(pid, src, dst, type, annotations);
+    }
 }

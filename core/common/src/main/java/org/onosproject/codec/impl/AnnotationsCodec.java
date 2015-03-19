@@ -16,9 +16,12 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultAnnotations.Builder;
 
 /**
  * Annotations JSON codec.
@@ -34,4 +37,13 @@ public final class AnnotationsCodec extends JsonCodec<Annotations> {
         return result;
     }
 
+    @Override
+    public Annotations decode(ObjectNode json, CodecContext context) {
+        Builder builder = DefaultAnnotations.builder();
+
+        json.fields().forEachRemaining(e ->
+            builder.set(e.getKey(), e.getValue().asText()));
+
+        return builder.build();
+    }
 }
