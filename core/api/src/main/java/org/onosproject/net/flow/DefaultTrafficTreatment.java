@@ -207,8 +207,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
                                                                instruction.type());
-
-
             }
 
             return this;
@@ -247,10 +245,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public Builder setVlanPcp(Byte pcp) {
             return add(Instructions.modVlanPcp(pcp));
-        }
-
-        public Builder stripVlan() {
-            return add(Instructions.stripVlanId());
         }
 
         @Override

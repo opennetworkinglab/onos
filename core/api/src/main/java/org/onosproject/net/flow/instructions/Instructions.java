@@ -42,7 +42,6 @@ import static org.onosproject.net.flow.instructions.L2ModificationInstruction.Mo
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.PopVlanInstruction;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.StripVlanInstruction;
 
 /**
  * Factory class for creating various traffic treatment instructions.
@@ -138,15 +137,6 @@ public final class Instructions {
     public static L2ModificationInstruction modVlanPcp(Byte vlanPcp) {
         checkNotNull(vlanPcp, "VLAN Pcp cannot be null");
         return new ModVlanPcpInstruction(vlanPcp);
-    }
-
-    /**
-     * Strips the VLAN tag if one is present.
-     *
-     * @return a L2 modification
-     */
-    public static L2ModificationInstruction stripVlanId() {
-        return new StripVlanInstruction();
     }
 
     /**

@@ -142,12 +142,6 @@ public interface TrafficTreatment {
         public Builder setVlanPcp(Byte pcp);
 
         /**
-         * Strips the vlan tag if there is one.
-         * @return a treatment builder
-         */
-        public Builder stripVlan();
-
-        /**
          * Sets the src l3 address.
          *
          * @param addr an ip

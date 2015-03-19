@@ -83,10 +83,8 @@ public class FlowEntryBuilder {
 
     private final Match match;
 
-    /*
-    All actions are contained in an OFInstruction. For OF1.0
-     the instruction type is apply instruction (immediate set in ONOS speak)
-     */
+    // All actions are contained in an OFInstruction. For OF1.0
+    // the instruction type is apply instruction (immediate set in ONOS speak)
     private final List<OFInstruction> instructions;
 
     private final Dpid dpid;
@@ -308,14 +306,12 @@ public class FlowEntryBuilder {
                     OFActionGroup group = (OFActionGroup) act;
                     builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
                     break;
+                case STRIP_VLAN:
                 case POP_VLAN:
                     builder.popVlan();
                     break;
                 case PUSH_VLAN:
                     builder.pushVlan();
-                    break;
-                case STRIP_VLAN:
-                    builder.stripVlan();
                     break;
                 case SET_TP_DST:
                 case SET_TP_SRC:
