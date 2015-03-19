@@ -61,8 +61,8 @@
     }
 
     function addFirstRow() {
-        addToggle('O');
         addToggle('I');
+        addToggle('O');
         addToggle('D');
         toolbar.addSeparator();
 

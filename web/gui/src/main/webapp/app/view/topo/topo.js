@@ -43,8 +43,8 @@
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
         actionMap = {
-            O: [tps.toggleSummary, 'Toggle ONOS summary pane'],
             I: [toggleInstances, 'Toggle ONOS instances pane'],
+            O: [tps.toggleSummary, 'Toggle ONOS summary pane'],
             D: [tss.toggleDetails, 'Disable / enable details pane'],
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
@@ -72,7 +72,7 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['O', 'I', 'D', '-', 'H', 'M', 'P', 'B' ],
+                ['I', 'O', 'D', '-', 'H', 'M', 'P', 'B' ],
                 ['X', 'Z', 'L', 'U', 'R' ],
                 ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
             ]
