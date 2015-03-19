@@ -38,6 +38,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.joda.time.DateTime;
 import org.onlab.netty.Endpoint;
 import org.onlab.netty.Message;
 import org.onlab.netty.MessageHandler;
@@ -99,6 +100,7 @@ public class DistributedClusterStore
     private Set<ControllerNode> seedNodes;
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
     private final Map<NodeId, State> nodeStates = Maps.newConcurrentMap();
+    private final Map<NodeId, DateTime> nodeStateLastUpdatedTimes = Maps.newConcurrentMap();
     private NettyMessagingService messagingService = new NettyMessagingService();
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("onos/cluster/membership", "heartbeat-sender"));
@@ -131,7 +133,7 @@ public class DistributedClusterStore
 
         seedNodes.forEach(node -> {
             allNodes.put(node.id(), node);
-            nodeStates.put(node.id(), State.INACTIVE);
+            updateState(node.id(), State.INACTIVE);
         });
 
         establishSelfIdentity();
@@ -216,7 +218,7 @@ public class DistributedClusterStore
         checkArgument(tcpPort > 5000, "Tcp port must be greater than 5000");
         ControllerNode node = new DefaultControllerNode(nodeId, ip, tcpPort);
         allNodes.put(node.id(), node);
-        nodeStates.put(nodeId, State.INACTIVE);
+        updateState(nodeId, State.INACTIVE);
         delegate.notify(new ClusterEvent(ClusterEvent.Type.INSTANCE_ADDED, node));
         return node;
     }
@@ -231,12 +233,17 @@ public class DistributedClusterStore
         }
     }
 
+    private void updateState(NodeId nodeId, State newState) {
+        nodeStates.put(nodeId, newState);
+        nodeStateLastUpdatedTimes.put(nodeId, DateTime.now());
+    }
+
     private void establishSelfIdentity() {
         try {
             IpAddress ip = findLocalIp();
             localNode = new DefaultControllerNode(new NodeId(ip.toString()), ip);
             allNodes.put(localNode.id(), localNode);
-            nodeStates.put(localNode.id(), State.ACTIVE);
+            updateState(localNode.id(), State.ACTIVE);
             log.info("Local Node: {}", localNode);
         } catch (SocketException e) {
             throw new IllegalStateException("Cannot determine local IP", e);
@@ -256,12 +263,12 @@ public class DistributedClusterStore
                 double phi = failureDetector.phi(node.id());
                 if (phi >= PHI_FAILURE_THRESHOLD) {
                     if (currentState == State.ACTIVE) {
-                        nodeStates.put(node.id(), State.INACTIVE);
+                        updateState(node.id(), State.INACTIVE);
                         notifyStateChange(node.id(), State.ACTIVE, State.INACTIVE);
                     }
                 } else {
                     if (currentState == State.INACTIVE) {
-                        nodeStates.put(node.id(), State.ACTIVE);
+                        updateState(node.id(), State.ACTIVE);
                         notifyStateChange(node.id(), State.INACTIVE, State.ACTIVE);
                     }
                 }
@@ -334,4 +341,8 @@ public class DistributedClusterStore
         }
     }
 
+    @Override
+    public DateTime getLastUpdated(NodeId nodeId) {
+        return nodeStateLastUpdatedTimes.get(nodeId);
+    }
 }

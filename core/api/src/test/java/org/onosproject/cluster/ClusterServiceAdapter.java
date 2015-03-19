@@ -17,6 +17,8 @@ package org.onosproject.cluster;
 
 import java.util.Set;
 
+import org.joda.time.DateTime;
+
 /**
  * Test adapter for the cluster service.
  */
@@ -38,6 +40,11 @@ public class ClusterServiceAdapter implements ClusterService {
 
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
+        return null;
+    }
+
+    @Override
+    public DateTime getLastUpdated(NodeId nodeId) {
         return null;
     }
 

@@ -15,11 +15,16 @@
  */
 package org.onosproject.store.trivial.impl;
 
-import com.google.common.collect.ImmutableSet;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.joda.time.DateTime;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
@@ -29,12 +34,9 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PartitionService;
 import org.onosproject.store.AbstractStore;
-import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
-import java.util.Set;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Manages inventory of infrastructure devices using trivial in-memory
@@ -51,6 +53,8 @@ public class SimpleClusterStore
     private final Logger log = getLogger(getClass());
 
     private ControllerNode instance;
+
+    private final DateTime creationTime = DateTime.now();
 
     @Activate
     public void activate() {
@@ -82,6 +86,11 @@ public class SimpleClusterStore
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
         return ControllerNode.State.ACTIVE;
+    }
+
+    @Override
+    public DateTime getLastUpdated(NodeId nodeId) {
+        return creationTime;
     }
 
     @Override

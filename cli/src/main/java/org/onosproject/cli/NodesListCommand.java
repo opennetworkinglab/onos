@@ -15,17 +15,19 @@
  */
 package org.onosproject.cli;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.karaf.shell.commands.Command;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
+import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
+import org.apache.karaf.shell.commands.Command;
+import org.onlab.util.Tools;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
  * Lists all controller cluster nodes.
@@ -35,7 +37,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class NodesListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "id=%s, address=%s:%s, state=%s %s";
+            "id=%s, address=%s:%s, state=%s, updated=%s %s";
 
     @Override
     protected void execute() {
@@ -49,6 +51,7 @@ public class NodesListCommand extends AbstractShellCommand {
             for (ControllerNode node : nodes) {
                 print(FMT, node.id(), node.ip(), node.tcpPort(),
                       service.getState(node.id()),
+                      Tools.timeAgo(service.getLastUpdated(node.id()).getMillis()),
                       node.equals(self) ? "*" : "");
             }
         }

@@ -18,6 +18,7 @@ package org.onosproject.store.cluster.impl;
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MemberAttributeEvent;
@@ -28,6 +29,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.joda.time.DateTime;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
@@ -63,6 +65,7 @@ public class HazelcastClusterStore
     private String listenerId;
     private final MembershipListener listener = new InternalMembershipListener();
     private final Map<NodeId, State> states = new ConcurrentHashMap<>();
+    private final Map<NodeId, DateTime> lastUpdatedTimes = Maps.newConcurrentMap();
 
     private String nodesListenerId;
 
@@ -123,6 +126,11 @@ public class HazelcastClusterStore
     }
 
     @Override
+    public DateTime getLastUpdated(NodeId nodeId) {
+        return lastUpdatedTimes.get(nodeId);
+    }
+
+    @Override
     public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return addNode(new DefaultControllerNode(nodeId, ip, tcpPort));
     }
@@ -139,7 +147,7 @@ public class HazelcastClusterStore
     private synchronized ControllerNode addNode(DefaultControllerNode node) {
         rawNodes.put(serialize(node.id()), serialize(node));
         nodes.put(node.id(), Optional.of(node));
-        states.put(node.id(), State.ACTIVE);
+        updateState(node.id(), State.ACTIVE);
         return node;
     }
 
@@ -151,6 +159,11 @@ public class HazelcastClusterStore
 
     private IpAddress memberAddress(Member member) {
         return IpAddress.valueOf(member.getSocketAddress().getAddress());
+    }
+
+    private void updateState(NodeId nodeId, State newState) {
+        updateState(nodeId, newState);
+        lastUpdatedTimes.put(nodeId, DateTime.now());
     }
 
     // Interceptor for membership events.
@@ -166,7 +179,7 @@ public class HazelcastClusterStore
         public void memberRemoved(MembershipEvent membershipEvent) {
             log.info("Member {} removed", membershipEvent.getMember());
             NodeId nodeId = new NodeId(memberAddress(membershipEvent.getMember()).toString());
-            states.put(nodeId, State.INACTIVE);
+            updateState(nodeId, State.INACTIVE);
             notifyDelegate(new ClusterEvent(INSTANCE_DEACTIVATED, getNode(nodeId)));
         }
 

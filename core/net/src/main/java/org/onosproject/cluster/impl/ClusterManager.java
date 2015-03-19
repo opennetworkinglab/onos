@@ -15,12 +15,20 @@
  */
 package org.onosproject.cluster.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.joda.time.DateTime;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
@@ -31,14 +39,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
-import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
-
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of the cluster service.
@@ -95,6 +96,12 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     public ControllerNode.State getState(NodeId nodeId) {
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getState(nodeId);
+    }
+
+
+    @Override
+    public DateTime getLastUpdated(NodeId nodeId) {
+        return store.getLastUpdated(nodeId);
     }
 
     @Override

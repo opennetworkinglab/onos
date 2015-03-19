@@ -15,10 +15,11 @@
  */
 package org.onosproject.cluster;
 
-import org.onosproject.store.Store;
-import org.onlab.packet.IpAddress;
-
 import java.util.Set;
+
+import org.joda.time.DateTime;
+import org.onlab.packet.IpAddress;
+import org.onosproject.store.Store;
 
 /**
  * Manages inventory of controller cluster nodes; not intended for direct use.
@@ -54,6 +55,14 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
      * @return availability state
      */
     ControllerNode.State getState(NodeId nodeId);
+
+    /**
+     * Returns the system when the availability state was last updated.
+     *
+     * @param nodeId controller node identifier
+     * @return system time when the availability state was last updated.
+     */
+    DateTime getLastUpdated(NodeId nodeId);
 
     /**
      * Adds a new controller node to the cluster.

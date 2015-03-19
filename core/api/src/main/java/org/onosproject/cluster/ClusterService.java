@@ -17,6 +17,8 @@ package org.onosproject.cluster;
 
 import java.util.Set;
 
+import org.joda.time.DateTime;
+
 /**
  * Service for obtaining information about the individual nodes within
  * the controller cluster.
@@ -52,6 +54,14 @@ public interface ClusterService {
      * @return availability state
      */
     ControllerNode.State getState(NodeId nodeId);
+
+    /**
+     * Returns the system time when the availability state was last updated.
+     *
+     * @param nodeId controller node identifier
+     * @return system time when the availability state was last updated.
+     */
+    DateTime getLastUpdated(NodeId nodeId);
 
     /**
      * Adds the specified cluster event listener.

@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.trivial.impl;
 
+import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
+import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
@@ -33,6 +35,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.joda.time.DateTime;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -47,13 +51,10 @@ import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.store.AbstractStore;
-import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
-import static org.onosproject.mastership.MastershipEvent.Type.*;
 
 /**
  * Manages inventory of controller mastership over devices using
@@ -90,6 +91,8 @@ public class SimpleMastershipStore
 
             clusterService = new ClusterService() {
 
+                private final DateTime creationTime = DateTime.now();
+
                 @Override
                 public ControllerNode getLocalNode() {
                     return instance;
@@ -115,6 +118,11 @@ public class SimpleMastershipStore
                     } else {
                         return State.INACTIVE;
                     }
+                }
+
+                @Override
+                public DateTime getLastUpdated(NodeId nodeId) {
+                    return creationTime;
                 }
 
                 @Override
