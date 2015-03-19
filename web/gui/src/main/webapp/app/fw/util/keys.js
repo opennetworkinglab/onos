@@ -76,6 +76,7 @@
             gk = kh.globalKeys[key],
             gcb = fs.isF(gk) || (fs.isA(gk) && fs.isF(gk[0])),
             vk = kh.viewKeys[key],
+            kl = fs.isF(kh.viewKeys._keyListener),
             vcb = fs.isF(vk) || (fs.isA(vk) && fs.isF(vk[0])) || fs.isF(kh.viewFn),
             token = getViewToken();
 
@@ -90,6 +91,9 @@
             // otherwise, let the view callback have a shot
             if (vcb) {
                 vcb(token, key, keyCode, event);
+            }
+            if (kl) {
+                kl(key);
             }
         }
     }

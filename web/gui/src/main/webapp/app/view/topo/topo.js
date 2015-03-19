@@ -69,6 +69,8 @@
 
             esc: handleEscape,
 
+            _keyListener: ttbs.keyListener,
+
             _helpFormat: [
                 ['O', 'I', 'D', '-', 'H', 'M', 'P', 'B' ],
                 ['X', 'Z', 'L', 'U', 'R' ],

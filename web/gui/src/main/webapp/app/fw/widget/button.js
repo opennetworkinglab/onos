@@ -92,10 +92,15 @@
         is.loadIcon(togDiv, gid, btnSize, true);
         togDiv.classed('selected', sel);
 
-        function _toggle(b) {
+        function _toggle(b, nocb) {
             sel = (b === undefined) ? !sel : !!b;
             togDiv.classed('selected', sel);
-            cbFnc(sel);
+            nocb || cbFnc(sel);
+        }
+
+        // toggle the button state without invoking the callback
+        function toggleNoCb() {
+            _toggle(undefined, true);
         }
 
         togDiv.on('click', _toggle);
@@ -104,7 +109,8 @@
             id: id,
             width: buttonWidth,
             selected: function () { return sel; },
-            toggle: _toggle
+            toggle: _toggle,
+            toggleNoCb: toggleNoCb
         }
     }
 

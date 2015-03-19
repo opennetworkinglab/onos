@@ -16,71 +16,77 @@
 
 /*
  ONOS GUI -- Topology Toolbar Module.
- Defines functions for manipulating the toolbar.
+ Functions for creating and interacting with the toolbar.
  */
 
 (function () {
 
     // injected references
-    var $log, tbs;
+    var $log, tbs, api;
 
-    var api, toolbar;
+    // internal state
+    var toolbar, keyData;
 
-    // buttons
-    var togSummary, togInstances, togDetails,
-        togHosts, togOffline, togPorts, togBackground;
+    // key to button mapping data
+    var k2b = {
+        O: { id: 'summary-tog', gid: 'unknown', isel: true},
+        I: { id: 'instance-tog', gid: 'uiAttached', isel: true },
+        D: { id: 'details-tog', gid: 'unknown', isel: true },
+
+        H: { id: 'hosts-tog', gid: 'endstation', isel: false },
+        M: { id: 'offline-tog', gid: 'switch', isel: true },
+        P: { id: 'ports-tog', gid: 'unknown', isel: true },
+        B: { id: 'bkgrnd-tog', gid: 'unknown', isel: true }
+    };
 
     function init(_api_) {
         api = _api_;
     }
 
-    // TODO: fix toggle and radio sets to be selected based on the current state
-    // current bug: first toggle button, then toggle with key, toggle button doesn't update appearance
-
-
-    function getActions() {
-        togSummary = api.getActionEntry('O');
-        togInstances = api.getActionEntry('I');
-        togDetails = api.getActionEntry('D');
-
-        togHosts = api.getActionEntry('H');
-        togOffline = api.getActionEntry('M');
-        togPorts = api.getActionEntry('P');
-        togBackground = api.getActionEntry('B');
+    function initKeyData() {
+        keyData = d3.map(k2b);
+        keyData.forEach(function(key, value) {
+            var data = api.getActionEntry(key);
+            value.cb = data[0];     // on-click callback
+            value.tt = data[1];     // tooltip
+        });
     }
 
-    function entryCallback(entry) {
-        return entry[0];
-    }
-
-    function entryToolTip(entry) {
-        return entry[1];
+    function addToggle(key) {
+        var v = keyData.get(key);
+        v.tog = toolbar.addToggle(v.id, v.gid, v.isel, v.cb, v.tt);
     }
 
     function addFirstRow() {
-        toolbar.addToggle('summary-tog', 'unknown', true,
-            entryCallback(togSummary), entryToolTip(togSummary));
-        toolbar.addToggle('instance-tog', 'uiAttached', true,
-            entryCallback(togInstances), entryToolTip(togInstances));
-        toolbar.addToggle('details-tog', 'unknown', true,
-            entryCallback(togDetails), entryToolTip(togDetails));
+        addToggle('O');
+        addToggle('I');
+        addToggle('D');
         toolbar.addSeparator();
 
-        toolbar.addToggle('hosts-tog', 'endstation', false,
-            entryCallback(togHosts), entryToolTip(togHosts));
-        toolbar.addToggle('offline-tog', 'switch', true,
-            entryCallback(togOffline), entryToolTip(togOffline));
-        toolbar.addToggle('ports-tog', 'unknown', true,
-            entryCallback(togPorts), entryToolTip(togPorts));
-        toolbar.addToggle('bkgrnd-tog', 'unknown', true,
-            entryCallback(togBackground), entryToolTip(togBackground));
+        addToggle('H');
+        addToggle('M');
+        addToggle('P');
+        addToggle('B');
     }
 
     function createToolbar() {
-        getActions();
+        initKeyData();
         toolbar = tbs.createToolbar('topo-tbar');
         addFirstRow();
         toolbar.show();
+    }
+
+    // allows us to ensure the button states track key strokes
+    function keyListener(key) {
+        var v = keyData.get(key);
+
+        if (v) {
+            // we have a valid button mapping
+            if (v.tog) {
+                // it's a toggle button
+                v.tog.toggleNoCb();
+            }
+        }
     }
 
     angular.module('ovTopo')
@@ -92,7 +98,8 @@
 
             return {
                 init: init,
-                createToolbar: createToolbar
+                createToolbar: createToolbar,
+                keyListener: keyListener
             };
         }]);
 }());
