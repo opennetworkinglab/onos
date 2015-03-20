@@ -20,6 +20,7 @@
  */
 
 (function () {
+    'use strict';
 
     // injected references
     var $log, tbs, api;

@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, is;
+    var $log, fs, is, tts;
 
     // configuration
     var btnSize = 25,
@@ -49,6 +49,11 @@
         return btnSize + 2 * btnPadding;
     }
 
+    function addTooltip(elem, tooltip) {
+        elem.on('mouseover', function () { tts.showTooltip(this, tooltip); });
+        elem.on('mouseout', function () { tts.cancelTooltip(this); });
+    }
+
 
     // === BUTTON =================================================
 
@@ -64,6 +69,7 @@
             cbFnc = fs.isF(cb) || noop;
 
         is.loadIcon(btnDiv, gid, btnSize, true);
+        if (tooltip) { addTooltip(btnDiv, tooltip); }
 
         btnDiv.on('click', cbFnc);
 
@@ -91,6 +97,7 @@
 
         is.loadIcon(togDiv, gid, btnSize, true);
         togDiv.classed('selected', sel);
+        if (tooltip) { addTooltip(togDiv, tooltip); }
 
         function _toggle(b, nocb) {
             sel = (b === undefined) ? !sel : !!b;
@@ -180,6 +187,7 @@
             rbdiv.classed('selected', initSel);
             rbdiv.on('click', rbclick);
             is.loadIcon(rbdiv, btn.gid, btnSize, true);
+            if (btn.tooltip) { addTooltip(rbdiv, btn.tooltip); }
             angular.extend(btn, {
                 el: rbdiv,
                 id: rid,
@@ -243,12 +251,13 @@
 
     angular.module('onosWidget')
     .factory('ButtonService',
-        ['$log', 'FnService', 'IconService',
+        ['$log', 'FnService', 'IconService', 'TooltipService',
 
-        function (_$log_, _fs_, _is_) {
+        function (_$log_, _fs_, _is_, _tts_) {
             $log = _$log_;
             fs = _fs_;
             is = _is_;
+            tts = _tts_;
 
             return {
                 button: button,

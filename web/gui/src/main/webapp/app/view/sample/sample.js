@@ -86,16 +86,16 @@
 
             toolbar = tbs.createToolbar(tbid);
             rset = [
-                { gid: 'checkMark', cb: checkFn },
+                { gid: 'checkMark', cb: checkFn, tooltip: 'rbtn tooltip' },
                 { gid: 'xMark', cb: xMarkFn },
-                { gid: 'bird', cb: birdFn }
+                { gid: 'bird', cb: birdFn, tooltip: 'hello' }
             ];
 
-            toolbar.addButton('demo-button', 'crown', btnFn);
-            toolbar.addToggle('demo-toggle', 'chain', false, togFn);
+            toolbar.addButton('demo-button', 'crown', btnFn, 'yay a tooltip');
+            toolbar.addToggle('demo-toggle', 'chain', false, togFn, 'another tooltip');
             toolbar.addSeparator();
             toolbar.addRadioSet('demo-radio', rset);
-            toolbar.hide();
+            toolbar.show();
 
             checkFn();
 
