@@ -60,11 +60,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private String ipProtoString = null;
 
-    @Option(name = "--ipSrc", description = "Source IP Address",
+    @Option(name = "--ipSrc", description = "Source IP Prefix",
             required = false, multiValued = false)
     private String srcIpString = null;
 
-    @Option(name = "--ipDst", description = "Destination IP Address",
+    @Option(name = "--ipDst", description = "Destination IP Prefix",
             required = false, multiValued = false)
     private String dstIpString = null;
 
@@ -109,9 +109,47 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      * @return traffic selector
      */
     protected TrafficSelector buildTrafficSelector() {
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        short ethType = EthType.IPV4.value();
+        IpPrefix srcIpPrefix = null;
+        IpPrefix dstIpPrefix = null;
 
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+
+        if (!isNullOrEmpty(srcIpString)) {
+            srcIpPrefix = IpPrefix.valueOf(srcIpString);
+            if (srcIpPrefix.isIp4()) {
+                selectorBuilder.matchIPSrc(srcIpPrefix);
+            } else {
+                selectorBuilder.matchIPv6Src(srcIpPrefix);
+            }
+        }
+
+        if (!isNullOrEmpty(dstIpString)) {
+            dstIpPrefix = IpPrefix.valueOf(dstIpString);
+            if (dstIpPrefix.isIp4()) {
+                selectorBuilder.matchIPDst(dstIpPrefix);
+            } else {
+                selectorBuilder.matchIPv6Dst(dstIpPrefix);
+            }
+        }
+
+        if ((srcIpPrefix != null) && (dstIpPrefix != null) &&
+            (srcIpPrefix.version() != dstIpPrefix.version())) {
+            // ERROR: IP src/dst version mismatch
+            throw new IllegalArgumentException(
+                        "IP source and destination version mismatch");
+        }
+
+        //
+        // Set the default EthType based on the IP version if the matching
+        // source or destination IP prefixes.
+        //
+        short ethType = EthType.IPV4.value();
+        if ((srcIpPrefix != null) && srcIpPrefix.isIp6()) {
+            ethType = EthType.IPV6.value();
+        }
+        if ((dstIpPrefix != null) && dstIpPrefix.isIp6()) {
+            ethType = EthType.IPV6.value();
+        }
         if (!isNullOrEmpty(ethTypeString)) {
             ethType = EthType.parseFromString(ethTypeString);
         }
@@ -128,14 +166,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         if (!isNullOrEmpty(ipProtoString)) {
             short ipProtoShort = IpProtocol.parseFromString(ipProtoString);
             selectorBuilder.matchIPProtocol((byte) ipProtoShort);
-        }
-
-        if (!isNullOrEmpty(srcIpString)) {
-            selectorBuilder.matchIPSrc(IpPrefix.valueOf(srcIpString));
-        }
-
-        if (!isNullOrEmpty(dstIpString)) {
-            selectorBuilder.matchIPDst(IpPrefix.valueOf(dstIpString));
         }
 
         if (!isNullOrEmpty(srcTcpString)) {
