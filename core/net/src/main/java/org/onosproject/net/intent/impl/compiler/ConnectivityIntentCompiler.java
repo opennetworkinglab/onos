@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl.compiler;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.ElementId;
@@ -42,6 +43,7 @@ import java.util.Set;
  * Base class for compilers of various
  * {@link org.onosproject.net.intent.ConnectivityIntent connectivity intents}.
  */
+@Component(immediate = true)
 public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         implements IntentCompiler<T> {
 
