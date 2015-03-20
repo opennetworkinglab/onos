@@ -178,7 +178,7 @@ public class IpPrefix {
     public static IpPrefix valueOf(String address) {
         final String[] parts = address.split("/");
         if (parts.length != 2) {
-            String msg = "Malformed IP prefix string: " + address + "." +
+            String msg = "Malformed IP prefix string: " + address + ". " +
                 "Address must take form \"x.x.x.x/y\" or " +
                 "\"xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/y\"";
             throw new IllegalArgumentException(msg);

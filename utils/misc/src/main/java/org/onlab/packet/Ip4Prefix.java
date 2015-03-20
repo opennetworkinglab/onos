@@ -92,7 +92,7 @@ public final class Ip4Prefix extends IpPrefix {
     public static Ip4Prefix valueOf(String address) {
         final String[] parts = address.split("/");
         if (parts.length != 2) {
-            String msg = "Malformed IPv4 prefix string: " + address + "." +
+            String msg = "Malformed IPv4 prefix string: " + address + ". " +
                 "Address must take form \"x.x.x.x/y\"";
             throw new IllegalArgumentException(msg);
         }

@@ -80,7 +80,7 @@ public final class Ip6Prefix extends IpPrefix {
     public static Ip6Prefix valueOf(String address) {
         final String[] parts = address.split("/");
         if (parts.length != 2) {
-            String msg = "Malformed IPv6 prefix string: " + address + "." +
+            String msg = "Malformed IPv6 prefix string: " + address + ". " +
                 "Address must take form " +
                 "\"xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/y\"";
             throw new IllegalArgumentException(msg);
