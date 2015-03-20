@@ -32,14 +32,6 @@ import java.util.List;
 public interface TrafficTreatment {
 
     /**
-     * Returns list of instructions on how to treat traffic.
-     *
-     * @return list of treatment instructions
-     */
-    @Deprecated
-    List<Instruction> instructions();
-
-    /**
      * Returns the list of treatment instructions that will be applied
      * further down the pipeline.
      * @return list of treatment instructions

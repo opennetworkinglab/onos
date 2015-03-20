@@ -36,12 +36,17 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
         final ObjectNode result = context.mapper().createObjectNode();
         final ArrayNode jsonInstructions = result.putArray("instructions");
 
-        if (treatment.instructions() != null) {
-            final JsonCodec<Instruction> instructionCodec =
-                    context.codec(Instruction.class);
-            for (final Instruction instruction : treatment.instructions()) {
-                jsonInstructions.add(instructionCodec.encode(instruction, context));
-            }
+        final JsonCodec<Instruction> instructionCodec =
+                context.codec(Instruction.class);
+
+        for (final Instruction instruction : treatment.immediate()) {
+            jsonInstructions.add(instructionCodec.encode(instruction, context));
+        }
+
+        final ArrayNode jsonDeferred = result.putArray("deferred");
+
+        for (final Instruction instruction : treatment.deferred()) {
+            jsonDeferred.add(instructionCodec.encode(instruction, context));
         }
 
         return result;

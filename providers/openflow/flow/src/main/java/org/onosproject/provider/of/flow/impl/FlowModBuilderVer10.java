@@ -138,7 +138,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
         if (treatment == null) {
             return acts;
         }
-        for (Instruction i : treatment.instructions()) {
+        for (Instruction i : treatment.immediate()) {
             switch (i.type()) {
             case DROP:
                 log.warn("Saw drop action; assigning drop action");

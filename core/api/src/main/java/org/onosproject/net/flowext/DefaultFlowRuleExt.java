@@ -102,7 +102,7 @@ public class DefaultFlowRuleExt
                 .add("deviceId", deviceId())
                 .add("priority", priority())
                 .add("selector", selector().criteria())
-                .add("treatment", treatment() == null ? "N/A" : treatment().instructions())
+                .add("treatment", treatment() == null ? "N/A" : treatment().allInstructions())
                         //.add("created", created)
                 .add("flowEntryExtension", flowEntryExtension)
                 .toString();

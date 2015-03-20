@@ -354,8 +354,8 @@ public class IntentsListCommand extends AbstractShellCommand {
             if (!ci.selector().criteria().isEmpty()) {
                 print("    selector=%s", ci.selector().criteria());
             }
-            if (!ci.treatment().instructions().isEmpty()) {
-                print("    treatment=%s", ci.treatment().instructions());
+            if (!ci.treatment().allInstructions().isEmpty()) {
+                print("    treatment=%s", ci.treatment().allInstructions());
             }
             if (ci.constraints() != null && !ci.constraints().isEmpty()) {
                 print("    constraints=%s", ci.constraints());
@@ -423,8 +423,8 @@ public class IntentsListCommand extends AbstractShellCommand {
             if (!ci.selector().criteria().isEmpty()) {
                 result.put("selector", ci.selector().criteria().toString());
             }
-            if (!ci.treatment().instructions().isEmpty()) {
-                result.put("treatment", ci.treatment().instructions().toString());
+            if (!ci.treatment().allInstructions().isEmpty()) {
+                result.put("treatment", ci.treatment().allInstructions().toString());
             }
         }
 

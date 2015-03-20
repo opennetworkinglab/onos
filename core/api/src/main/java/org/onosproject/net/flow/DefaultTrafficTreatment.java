@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Default traffic treatment implementation.
  */
@@ -52,7 +54,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
      * @param instructions treatment instructions
      */
     private DefaultTrafficTreatment(List<Instruction> instructions) {
-        this.immediate = ImmutableList.copyOf(instructions);
+        this.immediate = ImmutableList.copyOf(checkNotNull(instructions));
         this.deferred = ImmutableList.of();
         this.hasClear = false;
         this.table = null;
@@ -62,16 +64,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                                    List<Instruction> immediate,
                                    Instructions.TableTypeTransition table,
                                    boolean clear) {
-        this.immediate = ImmutableList.copyOf(immediate);
-        this.deferred = ImmutableList.copyOf(deferred);
+        this.immediate = ImmutableList.copyOf(checkNotNull(immediate));
+        this.deferred = ImmutableList.copyOf(checkNotNull(deferred));
         this.table = table;
         this.hasClear = clear;
 
-    }
-
-    @Override
-    public List<Instruction> instructions() {
-        return immediate;
     }
 
     @Override
@@ -184,7 +181,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         // Creates a new builder based off an existing treatment
         //FIXME only works for immediate instruction sets.
         private Builder(TrafficTreatment treatment) {
-            for (Instruction instruction : treatment.instructions()) {
+            for (Instruction instruction : treatment.immediate()) {
                 add(instruction);
             }
         }

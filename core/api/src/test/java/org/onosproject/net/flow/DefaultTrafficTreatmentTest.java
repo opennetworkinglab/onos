@@ -75,14 +75,24 @@ public class DefaultTrafficTreatmentTest {
 
         final TrafficTreatment treatment1 = builder1.build();
 
-        final List<Instruction> instructions1 = treatment1.instructions();
+        final List<Instruction> instructions1 = treatment1.immediate();
         assertThat(instructions1, hasSize(9));
 
         builder1.drop();
         builder1.add(instruction1);
 
-        final List<Instruction> instructions2 = builder1.build().instructions();
+        final List<Instruction> instructions2 = builder1.build().immediate();
         assertThat(instructions2, hasSize(11));
+
+        builder1.deferred()
+                .popVlan()
+                .pushVlan()
+                .setVlanId(VlanId.vlanId((short) 5));
+
+        final List<Instruction> instructions3 = builder1.build().immediate();
+        assertThat(instructions3, hasSize(11));
+        final List<Instruction> instructions4 = builder1.build().deferred();
+        assertThat(instructions4, hasSize(3));
     }
 
     /**

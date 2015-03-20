@@ -113,7 +113,7 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
         //Ethernet eth = new Ethernet();
         //eth.deserialize(packet.data().array(), 0, packet.data().array().length);
         OFPortDesc p = null;
-        for (Instruction inst : packet.treatment().instructions()) {
+        for (Instruction inst : packet.treatment().allInstructions()) {
             if (inst.type().equals(Instruction.Type.OUTPUT)) {
                 p = portDesc(((OutputInstruction) inst).port());
                 OFPacketOut po = packetOut(sw, packet.data().array(), p.getPortNo());

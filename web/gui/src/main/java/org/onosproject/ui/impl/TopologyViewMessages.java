@@ -528,7 +528,7 @@ public abstract class TopologyViewMessages {
         PortNumber out = link.src().port();
         for (FlowEntry entry : entries) {
             TrafficTreatment treatment = entry.treatment();
-            for (Instruction instruction : treatment.instructions()) {
+            for (Instruction instruction : treatment.allInstructions()) {
                 if (instruction.type() == Instruction.Type.OUTPUT &&
                         ((OutputInstruction) instruction).port().equals(out)) {
                     count++;

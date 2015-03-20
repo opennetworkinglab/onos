@@ -298,12 +298,12 @@ public class FlowsResourceTest extends ResourceTest {
             if (flow.treatment() != null) {
                 final JsonObject jsonTreatment = jsonFlow.get("treatment").asObject();
                 final JsonArray jsonInstructions = jsonTreatment.get("instructions").asArray();
-                if (flow.treatment().instructions().size() != jsonInstructions.size()) {
+                if (flow.treatment().immediate().size() != jsonInstructions.size()) {
                     reason = "instructions array size of " +
-                            Integer.toString(flow.treatment().instructions().size());
+                            Integer.toString(flow.treatment().immediate().size());
                     return false;
                 }
-                for (final Instruction instruction : flow.treatment().instructions()) {
+                for (final Instruction instruction : flow.treatment().immediate()) {
                     boolean instructionFound = false;
                     for (int instructionIndex = 0; instructionIndex < jsonInstructions.size(); instructionIndex++) {
                         final String jsonType =

@@ -156,8 +156,8 @@ public class HostMonitorTest {
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
-        assertEquals(1, packet.treatment().instructions().size());
-        Instruction instruction = packet.treatment().instructions().get(0);
+        assertEquals(1, packet.treatment().immediate().size());
+        Instruction instruction = packet.treatment().immediate().get(0);
         assertTrue(instruction instanceof OutputInstruction);
         OutputInstruction oi = (OutputInstruction) instruction;
         assertEquals(portNum, oi.port());
@@ -225,8 +225,8 @@ public class HostMonitorTest {
         OutboundPacket packet = packetService.packets.get(0);
 
         // Check the output port is correct
-        assertEquals(1, packet.treatment().instructions().size());
-        Instruction instruction = packet.treatment().instructions().get(0);
+        assertEquals(1, packet.treatment().immediate().size());
+        Instruction instruction = packet.treatment().immediate().get(0);
         assertTrue(instruction instanceof OutputInstruction);
         OutputInstruction oi = (OutputInstruction) instruction;
         assertEquals(portNum, oi.port());

@@ -184,7 +184,7 @@ public final class GroupModBuilder {
             return actions;
         }
 
-        for (Instruction i : treatment.instructions()) {
+        for (Instruction i : treatment.allInstructions()) {
             switch (i.type()) {
                 case DROP:
                     log.warn("Saw drop action; assigning drop action");

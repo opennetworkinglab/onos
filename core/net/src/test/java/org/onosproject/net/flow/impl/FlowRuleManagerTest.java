@@ -557,11 +557,6 @@ public class FlowRuleManagerTest {
         }
 
         @Override
-        public List<Instruction> instructions() {
-            return null;
-        }
-
-        @Override
         public List<Instruction> deferred() {
             return null;
         }

@@ -503,9 +503,9 @@ public class ProxyArpManagerTest {
     private void verifyPacketOut(Ethernet expected, ConnectPoint outPort,
             OutboundPacket actual) {
         assertArrayEquals(expected.serialize(), actual.data().array());
-        assertEquals(1, actual.treatment().instructions().size());
+        assertEquals(1, actual.treatment().immediate().size());
         assertEquals(outPort.deviceId(), actual.sendThrough());
-        Instruction instruction = actual.treatment().instructions().get(0);
+        Instruction instruction = actual.treatment().immediate().get(0);
         assertTrue(instruction instanceof OutputInstruction);
         assertEquals(outPort.port(), ((OutputInstruction) instruction).port());
     }

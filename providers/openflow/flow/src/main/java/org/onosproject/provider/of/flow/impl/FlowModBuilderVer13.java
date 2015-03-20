@@ -186,24 +186,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return fm;
     }
 
-
-    private List<OFInstruction> buildInstructions() {
-        List<OFInstruction> instructions = new LinkedList<>();
-        if (treatment == null) {
-            return instructions;
-        }
-        for (Instruction i : treatment.instructions()) {
-            switch (i.type()) {
-                case TABLE:
-                    instructions.add(buildTableGoto(((Instructions.TableTypeTransition) i)));
-                    break;
-                default:
-                    break;
-            }
-        }
-        return instructions;
-    }
-
     private List<OFAction> buildActions(List<Instruction> treatments) {
         List<OFAction> actions = new LinkedList<>();
         boolean tableFound = false;

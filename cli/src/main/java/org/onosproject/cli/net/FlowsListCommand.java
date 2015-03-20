@@ -123,7 +123,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         }
 
         ArrayNode instr = mapper.createArrayNode();
-        for (Instruction i : flow.treatment().instructions()) {
+        for (Instruction i : flow.treatment().allInstructions()) {
             instr.add(i.toString());
         }
 

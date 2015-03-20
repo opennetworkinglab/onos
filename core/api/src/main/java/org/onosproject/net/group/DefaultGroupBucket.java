@@ -15,15 +15,17 @@
  */
 package org.onosproject.net.group;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instruction;
+
+import java.util.List;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Group bucket implementation. A group bucket is collection of
@@ -206,9 +208,12 @@ public final class DefaultGroupBucket implements GroupBucket {
         }
         if (obj instanceof DefaultGroupBucket) {
             DefaultGroupBucket that = (DefaultGroupBucket) obj;
+            List<Instruction> myInstructions = this.treatment.allInstructions();
+            List<Instruction> theirInstructions = that.treatment.allInstructions();
+
             return Objects.equals(type, that.type) &&
-                   this.treatment.instructions().containsAll(that.treatment.instructions()) &&
-                   that.treatment.instructions().containsAll(this.treatment.instructions());
+                   myInstructions.containsAll(theirInstructions) &&
+                   theirInstructions.containsAll(myInstructions);
         }
         return false;
     }

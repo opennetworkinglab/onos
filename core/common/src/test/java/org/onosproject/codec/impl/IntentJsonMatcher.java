@@ -370,7 +370,7 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         // check treatment
         final JsonNode jsonTreatment = jsonIntent.get("treatment");
         final TrafficTreatment treatment = connectivityIntent.treatment();
-        final List<Instruction> instructions = treatment.instructions();
+        final List<Instruction> instructions = treatment.immediate();
         final JsonNode jsonInstructions = jsonTreatment.get("instructions");
         if (jsonInstructions.size() != instructions.size()) {
             description.appendText("size of instructions array is "

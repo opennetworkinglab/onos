@@ -93,18 +93,13 @@ public class IntentTestsMocks {
      */
     public static class MockTreatment implements TrafficTreatment {
         @Override
-        public List<Instruction> instructions() {
-            return new ArrayList<>();
-        }
-
-        @Override
         public List<Instruction> deferred() {
             return null;
         }
 
         @Override
         public List<Instruction> immediate() {
-            return null;
+            return new ArrayList<>();
         }
 
         @Override

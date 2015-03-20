@@ -55,7 +55,7 @@ public class OpenFlowCorePacketContext extends DefaultPacketContext {
     }
 
     private void sendPacket(Ethernet eth) {
-        List<Instruction> ins = treatmentBuilder().build().instructions();
+        List<Instruction> ins = treatmentBuilder().build().allInstructions();
         OFPort p = null;
         //TODO: support arbitrary list of treatments must be supported in ofPacketContext
         for (Instruction i : ins) {
