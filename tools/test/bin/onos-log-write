@@ -1,0 +1,37 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Writes block text into the remote ONOS log file on the specified node.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
+
+remote=$(find_node $1)
+remote=$ONOS_USER@${remote:-$OCI}
+message=$2
+
+if [ -z "$message" ]; then
+    echo "Usage: onos-log-write <instance> <message>"
+    exit
+fi
+if [ -z $(which figlet) ]; then
+    echo "Install figlet; example: brew install figlet"
+    exit
+fi
+
+#text=$(figlet $message)
+#echo "Writing to $remote:"
+#echo $text
+#echo
+
+[ -n "$instance" ] && \
+    LOG=$ONOS_INSTALL_DIR/$KARAF_DIST/instances/$instance/data/log/karaf.log || \
+    LOG=$ONOS_INSTALL_DIR/log/karaf.log
+
+#broken by special chars like `
+#ssh -t $remote "sudo mkdir -p $(dirname $LOG) && echo $text | sudo tee -a $LOG"
+
+figlet $message > /tmp/message.txt
+scp /tmp/message.txt $remote:/tmp
+ssh -t $remote "sudo mkdir -p $(dirname $LOG) && cat /tmp/message.txt | sudo tee -a $LOG; rm /tmp/message.txt"
