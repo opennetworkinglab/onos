@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -149,20 +150,6 @@ public class GossipIntentStore
         return null;
     }
 
-    private IntentData copyData(IntentData original) {
-        if (original == null) {
-            return null;
-        }
-        IntentData result =
-                new IntentData(original.intent(), original.state(), original.version());
-
-        if (original.installables() != null) {
-            result.setInstallables(original.installables());
-        }
-        result.setOrigin(original.origin());
-        return result;
-    }
-
     /**
      * Determines whether an intent data update is allowed. The update must
      * either have a higher version than the current data, or the state
@@ -239,6 +226,8 @@ public class GossipIntentStore
 
     @Override
     public void write(IntentData newData) {
+        checkNotNull(newData);
+
         IntentData currentData = currentMap.get(newData.key());
         if (isUpdateAcceptable(currentData, newData)) {
             // Only the master is modifying the current state. Therefore assume
@@ -246,13 +235,11 @@ public class GossipIntentStore
             if (newData.state() == PURGE_REQ) {
                 currentMap.remove(newData.key(), newData);
             } else {
-                currentMap.put(newData.key(), copyData(newData));
+                currentMap.put(newData.key(), new IntentData(newData));
             }
 
             // if current.put succeeded
             pendingMap.remove(newData.key(), newData);
-        } else {
-            log.debug("not writing update: current {}, new {}", currentData, newData);
         }
     }
 
@@ -307,16 +294,22 @@ public class GossipIntentStore
 
     @Override
     public IntentData getIntentData(Key key) {
-        return copyData(currentMap.get(key));
+        IntentData current = currentMap.get(key);
+        if (current == null) {
+            return null;
+        }
+        return new IntentData(current);
     }
 
     @Override
     public void addPending(IntentData data) {
+        checkNotNull(data);
+
         if (data.version() == null) {
             data.setVersion(new WallClockTimestamp());
         }
         data.setOrigin(clusterService.getLocalNode().id());
-        pendingMap.put(data.key(), copyData(data));
+        pendingMap.put(data.key(), new IntentData(data));
     }
 
     @Override
@@ -361,8 +354,7 @@ public class GossipIntentStore
                 // some work.
                 if (isMaster(event.value().intent().key())) {
                     if (delegate != null) {
-                        log.debug("processing {}", event.key());
-                        delegate.process(copyData(event.value()));
+                        delegate.process(new IntentData(event.value()));
                     }
                 }
 

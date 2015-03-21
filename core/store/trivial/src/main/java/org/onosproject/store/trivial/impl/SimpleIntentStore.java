@@ -38,6 +38,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Simple single-instance implementation of the intent store.
+ */
 @Component(immediate = true)
 @Service
 public class SimpleIntentStore
@@ -48,19 +51,6 @@ public class SimpleIntentStore
 
     private final Map<Key, IntentData> current = Maps.newConcurrentMap();
     private final Map<Key, IntentData> pending = Maps.newConcurrentMap();
-
-    private IntentData copyData(IntentData original) {
-        if (original == null) {
-            return null;
-        }
-        IntentData result =
-                new IntentData(original.intent(), original.state(), original.version());
-
-        if (original.installables() != null) {
-            result.setInstallables(original.installables());
-        }
-        return result;
-    }
 
     @Activate
     public void activate() {
@@ -98,7 +88,6 @@ public class SimpleIntentStore
         }
         return null;
     }
-
 
     /**
      * Determines whether an intent data update is allowed. The update must
@@ -174,6 +163,8 @@ public class SimpleIntentStore
 
     @Override
     public void write(IntentData newData) {
+        checkNotNull(newData);
+
         synchronized (this) {
             // TODO this could be refactored/cleaned up
             IntentData currentData = current.get(newData.key());
@@ -183,7 +174,7 @@ public class SimpleIntentStore
                 if (pendingData.state() == PURGE_REQ) {
                     current.remove(newData.key(), newData);
                 } else {
-                    current.put(newData.key(), copyData(newData));
+                    current.put(newData.key(), new IntentData(newData));
                 }
 
                 if (pendingData != null
@@ -219,7 +210,11 @@ public class SimpleIntentStore
 
     @Override
     public IntentData getIntentData(Key key) {
-        return copyData(current.get(key));
+        IntentData currentData = current.get(key);
+        if (currentData == null) {
+            return null;
+        }
+        return new IntentData(currentData);
     }
 
     @Override
