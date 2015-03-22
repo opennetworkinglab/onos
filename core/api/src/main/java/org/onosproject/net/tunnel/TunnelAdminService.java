@@ -1,0 +1,86 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.net.tunnel;
+
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Path;
+
+/**
+ * Service for administering the inventory of provisioned tunnels.
+ */
+public interface TunnelAdminService {
+
+    /**
+     * Removes the provisioned tunnel.
+     *
+     * @param tunnelId tunnel ID
+     */
+    void removeTunnel(TunnelId tunnelId);
+
+    /**
+     * Removes the provisioned tunnel leading to and from the
+     * specified labels.
+     *
+     * @param src source label
+     * @param dst destination label
+     */
+    void removeTunnels(Label src, Label dst);
+
+    /**
+     * Removes all provisioned tunnels leading to and from the
+     * specified connection point.
+     *
+     * @param src source connection point
+     * @param dst destination connection point
+     */
+    void removeTunnels(ConnectPoint src, ConnectPoint dst);
+
+    /**
+     * Removes all provisioned tunnels leading to and from the
+     * specified connection point.
+     *
+     * @param src source connection point
+     * @param dst destination connection point
+     * @param type tunnel type
+     */
+    void removeTunnels(ConnectPoint src, ConnectPoint dst, Tunnel.Type type);
+
+    /**
+     * Removes all provisioned tunnels leading to and from the
+     * specified connection point.
+     *
+     * @param connectPoint connection point
+     */
+    void removeTunnels(ConnectPoint connectPoint);
+
+    /**
+     * Removes all provisioned tunnels leading to and from the
+     * specified device.
+     *
+     * @param deviceId device identifier
+     */
+    void removeTunnels(DeviceId deviceId);
+
+    /**
+     * Invokes the core to update a tunnel based on specified tunnel parameters.
+     *
+     * @param tunnel Tunnel
+     * @param path explicit route (path changed) or null (path not changed) for the tunnel
+     */
+    void updateTunnel(Tunnel tunnel, Path path);
+
+}

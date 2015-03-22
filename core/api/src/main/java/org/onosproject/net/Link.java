@@ -44,12 +44,12 @@ public interface Link extends Annotated, Provided, NetworkResource {
 
         /**
          * Signifies that this link represents a logical link backed by
-         * some form of a tunnel.
+         * some form of a tunnel, e.g., GRE, MPLS, ODUk, OCH.
          */
         TUNNEL,
 
         /**
-         * Signifies that this link is realized by optical connection.
+         * Signifies that this link is realized by fiber (either single channel or WDM).
          */
         OPTICAL
     }

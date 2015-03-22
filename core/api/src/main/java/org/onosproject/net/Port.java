@@ -31,7 +31,30 @@ public interface Port extends Annotated {
         /**
          * Signifies optical fiber-based connectivity.
          */
-        FIBER
+        FIBER,
+
+        /**
+         * Signifies optical fiber-based packet port.
+         */
+        PACKET,
+
+        /**
+         * Signifies optical fiber-based optical tributary port (called T-port).
+         * The signal from the client side will be formed into a ITU G.709 (OTN) frame.
+         */
+        ODUCLT,
+
+        /**
+         * Signifies optical fiber-based Line-side port (called L-port).
+         */
+        OCH,
+
+        /**
+         * Signifies optical fiber-based WDM port (called W-port).
+         * Optical Multiplexing Section (See ITU G.709).
+         */
+        OMS
+
     }
 
     /**

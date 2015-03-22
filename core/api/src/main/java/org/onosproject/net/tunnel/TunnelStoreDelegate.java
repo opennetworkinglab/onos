@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net;
+package org.onosproject.net.tunnel;
+
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Abstraction of a generalized network tunnel.
+ * Tunnel store delegate abstraction.
  */
-public interface Tunnel extends Link {
-
-    /**
-     * Tunnel technology type.
-     */
-    enum Type {
-        MPLS, VLAN, VXLAN, GRE, OPTICAL
-    }
-
-    /**
-     * Network resource backing the tunnel, e.g. lambda, VLAN id, MPLS tag.
-     *
-     * @return backing resource
-     */
-    NetworkResource resource();
-
+public interface TunnelStoreDelegate extends StoreDelegate<TunnelEvent> {
 }
