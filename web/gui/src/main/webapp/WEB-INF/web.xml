@@ -21,7 +21,7 @@
     <display-name>ONOS GUI</display-name>
 
     <welcome-file-list>
-        <welcome-file>legacy/index.html</welcome-file>
+        <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
     <!--
@@ -67,6 +67,7 @@
 
     <servlet-mapping>
         <servlet-name>Index Page</servlet-name>
+        <url-pattern>/index.html</url-pattern>
         <url-pattern>/main.html</url-pattern>
     </servlet-mapping>
 

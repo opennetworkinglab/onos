@@ -61,10 +61,8 @@
 
     function wsOpen(host, url) {
         $log.debug('TOPO: web socket open - cluster node:', host, 'URL:', url);
-
-        // TODO: request "instanceUpdate" events for all instances
-        // this should give us the updated uiAttached icon placement
-
+        // Request batch of initial data from the new server
+        wss.sendEvent('topoStart');
     }
 
     angular.module('ovTopo')
