@@ -189,19 +189,22 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
         }
     }
 
-    private void installAppArtifacts(Application app) throws Exception {
+    // The following methods are fully synchronized to guard against remote vs.
+    // locally induced feature service interactions.
+
+    private synchronized void installAppArtifacts(Application app) throws Exception {
         if (app.featuresRepo().isPresent()) {
             featuresService.addRepository(app.featuresRepo().get());
         }
     }
 
-    private void uninstallAppArtifacts(Application app) throws Exception {
+    private synchronized void uninstallAppArtifacts(Application app) throws Exception {
         if (app.featuresRepo().isPresent()) {
             featuresService.removeRepository(app.featuresRepo().get());
         }
     }
 
-    private void installAppFeatures(Application app) throws Exception {
+    private synchronized void installAppFeatures(Application app) throws Exception {
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (!featuresService.isInstalled(feature)) {
@@ -210,7 +213,7 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
         }
     }
 
-    private void uninstallAppFeatures(Application app) throws Exception {
+    private synchronized void uninstallAppFeatures(Application app) throws Exception {
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (featuresService.isInstalled(feature)) {
