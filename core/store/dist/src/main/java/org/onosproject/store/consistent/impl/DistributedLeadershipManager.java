@@ -101,20 +101,21 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     @Activate
     public void activate() {
-        lockMap = storageService.createConsistentMap("onos-leader-locks", new Serializer() {
-            KryoNamespace kryo = new KryoNamespace.Builder()
-                        .register(KryoNamespaces.API).build();
+        lockMap = storageService.<String, NodeId>consistentMapBuilder()
+                    .withName("onos-leader-locks")
+                    .withSerializer(new Serializer() {
+                        KryoNamespace kryo = new KryoNamespace.Builder().register(KryoNamespaces.API).build();
+                        @Override
+                        public <T> byte[] encode(T object) {
+                            return kryo.serialize(object);
+                        }
 
-            @Override
-            public <T> byte[] encode(T object) {
-                return kryo.serialize(object);
-            }
-
-            @Override
-            public <T> T decode(byte[] bytes) {
-                return kryo.deserialize(bytes);
-            }
-        });
+                        @Override
+                        public <T> T decode(byte[] bytes) {
+                            return kryo.deserialize(bytes);
+                        }
+                    })
+                    .withPartitionsDisabled().build();
 
         localNodeId = clusterService.getLocalNode().id();
 

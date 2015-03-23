@@ -18,10 +18,9 @@ package org.onosproject.store.consistent.impl;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.Map;
-
+import java.util.List;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 
 /**
@@ -32,11 +31,11 @@ import com.google.common.hash.Hashing;
  */
 public abstract class DatabasePartitioner implements Partitioner<String> {
     // Database partitions sorted by their partition name.
-    protected final Database[] sortedPartitions;
+    protected final List<Database> partitions;
 
-    public DatabasePartitioner(Map<String, Database> partitionMap) {
-        checkState(partitionMap != null && !partitionMap.isEmpty(), "Partition map cannot be null or empty");
-        sortedPartitions = ImmutableSortedMap.<String, Database>copyOf(partitionMap).values().toArray(new Database[]{});
+    public DatabasePartitioner(List<Database> partitions) {
+        checkState(partitions != null && !partitions.isEmpty(), "Partitions cannot be null or empty");
+        this.partitions = ImmutableList.copyOf(partitions);
     }
 
     protected int hash(String key) {

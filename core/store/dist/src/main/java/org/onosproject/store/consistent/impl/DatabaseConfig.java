@@ -36,6 +36,8 @@ public class DatabaseConfig extends ResourceConfig<DatabaseConfig> {
   private static final String DEFAULT_CONFIGURATION = "database-defaults";
   private static final String CONFIGURATION = "database";
 
+  private String name;
+
   public DatabaseConfig() {
     super(CONFIGURATION, DEFAULT_CONFIGURATION);
   }
@@ -112,6 +114,37 @@ public class DatabaseConfig extends ResourceConfig<DatabaseConfig> {
   public DatabaseConfig withConsistency(Consistency consistency) {
     setConsistency(consistency);
     return this;
+  }
+
+  /**
+   * Returns the database name.
+   *
+   * @return The database name
+   */
+  public String getName() {
+      return name;
+  }
+
+  /**
+   * Sets the database name, returning the configuration for method chaining.
+   *
+   * @param name The database name
+   * @return The database configuration
+   * @throws java.lang.NullPointerException If the name is {@code null}
+   */
+  public DatabaseConfig withName(String name) {
+      setName(Assert.isNotNull(name, "name"));
+      return this;
+  }
+
+  /**
+   * Sets the database name.
+   *
+   * @param name The database name
+   * @throws java.lang.NullPointerException If the name is {@code null}
+   */
+  public void setName(String name) {
+      this.name = Assert.isNotNull(name, "name");
   }
 
   @Override

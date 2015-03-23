@@ -16,7 +16,7 @@
 
 package org.onosproject.store.consistent.impl;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * A simple Partitioner for mapping keys to database partitions.
@@ -27,12 +27,12 @@ import java.util.Map;
  */
 public class SimpleKeyHashPartitioner extends DatabasePartitioner {
 
-    public SimpleKeyHashPartitioner(Map<String, Database> partitionMap) {
-        super(partitionMap);
+    public SimpleKeyHashPartitioner(List<Database> partitions) {
+        super(partitions);
     }
 
     @Override
     public Database getPartition(String tableName, String key) {
-        return sortedPartitions[hash(key) % sortedPartitions.length];
+        return partitions.get(hash(key) % partitions.size());
     }
 }

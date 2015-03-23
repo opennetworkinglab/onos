@@ -44,9 +44,9 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     private final AsyncConsistentMap<K, V> asyncMap;
 
     public DefaultConsistentMap(String name,
-            DatabaseProxy<String, byte[]> proxy,
+            Database database,
             Serializer serializer) {
-        asyncMap = new DefaultAsyncConsistentMap<>(name, proxy, serializer);
+        asyncMap = new DefaultAsyncConsistentMap<>(name, database, serializer);
     }
 
     @Override

@@ -42,12 +42,12 @@ public class DefaultTransactionContext implements TransactionContext {
 
     private final Map<String, DefaultTransactionalMap> txMaps = Maps.newHashMap();
     private boolean isOpen = false;
-    DatabaseProxy<String, byte[]> databaseProxy;
+    private final Database database;
     private static final String TX_NOT_OPEN_ERROR = "Transaction is not open";
     private static final int TRANSACTION_TIMEOUT_MILLIS = 2000;
 
-    DefaultTransactionContext(DatabaseProxy<String, byte[]> proxy) {
-        this.databaseProxy = proxy;
+    DefaultTransactionContext(Database database) {
+        this.database = checkNotNull(database, "Database must not be null");
     }
 
     @Override
@@ -63,7 +63,7 @@ public class DefaultTransactionContext implements TransactionContext {
         checkNotNull(serializer, "serializer is null");
         checkState(isOpen, TX_NOT_OPEN_ERROR);
         if (!txMaps.containsKey(mapName)) {
-            ConsistentMap<K, V> backingMap = new DefaultConsistentMap<>(mapName, databaseProxy, serializer);
+            ConsistentMap<K, V> backingMap = new DefaultConsistentMap<>(mapName, database, serializer);
             DefaultTransactionalMap<K, V> txMap = new DefaultTransactionalMap<>(mapName, backingMap, this, serializer);
             txMaps.put(mapName, txMap);
         }
@@ -83,7 +83,7 @@ public class DefaultTransactionContext implements TransactionContext {
                     allUpdates.addAll(m.prepareDatabaseUpdates());
                 });
 
-            if (!complete(databaseProxy.atomicBatchUpdate(allUpdates))) {
+            if (!complete(database.atomicBatchUpdate(allUpdates))) {
                 throw new TransactionException.OptimisticConcurrencyFailure();
             }
         } finally {

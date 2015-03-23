@@ -42,7 +42,9 @@ public class PartitionsListCommand extends AbstractShellCommand {
      * @param partitionInfo partition descriptions
      */
     private void displayPartitions(List<PartitionInfo> partitionInfo) {
+        print("----------------------------------------------------------");
         print(FMT, "Name", "Term", "Members", "");
+        print("----------------------------------------------------------");
 
         for (PartitionInfo info : partitionInfo) {
             boolean first = true;
@@ -55,6 +57,9 @@ public class PartitionsListCommand extends AbstractShellCommand {
                     print(FMT, "", "", member,
                             member.equals(info.leader()) ? "*" : "");
                 }
+            }
+            if (!first) {
+                print("----------------------------------------------------------");
             }
         }
     }

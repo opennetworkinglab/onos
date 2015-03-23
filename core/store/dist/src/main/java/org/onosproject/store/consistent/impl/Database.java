@@ -81,5 +81,4 @@ public interface Database extends DatabaseProxy<String, byte[]>, Resource<Databa
       .addStartupTask(() -> coordinator.open().thenApply(v -> null))
       .addShutdownTask(coordinator::close);
   }
-
 }

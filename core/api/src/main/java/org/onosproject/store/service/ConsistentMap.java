@@ -17,8 +17,8 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * A distributed, strongly consistent map.

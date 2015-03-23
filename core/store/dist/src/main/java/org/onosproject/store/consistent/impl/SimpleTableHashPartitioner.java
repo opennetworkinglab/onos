@@ -16,7 +16,7 @@
 
 package org.onosproject.store.consistent.impl;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * A simple Partitioner that uses the table name hash to
@@ -28,12 +28,12 @@ import java.util.Map;
  */
 public class SimpleTableHashPartitioner extends DatabasePartitioner {
 
-    public SimpleTableHashPartitioner(Map<String, Database> partitionMap) {
-        super(partitionMap);
+    public SimpleTableHashPartitioner(List<Database> partitions) {
+        super(partitions);
     }
 
     @Override
     public Database getPartition(String tableName, String key) {
-        return sortedPartitions[hash(tableName) % sortedPartitions.length];
+        return partitions.get(hash(tableName) % partitions.size());
     }
 }

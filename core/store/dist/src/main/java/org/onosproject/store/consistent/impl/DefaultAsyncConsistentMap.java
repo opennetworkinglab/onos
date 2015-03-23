@@ -45,7 +45,7 @@ import com.google.common.cache.LoadingCache;
 public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
 
     private final String name;
-    private final DatabaseProxy<String, byte[]> proxy;
+    private final Database database;
     private final Serializer serializer;
 
     private static final String ERROR_NULL_KEY = "Key cannot be null";
@@ -66,39 +66,39 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     }
 
     public DefaultAsyncConsistentMap(String name,
-            DatabaseProxy<String, byte[]> proxy,
+            Database database,
             Serializer serializer) {
         this.name = checkNotNull(name, "map name cannot be null");
-        this.proxy = checkNotNull(proxy, "database proxy cannot be null");
+        this.database = checkNotNull(database, "database cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return proxy.size(name);
+        return database.size(name);
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return proxy.isEmpty(name);
+        return database.isEmpty(name);
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return proxy.containsKey(name, keyCache.getUnchecked(key));
+        return database.containsKey(name, keyCache.getUnchecked(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(V value) {
         checkNotNull(value, ERROR_NULL_VALUE);
-        return proxy.containsValue(name, serializer.encode(value));
+        return database.containsValue(name, serializer.encode(value));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> get(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return proxy.get(name, keyCache.getUnchecked(key))
+        return database.get(name, keyCache.getUnchecked(key))
             .thenApply(v -> v != null
             ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
@@ -107,7 +107,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> put(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        return proxy.put(name, keyCache.getUnchecked(key), serializer.encode(value))
+        return database.put(name, keyCache.getUnchecked(key), serializer.encode(value))
                 .thenApply(v -> v != null
                 ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
@@ -115,19 +115,19 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return proxy.remove(name, keyCache.getUnchecked(key))
+        return database.remove(name, keyCache.getUnchecked(key))
                 .thenApply(v -> v != null
                 ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return proxy.clear(name);
+        return database.clear(name);
     }
 
     @Override
     public CompletableFuture<Set<K>> keySet() {
-        return proxy.keySet(name)
+        return database.keySet(name)
                 .thenApply(s -> s
                 .stream()
                 .map(this::dK)
@@ -136,7 +136,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
 
     @Override
     public CompletableFuture<Collection<Versioned<V>>> values() {
-        return proxy.values(name).thenApply(c -> c
+        return database.values(name).thenApply(c -> c
             .stream()
             .map(v -> new Versioned<V>(serializer.decode(v.value()), v.version(), v.creationTime()))
             .collect(Collectors.toList()));
@@ -144,7 +144,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
 
     @Override
     public CompletableFuture<Set<Entry<K, Versioned<V>>>> entrySet() {
-        return proxy.entrySet(name).thenApply(s -> s
+        return database.entrySet(name).thenApply(s -> s
                 .stream()
                 .map(this::fromRawEntry)
                 .collect(Collectors.toSet()));
@@ -154,7 +154,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        return proxy.putIfAbsent(
+        return database.putIfAbsent(
                 name, keyCache.getUnchecked(key), serializer.encode(value)).thenApply(v ->
                 v != null ?
                 new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
@@ -164,13 +164,13 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Boolean> remove(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        return proxy.remove(name, keyCache.getUnchecked(key), serializer.encode(value));
+        return database.remove(name, keyCache.getUnchecked(key), serializer.encode(value));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long version) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return proxy.remove(name, keyCache.getUnchecked(key), version);
+        return database.remove(name, keyCache.getUnchecked(key), version);
 
     }
 
@@ -179,14 +179,14 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
         byte[] existing = oldValue != null ? serializer.encode(oldValue) : null;
-        return proxy.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue));
+        return database.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
-        return proxy.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue));
+        return database.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue));
     }
 
     private Map.Entry<K, Versioned<V>> fromRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
