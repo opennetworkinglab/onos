@@ -5,7 +5,7 @@
 
 # TODO: figure out a more elegant way of ignoring disconnected projects
 projects=$(find $ONOS_ROOT -name '*.java' \
-    -not -path '.git/*' -and -not -path '*/archetypes/*' -and -not -path '*/foo/*' -and -not -path '*/grouphandler/*' \
+    -not -path '.git/*' -and -not -path '*/archetypes/*' -and -not -path '*/grouphandler/*' -and -not -path '*/maven-plugin/*' \
     -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
     sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
     sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
