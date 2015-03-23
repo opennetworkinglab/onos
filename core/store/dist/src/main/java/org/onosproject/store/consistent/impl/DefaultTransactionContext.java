@@ -63,7 +63,7 @@ public class DefaultTransactionContext implements TransactionContext {
         checkNotNull(serializer, "serializer is null");
         checkState(isOpen, TX_NOT_OPEN_ERROR);
         if (!txMaps.containsKey(mapName)) {
-            ConsistentMap<K, V> backingMap = new ConsistentMapImpl<>(mapName, databaseProxy, serializer);
+            ConsistentMap<K, V> backingMap = new DefaultConsistentMap<>(mapName, databaseProxy, serializer);
             DefaultTransactionalMap<K, V> txMap = new DefaultTransactionalMap<>(mapName, backingMap, this, serializer);
             txMaps.put(mapName, txMap);
         }

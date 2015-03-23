@@ -32,6 +32,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.store.cluster.impl.NodeInfo;
+import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
@@ -168,7 +169,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public <K, V> ConsistentMap<K , V> createConsistentMap(String name, Serializer serializer) {
-        return new ConsistentMapImpl<K, V>(name, partitionedDatabase, serializer);
+        return new DefaultConsistentMap<K, V>(name, partitionedDatabase, serializer);
+    }
+
+    @Override
+    public <K, V> AsyncConsistentMap<K , V> createAsyncConsistentMap(String name, Serializer serializer) {
+        return new DefaultAsyncConsistentMap<K, V>(name, partitionedDatabase, serializer);
     }
 
     @Override

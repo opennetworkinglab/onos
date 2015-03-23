@@ -30,14 +30,23 @@ public interface StorageService {
 
     /**
      * Creates a ConsistentMap.
-     *
      * @param name map name
-     * @param serializer serializer to use for serializing keys and values.
+     * @param serializer serializer to use for serializing keys and values
      * @return consistent map.
      * @param <K> key type
      * @param <V> value type
      */
     <K, V> ConsistentMap<K , V> createConsistentMap(String name, Serializer serializer);
+
+    /**
+     * Creates a AsyncConsistentMap.
+     * @param name map name
+     * @param serializer serializer to use for serializing keys and values
+     * @return async consistent map
+     * @param <K> key type
+     * @param <V> value type
+     */
+    <K, V> AsyncConsistentMap<K , V> createAsyncConsistentMap(String name, Serializer serializer);
 
     /**
      * Creates a new transaction context.
