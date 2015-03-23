@@ -32,9 +32,33 @@
     // internal state
     var tooltip, currElemId;
 
+    // === Helper functions ---------------------------------------------
+
     function init() {
         tooltip = d3.select('#tooltip');
         tooltip.html('');
+    }
+
+    function tipStyle(mouseX, mouseY) {
+        var winWidth = fs.windowSize().width,
+            winHeight = fs.windowSize().height,
+            style = {
+                display: 'inline-block'
+            };
+
+        if (mouseX <= (winWidth / 2)) {
+            style.left = mouseX + 'px';
+        } else {
+            style.right = (winWidth - mouseX) + 'px';
+        }
+
+        if (mouseY <= (winHeight / 2)) {
+            style.top = (mouseY + (hoverHeight - 10)) + 'px';
+        } else {
+            style.top = (mouseY - hoverHeight) + 'px';
+        }
+
+        return style;
     }
 
     // === API functions ------------------------------------------------
@@ -45,7 +69,8 @@
         }
         var elem = d3.select(el),
             mouseX = d3.event.pageX,
-            mouseY = d3.event.pageY;
+            mouseY = d3.event.pageY,
+            style = tipStyle(mouseX, mouseY);
         currElemId = elem.attr('id');
 
         tooltip.transition()
@@ -54,11 +79,7 @@
                 d3.select(this).style('display', 'none');
             })
             .each('end', function () {
-                d3.select(this).style({
-                    display: 'inline-block',
-                    left: mouseX + 'px',
-                    top: (mouseY - hoverHeight) + 'px'
-                })
+                d3.select(this).style(style)
                     .text(msg);
             });
     }
