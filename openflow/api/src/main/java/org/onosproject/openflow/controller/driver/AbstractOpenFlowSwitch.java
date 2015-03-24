@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
@@ -49,6 +50,8 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String SHUTDOWN_MSG = "Worker has already been shutdown";
 
     protected Channel channel;
     protected String channelId;
@@ -97,14 +100,26 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     @Override
     public final void sendMsg(OFMessage m) {
         if (role == RoleState.MASTER) {
-            this.write(m);
+            try {
+                this.write(m);
+            } catch (RejectedExecutionException e) {
+                if (!e.getMessage().contains(SHUTDOWN_MSG)) {
+                    throw e;
+                }
+            }
         }
     }
 
     @Override
     public final void sendMsg(List<OFMessage> msgs) {
         if (role == RoleState.MASTER) {
-            this.write(msgs);
+            try {
+                this.write(msgs);
+            } catch (RejectedExecutionException e) {
+                if (!e.getMessage().contains(SHUTDOWN_MSG)) {
+                    throw e;
+                }
+            }
         }
     }
 
@@ -296,7 +311,6 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
             }
         }  else {
             log.warn("Failed to set role for {}", this.getStringId());
-            return;
         }
     }
 
