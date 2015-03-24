@@ -577,8 +577,8 @@ public class FlowRuleManagerTest {
         }
 
         @Override
-        public Boolean clearedDeferred() {
-            return null;
+        public boolean clearedDeferred() {
+            return false;
         }
 
         @Override

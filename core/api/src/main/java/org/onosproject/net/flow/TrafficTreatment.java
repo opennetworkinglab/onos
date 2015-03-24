@@ -64,7 +64,7 @@ public interface TrafficTreatment {
      * by the device.
      * @return a boolean
      */
-    Boolean clearedDeferred();
+    boolean clearedDeferred();
 
     /**
      * Builder of traffic treatment entities.

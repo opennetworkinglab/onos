@@ -54,7 +54,6 @@ import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -94,17 +93,17 @@ public class IntentTestsMocks {
     public static class MockTreatment implements TrafficTreatment {
         @Override
         public List<Instruction> deferred() {
-            return null;
+            return Collections.emptyList();
         }
 
         @Override
         public List<Instruction> immediate() {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         @Override
         public List<Instruction> allInstructions() {
-            return null;
+            return Collections.emptyList();
         }
 
         @Override
@@ -113,8 +112,8 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public Boolean clearedDeferred() {
-            return null;
+        public boolean clearedDeferred() {
+            return false;
         }
     }
 
