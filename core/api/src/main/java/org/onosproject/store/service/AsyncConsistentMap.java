@@ -17,8 +17,8 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -107,6 +107,7 @@ public interface AsyncConsistentMap<K, V> {
     /**
      * Removes all of the mappings from this map (optional operation).
      * The map will be empty after this call returns.
+     * @return future that will be successfully completed when the map is cleared
      */
     CompletableFuture<Void> clear();
 
