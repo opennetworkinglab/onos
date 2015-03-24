@@ -15,12 +15,6 @@
  */
 package org.onosproject.provider.host.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Dictionary;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,8 +24,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPacket;
 import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
@@ -68,6 +62,12 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.util.Dictionary;
+import java.util.Set;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -236,14 +236,19 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             if (context == null) {
                 return;
             }
-            Ethernet eth = context.inPacket().parsed();
 
+            Ethernet eth = context.inPacket().parsed();
             if (eth == null) {
                 return;
             }
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
             ConnectPoint heardOn = context.inPacket().receivedFrom();
+
+            // If this arrived on control port, bail out.
+            if (heardOn.port().isLogical()) {
+                return;
+            }
 
             // If this is not an edge port, bail out.
             Topology topology = topologyService.currentTopology();
