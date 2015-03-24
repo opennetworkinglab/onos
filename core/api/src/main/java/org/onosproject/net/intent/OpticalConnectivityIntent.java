@@ -15,10 +15,12 @@
  */
 package org.onosproject.net.intent;
 
+import java.util.Collections;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 
-import java.util.Collections;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An optical layer intent for connectivity from one transponder port to another
@@ -33,32 +35,90 @@ public final class OpticalConnectivityIntent extends Intent {
      * connection points.
      *
      * @param appId application identification
-     * @param src the source transponder port
-     * @param dst the destination transponder port
-     */
-    public OpticalConnectivityIntent(ApplicationId appId,
-                                     ConnectPoint src, ConnectPoint dst) {
-
-        this(appId, null, src, dst);
-    }
-
-    /**
-     * Creates an optical connectivity intent between the specified
-     * connection points.
-     *
-     * @param appId application identification
      * @param key intent key
      * @param src the source transponder port
      * @param dst the destination transponder port
      */
-    public OpticalConnectivityIntent(ApplicationId appId,
+    protected OpticalConnectivityIntent(ApplicationId appId,
                                      Key key,
-                                     ConnectPoint src, ConnectPoint dst) {
-        super(appId, key, Collections.emptyList(), DEFAULT_INTENT_PRIORITY);
-        this.src = src;
-        this.dst = dst;
+                                     ConnectPoint src,
+                                     ConnectPoint dst,
+                                     int priority) {
+        super(appId, key, Collections.emptyList(), priority);
+        this.src = checkNotNull(src);
+        this.dst = checkNotNull(dst);
     }
 
+    /**
+     * Returns a new optical connectivity intent builder.
+     *
+     * @return host to host intent builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+
+    /**
+     * Builder for optical connectivity intents.
+     */
+    public static class Builder extends Intent.Builder {
+        private ConnectPoint src;
+        private ConnectPoint dst;
+
+        @Override
+        public Builder appId(ApplicationId appId) {
+            return (Builder) super.appId(appId);
+        }
+
+        @Override
+        public Builder key(Key key) {
+            return (Builder) super.key(key);
+        }
+
+        @Override
+        public Builder priority(int priority) {
+            return (Builder) super.priority(priority);
+        }
+
+        /**
+         * Sets the source for the intent that will be built.
+         *
+         * @param src source to use for built intent
+         * @return this builder
+         */
+        public Builder src(ConnectPoint src) {
+            this.src = src;
+            return this;
+        }
+
+        /**
+         * Sets the destination for the intent that will be built.
+         *
+         * @param dst dest to use for built intent
+         * @return this builder
+         */
+        public Builder dst(ConnectPoint dst) {
+            this.dst = dst;
+            return this;
+        }
+
+        /**
+         * Builds an optical connectivity intent from the accumulated parameters.
+         *
+         * @return point to point intent
+         */
+        public OpticalConnectivityIntent build() {
+
+            return new OpticalConnectivityIntent(
+                    appId,
+                    key,
+                    src,
+                    dst,
+                    priority
+            );
+        }
+    }
 
     /**
      * Constructor for serializer.

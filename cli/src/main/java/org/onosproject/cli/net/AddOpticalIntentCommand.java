@@ -56,7 +56,12 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
         PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
         ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
 
-        Intent intent = new OpticalConnectivityIntent(appId(), key(), ingress, egress);
+        Intent intent = OpticalConnectivityIntent.builder()
+                .appId(appId())
+                .key(key())
+                .src(ingress)
+                .dst(egress)
+                .build();
         service.submit(intent);
         print("Optical intent submitted:\n%s", intent.toString());
     }

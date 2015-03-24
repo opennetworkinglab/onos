@@ -286,12 +286,16 @@ public class OpticalPathProvisioner {
                         break;
                     }
 
-                    Intent opticalIntent = new OpticalConnectivityIntent(appId,
-                                                                         srcWdmPoint,
-                                                                         dstWdmPoint);
-                    Intent opticalIntent2 = new OpticalConnectivityIntent(appId,
-                                                                         dstWdmPoint,
-                                                                         srcWdmPoint);
+                    Intent opticalIntent = OpticalConnectivityIntent.builder()
+                            .appId(appId)
+                            .src(srcWdmPoint)
+                            .dst(dstWdmPoint)
+                            .build();
+                    Intent opticalIntent2 = OpticalConnectivityIntent.builder()
+                            .appId(appId)
+                            .src(dstWdmPoint)
+                            .dst(srcWdmPoint)
+                            .build();
                     log.info("Creating optical intent from {} to {}", srcWdmPoint, dstWdmPoint);
                     log.info("Creating optical intent from {} to {}", dstWdmPoint, srcWdmPoint);
                     connectionList.add(opticalIntent);

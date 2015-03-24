@@ -57,10 +57,11 @@ public class OpticalPathIntentInstallerTest extends IntentInstallerTest {
                 new IntentInstallerTest.MockIntentManager(OpticalPathIntent.class);
         installer.resourceService = new IntentTestsMocks.MockResourceService();
 
-        intent = new OpticalPathIntent(APP_ID,
-                d1p1,
-                d3p1,
-                new DefaultPath(PID, links, hops));
+        intent = OpticalPathIntent.builder().appId(APP_ID)
+                .src(d1p1)
+                .dst(d3p1)
+                .path(new DefaultPath(PID, links, hops))
+                .build();
     }
 
     /**

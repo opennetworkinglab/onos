@@ -15,7 +15,9 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -36,8 +38,7 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
 
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.ImmutableList;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
@@ -67,10 +68,12 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                                 Set<LinkResourceAllocations> resources) {
         // TODO: compute multiple paths using the K-shortest path algorithm
         Path path = calculateOpticalPath(intent.getSrc(), intent.getDst());
-        Intent newIntent = new OpticalPathIntent(intent.appId(),
-                                                 intent.getSrc(),
-                                                 intent.getDst(),
-                                                 path);
+        Intent newIntent = OpticalPathIntent.builder()
+                .appId(intent.appId())
+                .src(intent.getSrc())
+                .dst(intent.getDst())
+                .path(path)
+                .build();
         return ImmutableList.of(newIntent);
     }
 
