@@ -271,6 +271,13 @@ public class GossipApplicationStore extends ApplicationArchive
             implements EventuallyConsistentMapListener<Application, InternalState> {
         @Override
         public void event(EventuallyConsistentMapEvent<Application, InternalState> event) {
+            // If we do not have a delegate, refuse to process any events entirely.
+            // This is to allow the anti-entropy to kick in and process the events
+            // perhaps a bit later, but with opportunity to notify delegate.
+            if (delegate == null) {
+                return;
+            }
+
             Application app = event.key();
             InternalState state = event.value();
 
