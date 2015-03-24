@@ -82,7 +82,8 @@ public class NullLinkProvider extends AbstractProvider implements LinkProvider {
     private final Logger log = getLogger(getClass());
 
     // default topology file location and name.
-    private static final String CFG_PATH = "/opt/onos/apache-karaf-3.0.2/etc/linkGraph.cfg";
+    private static final String CFG_PATH = "etc/linkGraph.cfg";
+
     // default number of workers. Eventually make this tunable
     private static final int THREADS = (int) Math.max(1, Runtime.getRuntime().availableProcessors() * 0.8);
 

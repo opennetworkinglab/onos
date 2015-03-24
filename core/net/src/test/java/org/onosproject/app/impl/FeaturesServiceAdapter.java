@@ -67,6 +67,16 @@ public class FeaturesServiceAdapter implements org.apache.karaf.features.Feature
     }
 
     @Override
+    public Repository getRepository(URI uri) {
+        return null;
+    }
+
+    @Override
+    public String getRepositoryName(URI uri) {
+        return null;
+    }
+
+    @Override
     public void installFeature(String name) throws Exception {
 
     }
@@ -129,6 +139,16 @@ public class FeaturesServiceAdapter implements org.apache.karaf.features.Feature
     @Override
     public boolean isInstalled(Feature f) {
         return false;
+    }
+
+    @Override
+    public Feature[] getFeatures(String name, String version) throws Exception {
+        return new Feature[0];
+    }
+
+    @Override
+    public Feature[] getFeatures(String name) throws Exception {
+        return new Feature[0];
     }
 
     @Override

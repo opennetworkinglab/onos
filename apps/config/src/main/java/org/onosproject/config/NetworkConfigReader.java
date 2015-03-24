@@ -53,7 +53,7 @@ public class NetworkConfigReader implements NetworkConfigService {
 
     private final Logger log = getLogger(getClass());
 
-    // Current working dir seems to be /opt/onos/apache-karaf-3.0.2
+    // Current working is /opt/onos/apache-karaf-*
     // TODO: Set the path to /opt/onos/config
     private static final String CONFIG_DIR = "../config";
     private static final String DEFAULT_CONFIG_FILE = "addresses.json";

@@ -1,0 +1,90 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Downloads and sets-up Apache Karaf as a basis for running ONOS locally
+# as a single-instance.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+# TODO: consider putting this under ~/Applications/onos/apache-karaf-...
+export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
+export STAGE=$(dirname $KARAF_ROOT)
+
+# Clean the previous Karaf directory if requested and if it exists.
+if [ "$1" = "clean" ]; then
+    shift
+    [ -d $KARAF_ROOT ] && rm -fr $KARAF_ROOT $STAGE/apps $STAGE/config
+fi
+
+if [ -z $1 ]; then
+    echo "usage: $(basename $0) [clean] <ip-address>"
+    echo "Available IP addresses are:"
+    ifconfig | grep 'inet ' | cut -d\  -f2 | grep -v "127.0.0.1"
+    exit 1
+fi
+
+IP="$1"
+SUBNET="$(echo $IP | cut -d. -f1-3)"
+
+# Bail on any errors
+set -e
+
+# Check if Apache Karaf is already installed.
+if [ ! -d $KARAF_ROOT ]; then
+    # Check if Apache Karaf bits are available and if not, fetch them.
+    if [ ! -f $KARAF_TAR ]; then
+        echo "Downloading $KARAF_TAR..."
+        curl -sL http://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz > $KARAF_TAR
+    fi
+    [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && \
+        echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
+
+    echo "Unpacking $KARAF_TAR to $STAGE..."
+    mkdir -p $STAGE
+    cd $STAGE
+    tar zxf $KARAF_TAR
+    rm -rf $KARAF_ROOT/demos
+fi
+
+if ! grep -q "/onos-features/" $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
+    # Patch the Apache Karaf distribution file to add ONOS features repository
+    echo "Adding ONOS feature repository..."
+    perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
+        $KARAF_ROOT/etc/org.apache.karaf.features.cfg
+fi
+
+if ! grep -q ",onos-api," $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
+    # Patch the Apache Karaf distribution file to load default ONOS boot features
+    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui"
+    echo "Adding ONOS boot features $BOOT_FEATURES..."
+    perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
+        $KARAF_ROOT/etc/org.apache.karaf.features.cfg
+fi
+
+if [ ! -f $KARAF_ROOT/lib/onos-branding-$ONOS_POM_VERSION.jar ]; then
+    # Patch the Apache Karaf distribution with ONOS branding bundle
+    echo "Branding as ONOS..."
+    rm -f $KARAF_ROOT/lib/onos-branding-*.jar
+    cp $M2_REPO/org/onosproject/onos-branding/$ONOS_POM_VERSION/onos-branding-$ONOS_POM_VERSION.jar \
+        $KARAF_ROOT/lib
+fi
+
+if [ ! -d $STAGE/apps -o ! -d $STAGE/config ]; then
+    echo "Creating local cluster configs for IP $IP..."
+    mkdir -p $STAGE/apps $STAGE/config
+    cat > $STAGE/config/cluster.json <<EOF
+    { "ipPrefix": "$SUBNET.*",
+      "nodes":[ { "id": "$IP", "ip": "$IP", "tcpPort": 9876 }]}
+EOF
+
+    cat > $STAGE/config/tablets.json <<EOF
+    { "nodes": [ { "ip": "$IP", "id": "$IP", "tcpPort": 7238 }],
+      "partitions": { "p1": [ { "ip": "$IP", "id": "$IP", "tcpPort": 7238 }]}}
+EOF
+fi
+
+echo "Setting up hazelcast.xml for subnet $SUBNET..."
+cp $ONOS_ROOT/tools/package/etc/hazelcast.xml $KARAF_ROOT/etc/hazelcast.xml
+perl -pi.old -e "s/192.168.56/$SUBNET/" $KARAF_ROOT/etc/hazelcast.xml
+perl -pi.old -e "s/        <name>onos</        <name>$IP</" $KARAF_ROOT/etc/hazelcast.xml

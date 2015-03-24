@@ -36,7 +36,7 @@ class ONOS( Controller ):
         #self.checkListening()
 
         self.onosDir = onosDir
-        self.karafDir = onosDir + 'apache-karaf-3.0.2/'
+        self.karafDir = onosDir + 'apache-karaf-3.0.3/'
         self.instanceDir = self.karafDir
 
         # add default modules
