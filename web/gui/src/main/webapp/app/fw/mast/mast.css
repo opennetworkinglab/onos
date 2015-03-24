@@ -33,11 +33,24 @@
     box-shadow: 0 2px 8px #222;
 }
 
+#mast .nav-menu-button {
+    width: 30px;
+    height: 30px;
+    margin-left: 8px;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+.light #mast .nav-menu-button:hover {
+    background-color: #ddd;
+}
+.dark #mast .nav-menu-button:hover {
+    background-color: #777;
+}
+
 #mast img.logo {
     height: 38px;
     padding-left: 8px;
     padding-right: 8px;
-    cursor: pointer;
 }
 
 #mast img.logo:hover {
