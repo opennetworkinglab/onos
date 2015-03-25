@@ -169,8 +169,9 @@
         }
 
         function addRow() {
-            if (currentRow.select('div').empty()) { return null; }
-            else {
+            if (currentRow.select('div').empty()) {
+                return null;
+            } else {
                 panel.append('br');
                 currentRow = panel.append('div').classed('tbar-row', true);
             }

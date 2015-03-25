@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 19,
+    var numBaseGlyphs = 22,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -41,6 +41,9 @@ describe('factory: fw/svg/glyph.js', function() {
             details: longPrefix + 'M16.9',
             ports: 'M98,9.2H79.6c',
             map: 'M95.8,9.2H14.2c-2.8,0-5,2.2-5,5v66',
+            resetZoom: 'M86.4,81',
+            nextIntent: 'M88.1,55.7',
+            prevIntent: 'M22.5,55.6',
 
             uiAttached: 'M2,2.5a.5,.5',
             checkMark: 'M2.6,4.5c0',
@@ -163,6 +166,18 @@ describe('factory: fw/svg/glyph.js', function() {
     it('should load the map glyph', function () {
         gs.init();
         verifyGlyphLoadedInCache('map', vbGlyph);
+    });
+    it('should load the resetZoom glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('resetZoom', vbGlyph);
+    });
+    it('should load the nextIntent glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('nextIntent', vbGlyph);
+    });
+    it('should load the prevIntent glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('prevIntent', vbGlyph);
     });
     it('should load the uiAttached glyph', function() {
         gs.init();
