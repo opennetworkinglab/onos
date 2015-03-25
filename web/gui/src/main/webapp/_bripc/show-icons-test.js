@@ -29,6 +29,7 @@
     // svgClass is the class name for your glyph
     function createGlyph(div, size, id, rer, svgClass) {
         var dim = size || 20,
+            texty = 30,
             gid = id || 'unknown',
             rx = rer || 4,
             svgCls = svgClass || 'embeddedGlyph',
@@ -37,7 +38,7 @@
         svg = div.append('svg').attr({
             'class': svgCls,
             width: dim,
-            height: dim,
+            height: dim + texty,
             viewBox: '0 0 ' + dim + ' ' + dim
         });
 
@@ -58,7 +59,16 @@
             'xlink:href': '#' + gid
         });
 
-}
+        g.append('text')
+            .attr({
+                'text-anchor': 'left',
+                y: '1em',
+                x: 0,
+                transform: 'translate(0, ' + dim + ')scale(0.8)'
+            })
+            .style('fill', '#800')
+            .text(id);
+    }
 
     angular.module('showIconsTest', ['onosSvg'])
 
@@ -72,7 +82,7 @@
 
                 // show device online and offline icons
                 icns.loadEmbeddedIcon(div, 'deviceOnline', 50);
-                div.append('br');
+                div.append('span').style('padding-left', '15px');
                 icns.loadEmbeddedIcon(div, 'deviceOffline', 50);
 
                 var defs = d3.select('defs');
@@ -85,9 +95,10 @@
                 list.forEach(function (id) {
                     createGlyph(gDiv, 50, id);
                     ctr += 1;
-                    if(ctr/3 > 1) {
-                        ctr = 0;
-                        gDiv.append('p');
+                    if (ctr%6 > 0) {
+                        gDiv.append('span').style('padding-left', '15px');
+                    } else {
+                        gDiv.append('br');
                     }
                 });
 
