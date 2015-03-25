@@ -37,6 +37,15 @@
 }
 
 
+.toolbar {
+    line-height: 125%;
+}
+.tbar-row {
+    display: inline-block;
+}
+
+
+
 .separator {
     border: 1px solid;
     margin: 0 4px 0 4px;

@@ -141,13 +141,40 @@ describe('factory: fw/widget/toolbar.js', function () {
 
     it('should create a separator div', function () {
         spyOn($log, 'warn');
-        var toolbar = tbs.createToolbar('foo');
-        var tbar = d3.select('#toolbar-foo');
+        var toolbar = tbs.createToolbar('foo'),
+            tbar = d3.select('#toolbar-foo');
 
         toolbar.addSeparator();
         expect($log.warn).not.toHaveBeenCalled();
 
         expect(tbar.select('.separator').size()).toBe(1);
+    });
+
+    it('should add another row of buttons', function () {
+        var toolbar = tbs.createToolbar('foo'),
+            tbar = d3.select('#toolbar-foo'),
+            rows;
+        toolbar.addButton('btn0', 'gid');
+        toolbar.addRow();
+        toolbar.addButton('btn1', 'gid');
+
+        rows = tbar.selectAll('.tbar-row');
+        expect(rows.size()).toBe(2);
+        rows.each(function (d, i) {
+            expect(d3.select(this)
+                .select('div')
+                .attr('id','toolbar-foo-btn' + i)
+                .empty())
+                .toBe(false);
+        });
+    });
+
+    it('should not add a row if current row is empty', function () {
+        var toolbar = tbs.createToolbar('foo');
+        expect(toolbar.addRow()).toBeNull();
+        toolbar.addButton('btn0', 'gid');
+        expect(toolbar.addRow()).not.toBeNull();
+        expect(toolbar.addRow()).toBeNull();
     });
 
 });

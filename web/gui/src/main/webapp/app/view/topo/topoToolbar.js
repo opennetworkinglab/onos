@@ -40,7 +40,21 @@
         H: { id: 'hosts-tog', gid: 'endstation', isel: false },
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
-        B: { id: 'bkgrnd-tog', gid: 'map', isel: true }
+        B: { id: 'bkgrnd-tog', gid: 'map', isel: true },
+
+        //X: { id: 'nodelock-tog', gid: 'lock', isel: false },
+        Z: { id: 'oblique-tog', gid: 'oblique', isel: false },
+        L: { id: 'cycleLabels-btn', gid: 'cycleLabels' },
+        R: { id: 'resetZoom-btn', gid: 'resetZoom' },
+
+        V: { id: 'allIntents-btn', gid: 'allIntents' },
+        leftArrow: { id: 'prevIntent-btn', gid: 'prevIntent' },
+        rightArrow: { id: 'nextIntent-btn', gid: 'nextIntent' },
+        W: { id: 'intentTraffic-btn', gid: 'intentTraffic' },
+        A: { id: 'allTraffic-btn', gid: 'allTraffic' },
+        F: { id: 'flows-btn', gid: 'flows' },
+
+        E: { id: 'eqMaster-btn', gid: 'eqMaster' }
     };
 
     function init(_api_) {
@@ -56,6 +70,10 @@
         });
     }
 
+    function addButton(key) {
+        var v = keyData.get(key);
+        v.btn = toolbar.addButton(v.id, v.gid, v.cb, v.tt);
+    }
     function addToggle(key) {
         var v = keyData.get(key);
         v.tog = toolbar.addToggle(v.id, v.gid, v.isel, v.cb, v.tt);
@@ -72,11 +90,30 @@
         addToggle('P');
         addToggle('B');
     }
+    function addSecondRow() {
+        addToggle('Z');
+        addButton('L');
+        addButton('R');
+    }
+    function addThirdRow() {
+        addButton('V');
+        addButton('leftArrow');
+        addButton('rightArrow');
+        addButton('W');
+        addButton('A');
+        addButton('F');
+        toolbar.addSeparator();
+        addButton('E');
+    }
 
     function createToolbar() {
         initKeyData();
         toolbar = tbs.createToolbar(name);
         addFirstRow();
+        toolbar.addRow();
+        addSecondRow();
+        toolbar.addRow();
+        addThirdRow();
         toolbar.show();
     }
 

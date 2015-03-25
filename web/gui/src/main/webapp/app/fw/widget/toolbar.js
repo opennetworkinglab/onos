@@ -75,6 +75,10 @@
         return null;
     }
 
+    function noPxWidth(elem) {
+        return Number(elem.style('width').replace(/px$/, ''));
+    }
+
 
     // ==================================
 
@@ -87,8 +91,9 @@
             tbid = 'toolbar-' + id,
             panel = ps.createPanel(tbid, settings),
             arrowDiv = createArrow(panel),
-            tbWidth = arrowSize + 2;    // empty toolbar width
-
+            currentRow = panel.append('div').classed('tbar-row', true),
+            tbWidth = arrowSize + 2,    // empty toolbar width
+            maxWidth = panel.width();
 
         arrowDiv.on('click', toggle);
 
@@ -103,6 +108,7 @@
         panel.classed('toolbar', true)
             .style('top', settings.top);
 
+        // Helper functions
 
         function dupId(id, caller) {
             if (items[id]) {
@@ -112,17 +118,25 @@
             return false;
         }
 
+        function adjustWidth(btnWidth) {
+            if (noPxWidth(currentRow) >= maxWidth) {
+                tbWidth += btnWidth;
+                maxWidth = tbWidth;
+            }
+            panel.width(tbWidth);
+        }
+
         // API functions
 
         function addButton(id, gid, cb, tooltip) {
             if (dupId(id, 'addButton')) return null;
 
             var bid = tbid + '-' + id,
-                btn = bns.button(panel, bid, gid, cb, tooltip);
+                btn = bns.button(currentRow, bid, gid, cb, tooltip);
 
             items[id] = btn;
-            tbWidth += btn.width();
-            panel.width(tbWidth);
+            $log.debug('adding button');
+            adjustWidth(btn.width());
             return btn;
         }
 
@@ -130,11 +144,10 @@
             if (dupId(id, 'addToggle')) return null;
 
             var tid = tbid + '-' + id,
-                tog = bns.toggle(panel, tid, gid, initState, cb, tooltip);
+                tog = bns.toggle(currentRow, tid, gid, initState, cb, tooltip);
 
             items[id] = tog;
-            tbWidth += tog.width();
-            panel.width(tbWidth);
+            adjustWidth(tog.width());
             return tog;
         }
 
@@ -142,23 +155,33 @@
             if (dupId(id, 'addRadioSet')) return null;
 
             var rid = tbid + '-' + id,
-                rad = bns.radioSet(panel, rid, rset);
+                rad = bns.radioSet(currentRow, rid, rset);
 
             items[id] = rad;
-            tbWidth += rad.width();
-            panel.width(tbWidth);
+            adjustWidth(rad.width());
             return rad;
         }
 
         function addSeparator() {
-            panel.append('div')
+            currentRow.append('div')
                 .classed('separator', true);
             tbWidth += sepWidth;
+        }
+
+        function addRow() {
+            if (currentRow.select('div').empty()) { return null; }
+            else {
+                panel.append('br');
+                currentRow = panel.append('div').classed('tbar-row', true);
+            }
         }
 
         function show(cb) {
             rotateArrowLeft(arrowDiv);
             panel.show(cb);
+            $log.debug('tbar width', tbWidth);
+            $log.debug('maxwidth', maxWidth);
+            $log.debug('panel width', panel.width());
         }
 
         function hide(cb) {
@@ -179,6 +202,7 @@
             addToggle: addToggle,
             addRadioSet: addRadioSet,
             addSeparator: addSeparator,
+            addRow: addRow,
 
             show: show,
             hide: hide,
