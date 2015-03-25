@@ -65,8 +65,8 @@
         keyData = d3.map(k2b);
         keyData.forEach(function(key, value) {
             var data = api.getActionEntry(key);
-            value.cb = data[0];     // on-click callback
-            value.tt = data[1];     // tooltip
+            value.cb = data[0];                     // on-click callback
+            value.tt = data[1] + ' (' + key + ')';  // tooltip
         });
     }
 
@@ -135,6 +135,10 @@
         }
     }
 
+    function toggleToolbar() {
+        toolbar.toggle();
+    }
+
     angular.module('ovTopo')
         .factory('TopoToolbarService', ['$log', 'ToolbarService',
 
@@ -146,7 +150,8 @@
                 init: init,
                 createToolbar: createToolbar,
                 destroyToolbar: destroyToolbar,
-                keyListener: keyListener
+                keyListener: keyListener,
+                toggleToolbar: toggleToolbar
             };
         }]);
 }());

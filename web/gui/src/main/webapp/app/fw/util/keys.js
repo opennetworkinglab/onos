@@ -53,7 +53,9 @@
             case 91: return 'cmdLeft';
             case 93: return 'cmdRight';
             case 187: return 'equals';
+            case 188: return 'comma';
             case 189: return 'dash';
+            case 190: return 'dot';
             case 191: return 'slash';
             case 192: return 'backQuote';
             case 220: return 'backSlash';

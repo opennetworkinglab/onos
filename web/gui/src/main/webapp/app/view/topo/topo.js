@@ -57,6 +57,7 @@
             L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
             U: [tfs.unpin, 'Unpin node (hover mouse over)'],
             R: [resetZoom, 'Reset pan / zoom'],
+            dot: [ttbs.toggleToolbar, 'Toggle Toolbar'],
 
             V: [tts.showRelatedIntentsAction, 'Show all related intents'],
             rightArrow: [tts.showNextIntentAction, 'Show next related intent'],
@@ -73,7 +74,7 @@
 
             _helpFormat: [
                 ['I', 'O', 'D', '-', 'H', 'M', 'P', 'B' ],
-                ['X', 'Z', 'L', 'U', 'R' ],
+                ['X', 'Z', 'L', 'U', 'R', '-', 'dot'],
                 ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
             ]
         };

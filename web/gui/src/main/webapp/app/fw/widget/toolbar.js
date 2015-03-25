@@ -135,7 +135,6 @@
                 btn = bns.button(currentRow, bid, gid, cb, tooltip);
 
             items[id] = btn;
-            $log.debug('adding button');
             adjustWidth(btn.width());
             return btn;
         }
@@ -180,9 +179,6 @@
         function show(cb) {
             rotateArrowLeft(arrowDiv);
             panel.show(cb);
-            $log.debug('tbar width', tbWidth);
-            $log.debug('maxwidth', maxWidth);
-            $log.debug('panel width', panel.width());
         }
 
         function hide(cb) {
