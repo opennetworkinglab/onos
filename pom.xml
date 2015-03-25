@@ -82,6 +82,14 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <!--- Needed for copycat. Remove before official release -->
+    <repositories>
+        <repository>
+            <id>snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
