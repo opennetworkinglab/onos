@@ -61,6 +61,8 @@ public class ApplicationCommand extends AbstractShellCommand {
                 service.activate(appId);
             } else if (command.equals(DEACTIVATE)) {
                 service.deactivate(appId);
+            } else {
+                print("Unsupported command: %s", command);
             }
         }
     }
