@@ -15,6 +15,6 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.election" origin="ON.Lab" version="1.2.0"
-        features="onos-app-metrics">
+        features="onos-app-election">
     <description>ONOS master election test application</description>
 </app>

@@ -15,6 +15,6 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.metrics" origin="ON.Lab" version="1.2.0"
-        features="onos-app-config">
+        features="onos-app-metrics">
     <description>ONOS performance metrics collection</description>
 </app>
