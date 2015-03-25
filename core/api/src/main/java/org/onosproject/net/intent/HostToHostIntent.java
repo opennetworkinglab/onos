@@ -15,15 +15,14 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collections;
-import java.util.List;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -147,7 +146,7 @@ public final class HostToHostIntent extends ConnectivityIntent {
                             TrafficTreatment treatment,
                             List<Constraint> constraints,
                             int priority) {
-        super(appId, key, Collections.emptyList(), selector, treatment,
+        super(appId, key, ImmutableSet.of(one, two), selector, treatment,
               constraints, priority);
 
         // TODO: consider whether the case one and two are same is allowed

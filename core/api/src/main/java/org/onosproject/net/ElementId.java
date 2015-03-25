@@ -18,5 +18,5 @@ package org.onosproject.net;
 /**
  * Immutable representation of a network element identity.
  */
-public abstract class ElementId {
+public abstract class ElementId implements NetworkResource {
 }

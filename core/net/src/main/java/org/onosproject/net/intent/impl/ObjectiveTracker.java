@@ -26,9 +26,18 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.Event;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.link.LinkEvent;
@@ -41,6 +50,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -69,27 +79,40 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             //TODO this could be slow as a point of synchronization
             synchronizedSetMultimap(HashMultimap.<LinkKey, Key>create());
 
+    private final SetMultimap<ElementId, Key> intentsByDevice =
+            synchronizedSetMultimap(HashMultimap.<ElementId, Key>create());
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService resourceManager;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
     @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
     protected IntentService intentService;
 
     private ExecutorService executorService =
-            newSingleThreadExecutor(groupedThreads("onos/intent", "flowtracker"));
+            newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker"));
 
     private TopologyListener listener = new InternalTopologyListener();
     private LinkResourceListener linkResourceListener =
             new InternalLinkResourceListener();
+    private DeviceListener deviceListener = new InternalDeviceListener();
+    private HostListener hostListener = new InternalHostListener();
     private TopologyChangeDelegate delegate;
 
     @Activate
     public void activate() {
         topologyService.addListener(listener);
         resourceManager.addListener(linkResourceListener);
+        deviceService.addListener(deviceListener);
+        hostService.addListener(hostListener);
         log.info("Started");
     }
 
@@ -97,6 +120,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     public void deactivate() {
         topologyService.removeListener(listener);
         resourceManager.removeListener(linkResourceListener);
+        deviceService.removeListener(deviceListener);
+        hostService.removeListener(hostListener);
         log.info("Stopped");
     }
 
@@ -132,6 +157,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         for (NetworkResource resource : resources) {
             if (resource instanceof Link) {
                 intentsByLink.put(linkKey((Link) resource), intentKey);
+            } else if (resource instanceof ElementId) {
+                intentsByDevice.put((ElementId) resource, intentKey);
             }
         }
     }
@@ -142,6 +169,8 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         for (NetworkResource resource : resources) {
             if (resource instanceof Link) {
                 intentsByLink.remove(linkKey((Link) resource), intentKey);
+            } else if (resource instanceof ElementId) {
+                intentsByDevice.remove((ElementId) resource, intentKey);
             }
         }
     }
@@ -171,7 +200,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             }
 
             if (event.reasons() == null || event.reasons().isEmpty()) {
-                delegate.triggerCompile(new HashSet<Key>(), true);
+                delegate.triggerCompile(Collections.emptySet(), true);
 
             } else {
                 Set<Key> toBeRecompiled = new HashSet<>();
@@ -231,7 +260,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 return;
             }
 
-            delegate.triggerCompile(new HashSet<>(), true);
+            delegate.triggerCompile(Collections.emptySet(), true);
         }
     }
 
@@ -256,5 +285,61 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 }
             }
         });
+    }
+
+    /*
+     * Re-dispatcher of device and host events.
+     */
+    private class DeviceAvailabilityHandler implements Runnable {
+
+        private final ElementId id;
+        private final boolean available;
+
+        DeviceAvailabilityHandler(ElementId id, boolean available) {
+            this.id = checkNotNull(id);
+            this.available = available;
+        }
+
+        @Override
+        public void run() {
+            // If there is no delegate, why bother? Just bail.
+            if (delegate == null) {
+                return;
+            }
+
+            // TODO should we recompile on available==true?
+            delegate.triggerCompile(intentsByDevice.get(id), available);
+        }
+    }
+
+
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            DeviceEvent.Type type = event.type();
+            if (type == DeviceEvent.Type.PORT_ADDED ||
+                type == DeviceEvent.Type.PORT_UPDATED ||
+                type == DeviceEvent.Type.PORT_REMOVED) {
+                // skip port events for now
+                return;
+            }
+            DeviceId id = event.subject().id();
+            // TODO we need to check whether AVAILABILITY_CHANGED means up or down
+            boolean available = (type == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
+                                 type == DeviceEvent.Type.DEVICE_ADDED ||
+                                 type == DeviceEvent.Type.DEVICE_UPDATED);
+            executorService.execute(new DeviceAvailabilityHandler(id, available));
+
+        }
+    }
+
+    private class InternalHostListener implements HostListener {
+        @Override
+        public void event(HostEvent event) {
+            HostId id = event.subject().id();
+            HostEvent.Type type = event.type();
+            boolean available = (type == HostEvent.Type.HOST_ADDED);
+            executorService.execute(new DeviceAvailabilityHandler(id, available));
+        }
     }
 }

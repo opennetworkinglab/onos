@@ -29,8 +29,11 @@ import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
+import org.onosproject.net.Device;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
@@ -50,6 +53,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.device;
 import static org.onosproject.net.NetTestTools.link;
 
 /**
@@ -62,6 +66,7 @@ public class ObjectiveTrackerTest {
     private TestTopologyChangeDelegate delegate;
     private List<Event> reasons;
     private TopologyListener listener;
+    private DeviceListener deviceListener;
     private LinkResourceListener linkResourceListener;
     private IdGenerator mockGenerator;
 
@@ -78,6 +83,7 @@ public class ObjectiveTrackerTest {
         tracker.setDelegate(delegate);
         reasons = new LinkedList<>();
         listener = TestUtils.getField(tracker, "listener");
+        deviceListener = TestUtils.getField(tracker, "deviceListener");
         linkResourceListener = TestUtils.getField(tracker, "linkResourceListener");
         mockGenerator = new MockIdGenerator();
         Intent.bindIdGenerator(mockGenerator);
@@ -234,5 +240,87 @@ public class ObjectiveTrackerTest {
         assertThat(delegate.intentIdsFromEvent, hasSize(0));
         assertThat(delegate.compileAllFailedFromEvent, is(true));
     }
+
+    /**
+     * Tests an event for a host becoming available that matches an intent.
+     *
+     * @throws InterruptedException if the latch wait fails.
+     */
+
+    @Test
+    public void testEventHostAvailableMatch() throws Exception {
+        final Device host = device("host1");
+
+        final DeviceEvent deviceEvent =
+                new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, host);
+        reasons.add(deviceEvent);
+
+        final Key key = Key.of(0x333L, APP_ID);
+        Collection<NetworkResource> resources = ImmutableSet.of(host.id());
+        tracker.addTrackedResources(key, resources);
+
+        deviceListener.event(deviceEvent);
+        assertThat(
+                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
+                is(true));
+
+        assertThat(delegate.intentIdsFromEvent, hasSize(1));
+        assertThat(delegate.compileAllFailedFromEvent, is(true));
+        assertThat(delegate.intentIdsFromEvent.get(0).toString(),
+                equalTo("0x333"));
+    }
+
+    /**
+     * Tests an event for a host becoming unavailable that matches an intent.
+     *
+     * @throws InterruptedException if the latch wait fails.
+     */
+
+    @Test
+    public void testEventHostUnavailableMatch() throws Exception {
+        final Device host = device("host1");
+
+        final DeviceEvent deviceEvent =
+                new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, host);
+        reasons.add(deviceEvent);
+
+        final Key key = Key.of(0x333L, APP_ID);
+        Collection<NetworkResource> resources = ImmutableSet.of(host.id());
+        tracker.addTrackedResources(key, resources);
+
+        deviceListener.event(deviceEvent);
+        assertThat(
+                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
+                is(true));
+
+        assertThat(delegate.intentIdsFromEvent, hasSize(1));
+        assertThat(delegate.compileAllFailedFromEvent, is(false));
+        assertThat(delegate.intentIdsFromEvent.get(0).toString(),
+                equalTo("0x333"));
+    }
+
+    /**
+     * Tests an event for a host becoming available that matches an intent.
+     *
+     * @throws InterruptedException if the latch wait fails.
+     */
+
+    @Test
+    public void testEventHostAvailableNoMatch() throws Exception {
+        final Device host = device("host1");
+
+        final DeviceEvent deviceEvent =
+                new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, host);
+        reasons.add(deviceEvent);
+
+        deviceListener.event(deviceEvent);
+        assertThat(
+                delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
+                is(true));
+
+        assertThat(delegate.intentIdsFromEvent, hasSize(0));
+        assertThat(delegate.compileAllFailedFromEvent, is(true));
+    }
+
 
 }

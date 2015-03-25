@@ -337,8 +337,8 @@ public class IntentManager
 
         private void submitUpdates(List<FinalIntentProcessPhase> updates) {
             store.batchWrite(updates.stream()
-                                    .map(FinalIntentProcessPhase::data)
-                                    .collect(Collectors.toList()));
+                                     .map(FinalIntentProcessPhase::data)
+                                     .collect(Collectors.toList()));
         }
     }
 
@@ -377,7 +377,9 @@ public class IntentManager
             throw new IllegalStateException("installable intents must be FlowRuleIntent");
         }
 
-        installables.forEach(x -> trackerService.addTrackedResources(data.key(), x.resources()));
+        trackerService.addTrackedResources(data.key(), data.intent().resources());
+        installables.forEach(installable ->
+                 trackerService.addTrackedResources(data.key(), installable.resources()));
 
         List<Collection<FlowRule>> stages = installables.stream()
                 .map(x -> (FlowRuleIntent) x)
@@ -415,7 +417,10 @@ public class IntentManager
             throw new IllegalStateException("installable intents must be FlowRuleIntent");
         }
 
-        installables.forEach(x -> trackerService.removeTrackedResources(data.intent().key(), x.resources()));
+        trackerService.removeTrackedResources(data.key(), data.intent().resources());
+        installables.forEach(installable ->
+                 trackerService.removeTrackedResources(data.intent().key(),
+                                                       installable.resources()));
 
         List<Collection<FlowRule>> stages = installables.stream()
                 .map(x -> (FlowRuleIntent) x)
