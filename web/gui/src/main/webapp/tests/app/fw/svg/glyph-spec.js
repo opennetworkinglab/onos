@@ -53,7 +53,7 @@ describe('factory: fw/svg/glyph.js', function() {
             intentTraffic: 'M14.7,71.5h',
             allTraffic: 'M15.7,64.5h-7v',
             flows: 'M93.8,46.1c',
-            eqMaster: 'M94.6,80.1c0,5.7',
+            eqMaster: 'M100.1,46.9l',
 
             // badges
             uiAttached: 'M2,2.5a.5,.5',

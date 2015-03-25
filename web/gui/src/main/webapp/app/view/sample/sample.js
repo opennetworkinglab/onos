@@ -95,7 +95,7 @@
             toolbar.addToggle('demo-toggle', 'chain', false, togFn, 'another tooltip');
             toolbar.addSeparator();
             toolbar.addRadioSet('demo-radio', rset);
-            toolbar.show();
+            toolbar.hide();
 
             checkFn();
 

@@ -29,7 +29,7 @@
         btnHeight = 50,
         hoverZone = 60,
         sectorDivisions = 3,
-        pageMargin = 20;
+        pageMargin = 10;
 
     // svg elements
     var svg, g;
@@ -37,48 +37,16 @@
     // other variables
     var winWidth, winHeight,
         sectorWidth, sectorHeight,
-        currSector = 4,
+        currSector = 4, // always starts in the middle
         mouse;
 
     // ====================================================
 
-    // helper functions
     function centeredOnWindow(axis, dim) {
         return (axis / 2) - (dim / 2);
     }
 
-    // ====================================================
-
-    function center(elem) {
-        $log.debug(winWidth / 2);
-        $log.debug(winHeight / 2);
-        $log.debug((winWidth / 2) - ((elem.node().getBBox().width) / 2));
-        $log.debug((winHeight / 2) - ((elem.node().getBBox().height) / 2));
-        return {
-            x: (winWidth / 2) - ((elem.node().getBBox().width) / 2),
-            y: (winHeight / 2) - ((elem.node().getBBox().height) / 2)
-        }
-    }
-
     function showSectors() {
-        svg.append('line')
-            .attr({
-                x1: winWidth / 2,
-                x2: winWidth / 2,
-                y1: 0,
-                y2: winHeight,
-                stroke: 'purple',
-                'stroke-width': '3px'
-            });
-        svg.append('line')
-            .attr({
-                x1: 0,
-                x2: winWidth,
-                y1: winHeight / 2,
-                y2: winHeight / 2,
-                stroke: 'purple',
-                'stroke-width': '3px'
-            });
         for (var i = 1; i < 5; i++) {
             var j;
             if (i < 3) {
@@ -122,37 +90,34 @@
     }
 
     function selectSector() {
-        var sector, row, col;
+        var sector, row, col,
+            currSectorCol = currSector % sectorDivisions;
 
         do {
             sector = Math.floor((Math.random() * 9));
-        } while (sector === currSector);
-        $log.debug('sector after loop: ' + sector);
-        $log.debug('currSector after loop: ' + currSector);
+            col = sector % sectorDivisions;
+        } while (col === currSectorCol);
         currSector = sector;
-        $log.debug('currSector after assignment: ' + currSector);
         row = Math.floor(sector / sectorDivisions);
-        col = sector % sectorDivisions;
 
-        $log.debug('row: ' + row);
-        $log.debug('col: ' + col);
-
+        // active area is the coordinates of the sector, plus or minus a margin
         return {
-            xmin: sectorWidth * col,
-            xmax: (sectorWidth * col) + sectorWidth,
-            ymin: sectorHeight * row,
-            ymax: (sectorHeight * row) + sectorHeight
+            xmin: (sectorWidth * col) + pageMargin,
+            xmax: ((sectorWidth * col) + sectorWidth) - pageMargin,
+            ymin: (sectorHeight * row) + pageMargin,
+            ymax: ((sectorHeight * row) + sectorHeight) - pageMargin
         }
     }
 
     function selectXY(sectorCoords) {
         var x, y, x1, y1;
+
         do {
             x = (Math.random() * sectorCoords.xmax) + sectorCoords.xmin;
             y = (Math.random() * sectorCoords.ymax) + sectorCoords.ymin;
             x1 = x + btnWidth;
             y1 = y + btnHeight;
-        } while (x1 >= winWidth - pageMargin || y1 >= winHeight - pageMargin);
+        } while (x1 > sectorCoords.xmax || y1 > sectorCoords.ymax);
 
         return {
             x: x,
@@ -167,9 +132,8 @@
     function moveButton() {
         var sec = selectSector(),
             pos = selectXY(sec);
-        $log.debug(pos.x, pos.y);
         g.transition()
-            .duration(400)
+            .duration(300)
             .ease('cubic-out')
             .each('start', removeMouseListener)
             .attr('transform', gTranslate(pos.x, pos.y))
@@ -186,13 +150,9 @@
             fs = _fs_;
             return {
                 restrict: 'E',
-                link: function (scope, elem, attrs) {
+                link: function (scope, elem) {
                     winWidth = fs.windowSize().width;
                     winHeight = fs.windowSize().height;
-                    // getting rid of pageMargin to see if the math is easier
-                    // could put the padding somewhere else as in where it's ok to move the button
-                    //sectorWidth = (winWidth / sectorDivisions) - pageMargin;
-                    //sectorHeight = (winHeight / sectorDivisions) - pageMargin;
                     sectorWidth = winWidth / sectorDivisions;
                     sectorHeight = winHeight / sectorDivisions;
 
@@ -203,7 +163,7 @@
                             height: winHeight + 'px'
                         });
 
-                    showSectors();
+                    //showSectors();
                     g = svg.append('g');
 
                     var button = g.append('rect')
@@ -228,12 +188,10 @@
                                 height: btnHeight + hoverZone + 'px',
                                 x: -(hoverZone / 2),
                                 y: -(hoverZone / 2)
-                            }),
-                        centeredG = center(g);
+                            });
                     g.attr('transform',
-                        gTranslate(centeredG.x, centeredG.y));
-                    //gTranslate(centeredOnWindow(winWidth, btnWidth),
-                    //           centeredOnWindow(winHeight, btnHeight)));
+                        gTranslate(centeredOnWindow(winWidth, btnWidth),
+                                   centeredOnWindow(winHeight, btnHeight)));
 
                     addMouseListener();
                 }

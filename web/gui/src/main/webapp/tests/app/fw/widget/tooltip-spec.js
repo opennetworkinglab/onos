@@ -55,12 +55,24 @@ describe('factory: fw/widget/tooltip.js', function () {
     });
 
     // testing mouse events is tough
-
+    // showTooltip needs a d3 event, which currently has no test backend
+    // .each is a workaround, which provides this, d, and i
     xit('should show a tooltip', function () {
         var btn = d3.select('body').append('div').attr('id', 'foo');
-        // each is used to trigger a "mouse" event, providing this, d, and i
         btn.each(function () {
             tts.showTooltip(this, 'yay a tooltip');
         });
+        // tests here
+    });
+
+    // can't cancel a tooltip until we show one
+    // because currElemId isn't set otherwise
+    xit('should cancel an existing tooltip', function () {
+        var btn = d3.select('body').append('div').attr('id', 'foo');
+        btn.each(function () {
+            tts.cancelTooltip(this);
+        });
+        expect(d3Elem.text()).toBe('');
+        expect(d3Elem.style('display')).toBe('none');
     });
 });
