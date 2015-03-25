@@ -20,13 +20,13 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdBlockStore;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Version;
-import org.onlab.util.Tools;
 
 import java.io.File;
 import java.util.List;
@@ -42,7 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class CoreManager implements CoreService {
 
     private static final File VERSION_FILE = new File("../VERSION");
-    private static Version version = Version.version("1.1.0-SNAPSHOT");
+    private static Version version = Version.version("1.2.0-SNAPSHOT");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore applicationIdStore;
