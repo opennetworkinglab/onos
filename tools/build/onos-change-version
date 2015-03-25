@@ -28,6 +28,10 @@ sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools
 sed -i "" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 sed -i "" -E "s/ONOS_POM_VERSION=.*\"/ONOS_POM_VERSION=\"$NEW_VERSION\"/" $ONOS_ROOT/tools/build/envDefaults
 
+# Augment fallback version in CoreManager
+sed -i "" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VERSION\")/" \
+   $ONOS_ROOT/core/net/src/main/java/org/onosproject/core/impl/CoreManager.java
+
 # Augment the version in archetypes tree.
 mvn -f tools/package/archetypes/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 for atype in api bundle cli; do
@@ -35,6 +39,8 @@ for atype in api bundle cli; do
     sed -i "" -E "1,/<onos.version>/s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $pom
 done
 
+# FIXME do we really want to roll the version with every release?
+# ... we talked about dropping to a 2 place version that rolls independently
 pushd tools/package/maven-plugin
 mvn versions:set -DnewVersion=$NEW_VERSION versions:commit
 popd
