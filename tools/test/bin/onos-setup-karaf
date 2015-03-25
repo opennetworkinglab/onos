@@ -56,7 +56,7 @@ fi
 
 if ! grep -q ",onos-api," $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
     # Patch the Apache Karaf distribution file to load default ONOS boot features
-    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui"
+    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow"
     echo "Adding ONOS boot features $BOOT_FEATURES..."
     perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
         $KARAF_ROOT/etc/org.apache.karaf.features.cfg
