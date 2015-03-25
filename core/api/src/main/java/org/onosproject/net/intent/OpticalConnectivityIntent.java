@@ -38,6 +38,7 @@ public final class OpticalConnectivityIntent extends Intent {
      * @param key intent key
      * @param src the source transponder port
      * @param dst the destination transponder port
+     * @param priority priority to use for flows from this intent
      */
     protected OpticalConnectivityIntent(ApplicationId appId,
                                      Key key,
