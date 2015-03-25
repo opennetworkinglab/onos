@@ -36,14 +36,13 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PartitionService;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.ecmap.EventuallyConsistentMap;
-import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
-import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
-import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
 import org.onosproject.store.impl.MultiValuedTimestamp;
 import org.onosproject.store.impl.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -52,7 +51,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.PURGE_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -61,7 +60,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 //FIXME we should listen for leadership changes. if the local instance has just
 // ...  become a leader, scan the pending map and process those
-@Component(immediate = false, enabled = true)
+@Component(immediate = true, enabled = true)
 @Service
 public class GossipIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
@@ -76,10 +75,10 @@ public class GossipIntentStore
     private EventuallyConsistentMap<Key, IntentData> pendingMap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterCommunicationService clusterCommunicator;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
+    protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PartitionService partitionService;
@@ -92,19 +91,19 @@ public class GossipIntentStore
                 .register(MultiValuedTimestamp.class)
                 .register(WallClockTimestamp.class);
 
-        currentMap = new EventuallyConsistentMapImpl<>("intent-current",
-                                                       clusterService,
-                                                       clusterCommunicator,
-                                                       intentSerializer,
-                                                       new IntentDataLogicalClockManager<>(),
-                                                       (key, intentData) -> getPeerNodes(key, intentData));
+        currentMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
+                .withName("intent-current")
+                .withSerializer(intentSerializer)
+                .withClockService(new IntentDataLogicalClockManager<>())
+                .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
+                .build();
 
-        pendingMap = new EventuallyConsistentMapImpl<>("intent-pending",
-                                                       clusterService,
-                                                       clusterCommunicator,
-                                                       intentSerializer,
-                                                       new IntentDataClockManager<>(),
-                                                       (key, intentData) -> getPeerNodes(key, intentData));
+        pendingMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
+                .withName("intent-pending")
+                .withSerializer(intentSerializer)
+                .withClockService(new IntentDataClockManager<>())
+                .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
+                .build();
 
         currentMap.addListener(new InternalCurrentListener());
         pendingMap.addListener(new InternalPendingListener());

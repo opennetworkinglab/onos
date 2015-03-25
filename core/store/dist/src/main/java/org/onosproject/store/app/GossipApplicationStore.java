@@ -43,14 +43,14 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.ecmap.EventuallyConsistentMap;
-import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
-import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
-import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
-import org.onosproject.store.impl.ClockService;
 import org.onosproject.store.impl.MultiValuedTimestamp;
 import org.onosproject.store.impl.WallclockClockManager;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ClockService;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -66,10 +66,16 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.app.ApplicationEvent.Type.*;
-import static org.onosproject.store.app.GossipApplicationStore.InternalState.*;
-import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.PUT;
-import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.REMOVE;
+import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_PERMISSIONS_CHANGED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.ACTIVATED;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.DEACTIVATED;
+import static org.onosproject.store.app.GossipApplicationStore.InternalState.INSTALLED;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -106,6 +112,9 @@ public class GossipApplicationStore extends ApplicationArchive
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore idStore;
 
     private final AtomicLong sequence = new AtomicLong();
@@ -130,27 +139,29 @@ public class GossipApplicationStore extends ApplicationArchive
                 new MultiValuedTimestamp<>(getUpdateTime(appId.name()),
                                            sequence.incrementAndGet());
 
-        apps = new EventuallyConsistentMapImpl<>("apps", clusterService,
-                                                 clusterCommunicator,
-                                                 serializer,
-                                                 appsClockService);
+        apps = storageService.<ApplicationId, Application>eventuallyConsistentMapBuilder()
+                .withName("apps")
+                .withSerializer(serializer)
+                .withClockService(appsClockService)
+                .build();
 
         ClockService<Application, InternalState> statesClockService = (app, state) ->
                 new MultiValuedTimestamp<>(getUpdateTime(app.id().name()),
                                            sequence.incrementAndGet());
 
-        states = new EventuallyConsistentMapImpl<>("app-states",
-                                                   clusterService,
-                                                   clusterCommunicator,
-                                                   serializer,
-                                                   statesClockService);
+        states = storageService.<Application, InternalState>eventuallyConsistentMapBuilder()
+                .withName("app-states")
+                .withSerializer(serializer)
+                .withClockService(statesClockService)
+                .build();
+
         states.addListener(new InternalAppStatesListener());
 
-        permissions = new EventuallyConsistentMapImpl<>("app-permissions",
-                                                        clusterService,
-                                                        clusterCommunicator,
-                                                        serializer,
-                                                        new WallclockClockManager<>());
+        permissions = storageService.<Application, Set<Permission>>eventuallyConsistentMapBuilder()
+                .withName("app-permissions")
+                .withSerializer(serializer)
+                .withClockService(new WallclockClockManager<>())
+                .build();
 
         log.info("Started");
     }

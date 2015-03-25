@@ -30,6 +30,7 @@ public interface StorageService {
 
     /**
      * Creates a ConsistentMap.
+     *
      * @param name map name
      * @param serializer serializer to use for serializing keys and values
      * @return consistent map.
@@ -40,6 +41,7 @@ public interface StorageService {
 
     /**
      * Creates a AsyncConsistentMap.
+     *
      * @param name map name
      * @param serializer serializer to use for serializing keys and values
      * @return async consistent map
@@ -50,7 +52,18 @@ public interface StorageService {
 
     /**
      * Creates a new transaction context.
+     *
      * @return transaction context
      */
     TransactionContext createTransactionContext();
+
+    /**
+     * Creates a new EventuallyConsistentMapBuilder.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @return builder for an eventually consistent map
+     */
+    <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder();
+
 }

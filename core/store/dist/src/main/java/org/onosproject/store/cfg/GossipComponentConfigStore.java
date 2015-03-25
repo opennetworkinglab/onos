@@ -25,21 +25,19 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigEvent;
 import org.onosproject.cfg.ComponentConfigStore;
 import org.onosproject.cfg.ComponentConfigStoreDelegate;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.ecmap.EventuallyConsistentMap;
-import org.onosproject.store.ecmap.EventuallyConsistentMapEvent;
-import org.onosproject.store.ecmap.EventuallyConsistentMapImpl;
-import org.onosproject.store.ecmap.EventuallyConsistentMapListener;
 import org.onosproject.store.impl.WallclockClockManager;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import static org.onosproject.cfg.ComponentConfigEvent.Type.PROPERTY_SET;
 import static org.onosproject.cfg.ComponentConfigEvent.Type.PROPERTY_UNSET;
-import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.PUT;
-import static org.onosproject.store.ecmap.EventuallyConsistentMapEvent.Type.REMOVE;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -59,20 +57,19 @@ public class GossipComponentConfigStore
     private EventuallyConsistentMap<String, String> properties;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterCommunicationService clusterCommunicator;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
+    protected StorageService storageService;
 
     @Activate
     public void activate() {
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API);
 
-        properties = new EventuallyConsistentMapImpl<>("cfg", clusterService,
-                                                       clusterCommunicator,
-                                                       serializer,
-                                                       new WallclockClockManager<>());
+        properties = storageService.<String, String>eventuallyConsistentMapBuilder()
+                .withName("cfg")
+                .withSerializer(serializer)
+                .withClockService(new WallclockClockManager<>())
+                .build();
+
         properties.addListener(new InternalPropertiesListener());
         log.info("Started");
     }

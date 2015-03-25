@@ -34,10 +34,13 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.impl.ClockService;
+import org.onosproject.store.service.ClockService;
 import org.onosproject.store.impl.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -134,10 +137,13 @@ public class EventuallyConsistentMapImplTest {
                 .register(KryoNamespaces.API)
                 .register(TestTimestamp.class);
 
-        ecMap = new EventuallyConsistentMapImpl<>(MAP_NAME, clusterService,
-                                                  clusterCommunicator,
-                                                  serializer, clockService)
-                                        .withBroadcastMessageExecutor(MoreExecutors.newDirectExecutorService());
+        ecMap = new EventuallyConsistentMapBuilderImpl<>(
+                        clusterService, clusterCommunicator)
+                .withName(MAP_NAME)
+                .withSerializer(serializer)
+                .withClockService(clockService)
+                .withCommunicationExecutor(MoreExecutors.newDirectExecutorService())
+                .build();
 
         // Reset ready for tests to add their own expectations
         reset(clusterCommunicator);

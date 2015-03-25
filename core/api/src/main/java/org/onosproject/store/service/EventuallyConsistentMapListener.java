@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.impl;
-
-import org.onosproject.store.Timestamp;
+package org.onosproject.store.service;
 
 /**
- * Clock service that can generate timestamps based off of two input objects.
- * Implementations are free to only take one or none of the objects into account
- * when generating timestamps.
+ * Listener interested in receiving modification events for an
+ * EventuallyConsistentMap.
  */
-public interface ClockService<T, U> {
+public interface EventuallyConsistentMapListener<K, V> {
 
     /**
-     * Gets a new timestamp for the given objects.
+     * Reacts to the specified event.
      *
-     * @param object1 First object to use when generating timestamps
-     * @param object2 Second object to use when generating timestamps
-     * @return the new timestamp
+     * @param event the event
      */
-    public Timestamp getTimestamp(T object1, U object2);
+    public void event(EventuallyConsistentMapEvent<K, V> event);
 }

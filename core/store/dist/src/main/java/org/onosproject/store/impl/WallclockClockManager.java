@@ -16,6 +16,7 @@
 package org.onosproject.store.impl;
 
 import org.onosproject.store.Timestamp;
+import org.onosproject.store.service.ClockService;
 
 /**
  * A clock service which hands out wallclock-based timestamps.

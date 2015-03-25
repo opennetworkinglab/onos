@@ -17,13 +17,11 @@
 package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.Sets;
-
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.Member;
 import net.kuujo.copycat.log.FileLog;
 import net.kuujo.copycat.netty.NettyTcpProtocol;
 import net.kuujo.copycat.protocol.Consistency;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,8 +30,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.store.cluster.impl.NodeInfo;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
@@ -70,6 +71,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterCommunicationService clusterCommunicator;
 
     protected String nodeToUri(NodeInfo node) {
         return String.format("tcp://%s:%d", node.getIp(), COPYCAT_TCP_PORT);
@@ -169,12 +173,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public <K, V> ConsistentMap<K , V> createConsistentMap(String name, Serializer serializer) {
-        return new DefaultConsistentMap<K, V>(name, partitionedDatabase, serializer);
+        return new DefaultConsistentMap<>(name, partitionedDatabase, serializer);
     }
 
     @Override
     public <K, V> AsyncConsistentMap<K , V> createAsyncConsistentMap(String name, Serializer serializer) {
-        return new DefaultAsyncConsistentMap<K, V>(name, partitionedDatabase, serializer);
+        return new DefaultAsyncConsistentMap<>(name, partitionedDatabase, serializer);
     }
 
     @Override
@@ -207,4 +211,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                           database.cluster().leader() != null ?
                                   database.cluster().leader().uri() : null);
     }
+
+
+    @Override
+    public <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder() {
+        return new EventuallyConsistentMapBuilderImpl<>(clusterService,
+                                                        clusterCommunicator);
+    }
+
 }
