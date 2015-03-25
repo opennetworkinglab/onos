@@ -304,7 +304,7 @@ public class DistributedLeadershipManager implements LeadershipService {
             LeadershipEvent leadershipEvent =
                     SERIALIZER.decode(message.payload());
 
-            log.debug("Leadership Event: time = {} type = {} event = {}",
+            log.trace("Leadership Event: time = {} type = {} event = {}",
                     leadershipEvent.time(), leadershipEvent.type(),
                     leadershipEvent);
 
