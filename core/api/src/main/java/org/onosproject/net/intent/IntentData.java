@@ -19,11 +19,19 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.Timestamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALLING;
+import static org.onosproject.net.intent.IntentState.PURGE_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
  * A wrapper class that contains an intents, its state, and other metadata for
@@ -31,6 +39,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class IntentData { //FIXME need to make this "immutable"
                           // manager should be able to mutate a local copy while processing
+
+    private static final Logger log = LoggerFactory.getLogger(IntentData.class);
+
     private final Intent intent;
 
     private IntentState state;
@@ -165,6 +176,81 @@ public class IntentData { //FIXME need to make this "immutable"
      */
     public List<Intent> installables() {
         return installables;
+    }
+
+    /**
+     * Determines whether an intent data update is allowed. The update must
+     * either have a higher version than the current data, or the state
+     * transition between two updates of the same version must be sane.
+     *
+     * @param currentData existing intent data in the store
+     * @param newData new intent data update proposal
+     * @return true if we can apply the update, otherwise false
+     */
+    public static boolean isUpdateAcceptable(IntentData currentData, IntentData newData) {
+
+        if (currentData == null) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) < 0) {
+            return true;
+        } else if (currentData.version().compareTo(newData.version()) > 0) {
+            return false;
+        }
+
+        // current and new data versions are the same
+        IntentState currentState = currentData.state();
+        IntentState newState = newData.state();
+
+        switch (newState) {
+        case INSTALLING:
+            if (currentState == INSTALLING) {
+                return false;
+            }
+            // FALLTHROUGH
+        case INSTALLED:
+            if (currentState == INSTALLED) {
+                return false;
+            } else if (currentState == WITHDRAWING || currentState == WITHDRAWN
+                    || currentState == PURGE_REQ) {
+                log.warn("Invalid state transition from {} to {} for intent {}",
+                         currentState, newState, newData.key());
+                return false;
+            }
+            return true;
+
+        case WITHDRAWING:
+            if (currentState == WITHDRAWING) {
+                return false;
+            }
+            // FALLTHROUGH
+        case WITHDRAWN:
+            if (currentState == WITHDRAWN) {
+                return false;
+            } else if (currentState == INSTALLING || currentState == INSTALLED
+                    || currentState == PURGE_REQ) {
+                log.warn("Invalid state transition from {} to {} for intent {}",
+                         currentState, newState, newData.key());
+                return false;
+            }
+            return true;
+
+        case FAILED:
+            if (currentState == FAILED) {
+                return false;
+            }
+            return true;
+
+        case PURGE_REQ:
+            return true;
+
+        case COMPILING:
+        case RECOMPILING:
+        case INSTALL_REQ:
+        case WITHDRAW_REQ:
+        default:
+            log.warn("Invalid state {} for intent {}", newState, newData.key());
+            return false;
+        }
     }
 
     @Override

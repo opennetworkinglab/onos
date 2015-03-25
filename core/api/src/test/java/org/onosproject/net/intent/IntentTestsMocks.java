@@ -454,9 +454,8 @@ public class IntentTestsMocks {
                 return -1;
             }
             MockTimestamp that = (MockTimestamp) o;
-            return (this.value > that.value ? -1 : (this.value == that.value ? 0 : 1));
+            return this.value - that.value;
         }
     }
-
 
 }
