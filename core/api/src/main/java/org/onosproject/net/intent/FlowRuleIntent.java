@@ -61,6 +61,14 @@ public class FlowRuleIntent extends Intent {
     }
 
     /**
+     * Constructor for serializer.
+     */
+    protected FlowRuleIntent() {
+        super();
+        this.flowRules = null;
+    }
+
+    /**
      * Returns a collection of flow rules to be set.
      *
      * @return a collection of flow rules
