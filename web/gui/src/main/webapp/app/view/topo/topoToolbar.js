@@ -47,7 +47,7 @@
         L: { id: 'cycleLabels-btn', gid: 'cycleLabels' },
         R: { id: 'resetZoom-btn', gid: 'resetZoom' },
 
-        V: { id: 'allIntents-btn', gid: 'allIntents' },
+        V: { id: 'relatedIntents-btn', gid: 'relatedIntents' },
         leftArrow: { id: 'prevIntent-btn', gid: 'prevIntent' },
         rightArrow: { id: 'nextIntent-btn', gid: 'nextIntent' },
         W: { id: 'intentTraffic-btn', gid: 'intentTraffic' },
@@ -91,6 +91,7 @@
         addToggle('B');
     }
     function addSecondRow() {
+        //addToggle('X');
         addToggle('Z');
         addButton('L');
         addButton('R');

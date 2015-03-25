@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 22,
+    var numBaseGlyphs = 30,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -37,14 +37,25 @@ describe('factory: fw/svg/glyph.js', function() {
             bgpSpeaker: 'M10,40a45,35',
             chain: 'M60.4,77.6c-',
             crown: 'M99.5,21.6c0,',
+            lock: 'M79.4,48.6h',
+
+            // toolbar specific glyphs
             summary: longPrefix + 'M16.7',
             details: longPrefix + 'M16.9',
             ports: 'M98,9.2H79.6c',
             map: 'M95.8,9.2H14.2c-2.8,0-5,2.2-5,5v66',
-            resetZoom: 'M86.4,81',
+            cycleLabels: 'M72.5,33.9c',
+            oblique: 'M80.9,30.2h',
+            resetZoom: 'M86,79.8L',
+            relatedIntents: 'M99.9,43.7',
             nextIntent: 'M88.1,55.7',
             prevIntent: 'M22.5,55.6',
+            intentTraffic: 'M14.7,71.5h',
+            allTraffic: 'M15.7,64.5h-7v',
+            flows: 'M93.8,46.1c',
+            eqMaster: 'M94.6,80.1c0,5.7',
 
+            // badges
             uiAttached: 'M2,2.5a.5,.5',
             checkMark: 'M2.6,4.5c0',
             xMark: 'M9.0,7.2C8.2',
@@ -151,6 +162,10 @@ describe('factory: fw/svg/glyph.js', function() {
         gs.init();
         verifyGlyphLoadedInCache('crown', vbGlyph);
     });
+    it('should load the lock glyph', function() {
+        gs.init();
+        verifyGlyphLoadedInCache('lock', vbGlyph);
+    });
     it('should load the summary glyph', function () {
         gs.init();
         verifyGlyphLoadedInCache('summary', vbGlyph);
@@ -167,9 +182,21 @@ describe('factory: fw/svg/glyph.js', function() {
         gs.init();
         verifyGlyphLoadedInCache('map', vbGlyph);
     });
+    it('should load the cycleLabels glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('cycleLabels', vbGlyph);
+    });
+    it('should load the oblique glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('oblique', vbGlyph);
+    });
     it('should load the resetZoom glyph', function () {
         gs.init();
         verifyGlyphLoadedInCache('resetZoom', vbGlyph);
+    });
+    it('should load the relatedIntents glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('relatedIntents', vbGlyph);
     });
     it('should load the nextIntent glyph', function () {
         gs.init();
@@ -178,6 +205,18 @@ describe('factory: fw/svg/glyph.js', function() {
     it('should load the prevIntent glyph', function () {
         gs.init();
         verifyGlyphLoadedInCache('prevIntent', vbGlyph);
+    });
+    it('should load the intentTraffic glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('intentTraffic', vbGlyph);
+    });
+    it('should load the flows glyph', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('flows', vbGlyph);
+    });
+    it('should load the flows eqMaster', function () {
+        gs.init();
+        verifyGlyphLoadedInCache('eqMaster', vbGlyph);
     });
     it('should load the uiAttached glyph', function() {
         gs.init();
