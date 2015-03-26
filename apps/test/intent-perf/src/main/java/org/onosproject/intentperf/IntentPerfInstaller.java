@@ -99,7 +99,7 @@ public class IntentPerfInstaller {
     private static final int DEFAULT_NUM_NEIGHBORS = 0;
 
     private static final int START_DELAY = 5_000; // ms
-    private static final int REPORT_PERIOD = 5_000; //ms
+    private static final int REPORT_PERIOD = 1_000; //ms
 
     private static final String START = "start";
     private static final String STOP = "stop";

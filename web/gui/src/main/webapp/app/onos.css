@@ -48,6 +48,10 @@ body.dark {
     height: 100%;
 }
 
+#view h2 {
+    padding-left: 12px;
+}
+
 .light #view h2 {
     color: #800;
 }

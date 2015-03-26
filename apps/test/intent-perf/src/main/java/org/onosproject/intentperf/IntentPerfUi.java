@@ -15,6 +15,7 @@
  */
 package org.onosproject.intentperf;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -23,6 +24,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.intentperf.IntentPerfCollector.Sample;
 import org.onosproject.ui.UiConnection;
@@ -34,14 +36,17 @@ import org.onosproject.ui.UiView;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.TimerTask;
 
 import static java.util.Collections.synchronizedSet;
 
 /**
  * Mechanism to stream data to the GUI.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
+@Service(value = IntentPerfUi.class)
 public class IntentPerfUi {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -53,9 +58,25 @@ public class IntentPerfUi {
     private UiExtension uiExtension = new UiExtension(views, this::newHandlers,
                                                       getClass().getClassLoader());
 
+    private List<String> headers = ImmutableList.of("One", "Two", "Three", "Four", "Five");
+
+    private Random random = new Random();
+    private TimerTask task;
+
     @Activate
     protected void activate() {
         uiExtensionService.register(uiExtension);
+//        task = new TimerTask() {
+//            @Override
+//            public void run() {
+//                Sample sample = new Sample(System.currentTimeMillis(), headers.size());
+//                for (int i = 0; i < headers.size(); i++) {
+//                    sample.data[i] = 25_000 + random.nextInt(20_000) - 5_000;
+//                }
+//                reportSample(sample);
+//            }
+//        };
+//        SharedExecutors.getTimer().scheduleAtFixedRate(task, 1000, 1000);
     }
 
     @Deactivate
@@ -74,6 +95,15 @@ public class IntentPerfUi {
         }
     }
 
+    /**
+     * Sets the headers for the subsequently reported samples.
+     *
+     * @param headers list of headers for future samples
+     */
+    public void setHeaders(List<String> headers) {
+        this.headers = headers;
+    }
+
     // Creates and returns session specific message handler.
     private Collection<UiMessageHandler> newHandlers() {
         return ImmutableList.of(new StreamingControl());
@@ -90,7 +120,22 @@ public class IntentPerfUi {
 
         @Override
         public void process(ObjectNode message) {
-            streamingEnabled = message.path("event").asText("unknown").equals("initPerfStart");
+            streamingEnabled = message.path("event").asText("unknown").equals("intentPerfStart");
+            if (streamingEnabled) {
+                sendHeaders();
+            }
+        }
+
+        private void sendHeaders() {
+            ArrayNode an = mapper.createArrayNode();
+            for (String header : headers) {
+                an.add(header);
+            }
+
+            ObjectNode sn = mapper.createObjectNode();
+            sn.set("headers", an);
+
+            connection().sendMessage("intentPerfHeaders", 0, sn);
         }
 
         @Override
@@ -106,10 +151,18 @@ public class IntentPerfUi {
         }
 
         private void send(Sample sample) {
-            // FIXME: finish this
-            ObjectNode sn = mapper.createObjectNode()
-                    .put("time", sample.time);
-            connection().sendMessage("intentPerf", 0, sn);
+            if (streamingEnabled) {
+                ArrayNode an = mapper.createArrayNode();
+                for (double d : sample.data) {
+                    an.add(d);
+                }
+
+                ObjectNode sn = mapper.createObjectNode();
+                sn.put("time", sample.time);
+                sn.set("data", an);
+
+                connection().sendMessage("intentPerfSample", 0, sn);
+            }
         }
     }
 

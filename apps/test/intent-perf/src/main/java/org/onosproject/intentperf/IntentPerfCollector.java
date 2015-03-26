@@ -65,7 +65,7 @@ public class IntentPerfCollector {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentPerfUi ui;
 
     // Auxiliary structures used to accrue data for normalized time interval
@@ -99,6 +99,7 @@ public class IntentPerfCollector {
             nodeToIndex.put(nodes[i].id(), i);
         }
 
+        ui.setHeaders(getSampleHeaders());
         clearSamples();
         log.info("Started");
     }

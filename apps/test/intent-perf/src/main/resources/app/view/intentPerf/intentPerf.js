@@ -21,122 +21,248 @@
     'use strict';
 
     // injected refs
-    var $log, tbs, flash;
+    var $log, tbs, ts, wss, sus, flash, fs, mast;
 
-    function start() {
-        //var format = d3.time.format("%m/%d/%y");
-        var format = d3.time.format("%H:%M:%S");
-        var samples = [];
+    // internal state
+    var handlerMap,
+        openListener,
+        theSample = [],
+        graph;
 
-        var margin = {top: 20, right: 30, bottom: 30, left: 40},
-            width = 960 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+    // ==========================
 
-        var x = d3.time.scale()
-            .range([0, width]);
+    function createGraph(h) {
+        var stopped = false,
+            n = 243,
+            duration = 750,
+            now = new Date(Date.now() - duration),
+            headers = h,
+            data = [];
 
-        var y = d3.scale.linear()
-            .range([height, 0]);
+        var dim = fs.windowSize(mast.mastHeight());
+        var margin, width, height, x, y;
+        var svg, axis;
 
-        var z = d3.scale.category20c();
+        var lines = [],
+            paths = [];
 
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom")
-            .ticks(d3.time.seconds);
+        var transition = d3.select({}).transition()
+            .duration(duration)
+            .ease("linear");
 
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
+        svg = d3.select("#intent-perf-chart").append("p")
+            .append("svg").attr("id", "intent-perf-svg")
+            .append("g").attr("id", "intent-perf-svg-g");
 
-        var stack = d3.layout.stack()
-            .offset("zero")
-            .values(function(d) { return d.values; })
-            .x(function(d) { return d.date; })
-            .y(function(d) { return d.value; });
+        svg.append("defs").append("clipPath").attr("id", "intent-perf-clip")
+            .append("rect");
 
-        var nest = d3.nest()
-            .key(function(d) { return d.key; });
-
-        var area = d3.svg.area()
-            .interpolate("cardinal")
-            .x(function(d) { return x(d.date); })
-            .y0(function(d) { return y(d.y0); })
-            .y1(function(d) { return y(d.y0 + d.y); });
-
-        var svg = d3.select("body").append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        svg.append("g")
+        axis = svg.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
+            .attr("id", "intent-perf-x");
+
+        svg.append("g").attr("class", "y axis")
+            .attr("id", "intent-perf-yl");
 
         svg.append("g")
             .attr("class", "y axis")
-            .call(yAxis);
+            .attr("id", "intent-perf-yr");
 
-        function fetchData() {
-            d3.csv("app/view/intentPerf/data.csv", function (data) {
-                samples = data;
-                updateGraph();
-            });
+        resize(dim);
+
+        headers.forEach(function (h, li) {
+            // Prime the data to match the headeres and zero it out.
+            data[li] = d3.range(n).map(function() { return 0 });
+            theSample[li] = 0;
+
+            // Create the lines
+            lines[li] = d3.svg.line()
+                .interpolate("basis")
+                .x(function(d, i) { return x(now - (n - 1 - i) * duration); })
+                .y(function(d, i) { return y(d); });
+
+            // Create the SVG paths
+            paths[li] = svg.append("g")
+                .attr("clip-path", "url(#intent-perf-clip)")
+                .append("path")
+                .datum(function () { return data[li]; })
+                .attr("id", "line" + li)
+                .style("stroke", lineColor(li))
+                .attr("class", "line");
+        });
+
+        function lineColor(li) {
+            return li < headers.length - 1 ?
+                sus.cat7().getColor(li, false, ts.theme()) :
+                ts.theme() == 'light' ? '#333' : '#eee';
         }
 
-        function updateGraph() {
-            samples.forEach(function(d) {
-                d.date = format.parse(d.date);
-                d.value = +d.value;
+        function tick() {
+            if (stopped) {
+                return;
+            }
+
+            transition = transition.each(function() {
+                // update the domains
+                now = new Date();
+                x.domain([now - (n - 2) * duration, now - duration]);
+
+                data.forEach(function (d, li) {
+                    // push the new most recent sample onto the back
+                    d.push(theSample[li]);
+
+                    // redraw the line and slide it left
+                    paths[li].attr("d", lines[li]).attr("transform", null);
+                    paths[li].transition().attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
+
+                    // pop the old data point off the front
+                    d.shift();
+                });
+
+                // slide the x-axis left
+                axis.call(x.axis);
+            }).transition().each("start", tick);
+        }
+
+        function start() {
+            stopped = false;
+            headers.forEach(function (h, li) {
+                theSample[li] = 0;
             });
+            tick();
+        }
 
-            var layers = stack(nest.entries(samples));
+        function stop() {
+            stopped = true;
+        }
 
-            x.domain(d3.extent(samples, function(d) { return d.date; }));
-            y.domain([0, d3.max(samples, function(d) { return d.y0 + d.y; })]);
+        function resize(dim) {
+            margin = {top: 20, right: 90, bottom: 20, left: 70};
+            width = dim.width - margin.right - margin.left;
+            height = 480 - margin.top - margin.bottom;
 
-            svg.selectAll(".layer")
-                .data(layers)
-                .enter().append("path")
-                .attr("class", "layer")
-                .attr("d", function(d) { return area(d.values); })
-                .style("fill", function(d, i) { return z(i); });
+            x = d3.time.scale()
+                .domain([now - (n - 2) * duration, now - duration])
+                .range([0, width]);
 
-            svg.select(".x")
+            y = d3.scale.linear()
+                .domain([0, 200000])
+                .range([height, 0]);
+
+            d3.select("#intent-perf-svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom);
+            d3.select("#intent-perf-svg-g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            d3.select("#intent-pef-clip rect").attr("width", width).attr("height", height);
+
+            d3.select("#intent-perf-x")
                 .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
+                .call(x.axis = d3.svg.axis().scale(x).orient("bottom"));
 
-            svg.select(".y")
-                .call(yAxis);
-
-            console.log('tick');
+            d3.select("#intent-perf-yl")
+                .call(d3.svg.axis().scale(y).orient("left"))
+            d3.select("#intent-perf-yr")
+                .attr("transform", "translate(" + width + " ,0)")
+                .call(d3.svg.axis().scale(y).orient("right"))
         }
+
+        return {
+            start: start,
+            stop: stop,
+            resize: resize
+        };
     }
 
-    start();
+
+    function wsOpen(host, url) {
+        $log.debug('IntentPerf: web socket open - cluster node:', host, 'URL:', url);
+        // Request batch of initial data from the new server
+        wss.sendEvent('intentPerfStart');
+    }
+
+    function createAndInitGraph(d) {
+        if (!graph) {
+            d.headers.push("total");
+            graph = createGraph(d.headers);
+        }
+        graph.start();
+    }
+
+    function graphResized(dim) {
+        $log.info("Resized: " + dim.width + "x" + dim.height);
+        graph.resize(dim);
+    }
+
+    function recordSample(sample) {
+        var total = 0;
+        sample.data.forEach(function (d, i) {
+            theSample[i] = d;
+            total = total + d;
+        });
+        theSample[sample.data.length] = total;
+    }
+
+    function createHandlerMap() {
+        handlerMap = {
+            intentPerfHeaders: createAndInitGraph,
+            intentPerfSample: recordSample
+        };
+    }
+
+    //setInterval(function () { theSample = samples[++cs]; }, 5000);
+    //createGraph();
 
     // define the controller
 
     angular.module('ovIntentPerf', ['onosUtil'])
     .controller('OvIntentPerfCtrl',
-        ['$scope', '$log', 'ToolbarService', 'FlashService',
+        ['$scope', '$log', 'ToolbarService', 'WebSocketService',
+            'ThemeService', 'FlashService', 'SvgUtilService', 'FnService',
+            'MastService',
 
-        function ($scope, _$log_, _tbs_, _flash_) {
-            var self = this
+        function ($scope, _$log_, _tbs_, _wss_, _ts_, _flash_, _sus_, _fs_, _mast_) {
+            var self = this;
 
             $log = _$log_;
             tbs = _tbs_;
+            wss = _wss_;
+            ts = _ts_;
             flash = _flash_;
+            sus = _sus_;
+            fs = _fs_;
+            mast = _mast_;
 
-            self.message = 'Hey there dudes!';
-            start();
+            createHandlerMap();
 
-            // Clean up on destroyed scope
+            self.notifyResize = function () {
+                graphResized(fs.windowSize(mast.mastHeight()));
+            };
+
+            function start() {
+                openListener = wss.addOpenListener(wsOpen);
+                wss.bindHandlers(handlerMap);
+                wss.sendEvent('intentPerfStart');
+                $log.debug('intentPerf comms started');
+            }
+
+            function stop() {
+                graph.stop();
+                wss.sendEvent('intentPerfStop');
+                wss.unbindHandlers(handlerMap);
+                wss.removeOpenListener(openListener);
+                openListener = null;
+                graph = null;
+                $log.debug('intentPerf comms stopped');
+            }
+
+            // Cleanup on destroyed scope..
             $scope.$on('$destroy', function () {
+                $log.log('OvIntentPerfCtrl is saying Buh-Bye!');
+                stop();
             });
 
-         $log.log('OvIntentPerfCtrl has been created');
-    }]);
+            start();
+        }]);
 }());

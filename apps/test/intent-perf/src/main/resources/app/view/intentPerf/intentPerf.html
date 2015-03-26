@@ -15,10 +15,12 @@
   -->
 
 <!-- Intent Performance partial HTML -->
-<div id="ov-sample">
+<div id="ov-intentPerf">
     <h2> Intent Performance View </h2>
 
-    <span class="msg">{{ ctrl.message }}</span>
-
-    <div id="intent-perf-chart"></div>
+    <div id="intent-perf-chart"
+         resize
+         ng-style="resizeWithOffset(56, 12)"
+         notifier="ctrl.notifyResize()">
+    </div>
 </div>

@@ -18,39 +18,35 @@
  ONOS GUI -- Intent Perf View -- CSS file
  */
 
-.light #ov-intentPerf {
-    color: navy;
+svg {
+    font: 12px sans-serif;
 }
 
-.dark #ov-intentPerf {
-    color: #1e5e6f;
+.line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2px;
 }
-
-.dark a {
-    color: #88c;
-}
-
-#ov-intentPerf .msg {
-    color: darkorange;
-}
-
-.light #ov-intentPerf .msg {
-    color: darkorange;
-}
-
-.dark #ov-intentPerf .msg {
-    color: #904e00;
-}
-
-
 
 .axis path,
 .axis line {
     fill: none;
-    stroke: #000;
+    stroke-width: 2px;
     shape-rendering: crispEdges;
 }
 
-.browser text {
-    text-anchor: end;
+.light .axis path,
+.light .axis line,
+.light .axis text {
+    stroke: #999;
+}
+
+.dark .axis path,
+.dark .axis line,
+.dark .axis text {
+    stroke: #eee;
+}
+
+.axis text {
+    stroke-width: 0.3;
 }

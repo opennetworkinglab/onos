@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    svg {
+        font: 10px sans-serif;
+    }
+
+    .line {
+        fill: none;
+        stroke: darkgreen;
+        stroke-width: 2px;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #999;
+        stroke-width: 2px;
+        shape-rendering: crispEdges;
+    }
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+    (function () {
+        var cs = 0,
+                samples = [
+                    89.53,
+                    37515.81,
+                    104609.6,
+                    113105.11,
+                    103194.74,
+                    122151.63,
+                    128623.9,
+                    137325.33,
+                    154897.31,
+                    161235.07,
+                    162025.4,
+                    164902.64,
+                    158196.26,
+                    161072.44,
+                    160792.54,
+                    164692.44,
+                    161979.74,
+                    162137.4,
+                    159325.19,
+                    170465.44,
+                    168186.46,
+                    171152.34,
+                    168221.02,
+                    167440.73,
+                    165003.39,
+                    166855.18,
+                    157268.79,
+                    164087.54,
+                    162265.21,
+                    165990.16,
+                    176364.01,
+                    172064.07,
+                    184872.24,
+                    183249.8,
+                    182282.47,
+                    171475.11,
+                    158880.58,
+                    166016.69,
+                    168233.16,
+                    177759.92,
+                    179742.87,
+                    170819.44,
+                    167577.73,
+                    169479.9,
+                    175544.89,
+                    183792.01,
+                    184689.52,
+                    178503.87,
+                    173219.27,
+                    179085.49,
+                    179700.54,
+                    174281.17,
+                    181353.08,
+                    180173.14,
+                    184093.16,
+                    186011.5,
+                    176952.79,
+                    175319.2,
+                    169001.05,
+                    174545.12,
+                    169156.29,
+                    171804.3,
+                    159155.54,
+                    154709.96,
+                    157263.97
+                ],
+                theSample,
+                headers = [ "Whole", "Half", "Third" ];
+
+        var n = 243,
+                duration = 750,
+                now = new Date(Date.now() - duration),
+                data = [];
+
+        headers.forEach(function (d, li) {
+            data[li] = d3.range(n).map(function () { return 0; });
+        });
+
+        var margin = {top: 20, right: 100, bottom: 20, left: 100},
+                width = 960 - margin.right,
+                height = 512 - margin.top - margin.bottom;
+
+        var x = d3.time.scale()
+                .domain([now - (n - 2) * duration, now - duration])
+                .range([0, width]);
+
+        var y = d3.scale.linear()
+                .domain([0, 200000])
+                .range([height, 0]);
+
+        var svg = d3.select("body").append("p").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        svg.append("defs").append("clipPath")
+                .attr("id", "clip")
+                .append("rect")
+                .attr("width", width)
+                .attr("height", height);
+
+        var axis = svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(x.axis = d3.svg.axis().scale(x).orient("bottom"));
+
+        svg.append("g")
+                .attr("class", "y axis")
+                .call(d3.svg.axis().scale(y).orient("left"));
+
+        svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + width + " ,0)")
+                .call(d3.svg.axis().scale(y).orient("right"));
+
+        var lines = [], paths = [];
+        data.forEach(function (p, li) {
+            lines[li]= d3.svg.line()
+                    .interpolate("basis")
+                    .x(function (d, i) {
+                        return x(now - (n - 1 - i) * duration);
+                    })
+                    .y(function (d, i) {
+                        return y(d);
+                    });
+
+            paths[li] = svg.append("g")
+                    .attr("clip-path", "url(#clip)")
+                    .append("path")
+                    .datum(function () { return data[li]; })
+                    .attr("id", "line" + li)
+                    .attr("class", "line");
+        });
+
+        var transition = d3.select({}).transition()
+                .duration(750)
+                .ease("linear");
+
+        function tick() {
+            transition = transition.each(function () {
+                // update the domains
+                now = new Date();
+                x.domain([now - (n - 2) * duration, now - duration]);
+
+                data.forEach(function (d, li) {
+                    // push the new most recent sample onto the back
+                    d.push(theSample[li]);
+
+                   // redraw the line and slide it left
+                    paths[li].attr("d", lines[li]).attr("transform", null);
+                    paths[li].transition().attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
+
+                    // pop the old data point off the front
+                    d.shift();
+                });
+
+                // slide the x-axis left
+                axis.call(x.axis);
+
+            }).transition().each("start", tick);
+        }
+
+        function setSample() {
+            var v = samples[cs++];
+            theSample = [ v, v/2, v/3 ];
+        }
+
+        setSample();
+        setInterval(setSample, 1000);
+        tick();
+
+    })()
+</script>
+</body>
+</html>
