@@ -15,25 +15,9 @@
  */
 package org.onosproject.store.cluster.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.hazelcast.util.AddressUtil;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -49,17 +33,32 @@ import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.ControllerNode.State;
+import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.hazelcast.util.AddressUtil;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
 @Service
@@ -292,7 +291,7 @@ public class DistributedClusterStore
         try {
             messagingService.sendAsync(remoteEp, HEARTBEAT_MESSAGE, messagePayload);
         } catch (IOException e) {
-            log.debug("Sending heartbeat to {} failed", remoteEp, e);
+            log.trace("Sending heartbeat to {} failed", remoteEp, e);
         }
     }
 
