@@ -15,14 +15,21 @@
  */
 package org.onosproject.routing.impl;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.googlecode.concurrenttrees.common.KeyValuePair;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -47,20 +54,14 @@ import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.googlecode.concurrenttrees.common.KeyValuePair;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 
 /**
  * This class processes route updates and maintains a Routing Information Base
@@ -163,7 +164,7 @@ public class Router implements RoutingService {
         try {
             routeUpdatesQueue.put(routeUpdates);
         } catch (InterruptedException e) {
-            log.debug("Interrupted while putting on routeUpdatesQueue", e);
+            log.error("Interrupted while putting on routeUpdatesQueue", e);
             Thread.currentThread().interrupt();
         }
     }
@@ -180,10 +181,10 @@ public class Router implements RoutingService {
                         routeUpdatesQueue.take();
                     processRouteUpdates(routeUpdates);
                 } catch (InterruptedException e) {
-                    log.debug("Interrupted while taking from updates queue", e);
+                    log.error("Interrupted while taking from updates queue", e);
                     interrupted = true;
                 } catch (Exception e) {
-                    log.debug("exception", e);
+                    log.error("exception", e);
                 }
             }
         } finally {
@@ -198,6 +199,7 @@ public class Router implements RoutingService {
      *
      * @return all IPv4 routes from the RIB
      */
+    @Override
     public Collection<RouteEntry> getRoutes4() {
         Iterator<KeyValuePair<RouteEntry>> it =
             ribTable4.getKeyValuePairsForKeysStartingWith("").iterator();
@@ -217,6 +219,7 @@ public class Router implements RoutingService {
      *
      * @return all IPv6 routes from the RIB
      */
+    @Override
     public Collection<RouteEntry> getRoutes6() {
         Iterator<KeyValuePair<RouteEntry>> it =
             ribTable6.getKeyValuePairsForKeysStartingWith("").iterator();

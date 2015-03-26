@@ -29,6 +29,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -145,10 +147,14 @@ public class BgpRouter {
 
     private InternalTableHandler provisionStaticTables = new InternalTableHandler();
 
-    private KryoNamespace.Builder appKryo = new KryoNamespace.Builder()
+    private KryoNamespace appKryo = new KryoNamespace.Builder()
                     .register(IpAddress.Version.class)
                     .register(IpAddress.class)
-                    .register(NextHopGroupKey.class);
+                    .register(Ip4Address.class)
+                    .register(Ip6Address.class)
+                    .register(byte[].class)
+                    .register(NextHopGroupKey.class)
+                    .build();
 
     @Activate
     protected void activate() {
@@ -219,7 +225,7 @@ public class BgpRouter {
                 NextHop nextHop = nextHops.get(entry.nextHopIp());
                 group = groupService.getGroup(deviceId,
                                               new DefaultGroupKey(
-                                              appKryo.build().serialize(nextHop.group())));
+                                              appKryo.serialize(nextHop.group())));
 
                 if (group == null) {
                     log.debug("Adding pending flow {}", update.entry());
@@ -317,8 +323,8 @@ public class BgpRouter {
                     = new DefaultGroupDescription(deviceId,
                                                   GroupDescription.Type.INDIRECT,
                                                   new GroupBuckets(Collections
-                                                                           .singletonList(bucket)),
-                                                  new DefaultGroupKey(appKryo.build().serialize(groupKey)),
+                                                           .singletonList(bucket)),
+                                                  new DefaultGroupKey(appKryo.serialize(groupKey)),
                                                   appId);
 
             groupService.addGroup(groupDescription);
@@ -340,7 +346,6 @@ public class BgpRouter {
 
         Group group = groupService.getGroup(deviceId,
                                             new DefaultGroupKey(appKryo.
-                                                                build().
                                                                 serialize(nextHop.group())));
 
         // FIXME disabling group deletes for now until we verify the logic is OK
@@ -714,7 +719,7 @@ public class BgpRouter {
                 synchronized (pendingUpdates) {
 
                     NextHopGroupKey nhGroupKey =
-                            appKryo.build().deserialize(group.appCookie().key());
+                            appKryo.deserialize(group.appCookie().key());
                     Map<FibEntry, Group> entriesToInstall =
                             pendingUpdates.removeAll(nhGroupKey)
                                     .stream()
