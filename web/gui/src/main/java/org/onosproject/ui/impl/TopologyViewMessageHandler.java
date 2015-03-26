@@ -566,6 +566,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Adds all internal listeners.
     private void addListeners() {
+        listenersRemoved = false;
         clusterService.addListener(clusterListener);
         mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);

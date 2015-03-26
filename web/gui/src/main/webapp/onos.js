@@ -38,6 +38,7 @@
         // {INJECTED-VIEW-IDS-START}
         'topo',
         'device',
+        'host',
         'sample',
         // {INJECTED-VIEW-IDS-END}
 

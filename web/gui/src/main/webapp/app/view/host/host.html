@@ -1,0 +1,42 @@
+<!-- Host partial HTML -->
+<div id="ov-host">
+    <h2>Hosts ({{ctrl.hostData.length}} total)</h2>
+    <table class="summary-list"
+           onos-fixed-header
+           onos-sortable-header
+           sort-callback="sortCallback(urlSuffix)">
+        <thead>
+            <tr>
+                <th colId="available"></th>
+                <th colId="type"></th>
+                <th colId="id" sortable>Host ID </th>
+                <th colId="mfr" sortable>Vendor </th>
+                <th colId="hw" sortable>H/W Version </th>
+                <th colId="sw" sortable>S/W Version </th>
+                <th colId="chassisid" sortable>Chassis ID </th>
+                <th colId="serial" sortable>Serial # </th>
+                <th colId="protocol" sortable>Protocol </th>
+            </tr>
+        </thead>
+
+        <tbody>
+        <tr ng-repeat="host in ctrl.hostData"
+            ng-repeat-done>
+            <td class="table-icon">
+                <div icon icon-id="{{host._iconid_available}}"></div>
+            </td>
+            <td class="table-icon">
+                <div icon icon-id="{{host._iconid_type}}"></div>
+            </td>
+            <td>{{host.id}}</td>
+            <td>{{host.mfr}}</td>
+            <td>{{host.hw}}</td>
+            <td>{{host.sw}}</td>
+            <td>{{host.chassisid}}</td>
+            <td>{{host.serial}}</td>
+            <td>{{host.protocol}}</td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>

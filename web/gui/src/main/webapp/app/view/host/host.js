@@ -15,22 +15,22 @@
  */
 
 /*
- ONOS GUI -- Device View Module
+ ONOS GUI -- Host View Module
  */
 
 (function () {
     'use strict';
 
-    angular.module('ovDevice', [])
-    .controller('OvDeviceCtrl',
+    angular.module('ovHost', [])
+    .controller('OvHostCtrl',
         ['$log', '$scope', '$location', 'WebSocketService',
 
         function ($log, $scope, $location, wss) {
             var self = this;
-            self.deviceData = [];
+            self.hostData = [];
 
             $scope.responseCallback = function(data) {
-                self.deviceData = data.devices;
+                self.hostData = data.devices;
                 $scope.$apply();
             };
 
@@ -40,11 +40,11 @@
                     urlSuffix = '';
                 }
                 var payload = { sortCol: 'id', sortDir: 'asc' };
-                wss.sendEvent('deviceDataRequest', payload);
+                wss.sendEvent('hostDataRequest', payload);
             };
 
             var handlers = {
-                deviceDataResponse: $scope.responseCallback
+                hostDataResponse: $scope.responseCallback
             };
             wss.bindHandlers(handlers);
 
@@ -53,9 +53,8 @@
                 wss.unbindHandlers(handlers);
             });
 
-            $log.log('OvDeviceCtrl has been created');
+            $log.log('OvHostCtrl has been created');
 
             $scope.sortCallback();
-
         }]);
 }());

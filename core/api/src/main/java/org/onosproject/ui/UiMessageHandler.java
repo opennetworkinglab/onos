@@ -29,6 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * interface client.
  * <p>
  * The message is a JSON object with the following structure:
+ * </p>
  * <pre>
  * {
  *     "type": "<em>event-type</em>",
@@ -45,7 +46,9 @@ public abstract class UiMessageHandler {
     private UiConnection connection;
     private ServiceDirectory directory;
 
-    /** Mapper for creating ObjectNodes and ArrayNodes etc. */
+    /**
+     * Mapper for creating ObjectNodes and ArrayNodes etc.
+     */
     protected final ObjectMapper mapper = new ObjectMapper();
 
     /**
@@ -129,8 +132,8 @@ public abstract class UiMessageHandler {
      * Wraps a message payload into an event structure for the given event
      * type and sequence ID. Generally the
      *
-     * @param type event type
-     * @param sid sequence ID
+     * @param type    event type
+     * @param sid     sequence ID
      * @param payload event payload
      * @return the object node representation
      */
@@ -142,6 +145,50 @@ public abstract class UiMessageHandler {
         }
         event.set("payload", payload);
         return event;
+    }
+
+    /**
+     * Retrieves the payload from the specified event.
+     *
+     * @param event message event
+     * @return extracted payload object
+     */
+    protected ObjectNode payload(ObjectNode event) {
+        return (ObjectNode) event.path("payload");
+    }
+
+    /**
+     * Returns the specified node property as a number.
+     *
+     * @param node message event
+     * @param name property name
+     * @return property as number
+     */
+    protected long number(ObjectNode node, String name) {
+        return node.path(name).asLong();
+    }
+
+    /**
+     * Returns the specified node property as a string.
+     *
+     * @param node message event
+     * @param name property name
+     * @return property as a string
+     */
+    protected String string(ObjectNode node, String name) {
+        return node.path(name).asText();
+    }
+
+    /**
+     * Returns the specified node property as a string with a default fallback.
+     *
+     * @param node         message event
+     * @param name         property name
+     * @param defaultValue fallback value if property is absent
+     * @return property as a string
+     */
+    protected String string(ObjectNode node, String name, String defaultValue) {
+        return node.path(name).asText(defaultValue);
     }
 
 }
