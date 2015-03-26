@@ -38,47 +38,51 @@
             font-family: Arial, Helvetica, sans-serif;
             font-size: 9pt;
             margin: 0;
+            overflow: hidden;
         }
         .button {
             fill: #369;
-            /* TODO: figure out why svg filters are not working */
-            /* is it because there is an invisible rectangle behind it? */
-            /*filter: url(#innerbevel);*/
+            filter: url(#buttonBevel);
         }
         svg text {
             fill: white;
             letter-spacing: .005em;
         }
-        defs {
-            display: none;
-        }
     </style>
 </head>
 
 <body ng-app="svgExercise">
+
 <div id="svgExDiv" ng-controller="svgExCtrl as ctrl">
     <improve-performance></improve-performance>
 </div>
 
-<svg>
-    <defs>
-        <filter id="innerbevel" x0="-50%" y0="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-            <feOffset dy="-1" dx="-1"/>
-            <feComposite in2="SourceAlpha" operator="arithmetic"
-                         k2="-1" k3="1" result="hlDiff"/>
-            <feFlood flood-color="white" flood-opacity=".7"/>
-            <feComposite in2="hlDiff" operator="in"/>
-            <feComposite in2="SourceGraphic" operator="over" result="withGlow"/>
-
-            <feOffset in="blur" dy="3" dx="3"/>
-            <feComposite in2="SourceAlpha" operator="arithmetic"
-                         k2="-1" k3="1" result="shadowDiff"/>
-            <feFlood flood-color="black" flood-opacity="1"/>
-            <feComposite in2="shadowDiff" operator="in"/>
-            <feComposite in2="withGlow" operator="over"/>
-        </filter>
-    </defs>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="-10 -10 110 110"
+     visibility="hidden">
+    <filter id="buttonBevel"
+            filterUnits="objectBoundingBox"
+            x="-10%" y="-10%" width="110%" height="110%">
+        <feGaussianBlur in="SourceAlpha"
+                        stdDeviation="4"
+                        result="blur"/>
+        <feSpecularLighting in="blur"
+                            surfaceScale="7"
+                            specularConstant="0.6"
+                            specularExponent="5"
+                            result="spec"
+                            lighting-color="#4E7199">
+            <fePointLight x="-5000" y="-10000" z="20000"/>
+        </feSpecularLighting>
+        <feComposite in="spec"
+                     in2="SourceAlpha"
+                     operator="in"
+                     result="spec2"/>
+        <feComposite in="SourceGraphic"
+                     in2="spec2"
+                     operator="arithmetic"
+                     k1="0" k2="1" k3="1" k4="0" />
+    </filter>
 </svg>
 
 </body>

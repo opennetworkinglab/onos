@@ -27,9 +27,9 @@
     // constants
     var btnWidth = 175,
         btnHeight = 50,
-        hoverZone = 60,
+        hoverZone = 70,
         sectorDivisions = 3,
-        pageMargin = 10;
+        margin = 10;
 
     // svg elements
     var svg, g;
@@ -44,36 +44,6 @@
 
     function centeredOnWindow(axis, dim) {
         return (axis / 2) - (dim / 2);
-    }
-
-    function showSectors() {
-        for (var i = 1; i < 5; i++) {
-            var j;
-            if (i < 3) {
-                j = i;
-                svg.append('line')
-                    .attr({
-                        x1: sectorWidth * j,
-                        x2: sectorWidth * j,
-                        y1: 0,
-                        y2: winHeight,
-                        stroke: 'red',
-                        'stroke-width': '3px'
-                    });
-            }
-            else {
-                j = i - 2;
-                svg.append('line')
-                    .attr({
-                        x1: 0,
-                        x2: winWidth,
-                        y1: sectorHeight * j,
-                        y2: sectorHeight * j,
-                        stroke: 'red',
-                        'stroke-width': '3px'
-                    });
-            }
-        }
     }
 
     function onMouseMove() {
@@ -91,22 +61,21 @@
 
     function selectSector() {
         var sector, row, col,
-            currSectorCol = currSector % sectorDivisions;
+            currCol = currSector % sectorDivisions;
 
         do {
             sector = Math.floor((Math.random() * 9));
             col = sector % sectorDivisions;
-        } while (col === currSectorCol);
+        } while (col === currCol);
         currSector = sector;
         row = Math.floor(sector / sectorDivisions);
 
-        // active area is the coordinates of the sector, plus or minus a margin
         return {
-            xmin: (sectorWidth * col) + pageMargin,
-            xmax: ((sectorWidth * col) + sectorWidth) - pageMargin,
-            ymin: (sectorHeight * row) + pageMargin,
-            ymax: ((sectorHeight * row) + sectorHeight) - pageMargin
-        }
+            xmin: (sectorWidth * col) + margin,
+            xmax: ((sectorWidth * col) + sectorWidth) - margin,
+            ymin: (sectorHeight * row) + margin,
+            ymax: ((sectorHeight * row) + sectorHeight) - margin
+        };
     }
 
     function selectXY(sectorCoords) {
@@ -122,7 +91,7 @@
         return {
             x: x,
             y: y
-        }
+        };
     }
 
     function gTranslate(x, y) {
@@ -163,32 +132,33 @@
                             height: winHeight + 'px'
                         });
 
-                    //showSectors();
                     g = svg.append('g');
 
-                    var button = g.append('rect')
+                    g.append('rect')
                             .attr({
                                 width: btnWidth + 'px',
                                 height: btnHeight + 'px',
                                 rx: '10px',
                                 'class': 'button'
-                            }),
-                        text = g.append('text')
-                            .style('text-anchor', 'middle')
-                            .text('Click for better performance.')
-                            .attr({
-                                x: btnWidth / 2,
-                                y: (btnHeight / 2) + 5
-                            }),
-                        rect = g.append('rect')
-                            .attr({
-                                fill: 'none',
-                                'pointer-events': 'all',
-                                width: btnWidth + hoverZone + 'px',
-                                height: btnHeight + hoverZone + 'px',
-                                x: -(hoverZone / 2),
-                                y: -(hoverZone / 2)
                             });
+
+                    g.append('text')
+                        .style('text-anchor', 'middle')
+                        .text('Click for better performance.')
+                        .attr({
+                            x: btnWidth / 2,
+                            y: (btnHeight / 2) + 5
+                        });
+
+                    g.append('rect')
+                        .attr({
+                            fill: 'none',
+                            'pointer-events': 'all',
+                            width: btnWidth + hoverZone + 'px',
+                            height: btnHeight + hoverZone + 'px',
+                            x: -(hoverZone / 2),
+                            y: -(hoverZone / 2)
+                        });
                     g.attr('transform',
                         gTranslate(centeredOnWindow(winWidth, btnWidth),
                                    centeredOnWindow(winHeight, btnHeight)));
