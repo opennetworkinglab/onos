@@ -108,8 +108,7 @@ public class TopologyMetrics implements TopologyMetricsService {
 
     @Activate
     protected void activate() {
-        appId =
-            coreService.registerApplication("org.onosproject.metrics.topology");
+        appId = coreService.registerApplication("org.onosproject.metrics");
 
         clear();
         registerMetrics();

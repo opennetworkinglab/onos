@@ -88,8 +88,7 @@ public class IntentMetrics implements IntentMetricsService,
 
     @Activate
     protected void activate() {
-        appId =
-            coreService.registerApplication("org.onosproject.metrics.intent");
+        appId = coreService.registerApplication("org.onosproject.metrics");
 
         clear();
         registerMetrics();

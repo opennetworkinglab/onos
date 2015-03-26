@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
@@ -41,6 +42,11 @@ public class ApplicationsListCommand extends AbstractShellCommand {
             "%s id=%d, name=%s, version=%s, origin=%s, description=%s, " +
                     "features=%s, featuresRepo=%s, permissions=%s";
 
+    @Option(name = "-a", aliases = "--active", description = "Show active only",
+            required = false, multiValued = false)
+    private boolean activeOnly = false;
+
+
     @Override
     protected void execute() {
         ApplicationService service = get(ApplicationService.class);
@@ -51,11 +57,14 @@ public class ApplicationsListCommand extends AbstractShellCommand {
             print("%s", json(service, apps));
         } else {
             for (Application app : apps) {
-                print(FMT, service.getState(app.id()) == ACTIVE ? "*" : " ",
-                      app.id().id(), app.id().name(), app.version(), app.origin(),
-                      app.description(), app.features(),
-                      app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
-                      app.permissions());
+                boolean isActive = service.getState(app.id()) == ACTIVE;
+                if (activeOnly && isActive || !activeOnly) {
+                    print(FMT, isActive ? "*" : " ",
+                          app.id().id(), app.id().name(), app.version(), app.origin(),
+                          app.description(), app.features(),
+                          app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
+                          app.permissions());
+                }
             }
         }
     }
@@ -64,7 +73,10 @@ public class ApplicationsListCommand extends AbstractShellCommand {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (Application app : apps) {
-            result.add(json(service, mapper, app));
+            boolean isActive = service.getState(app.id()) == ACTIVE;
+            if (activeOnly && isActive || !activeOnly) {
+                result.add(json(service, mapper, app));
+            }
         }
         return result;
     }

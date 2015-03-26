@@ -29,7 +29,6 @@
             <completers>
                 <ref component-id="appCommandCompleter"/>
                 <ref component-id="appNameCompleter"/>
-                <null/>
             </completers>
         </command>
 

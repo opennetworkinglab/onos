@@ -15,10 +15,12 @@ case $cmd in
     list) $curl -X GET $URL;;
     install) $curl -X POST $HDR $URL --data-binary @$app;;
     install!) $curl -X POST $HDR $URL?activate=true --data-binary @$app;;
+    reinstall) $curl -X DELETE $URL/$app && $curl -X POST $HDR $URL --data-binary @$app;;
+    reinstall!) $curl -X DELETE $URL/$app && $curl -X POST $HDR $URL?activate=true --data-binary @$app;;
     uninstall) $curl -X DELETE $URL/$app;;
     activate) $curl -X POST $URL/$app/active;;
     deactivate) $curl -X DELETE $URL/$app/active;;
-    *) echo "usage: onos-app {install|install!} <app-file>" >&2
+    *) echo "usage: onos-app {install|install!|reinstall|reinstall!} <app-file>" >&2
        echo "       onos-app {activate|deactivate|uninstall} <app-name>" >&2
        exit 1;;
 esac

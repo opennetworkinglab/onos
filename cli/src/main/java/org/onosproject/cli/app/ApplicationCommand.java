@@ -38,9 +38,9 @@ public class ApplicationCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String command = null;
 
-    @Argument(index = 1, name = "name", description = "Application name",
-            required = true, multiValued = false)
-    String name = null;
+    @Argument(index = 1, name = "names", description = "Application name(s)",
+            required = true, multiValued = true)
+    String[] names = null;
 
     @Override
     protected void execute() {
@@ -49,20 +49,22 @@ public class ApplicationCommand extends AbstractShellCommand {
             print("Not supported via CLI yet.");
 
         } else {
-            ApplicationId appId = service.getId(name);
-            if (appId == null) {
-                print("No such application: %s", name);
-                return;
-            }
+            for (String name : names) {
+                ApplicationId appId = service.getId(name);
+                if (appId == null) {
+                    print("No such application: %s", name);
+                    return;
+                }
 
-            if (command.equals(UNINSTALL)) {
-                service.uninstall(appId);
-            } else if (command.equals(ACTIVATE)) {
-                service.activate(appId);
-            } else if (command.equals(DEACTIVATE)) {
-                service.deactivate(appId);
-            } else {
-                print("Unsupported command: %s", command);
+                if (command.equals(UNINSTALL)) {
+                    service.uninstall(appId);
+                } else if (command.equals(ACTIVATE)) {
+                    service.activate(appId);
+                } else if (command.equals(DEACTIVATE)) {
+                    service.deactivate(appId);
+                } else {
+                    print("Unsupported command: %s", command);
+                }
             }
         }
     }
