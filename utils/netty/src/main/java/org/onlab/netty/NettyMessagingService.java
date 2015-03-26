@@ -200,12 +200,12 @@ public class NettyMessagingService implements MessagingService {
 
     @Override
     public void registerHandler(String type, MessageHandler handler) {
-        handlers.putIfAbsent(type, handler);
+        handlers.put(type, handler);
     }
 
     @Override
     public void registerHandler(String type, MessageHandler handler, ExecutorService executor) {
-        handlers.putIfAbsent(type, new MessageHandler() {
+        handlers.put(type, new MessageHandler() {
             @Override
             public void handle(Message message) throws IOException {
                 executor.submit(() -> {
