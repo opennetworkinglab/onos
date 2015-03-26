@@ -31,9 +31,9 @@ import static org.onlab.junit.TestTools.delay;
  */
 public class AcceptorLoopTest extends AbstractLoopTest {
 
-    private static final int PORT = 9876;
+    private static final int PICK_EPHEMERAL = 0;
 
-    private static final SocketAddress SOCK_ADDR = new InetSocketAddress("127.0.0.1", PORT);
+    private static final SocketAddress SOCK_ADDR = new InetSocketAddress("127.0.0.1", PICK_EPHEMERAL);
 
     private static class MyAcceptLoop extends AcceptorLoop {
         private final CountDownLatch loopStarted = new CountDownLatch(1);
@@ -73,7 +73,6 @@ public class AcceptorLoopTest extends AbstractLoopTest {
     }
 
     @Test
-//    @Ignore("Doesn't shut down the socket")
     public void basic() throws IOException {
         MyAcceptLoop myAccLoop = new MyAcceptLoop();
         AcceptorLoop accLoop = myAccLoop;
