@@ -80,7 +80,7 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
             rules.add(rule);
         }
 
-        return Arrays.asList(new FlowRuleIntent(appId, rules));
+        return Arrays.asList(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
 
     private FlowRule createFlowRule(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
