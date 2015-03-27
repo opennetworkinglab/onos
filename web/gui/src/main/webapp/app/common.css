@@ -47,6 +47,7 @@ table.summary-list th {
     padding: 10px;
     letter-spacing: 0.02em;
     text-align: left;
+    cursor: pointer;
 }
 table.summary-list th:first-child {
     border-radius: 8px 0 0 0;

@@ -18,6 +18,6 @@
  ONOS GUI -- Host View -- CSS file
  */
 
-#ov-host th {
-    cursor: pointer;
+#ov-host td {
+    padding: 12px 10px;
 }
