@@ -330,18 +330,23 @@ public class IntentTestsMocks {
             new IntentTestsMocks.MockTreatment();
 
     public static class MockFlowRule implements FlowRule {
+        static int nextId = 0;
 
         int priority;
         Type type;
+        long timestamp;
+        int id;
 
         public MockFlowRule(int priority) {
             this.priority = priority;
             this.type = Type.DEFAULT;
+            this.timestamp = System.currentTimeMillis();
+            this.id = nextId++;
         }
 
         @Override
         public FlowId id() {
-            return FlowId.valueOf(1);
+            return FlowId.valueOf(id);
         }
 
         @Override
@@ -398,7 +403,8 @@ public class IntentTestsMocks {
                 return false;
             }
             final MockFlowRule other = (MockFlowRule) obj;
-            return Objects.equals(this.priority, other.priority);
+            return Objects.equals(this.timestamp, other.timestamp) &&
+                   this.id == other.id;
         }
 
         @Override

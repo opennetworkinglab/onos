@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -57,6 +59,7 @@ import com.google.common.collect.Sets;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -164,6 +167,18 @@ public class IntentManagerTest {
         }
     }
 
+    private static class TestIntentCompilerMultipleFlows implements IntentCompiler<MockIntent> {
+        @Override
+        public List<Intent> compile(MockIntent intent, List<Intent> installable,
+                                    Set<LinkResourceAllocations> resources) {
+
+            return IntStream.rangeClosed(1, 5)
+                            .mapToObj(mock -> (new MockInstallableIntent()))
+                            .collect(Collectors.toList());
+        }
+    }
+
+
     private static class TestIntentCompilerError implements IntentCompiler<MockIntent> {
         @Override
         public List<Intent> compile(MockIntent intent, List<Intent> installable,
@@ -173,7 +188,7 @@ public class IntentManagerTest {
     }
 
     /**
-     * Hamcrest matcher to check that a conllection of Intents contains an
+     * Hamcrest matcher to check that a collection of Intents contains an
      * Intent with the specified Intent Id.
      */
     public static class EntryForIntentMatcher extends TypeSafeMatcher<Collection<Intent>> {
@@ -375,7 +390,6 @@ public class IntentManagerTest {
      * Tests handling a future that contains an unresolvable error as a result of
      * installing an intent.
      */
-    @Ignore("test needs to be rewritten, so that the intent is resubmitted")
     @Test
     public void errorIntentInstallNeverTrue() {
         final Long id = MockIntent.nextId();
@@ -488,5 +502,79 @@ public class IntentManagerTest {
         assertThat(intents, hasIntentWithId(intent1.id()));
         assertThat(intents, hasIntentWithId(intent2.id()));
         verifyState();
+    }
+
+    /**
+     * Tests that removing all intents results in no flows remaining.
+     */
+    @Test
+    public void testFlowRemoval() {
+        List<Intent> intents;
+
+        flowRuleService.setFuture(true);
+
+        intents = Lists.newArrayList(service.getIntents());
+        assertThat(intents, hasSize(0));
+
+        final MockIntent intent1 = new MockIntent(MockIntent.nextId());
+        final MockIntent intent2 = new MockIntent(MockIntent.nextId());
+
+        listener.setLatch(1, Type.INSTALL_REQ);
+        listener.setLatch(1, Type.INSTALLED);
+
+        service.submit(intent1);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.INSTALLED);
+
+
+        listener.setLatch(1, Type.INSTALL_REQ);
+        listener.setLatch(1, Type.INSTALLED);
+
+        service.submit(intent2);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.INSTALLED);
+
+        assertThat(listener.getCounts(Type.INSTALLED), is(2));
+        assertThat(flowRuleService.getFlowRuleCount(), is(2));
+
+        listener.setLatch(1, Type.WITHDRAWN);
+        service.withdraw(intent1);
+        listener.await(Type.WITHDRAWN);
+
+        listener.setLatch(1, Type.WITHDRAWN);
+        service.withdraw(intent2);
+        listener.await(Type.WITHDRAWN);
+
+        assertThat(listener.getCounts(Type.WITHDRAWN), is(2));
+        assertThat(flowRuleService.getFlowRuleCount(), is(0));
+    }
+
+    /**
+     * Tests that an intent that fails installation results in no flows remaining.
+     */
+    @Test
+    @Ignore("Cleanup state is not yet implemented in the intent manager")
+    public void testFlowRemovalInstallError() {
+        final TestIntentCompilerMultipleFlows errorCompiler = new TestIntentCompilerMultipleFlows();
+        extensionService.registerCompiler(MockIntent.class, errorCompiler);
+        List<Intent> intents;
+
+        flowRuleService.setFuture(true);
+        flowRuleService.setErrorFlow(3);
+
+        intents = Lists.newArrayList(service.getIntents());
+        assertThat(intents, hasSize(0));
+
+        final MockIntent intent1 = new MockIntent(MockIntent.nextId());
+
+        listener.setLatch(1, Type.INSTALL_REQ);
+        listener.setLatch(1, Type.FAILED);
+
+        service.submit(intent1);
+        listener.await(Type.INSTALL_REQ);
+        listener.await(Type.FAILED);
+
+        assertThat(listener.getCounts(Type.FAILED), is(1));
+        assertThat(flowRuleService.getFlowRuleCount(), is(0));
     }
 }

@@ -34,6 +34,11 @@ public class MockFlowRuleService extends FlowRuleServiceAdapter {
     final Set<FlowRule> flows = Sets.newHashSet();
     boolean success;
 
+    int errorFlow = -1;
+    public void setErrorFlow(int errorFlow) {
+        this.errorFlow = errorFlow;
+    }
+
     public void setFuture(boolean success) {
         this.success = success;
     }
@@ -41,16 +46,20 @@ public class MockFlowRuleService extends FlowRuleServiceAdapter {
     @Override
     public void apply(FlowRuleOperations ops) {
         ops.stages().forEach(stage -> stage.forEach(flow -> {
-            switch (flow.type()) {
-                case ADD:
-                case MODIFY: //TODO is this the right behavior for modify?
-                    flows.add(flow.rule());
-                    break;
-                case REMOVE:
-                    flows.remove(flow.rule());
-                    break;
-                default:
-                    break;
+            if (errorFlow == flow.rule().id().value()) {
+                success = false;
+            } else {
+                switch (flow.type()) {
+                    case ADD:
+                    case MODIFY: //TODO is this the right behavior for modify?
+                        flows.add(flow.rule());
+                        break;
+                    case REMOVE:
+                        flows.remove(flow.rule());
+                        break;
+                    default:
+                        break;
+                }
             }
         }));
         if (success) {

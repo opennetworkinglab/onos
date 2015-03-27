@@ -99,19 +99,19 @@ public class SimpleIntentStore
             IntentData pendingData = pending.get(newData.key());
 
             if (IntentData.isUpdateAcceptable(currentData, newData)) {
-                if (pendingData.state() == PURGE_REQ) {
-                    current.remove(newData.key(), newData);
-                } else {
-                    current.put(newData.key(), new IntentData(newData));
-                }
+                if (pendingData != null) {
+                    if (pendingData.state() == PURGE_REQ) {
+                        current.remove(newData.key(), newData);
+                    } else {
+                        current.put(newData.key(), new IntentData(newData));
+                    }
 
-                if (pendingData != null
+                    if (pendingData.version().compareTo(newData.version()) <= 0) {
                         // pendingData version is less than or equal to newData's
                         // Note: a new update for this key could be pending (it's version will be greater)
-                        && pendingData.version().compareTo(newData.version()) <= 0) {
-                    pending.remove(newData.key());
+                        pending.remove(newData.key());
+                    }
                 }
-
                 notifyDelegateIfNotNull(IntentEvent.getEvent(newData));
             }
         }
