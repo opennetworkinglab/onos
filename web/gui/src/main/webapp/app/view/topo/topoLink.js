@@ -23,34 +23,35 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, ts, flash;
+    var $log, fs, sus, ts, flash, tss, tps;
 
+    // internal state
     var api,
         td3,
         network,
-        enhancedLink = null;    // the link which the mouse is hovering over
+        showPorts = true,       // enable port highlighting by default
+        enhancedLink = null,    // the link over which the mouse is hovering
+        selectedLink = null;    // the link which is currently selected
 
     // SVG elements;
     var svg;
 
-    // internal state
-    var showPorts = true;       // enable port highlighting by default
-
 
     // ======== ALGORITHM TO FIND LINK CLOSEST TO MOUSE ========
 
-    function mouseMoveHandler() {
-        var m = d3.mouse(this),
+    function getLogicalMousePosition(container) {
+        var m = d3.mouse(container),
             sc = api.zoomer.scale(),
             tr = api.zoomer.translate(),
             mx = (m[0] - tr[0]) / sc,
             my = (m[1] - tr[1]) / sc;
-        computeNearestLink({x: mx, y: my});
+        return {x: mx, y: my};
     }
 
     function computeNearestLink(mouse) {
         var proximity = 30 / api.zoomer.scale(),
-            nearest, minDist;
+            nearest = null,
+            minDist;
 
         function sq(x) { return x * x; }
 
@@ -91,7 +92,6 @@
         }
 
         if (network.links.length) {
-            nearest = null;
             minDist = proximity * 2;
 
             network.links.forEach(function (d) {
@@ -112,13 +112,11 @@
                     }
                 }
             });
-
-            enhanceNearestLink(nearest);
         }
+        return nearest;
     }
 
-
-    function enhanceNearestLink(ldata) {
+    function enhanceLink(ldata) {
         // if the new link is same as old link, do nothing
         if (enhancedLink && ldata && enhancedLink.key === ldata.key) return;
 
@@ -148,7 +146,6 @@
         if (!d.el) return;
 
         d.el.classed('enhanced', true);
-        $log.debug('[' + (d.srcPort || 'H') + '] ---> [' + d.tgtPort + ']', d.key);
 
         // Define port label data objects.
         // NOTE: src port is absent in the case of host-links.
@@ -188,6 +185,62 @@
         return {x: k * dx + ln.x, y: k * dy + ln.y};
     }
 
+
+    function selectLink(ldata) {
+        // if the new link is same as old link, do nothing
+        if (selectedLink && ldata && selectedLink.key === ldata.key) return;
+
+        // make sure no nodes are selected
+        tss.deselectAll();
+
+        // first, unenhance the currently enhanced link
+        if (selectedLink) {
+            unselLink(selectedLink);
+        }
+        selectedLink = ldata;
+        if (selectedLink) {
+            selLink(selectedLink);
+        }
+    }
+
+    function unselLink(d) {
+        // guard against link element not set
+        if (d.el) {
+            d.el.classed('selected', false);
+        }
+    }
+
+    function selLink(d) {
+        // guard against link element not set
+        if (!d.el) return;
+
+        d.el.classed('selected', true);
+
+        tps.displayLink(d);
+        tps.displaySomething();
+    }
+
+    // ====== MOUSE EVENT HANDLERS ======
+
+    function mouseMoveHandler() {
+        var mp = getLogicalMousePosition(this),
+            link = computeNearestLink(mp);
+        enhanceLink(link);
+    }
+
+    function mouseClickHandler() {
+        var mp, link;
+
+        if (!tss.clickConsumed()) {
+            mp = getLogicalMousePosition(this);
+            link = computeNearestLink(mp);
+            selectLink(link);
+        }
+    }
+
+
+    // ======================
+
     function togglePorts() {
         showPorts = !showPorts;
 
@@ -195,10 +248,19 @@
             handler = showPorts ? mouseMoveHandler : null;
 
         if (!showPorts) {
-            enhanceNearestLink(null);
+            enhanceLink(null);
         }
         svg.on('mousemove', handler);
         flash.flash(what + ' port highlighting');
+    }
+
+    function deselectLink() {
+        if (selectedLink) {
+            unselLink(selectedLink);
+            selectedLink = null;
+            return true;
+        }
+        return false;
     }
 
     // ==========================
@@ -207,13 +269,16 @@
     angular.module('ovTopo')
         .factory('TopoLinkService',
         ['$log', 'FnService', 'SvgUtilService', 'ThemeService', 'FlashService',
+            'TopoSelectService', 'TopoPanelService',
 
-        function (_$log_, _fs_, _sus_, _ts_, _flash_) {
+        function (_$log_, _fs_, _sus_, _ts_, _flash_, _tss_, _tps_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
             ts = _ts_;
             flash = _flash_;
+            tss = _tss_;
+            tps = _tps_;
 
             function initLink(_api_, _td3_) {
                 api = _api_;
@@ -223,17 +288,20 @@
                 if (showPorts) {
                     svg.on('mousemove', mouseMoveHandler);
                 }
+                svg.on('click', mouseClickHandler);
             }
 
             function destroyLink() {
-                // unconditionally remove any mousemove event handler
+                // unconditionally remove any event handlers
                 svg.on('mousemove', null);
+                svg.on('click', null);
             }
 
             return {
                 initLink: initLink,
                 destroyLink: destroyLink,
-                togglePorts: togglePorts
+                togglePorts: togglePorts,
+                deselectLink: deselectLink
             };
         }]);
 }());

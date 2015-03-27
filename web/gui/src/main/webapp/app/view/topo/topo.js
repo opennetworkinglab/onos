@@ -29,7 +29,7 @@
 
     // references to injected services etc.
     var $log, fs, ks, zs, gs, ms, sus, flash, wss,
-        tes, tfs, tps, tis, tss, tts, tos, ttbs;
+        tes, tfs, tps, tis, tss, tls, tts, tos, ttbs;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -45,7 +45,7 @@
         actionMap = {
             I: [toggleInstances, 'Toggle ONOS instances pane'],
             O: [tps.toggleSummary, 'Toggle ONOS summary pane'],
-            D: [tss.toggleDetails, 'Disable / enable details pane'],
+            D: [tps.toggleDetails, 'Disable / enable details pane'],
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
@@ -117,9 +117,13 @@
             // if an instance is selected, cancel the affinity mapping
             tis.cancelAffinity()
 
-        } else if (tss.haveDetails()) {
+        } else if (tss.deselectAll()) {
             // else if we have node selections, deselect them all
-            tss.deselectAll();
+            // (work already done)
+
+        } else if (tls.deselectLink()) {
+            // else if we have a link selected, deselect it
+            // (work already done)
 
         } else if (tis.isVisible()) {
             // else if the Instance Panel is visible, hide it
@@ -238,12 +242,12 @@
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'WebSocketService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
-            'TopoInstService', 'TopoSelectService', 'TopoTrafficService',
-            'TopoObliqueService', 'TopoToolbarService',
+            'TopoInstService', 'TopoSelectService', 'TopoLinkService',
+            'TopoTrafficService', 'TopoObliqueService', 'TopoToolbarService',
 
-        function ($scope, _$log_, $loc, $timeout, _fs_, mast,
-                  _ks_, _zs_, _gs_, _ms_, _sus_, _flash_, _wss_,
-                  _tes_, _tfs_, _tps_, _tis_, _tss_, _tts_, _tos_, _ttbs_) {
+        function ($scope, _$log_, $loc, $timeout, _fs_, mast, _ks_, _zs_,
+                  _gs_, _ms_, _sus_, _flash_, _wss_, _tes_, _tfs_, _tps_,
+                  _tis_, _tss_, _tls_, _tts_, _tos_, _ttbs_) {
             var self = this,
                 projection,
                 dim,
@@ -273,6 +277,7 @@
             tps = _tps_;
             tis = _tis_;
             tss = _tss_;
+            tls = _tls_;
             tts = _tts_;
             tos = _tos_;
             ttbs = _ttbs_;

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, ps, gs, wss;
+    var $log, fs, ps, gs, flash, wss;
 
     // constants
     var pCls = 'topo-p',
@@ -37,6 +37,9 @@
     var summaryPanel,
         detailPanel;
 
+    // internal state
+    var useDetails = true,      // should we show details if we have 'em?
+        haveDetails = false;    // do we have details that we could show?
 
     // === -----------------------------------------------------
     // Utility functions
@@ -129,6 +132,42 @@
             .on('click', cb);
     }
 
+    function displayLink(data) {
+        detailPanel.empty();
+
+        var svg = dpa('svg'),
+            title = dpa('h2'),
+            table = dpa('table'),
+            tbody = table.append('tbody');
+
+        gs.addGlyph(svg, 'ports', 40);
+        title.text('Link');
+        listProps(tbody, {
+            propOrder: [
+                'type', '-', 'src', 'srcPort', '-', 'tgt', 'tgtPort'
+            ],
+            props: {
+                type: data.type(),
+                src: data.source.id,
+                srcPort: data.srcPort,
+                tgt: data.target.id,
+                tgtPort: data.tgtPort
+            }
+        });
+    }
+
+    function displayNothing() {
+        haveDetails = false;
+        hideDetailPanel();
+    }
+
+    function displaySomething() {
+        haveDetails = true;
+        if (useDetails) {
+            showDetailPanel();
+        }
+    }
+
     // === -----------------------------------------------------
     //  Event Handlers
 
@@ -201,6 +240,19 @@
         dp.up = function (cb) { dp._move(dp.ypos.up, cb); };
     }
 
+    function toggleDetails() {
+        useDetails = !useDetails;
+        if (useDetails) {
+            flash.flash('Enable details panel');
+            if (haveDetails) {
+                showDetailPanel();
+            }
+        } else {
+            flash.flash('Disable details panel');
+            hideDetailPanel();
+        }
+    }
+
     // ==========================
 
     function initPanels() {
@@ -223,13 +275,15 @@
 
     angular.module('ovTopo')
     .factory('TopoPanelService',
-        ['$log', 'FnService', 'PanelService', 'GlyphService', 'WebSocketService',
+        ['$log', 'FnService', 'PanelService', 'GlyphService',
+            'FlashService', 'WebSocketService',
 
-        function (_$log_, _fs_, _ps_, _gs_, _wss_) {
+        function (_$log_, _fs_, _ps_, _gs_, _flash_, _wss_) {
             $log = _$log_;
             fs = _fs_;
             ps = _ps_;
             gs = _gs_;
+            flash = _flash_;
             wss = _wss_;
 
             return {
@@ -239,13 +293,15 @@
                 showSummary: showSummary,
                 toggleSummary: toggleSummary,
 
+                toggleDetails: toggleDetails,
                 displaySingle: displaySingle,
                 displayMulti: displayMulti,
                 addAction: addAction,
+                displayLink: displayLink,
+                displayNothing: displayNothing,
+                displaySomething: displaySomething,
 
                 hideSummaryPanel: hideSummaryPanel,
-                showDetailPanel: showDetailPanel,
-                hideDetailPanel: hideDetailPanel,
 
                 detailVisible: function () { return detailPanel.isVisible(); },
                 summaryVisible: function () { return summaryPanel.isVisible(); }

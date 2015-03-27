@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, wss, tps, tts;
+    var $log, fs, wss, tps, tts;
 
     // api to topoForce
     var api;
@@ -31,14 +31,14 @@
        node()                         // get ref to D3 selection of nodes
        zoomingOrPanning( ev )
        updateDeviceColors( [dev] )
+       deselectLink()
      */
 
     // internal state
     var hovered,                // the node over which the mouse is hovering
         selections = {},        // currently selected nodes (by id)
         selectOrder = [],       // the order in which we made selections
-        haveDetails = false,    // do we have details of one or more nodes?
-        useDetails = true;      // should we show details if we have 'em?
+        consumeClick = false;   // used to coordinate with SVG click handler
 
     // ==========================
 
@@ -101,6 +101,9 @@
         }
         if (!n) return;
 
+        consumeClick = true;
+        api.deselectLink();
+
         if (ev.shiftKey && n.classed('selected')) {
             deselectObject(obj.id);
             updateDetail();
@@ -130,12 +133,17 @@
     }
 
     function deselectAll() {
+        var something = (selectOrder.length > 0);
+
         // deselect all nodes in the network...
         api.node().classed('selected', false);
         selections = {};
         selectOrder = [];
         api.updateDeviceColors();
         updateDetail();
+
+        // return true if something was selected
+        return something;
     }
 
     // === -----------------------------------------------------
@@ -162,9 +170,8 @@
     }
 
     function emptySelect() {
-        haveDetails = false;
-        tps.hideDetailPanel();
         tts.cancelTraffic();
+        tps.displayNothing();
     }
 
     function singleSelect() {
@@ -175,8 +182,6 @@
     }
 
     function multiSelect() {
-        haveDetails = true;
-
         // display the selected nodes in the detail panel
         tps.displayMulti(selectOrder);
 
@@ -192,6 +197,7 @@
 
         tts.cancelTraffic();
         tts.requestTrafficForMode();
+        tps.displaySomething();
     }
 
 
@@ -199,8 +205,6 @@
     //  Event Handlers
 
     function showDetails(data) {
-        haveDetails = true;
-
         // display the data for the single selected node
         tps.displaySingle(data);
 
@@ -212,23 +216,7 @@
             tps.addAction('Show Device Flows', tts.showDeviceLinkFlowsAction);
         }
 
-        // only show the details panel if the user hasn't "hidden" it
-        if (useDetails) {
-            tps.showDetailPanel();
-        }
-    }
-
-    function toggleDetails() {
-        useDetails = !useDetails;
-        if (useDetails) {
-            flash.flash('Enable details panel');
-            if (haveDetails) {
-                tps.showDetailPanel();
-            }
-        } else {
-            flash.flash('Disable details panel');
-            tps.hideDetailPanel();
-        }
+        tps.displaySomething();
     }
 
     function validateSelectionContext() {
@@ -239,18 +227,23 @@
         return true;
     }
 
+    function clickConsumed(x) {
+        var cc = consumeClick;
+        consumeClick = !!x;
+        return cc;
+    }
+
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
 
     angular.module('ovTopo')
     .factory('TopoSelectService',
-        ['$log', 'FnService', 'FlashService', 'WebSocketService',
+        ['$log', 'FnService', 'WebSocketService',
             'TopoPanelService', 'TopoTrafficService',
 
-        function (_$log_, _fs_, _flash_, _wss_, _tps_, _tts_) {
+        function (_$log_, _fs_, _wss_, _tps_, _tts_) {
             $log = _$log_;
             fs = _fs_;
-            flash = _flash_;
             wss = _wss_;
             tps = _tps_;
             tts = _tts_;
@@ -266,7 +259,6 @@
                 destroySelect: destroySelect,
 
                 showDetails: showDetails,
-                toggleDetails: toggleDetails,
 
                 nodeMouseOver: nodeMouseOver,
                 nodeMouseOut: nodeMouseOut,
@@ -275,9 +267,10 @@
                 deselectAll: deselectAll,
 
                 hovered: function () { return hovered; },
-                haveDetails: function () { return haveDetails; },
                 selectOrder: function () { return selectOrder; },
-                validateSelectionContext: validateSelectionContext
+                validateSelectionContext: validateSelectionContext,
+
+                clickConsumed: clickConsumed
             };
         }]);
 }());

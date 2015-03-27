@@ -615,6 +615,7 @@
         d.fixed = true;
         d3.select(this).classed('fixed', true);
         sendUpdateMeta(d);
+        tss.clickConsumed(true);
     }
 
     // predicate that indicates when dragging is active
@@ -692,7 +693,8 @@
         return {
             node: function () { return node; },
             zoomingOrPanning: zoomingOrPanning,
-            updateDeviceColors: td3.updateDeviceColors
+            updateDeviceColors: td3.updateDeviceColors,
+            deselectLink: tls.deselectLink
         };
     }
 
