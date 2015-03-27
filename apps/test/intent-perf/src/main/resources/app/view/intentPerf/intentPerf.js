@@ -71,7 +71,7 @@
         resize(dim);
 
         headers.forEach(function (h, li) {
-            // Prime the data to match the headeres and zero it out.
+            // Prime the data to match the headers and zero it out.
             data[li] = d3.range(n).map(function() { return 0 });
             theSample[li] = 0;
 
@@ -94,7 +94,7 @@
         function lineColor(li) {
             return li < headers.length - 1 ?
                 sus.cat7().getColor(li, false, ts.theme()) :
-                ts.theme() == 'light' ? '#333' : '#eee';
+                ts.theme() === 'light' ? '#333' : '#eee';
         }
 
         function tick() {
@@ -113,7 +113,8 @@
 
                     // redraw the line and slide it left
                     paths[li].attr("d", lines[li]).attr("transform", null);
-                    paths[li].transition().attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
+                    paths[li].transition()
+                        .attr("transform", "translate(" + x(now - (n - 1) * duration) + ")");
 
                     // pop the old data point off the front
                     d.shift();
@@ -211,9 +212,6 @@
         };
     }
 
-    //setInterval(function () { theSample = samples[++cs]; }, 5000);
-    //createGraph();
-
     // define the controller
 
     angular.module('ovIntentPerf', ['onosUtil'])
@@ -262,6 +260,8 @@
                 $log.log('OvIntentPerfCtrl is saying Buh-Bye!');
                 stop();
             });
+
+            $log.log('OvIntentPerfCtrl has been created');
 
             start();
         }]);
