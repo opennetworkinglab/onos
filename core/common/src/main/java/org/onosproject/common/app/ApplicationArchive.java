@@ -346,7 +346,7 @@ public class ApplicationArchive
      * @param appName application name
      * @return true if the app descriptor was updated
      */
-    private boolean updateTime(String appName) {
+    protected boolean updateTime(String appName) {
         return appFile(appName, APP_XML).setLastModified(System.currentTimeMillis());
     }
 

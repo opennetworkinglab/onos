@@ -172,9 +172,9 @@ public class GossipApplicationStore extends ApplicationArchive
      */
     private void loadFromDisk() {
         for (String name : getApplicationNames()) {
-            Application app = create(getApplicationDescription(name));
+            Application app = create(getApplicationDescription(name), false);
             if (app != null && isActive(app.id().name())) {
-                activate(app.id());
+                activate(app.id(), false);
                 // load app permissions
             }
         }
@@ -224,11 +224,14 @@ public class GossipApplicationStore extends ApplicationArchive
     @Override
     public Application create(InputStream appDescStream) {
         ApplicationDescription appDesc = saveApplication(appDescStream);
-        return create(appDesc);
+        return create(appDesc, true);
     }
 
-    private Application create(ApplicationDescription appDesc) {
+    private Application create(ApplicationDescription appDesc, boolean updateTime) {
         Application app = registerApp(appDesc);
+        if (updateTime) {
+            updateTime(app.id().name());
+        }
         apps.put(app.id(), app);
         states.put(app, INSTALLED);
         return app;
@@ -246,8 +249,15 @@ public class GossipApplicationStore extends ApplicationArchive
 
     @Override
     public void activate(ApplicationId appId) {
+        activate(appId, true);
+    }
+
+    private void activate(ApplicationId appId, boolean updateTime) {
         Application app = apps.get(appId);
         if (app != null) {
+            if (updateTime) {
+                updateTime(appId.name());
+            }
             states.put(app, ACTIVATED);
         }
     }
@@ -256,6 +266,7 @@ public class GossipApplicationStore extends ApplicationArchive
     public void deactivate(ApplicationId appId) {
         Application app = apps.get(appId);
         if (app != null) {
+            updateTime(appId.name());
             states.put(app, DEACTIVATED);
         }
     }
