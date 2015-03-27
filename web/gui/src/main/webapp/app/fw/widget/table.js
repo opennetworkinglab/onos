@@ -101,16 +101,11 @@
         prevCol.elem = thElem;
     }
 
-    function generateQueryParams() {
-        var queryString = '?sortCol=' + currCol.colId + '&sortDir=';
-
-        if(currCol.icon === 'tableColSortAsc') {
-            queryString = queryString + 'asc';
-        } else {
-            queryString = queryString + 'desc';
-        }
-
-        return queryString;
+    function sortRequestParams() {
+        return {
+            sortCol: currCol.colId,
+            sortDir: (currCol.icon === 'tableColSortAsc' ? 'asc' : 'desc')
+        };
     }
 
     angular.module('onosWidget')
@@ -171,7 +166,7 @@
                         if (thElem.attr('sortable') === '') {
                             updateSortingIcons(thElem, sortIconAPI);
                             scope.ctrlCallback({
-                                    urlSuffix: generateQueryParams()
+                                    urlSuffix: sortRequestParams()
                                 });
                         }
                     });

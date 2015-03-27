@@ -23,24 +23,19 @@
 
     angular.module('ovHost', [])
     .controller('OvHostCtrl',
-        ['$log', '$scope', '$location', 'WebSocketService',
+        ['$log', '$scope', '$location', 'FnService', 'WebSocketService',
 
-        function ($log, $scope, $location, wss) {
+        function ($log, $scope, $location, fs, wss) {
             var self = this;
             self.hostData = [];
 
             $scope.responseCallback = function(data) {
-                self.hostData = data.devices;
+                self.hostData = data.hosts;
                 $scope.$apply();
             };
 
-            $scope.sortCallback = function (urlSuffix) {
-                // FIXME: fix hardcoded sort params
-                if (!urlSuffix) {
-                    urlSuffix = '';
-                }
-                var payload = { sortCol: 'id', sortDir: 'asc' };
-                wss.sendEvent('hostDataRequest', payload);
+            $scope.sortCallback = function (requestParams) {
+                wss.sendEvent('hostDataRequest', requestParams);
             };
 
             var handlers = {
@@ -53,8 +48,8 @@
                 wss.unbindHandlers(handlers);
             });
 
-            $log.log('OvHostCtrl has been created');
-
             $scope.sortCallback();
+
+            $log.log('OvHostCtrl has been created');
         }]);
 }());

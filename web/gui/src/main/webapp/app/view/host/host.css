@@ -15,9 +15,9 @@
  */
 
 /*
- ONOS GUI -- Device View -- CSS file
+ ONOS GUI -- Host View -- CSS file
  */
 
-#ov-device th {
+#ov-host th {
     cursor: pointer;
 }

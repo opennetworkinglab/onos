@@ -143,6 +143,14 @@
         return found;
     }
 
+    function isEmptyObject(obj) {
+        var key;
+        for (key in obj) {
+            return false;
+        }
+        return true;
+    }
+
     // return the given string with the first character capitalized.
     function cap(s) {
         return s.replace(/^[a-z]/, function (m) {
@@ -166,6 +174,7 @@
                 find: find,
                 inArray: inArray,
                 removeFromArray: removeFromArray,
+                isEmptyObject: isEmptyObject,
                 cap: cap
             };
     }]);

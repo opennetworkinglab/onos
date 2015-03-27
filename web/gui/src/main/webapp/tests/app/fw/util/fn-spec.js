@@ -202,7 +202,7 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
             'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find',
-            'inArray', 'removeFromArray', 'cap'
+            'inArray', 'removeFromArray', 'isEmptyObject', 'cap'
         ])).toBeTruthy();
     });
 
@@ -323,6 +323,14 @@ describe('factory: fw/util/fn.js', function() {
         expect(array).toEqual(['x', 'z', 'z', 'y']);
         expect(fs.removeFromArray('x', array)).toBe(true);
         expect(array).toEqual(['z', 'z', 'y']);
+    });
+
+    // === Tests for isEmptyObject()
+    it('should return true if an object is empty', function () {
+        expect(fs.isEmptyObject({})).toBe(true);
+    });
+    it('should return false if an object is not empty', function () {
+        expect(fs.isEmptyObject({foo: 'bar'})).toBe(false);
     });
 
     // === Tests for cap()
