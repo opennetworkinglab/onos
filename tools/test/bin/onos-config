@@ -31,7 +31,7 @@ ssh $remote "
     sudo perl -pi -e \"s/        <name>onos</        <name>${ONOS_CELL:-onos}</g\" \
         $ONOS_INSTALL_DIR/$KARAF_DIST/etc/hazelcast.xml
 
-    echo \"onos.ip = \$(ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \
+    echo \"onos.ip = \$(sudo ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/system.properties
 
     # Drop copycat related log level for the console
