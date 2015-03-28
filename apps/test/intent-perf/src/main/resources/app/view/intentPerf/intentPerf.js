@@ -50,11 +50,13 @@
             .duration(duration)
             .ease("linear");
 
-        svg = d3.select("#intent-perf-chart").append("p")
-            .append("svg").attr("id", "intent-perf-svg")
-            .append("g").attr("id", "intent-perf-svg-g");
+        svg = d3.select("#intent-perf-chart").append("p").append("svg")
+            .attr("id", "intent-perf-svg")
+            .append("g")
+            .attr("id", "intent-perf-svg-g");
 
-        svg.append("defs").append("clipPath").attr("id", "intent-perf-clip")
+        svg.append("defs").append("clipPath")
+            .attr("id", "intent-perf-clip")
             .append("rect");
 
         axis = svg.append("g")
@@ -156,7 +158,9 @@
             d3.select("#intent-perf-svg-g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            d3.select("#intent-pef-clip rect").attr("width", width).attr("height", height);
+            d3.select("#intent-perf-clip rect")
+                .attr("width", width)
+                .attr("height", height);
 
             d3.select("#intent-perf-x")
                 .attr("transform", "translate(0," + height + ")")
@@ -193,7 +197,9 @@
 
     function graphResized(dim) {
         $log.info("Resized: " + dim.width + "x" + dim.height);
-        graph.resize(dim);
+        if (graph) {
+            graph.resize(dim);
+        }
     }
 
     function recordSample(sample) {
