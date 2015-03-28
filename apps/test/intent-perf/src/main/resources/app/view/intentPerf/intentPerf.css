@@ -22,9 +22,8 @@ svg {
     font: 12px sans-serif;
 }
 
-.line {
+.line,.lineTotal {
     fill: none;
-    stroke: #000;
     stroke-width: 2px;
 }
 
@@ -37,16 +36,20 @@ svg {
 
 .light .axis path,
 .light .axis line,
+.light .lineTotal {
+    stroke: #333;
+}
+
 .light .axis text {
-    stroke: #999;
+    fill: #333;
 }
 
 .dark .axis path,
 .dark .axis line,
-.dark .axis text {
+.dark .lineTotal {
     stroke: #eee;
 }
 
-.axis text {
-    stroke-width: 0.3;
+.dark .axis text {
+    fill: #eee;
 }

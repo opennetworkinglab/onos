@@ -36,9 +36,7 @@ import org.onosproject.ui.UiView;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
-import java.util.TimerTask;
 
 import static java.util.Collections.synchronizedSet;
 
@@ -58,25 +56,11 @@ public class IntentPerfUi {
     private UiExtension uiExtension = new UiExtension(views, this::newHandlers,
                                                       getClass().getClassLoader());
 
-    private List<String> headers = ImmutableList.of("One", "Two", "Three", "Four", "Five");
-
-    private Random random = new Random();
-    private TimerTask task;
+    private IntentPerfCollector collector;
 
     @Activate
     protected void activate() {
         uiExtensionService.register(uiExtension);
-//        task = new TimerTask() {
-//            @Override
-//            public void run() {
-//                Sample sample = new Sample(System.currentTimeMillis(), headers.size());
-//                for (int i = 0; i < headers.size(); i++) {
-//                    sample.data[i] = 25_000 + random.nextInt(20_000) - 5_000;
-//                }
-//                reportSample(sample);
-//            }
-//        };
-//        SharedExecutors.getTimer().scheduleAtFixedRate(task, 1000, 1000);
     }
 
     @Deactivate
@@ -96,12 +80,12 @@ public class IntentPerfUi {
     }
 
     /**
-     * Sets the headers for the subsequently reported samples.
+     * Binds the sample collector.
      *
-     * @param headers list of headers for future samples
+     * @param collector list of headers for future samples
      */
-    public void setHeaders(List<String> headers) {
-        this.headers = headers;
+    public void setCollector(IntentPerfCollector collector) {
+        this.collector = collector;
     }
 
     // Creates and returns session specific message handler.
@@ -122,20 +106,8 @@ public class IntentPerfUi {
         public void process(ObjectNode message) {
             streamingEnabled = message.path("event").asText("unknown").equals("intentPerfStart");
             if (streamingEnabled) {
-                sendHeaders();
+                sendInitData();
             }
-        }
-
-        private void sendHeaders() {
-            ArrayNode an = mapper.createArrayNode();
-            for (String header : headers) {
-                an.add(header);
-            }
-
-            ObjectNode sn = mapper.createObjectNode();
-            sn.set("headers", an);
-
-            connection().sendMessage("intentPerfHeaders", 0, sn);
         }
 
         @Override
@@ -152,18 +124,34 @@ public class IntentPerfUi {
 
         private void send(Sample sample) {
             if (streamingEnabled) {
-                ArrayNode an = mapper.createArrayNode();
-                for (double d : sample.data) {
-                    an.add(d);
-                }
-
-                ObjectNode sn = mapper.createObjectNode();
-                sn.put("time", sample.time);
-                sn.set("data", an);
-
-                connection().sendMessage("intentPerfSample", 0, sn);
+                connection().sendMessage("intentPerfSample", 0, sampleNode(sample));
             }
         }
+
+        private void sendInitData() {
+            ObjectNode rootNode = mapper.createObjectNode();
+            ArrayNode an = mapper.createArrayNode();
+            ArrayNode sn = mapper.createArrayNode();
+            rootNode.set("headers", an);
+            rootNode.set("samples", sn);
+
+            collector.getSampleHeaders().forEach(an::add);
+            collector.getSamples().forEach(s -> sn.add(sampleNode(s)));
+            connection().sendMessage("intentPerfInit", 0, rootNode);
+        }
+
+        private ObjectNode sampleNode(Sample sample) {
+            ObjectNode sampleNode = mapper.createObjectNode();
+            ArrayNode an = mapper.createArrayNode();
+            sampleNode.put("time", sample.time);
+            sampleNode.set("data", an);
+
+            for (double d : sample.data) {
+                an.add(d);
+            }
+            return sampleNode;
+        }
+
     }
 
 }

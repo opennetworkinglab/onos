@@ -156,7 +156,7 @@ public class IntentPerfInstaller {
     private ExecutorService workers;
     private ApplicationId appId;
     private Listener listener;
-    private boolean stopped;
+    private boolean stopped = true;
 
     private Timer reportTimer;
 
@@ -247,13 +247,18 @@ public class IntentPerfInstaller {
     }
 
     public void start() {
-        communicationService.broadcast(new ClusterMessage(nodeId, CONTROL, START.getBytes()));
-        startTestRun();
+        if (stopped) {
+            stopped = false;
+            communicationService.broadcast(new ClusterMessage(nodeId, CONTROL, START.getBytes()));
+            startTestRun();
+        }
     }
 
     public void stop() {
-        communicationService.broadcast(new ClusterMessage(nodeId, CONTROL, STOP.getBytes()));
-        stopTestRun();
+        if (!stopped) {
+            communicationService.broadcast(new ClusterMessage(nodeId, CONTROL, STOP.getBytes()));
+            stopTestRun();
+        }
     }
 
     private void logConfig(String prefix) {
@@ -282,7 +287,6 @@ public class IntentPerfInstaller {
     }
 
     private void stopTestRun() {
-        stopped = true;
         if (reporterTask != null) {
             reporterTask.cancel();
             reporterTask = null;
@@ -293,6 +297,11 @@ public class IntentPerfInstaller {
         } catch (InterruptedException e) {
             log.warn("Failed to stop worker", e);
         }
+
+        sampleCollector.recordSample(0, 0);
+        sampleCollector.recordSample(0, 0);
+        stopped = true;
+
         log.info("Stopped test run");
     }
 

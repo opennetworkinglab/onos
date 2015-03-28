@@ -31,7 +31,7 @@
 
     // ==========================
 
-    function createGraph(h) {
+    function createGraph(h, samples) {
         var stopped = false,
             n = 243,
             duration = 750,
@@ -75,7 +75,27 @@
         headers.forEach(function (h, li) {
             // Prime the data to match the headers and zero it out.
             data[li] = d3.range(n).map(function() { return 0 });
-            theSample[li] = 0;
+
+            if (li < headers.length - 1) {
+                samples.forEach(function (s, i) {
+                    var di = dataIndex(s.time);
+                    if (di >= 0) {
+                        data[li][di] = s.data[li];
+                    }
+                });
+
+                data[li].forEach(function (d, i) {
+                    if (!d && i > 0) {
+                        data[li][i] = data[li][i - 1];
+                    }
+                });
+            } else {
+                data[li].forEach(function (t, i) {
+                    for (var si = 0; si < headers.length - 1; si++) {
+                        data[li][i] = data[si][i];
+                    }
+                });
+            }
 
             // Create the lines
             lines[li] = d3.svg.line()
@@ -88,15 +108,24 @@
                 .attr("clip-path", "url(#intent-perf-clip)")
                 .append("path")
                 .datum(function () { return data[li]; })
-                .attr("id", "line" + li)
-                .style("stroke", lineColor(li))
-                .attr("class", "line");
+                .attr("id", "line" + li);
+
+            if (li < headers.length - 1) {
+                paths[li].attr("class", "line").style("stroke", lineColor(li));
+            } else {
+                paths[li].attr("class", "lineTotal");
+            }
         });
 
+        function dataIndex(time) {
+            var delta = now.getTime() - time;
+            var di = Math.round(n - 2 - (delta / duration));
+            // $log.info('now=' + now.getTime() + '; then=' + time + '; delta=' + delta + '; di=' + di + ';');
+            return di >= n || di < 0 ? -1 : di;
+        }
+
         function lineColor(li) {
-            return li < headers.length - 1 ?
-                sus.cat7().getColor(li, false, ts.theme()) :
-                ts.theme() === 'light' ? '#333' : '#eee';
+            return sus.cat7().getColor(li, false, ts.theme());
         }
 
         function tick() {
@@ -130,13 +159,17 @@
         function start() {
             stopped = false;
             headers.forEach(function (h, li) {
-                theSample[li] = 0;
+                theSample[li] = data[li][n-1];
             });
             tick();
         }
 
         function stop() {
-            stopped = true;
+            headers.forEach(function (h, li) {
+                theSample[li] = 0;
+            });
+            // Schedule delayed stop to allow 0s to render.
+            setTimeout(function () { stopped = true; }, 1000);
         }
 
         function resize(dim) {
@@ -190,7 +223,7 @@
     function createAndInitGraph(d) {
         if (!graph) {
             d.headers.push("total");
-            graph = createGraph(d.headers);
+            graph = createGraph(d.headers, d.samples);
         }
         graph.start();
     }
@@ -213,7 +246,7 @@
 
     function createHandlerMap() {
         handlerMap = {
-            intentPerfHeaders: createAndInitGraph,
+            intentPerfInit: createAndInitGraph,
             intentPerfSample: recordSample
         };
     }

@@ -37,10 +37,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.SharedExecutors.getPoolThreadExecutor;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -78,18 +76,13 @@ public class IntentPerfCollector {
     private Map<NodeId, Integer> nodeToIndex;
 
     private NodeId nodeId;
-    private ExecutorService messageHandlingExecutor;
 
     @Activate
     public void activate() {
         nodeId = clusterService.getLocalNode().id();
 
-        // TODO: replace with shared executor
-        messageHandlingExecutor = Executors.newSingleThreadExecutor(
-                groupedThreads("onos/perf", "message-handler"));
-
         communicationService.addSubscriber(SAMPLE, new InternalSampleCollector(),
-                                           messageHandlingExecutor);
+                                           getPoolThreadExecutor());
 
         nodes = clusterService.getNodes().toArray(new ControllerNode[]{});
         Arrays.sort(nodes, (a, b) -> a.id().toString().compareTo(b.id().toString()));
@@ -99,14 +92,13 @@ public class IntentPerfCollector {
             nodeToIndex.put(nodes[i].id(), i);
         }
 
-        ui.setHeaders(getSampleHeaders());
         clearSamples();
+        ui.setCollector(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        messageHandlingExecutor.shutdown();
         communicationService.removeSubscriber(SAMPLE);
         log.info("Stopped");
     }
