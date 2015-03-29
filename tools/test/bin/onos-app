@@ -11,16 +11,40 @@ export URL=http://$node:8181/onos/v1/applications
 export HDR="-HContent-Type:application/octet-stream"
 export curl="curl -sS"
 
+function usage {
+    echo "usage: onos-app {install|install!} <app-file>" >&2
+    echo "       onos-app {reinstall|reinstall!} <app-name> <app-file>" >&2
+    echo "       onos-app {activate|deactivate|uninstall} <app-name>" >&2
+    exit 1
+}
+
 case $cmd in
     list) $curl -X GET $URL;;
-    install) $curl -X POST $HDR $URL --data-binary @$app;;
-    install!) $curl -X POST $HDR $URL?activate=true --data-binary @$app;;
-    reinstall) $curl -X DELETE $URL/$app && $curl -X POST $HDR $URL --data-binary @$app;;
-    reinstall!) $curl -X DELETE $URL/$app && $curl -X POST $HDR $URL?activate=true --data-binary @$app;;
-    uninstall) $curl -X DELETE $URL/$app;;
-    activate) $curl -X POST $URL/$app/active;;
-    deactivate) $curl -X DELETE $URL/$app/active;;
-    *) echo "usage: onos-app {install|install!|reinstall|reinstall!} <app-file>" >&2
-       echo "       onos-app {activate|deactivate|uninstall} <app-name>" >&2
-       exit 1;;
+    install)
+        [ $# -lt 3 -o ! -f $app ] && usage
+        $curl -X POST $HDR $URL --data-binary @$app;;
+    install!)
+        [ $# -lt 3 -o ! -f $app ] && usage
+        $curl -X POST $HDR $URL?activate=true --data-binary @$app;;
+
+    reinstall)
+        [ $# -lt 4  -o ! -f $4 ] && usage
+        $curl -X DELETE $URL/$app
+        $curl -X POST $HDR $URL --data-binary @$4;;
+    reinstall!)
+        [ $# -lt 4  -o ! -f $4 ] && usage
+        $curl -X DELETE $URL/$app
+        $curl -X POST $HDR $URL?activate=true --data-binary @$4;;
+
+    uninstall)
+        [ $# -lt 3 ] && usage
+        $curl -X DELETE $URL/$app;;
+    activate)
+        [ $# -lt 3 ] && usage
+        $curl -X POST $URL/$app/active;;
+    deactivate)
+        [ $# -lt 3 ] && usage
+        $curl -X DELETE $URL/$app/active;;
+
+    *) usage;;
 esac
