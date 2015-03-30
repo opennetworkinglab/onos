@@ -34,13 +34,8 @@
                 $scope.$apply();
             };
 
-            $scope.sortCallback = function (urlSuffix) {
-                // FIXME: fix hardcoded sort params
-                if (!urlSuffix) {
-                    urlSuffix = '';
-                }
-                var payload = { sortCol: 'id', sortDir: 'asc' };
-                wss.sendEvent('deviceDataRequest', payload);
+            $scope.sortCallback = function (requestParams) {
+                wss.sendEvent('deviceDataRequest', requestParams);
             };
 
             var handlers = {
@@ -53,9 +48,8 @@
                 wss.unbindHandlers(handlers);
             });
 
-            $log.log('OvDeviceCtrl has been created');
-
             $scope.sortCallback();
 
+            $log.log('OvDeviceCtrl has been created');
         }]);
 }());

@@ -166,8 +166,8 @@
                         if (thElem.attr('sortable') === '') {
                             updateSortingIcons(thElem, sortIconAPI);
                             scope.ctrlCallback({
-                                    urlSuffix: sortRequestParams()
-                                });
+                                requestParams: sortRequestParams()
+                            });
                         }
                     });
                 }
