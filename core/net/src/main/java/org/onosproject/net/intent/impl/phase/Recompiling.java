@@ -17,7 +17,10 @@ package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
+import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.impl.IntentProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Represents a phase where an intent is being recompiled.
  */
 class Recompiling implements IntentProcessPhase {
+
+    private static final Logger log = LoggerFactory.getLogger(Recompiling.class);
 
     private final IntentProcessor processor;
     private final IntentData data;
@@ -48,8 +53,14 @@ class Recompiling implements IntentProcessPhase {
 
     @Override
     public Optional<IntentProcessPhase> execute() {
-        List<Intent> compiled = processor.compile(data.intent(), stored.installables());
-        data.setInstallables(compiled);
-        return Optional.of(new Replacing(processor, data, stored));
+        try {
+            List<Intent> compiled = processor.compile(data.intent(), stored.installables());
+            data.setInstallables(compiled);
+            return Optional.of(new Installing(processor, data, stored));
+        } catch (IntentException e) {
+            log.debug("Unable to recompile intent {} due to: {}", data.intent(), e);
+            // FIXME we need to removed orphaned flows and deallocate resources
+            return Optional.of(new CompileFailed(data));
+        }
     }
 }

@@ -15,7 +15,15 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,15 +56,7 @@ import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentWorker;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -359,97 +359,92 @@ public class IntentManager
         }
 
         @Override
-        public void install(IntentData data) {
-            IntentManager.this.install(data);
+        public void apply(IntentData toUninstall, IntentData toInstall) {
+            IntentManager.this.apply(toUninstall, toInstall);
         }
+    }
 
-        @Override
-        public void uninstall(IntentData data) {
-            IntentManager.this.uninstall(data);
+    private enum Direction {
+        ADD,
+        REMOVE
+    }
+
+    private void applyIntentData(IntentData data,
+                                 FlowRuleOperations.Builder builder,
+                                 Direction direction) {
+        if (data != null) {
+            List<Intent> intentsToApply = data.installables();
+            if (!intentsToApply.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
+                throw new IllegalStateException("installable intents must be FlowRuleIntent");
+            }
+
+            if (direction == Direction.ADD) {
+                trackerService.addTrackedResources(data.key(), data.intent().resources());
+                intentsToApply.forEach(installable ->
+                        trackerService.addTrackedResources(data.key(), installable.resources()));
+            } else {
+                trackerService.removeTrackedResources(data.key(), data.intent().resources());
+                intentsToApply.forEach(installable ->
+                        trackerService.removeTrackedResources(data.intent().key(),
+                                installable.resources()));
+            }
+
+            // FIXME do FlowRuleIntents have stages??? Can we do uninstall work in parallel? I think so.
+            builder.newStage();
+
+            List<Collection<FlowRule>> stages = intentsToApply.stream()
+                    .map(x -> (FlowRuleIntent) x)
+                    .map(FlowRuleIntent::flowRules)
+                    .collect(Collectors.toList());
+
+            for (Collection<FlowRule> rules : stages) {
+                if (direction == Direction.ADD) {
+                    rules.forEach(builder::add);
+                } else {
+                    rules.forEach(builder::remove);
+                }
+            }
         }
 
     }
 
-    private void install(IntentData data) {
+    private void apply(IntentData toUninstall, IntentData toInstall) {
         // need to consider if FlowRuleIntent is only one as installable intent or not
-        List<Intent> installables = data.installables();
-        if (!installables.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
-            throw new IllegalStateException("installable intents must be FlowRuleIntent");
-        }
-
-        trackerService.addTrackedResources(data.key(), data.intent().resources());
-        installables.forEach(installable ->
-                 trackerService.addTrackedResources(data.key(), installable.resources()));
-
-        List<Collection<FlowRule>> stages = installables.stream()
-                .map(x -> (FlowRuleIntent) x)
-                .map(FlowRuleIntent::flowRules)
-                .collect(Collectors.toList());
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        for (Collection<FlowRule> rules : stages) {
-            rules.forEach(builder::add);
-            builder.newStage();
-        }
+        applyIntentData(toUninstall, builder, Direction.REMOVE);
+        applyIntentData(toInstall, builder, Direction.ADD);
 
         FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.debug("Completed installing: {}", data.key());
-                data.setState(INSTALLED);
-                store.write(data);
+                if (toInstall != null) {
+                    log.debug("Completed installing: {}", toInstall.key());
+                    //FIXME state depends on install.... we might want to pass this in.
+                    toInstall.setState(INSTALLED);
+                    store.write(toInstall);
+                } else if (toUninstall != null) {
+                    log.debug("Completed withdrawing: {}", toUninstall.key());
+                    //FIXME state depends on install.... we might want to pass this in.
+                    toUninstall.setState(WITHDRAWN);
+                    store.write(toUninstall);
+                }
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.warn("Failed installation: {} {} on {}", data.key(), data.intent(), ops);
-                data.setState(FAILED);
-                store.write(data);
+                if (toInstall != null) {
+                    log.warn("Failed installation: {} {} on {}", toInstall.key(), toInstall.intent(), ops);
+                    //FIXME
+                    toInstall.setState(FAILED);
+                    store.write(toInstall);
+                }
+                // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
+                // if toUninstall was cause of error, then CORRUPT (another job will lean this up)
             }
         });
 
         flowRuleService.apply(operations);
     }
 
-    private void uninstall(IntentData data) {
-        List<Intent> installables = data.installables();
-        if (!installables.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
-            throw new IllegalStateException("installable intents must be FlowRuleIntent");
-        }
-
-        trackerService.removeTrackedResources(data.key(), data.intent().resources());
-        installables.forEach(installable ->
-                 trackerService.removeTrackedResources(data.intent().key(),
-                                                       installable.resources()));
-
-        List<Collection<FlowRule>> stages = installables.stream()
-                .map(x -> (FlowRuleIntent) x)
-                .map(FlowRuleIntent::flowRules)
-                .collect(Collectors.toList());
-
-        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        for (Collection<FlowRule> rules : stages) {
-            rules.forEach(builder::remove);
-            builder.newStage();
-        }
-
-        FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.debug("Completed withdrawing: {}", data.key());
-                data.setState(WITHDRAWN);
-                data.setInstallables(Collections.emptyList());
-                store.write(data);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed withdraw: {}", data.key());
-                data.setState(FAILED);
-                store.write(data);
-            }
-        });
-
-        flowRuleService.apply(operations);
-    }
 }

@@ -28,6 +28,7 @@ class Installing extends FinalIntentProcessPhase {
 
     private final IntentProcessor processor;
     private final IntentData data;
+    private final IntentData stored;
 
     /**
      * Create an installing phase.
@@ -35,15 +36,16 @@ class Installing extends FinalIntentProcessPhase {
      * @param processor intent processor that does work for installing
      * @param data      intent data containing an intent to be installed
      */
-    Installing(IntentProcessor processor, IntentData data) {
+    Installing(IntentProcessor processor, IntentData data, IntentData stored) {
         this.processor = checkNotNull(processor);
         this.data = checkNotNull(data);
         this.data.setState(INSTALLING);
+        this.stored = stored;
     }
 
     @Override
     public void preExecute() {
-        processor.install(data);
+        processor.apply(stored, data);
     }
 
     @Override

@@ -44,7 +44,7 @@ class Withdrawing extends FinalIntentProcessPhase {
 
     @Override
     protected void preExecute() {
-        processor.uninstall(data);
+        processor.apply(data, null);
     }
 
     @Override

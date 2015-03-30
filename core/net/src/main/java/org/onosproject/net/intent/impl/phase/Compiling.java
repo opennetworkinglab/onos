@@ -50,7 +50,7 @@ final class Compiling implements IntentProcessPhase {
     public Optional<IntentProcessPhase> execute() {
         try {
             data.setInstallables(processor.compile(data.intent(), null));
-            return Optional.of(new Installing(processor, data));
+            return Optional.of(new Installing(processor, data, null));
         } catch (IntentException e) {
             log.debug("Unable to compile intent {} due to: {}", data.intent(), e);
             return Optional.of(new CompileFailed(data));

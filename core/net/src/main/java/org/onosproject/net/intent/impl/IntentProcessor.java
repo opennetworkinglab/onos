@@ -38,16 +38,8 @@ public interface IntentProcessor {
     List<Intent> compile(Intent intent, List<Intent> previousInstallables);
 
     /**
-     * Installs an intent included in the specified intent data.
-     *
-     * @param data intent data containing an intent to be installed
+     * @param toUninstall Intent data describing flows to uninstall. May be null.
+     * @param toInstall Intent data describing flows to install. May be null.
      */
-    void install(IntentData data);
-
-    /**
-     * Uninstalls an intent included in the specified intent data.
-     *
-     * @param data intent data containing an intent to be uninstalled
-     */
-    void uninstall(IntentData data);
+    void apply(IntentData toUninstall, IntentData toInstall);
 }
