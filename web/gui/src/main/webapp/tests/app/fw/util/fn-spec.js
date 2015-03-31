@@ -30,12 +30,23 @@ describe('factory: fw/util/fn.js', function() {
 
     beforeEach(module('onosUtil'));
 
+    var mockWindow = {
+        innerWidth: 400,
+        innerHeight: 200,
+        navigator: {
+            userAgent: 'defaultUA'
+        }
+    };
+
+    beforeEach(function () {
+        module(function ($provide) {
+            $provide.value('$window', mockWindow);
+        });
+    });
+
     beforeEach(inject(function (_$window_, FnService) {
         $window = _$window_;
         fs = FnService;
-
-        $window.innerWidth = 400;
-        $window.innerHeight = 200;
     }));
 
     // === Tests for isF()
@@ -201,8 +212,8 @@ describe('factory: fw/util/fn.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
-            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'find',
-            'inArray', 'removeFromArray', 'isEmptyObject', 'cap'
+            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'isMobile',
+            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'cap'
         ])).toBeTruthy();
     });
 
@@ -232,6 +243,39 @@ describe('factory: fw/util/fn.js', function() {
         expect(dim.height).toEqual(99);
     });
 
+    // === Tests for isMobile()
+    var uaMap = {
+        chrome: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/41.0.2272.89 Safari/537.36",
+
+        iPad: "Mozilla/5.0 (iPad; CPU OS 7_0 like Mac OS X) " +
+                "AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 " +
+                "Mobile/11A465 Safari/9537.53",
+
+        iPhone: "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) " +
+                "AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 " +
+                "Mobile/11A465 Safari/9537.53"
+    };
+
+    function setUa(key) {
+        var str = uaMap[key];
+        expect(str).toBeTruthy();
+        mockWindow.navigator.userAgent = str;
+    }
+
+    it('isMobile(): should be false for Chrome on Mac OS X', function () {
+        setUa('chrome');
+        expect(fs.isMobile()).toBe(false);
+    });
+    it('isMobile(): should be true for Safari on iPad', function () {
+        setUa('iPad');
+        expect(fs.isMobile()).toBe(true);
+    });
+    it('isMobile(): should be true for Safari on iPhone', function () {
+        setUa('iPhone');
+        expect(fs.isMobile()).toBe(true);
+    });
 
     // === Tests for find()
     var dataset = [

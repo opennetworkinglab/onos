@@ -75,6 +75,22 @@ describe('factory: fw/widget/table.js', function () {
 
     beforeEach(module('onosWidget', 'onosUtil', 'onosSvg'));
 
+    var mockWindow = {
+        innerWidth: 400,
+        innerHeight: 200,
+        navigator: {
+            userAgent: 'defaultUA'
+        },
+        on: function () {},
+        addEventListener: function () {}
+    };
+
+    beforeEach(function () {
+        module(function ($provide) {
+            $provide.value('$window', mockWindow);
+        });
+    });
+
     beforeEach(inject(function (_$log_, _$compile_, _$rootScope_,
                                 FnService, IconService) {
         $log = _$log_;

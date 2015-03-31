@@ -102,6 +102,13 @@
         };
     }
 
+    // Returns true if current browser determined to be a mobile device
+    function isMobile() {
+        var ua = $window.navigator.userAgent,
+            patt = /iPhone|iPod|iPad|Silk|Android|BlackBerry|Opera Mini|IEMobile/;
+        return patt.test(ua);
+    }
+
     // search through an array of objects, looking for the one with the
     // tagged property matching the given key. tag defaults to 'id'.
     // returns the index of the matching object, or -1 for no match.
@@ -171,6 +178,7 @@
                 areFunctions: areFunctions,
                 areFunctionsNonStrict: areFunctionsNonStrict,
                 windowSize: windowSize,
+                isMobile: isMobile,
                 find: find,
                 inArray: inArray,
                 removeFromArray: removeFromArray,
