@@ -43,10 +43,21 @@ table.summary-list tbody {
     background-color: #444;
 }
 
-table.summary-list th {
-    padding: 10px;
-    letter-spacing: 0.02em;
+.light table.summary-list tr.selected {
+    background-color: deepskyblue;
+}
+
+.dark table.summary-list tr.selected {
+    background-color: #304860;
+}
+
+table.summary-list td,th {
+    padding: 6px 6px 6px 6px;
     text-align: left;
+}
+
+table.summary-list th {
+    letter-spacing: 0.02em;
     cursor: pointer;
 }
 table.summary-list th:first-child {
@@ -55,17 +66,13 @@ table.summary-list th:first-child {
 table.summary-list th:last-child {
     border-radius: 0 8px 0 0;
 }
+
 .light table.summary-list th {
     background-color: #bbb;
 }
 .dark table.summary-list th {
     background-color: #222;
     color: #ccc;
-}
-
-table.summary-list td {
-    padding: 6px 10px 6px 10px;
-    text-align: left;
 }
 
 .dark table.summary-list td {

@@ -29,6 +29,9 @@
     // Maps icon ID to the glyph ID it uses.
     // NOTE: icon ID maps to a CSS class for styling that icon
     var glyphMapping = {
+        appActive: 'checkMark',
+        appInactive: 'unknown',
+
         deviceOnline: 'checkMark',
         deviceOffline: 'xMark',
         devIcon_SWITCH: 'switch',

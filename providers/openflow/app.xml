@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.openflow" origin="ON.Lab" version="1.2.0"
         features="onos-openflow">
-    <description>ONOS OpenFlow protocol southbound providers</description>
+    <description>OpenFlow protocol southbound providers</description>
 </app>

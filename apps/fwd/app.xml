@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.fwd" origin="ON.Lab" version="1.2.0"
         features="onos-app-fwd">
-    <description>ONOS Reactive forwarding application using flow subsystem</description>
+    <description>Reactive forwarding application using flow subsystem</description>
 </app>

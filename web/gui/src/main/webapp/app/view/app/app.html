@@ -1,0 +1,34 @@
+<!-- app partial HTML -->
+<div id="ov-app">
+    <h2>Applications ({{ctrl.appData.length}} total)</h2>
+    <table class="summary-list"
+           onos-fixed-header
+           onos-sortable-header
+           sort-callback="sortCallback(requestParams)">
+        <thead>
+            <tr>
+                <th colId="state" class="table-icon" sortable></th>
+                <th colId="id" sortable>App ID </th>
+                <th colId="version" sortable>Version</th>
+                <th colId="origin" sortable>Origin </th>
+                <th colId="desc">Description </th>
+            </tr>
+        </thead>
+
+        <tbody>
+        <tr ng-repeat="app in ctrl.appData"
+            ng-click="setSelected(app.id)"
+            ng-class="{selected: app.id === selectedAppId}"
+            ng-repeat-done>
+            <td class="table-icon">
+                <div icon icon-id="{{app._iconid_state}}"></div>
+            </td>
+            <td>{{app.id}}</td>
+            <td>{{app.version}}</td>
+            <td>{{app.origin}}</td>
+            <td>{{app.desc}}</td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>

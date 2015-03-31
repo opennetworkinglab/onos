@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.null" origin="ON.Lab" version="1.2.0"
         features="onos-null">
-    <description>ONOS null southbound providers for testing</description>
+    <description>Null southbound providers for testing</description>
 </app>

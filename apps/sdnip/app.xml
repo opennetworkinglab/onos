@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.sdnip" origin="ON.Lab" version="1.2.0"
         features="onos-app-sdnip">
-    <description>ONOS SDN/IP use-case application</description>
+    <description>SDN/IP use-case application</description>
 </app>

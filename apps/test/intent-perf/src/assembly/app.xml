@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.intentperf" origin="ON.Lab" version="1.2.0"
      features="onos-app-intent-perf">
-    <description>Intent performance application</description>
+    <description>Intent performance test application</description>
 </app>

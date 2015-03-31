@@ -28,6 +28,29 @@ svg.embeddedIcon .icon .glyph {
     fill-rule: evenodd;
 }
 
+/*
+ FIXME: The following should be consolidated to result in much less CSS and
+ not to require entries for every icon.
+ */
+
+.light svg.embeddedIcon .icon.appActive,
+.light svg.embeddedIcon .icon.appInactive {
+    fill: none;
+}
+
+.dark svg.embeddedIcon .icon.appActive,
+.dark svg.embeddedIcon .icon.appInactive {
+    fill: none;
+}
+
+.light svg.embeddedIcon .icon.appActive .glyph {
+    fill: green;
+}
+.dark svg.embeddedIcon .icon.appActive .glyph {
+    fill: #266610;
+}
+
+
 .light svg.embeddedIcon .icon.deviceOnline,
 .light svg.embeddedIcon .icon.deviceOffline {
     fill: none;
@@ -73,6 +96,10 @@ svg.embeddedIcon .icon .glyph {
     fill: #ccc;
 }
 
+.light svg.embeddedIcon .icon.appActive rect,
+.light svg.embeddedIcon .icon.appInactive rect,
+.dark svg.embeddedIcon .icon.appActive rect,
+.dark svg.embeddedIcon .icon.appInactive rect,
 .light svg.embeddedIcon .icon.deviceOnline rect,
 .light svg.embeddedIcon .icon.deviceOffline rect,
 .dark svg.embeddedIcon .icon.deviceOnline rect,

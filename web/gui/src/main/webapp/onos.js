@@ -39,6 +39,7 @@
         'topo',
         'device',
         'host',
+        'app',
         'sample',
         // {INJECTED-VIEW-IDS-END}
 

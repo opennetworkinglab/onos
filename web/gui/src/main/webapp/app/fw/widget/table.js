@@ -29,19 +29,31 @@
     // Functions for creating a fixed header on a table (Angular Directive)
 
     function setTableWidth(t) {
-        var tHeaders, tdElement, colWidth, numCols,
+        var tHeaders, tdElement, colWidth, numIcons, numNonIcons,
             winWidth = fs.windowSize().width;
 
         tHeaders = t.selectAll('th');
-        numCols = tHeaders[0].length;
-        colWidth = Math.floor(winWidth / numCols);
+        numIcons = 0;
+        numNonIcons = 0;
+
+        // FIXME: This should observe custom-set width from the HTML
 
         tHeaders.each(function(thElement, index) {
             thElement = d3.select(this);
+            if (thElement.classed('table-icon')) {
+                numIcons = numIcons + 1;
+            } else {
+                numNonIcons = numNonIcons + 1;
+            }
+        });
 
+        colWidth = Math.floor((winWidth - (numIcons * tableIconTdSize)) / numNonIcons);
+
+        tHeaders.each(function(thElement, index) {
+            thElement = d3.select(this);
             tdElement = t.select('td:nth-of-type(' + (index + 1) + ')');
 
-            if (tdElement.classed('table-icon')) {
+            if (thElement.classed('table-icon')) {
                 thElement.style('width', tableIconTdSize + 'px');
                 tdElement.style('width', tableIconTdSize + 'px');
             } else {

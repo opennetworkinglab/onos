@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.config" origin="ON.Lab" version="1.2.0"
         features="onos-app-config">
-    <description>ONOS network configuration application</description>
+    <description>Network configuration application</description>
 </app>

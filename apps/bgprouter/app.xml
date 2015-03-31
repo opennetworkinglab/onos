@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.bgprouter" origin="ON.Lab" version="1.2.0"
         features="onos-app-bgprouter">
-    <description>ONOS BGP router application</description>
+    <description>BGP router application</description>
 </app>

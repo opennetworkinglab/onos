@@ -16,5 +16,5 @@
   -->
 <app name="org.onosproject.mobility" origin="ON.Lab" version="1.2.0"
         features="onos-app-mobility">
-    <description>ONOS host mobility application</description>
+    <description>Host mobility application</description>
 </app>
