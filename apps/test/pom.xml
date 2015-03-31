@@ -34,6 +34,7 @@
     <modules>
         <module>election</module>
         <module>intent-perf</module>
+        <module>demo</module>
     </modules>
 
 </project>

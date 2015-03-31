@@ -241,6 +241,13 @@
         <bundle>mvn:org.onosproject/onos-app-election/@ONOS-VERSION</bundle>
     </feature>
 
+    <feature name="onos-app-demo" version="@FEATURE-VERSION"
+             description="ONOS demo applications">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.onosproject/onlab-misc/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-app-demo/@ONOS-VERSION</bundle>
+    </feature>
+
 
     <!-- ONOS sample app features: to be moved to a different repo -->
 
@@ -256,13 +263,6 @@
              description="ONOS sample forwarding application using intents">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-app-ifwd/@ONOS-VERSION</bundle>
-    </feature>
-
-    <feature name="onos-app-demo" version="@FEATURE-VERSION"
-             description="ONOS demo applications">
-        <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onlab-misc/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-app-demo/@ONOS-VERSION</bundle>
     </feature>
 
     <feature name="onos-app-database-perf" version="@FEATURE-VERSION"
