@@ -71,15 +71,15 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
 
     @Activate
     public void activate() {
-        store.setDelegate(delegate);
         eventDispatcher.addSink(ApplicationEvent.class, listenerRegistry);
+        store.setDelegate(delegate);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(ApplicationEvent.class);
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 

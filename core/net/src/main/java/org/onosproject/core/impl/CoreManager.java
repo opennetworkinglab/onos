@@ -27,6 +27,8 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.IdBlockStore;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -40,6 +42,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true)
 @Service
 public class CoreManager implements CoreService {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final File VERSION_FILE = new File("../VERSION");
     private static Version version = Version.version("1.2.0-SNAPSHOT");
