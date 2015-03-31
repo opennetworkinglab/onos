@@ -117,8 +117,8 @@ public class DistributedGroupStore
     private EventuallyConsistentMap<GroupStoreKeyMapKey,
         StoredGroupEntry> groupStoreEntriesByKey = null;
     // Per device group table with (device id + group id) as key
-    private EventuallyConsistentMap<GroupStoreIdMapKey,
-        StoredGroupEntry> groupStoreEntriesById = null;
+    private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, StoredGroupEntry>>
+        groupEntriesById = new ConcurrentHashMap<>();
     private EventuallyConsistentMap<GroupStoreKeyMapKey,
         StoredGroupEntry> auditPendingReqQueue = null;
     private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, Group>>
@@ -203,20 +203,8 @@ public class DistributedGroupStore
                 .withSerializer(kryoBuilder)
                 .withClockService(new GroupStoreLogicalClockManager<>())
                 .build();
+        groupStoreEntriesByKey.addListener(new GroupStoreKeyMapListener());
         log.trace("Current size {}", groupStoreEntriesByKey.size());
-
-        log.debug("Creating EC map groupstoreidmap");
-        EventuallyConsistentMapBuilder<GroupStoreIdMapKey, StoredGroupEntry>
-                idMapBuilder = storageService.eventuallyConsistentMapBuilder();
-
-        groupStoreEntriesById = idMapBuilder
-                        .withName("groupstoreidmap")
-                        .withSerializer(kryoBuilder)
-                        .withClockService(new GroupStoreLogicalClockManager<>())
-                        .build();
-
-        groupStoreEntriesById.addListener(new GroupStoreIdMapListener());
-        log.trace("Current size {}", groupStoreEntriesById.size());
 
         log.debug("Creating EC map pendinggroupkeymap");
         EventuallyConsistentMapBuilder<GroupStoreKeyMapKey, StoredGroupEntry>
@@ -235,7 +223,6 @@ public class DistributedGroupStore
     @Deactivate
     public void deactivate() {
         groupStoreEntriesByKey.destroy();
-        groupStoreEntriesById.destroy();
         auditPendingReqQueue.destroy();
         log.info("Stopped");
     }
@@ -243,6 +230,11 @@ public class DistributedGroupStore
     private static NewConcurrentHashMap<GroupId, Group>
         lazyEmptyExtraneousGroupIdTable() {
         return NewConcurrentHashMap.<GroupId, Group>ifNeeded();
+    }
+
+    private static NewConcurrentHashMap<GroupId, StoredGroupEntry>
+        lazyEmptyGroupIdTable() {
+        return NewConcurrentHashMap.<GroupId, StoredGroupEntry>ifNeeded();
     }
 
     /**
@@ -256,13 +248,14 @@ public class DistributedGroupStore
     }
 
     /**
-     * Returns the group store eventual consistent id map.
+     * Returns the group id table for specified device.
      *
-     * @return Map representing group id table.
+     * @param deviceId identifier of the device
+     * @return Map representing group key table of given device.
      */
-    private EventuallyConsistentMap<GroupStoreIdMapKey, StoredGroupEntry>
-        getGroupStoreIdMap() {
-        return groupStoreEntriesById;
+    private ConcurrentMap<GroupId, StoredGroupEntry> getGroupIdTable(DeviceId deviceId) {
+        return createIfAbsentUnchecked(groupEntriesById,
+                                       deviceId, lazyEmptyGroupIdTable());
     }
 
     /**
@@ -342,8 +335,7 @@ public class DistributedGroupStore
 
     private StoredGroupEntry getStoredGroupEntry(DeviceId deviceId,
                                                  GroupId groupId) {
-        return getGroupStoreIdMap().get(new GroupStoreIdMapKey(deviceId,
-                                                               groupId));
+        return getGroupIdTable(deviceId).get(groupId);
     }
 
     private int getFreeGroupIdValue(DeviceId deviceId) {
@@ -447,9 +439,10 @@ public class DistributedGroupStore
         getGroupStoreKeyMap().
             put(new GroupStoreKeyMapKey(groupDesc.deviceId(),
                                         groupDesc.appCookie()), group);
-        getGroupStoreIdMap().
-            put(new GroupStoreIdMapKey(groupDesc.deviceId(),
-                                    id), group);
+        // Ensure it also inserted into group id based table to
+        // avoid any chances of duplication in group id generation
+        getGroupIdTable(groupDesc.deviceId()).
+            put(id, group);
         notifyDelegate(new GroupEvent(GroupEvent.Type.GROUP_ADD_REQUESTED,
                                       group));
     }
@@ -531,18 +524,12 @@ public class DistributedGroupStore
             newGroup.setLife(oldGroup.life());
             newGroup.setPackets(oldGroup.packets());
             newGroup.setBytes(oldGroup.bytes());
-            // Remove the old entry from maps and add new entry using new key
-            getGroupStoreKeyMap().remove(new GroupStoreKeyMapKey(oldGroup.deviceId(),
-                                        oldGroup.appCookie()));
-            getGroupStoreIdMap().remove(new GroupStoreIdMapKey(oldGroup.deviceId(),
-                                                                 oldGroup.id()));
+            //Update the group entry in groupkey based map.
+            //Update to groupid based map will happen in the
+            //groupkey based map update listener
             getGroupStoreKeyMap().
                 put(new GroupStoreKeyMapKey(newGroup.deviceId(),
                                             newGroup.appCookie()), newGroup);
-            getGroupStoreIdMap().
-            put(new GroupStoreIdMapKey(newGroup.deviceId(),
-                                       newGroup.id()), newGroup);
-
             notifyDelegate(new GroupEvent(Type.GROUP_UPDATE_REQUESTED, newGroup));
         }
     }
@@ -663,10 +650,10 @@ public class DistributedGroupStore
                 getGroupStoreKeyMap().
                     put(new GroupStoreKeyMapKey(existing.deviceId(),
                                                 existing.appCookie()), existing);
-                getGroupStoreIdMap().
-                    put(new GroupStoreIdMapKey(existing.deviceId(),
-                                               existing.id()), existing);
             }
+        } else {
+            log.warn("addOrUpdateGroupEntry: Group update "
+                    + "happening for a non-existing entry in the map");
         }
 
         if (event != null) {
@@ -689,10 +676,10 @@ public class DistributedGroupStore
                     + "entry {} in device {}",
                     group.id(),
                     group.deviceId());
+            //Removal from groupid based map will happen in the
+            //map update listener
             getGroupStoreKeyMap().remove(new GroupStoreKeyMapKey(existing.deviceId(),
                                                                  existing.appCookie()));
-            getGroupStoreIdMap().remove(new GroupStoreIdMapKey(existing.deviceId(),
-                                                               existing.id()));
             notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, existing));
         }
     }
@@ -770,10 +757,10 @@ public class DistributedGroupStore
                 log.warn("Unknown group operation type {}", operation.opType());
         }
 
+        //Removal from groupid based map will happen in the
+        //map update listener
         getGroupStoreKeyMap().remove(new GroupStoreKeyMapKey(existing.deviceId(),
                                                              existing.appCookie()));
-        getGroupStoreIdMap().remove(new GroupStoreIdMapKey(existing.deviceId(),
-                                                           existing.id()));
     }
 
     @Override
@@ -829,35 +816,40 @@ public class DistributedGroupStore
     }
 
     /**
-     * Map handler to receive any events when the group map is updated.
+     * Map handler to receive any events when the group key map is updated.
      */
-    private class GroupStoreIdMapListener implements
-            EventuallyConsistentMapListener<GroupStoreIdMapKey, StoredGroupEntry> {
+    private class GroupStoreKeyMapListener implements
+            EventuallyConsistentMapListener<GroupStoreKeyMapKey, StoredGroupEntry> {
 
         @Override
-        public void event(EventuallyConsistentMapEvent<GroupStoreIdMapKey,
+        public void event(EventuallyConsistentMapEvent<GroupStoreKeyMapKey,
                                   StoredGroupEntry> mapEvent) {
             GroupEvent groupEvent = null;
-            log.trace("GroupStoreIdMapListener: received groupid map event {}",
+            StoredGroupEntry group = mapEvent.value();
+            log.trace("GroupStoreKeyMapListener: received groupid map event {}",
                       mapEvent.type());
             if (mapEvent.type() == EventuallyConsistentMapEvent.Type.PUT) {
-                log.trace("GroupIdMapListener: Received PUT event");
+                log.trace("GroupStoreKeyMapListener: Received PUT event");
+                // Update the group ID table
+                getGroupIdTable(group.deviceId()).put(group.id(), group);
                 if (mapEvent.value().state() == Group.GroupState.ADDED) {
                     if (mapEvent.value().isGroupStateAddedFirstTime()) {
                         groupEvent = new GroupEvent(Type.GROUP_ADDED,
                                                     mapEvent.value());
-                        log.trace("GroupIdMapListener: Received first time "
+                        log.trace("GroupStoreKeyMapListener: Received first time "
                                 + "GROUP_ADDED state update");
                     } else {
                         groupEvent = new GroupEvent(Type.GROUP_UPDATED,
                                                     mapEvent.value());
-                        log.trace("GroupIdMapListener: Received following "
+                        log.trace("GroupStoreKeyMapListener: Received following "
                                 + "GROUP_ADDED state update");
                     }
                 }
             } else if (mapEvent.type() == EventuallyConsistentMapEvent.Type.REMOVE) {
-                log.trace("GroupIdMapListener: Received REMOVE event");
+                log.trace("GroupStoreKeyMapListener: Received REMOVE event");
                 groupEvent = new GroupEvent(Type.GROUP_REMOVED, mapEvent.value());
+                // Remove the entry from the group ID table
+                getGroupIdTable(group.deviceId()).remove(group.id(), group);
             }
 
             if (groupEvent != null) {
