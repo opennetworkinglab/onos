@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Intent partial HTML -->
+<div id="ov-intent">
+    <h2>Intents ({{ctrl.intentData.length}} total)</h2>
+    <table class="summary-list"
+           onos-fixed-header
+           onos-sortable-header
+           sort-callback="sortCallback(requestParams)">
+        <thead>
+        <tr>
+            <th colId="appId" sortable>Application ID </th>
+            <th colId="key" sortable>Key </th>
+            <th colId="type" sortable>Type </th>
+            <th colId="priority" sortable>Priority </th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr ng-repeat="intent in ctrl.intentData"
+            ng-repeat-done>
+            <td>{{intent.appId}}</td>
+            <td>{{intent.key}}</td>
+            <td>{{intent.type}}</td>
+            <td>{{intent.priority}}</td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>

@@ -23,9 +23,9 @@
 
     angular.module('ovDevice', [])
     .controller('OvDeviceCtrl',
-        ['$log', '$scope', '$location', 'WebSocketService',
+        ['$log', '$scope', 'WebSocketService',
 
-        function ($log, $scope, $location, wss) {
+        function ($log, $scope, wss) {
             var self = this;
             self.deviceData = [];
 

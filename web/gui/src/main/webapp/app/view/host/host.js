@@ -23,9 +23,9 @@
 
     angular.module('ovHost', [])
     .controller('OvHostCtrl',
-        ['$log', '$scope', '$location', 'FnService', 'WebSocketService',
+        ['$log', '$scope', 'FnService', 'WebSocketService',
 
-        function ($log, $scope, $location, fs, wss) {
+        function ($log, $scope, fs, wss) {
             var self = this;
             self.hostData = [];
 

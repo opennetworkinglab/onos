@@ -40,6 +40,7 @@
         'device',
         'host',
         'app',
+        'intent',
         'sample',
         // {INJECTED-VIEW-IDS-END}
 

@@ -60,13 +60,15 @@ public class UiExtensionManager implements UiExtensionService {
                                     new UiView("device", "Devices"),
                                     new UiView("host", "Hosts"),
                                     new UiView("app", "Applications"),
+                                    new UiView("intent", "Intents"),
                                     new UiView("sample", "Sample"));
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
                         new DeviceViewMessageHandler(),
                         new HostViewMessageHandler(),
-                        new ApplicationViewMessageHandler()
+                        new ApplicationViewMessageHandler(),
+                        new IntentViewMessageHandler()
                 );
         return new UiExtension(coreViews, messageHandlerFactory, "core",
                                UiExtensionManager.class.getClassLoader());
