@@ -31,6 +31,10 @@
     var glyphMapping = {
         appActive: 'checkMark',
         appInactive: 'unknown',
+        appPlus: 'plus',
+        appMinus: 'minus',
+        appPlay: 'play',
+        appStop: 'stop',
 
         deviceOnline: 'checkMark',
         deviceOffline: 'xMark',
@@ -176,14 +180,16 @@
     }
 
     function createSortIcon() {
-       function sortAsc(div) {
+        function sortAsc(div) {
             div.style('display', 'inline-block');
             loadEmbeddedIcon(div, 'tableColSortAsc', 10);
+            div.classed('tableColSort', true);
         }
 
         function sortDesc(div) {
             div.style('display', 'inline-block');
             loadEmbeddedIcon(div, 'tableColSortDesc', 10);
+            div.classed('tableColSort', true);
         }
 
         function sortNone(div) {

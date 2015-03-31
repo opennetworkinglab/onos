@@ -22,44 +22,48 @@ svg#IconLibDefs {
   display: none;
 }
 
-svg.embeddedIcon .icon .glyph {
+svg .svgIcon {
+    fill-rule: evenodd;
+}
+
+svg.embeddedIcon g.icon {
+    fill: none;
+}
+
+svg.embeddedIcon g.icon rect {
+    stroke: none;
+    fill: none;
+}
+
+svg.embeddedIcon g.icon .glyph {
     stroke: none;
     fill: white;
     fill-rule: evenodd;
 }
 
-/*
- FIXME: The following should be consolidated to result in much less CSS and
- not to require entries for every icon.
- */
 
-.light svg.embeddedIcon .icon.appActive,
-.light svg.embeddedIcon .icon.appInactive {
-    fill: none;
+/* Sortable table headers */
+.light div.tableColSort svg.embeddedIcon .icon .glyph {
+    fill: black;
+}
+.dark div.tableColSort svg.embeddedIcon .icon .glyph {
+    fill: #ccc;
 }
 
-.dark svg.embeddedIcon .icon.appActive,
-.dark svg.embeddedIcon .icon.appInactive {
-    fill: none;
+
+/* color schemes for specific icon classes */
+
+svg.embeddedIcon .icon.appInactive .glyph {
+    fill: rgba(166, 166, 166, 0.52);
 }
 
 .light svg.embeddedIcon .icon.appActive .glyph {
     fill: green;
 }
 .dark svg.embeddedIcon .icon.appActive .glyph {
-    fill: #266610;
+    fill: #308C10;
 }
 
-
-.light svg.embeddedIcon .icon.deviceOnline,
-.light svg.embeddedIcon .icon.deviceOffline {
-    fill: none;
-}
-
-.dark svg.embeddedIcon .icon.deviceOnline,
-.dark svg.embeddedIcon .icon.deviceOffline {
-    fill: none;
-}
 
 .light svg.embeddedIcon .icon.devIcon_SWITCH {
     fill: #ccc;
@@ -81,55 +85,8 @@ svg.embeddedIcon .icon .glyph {
     fill: darkred;
 }
 .dark svg.embeddedIcon .icon.deviceOnline .glyph {
-    fill: #266610;
+    fill: #308C10;
 }
 .dark svg.embeddedIcon .icon.deviceOffline .glyph {
-    fill: #610000;
-}
-
-.light svg.embeddedIcon .icon.tableColSortAsc .glyph,
-.light svg.embeddedIcon .icon.tableColSortDesc .glyph {
-    fill: black;
-}
-.dark svg.embeddedIcon .icon.tableColSortAsc .glyph,
-.dark svg.embeddedIcon .icon.tableColSortDesc .glyph {
-    fill: #ccc;
-}
-
-.light svg.embeddedIcon .icon.appActive rect,
-.light svg.embeddedIcon .icon.appInactive rect,
-.dark svg.embeddedIcon .icon.appActive rect,
-.dark svg.embeddedIcon .icon.appInactive rect,
-.light svg.embeddedIcon .icon.deviceOnline rect,
-.light svg.embeddedIcon .icon.deviceOffline rect,
-.dark svg.embeddedIcon .icon.deviceOnline rect,
-.dark svg.embeddedIcon .icon.deviceOffline rect {
-    stroke: none;
-    fill: none;
-}
-
-svg.embeddedIcon .icon.tableColSortAsc rect,
-svg.embeddedIcon .icon.tableColSortDesc rect {
-    stroke: none;
-    fill: none;
-}
-
-svg.embeddedIcon .icon rect {
-    stroke: black;
-    stroke-width: 1px;
-}
-.dark svg.embeddedIcon .icon.deviceOnline rect
-.dark svg.embeddedIcon .icon.deviceOffline rect {
-    stroke: none;
-}
-.dark svg.embeddedIcon .icon rect {
-    stroke: #ccc;
-}
-.dark svg.embeddedIcon .icon.tableColSortAsc rect,
-.dark svg.embeddedIcon .icon.tableColSortDesc rect {
-    stroke: none;
-}
-
-svg .svgIcon {
-    fill-rule: evenodd;
+    fill: #AD2D2D;
 }

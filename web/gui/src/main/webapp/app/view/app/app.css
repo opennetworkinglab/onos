@@ -18,5 +18,40 @@
  ONOS GUI -- Host View -- CSS file
  */
 
-#ov-app td {
+#ov-app h2 {
+    display: inline-block;
+}
+
+#ov-app div.ctrl-btns {
+    display:inline-block;
+    float: right;
+    width: 200px;
+    height: 44px;
+    margin-right: 24px;
+    margin-top: 7px;
+}
+
+div.ctrl-btns div {
+    display: inline-block;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.light div.ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: white;
+}
+.dark div.ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: #333;
+}
+
+.light div.ctrl-btns div svg.embeddedIcon g.icon rect {
+    fill: #dde;
+}
+.dark div.ctrl-btns div svg.embeddedIcon g.icon rect {
+    fill: #556;
+}
+
+/* rows are selectable */
+table.summary-list td {
+    cursor: pointer;
 }

@@ -1,6 +1,14 @@
 <!-- app partial HTML -->
 <div id="ov-app">
-    <h2>Applications ({{ctrl.appData.length}} total)</h2>
+    <div>
+        <h2>Applications ({{ctrl.appData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div icon icon-size="36" icon-id="appPlus"></div>
+            <div icon icon-size="36" icon-id="appMinus"></div>
+            <div icon icon-size="36" icon-id="appPlay"></div>
+            <div icon icon-size="36" icon-id="appStop"></div>
+        </div>
+    </div>
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
