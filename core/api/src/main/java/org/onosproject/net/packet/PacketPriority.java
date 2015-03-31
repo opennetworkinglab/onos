@@ -46,4 +46,8 @@ public enum PacketPriority {
     public int priorityValue() {
         return priorityValue;
     }
+
+    public String toString() {
+        return String.valueOf(priorityValue);
+    }
 }

@@ -17,6 +17,8 @@ package org.onosproject.net.packet;
 
 import org.onosproject.store.Store;
 
+import java.util.Set;
+
 /**
  * Manages routing of outbound packets.
  */
@@ -30,5 +32,22 @@ public interface PacketStore extends Store<PacketEvent, PacketStoreDelegate> {
      * @param packet the packet to emit
      */
     void emit(OutboundPacket packet);
+
+    /**
+     * Register a request for packets. If the registration
+     * is successful the manager can proceed, otherwise it should
+     * consider these packet already available in the system.
+     *
+     * @param request a packet request
+     * @return a boolean indicating registration state.
+     */
+    boolean requestPackets(PacketRequest request);
+
+    /**
+     * Obtains all existing requests in the system.
+     *
+     * @return a set of packet requests
+     */
+    Set<PacketRequest> existingRequests();
 
 }

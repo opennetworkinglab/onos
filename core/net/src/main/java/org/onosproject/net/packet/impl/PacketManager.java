@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Device;
-import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -33,6 +32,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketEvent;
@@ -41,6 +41,7 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketProvider;
 import org.onosproject.net.packet.PacketProviderRegistry;
 import org.onosproject.net.packet.PacketProviderService;
+import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.packet.PacketStore;
 import org.onosproject.net.packet.PacketStoreDelegate;
@@ -48,9 +49,7 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -81,68 +80,6 @@ implements PacketService, PacketProviderRegistry {
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private final Map<Integer, PacketProcessor> processors = new ConcurrentHashMap<>();
-
-    private Set<PacketRequest> packetRequests =
-            Collections.newSetFromMap(new ConcurrentHashMap<>());
-
-    private final class PacketRequest {
-        private final TrafficSelector selector;
-        private final PacketPriority priority;
-        private final ApplicationId appId;
-        private final FlowRule.Type tableType;
-
-        public PacketRequest(TrafficSelector selector, PacketPriority priority,
-                             ApplicationId appId, FlowRule.Type tableType) {
-            this.selector = selector;
-            this.priority = priority;
-            this.appId = appId;
-            this.tableType = tableType;
-        }
-
-        public TrafficSelector selector() {
-            return selector;
-        }
-
-        public PacketPriority priority() {
-            return priority;
-        }
-
-        public ApplicationId appId() {
-            return appId;
-        }
-
-        public FlowRule.Type tableType() {
-            return tableType;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            PacketRequest that = (PacketRequest) o;
-
-            if (priority != that.priority) {
-                return false;
-            }
-            if (!selector.equals(that.selector)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = selector.hashCode();
-            result = 31 * result + priority.hashCode();
-            return result;
-        }
-    }
 
     @Activate
     public void activate() {
@@ -177,10 +114,11 @@ implements PacketService, PacketProviderRegistry {
         checkNotNull(appId, "Application ID cannot be null");
 
         PacketRequest request =
-                new PacketRequest(selector, priority, appId, FlowRule.Type.DEFAULT);
+                new DefaultPacketRequest(selector, priority, appId, FlowRule.Type.DEFAULT);
 
-        packetRequests.add(request);
-        pushToAllDevices(request);
+        if (store.requestPackets(request)) {
+            pushToAllDevices(request);
+        }
     }
 
     @Override
@@ -192,11 +130,12 @@ implements PacketService, PacketProviderRegistry {
                 + "without table hints, use other methods in the packetService API");
 
         PacketRequest request =
-                new PacketRequest(selector, priority, appId, tableType);
+                new DefaultPacketRequest(selector, priority, appId, tableType);
 
-        if (packetRequests.add(request)) {
+        if (store.requestPackets(request)) {
             pushToAllDevices(request);
         }
+
     }
 
     /**
@@ -206,9 +145,7 @@ implements PacketService, PacketProviderRegistry {
      */
     private void pushToAllDevices(PacketRequest request) {
         for (Device device : deviceService.getDevices()) {
-            if (deviceService.getRole(device.id()) == MastershipRole.MASTER) {
-                pushRule(device, request);
-            }
+            pushRule(device, request);
         }
     }
 
@@ -303,7 +240,7 @@ implements PacketService, PacketProviderRegistry {
         public void event(DeviceEvent event) {
             Device device = event.subject();
             if (event.type() == DeviceEvent.Type.DEVICE_ADDED) {
-                for (PacketRequest request : packetRequests) {
+                for (PacketRequest request : store.existingRequests()) {
                     pushRule(device, request);
                 }
             }

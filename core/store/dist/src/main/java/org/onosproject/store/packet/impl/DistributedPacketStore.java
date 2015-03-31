@@ -28,6 +28,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketEvent;
 import org.onosproject.net.packet.PacketEvent.Type;
+import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketStore;
 import org.onosproject.net.packet.PacketStoreDelegate;
 import org.onosproject.store.AbstractStore;
@@ -37,8 +38,12 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -69,6 +74,11 @@ public class DistributedPacketStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService communicationService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    private PacketRequestTracker tracker;
+
     private static final MessageSubject PACKET_OUT_SUBJECT =
             new MessageSubject("packet-out");
 
@@ -93,6 +103,8 @@ public class DistributedPacketStore
         communicationService.addSubscriber(PACKET_OUT_SUBJECT,
                                            new InternalClusterMessageHandler(),
                                            messageHandlingExecutor);
+
+        tracker =  new PacketRequestTracker();
 
         log.info("Started");
     }
@@ -125,6 +137,16 @@ public class DistributedPacketStore
         // error log: log.warn("Failed to send packet-out to {}", master);
     }
 
+    @Override
+    public boolean requestPackets(PacketRequest request) {
+        return tracker.add(request);
+    }
+
+    @Override
+    public Set<PacketRequest> existingRequests() {
+        return tracker.requests();
+    }
+
     /**
      * Handles incoming cluster messages.
      */
@@ -140,4 +162,46 @@ public class DistributedPacketStore
         }
     }
 
+    private class PacketRequestTracker {
+
+        private ConsistentMap<PacketRequest, Boolean> requests;
+
+        public PacketRequestTracker() {
+            requests = storageService.<PacketRequest, Boolean>consistentMapBuilder()
+                    .withName("packet-requests")
+                    .withSerializer(new Serializer() {
+                        KryoNamespace kryo = new KryoNamespace.Builder()
+                                .register(KryoNamespaces.API)
+                                .build();
+                        @Override
+                        public <T> byte[] encode(T object) {
+                            return kryo.serialize(object);
+                        }
+
+                        @Override
+                        public <T> T decode(byte[] bytes) {
+                            return kryo.deserialize(bytes);
+                        }
+                    }).build();
+        }
+
+        public boolean add(PacketRequest request) {
+            if (requests.putIfAbsent(request, true) == null) {
+                return true;
+            }
+            return false;
+        }
+
+        public boolean remove(PacketRequest request) {
+            if (requests.remove(request) == null) {
+                return false;
+            }
+            return true;
+        }
+
+        public Set<PacketRequest> requests() {
+            return requests.keySet();
+        }
+
+    }
 }

@@ -15,14 +15,20 @@
  */
 package org.onosproject.store.trivial.impl;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketEvent;
 import org.onosproject.net.packet.PacketEvent.Type;
+import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketStore;
 import org.onosproject.net.packet.PacketStoreDelegate;
 import org.onosproject.store.AbstractStore;
+
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Simple single instance implementation of the packet store.
@@ -33,9 +39,21 @@ public class SimplePacketStore
         extends AbstractStore<PacketEvent, PacketStoreDelegate>
         implements PacketStore {
 
+    private Set<PacketRequest> requests = Sets.newConcurrentHashSet();
+
     @Override
     public void emit(OutboundPacket packet) {
         notifyDelegate(new PacketEvent(Type.EMIT, packet));
+    }
+
+    @Override
+    public boolean requestPackets(PacketRequest request) {
+        return requests.add(request);
+    }
+
+    @Override
+    public Set<PacketRequest> existingRequests() {
+        return Collections.unmodifiableSet(requests);
     }
 
 }

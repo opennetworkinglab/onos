@@ -106,6 +106,8 @@ import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.DefaultPacketRequest;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
@@ -225,6 +227,8 @@ public final class KryoNamespaces {
                     FlowRule.Type.class,
                     DefaultFlowRule.class,
                     DefaultFlowEntry.class,
+                    DefaultPacketRequest.class,
+                    PacketPriority.class,
                     FlowEntry.FlowEntryState.class,
                     FlowId.class,
                     DefaultTrafficSelector.class,
