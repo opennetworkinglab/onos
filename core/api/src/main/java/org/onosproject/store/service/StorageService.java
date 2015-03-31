@@ -29,13 +29,6 @@ package org.onosproject.store.service;
 public interface StorageService {
 
     /**
-     * Creates a new transaction context.
-     *
-     * @return transaction context
-     */
-    TransactionContext createTransactionContext();
-
-    /**
      * Creates a new EventuallyConsistentMapBuilder.
      *
      * @param <K> key type
@@ -45,11 +38,11 @@ public interface StorageService {
     <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder();
 
     /**
-     * Creates a new EventuallyConsistentMapBuilder.
+     * Creates a new ConsistentMapBuilder.
      *
      * @param <K> key type
      * @param <V> value type
-     * @return builder for an eventually consistent map
+     * @return builder for a consistent map
      */
     <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder();
 
@@ -60,4 +53,11 @@ public interface StorageService {
      * @return builder for an distributed set
      */
     <E> SetBuilder<E> setBuilder();
+
+    /**
+     * Creates a new transaction context.
+     *
+     * @return transaction context
+     */
+    TransactionContext createTransactionContext();
 }

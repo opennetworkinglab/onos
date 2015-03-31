@@ -16,51 +16,18 @@
 
 package org.onosproject.store.service;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.Map.Entry;
 
 /**
  * Transactional Map data structure.
  * <p>
- * A TransactionalMap is created by invoking {@link TransactionContext#createTransactionalMap createTransactionalMap}
- * method. All operations performed on this map with in a transaction boundary are invisible externally
+ * A TransactionalMap is created by invoking {@link TransactionContext#getTransactionalMap getTransactionalMap}
+ * method. All operations performed on this map within a transaction boundary are invisible externally
  * until the point when the transaction commits. A commit usually succeeds in the absence of conflicts.
  *
  * @param <K> type of key.
  * @param <V> type of value.
  */
 public interface TransactionalMap<K, V> {
-
-    /**
-     * Returns the number of entries in the map.
-     *
-     * @return map size.
-     */
-    int size();
-
-    /**
-     * Returns true if the map is empty.
-     *
-     * @return true if map has no entries, false otherwise.
-     */
-    boolean isEmpty();
-
-    /**
-     * Returns true if this map contains a mapping for the specified key.
-     *
-     * @param key key
-     * @return true if map contains key, false otherwise.
-     */
-    boolean containsKey(K key);
-
-    /**
-     * Returns true if this map contains the specified value.
-     *
-     * @param value value
-     * @return true if map contains value, false otherwise.
-     */
-    boolean containsValue(V value);
 
     /**
      * Returns the value to which the specified key is mapped, or null if this
@@ -92,45 +59,6 @@ public interface TransactionalMap<K, V> {
      * or null if the map contained no mapping for the key.
      */
     V remove(K key);
-
-    /**
-     * Removes all of the mappings from this map (optional operation).
-     * The map will be empty after this call returns.
-     */
-    void clear();
-
-    /**
-     * Returns a Set view of the keys contained in this map.
-     * This method differs from the behavior of java.util.Map.keySet() in that
-     * what is returned is a unmodifiable snapshot view of the keys in the ConsistentMap.
-     * Attempts to modify the returned set, whether direct or via its iterator,
-     * result in an UnsupportedOperationException.
-     *
-     * @return a set of the keys contained in this map
-     */
-    Set<K> keySet();
-
-    /**
-     * Returns the collection of values contained in this map.
-     * This method differs from the behavior of java.util.Map.values() in that
-     * what is returned is a unmodifiable snapshot view of the values in the ConsistentMap.
-     * Attempts to modify the returned collection, whether direct or via its iterator,
-     * result in an UnsupportedOperationException.
-     *
-     * @return a collection of the values contained in this map
-     */
-    Collection<V> values();
-
-    /**
-     * Returns the set of entries contained in this map.
-     * This method differs from the behavior of java.util.Map.entrySet() in that
-     * what is returned is a unmodifiable snapshot view of the entries in the ConsistentMap.
-     * Attempts to modify the returned set, whether direct or via its iterator,
-     * result in an UnsupportedOperationException.
-     *
-     * @return set of entries contained in this map.
-     */
-    Set<Entry<K, V>> entrySet();
 
     /**
      * If the specified key is not already associated with a value

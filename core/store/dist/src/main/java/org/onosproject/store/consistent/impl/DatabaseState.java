@@ -17,11 +17,10 @@
 package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import net.kuujo.copycat.state.Command;
@@ -62,13 +61,13 @@ public interface DatabaseState<K, V> {
   Versioned<V> get(String tableName, K key);
 
   @Command
-  Versioned<V> put(String tableName, K key, V value);
+  Result<Versioned<V>> put(String tableName, K key, V value);
 
   @Command
-  Versioned<V> remove(String tableName, K key);
+  Result<Versioned<V>> remove(String tableName, K key);
 
   @Command
-  void clear(String tableName);
+  Result<Void> clear(String tableName);
 
   @Query
   Set<K> keySet(String tableName);
@@ -80,20 +79,29 @@ public interface DatabaseState<K, V> {
   Set<Entry<K, Versioned<V>>> entrySet(String tableName);
 
   @Command
-  Versioned<V> putIfAbsent(String tableName, K key, V value);
+  Result<Versioned<V>> putIfAbsent(String tableName, K key, V value);
 
   @Command
-  boolean remove(String tableName, K key, V value);
+  Result<Boolean> remove(String tableName, K key, V value);
 
   @Command
-  boolean remove(String tableName, K key, long version);
+  Result<Boolean> remove(String tableName, K key, long version);
 
   @Command
-  boolean replace(String tableName, K key, V oldValue, V newValue);
+  Result<Boolean> replace(String tableName, K key, V oldValue, V newValue);
 
   @Command
-  boolean replace(String tableName, K key, long oldVersion, V newValue);
+  Result<Boolean> replace(String tableName, K key, long oldVersion, V newValue);
 
   @Command
-  boolean batchUpdate(List<UpdateOperation<K, V>> updates);
+  boolean prepareAndCommit(Transaction transaction);
+
+  @Command
+  boolean prepare(Transaction transaction);
+
+  @Command
+  boolean commit(Transaction transaction);
+
+  @Command
+  boolean rollback(Transaction transaction);
 }

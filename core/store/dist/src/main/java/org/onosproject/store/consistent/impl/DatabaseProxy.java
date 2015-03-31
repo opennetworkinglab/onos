@@ -17,12 +17,11 @@
 package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.onosproject.store.service.UpdateOperation;
+import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 /**
@@ -87,7 +86,7 @@ public interface DatabaseProxy<K, V> {
    * @param value The value to set.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Versioned<V>> put(String tableName, K key, V value);
+  CompletableFuture<Result<Versioned<V>>> put(String tableName, K key, V value);
 
   /**
    * Removes a value from the table.
@@ -96,7 +95,7 @@ public interface DatabaseProxy<K, V> {
    * @param key The key to remove.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Versioned<V>> remove(String tableName, K key);
+  CompletableFuture<Result<Versioned<V>>> remove(String tableName, K key);
 
   /**
    * Clears the table.
@@ -104,7 +103,7 @@ public interface DatabaseProxy<K, V> {
    * @param tableName table name
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Void> clear(String tableName);
+  CompletableFuture<Result<Void>> clear(String tableName);
 
   /**
    * Gets a set of keys in the table.
@@ -138,7 +137,7 @@ public interface DatabaseProxy<K, V> {
    * @param value The value to set if the given key does not exist.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Versioned<V>> putIfAbsent(String tableName, K key, V value);
+  CompletableFuture<Result<Versioned<V>>> putIfAbsent(String tableName, K key, V value);
 
   /**
    * Removes a key and if the existing value for that key matches the specified value.
@@ -148,7 +147,7 @@ public interface DatabaseProxy<K, V> {
    * @param value The value to remove.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Boolean> remove(String tableName, K key, V value);
+  CompletableFuture<Result<Boolean>> remove(String tableName, K key, V value);
 
   /**
    * Removes a key and if the existing version for that key matches the specified version.
@@ -158,7 +157,7 @@ public interface DatabaseProxy<K, V> {
    * @param version The expected version.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Boolean> remove(String tableName, K key, long version);
+  CompletableFuture<Result<Boolean>> remove(String tableName, K key, long version);
 
   /**
    * Replaces the entry for the specified key only if currently mapped to the specified value.
@@ -169,7 +168,7 @@ public interface DatabaseProxy<K, V> {
    * @param newValue The value with which to replace the given key and value.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Boolean> replace(String tableName, K key, V oldValue, V newValue);
+  CompletableFuture<Result<Boolean>> replace(String tableName, K key, V oldValue, V newValue);
 
   /**
    * Replaces the entry for the specified key only if currently mapped to the specified version.
@@ -180,14 +179,42 @@ public interface DatabaseProxy<K, V> {
    * @param newValue The value with which to replace the given key and version.
    * @return A completable future to be completed with the result once complete.
    */
-  CompletableFuture<Boolean> replace(String tableName, K key, long oldVersion, V newValue);
+  CompletableFuture<Result<Boolean>> replace(String tableName, K key, long oldVersion, V newValue);
 
   /**
-   * Perform a atomic batch update operation i.e. either all operations in batch succeed or
-   * none do and no state changes are made.
+   * Prepare and commit the specified transaction.
    *
-   * @param updates list of updates to apply atomically.
-   * @return A completable future to be completed with the result once complete.
+   * @param transaction transaction to commit (after preparation)
+   * @return A completable future to be completed with the result once complete
    */
-  CompletableFuture<Boolean> atomicBatchUpdate(List<UpdateOperation<K, V>> updates);
+  CompletableFuture<Boolean> prepareAndCommit(Transaction transaction);
+
+  /**
+   * Prepare the specified transaction for commit. A successful prepare implies
+   * all the affected resources are locked thus ensuring no concurrent updates can interfere.
+   *
+   * @param transaction transaction to prepare (for commit)
+   * @return A completable future to be completed with the result once complete. The future is completed
+   * with true if the transaction is successfully prepared i.e. all pre-conditions are met and
+   * applicable resources locked.
+   */
+  CompletableFuture<Boolean> prepare(Transaction transaction);
+
+  /**
+   * Commit the specified transaction. A successful commit implies
+   * all the updates are applied, are now durable and are now visible externally.
+   *
+   * @param transaction transaction to commit
+   * @return A completable future to be completed with the result once complete
+   */
+  CompletableFuture<Boolean> commit(Transaction transaction);
+
+  /**
+   * Rollback the specified transaction. A successful rollback implies
+   * all previously acquired locks for the affected resources are released.
+   *
+   * @param transaction transaction to rollback
+   * @return A completable future to be completed with the result once complete
+   */
+  CompletableFuture<Boolean> rollback(Transaction transaction);
 }

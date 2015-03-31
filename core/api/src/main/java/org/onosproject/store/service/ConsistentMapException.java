@@ -35,6 +35,12 @@ public class ConsistentMapException extends RuntimeException {
     }
 
     /**
+     * ConsistentMap update conflicts with an in flight transaction.
+     */
+    public static class ConcurrentModification extends ConsistentMapException {
+    }
+
+    /**
      * ConsistentMap operation interrupted.
      */
     public static class Interrupted extends ConsistentMapException {

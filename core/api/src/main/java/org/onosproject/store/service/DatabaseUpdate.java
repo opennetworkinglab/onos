@@ -16,36 +16,62 @@
 
 package org.onosproject.store.service;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
 
 /**
  * Database update operation.
  *
- * @param <K> key type.
- * @param <V> value type.
  */
-public class UpdateOperation<K, V> {
+public final class DatabaseUpdate {
 
     /**
      * Type of database update operation.
      */
     public static enum Type {
+        /**
+         * Insert/Update entry without any checks.
+         */
         PUT,
+        /**
+         * Insert an entry iff there is no existing entry for that key.
+         */
         PUT_IF_ABSENT,
+
+        /**
+         * Update entry if the current version matches specified version.
+         */
         PUT_IF_VERSION_MATCH,
+
+        /**
+         * Update entry if the current value matches specified value.
+         */
         PUT_IF_VALUE_MATCH,
+
+        /**
+         * Remove entry without any checks.
+         */
         REMOVE,
+
+        /**
+         * Remove entry if the current version matches specified version.
+         */
         REMOVE_IF_VERSION_MATCH,
+
+        /**
+         * Remove entry if the current value matches specified value.
+         */
         REMOVE_IF_VALUE_MATCH,
     }
 
     private Type type;
     private String tableName;
-    private K key;
-    private V value;
-    private V currentValue;
+    private String key;
+    private byte[] value;
+    private byte[] currentValue;
     private long currentVersion = -1;
 
     /**
@@ -68,7 +94,7 @@ public class UpdateOperation<K, V> {
      * Returns the item key being updated.
      * @return item key
      */
-    public K key() {
+    public String key() {
         return key;
     }
 
@@ -76,7 +102,7 @@ public class UpdateOperation<K, V> {
      * Returns the new value.
      * @return item's target value.
      */
-    public V value() {
+    public byte[] value() {
         return value;
     }
 
@@ -84,7 +110,7 @@ public class UpdateOperation<K, V> {
      * Returns the expected current value in the database value for the key.
      * @return current value in database.
      */
-    public V currentValue() {
+    public byte[] currentValue() {
         return currentValue;
     }
 
@@ -110,85 +136,81 @@ public class UpdateOperation<K, V> {
 
     /**
      * Creates a new builder instance.
-     * @param <K> key type.
-     * @param <V> value type.
      *
      * @return builder.
      */
-    public static <K, V> Builder<K, V> newBuilder() {
-        return new Builder<>();
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     /**
-     * UpdatOperation builder.
+     * DatabaseUpdate builder.
      *
-     * @param <K> key type.
-     * @param <V> value type.
      */
-    public static final class Builder<K, V> {
+    public static final class Builder {
 
-        private UpdateOperation<K, V> operation = new UpdateOperation<>();
+        private DatabaseUpdate update = new DatabaseUpdate();
 
-        public UpdateOperation<K, V> build() {
+        public DatabaseUpdate build() {
             validateInputs();
-            return operation;
+            return update;
         }
 
-        public Builder<K, V> withType(Type type) {
-            operation.type = checkNotNull(type, "type cannot be null");
+        public Builder withType(Type type) {
+            update.type = checkNotNull(type, "type cannot be null");
             return this;
         }
 
-        public Builder<K, V> withTableName(String tableName) {
-            operation.tableName = checkNotNull(tableName, "tableName cannot be null");
+        public Builder withTableName(String tableName) {
+            update.tableName = checkNotNull(tableName, "tableName cannot be null");
             return this;
         }
 
-        public Builder<K, V> withKey(K key) {
-            operation.key = checkNotNull(key, "key cannot be null");
+        public Builder withKey(String key) {
+            update.key = checkNotNull(key, "key cannot be null");
             return this;
         }
 
-        public Builder<K, V> withCurrentValue(V value) {
-            operation.currentValue = checkNotNull(value, "currentValue cannot be null");
+        public Builder withCurrentValue(byte[] value) {
+            update.currentValue = checkNotNull(value, "currentValue cannot be null");
             return this;
         }
 
-        public Builder<K, V> withValue(V value) {
-            operation.value = checkNotNull(value, "value cannot be null");
+        public Builder withValue(byte[] value) {
+            update.value = checkNotNull(value, "value cannot be null");
             return this;
         }
 
-        public Builder<K, V> withCurrentVersion(long version) {
+        public Builder withCurrentVersion(long version) {
             checkArgument(version >= 0, "version cannot be negative");
-            operation.currentVersion = version;
+            update.currentVersion = version;
             return this;
         }
 
         private void validateInputs() {
-            checkNotNull(operation.type, "type must be specified");
-            checkNotNull(operation.tableName, "table name must be specified");
-            checkNotNull(operation.key, "key must be specified");
-            switch (operation.type) {
+            checkNotNull(update.type, "type must be specified");
+            checkNotNull(update.tableName, "table name must be specified");
+            checkNotNull(update.key, "key must be specified");
+            switch (update.type) {
             case PUT:
             case PUT_IF_ABSENT:
-                checkNotNull(operation.value, "value must be specified.");
+                checkNotNull(update.value, "value must be specified.");
                 break;
             case PUT_IF_VERSION_MATCH:
-                checkNotNull(operation.value, "value must be specified.");
-                checkState(operation.currentVersion >= 0, "current version must be specified");
+                checkNotNull(update.value, "value must be specified.");
+                checkState(update.currentVersion >= 0, "current version must be specified");
                 break;
             case PUT_IF_VALUE_MATCH:
-                checkNotNull(operation.value, "value must be specified.");
-                checkNotNull(operation.currentValue, "currentValue must be specified.");
+                checkNotNull(update.value, "value must be specified.");
+                checkNotNull(update.currentValue, "currentValue must be specified.");
                 break;
             case REMOVE:
                 break;
             case REMOVE_IF_VERSION_MATCH:
-                checkState(operation.currentVersion >= 0, "current version must be specified");
+                checkState(update.currentVersion >= 0, "current version must be specified");
                 break;
             case REMOVE_IF_VALUE_MATCH:
-                checkNotNull(operation.currentValue, "currentValue must be specified.");
+                checkNotNull(update.currentValue, "currentValue must be specified.");
                 break;
             default:
                 throw new IllegalStateException("Unknown operation type");

@@ -23,6 +23,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.service.DatabaseUpdate;
+import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import net.kuujo.copycat.cluster.internal.MemberInfo;
@@ -63,8 +65,14 @@ public class DatabaseSerializer extends SerializerConfig {
     private static final KryoNamespace ONOS_STORE = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(Versioned.class)
+            .register(DatabaseUpdate.class)
+            .register(DatabaseUpdate.Type.class)
             .register(Pair.class)
             .register(ImmutablePair.class)
+            .register(Result.class)
+            .register(Result.Status.class)
+            .register(DefaultTransaction.class)
+            .register(Transaction.State.class)
             .build();
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {

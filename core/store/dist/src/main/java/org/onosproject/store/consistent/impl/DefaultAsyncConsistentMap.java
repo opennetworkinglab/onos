@@ -28,6 +28,7 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.HexString;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 
@@ -108,6 +109,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
         return database.put(name, keyCache.getUnchecked(key), serializer.encode(value))
+                .thenApply(this::unwrapResult)
                 .thenApply(v -> v != null
                 ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
@@ -116,13 +118,14 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> remove(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
         return database.remove(name, keyCache.getUnchecked(key))
+                .thenApply(this::unwrapResult)
                 .thenApply(v -> v != null
                 ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return database.clear(name);
+        return database.clear(name).thenApply(this::unwrapResult);
     }
 
     @Override
@@ -154,23 +157,27 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        return database.putIfAbsent(
-                name, keyCache.getUnchecked(key), serializer.encode(value)).thenApply(v ->
-                v != null ?
-                new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+        return database.putIfAbsent(name,
+                                    keyCache.getUnchecked(key),
+                                    serializer.encode(value))
+               .thenApply(this::unwrapResult)
+               .thenApply(v -> v != null ?
+                       new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        return database.remove(name, keyCache.getUnchecked(key), serializer.encode(value));
+        return database.remove(name, keyCache.getUnchecked(key), serializer.encode(value))
+                .thenApply(this::unwrapResult);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long version) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return database.remove(name, keyCache.getUnchecked(key), version);
+        return database.remove(name, keyCache.getUnchecked(key), version)
+                .thenApply(this::unwrapResult);
 
     }
 
@@ -179,14 +186,16 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
         byte[] existing = oldValue != null ? serializer.encode(oldValue) : null;
-        return database.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue));
+        return database.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue))
+                .thenApply(this::unwrapResult);
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
-        return database.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue));
+        return database.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue))
+                .thenApply(this::unwrapResult);
     }
 
     private Map.Entry<K, Versioned<V>> fromRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
@@ -196,5 +205,15 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
                         serializer.decode(e.getValue().value()),
                         e.getValue().version(),
                         e.getValue().creationTime()));
+    }
+
+    private <T> T unwrapResult(Result<T> result) {
+        if (result.status() == Result.Status.LOCKED) {
+            throw new ConsistentMapException.ConcurrentModification();
+        } else if (result.success()) {
+            return result.value();
+        } else {
+            throw new IllegalStateException("Must not be here");
+        }
     }
 }

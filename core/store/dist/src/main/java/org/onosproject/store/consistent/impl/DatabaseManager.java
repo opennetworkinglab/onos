@@ -34,6 +34,7 @@ import net.kuujo.copycat.protocol.Consistency;
 import net.kuujo.copycat.protocol.Protocol;
 import net.kuujo.copycat.util.concurrent.NamedThreadFactory;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,6 +42,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.IdGenerator;
 import org.onosproject.store.cluster.impl.DistributedClusterStore;
 import org.onosproject.store.cluster.impl.NodeInfo;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
@@ -53,11 +55,13 @@ import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.SetBuilder;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.TransactionContext;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,6 +95,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private ClusterCoordinator coordinator;
     private PartitionedDatabase partitionedDatabase;
     private Database inMemoryDatabase;
+
+    private TransactionManager transactionManager;
+    private final IdGenerator transactionIdGenerator = () -> RandomUtils.nextLong();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -188,6 +195,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             Thread.currentThread().interrupt();
             log.warn("Failed to complete database initialization.");
         }
+        transactionManager = new TransactionManager(partitionedDatabase);
         log.info("Started");
     }
 
@@ -218,7 +226,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public TransactionContext createTransactionContext() {
-        return new DefaultTransactionContext(partitionedDatabase);
+        return new DefaultTransactionContext(partitionedDatabase, transactionIdGenerator.getNewId());
     }
 
     @Override
@@ -331,6 +339,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public Collection<Transaction> getTransactions() {
+        return complete(transactionManager.getTransactions());
+    }
+
     private static <T> T complete(CompletableFuture<T> future) {
         try {
             return future.get(DATABASE_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
@@ -342,5 +355,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         } catch (ExecutionException e) {
             throw new ConsistentMapException(e.getCause());
         }
+    }
+
+    @Override
+    public void redriveTransactions() {
+        getTransactions().stream().forEach(transactionManager::execute);
     }
 }

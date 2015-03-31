@@ -18,6 +18,7 @@ package org.onosproject.store.consistent.impl;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
+
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 
@@ -46,6 +47,7 @@ public class DefaultDistributedSet<E> implements Set<E> {
         return backingMap.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean contains(Object o) {
         return backingMap.containsKey((E) o);
@@ -71,6 +73,7 @@ public class DefaultDistributedSet<E> implements Set<E> {
         return backingMap.putIfAbsent(e, true) == null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object o) {
         return backingMap.remove((E) o, true);

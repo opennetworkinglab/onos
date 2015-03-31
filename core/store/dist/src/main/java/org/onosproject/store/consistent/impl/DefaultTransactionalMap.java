@@ -16,23 +16,24 @@
 
 package org.onosproject.store.consistent.impl;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.Set;
 
 import org.onlab.util.HexString;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
-import org.onosproject.store.service.UpdateOperation;
 import org.onosproject.store.service.Versioned;
 
 import static com.google.common.base.Preconditions.*;
 
+import com.google.common.base.Objects;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -55,6 +56,23 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
     private final Map<K, V> writeCache = Maps.newConcurrentMap();
     private final Set<K> deleteSet = Sets.newConcurrentHashSet();
 
+    private static final String ERROR_NULL_VALUE = "Null values are not allowed";
+    private static final String ERROR_NULL_KEY = "Null key is not allowed";
+
+    private final LoadingCache<K, String> keyCache = CacheBuilder.newBuilder()
+            .softValues()
+            .build(new CacheLoader<K, String>() {
+
+                @Override
+                public String load(K key) {
+                    return HexString.toHexString(serializer.encode(key));
+                }
+            });
+
+    protected K dK(String key) {
+        return serializer.decode(HexString.fromHexString(key));
+    }
+
     public DefaultTransactionalMap(
             String name,
             ConsistentMap<K, V> backingMap,
@@ -69,15 +87,15 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
     @Override
     public V get(K key) {
         checkState(txContext.isOpen(), TX_CLOSED_ERROR);
+        checkNotNull(key, ERROR_NULL_KEY);
         if (deleteSet.contains(key)) {
             return null;
-        } else if (writeCache.containsKey(key)) {
-            return writeCache.get(key);
+        }
+        V latest = writeCache.get(key);
+        if (latest != null) {
+            return latest;
         } else {
-            if (!readCache.containsKey(key)) {
-                readCache.put(key, backingMap.get(key));
-            }
-            Versioned<V> v = readCache.get(key);
+            Versioned<V> v = readCache.computeIfAbsent(key, k -> backingMap.get(k));
             return v != null ? v.value() : null;
         }
     }
@@ -85,25 +103,31 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
     @Override
     public V put(K key, V value) {
         checkState(txContext.isOpen(), TX_CLOSED_ERROR);
-        Versioned<V> original = readCache.get(key);
-        V recentUpdate = writeCache.put(key, value);
+        checkNotNull(value, ERROR_NULL_VALUE);
+
+        V latest = get(key);
+        writeCache.put(key, value);
         deleteSet.remove(key);
-        return recentUpdate == null ? (original != null ? original.value() : null) : recentUpdate;
+        return latest;
     }
 
     @Override
     public V remove(K key) {
         checkState(txContext.isOpen(), TX_CLOSED_ERROR);
-        Versioned<V> original = readCache.get(key);
-        V recentUpdate = writeCache.remove(key);
-        deleteSet.add(key);
-        return recentUpdate == null ? (original != null ? original.value() : null) : recentUpdate;
+        V latest = get(key);
+        if (latest != null) {
+            writeCache.remove(key);
+            deleteSet.add(key);
+        }
+        return latest;
     }
 
     @Override
     public boolean remove(K key, V value) {
-        V currentValue = get(key);
-        if (value.equals(currentValue)) {
+        checkState(txContext.isOpen(), TX_CLOSED_ERROR);
+        checkNotNull(value, ERROR_NULL_VALUE);
+        V latest = get(key);
+        if (Objects.equal(value, latest)) {
             remove(key);
             return true;
         }
@@ -112,8 +136,11 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        V currentValue = get(key);
-        if (oldValue.equals(currentValue)) {
+        checkState(txContext.isOpen(), TX_CLOSED_ERROR);
+        checkNotNull(oldValue, ERROR_NULL_VALUE);
+        checkNotNull(newValue, ERROR_NULL_VALUE);
+        V latest = get(key);
+        if (Objects.equal(oldValue, latest)) {
             put(key, newValue);
             return true;
         }
@@ -121,70 +148,25 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
     }
 
     @Override
-    public int size() {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
-    @Override
-    public boolean containsKey(K key) {
-        return get(key) != null;
-    }
-
-    @Override
-    public boolean containsValue(V value) {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<K> keySet() {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<V> values() {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<Entry<K, V>> entrySet() {
-        // TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public V putIfAbsent(K key, V value) {
-        V currentValue = get(key);
-        if (currentValue == null) {
+        checkState(txContext.isOpen(), TX_CLOSED_ERROR);
+        checkNotNull(value, ERROR_NULL_VALUE);
+        V latest = get(key);
+        if (latest == null) {
             put(key, value);
-            return null;
         }
-        return currentValue;
+        return latest;
     }
 
-    protected List<UpdateOperation<String, byte[]>> prepareDatabaseUpdates() {
-        List<UpdateOperation<K, V>> updates = Lists.newLinkedList();
+    protected List<DatabaseUpdate> prepareDatabaseUpdates() {
+        List<DatabaseUpdate> updates = Lists.newLinkedList();
         deleteSet.forEach(key -> {
             Versioned<V> original = readCache.get(key);
             if (original != null) {
-                updates.add(UpdateOperation.<K, V>newBuilder()
+                updates.add(DatabaseUpdate.newBuilder()
                         .withTableName(name)
-                        .withType(UpdateOperation.Type.REMOVE_IF_VERSION_MATCH)
-                        .withKey(key)
+                        .withType(DatabaseUpdate.Type.REMOVE_IF_VERSION_MATCH)
+                        .withKey(keyCache.getUnchecked(key))
                         .withCurrentVersion(original.version())
                         .build());
             }
@@ -192,44 +174,23 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
         writeCache.forEach((key, value) -> {
             Versioned<V> original = readCache.get(key);
             if (original == null) {
-                updates.add(UpdateOperation.<K, V>newBuilder()
+                updates.add(DatabaseUpdate.newBuilder()
                         .withTableName(name)
-                        .withType(UpdateOperation.Type.PUT_IF_ABSENT)
-                        .withKey(key)
-                        .withValue(value)
+                        .withType(DatabaseUpdate.Type.PUT_IF_ABSENT)
+                        .withKey(keyCache.getUnchecked(key))
+                        .withValue(serializer.encode(value))
                         .build());
             } else {
-                updates.add(UpdateOperation.<K, V>newBuilder()
+                updates.add(DatabaseUpdate.newBuilder()
                         .withTableName(name)
-                        .withType(UpdateOperation.Type.PUT_IF_VERSION_MATCH)
-                        .withKey(key)
+                        .withType(DatabaseUpdate.Type.PUT_IF_VERSION_MATCH)
+                        .withKey(keyCache.getUnchecked(key))
                         .withCurrentVersion(original.version())
-                        .withValue(value)
+                        .withValue(serializer.encode(value))
                         .build());
             }
         });
-        return updates.stream().map(this::toRawUpdateOperation).collect(Collectors.toList());
-    }
-
-    private UpdateOperation<String, byte[]> toRawUpdateOperation(UpdateOperation<K, V> update) {
-
-        UpdateOperation.Builder<String, byte[]> rawUpdate = UpdateOperation.<String, byte[]>newBuilder();
-
-        rawUpdate = rawUpdate.withKey(HexString.toHexString(serializer.encode(update.key())))
-            .withCurrentVersion(update.currentVersion())
-            .withType(update.type());
-
-        rawUpdate = rawUpdate.withTableName(update.tableName());
-
-        if (update.value() != null) {
-            rawUpdate = rawUpdate.withValue(serializer.encode(update.value()));
-        }
-
-        if (update.currentValue() != null) {
-            rawUpdate = rawUpdate.withCurrentValue(serializer.encode(update.currentValue()));
-        }
-
-        return rawUpdate.build();
+        return updates;
     }
 
     /**

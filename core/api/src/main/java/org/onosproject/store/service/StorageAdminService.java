@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.service;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,4 +36,16 @@ public interface StorageAdminService {
      * @return list of map information
      */
     List<MapInfo> getMapInfo();
+
+    /**
+     * Returns all the transactions in the system.
+     *
+     * @return collection of transactions
+     */
+    Collection<Transaction> getTransactions();
+
+    /**
+     * Redrives stuck transactions while removing those that are done.
+     */
+    void redriveTransactions();
 }
