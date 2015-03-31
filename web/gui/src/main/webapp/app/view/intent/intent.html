@@ -31,12 +31,17 @@
         </thead>
 
         <tbody>
-        <tr ng-repeat="intent in ctrl.intentData"
-            ng-repeat-done>
+        <tr ng-repeat-start="intent in ctrl.intentData">
             <td>{{intent.appId}}</td>
             <td>{{intent.key}}</td>
             <td>{{intent.type}}</td>
             <td>{{intent.priority}}</td>
+        </tr>
+        <tr>
+            <td class="resources" colspan="4">{{intent.resources}}</td>
+        </tr>
+        <tr ng-repeat-end ng-repeat-done>
+            <td class="details" colspan="4">{{intent.details}}</td>
         </tr>
         </tbody>
     </table>
