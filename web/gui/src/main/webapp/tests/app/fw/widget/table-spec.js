@@ -22,7 +22,7 @@ describe('factory: fw/widget/table.js', function () {
         fs, is,
         scope, compiled,
         table, thead, tbody,
-        tableIconTdSize = 33,
+        tableIconTdSize = 100,
         bottomMargin = 200,
         numTestElems = 4;
 

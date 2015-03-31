@@ -34,10 +34,13 @@ describe('factory: view/topo/topoSelect.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tss, [
-            'initSelect', 'destroySelect', 'showDetails', 'toggleDetails',
+            'initSelect', 'destroySelect',
+            'showDetails',
             'nodeMouseOver', 'nodeMouseOut', 'selectObject', 'deselectObject',
-            'deselectAll', 'hovered', 'haveDetails', 'selectOrder',
-            'validateSelectionContext'
+            'deselectAll',
+            'hovered', 'selectOrder',
+            'validateSelectionContext',
+            'clickConsumed'
         ])).toBeTruthy();
     });
 

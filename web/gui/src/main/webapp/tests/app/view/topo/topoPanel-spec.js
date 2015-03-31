@@ -38,12 +38,14 @@ describe('factory: view/topo/topoPanel.js', function() {
             'destroyPanels',
             'showSummary',
             'toggleSummary',
+            'toggleDetails',
             'displaySingle',
             'displayMulti',
             'addAction',
+            'displayLink',
+            'displayNothing',
+            'displaySomething',
             'hideSummaryPanel',
-            'showDetailPanel',
-            'hideDetailPanel',
             'detailVisible',
             'summaryVisible'
         ])).toBeTruthy();

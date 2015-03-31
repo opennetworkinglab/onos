@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 30,
+    var numBaseGlyphs = 34,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -61,11 +61,26 @@ describe('factory: fw/svg/glyph.js', function() {
             xMark: 'M9.0,7.2C8.2',
             triangleUp: 'M0.5,6.2c0',
             triangleDown: 'M9.5,4.2c0',
+            plus: 'M4,2h2v2h2v2',
+            minus: 'M2,4h6v2',
+            play: 'M2.5,2l5.5,3',
+            stop: 'M2.5,2.5h5',
 
             // our test ones..
             triangle: 'M.5,.2',
             diamond: 'M.2,.5'
-        };
+        },
+        glyphIds = [
+            'unknown', 'node', 'switch', 'roadm', 'endstation', 'router',
+            'bgpSpeaker', 'chain', 'crown', 'lock',
+            'summary', 'details', 'ports', 'map', 'cycleLabels', 'oblique',
+            'resetZoom', 'relatedIntents', 'nextIntent', 'prevIntent',
+            'intentTraffic', 'allTraffic', 'flows', 'eqMaster'
+        ],
+        badgeIds = [
+            'uiAttached', 'checkMark', 'xMark', 'triangleUp', 'triangleDown',
+            'plus', 'minus', 'play', 'stop'
+        ];
 
     beforeEach(module('onosUtil', 'onosSvg'));
 
@@ -122,114 +137,29 @@ describe('factory: fw/svg/glyph.js', function() {
         expect(glyph.d.slice(0, plen)).toEqual(prefix);
     }
 
+    it('should be configured with the correct number of glyphs', function () {
+        expect(1 + glyphIds.length + badgeIds.length).toEqual(numBaseGlyphs);
+    });
+
     it('should load the bird glyph', function() {
         gs.init();
         verifyGlyphLoadedInCache('bird', vbBird);
     });
-    it('should load the unknown glyph', function() {
+
+    it('should load the regular glyphs', function () {
         gs.init();
-        verifyGlyphLoadedInCache('unknown', vbGlyph);
-    });
-    it('should load the node glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('node', vbGlyph);
-    });
-    it('should load the switch glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('switch', vbGlyph);
-    });
-    it('should load the roadm glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('roadm', vbGlyph);
-    });
-    it('should load the endstation glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('endstation', vbGlyph);
-    });
-    it('should load the router glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('router', vbGlyph);
-    });
-    it('should load the bgpSpeaker glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('bgpSpeaker', vbGlyph);
-    });
-    it('should load the chain glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('chain', vbGlyph);
-    });
-    it('should load the crown glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('crown', vbGlyph);
-    });
-    it('should load the lock glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('lock', vbGlyph);
-    });
-    it('should load the summary glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('summary', vbGlyph);
-    });
-    it('should load the details glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('details', vbGlyph);
-    });
-    it('should load the ports glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('ports', vbGlyph);
-    });
-    it('should load the map glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('map', vbGlyph);
-    });
-    it('should load the cycleLabels glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('cycleLabels', vbGlyph);
-    });
-    it('should load the oblique glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('oblique', vbGlyph);
-    });
-    it('should load the resetZoom glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('resetZoom', vbGlyph);
-    });
-    it('should load the relatedIntents glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('relatedIntents', vbGlyph);
-    });
-    it('should load the nextIntent glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('nextIntent', vbGlyph);
-    });
-    it('should load the prevIntent glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('prevIntent', vbGlyph);
-    });
-    it('should load the intentTraffic glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('intentTraffic', vbGlyph);
-    });
-    it('should load the flows glyph', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('flows', vbGlyph);
-    });
-    it('should load the flows eqMaster', function () {
-        gs.init();
-        verifyGlyphLoadedInCache('eqMaster', vbGlyph);
-    });
-    it('should load the uiAttached glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('uiAttached', vbBadge);
-    });
-    it('should load the checkMark glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('checkMark', vbBadge);
-    });
-    it('should load the xMark glyph', function() {
-        gs.init();
-        verifyGlyphLoadedInCache('xMark', vbBadge);
+        glyphIds.forEach(function (id) {
+            verifyGlyphLoadedInCache(id, vbGlyph);
         });
+    });
+
+    it('should load the badge glyphs', function () {
+        gs.init();
+        badgeIds.forEach(function (id) {
+            verifyGlyphLoadedInCache(id, vbBadge);
+        });
+    });
+
 
     // define some glyphs that we want to install
 
