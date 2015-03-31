@@ -39,6 +39,11 @@
         deviceOnline: 'checkMark',
         deviceOffline: 'xMark',
         devIcon_SWITCH: 'switch',
+        devIcon_ROADM: 'roadm',
+
+        hostIcon_endstation: 'endstation',
+        hostIcon_router: 'router',
+        hostIcon_bgpSpeaker: 'bgpSpeaker',
 
         tableColSortAsc: 'triangleUp',
         tableColSortDesc: 'triangleDown'

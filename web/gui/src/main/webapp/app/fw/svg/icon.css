@@ -65,16 +65,16 @@ svg.embeddedIcon .icon.appInactive .glyph {
 }
 
 
-.light svg.embeddedIcon .icon.devIcon_SWITCH {
+.light table svg.embeddedIcon {
     fill: #ccc;
 }
-.dark svg.embeddedIcon .icon.devIcon_SWITCH {
+.dark table svg.embeddedIcon {
     fill: #222;
 }
-.light svg.embeddedIcon .icon.devIcon_SWITCH .glyph {
+.light table svg.embeddedIcon .glyph {
     fill: #333;
 }
-.dark svg.embeddedIcon .icon.devIcon_SWITCH .glyph {
+.dark table svg.embeddedIcon .glyph {
     fill: #ccc;
 }
 

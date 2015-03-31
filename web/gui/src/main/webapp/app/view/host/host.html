@@ -7,6 +7,7 @@
            sort-callback="sortCallback(requestParams)">
         <thead>
             <tr>
+                <th colId="type" class="table-icon" sortable></th>
                 <th colId="id" sortable>Host ID </th>
                 <th colId="mac" sortable>MAC Address </th>
                 <th colId="vlan" sortable>VLAN ID </th>
@@ -18,6 +19,9 @@
         <tbody>
         <tr ng-repeat="host in ctrl.hostData"
             ng-repeat-done>
+            <td class="table-icon">
+                <div icon icon-id="{{host._iconid_type}}"></div>
+            </td>
             <td>{{host.id}}</td>
             <td>{{host.mac}}</td>
             <td>{{host.vlan}}</td>
