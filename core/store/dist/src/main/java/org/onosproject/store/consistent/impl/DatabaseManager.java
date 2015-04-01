@@ -44,7 +44,9 @@ import org.onosproject.store.cluster.impl.NodeInfo;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.ConsistentMapBuilder;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
@@ -58,8 +60,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -80,6 +84,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
     private static final int RAFT_ELECTION_TIMEOUT = 3000;
     private static final int RAFT_HEARTBEAT_TIMEOUT = 1500;
+    private static final int DATABASE_OPERATION_TIMEOUT_MILLIS = 5000;
 
     private ClusterCoordinator coordinator;
     private PartitionedDatabase partitionedDatabase;
@@ -293,5 +298,34 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         return new DefaultConsistentMapBuilder<>(inMemoryDatabase, partitionedDatabase);
+    }
+
+    @Override
+    public List<MapInfo> getMapInfo() {
+        List<MapInfo> maps = Lists.newArrayList();
+        maps.addAll(getMapInfo(inMemoryDatabase));
+        maps.addAll(getMapInfo(partitionedDatabase));
+        return maps;
+    }
+
+    private List<MapInfo> getMapInfo(Database database) {
+        return complete(database.tableNames())
+            .stream()
+            .map(name -> new MapInfo(name, complete(database.size(name))))
+            .filter(info -> info.size() > 0)
+            .collect(Collectors.toList());
+    }
+
+    private static <T> T complete(CompletableFuture<T> future) {
+        try {
+            return future.get(DATABASE_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ConsistentMapException.Interrupted();
+        } catch (TimeoutException e) {
+            throw new ConsistentMapException.Timeout();
+        } catch (ExecutionException e) {
+            throw new ConsistentMapException(e.getCause());
+        }
     }
 }

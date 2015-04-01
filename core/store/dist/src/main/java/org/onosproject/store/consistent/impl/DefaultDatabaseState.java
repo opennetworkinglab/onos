@@ -19,6 +19,7 @@ package org.onosproject.store.consistent.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,6 +69,11 @@ public class DefaultDatabaseState<K, V> implements DatabaseState<K, V> {
             tables.put(tableName, table);
         }
         return table;
+    }
+
+    @Override
+    public Set<String> tableNames() {
+        return new HashSet<>(tables.keySet());
     }
 
     @Override

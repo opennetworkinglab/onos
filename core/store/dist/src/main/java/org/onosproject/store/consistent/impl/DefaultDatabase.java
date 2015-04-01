@@ -61,6 +61,11 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
+    public CompletableFuture<Set<String>> tableNames() {
+        return checkOpen(() -> proxy.tableNames());
+    }
+
+    @Override
     public CompletableFuture<Integer> size(String tableName) {
         return checkOpen(() -> proxy.size(tableName));
     }

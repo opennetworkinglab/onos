@@ -44,6 +44,9 @@ public interface DatabaseState<K, V> {
   public void init(StateContext<DatabaseState<K, V>> context);
 
   @Query
+  Set<String> tableNames();
+
+  @Query
   int size(String tableName);
 
   @Query

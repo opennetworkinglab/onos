@@ -15,24 +15,33 @@
  */
 package org.onosproject.store.service;
 
-import java.util.List;
-
 /**
- * Service for administering storage instances.
+ * Metadata information for a consistent map.
  */
-public interface StorageAdminService {
+public class MapInfo {
+    private final String name;
+    private final int size;
+
+    public MapInfo(String name, int size) {
+        this.name = name;
+        this.size = size;
+    }
 
     /**
-     * Returns information about all partitions in the system.
+     * Returns the name of the map.
      *
-     * @return list of partition information
+     * @return map name
      */
-    List<PartitionInfo> getPartitionInfo();
+    public String name() {
+        return name;
+    }
 
     /**
-     * Returns information about all the consistent maps in the system.
+     * Returns the number of entries in the map.
      *
-     * @return list of map information
+     * @return map size
      */
-    List<MapInfo> getMapInfo();
+    public int size() {
+        return size;
+    }
 }

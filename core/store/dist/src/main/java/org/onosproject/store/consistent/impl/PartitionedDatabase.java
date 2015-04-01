@@ -78,6 +78,17 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
+    public CompletableFuture<Set<String>> tableNames() {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        Set<String> tableNames = Sets.newConcurrentHashSet();
+        return CompletableFuture.allOf(partitions
+                .stream()
+                .map(db -> db.tableNames().thenApply(tableNames::addAll))
+                .toArray(CompletableFuture[]::new))
+            .thenApply(v -> tableNames);
+    }
+
+    @Override
     public CompletableFuture<Integer> size(String tableName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         AtomicInteger totalSize = new AtomicInteger(0);

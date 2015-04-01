@@ -30,6 +30,12 @@ import org.onosproject.store.service.Versioned;
  */
 public interface DatabaseProxy<K, V> {
 
+    /**
+     * Returns a set of all tables names.
+     * @return A completable future to be completed with the result once complete.
+     */
+    CompletableFuture<Set<String>> tableNames();
+
   /**
    * Gets the table size.
    *
