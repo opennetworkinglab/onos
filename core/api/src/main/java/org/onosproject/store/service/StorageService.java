@@ -52,4 +52,12 @@ public interface StorageService {
      * @return builder for an eventually consistent map
      */
     <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder();
+
+    /**
+     * Creates a new distributed set builder.
+     *
+     * @param <E> set element type
+     * @return builder for an distributed set
+     */
+    <E> SetBuilder<E> setBuilder();
 }

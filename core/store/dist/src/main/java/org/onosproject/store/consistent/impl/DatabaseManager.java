@@ -19,6 +19,7 @@ package org.onosproject.store.consistent.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import net.kuujo.copycat.CopycatConfig;
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.Member;
@@ -32,6 +33,7 @@ import net.kuujo.copycat.netty.NettyTcpProtocol;
 import net.kuujo.copycat.protocol.Consistency;
 import net.kuujo.copycat.protocol.Protocol;
 import net.kuujo.copycat.util.concurrent.NamedThreadFactory;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,6 +50,7 @@ import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.PartitionInfo;
+import org.onosproject.store.service.SetBuilder;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
@@ -298,6 +301,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         return new DefaultConsistentMapBuilder<>(inMemoryDatabase, partitionedDatabase);
+    }
+
+    @Override
+    public <E> SetBuilder<E> setBuilder() {
+        return new DefaultSetBuilder<>(partitionedDatabase);
     }
 
     @Override
