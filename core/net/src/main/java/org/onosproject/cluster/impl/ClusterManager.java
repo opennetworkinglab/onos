@@ -15,18 +15,13 @@
  */
 package org.onosproject.cluster.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.karaf.system.SystemService;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterAdminService;
@@ -40,6 +35,12 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
+
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of the cluster service.
@@ -61,6 +62,9 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected SystemService systemService;
 
     @Activate
     public void activate() {
@@ -102,6 +106,20 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
         return store.getLastUpdated(nodeId);
+    }
+
+    @Override
+    public void formCluster(Set<ControllerNode> nodes, String ipPrefix) {
+        checkNotNull(nodes, "Nodes cannot be null");
+        checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
+        checkNotNull(ipPrefix, "IP prefix cannot be null");
+        store.formCluster(nodes, ipPrefix);
+        try {
+            log.warn("Shutting down container for cluster reconfiguration!");
+            systemService.reboot("now", SystemService.Swipe.NONE);
+        } catch (Exception e) {
+            log.error("Unable to reboot container", e);
+        }
     }
 
     @Override

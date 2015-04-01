@@ -18,6 +18,7 @@ package org.onosproject.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cluster.ClusterAdminService;
+import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onlab.packet.IpAddress;
 
@@ -38,7 +39,7 @@ public class NodeAddCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "tcpPort", description = "Node TCP listen port",
               required = false, multiValued = false)
-    int tcpPort = 9876;
+    int tcpPort = DefaultControllerNode.DEFAULT_PORT;
 
     @Override
     protected void execute() {

@@ -62,6 +62,7 @@
                 org.onosproject.rest.JsonBodyWriter,
 
                 org.onosproject.rest.ApplicationsWebResource,
+                org.onosproject.rest.ClusterWebResource,
                 org.onosproject.rest.DevicesWebResource,
                 org.onosproject.rest.LinksWebResource,
                 org.onosproject.rest.HostsWebResource,

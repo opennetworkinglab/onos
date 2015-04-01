@@ -16,11 +16,9 @@
 
 package org.onosproject.store.consistent.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import net.kuujo.copycat.CopycatConfig;
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.Member;
@@ -34,7 +32,6 @@ import net.kuujo.copycat.netty.NettyTcpProtocol;
 import net.kuujo.copycat.protocol.Consistency;
 import net.kuujo.copycat.protocol.Protocol;
 import net.kuujo.copycat.util.concurrent.NamedThreadFactory;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -75,16 +72,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DatabaseManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());
+
+    public static final int COPYCAT_TCP_PORT = 7238; //  7238 = RAFT
+    public static final String PARTITION_DEFINITION_FILE = "../config/tablets.json";
+    public static final String BASE_PARTITION_NAME = "p0";
+
+    private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
+    private static final int RAFT_ELECTION_TIMEOUT = 3000;
+    private static final int RAFT_HEARTBEAT_TIMEOUT = 1500;
+
     private ClusterCoordinator coordinator;
     private PartitionedDatabase partitionedDatabase;
     private Database inMemoryDatabase;
-    public static final int COPYCAT_TCP_PORT = 7238; //  7238 = RAFT
-    private static final String CONFIG_DIR = "../config";
-    private static final String PARTITION_DEFINITION_FILE = "tablets.json";
-    private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
-    public static final String BASE_PARTITION_NAME = "p0";
-    private static final int RAFT_ELECTION_TIMEOUT = 3000;
-    private static final int RAFT_HEARTBEAT_TIMEOUT = 1500;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -98,15 +97,14 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Activate
     public void activate() {
-
         // load database configuration
-        File file = new File(CONFIG_DIR, PARTITION_DEFINITION_FILE);
-        log.info("Loading database definition: {}", file.getAbsolutePath());
+        File databaseDefFile = new File(PARTITION_DEFINITION_FILE);
+        log.info("Loading database definition: {}", databaseDefFile.getAbsolutePath());
 
         Map<String, Set<NodeInfo>> partitionMap;
         try {
-            DatabaseDefinitionStore databaseDefStore = new DatabaseDefinitionStore(file);
-            if (!file.exists()) {
+            DatabaseDefinitionStore databaseDefStore = new DatabaseDefinitionStore(databaseDefFile);
+            if (!databaseDefFile.exists()) {
                 createDefaultDatabaseDefinition(databaseDefStore);
             }
             partitionMap = databaseDefStore.read().getPartitions();
@@ -189,10 +187,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private void createDefaultDatabaseDefinition(DatabaseDefinitionStore store) {
         // Assumes IPv4 is returned.
         String ip = DistributedClusterStore.getSiteLocalAddress();
-        NodeInfo node = NodeInfo.from(ip, ip, DistributedClusterStore.DEFAULT_PORT);
+        NodeInfo node = NodeInfo.from(ip, ip, COPYCAT_TCP_PORT);
         try {
-            store.write(DatabaseDefinition.from(ImmutableMap.of("p1", ImmutableSet.of(node)),
-                                                ImmutableSet.of(node)));
+            store.write(DatabaseDefinition.from(ImmutableSet.of(node)));
         } catch (IOException e) {
             log.warn("Unable to write default cluster definition", e);
         }

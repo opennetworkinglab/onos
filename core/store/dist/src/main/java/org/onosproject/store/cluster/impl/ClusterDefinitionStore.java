@@ -18,6 +18,8 @@ package org.onosproject.store.cluster.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -43,8 +45,7 @@ public class ClusterDefinitionStore {
      */
     public ClusterDefinition read() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ClusterDefinition definition = mapper.readValue(file, ClusterDefinition.class);
-        return definition;
+        return mapper.readValue(file, ClusterDefinition.class);
     }
 
     /**
@@ -55,7 +56,8 @@ public class ClusterDefinitionStore {
     public void write(ClusterDefinition definition) throws IOException {
         checkNotNull(definition);
         // write back to file
-        final ObjectMapper mapper = new ObjectMapper();
+        Files.createParentDirs(file);
+        ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(file, definition);
     }
 }

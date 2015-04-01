@@ -26,7 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultControllerNode implements ControllerNode {
 
-    private static final int DEFAULT_PORT = 9876;
+    public static final int DEFAULT_PORT = 9876;
 
     private final NodeId id;
     private final IpAddress ip;

@@ -15,11 +15,11 @@
  */
 package org.onosproject.cluster;
 
-import java.util.Set;
-
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.store.Store;
+
+import java.util.Set;
 
 /**
  * Manages inventory of controller cluster nodes; not intended for direct use.
@@ -63,6 +63,16 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
      * @return system time when the availability state was last updated.
      */
     DateTime getLastUpdated(NodeId nodeId);
+
+    /**
+     * Forms cluster configuration based on the specified set of node
+     * information. Assumes subsequent restart for the new configuration to
+     * take hold.
+     *
+     * @param nodes    set of nodes that form the cluster
+     * @param ipPrefix IP address prefix, e.g. 10.0.1.*
+     */
+    void formCluster(Set<ControllerNode> nodes, String ipPrefix);
 
     /**
      * Adds a new controller node to the cluster.

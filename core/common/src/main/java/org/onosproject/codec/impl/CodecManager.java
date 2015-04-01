@@ -15,15 +15,13 @@
  */
 package org.onosproject.codec.impl;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
+import org.onosproject.cluster.ControllerNode;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
@@ -50,7 +48,9 @@ import org.onosproject.net.topology.TopologyCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation of the JSON codec brokering service.
@@ -67,6 +67,7 @@ public class CodecManager implements CodecService {
     public void activate() {
         codecs.clear();
         registerCodec(Application.class, new ApplicationCodec());
+        registerCodec(ControllerNode.class, new ControllerNodeCodec());
         registerCodec(Annotations.class, new AnnotationsCodec());
         registerCodec(Device.class, new DeviceCodec());
         registerCodec(Port.class, new PortCodec());

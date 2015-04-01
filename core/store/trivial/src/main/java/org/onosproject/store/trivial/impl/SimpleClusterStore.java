@@ -15,10 +15,7 @@
  */
 package org.onosproject.store.trivial.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -36,7 +33,9 @@ import org.onosproject.net.intent.PartitionService;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of infrastructure devices using trivial in-memory
@@ -91,6 +90,11 @@ public class SimpleClusterStore
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
         return creationTime;
+    }
+
+    @Override
+    public void formCluster(Set<ControllerNode> nodes, String ipPrefix) {
+
     }
 
     @Override

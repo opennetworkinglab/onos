@@ -17,10 +17,22 @@ package org.onosproject.cluster;
 
 import org.onlab.packet.IpAddress;
 
+import java.util.Set;
+
 /**
  * Service for administering the cluster node membership.
  */
 public interface ClusterAdminService {
+
+    /**
+     * Forms cluster configuration based on the specified set of node
+     * information.&nbsp; This method resets and restarts the controller
+     * instance.
+     *
+     * @param nodes    set of nodes that form the cluster
+     * @param ipPrefix IP address prefix, e.g. 10.0.1.*
+     */
+    void formCluster(Set<ControllerNode> nodes, String ipPrefix);
 
     /**
      * Adds a new controller node to the cluster.

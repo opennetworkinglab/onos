@@ -15,15 +15,19 @@
  */
 package org.onosproject.store.consistent.impl;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import org.onosproject.store.cluster.impl.NodeInfo;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.onosproject.store.cluster.impl.NodeInfo;
-
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Partitioned database configuration.
@@ -34,11 +38,13 @@ public class DatabaseDefinition {
 
     /**
      * Creates a new DatabaseDefinition.
+     *
      * @param partitions partition map
-     * @param nodes set of nodes
+     * @param nodes      set of nodes
      * @return database definition
      */
-    public static DatabaseDefinition from(Map<String, Set<NodeInfo>> partitions, Set<NodeInfo> nodes) {
+    public static DatabaseDefinition from(Map<String, Set<NodeInfo>> partitions,
+                                          Set<NodeInfo> nodes) {
         checkNotNull(partitions);
         checkNotNull(nodes);
         DatabaseDefinition definition = new DatabaseDefinition();
@@ -48,7 +54,18 @@ public class DatabaseDefinition {
     }
 
     /**
+     * Creates a new DatabaseDefinition using default partitions.
+     *
+     * @param nodes set of nodes
+     * @return database definition
+     */
+    public static DatabaseDefinition from(Set<NodeInfo> nodes) {
+        return from(generateDefaultPartitions(nodes), nodes);
+    }
+
+    /**
      * Returns the map of database partitions.
+     *
      * @return db partition map
      */
     public Map<String, Set<NodeInfo>> getPartitions() {
@@ -57,9 +74,35 @@ public class DatabaseDefinition {
 
     /**
      * Returns the set of nodes.
+     *
      * @return nodes
      */
     public Set<NodeInfo> getNodes() {
         return nodes;
     }
+
+
+    /**
+     * Generates set of default partitions using permutations of the nodes.
+     *
+     * @param nodes information about cluster nodes
+     * @return default partition map
+     */
+    private static Map<String, Set<NodeInfo>> generateDefaultPartitions(Set<NodeInfo> nodes) {
+        List<NodeInfo> sorted = new ArrayList<>(nodes);
+        Collections.sort(sorted, (o1, o2) -> o1.getId().compareTo(o2.getId()));
+        Map<String, Set<NodeInfo>> partitions = Maps.newHashMap();
+
+        int length = nodes.size();
+        int count = 3;
+        for (int i = 0; i < length; i++) {
+            Set<NodeInfo> set = new HashSet<>(count);
+            for (int j = 0; j < count; j++) {
+                set.add(sorted.get((i + j) % length));
+            }
+            partitions.put("p" + (i + 1), set);
+        }
+        return partitions;
+    }
+
 }

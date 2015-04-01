@@ -24,12 +24,12 @@ import com.hazelcast.core.Member;
 import com.hazelcast.core.MemberAttributeEvent;
 import com.hazelcast.core.MembershipEvent;
 import com.hazelcast.core.MembershipListener;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
@@ -39,7 +39,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.store.hz.AbsentInvalidatingLoadingCache;
 import org.onosproject.store.hz.AbstractHazelcastStore;
 import org.onosproject.store.hz.OptionalCacheLoader;
-import org.onlab.packet.IpAddress;
 
 import java.util.Map;
 import java.util.Set;
@@ -128,6 +127,11 @@ public class HazelcastClusterStore
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
         return lastUpdatedTimes.get(nodeId);
+    }
+
+    @Override
+    public void formCluster(Set<ControllerNode> nodes, String ipPrefix) {
+        throw new UnsupportedOperationException("formCluster not implemented");
     }
 
     @Override

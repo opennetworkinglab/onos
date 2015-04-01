@@ -20,13 +20,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
 
 /**
  * Allows for reading and writing partitioned database definition as a JSON file.
  */
 public class DatabaseDefinitionStore {
 
-    private final File definitionfile;
+    private final File file;
 
     /**
      * Creates a reader/writer of the database definition file.
@@ -34,7 +35,7 @@ public class DatabaseDefinitionStore {
      * @param filePath location of the definition file
      */
     public DatabaseDefinitionStore(String filePath) {
-        definitionfile = new File(checkNotNull(filePath));
+        file = new File(checkNotNull(filePath));
     }
 
     /**
@@ -43,7 +44,7 @@ public class DatabaseDefinitionStore {
      * @param filePath location of the definition file
      */
     public DatabaseDefinitionStore(File filePath) {
-        definitionfile = checkNotNull(filePath);
+        file = checkNotNull(filePath);
     }
 
     /**
@@ -54,8 +55,7 @@ public class DatabaseDefinitionStore {
      */
     public DatabaseDefinition read() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        DatabaseDefinition definition = mapper.readValue(definitionfile, DatabaseDefinition.class);
-        return definition;
+        return mapper.readValue(file, DatabaseDefinition.class);
     }
 
     /**
@@ -67,7 +67,8 @@ public class DatabaseDefinitionStore {
     public void write(DatabaseDefinition definition) throws IOException {
         checkNotNull(definition);
         // write back to file
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(definitionfile, definition);
+        Files.createParentDirs(file);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(file, definition);
     }
 }
