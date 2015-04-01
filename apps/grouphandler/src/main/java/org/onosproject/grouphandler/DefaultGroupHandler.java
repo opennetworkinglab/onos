@@ -152,10 +152,12 @@ public class DefaultGroupHandler {
      * @param newLink new neighbor link
      */
     public void linkUp(Link newLink) {
+
         if (newLink.type() != Link.Type.DIRECT) {
             log.warn("linkUp: unknown link type");
             return;
         }
+
 
         if (!newLink.src().deviceId().equals(deviceId)) {
             log.warn("linkUp: deviceId{} doesn't match with link src{}",
@@ -307,13 +309,11 @@ public class DefaultGroupHandler {
 
         List<Integer> nsSegmentIds = new ArrayList<Integer>();
 
-        // Add one entry for "no label" (-1) to the list if
-        // dpid list has not more than one node/neighbor as
-        // there will never be a case a packet going to more than one
-        // neighbor without a label at an edge router
-        if (neighbors.size() == 1) {
-            nsSegmentIds.add(-1);
-        }
+        // Always pair up with no edge label
+        //If (neighbors.size() == 1) {
+        nsSegmentIds.add(-1);
+        //}
+
         // Filter out SegmentIds matching with the
         // nodes in the combo
         for (Integer sId : allSegmentIds) {
@@ -405,7 +405,8 @@ public class DefaultGroupHandler {
         }
     }
 
-    protected GroupKey getGroupKey(Object obj) {
+    public GroupKey getGroupKey(Object obj) {
         return new DefaultGroupKey(kryo.build().serialize(obj));
     }
+
 }

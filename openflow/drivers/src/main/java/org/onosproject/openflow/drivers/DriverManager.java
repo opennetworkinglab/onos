@@ -70,7 +70,7 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
         if (vendor.startsWith("Stanford University, Ericsson Research and CPqD Research")
                 &&
                 hw.startsWith("OpenFlow 1.3 Reference Userspace Switch")) {
-            return new OFSwitchImplCPqD13(dpid, desc);
+            return new OFSwitchImplSpringOpenTTP(dpid, desc);
         }
 
         if (hw.startsWith("Open vSwitch")) {

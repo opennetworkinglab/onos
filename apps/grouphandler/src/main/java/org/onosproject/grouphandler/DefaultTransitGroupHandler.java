@@ -138,7 +138,8 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                                             Set<DeviceId> updatedNeighbors) {
         Set<Set<DeviceId>> powerSet = getPowerSetOfNeighbors(updatedNeighbors);
 
-        Set<DeviceId> tmp = updatedNeighbors;
+        Set<DeviceId> tmp = new HashSet<DeviceId>();
+        tmp.addAll(updatedNeighbors);
         tmp.remove(impactedNeighbor);
         Set<Set<DeviceId>> tmpPowerSet = getPowerSetOfNeighbors(tmp);
 

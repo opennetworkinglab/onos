@@ -345,7 +345,8 @@ public final class KryoNamespaces {
                     MplsLabelResourceAllocation.class,
                     MplsLabelResourceRequest.class,
                     MplsLabel.class,
-                    org.onlab.packet.MplsLabel.class
+                    org.onlab.packet.MplsLabel.class,
+                    org.onlab.packet.MPLS.class
                     )
 
             .build();

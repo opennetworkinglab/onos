@@ -90,6 +90,7 @@ public class DefaultGroupHandlerApp {
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.defaultgrouphandler");
         log.info("DefaultGroupHandlerApp Activating");
+
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
         for (Device device: deviceService.getDevices()) {
@@ -111,6 +112,7 @@ public class DefaultGroupHandlerApp {
                           device.id());
             }
         }
+
         log.info("Activated");
     }
 

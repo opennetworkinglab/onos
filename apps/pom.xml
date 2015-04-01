@@ -45,6 +45,8 @@
         <module>reactive-routing</module>
         <module>bgprouter</module>
         <module>test</module>
+        <module>grouphandler</module>
+        <module>segmentrouting</module>
     </modules>
 
     <properties>
