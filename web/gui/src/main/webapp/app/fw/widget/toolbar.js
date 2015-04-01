@@ -75,11 +75,6 @@
         return null;
     }
 
-    function noPxWidth(elem) {
-        return Number(elem.style('width').replace(/px$/, ''));
-    }
-
-
     // ==================================
 
     function createToolbar(id, opts) {
@@ -119,7 +114,7 @@
         }
 
         function adjustWidth(btnWidth) {
-            if (noPxWidth(currentRow) >= maxWidth) {
+            if (fs.noPxStyle(currentRow, 'width') >= maxWidth) {
                 tbWidth += btnWidth;
                 maxWidth = tbWidth;
             }

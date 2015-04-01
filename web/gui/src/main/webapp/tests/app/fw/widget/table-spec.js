@@ -32,7 +32,7 @@ describe('factory: fw/widget/table.js', function () {
                                 '<tr>' +
                                 '<th></th>' +
                                 '<th>Device ID </th>' +
-                                '<th>H/W Version </th>' +
+                                '<th col-width="100px">H/W Version </th>' +
                                 '<th>S/W Version </th>' +
                                 '</tr>' +
                                 '</thead>' +
@@ -51,7 +51,7 @@ describe('factory: fw/widget/table.js', function () {
 
         onosSortableHeaderTags = '<table ' +
                                 'onos-sortable-header ' +
-                                'sort-callback="sortCallback(urlSuffix)">' +
+                                'sort-callback="sortCallback(requestParams)">' +
                                 '<thead>' +
                                 '<tr>' +
                                 '<th colId="available"></th>' +
@@ -146,8 +146,12 @@ describe('factory: fw/widget/table.js', function () {
         angular.forEach(thElems, function (thElem, i) {
             thElem = angular.element(thElems[i]);
             tdElem = angular.element(tbody.find('td').eq(i));
+            var custWidth = thElem.attr('col-width');
 
-            if (tdElem.attr('class') === 'table-icon') {
+            if (custWidth) {
+                expect(thElem.css('width')).toBe(custWidth);
+                expect(tdElem.css('width')).toBe(custWidth);
+            } else if (tdElem.attr('class') === 'table-icon') {
                 expect(thElem.css('width')).toBe(tableIconTdSize + 'px');
                 expect(tdElem.css('width')).toBe(tableIconTdSize + 'px');
             } else {

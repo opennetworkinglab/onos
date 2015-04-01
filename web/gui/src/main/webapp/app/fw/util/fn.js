@@ -150,6 +150,7 @@
         return found;
     }
 
+    // return true if the object is empty, return false otherwise
     function isEmptyObject(obj) {
         var key;
         for (key in obj) {
@@ -163,6 +164,16 @@
         return s.replace(/^[a-z]/, function (m) {
             return m.toUpperCase();
         });
+    }
+
+    // return the parameter without a px suffix
+    function noPx(num) {
+        return Number(num.replace(/px$/, ''));
+    }
+
+    // return an element's given style property without px suffix
+    function noPxStyle(elem, prop) {
+        return Number(elem.style(prop).replace(/px$/, ''));
     }
 
     angular.module('onosUtil')
@@ -183,7 +194,9 @@
                 inArray: inArray,
                 removeFromArray: removeFromArray,
                 isEmptyObject: isEmptyObject,
-                cap: cap
+                cap: cap,
+                noPx: noPx,
+                noPxStyle: noPxStyle
             };
     }]);
 

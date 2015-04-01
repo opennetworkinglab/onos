@@ -20,45 +20,74 @@
 (function () {
     'use strict';
 
-    var $log, $window, fs, is,
-        currCol = {},
-        prevCol = {},
-        tableIconTdSize = 33,
-        bottomMargin = 200;
+    // injected refs
+    var $log, $window, fs, is;
+
+    // constants
+    var tableIconTdSize = 33,
+        bottomMargin = 200,
+        colWidth = 'col-width',
+        tableIcon = 'table-icon';
+
+    // internal state
+    var currCol = {},
+        prevCol = {};
 
     // Functions for creating a fixed header on a table (Angular Directive)
 
-    function setTableWidth(t) {
-        var tHeaders, tdElement, colWidth, numIcons, numNonIcons,
-            winWidth = fs.windowSize().width;
+    function setElemWidth(elem, size) {
+        elem.style('width', size + 'px')
+    }
 
-        tHeaders = t.selectAll('th');
-        numIcons = 0;
-        numNonIcons = 0;
+    function setColWidth(th, td, size) {
+        setElemWidth(th, size);
+        setElemWidth(td, size);
+    }
 
-        // FIXME: This should observe custom-set width from the HTML
+    // count number of headers of
+    //   - assigned width,
+    //   - icon width,
+    //   - and default width
+    // assumes assigned width is not given to icons
+    // returns the width of all columns that are not icons have an assigned width
+    function getDefaultWidth(headers) {
+        var winWidth = fs.windowSize().width,
+            iconCols = 0,
+            regCols = 0,
+            cstmColWidth = 0;
 
-        tHeaders.each(function(thElement, index) {
-            thElement = d3.select(this);
-            if (thElement.classed('table-icon')) {
-                numIcons = numIcons + 1;
+        headers.each(function (d, i) {
+            var thElement = d3.select(this),
+                cstmWidth = thElement.attr(colWidth);
+
+            if (cstmWidth) {
+                cstmColWidth += fs.noPx(cstmWidth);
+            } else if (thElement.classed(tableIcon)) {
+                iconCols += 1;
             } else {
-                numNonIcons = numNonIcons + 1;
+                regCols += 1;
             }
         });
 
-        colWidth = Math.floor((winWidth - (numIcons * tableIconTdSize)) / numNonIcons);
+        return Math.floor((winWidth - cstmColWidth -
+                            (iconCols * tableIconTdSize)) / regCols);
+    }
 
-        tHeaders.each(function(thElement, index) {
-            thElement = d3.select(this);
-            tdElement = t.select('td:nth-of-type(' + (index + 1) + ')');
+    function setTableWidth(t) {
+        var tHeaders = t.selectAll('th'),
+            defaultColWidth = getDefaultWidth(tHeaders);
 
-            if (thElement.classed('table-icon')) {
-                thElement.style('width', tableIconTdSize + 'px');
-                tdElement.style('width', tableIconTdSize + 'px');
+        tHeaders.each(function (d, i) {
+            var thElement = d3.select(this),
+                tdElement = t.select('td:nth-of-type(' + (i + 1) + ')'),
+                custWidth = thElement.attr(colWidth);
+
+            if (custWidth) {
+                setColWidth(thElement, tdElement, fs.noPx(custWidth));
+            } else if (thElement.classed(tableIcon)) {
+                setColWidth(thElement, tdElement, tableIconTdSize);
             } else {
-                thElement.style('width', colWidth + 'px');
-                tdElement.style('width', colWidth + 'px');
+                setColWidth(thElement, tdElement, defaultColWidth);
             }
         });
     }

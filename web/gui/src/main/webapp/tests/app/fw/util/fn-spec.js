@@ -213,7 +213,8 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
             'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'isMobile',
-            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'cap'
+            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'cap',
+            'noPx', 'noPxStyle'
         ])).toBeTruthy();
     });
 
@@ -385,6 +386,29 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.cap('Foo')).toEqual('Foo');
         expect(fs.cap('foo')).toEqual('Foo');
         expect(fs.cap('foo bar')).toEqual('Foo bar');
+    });
+
+    // === Tests for noPx()
+    it('should return the value without px suffix', function () {
+        expect(fs.noPx('10px')).toBe(10);
+        expect(fs.noPx('500px')).toBe(500);
+        expect(fs.noPx('-80px')).toBe(-80);
+    });
+
+    // === Tests for noPxStyle()
+    it("should give a style's property without px suffix", function () {
+        var d3Elem = d3.select('body')
+            .append('div')
+            .attr('id', 'fooElem')
+            .style({
+                width: '500px',
+                height: '200px',
+                'font-size': '12px'
+            });
+        expect(fs.noPxStyle(d3Elem, 'width')).toBe(500);
+        expect(fs.noPxStyle(d3Elem, 'height')).toBe(200);
+        expect(fs.noPxStyle(d3Elem, 'font-size')).toBe(12);
+        d3.select('#fooElem').remove();
     });
 
 });
