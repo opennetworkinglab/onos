@@ -148,10 +148,13 @@
 
 <script>
     <!-- Inject user agent info into html element to allow CSS sensitivity. -->
-    var b = document.documentElement;
-    b.setAttribute('data-useragent',  navigator.userAgent);
-    b.setAttribute('data-platform', navigator.platform );
-    b.className += ((!!('ontouchstart' in window) || !!('onmsgesturechange' in window))?' touch':'');
+    (function () {
+        var t = !!('ontouchstart' in window) || !!('onmsgesturechange' in window);
+        d3.select(document.documentElement)
+            .attr('data-useragent', navigator.userAgent)
+            .attr('data-platform', navigator.platform)
+            .classed('touch', t);
+    }());
 </script>
 </body>
 </html>
