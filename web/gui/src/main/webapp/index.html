@@ -18,6 +18,12 @@
 <head>
     <meta charset="utf-8">
     <link rel="shortcut icon" href="data/img/onos-logo.png">
+
+    <link rel="apple-touch-icon" href="data/img/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>ONOS</title>
 
     <!-- Third party library code included here -->
@@ -139,5 +145,13 @@
          resize
          ng-style="resizeWithOffset(0, 0)"></div>
 </div>
+
+<script>
+    <!-- Inject user agent info into html element to allow CSS sensitivity. -->
+    var b = document.documentElement;
+    b.setAttribute('data-useragent',  navigator.userAgent);
+    b.setAttribute('data-platform', navigator.platform );
+    b.className += ((!!('ontouchstart' in window) || !!('onmsgesturechange' in window))?' touch':'');
+</script>
 </body>
 </html>

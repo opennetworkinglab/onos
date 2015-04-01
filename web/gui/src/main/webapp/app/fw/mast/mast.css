@@ -24,6 +24,10 @@
     vertical-align: baseline;
 }
 
+html[data-platform='iPad'] #mast {
+    padding-top: 16px;
+}
+
 .light #mast {
     background-color: #bbb;
     box-shadow: 0 2px 8px #777;
