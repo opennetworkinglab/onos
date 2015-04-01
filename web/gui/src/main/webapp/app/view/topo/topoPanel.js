@@ -52,7 +52,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).text(txt);
+            tr.append('td').attr('class', cls).html(txt);
         }
         addCell('label', label + ' :');
         addCell('value', value);
@@ -132,6 +132,21 @@
             .on('click', cb);
     }
 
+    var friendlyIndex = {
+        device: 1,
+        host: 0
+    };
+
+    function friendly(d) {
+        var i = friendlyIndex[d.class] || 0;
+        return (d.labels && d.labels[i]) || '';
+    }
+
+    function linkSummary(d) {
+        var o = d && d.online ? 'online' : 'offline';
+        return d ? d.type + ' / ' + o : '-';
+    }
+
     function displayLink(data) {
         detailPanel.empty();
 
@@ -142,18 +157,32 @@
 
         gs.addGlyph(svg, 'ports', 40);
         title.text('Link');
+
+        var order = [
+            'Type', '-',
+            'A_type', 'A_id', 'A_label', 'A_port', '-',
+            'B_type', 'B_id', 'B_label', 'B_port', '-'
+        ];
+
         listProps(tbody, {
-            propOrder: [
-                'type', '-', 'src', 'srcPort', '-', 'tgt', 'tgtPort'
-            ],
+            propOrder: order,
             props: {
-                type: data.type(),
-                src: data.source.id,
-                srcPort: data.srcPort,
-                tgt: data.target.id,
-                tgtPort: data.tgtPort
+                Type: data.type(),
+
+                A_type: data.source.class,
+                A_id: data.source.id,
+                A_label: friendly(data.source),
+                A_port: data.srcPort,
+
+                B_type: data.target.class,
+                B_id: data.target.id,
+                B_label: friendly(data.target),
+                B_port: data.tgtPort
             }
         });
+
+        addProp(tbody, 'A &rarr; B', linkSummary(data.fromSource));
+        addProp(tbody, 'B &rarr; A', linkSummary(data.fromTarget));
     }
 
     function displayNothing() {
