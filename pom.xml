@@ -44,6 +44,7 @@
         <module>web</module>
         <module>cli</module>
         <module>providers</module>
+        <module>drivers</module>
         <module>openflow</module>
         <module>apps</module>
         <module>features</module>

@@ -25,6 +25,12 @@ public class ControllerInfo {
     public final IpAddress ip;
     public final int tcpPort;
 
+    /**
+     * Information for contacting the controller.
+     *
+     * @param ip the ip address
+     * @param tcpPort the tcp port
+     */
     public ControllerInfo(IpAddress ip, int tcpPort) {
         this.ip = ip;
         this.tcpPort = tcpPort;
