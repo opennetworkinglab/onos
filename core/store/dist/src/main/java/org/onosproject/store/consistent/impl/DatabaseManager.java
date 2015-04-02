@@ -85,8 +85,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     public static final String BASE_PARTITION_NAME = "p0";
 
     private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
-    private static final int RAFT_ELECTION_TIMEOUT = 3000;
-    private static final int RAFT_HEARTBEAT_TIMEOUT = 1500;
+    private static final int RAFT_ELECTION_TIMEOUT_MILLIS = 3000;
     private static final int DATABASE_OPERATION_TIMEOUT_MILLIS = 5000;
 
     private ClusterCoordinator coordinator;
@@ -132,8 +131,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         ClusterConfig clusterConfig = new ClusterConfig()
             .withProtocol(newNettyProtocol())
-            .withElectionTimeout(RAFT_ELECTION_TIMEOUT)
-            .withHeartbeatInterval(RAFT_HEARTBEAT_TIMEOUT)
+            .withElectionTimeout(electionTimeoutMillis(activeNodeUris))
+            .withHeartbeatInterval(heartbeatTimeoutMillis(activeNodeUris))
             .withMembers(activeNodeUris)
             .withLocalMember(localNodeUri);
 
@@ -264,12 +263,20 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private DatabaseConfig newDatabaseConfig(String name, Log log, String[] replicas) {
         return new DatabaseConfig()
             .withName(name)
-            .withElectionTimeout(RAFT_ELECTION_TIMEOUT)
-            .withHeartbeatInterval(RAFT_HEARTBEAT_TIMEOUT)
+            .withElectionTimeout(electionTimeoutMillis(replicas))
+            .withHeartbeatInterval(heartbeatTimeoutMillis(replicas))
             .withConsistency(Consistency.STRONG)
             .withLog(log)
             .withDefaultSerializer(new DatabaseSerializer())
             .withReplicas(replicas);
+    }
+
+    private long electionTimeoutMillis(String[] replicas) {
+        return replicas.length == 1 ? 10L : RAFT_ELECTION_TIMEOUT_MILLIS;
+    }
+
+    private long heartbeatTimeoutMillis(String[] replicas) {
+        return electionTimeoutMillis(replicas) / 2;
     }
 
     /**
