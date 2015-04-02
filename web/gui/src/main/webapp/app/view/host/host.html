@@ -1,6 +1,6 @@
 <!-- Host partial HTML -->
 <div id="ov-host">
-    <h2>Hosts ({{ctrl.hostData.length}} total)</h2>
+    <h2>Hosts ({{ctrl.tableData.length}} total)</h2>
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -17,7 +17,7 @@
         </thead>
 
         <tbody>
-        <tr ng-repeat="host in ctrl.hostData"
+        <tr ng-repeat="host in ctrl.tableData"
             ng-repeat-done>
             <td class="table-icon">
                 <div icon icon-id="{{host._iconid_type}}"></div>

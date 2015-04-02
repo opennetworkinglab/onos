@@ -16,7 +16,7 @@
 
 <!-- Intent partial HTML -->
 <div id="ov-intent">
-    <h2>Intents ({{ctrl.intentData.length}} total)</h2>
+    <h2>Intents ({{ctrl.tableData.length}} total)</h2>
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -31,7 +31,7 @@
         </thead>
 
         <tbody>
-        <tr ng-repeat-start="intent in ctrl.intentData">
+        <tr ng-repeat-start="intent in ctrl.tableData">
             <td>{{intent.appId}}</td>
             <td>{{intent.key}}</td>
             <td>{{intent.type}}</td>

@@ -1,6 +1,6 @@
 <!-- Device partial HTML -->
 <div id="ov-device">
-    <h2>Devices ({{ctrl.deviceData.length}} total)</h2>
+    <h2>Devices ({{ctrl.tableData.length}} total)</h2>
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -20,7 +20,7 @@
         </thead>
 
         <tbody>
-            <tr ng-repeat="dev in ctrl.deviceData"
+            <tr ng-repeat="dev in ctrl.tableData"
                 ng-repeat-done>
                 <td class="table-icon">
                     <div icon icon-id="{{dev._iconid_available}}"></div>

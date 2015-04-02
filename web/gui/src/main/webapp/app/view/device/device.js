@@ -23,32 +23,14 @@
 
     angular.module('ovDevice', [])
     .controller('OvDeviceCtrl',
-        ['$log', '$scope', 'WebSocketService',
+        ['$log', '$scope', 'TableBuilderService',
 
-        function ($log, $scope, wss) {
-            var self = this;
-            self.deviceData = [];
-
-            $scope.responseCallback = function(data) {
-                self.deviceData = data.devices;
-                $scope.$apply();
-            };
-
-            $scope.sortCallback = function (requestParams) {
-                wss.sendEvent('deviceDataRequest', requestParams);
-            };
-
-            var handlers = {
-                deviceDataResponse: $scope.responseCallback
-            };
-            wss.bindHandlers(handlers);
-
-            // Cleanup on destroyed scope
-            $scope.$on('$destroy', function () {
-                wss.unbindHandlers(handlers);
+        function ($log, $scope, tbs) {
+            tbs.buildTable({
+                self: this,
+                scope: $scope,
+                tag: 'device'
             });
-
-            $scope.sortCallback();
 
             $log.log('OvDeviceCtrl has been created');
         }]);

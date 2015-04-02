@@ -23,32 +23,14 @@
 
     angular.module('ovIntent', [])
         .controller('OvIntentCtrl',
-        ['$log', '$scope', 'FnService', 'WebSocketService',
+        ['$log', '$scope', 'TableBuilderService',
 
-            function ($log, $scope, fs, wss) {
-                var self = this;
-                self.intentData = [];
-
-                $scope.responseCallback = function(data) {
-                    self.intentData = data.intents;
-                    $scope.$apply();
-                };
-
-                $scope.sortCallback = function (requestParams) {
-                    wss.sendEvent('intentDataRequest', requestParams);
-                };
-
-                var handlers = {
-                    intentDataResponse: $scope.responseCallback
-                };
-                wss.bindHandlers(handlers);
-
-                // Cleanup on destroyed scope
-                $scope.$on('$destroy', function () {
-                    wss.unbindHandlers(handlers);
+            function ($log, $scope, tbs) {
+                tbs.buildTable({
+                    self: this,
+                    scope: $scope,
+                    tag: 'intent'
                 });
-
-                $scope.sortCallback();
 
                 $log.log('OvIntentCtrl has been created');
             }]);

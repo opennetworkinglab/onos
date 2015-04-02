@@ -23,33 +23,15 @@
 
     angular.module('ovHost', [])
     .controller('OvHostCtrl',
-        ['$log', '$scope', 'FnService', 'WebSocketService',
+        ['$log', '$scope', 'TableBuilderService',
 
-        function ($log, $scope, fs, wss) {
-            var self = this;
-            self.hostData = [];
-
-            $scope.responseCallback = function(data) {
-                self.hostData = data.hosts;
-                $scope.$apply();
-            };
-
-            $scope.sortCallback = function (requestParams) {
-                wss.sendEvent('hostDataRequest', requestParams);
-            };
-
-            var handlers = {
-                hostDataResponse: $scope.responseCallback
-            };
-            wss.bindHandlers(handlers);
-
-            // Cleanup on destroyed scope
-            $scope.$on('$destroy', function () {
-                wss.unbindHandlers(handlers);
+        function ($log, $scope, tbs) {
+            tbs.buildTable({
+                self: this,
+                scope: $scope,
+                tag: 'host'
             });
-
-            $scope.sortCallback();
-
+            
             $log.log('OvHostCtrl has been created');
         }]);
 }());
