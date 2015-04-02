@@ -76,6 +76,7 @@ public class GossipComponentConfigStore
 
     @Deactivate
     public void deactivate() {
+        properties.destroy();
         log.info("Stopped");
     }
 

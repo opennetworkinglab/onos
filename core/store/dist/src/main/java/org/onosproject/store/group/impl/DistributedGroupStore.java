@@ -234,6 +234,9 @@ public class DistributedGroupStore
 
     @Deactivate
     public void deactivate() {
+        groupStoreEntriesByKey.destroy();
+        groupStoreEntriesById.destroy();
+        auditPendingReqQueue.destroy();
         log.info("Stopped");
     }
 

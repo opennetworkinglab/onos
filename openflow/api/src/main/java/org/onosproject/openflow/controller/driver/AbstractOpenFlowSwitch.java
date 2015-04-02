@@ -103,6 +103,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
             try {
                 this.write(m);
             } catch (RejectedExecutionException e) {
+                log.warn(e.getMessage());
                 if (!e.getMessage().contains(SHUTDOWN_MSG)) {
                     throw e;
                 }
@@ -116,6 +117,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
             try {
                 this.write(msgs);
             } catch (RejectedExecutionException e) {
+                log.warn(e.getMessage());
                 if (!e.getMessage().contains(SHUTDOWN_MSG)) {
                     throw e;
                 }

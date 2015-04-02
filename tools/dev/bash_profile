@@ -52,10 +52,15 @@ alias oi='setPrimaryInstance'
 # alias go='ob && ot && onos -w'
 alias pub='onos-push-update-bundle'
 
-# Short-hand for tailing the ONOS (karaf) log 
+# Short-hand for tailing and searching the ONOS (karaf) log
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
-alias tlo='tl | grep --colour=always -E -e "org.onlab|org.onosproject"'
 alias ll='less $KARAF_LOG'
+alias gl='grep $KARAF_LOG --colour=auto -E -e '
+
+function filterLog {
+    tl | grep --colour=always -E -e "${1-org.onlab|org.onosproject}"
+}
+alias tlo='filterLog'
 
 # Pretty-print JSON output
 alias pp='python -m json.tool'

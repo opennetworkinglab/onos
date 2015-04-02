@@ -498,7 +498,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 return;
             }
 
-            if (underHighLoad()) {
+            if (underHighLoad() || destroyed) {
                 return;
             }
 
@@ -700,10 +700,13 @@ public class EventuallyConsistentMapImpl<K, V>
         }
     }
 
-    private final class InternalEventListener implements
-            ClusterMessageHandler {
+    private final class InternalEventListener implements ClusterMessageHandler {
         @Override
         public void handle(ClusterMessage message) {
+            if (destroyed) {
+                return;
+            }
+
             log.debug("Received update event from peer: {}", message.sender());
             Collection<AbstractEntry<K, V>> events = serializer.decode(message.payload());
 
