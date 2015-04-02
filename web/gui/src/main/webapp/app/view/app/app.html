@@ -1,12 +1,12 @@
 <!-- app partial HTML -->
 <div id="ov-app">
     <div>
-        <h2>Applications ({{ctrl.appData.length}} total)</h2>
+        <h2>Applications ({{ctrl.tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div icon icon-size="36" icon-id="appPlus"></div>
-            <div icon icon-size="36" icon-id="appMinus"></div>
-            <div icon icon-size="36" icon-id="appPlay"></div>
-            <div icon icon-size="36" icon-id="appStop"></div>
+            <div icon icon-size="36" icon-id="appMinus" class="disabled"></div>
+            <div icon icon-size="36" icon-id="appPlay" class="disabled"></div>
+            <div icon icon-size="36" icon-id="appStop" class="disabled"></div>
         </div>
     </div>
     <table class="summary-list"
@@ -24,9 +24,9 @@
         </thead>
 
         <tbody>
-        <tr ng-repeat="app in ctrl.appData"
-            ng-click="setSelected(app.id)"
-            ng-class="{selected: app.id === selectedAppId}"
+        <tr ng-repeat="app in ctrl.tableData"
+            ng-click="selectCallback(app)"
+            ng-class="{selected: app === sel}"
             ng-repeat-done>
             <td class="table-icon">
                 <div icon icon-id="{{app._iconid_state}}"></div>

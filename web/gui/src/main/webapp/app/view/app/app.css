@@ -37,21 +37,25 @@ div.ctrl-btns div {
     cursor: pointer;
 }
 
-.light div.ctrl-btns div svg.embeddedIcon g.icon use {
-    fill: white;
+.light .ctrl-btns g.icon use {
+    fill: #fff;
 }
-.dark div.ctrl-btns div svg.embeddedIcon g.icon use {
+.dark .ctrl-btns g.icon use {
     fill: #333;
 }
 
-.light div.ctrl-btns div svg.embeddedIcon g.icon rect {
-    fill: #dde;
+.light .ctrl-btns g.icon rect {
+    fill: #bbb;
 }
-.dark div.ctrl-btns div svg.embeddedIcon g.icon rect {
-    fill: #556;
+.dark .ctrl-btns g.icon rect {
+    fill: #444;
 }
 
-/* rows are selectable */
-table.summary-list td {
-    cursor: pointer;
+/* Inactive */
+.light .ctrl-btns .disabled g.icon rect {
+    fill: #eee;
 }
+.dark .ctrl-btns .disabled g.icon rect {
+    fill: #111;
+}
+

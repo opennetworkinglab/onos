@@ -80,6 +80,11 @@ table.summary-list th:last-child {
     color: #ccc;
 }
 
+/* rows are selectable */
+table.summary-list td {
+    cursor: pointer;
+}
+
 .dark table.summary-list td {
     color: #ccc;
 }

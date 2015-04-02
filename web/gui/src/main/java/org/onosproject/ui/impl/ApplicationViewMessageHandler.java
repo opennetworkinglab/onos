@@ -53,7 +53,7 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
         Arrays.sort(rows, rc);
         ArrayNode applications = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("applications", applications);
+        rootNode.set("apps", applications);
 
         connection().sendMessage("appDataResponse", 0, rootNode);
     }

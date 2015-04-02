@@ -34,7 +34,8 @@
         var handlers = {},
             root = o.tag + 's',
             req = o.tag + 'DataRequest',
-            resp = o.tag + 'DataResponse';
+            resp = o.tag + 'DataResponse',
+            onSel = fs.isF(o.selCb);
 
         o.self.tableData = [];
 
@@ -47,6 +48,13 @@
             wss.sendEvent(req, params);
         }
         o.scope.sortCallback = sortCb;
+
+        function selCb(sel) {
+            o.scope.sel = (o.scope.sel === sel) ? null : sel;
+            onSel && onSel(o.scope.sel);
+        }
+        o.scope.selectCallback = selCb;
+
 
         handlers[resp] = respCb;
         wss.bindHandlers(handlers);

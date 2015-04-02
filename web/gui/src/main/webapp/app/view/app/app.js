@@ -23,38 +23,21 @@
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
-        ['$log', '$scope', 'FnService', 'WebSocketService',
+        ['$log', '$scope', 'TableBuilderService',
 
-        function ($log, $scope, fs, wss) {
-            var self = this;
-            self.appData = [];
+    function ($log, $scope, tbs) {
+        function selCb(row) {
+            // adjust which toolbar buttons are selected
+            $log.debug('Got a click on:', row);
+        }
 
-            $scope.responseCallback = function(data) {
-                self.appData = data.applications;
-                $scope.$apply();
-            };
+        tbs.buildTable({
+            self: this,
+            scope: $scope,
+            tag: 'app',
+            selCb: selCb
+        });
 
-            $scope.sortCallback = function (requestParams) {
-                wss.sendEvent('appDataRequest', requestParams);
-            };
-
-            $scope.selectedAppId = null;
-            $scope.setSelected = function (appId) {
-                $scope.selectedAppId = appId;
-            };
-
-            var handlers = {
-                appDataResponse: $scope.responseCallback
-            };
-            wss.bindHandlers(handlers);
-
-            // Cleanup on destroyed scope
-            $scope.$on('$destroy', function () {
-                wss.unbindHandlers(handlers);
-            });
-
-            $scope.sortCallback();
-
-            $log.log('OvAppCtrl has been created');
-        }]);
+        $log.log('OvAppCtrl has been created');
+    }]);
 }());
