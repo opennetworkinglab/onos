@@ -18,6 +18,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 
@@ -44,8 +45,10 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         String sortDir = string(payload, "sortDir", "asc");
 
         DeviceService service = get(DeviceService.class);
-        TableRow[] rows = generateTableRows(service);
-        RowComparator rc = new RowComparator(sortCol, RowComparator.direction(sortDir));
+        MastershipService mastershipService = get(MastershipService.class);
+        TableRow[] rows = generateTableRows(service, mastershipService);
+        RowComparator rc =
+                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
         ArrayNode devices = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
@@ -54,10 +57,11 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         connection().sendMessage("deviceDataResponse", 0, rootNode);
     }
 
-    private TableRow[] generateTableRows(DeviceService service) {
+    private TableRow[] generateTableRows(DeviceService service,
+                                         MastershipService mastershipService) {
         List<TableRow> list = new ArrayList<>();
         for (Device dev : service.getDevices()) {
-            list.add(new DeviceTableRow(service, dev));
+            list.add(new DeviceTableRow(service, mastershipService, dev));
         }
         return list.toArray(new TableRow[list.size()]);
     }
@@ -79,16 +83,19 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         private static final String SERIAL = "serial";
         private static final String PROTOCOL = "protocol";
         private static final String CHASSISID = "chassisid";
+        private static final String MASTERID = "masterid";
 
         private static final String[] COL_IDS = {
                 ID, AVAILABLE, AVAILABLE_IID, TYPE_IID, ROLE,
-                MFR, HW, SW, SERIAL, PROTOCOL, CHASSISID
+                MFR, HW, SW, SERIAL, PROTOCOL, CHASSISID, MASTERID
         };
 
         private static final String ICON_ID_ONLINE = "deviceOnline";
         private static final String ICON_ID_OFFLINE = "deviceOffline";
 
-        public DeviceTableRow(DeviceService service, Device d) {
+        public DeviceTableRow(DeviceService service,
+                              MastershipService ms,
+                              Device d) {
             boolean available = service.isAvailable(d.id());
             String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
@@ -103,6 +110,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
             add(SERIAL, d.serialNumber());
             add(PROTOCOL, d.annotations().value(PROTOCOL));
             add(CHASSISID, d.chassisId().toString());
+            add(MASTERID, ms.getMasterFor(d.id()).toString());
         }
 
         private String getTypeIconId(Device d) {
