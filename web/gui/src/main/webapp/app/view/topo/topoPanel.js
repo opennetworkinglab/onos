@@ -49,12 +49,13 @@
     }
 
     function addProp(tbody, label, value) {
-        var tr = tbody.append('tr');
+        var tr = tbody.append('tr'),
+            lab = label.replace(/_/g, ' ');
 
         function addCell(cls, txt) {
             tr.append('td').attr('class', cls).html(txt);
         }
-        addCell('label', label + ' :');
+        addCell('label', lab + ' :');
         addCell('value', value);
     }
 
@@ -147,27 +148,44 @@
         return d ? d.type + ' / ' + o : '-';
     }
 
+    // provided to change presentation of internal type name
+    var linkTypePres = {
+        hostLink: 'edge link'
+    };
+
+    function linkType(d) {
+        return linkTypePres[d.type()] || d.type();
+    }
+
+    var coreOrder = [
+            'Type', '-',
+            'A_type', 'A_id', 'A_label', 'A_port', '-',
+            'B_type', 'B_id', 'B_label', 'B_port', '-'
+        ],
+        edgeOrder = [
+            'Type', '-',
+            'A_type', 'A_id', 'A_label', '-',
+            'B_type', 'B_id', 'B_label', 'B_port'
+        ];
+
     function displayLink(data) {
         detailPanel.empty();
 
         var svg = dpa('svg'),
             title = dpa('h2'),
             table = dpa('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            edgeLink = data.type() === 'hostLink',
+            order = edgeLink ? edgeOrder : coreOrder;
 
         gs.addGlyph(svg, 'ports', 40);
         title.text('Link');
 
-        var order = [
-            'Type', '-',
-            'A_type', 'A_id', 'A_label', 'A_port', '-',
-            'B_type', 'B_id', 'B_label', 'B_port', '-'
-        ];
 
         listProps(tbody, {
             propOrder: order,
             props: {
-                Type: data.type(),
+                Type: linkType(data),
 
                 A_type: data.source.class,
                 A_id: data.source.id,
@@ -181,8 +199,10 @@
             }
         });
 
-        addProp(tbody, 'A &rarr; B', linkSummary(data.fromSource));
-        addProp(tbody, 'B &rarr; A', linkSummary(data.fromTarget));
+        if (!edgeLink) {
+            addProp(tbody, 'A &rarr; B', linkSummary(data.fromSource));
+            addProp(tbody, 'B &rarr; A', linkSummary(data.fromTarget));
+        }
     }
 
     function displayNothing() {
