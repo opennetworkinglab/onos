@@ -17,6 +17,7 @@ package org.onosproject.cluster;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -27,21 +28,22 @@ import com.google.common.collect.ImmutableList;
  * master and a preference-ordered list of backup nodes.
  */
 public class RoleInfo {
-    private final NodeId master;
+    private final Optional<NodeId> master;
     private final List<NodeId> backups;
 
     public RoleInfo(NodeId master, List<NodeId> backups) {
-        this.master = master;
+        this.master = Optional.ofNullable(master);
         this.backups = ImmutableList.copyOf(backups);
     }
 
     public RoleInfo() {
-        this.master = null;
+        this.master = Optional.empty();
         this.backups = ImmutableList.of();
     }
 
+    // This will return a Optional<NodeId> in the future.
     public NodeId master() {
-        return master;
+        return master.orElseGet(() -> null);
     }
 
     public List<NodeId> backups() {
@@ -74,7 +76,7 @@ public class RoleInfo {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-            .add("master", master)
+                .add("master", master.orElseGet(() -> null))
             .add("backups", backups)
             .toString();
     }
