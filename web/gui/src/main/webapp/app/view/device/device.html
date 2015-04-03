@@ -21,6 +21,12 @@
         </thead>
 
         <tbody>
+            <tr ng-hide="ctrl.tableData.length">
+                <td class="nodata" colspan="10">
+                    No Devices found
+                </td>
+            </tr>
+
             <tr ng-repeat="dev in ctrl.tableData"
                 ng-repeat-done>
                 <td class="table-icon">

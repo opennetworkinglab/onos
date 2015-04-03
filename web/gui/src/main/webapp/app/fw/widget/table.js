@@ -167,8 +167,12 @@
                         w: window.innerWidth
                     };
                 }, function (newVal) {
+                    var wsz = fs.windowSize(0, 30);
                     scope.windowHeight = newVal.h;
                     scope.windowWidth = newVal.w;
+
+                    // default table size in case no data elements
+                    table.style('width', wsz.width + 'px');
 
                     scope.$on('LastElement', function () {
                         // only adjust the table once it's completely loaded

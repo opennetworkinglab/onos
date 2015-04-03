@@ -17,17 +17,23 @@
         </thead>
 
         <tbody>
-        <tr ng-repeat="host in ctrl.tableData"
-            ng-repeat-done>
-            <td class="table-icon">
-                <div icon icon-id="{{host._iconid_type}}"></div>
-            </td>
-            <td>{{host.id}}</td>
-            <td>{{host.mac}}</td>
-            <td>{{host.vlan}}</td>
-            <td>{{host.ips}}</td>
-            <td>{{host.location}}</td>
-        </tr>
+            <tr ng-hide="ctrl.tableData.length">
+                <td class="nodata" colspan="6">
+                    No Hosts found
+                </td>
+            </tr>
+
+            <tr ng-repeat="host in ctrl.tableData"
+                ng-repeat-done>
+                <td class="table-icon">
+                    <div icon icon-id="{{host._iconid_type}}"></div>
+                </td>
+                <td>{{host.id}}</td>
+                <td>{{host.mac}}</td>
+                <td>{{host.vlan}}</td>
+                <td>{{host.ips}}</td>
+                <td>{{host.location}}</td>
+            </tr>
         </tbody>
     </table>
 

@@ -30,6 +30,11 @@ table.summary-list tbody {
     border-radius: 0 0 8px 8px;
 }
 
+table.summary-list td.nodata {
+    text-align: center;
+    font-style: italic;
+}
+
 .light table.summary-list tr:nth-child(even) {
     background-color: #ddd;
 }
