@@ -341,15 +341,37 @@
     }
 
     function findAttachedLinks(devId) {
-        var links = [];
+        var lnks = [];
         links.forEach(function (d) {
             if (d.source.id === devId || d.target.id === devId) {
-                links.push(d);
+                lnks.push(d);
             }
         });
-        return links;
+        return lnks;
     }
 
+    // returns one-way links or where the internal link types differ
+    function findBadLinks() {
+        var lnks = [],
+            src, tgt;
+        links.forEach(function (d) {
+            // NOTE: skip edge links, which are synthesized
+            if (d.type() !== 'hostLink') {
+                delete d.bad;
+                src = d.fromSource;
+                tgt = d.fromTarget;
+                if (src && !tgt) {
+                    d.bad = 'missing link';
+                } else if (src.type !== tgt.type) {
+                    d.bad = 'type mismatch';
+                }
+                if (d.bad) {
+                    lnks.push(d);
+                }
+            }
+        });
+        return lnks;
+    }
 
     // ==========================
     // Module definition
@@ -394,7 +416,8 @@
                 findLinkById: findLinkById,
                 findDevices: findDevices,
                 findAttachedHosts: findAttachedHosts,
-                findAttachedLinks: findAttachedLinks
+                findAttachedLinks: findAttachedLinks,
+                findBadLinks: findBadLinks
             }
         }]);
 }());

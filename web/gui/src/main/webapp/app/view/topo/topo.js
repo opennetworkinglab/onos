@@ -49,8 +49,9 @@
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
-            B: [toggleMap, 'Toggle background map'],
             P: [tfs.togglePorts, 'Toggle Port Highlighting'],
+            dash: [tfs.showBadLinks, 'Show bad links'],
+            B: [toggleMap, 'Toggle background map'],
 
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
             Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
@@ -73,7 +74,7 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['I', 'O', 'D', '-', 'H', 'M', 'P', 'B' ],
+                ['I', 'O', 'D', '-', 'H', 'M', 'P', 'dash', 'B' ],
                 ['X', 'Z', 'L', 'U', 'R', '-', 'dot'],
                 ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
             ]

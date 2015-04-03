@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts, flash, wss,
+    var $log, $timeout, fs, sus, is, ts, flash, wss,
         tis, tms, td3, tss, tts, tos, fltr, tls,
         icfg, uplink, svg;
 
@@ -263,6 +263,7 @@
             online = ldata.online(),
             delay = immediate ? 0 : 1000;
 
+        // TODO: understand why el is sometimes undefined on addLink events...
         el.classed('link', true);
         el.classed('inactive', !online);
         el.classed(allLinkTypes, false);
@@ -448,6 +449,21 @@
         link.classed('suppressed', b);
 //        d3.selectAll('svg .port').classed('inactive', b);
 //        d3.selectAll('svg .portText').classed('inactive', b);
+    }
+
+    function showBadLinks() {
+        var badLinks = tms.findBadLinks();
+        flash.flash('Bad Links: ' + badLinks.length);
+        $log.debug('Bad Link List (' + badLinks.length + '):');
+        badLinks.forEach(function (d) {
+            $log.debug('bad link: (' + d.bad + ') ' + d.key, d);
+            if (d.el) {
+                d.el.attr('stroke-width', linkScale(2.8))
+                    .attr('stroke', 'red');
+            }
+        });
+        // back to normal after 2 seconds...
+        $timeout(updateLinks, 2000);
     }
 
     // ==========================================
@@ -749,15 +765,16 @@
 
     angular.module('ovTopo')
     .factory('TopoForceService',
-        ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
-            'FlashService', 'WebSocketService',
+        ['$log', '$timeout', 'FnService', 'SvgUtilService', 'IconService',
+            'ThemeService', 'FlashService', 'WebSocketService',
             'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_, _flash_, _wss_,
+        function (_$log_, _$timeout_, _fs_, _sus_, _is_, _ts_, _flash_, _wss_,
                   _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
             $log = _$log_;
+            $timeout = _$timeout_;
             fs = _fs_;
             sus = _sus_;
             is = _is_;
@@ -874,6 +891,7 @@
                 cycleDeviceLabels: cycleDeviceLabels,
                 unpin: unpin,
                 showMastership: showMastership,
+                showBadLinks: showBadLinks,
 
                 addDevice: addDevice,
                 updateDevice: updateDevice,

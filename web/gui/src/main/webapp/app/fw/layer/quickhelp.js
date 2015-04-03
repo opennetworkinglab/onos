@@ -50,7 +50,6 @@
     // key-logical-name to key-display lookup..
     var keyDisp = {
         equals: '=',
-        dash: '-',
         slash: '/',
         backSlash: '\\',
         backQuote: '`',
