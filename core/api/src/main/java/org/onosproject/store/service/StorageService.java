@@ -16,6 +16,7 @@
 
 package org.onosproject.store.service;
 
+
 /**
  * Storage service.
  * <p>
@@ -53,6 +54,13 @@ public interface StorageService {
      * @return builder for an distributed set
      */
     <E> SetBuilder<E> setBuilder();
+
+    /**
+     * Creates a new AtomicCounterBuilder.
+     *
+     * @return atomic counter builder
+     */
+    AtomicCounterBuilder atomicCounterBuilder();
 
     /**
      * Creates a new transaction context.

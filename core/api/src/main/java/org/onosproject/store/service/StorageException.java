@@ -17,32 +17,32 @@
 package org.onosproject.store.service;
 
 /**
- * Top level exception for ConsistentMap failures.
+ * Top level exception for Store failures.
  */
 @SuppressWarnings("serial")
-public class ConsistentMapException extends StorageException {
-    public ConsistentMapException() {
+public class StorageException extends RuntimeException {
+    public StorageException() {
     }
 
-    public ConsistentMapException(Throwable t) {
+    public StorageException(Throwable t) {
         super(t);
     }
 
     /**
-     * ConsistentMap operation timeout.
+     * Store operation timeout.
      */
-    public static class Timeout extends ConsistentMapException {
+    public static class Timeout extends StorageException {
     }
 
     /**
-     * ConsistentMap update conflicts with an in flight transaction.
+     * Store update conflicts with an in flight transaction.
      */
-    public static class ConcurrentModification extends ConsistentMapException {
+    public static class ConcurrentModification extends StorageException {
     }
 
     /**
-     * ConsistentMap operation interrupted.
+     * Store operation interrupted.
      */
-    public static class Interrupted extends ConsistentMapException {
+    public static class Interrupted extends StorageException {
     }
 }

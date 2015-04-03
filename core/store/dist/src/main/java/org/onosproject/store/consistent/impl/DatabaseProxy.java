@@ -35,6 +35,12 @@ public interface DatabaseProxy<K, V> {
      */
     CompletableFuture<Set<String>> tableNames();
 
+    /**
+     * Returns a mapping from counter name to next value.
+     * @return A completable future to be completed with the result once complete.
+     */
+    CompletableFuture<Map<String, Long>> counters();
+
   /**
    * Gets the table size.
    *
@@ -180,6 +186,23 @@ public interface DatabaseProxy<K, V> {
    * @return A completable future to be completed with the result once complete.
    */
   CompletableFuture<Result<Boolean>> replace(String tableName, K key, long oldVersion, V newValue);
+
+  /**
+   * Returns the next value for the specified atomic counter after
+   * incrementing the current value by one.
+   *
+   * @param counterName counter name
+   * @return next value for the specified counter
+   */
+  CompletableFuture<Long> nextValue(String counterName);
+
+  /**
+   * Returns the current value for the specified atomic counter.
+   *
+   * @param counterName counter name
+   * @return current value for the specified counter
+   */
+  CompletableFuture<Long> currentValue(String counterName);
 
   /**
    * Prepare and commit the specified transaction.

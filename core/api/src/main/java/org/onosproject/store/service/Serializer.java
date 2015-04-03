@@ -16,6 +16,8 @@
 
 package org.onosproject.store.service;
 
+import org.onlab.util.KryoNamespace;
+
 /**
  * Interface for serialization for store artifacts.
  */
@@ -35,4 +37,24 @@ public interface Serializer {
      * @param <T> decoded type
      */
     <T> T decode(byte[] bytes);
+
+    /**
+     * Creates a new Serializer instance from a KryoNamespace.
+     *
+     * @param kryo kryo namespace
+     * @return Serializer instance
+     */
+    public static Serializer using(KryoNamespace kryo) {
+        return new Serializer() {
+            @Override
+            public <T> byte[] encode(T object) {
+                return kryo.serialize(object);
+            }
+
+            @Override
+            public <T> T decode(byte[] bytes) {
+                return kryo.deserialize(bytes);
+            }
+        };
+    }
 }

@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -43,6 +44,7 @@ import net.kuujo.copycat.state.StateContext;
  */
 public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     private Long nextVersion;
+    private Map<String, AtomicLong> counters;
     private Map<String, Map<String, Versioned<byte[]>>> tables;
 
     /**
@@ -60,6 +62,11 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     @Initializer
     @Override
     public void init(StateContext<DatabaseState<String, byte[]>> context) {
+        counters = context.get("counters");
+        if (counters == null) {
+            counters = Maps.newConcurrentMap();
+            context.put("counters", counters);
+        }
         tables = context.get("tables");
         if (tables == null) {
             tables = Maps.newConcurrentMap();
@@ -80,6 +87,13 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     @Override
     public Set<String> tableNames() {
         return new HashSet<>(tables.keySet());
+    }
+
+    @Override
+    public Map<String, Long> counters() {
+        Map<String, Long> counterMap = Maps.newHashMap();
+        counters.forEach((k, v) -> counterMap.put(k, v.get()));
+        return counterMap;
     }
 
     @Override
@@ -212,6 +226,16 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
+    public Long nextValue(String counterName) {
+        return getCounter(counterName).incrementAndGet();
+    }
+
+    @Override
+    public Long currentValue(String counterName) {
+        return getCounter(counterName).get();
+    }
+
+    @Override
     public boolean prepareAndCommit(Transaction transaction) {
         if (prepare(transaction)) {
             return commit(transaction);
@@ -253,6 +277,10 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
 
     private Map<String, Pair<Long, byte[]>> getLockMap(String tableName) {
         return locks.computeIfAbsent(tableName, name -> Maps.newConcurrentMap());
+    }
+
+    private AtomicLong getCounter(String counterName) {
+        return counters.computeIfAbsent(counterName, name -> new AtomicLong(0));
     }
 
     private boolean isUpdatePossible(DatabaseUpdate update) {

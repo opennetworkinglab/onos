@@ -17,6 +17,7 @@
 package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -44,6 +45,9 @@ public interface DatabaseState<K, V> {
 
   @Query
   Set<String> tableNames();
+
+  @Query
+  Map<String, Long> counters();
 
   @Query
   int size(String tableName);
@@ -92,6 +96,12 @@ public interface DatabaseState<K, V> {
 
   @Command
   Result<Boolean> replace(String tableName, K key, long oldVersion, V newValue);
+
+  @Command
+  Long nextValue(String counterName);
+
+  @Query
+  Long currentValue(String counterName);
 
   @Command
   boolean prepareAndCommit(Transaction transaction);

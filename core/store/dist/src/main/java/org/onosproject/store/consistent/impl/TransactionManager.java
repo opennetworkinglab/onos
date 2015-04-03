@@ -36,33 +36,21 @@ import org.onosproject.store.service.Transaction.State;
  */
 public class TransactionManager {
 
+    private static final KryoNamespace KRYO_NAMESPACE = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.BASIC)
+            .nextId(KryoNamespace.FLOATING_ID)
+            .register(Versioned.class)
+            .register(DatabaseUpdate.class)
+            .register(DatabaseUpdate.Type.class)
+            .register(DefaultTransaction.class)
+            .register(Transaction.State.class)
+            .register(Pair.class)
+            .register(ImmutablePair.class)
+            .build();
+
+    private final Serializer serializer = Serializer.using(KRYO_NAMESPACE);
     private final Database database;
     private final AsyncConsistentMap<Long, Transaction> transactions;
-
-    private final Serializer serializer = new Serializer() {
-
-        private KryoNamespace kryo = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.BASIC)
-                .nextId(KryoNamespace.FLOATING_ID)
-                .register(Versioned.class)
-                .register(DatabaseUpdate.class)
-                .register(DatabaseUpdate.Type.class)
-                .register(DefaultTransaction.class)
-                .register(Transaction.State.class)
-                .register(Pair.class)
-                .register(ImmutablePair.class)
-                .build();
-
-        @Override
-        public <T> byte[] encode(T object) {
-            return kryo.serialize(object);
-        }
-
-        @Override
-        public <T> T decode(byte[] bytes) {
-            return kryo.deserialize(bytes);
-        }
-    };
 
     /**
      * Constructs a new TransactionManager for the specified database instance.

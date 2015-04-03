@@ -65,6 +65,11 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
+    public CompletableFuture<Map<String, Long>> counters() {
+        return checkOpen(() -> proxy.counters());
+    }
+
+    @Override
     public CompletableFuture<Integer> size(String tableName) {
         return checkOpen(() -> proxy.size(tableName));
     }
@@ -142,6 +147,16 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @Override
     public CompletableFuture<Result<Boolean>> replace(String tableName, String key, long oldVersion, byte[] newValue) {
         return checkOpen(() -> proxy.replace(tableName, key, oldVersion, newValue));
+    }
+
+    @Override
+    public CompletableFuture<Long> nextValue(String counterName) {
+        return checkOpen(() -> proxy.nextValue(counterName));
+    }
+
+    @Override
+    public CompletableFuture<Long> currentValue(String counterName) {
+        return checkOpen(() -> proxy.currentValue(counterName));
     }
 
     @Override

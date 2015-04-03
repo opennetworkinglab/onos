@@ -103,18 +103,7 @@ public class DistributedLeadershipManager implements LeadershipService {
     public void activate() {
         lockMap = storageService.<String, NodeId>consistentMapBuilder()
                     .withName("onos-leader-locks")
-                    .withSerializer(new Serializer() {
-                        KryoNamespace kryo = new KryoNamespace.Builder().register(KryoNamespaces.API).build();
-                        @Override
-                        public <T> byte[] encode(T object) {
-                            return kryo.serialize(object);
-                        }
-
-                        @Override
-                        public <T> T decode(byte[] bytes) {
-                            return kryo.deserialize(bytes);
-                        }
-                    })
+                    .withSerializer(Serializer.using(new KryoNamespace.Builder().register(KryoNamespaces.API).build()))
                     .withPartitionsDisabled().build();
 
         localNodeId = clusterService.getLocalNode().id();

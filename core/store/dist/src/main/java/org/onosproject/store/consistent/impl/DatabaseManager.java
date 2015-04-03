@@ -18,6 +18,7 @@ package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import net.kuujo.copycat.CopycatConfig;
@@ -47,6 +48,7 @@ import org.onosproject.store.cluster.impl.DistributedClusterStore;
 import org.onosproject.store.cluster.impl.NodeInfo;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
+import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
@@ -324,6 +326,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     @Override
+    public AtomicCounterBuilder atomicCounterBuilder() {
+        return new DefaultAtomicCounterBuilder(inMemoryDatabase, partitionedDatabase);
+    }
+
+    @Override
     public List<MapInfo> getMapInfo() {
         List<MapInfo> maps = Lists.newArrayList();
         maps.addAll(getMapInfo(inMemoryDatabase));
@@ -337,6 +344,15 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             .map(name -> new MapInfo(name, complete(database.size(name))))
             .filter(info -> info.size() > 0)
             .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public Map<String, Long> getCounters() {
+        Map<String, Long> counters = Maps.newHashMap();
+        counters.putAll(complete(inMemoryDatabase.counters()));
+        counters.putAll(complete(partitionedDatabase.counters()));
+        return counters;
     }
 
     @Override

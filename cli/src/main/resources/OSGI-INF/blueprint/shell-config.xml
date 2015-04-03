@@ -233,6 +233,9 @@
             <action class="org.onosproject.cli.net.MapsListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.CountersListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.TransactionsCommand"/>
         </command>
         <command>

@@ -17,6 +17,7 @@ package org.onosproject.store.service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for administering storage instances.
@@ -36,6 +37,13 @@ public interface StorageAdminService {
      * @return list of map information
      */
     List<MapInfo> getMapInfo();
+
+    /**
+     * Returns information about all the atomic counters in the system.
+     *
+     * @return mapping from counter name to that counter's next value
+     */
+    Map<String, Long> getCounters();
 
     /**
      * Returns all the transactions in the system.

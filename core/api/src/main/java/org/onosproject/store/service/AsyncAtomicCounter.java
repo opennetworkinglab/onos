@@ -13,36 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.store.service;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
- * Top level exception for ConsistentMap failures.
+ * An async atomic counter dispenses monotonically increasing values.
  */
-@SuppressWarnings("serial")
-public class ConsistentMapException extends StorageException {
-    public ConsistentMapException() {
-    }
-
-    public ConsistentMapException(Throwable t) {
-        super(t);
-    }
+public interface AsyncAtomicCounter {
 
     /**
-     * ConsistentMap operation timeout.
+     * Atomically increment by one the current value.
+     *
+     * @return updated value
      */
-    public static class Timeout extends ConsistentMapException {
-    }
+    CompletableFuture<Long> incrementAndGet();
 
     /**
-     * ConsistentMap update conflicts with an in flight transaction.
+     * Returns the current value of the counter without modifying it.
+     *
+     * @return current value
      */
-    public static class ConcurrentModification extends ConsistentMapException {
-    }
-
-    /**
-     * ConsistentMap operation interrupted.
-     */
-    public static class Interrupted extends ConsistentMapException {
-    }
+    CompletableFuture<Long> get();
 }

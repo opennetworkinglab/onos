@@ -90,6 +90,21 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
+    public CompletableFuture<Map<String, Long>> counters() {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        Map<String, Long> counters = Maps.newConcurrentMap();
+        return CompletableFuture.allOf(partitions
+                .stream()
+                .map(db -> db.counters()
+                             .thenApply(m -> {
+                                 counters.putAll(m);
+                                 return null;
+                             }))
+                .toArray(CompletableFuture[]::new))
+            .thenApply(v -> counters);
+    }
+
+    @Override
     public CompletableFuture<Integer> size(String tableName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         AtomicInteger totalSize = new AtomicInteger(0);
@@ -216,6 +231,18 @@ public class PartitionedDatabase implements Database {
             String tableName, String key, long oldVersion, byte[] newValue) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).replace(tableName, key, oldVersion, newValue);
+    }
+
+    @Override
+    public CompletableFuture<Long> nextValue(String counterName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(counterName, counterName).nextValue(counterName);
+    }
+
+    @Override
+    public CompletableFuture<Long> currentValue(String counterName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(counterName, counterName).currentValue(counterName);
     }
 
     @Override
