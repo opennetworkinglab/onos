@@ -214,7 +214,7 @@ describe('factory: view/topo/topoModel.js', function() {
             'createHostLink', 'createLink',
             'coordFromLngLat', 'lngLatFromCoord',
             'findLink', 'findLinkById', 'findDevices',
-            'findAttachedHosts', 'findAttachedLinks'
+            'findAttachedHosts', 'findAttachedLinks', 'findBadLinks'
         ])).toBeTruthy();
     });
 
