@@ -35,6 +35,7 @@ class Installing extends FinalIntentProcessPhase {
      *
      * @param processor intent processor that does work for installing
      * @param data      intent data containing an intent to be installed
+     * @param stored    intent data already stored
      */
     Installing(IntentProcessor processor, IntentData data, IntentData stored) {
         this.processor = checkNotNull(processor);

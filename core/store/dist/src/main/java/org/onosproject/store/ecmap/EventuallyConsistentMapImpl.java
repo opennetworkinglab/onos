@@ -139,6 +139,7 @@ public class EventuallyConsistentMapImpl<K, V>
      *                              tombstones
      * @param antiEntropyPeriod     period that the anti-entropy task should run
      *                              in seconds
+     * @param antiEntropyTimeUnit   time unit for anti-entropy task scheduling
      * @param convergeFaster        make anti-entropy try to converge faster
      */
     EventuallyConsistentMapImpl(String mapName,
