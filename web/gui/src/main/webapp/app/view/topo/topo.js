@@ -168,7 +168,7 @@
 
     // zoom enabled predicate. ev is a D3 source event.
     function zoomEnabled(ev) {
-        return (ev.metaKey || ev.altKey);
+        return fs.isMobile() || (ev.metaKey || ev.altKey);
     }
 
     function zoomCallback() {

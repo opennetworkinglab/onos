@@ -20,6 +20,10 @@
 
 /* --- Base SVG Layer --- */
 
+#ov-topo svg {
+    /* prevents the little cut/copy/paste square that would appear on iPad */
+    -webkit-user-select: none;
+}
 .light #ov-topo svg {
     background-color: #fff;
 }

@@ -64,9 +64,11 @@
     // === API functions ------------------------------------------------
 
     function showTooltip(el, msg) {
-        if (!el || !msg) {
+        // tooltips don't make sense on mobile devices
+        if (!el || !msg || fs.isMobile()) {
             return;
         }
+
         var elem = d3.select(el),
             mouseX = d3.event.pageX,
             mouseY = d3.event.pageY,
