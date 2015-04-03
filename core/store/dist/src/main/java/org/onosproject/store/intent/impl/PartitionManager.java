@@ -115,7 +115,6 @@ public class PartitionManager implements PartitionService {
         // ... does it add significant computational complexity? is it worth it?
         //int partition = consistentHash(intentKey.hash(), NUM_PARTITIONS);
         PartitionId id = new PartitionId(partition);
-        log.debug("Getting partition for {}: {}", intentKey, id); //FIXME debug
         return id;
     }
 
