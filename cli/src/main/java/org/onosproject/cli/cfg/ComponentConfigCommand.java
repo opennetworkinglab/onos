@@ -17,10 +17,12 @@ package org.onosproject.cli.cfg;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cli.AbstractShellCommand;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -36,6 +38,12 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     static final String SET = "set";
 
     private static final String FMT = "    name=%s, type=%s, value=%s, defaultValue=%s, description=%s";
+    private static final String SHORT_FMT = "    %s=%s";
+
+    @Option(name = "-s", aliases = "--short", description = "Show short output only",
+            required = false, multiValued = false)
+    private boolean shortOnly = false;
+
 
     @Argument(index = 0, name = "command",
             description = "Command name (activate|deactivate|uninstall)",
@@ -87,12 +95,29 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     private void listComponentProperties(String component) {
         Set<ConfigProperty> props = service.getProperties(component);
         print("%s", component);
-        props.forEach(p -> print(FMT, p.name(), p.type().toString().toLowerCase(),
-                                 p.value(), p.defaultValue(), p.description()));
+        if (shortOnly) {
+            props.forEach(p -> print(SHORT_FMT, p.name(), p.value()));
+        } else {
+            props.forEach(p -> print(FMT, p.name(), p.type().toString().toLowerCase(),
+                                     p.value(), p.defaultValue(), p.description()));
+        }
     }
 
     private void listComponentProperty(String component, String name) {
-        // FIXME: implement after getProperty is defined and implemented
+        Set<ConfigProperty> props = service.getProperties(component);
+        Optional<ConfigProperty> property = props.stream()
+                .filter(p -> p.name().equals(name)).findFirst();
+        if (!property.isPresent()) {
+            System.err.println("Property " + name + " for component " + component + " not found");
+            return;
+        }
+        ConfigProperty p = property.get();
+        if (shortOnly) {
+            print(SHORT_FMT, p.name(), p.value());
+        } else {
+            print(FMT, p.name(), p.type().toString().toLowerCase(), p.value(),
+                  p.defaultValue(), p.description());
+        }
     }
 
 }

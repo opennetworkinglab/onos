@@ -42,6 +42,13 @@ public class ApplicationsListCommand extends AbstractShellCommand {
             "%s id=%d, name=%s, version=%s, origin=%s, description=%s, " +
                     "features=%s, featuresRepo=%s, permissions=%s";
 
+    private static final String SHORT_FMT =
+            "%s %3d  %-28s  %-8s  %-16s  %s";
+
+    @Option(name = "-s", aliases = "--short", description = "Show short output only",
+            required = false, multiValued = false)
+    private boolean shortOnly = false;
+
     @Option(name = "-a", aliases = "--active", description = "Show active only",
             required = false, multiValued = false)
     private boolean activeOnly = false;
@@ -59,11 +66,17 @@ public class ApplicationsListCommand extends AbstractShellCommand {
             for (Application app : apps) {
                 boolean isActive = service.getState(app.id()) == ACTIVE;
                 if (activeOnly && isActive || !activeOnly) {
-                    print(FMT, isActive ? "*" : " ",
-                          app.id().id(), app.id().name(), app.version(), app.origin(),
-                          app.description(), app.features(),
-                          app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
-                          app.permissions());
+                    if (shortOnly) {
+                        print(SHORT_FMT, isActive ? "*" : " ",
+                              app.id().id(), app.id().name(), app.version(),
+                              app.origin(), app.description());
+                    } else {
+                        print(FMT, isActive ? "*" : " ",
+                              app.id().id(), app.id().name(), app.version(), app.origin(),
+                              app.description(), app.features(),
+                              app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
+                              app.permissions());
+                    }
                 }
             }
         }
