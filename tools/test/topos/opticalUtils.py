@@ -430,6 +430,7 @@ class MininetOE( Mininet ):
         i = 0
         for ctrl in controllers:
             self.addController( RemoteController( 'c%d' % i, ip=ctrl ) )
+            i += 1
 
 
 class OpticalTestTopo( Topo ):
