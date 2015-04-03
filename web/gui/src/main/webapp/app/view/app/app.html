@@ -24,18 +24,24 @@
         </thead>
 
         <tbody>
-        <tr ng-repeat="app in ctrl.tableData"
-            ng-click="selectCallback(app)"
-            ng-class="{selected: app === sel}"
-            ng-repeat-done>
-            <td class="table-icon">
-                <div icon icon-id="{{app._iconid_state}}"></div>
-            </td>
-            <td>{{app.id}}</td>
-            <td>{{app.version}}</td>
-            <td>{{app.origin}}</td>
-            <td>{{app.desc}}</td>
-        </tr>
+            <tr ng-hide="ctrl.tableData.length">
+                <td class="nodata" colspan="5">
+                    No Applications found
+                </td>
+            </tr>
+
+            <tr ng-repeat="app in ctrl.tableData"
+                ng-click="selectCallback(app)"
+                ng-class="{selected: app === sel}"
+                ng-repeat-done>
+                <td class="table-icon">
+                    <div icon icon-id="{{app._iconid_state}}"></div>
+                </td>
+                <td>{{app.id}}</td>
+                <td>{{app.version}}</td>
+                <td>{{app.origin}}</td>
+                <td>{{app.desc}}</td>
+            </tr>
         </tbody>
     </table>
 

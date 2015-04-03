@@ -25,10 +25,13 @@
 
     // example params to buildTable:
     // {
-    //    self: this,
-    //    scope: $scope,
-    //    tag: 'device'
+    //    self: this,               <- controller object
+    //    scope: $scope,            <- controller scope
+    //    tag: 'device',            <- table identifier
+    //    selCb: selCb              <- row selection callback (optional)
     // }
+    //          Note: selCb() is passed the row data model of the selected row,
+    //                 or null when no row is selected.
 
     function buildTable(o) {
         var handlers = {},
