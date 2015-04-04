@@ -76,32 +76,32 @@ public class ApplicationArchive
     private static final String APP_XML = "app.xml";
     private static final String M2_PREFIX = "m2";
 
-    private static final String KARAF_ROOT = "../";
+    private static final String ROOT = "../";
     private static final String M2_ROOT = "system/";
     private static final String APPS_ROOT = "apps/";
 
-    private File karafRoot = new File(KARAF_ROOT);
-    private File m2Dir = new File(karafRoot, M2_ROOT);
-    private File appsDir = new File(karafRoot, APPS_ROOT);
+    private File root = new File(ROOT);
+    private File appsDir = new File(root, APPS_ROOT);
+    private File m2Dir = new File(M2_ROOT);
 
     /**
-     * Sets the root directory where application artifacts are kept.
+     * Sets the root directory where apps directory is contained.
      *
-     * @param appsRoot top-level applications directory path
+     * @param root top-level directory path
      */
-    protected void setRootPath(String appsRoot) {
-        this.karafRoot = new File(appsRoot);
-        this.appsDir = new File(karafRoot, APPS_ROOT);
-        this.m2Dir = new File(karafRoot, M2_ROOT);
+    protected void setRootPath(String root) {
+        this.root = new File(root);
+        this.appsDir = new File(this.root, APPS_ROOT);
+        this.m2Dir = new File(M2_ROOT);
     }
 
     /**
-     * Returns the root directory where application artifacts are kept.
+     * Returns the root directory where apps directory is contained.
      *
-     * @return top-level applications directory path
+     * @return top-level directory path
      */
     protected String getRootPath() {
-        return karafRoot.getPath();
+        return root.getPath();
     }
 
     /**
