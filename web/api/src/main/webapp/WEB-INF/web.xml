@@ -59,9 +59,11 @@
                 org.onosproject.rest.exceptions.ServiceNotFoundMapper,
                 org.onosproject.rest.exceptions.NotFoundMapper,
                 org.onosproject.rest.exceptions.ServerErrorMapper,
+                org.onosproject.rest.exceptions.BadRequestMapper,
                 org.onosproject.rest.JsonBodyWriter,
 
                 org.onosproject.rest.ApplicationsWebResource,
+                org.onosproject.rest.ComponentConfigWebResource,
                 org.onosproject.rest.ClusterWebResource,
                 org.onosproject.rest.DevicesWebResource,
                 org.onosproject.rest.LinksWebResource,
