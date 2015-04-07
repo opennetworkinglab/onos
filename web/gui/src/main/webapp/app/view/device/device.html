@@ -10,13 +10,12 @@
                 <th colId="available" class="table-icon" sortable></th>
                 <th colId="type" class="table-icon" sortable></th>
                 <th colId="id" sortable>Device ID </th>
+                <th colId="masterid" sortable>Master Instance </th>
+                <th colId="num_ports" sortable>Ports </th>
                 <th colId="mfr" sortable>Vendor </th>
                 <th colId="hw" sortable>H/W Version </th>
                 <th colId="sw" sortable>S/W Version </th>
-                <th colId="chassisid" sortable>Chassis ID </th>
-                <th colId="serial" sortable>Serial # </th>
                 <th colId="protocol" sortable>Protocol </th>
-                <th colId="masterid" sortable>Master Instance </th>
             </tr>
         </thead>
 
@@ -36,13 +35,12 @@
                     <div icon icon-id="{{dev._iconid_type}}"></div>
                 </td>
                 <td>{{dev.id}}</td>
+                <td>{{dev.masterid}}</td>
+                <td>{{dev.num_ports}}</td>
                 <td>{{dev.mfr}}</td>
                 <td>{{dev.hw}}</td>
                 <td>{{dev.sw}}</td>
-                <td>{{dev.chassisid}}</td>
-                <td>{{dev.serial}}</td>
                 <td>{{dev.protocol}}</td>
-                <td>{{dev.masterid}}</td>
             </tr>
         </tbody>
     </table>

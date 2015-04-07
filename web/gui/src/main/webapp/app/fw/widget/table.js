@@ -21,11 +21,14 @@
     'use strict';
 
     // injected refs
-    var $log, $window, fs, is;
+    var $log, $window, fs, mast, is;
 
     // constants
     var tableIconTdSize = 33,
-        bottomMargin = 200,
+        mastPdg = 8,
+        h2Pdg = 40,
+        thPdg = 12,
+        tbodyPdg = 5,
         colWidth = 'col-width',
         tableIcon = 'table-icon';
 
@@ -49,7 +52,8 @@
     //   - icon width,
     //   - and default width
     // assumes assigned width is not given to icons
-    // returns the width of all columns that are not icons have an assigned width
+    // returns the width of all columns that are not icons
+    // or have an assigned width
     function getDefaultWidth(headers) {
         var winWidth = fs.windowSize().width,
             iconCols = 0,
@@ -92,12 +96,17 @@
         });
     }
 
+    // get the size of the window and then subtract the extra space at the top
+    // to get the height of the table
     function setTableHeight(thead, tbody) {
-        var winHeight = fs.windowSize().height;
+        var titleHeight = h2Pdg + fs.noPxStyle(d3.select('h2'), 'height'),
+            thHeight = thPdg + fs.noPxStyle(d3.select('th'), 'height'),
+            totalHeight = titleHeight + thHeight + tbodyPdg + mastPdg,
+            tableHeight = fs.windowSize(mast.mastHeight() + totalHeight).height;
 
         thead.style('display', 'block');
         tbody.style({'display': 'block',
-            'height': ((winHeight - bottomMargin) + 'px'),
+            'height': (tableHeight + 'px'),
             'overflow': 'auto'
         });
     }
@@ -150,11 +159,13 @@
     }
 
     angular.module('onosWidget')
-        .directive('onosFixedHeader', ['$window', 'FnService',
-            function (_$window_, _fs_) {
+        .directive('onosFixedHeader', ['$window', 'FnService', 'MastService',
+            function (_$window_, _fs_, _mast_) {
             return function (scope, element) {
                 $window = _$window_;
                 fs = _fs_;
+                mast = _mast_;
+
                 var w = angular.element($window),
                     table = d3.select(element[0]),
                     thead = table.select('thead'),

@@ -1,0 +1,83 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* ------ for summary-list tables ------ */
+
+table.summary-list {
+    margin: 0 20px 16px 12px;
+    font-size: 10pt;
+    border-spacing: 0;
+}
+
+table.summary-list td.nodata {
+    text-align: center;
+    font-style: italic;
+}
+
+.light table.summary-list tr:nth-child(even) {
+    background-color: #ddd;
+}
+.light table.summary-list tr:nth-child(odd) {
+    background-color: #eee;
+}
+.dark table.summary-list tr:nth-child(even) {
+    background-color: #333;
+}
+.dark table.summary-list tr:nth-child(odd) {
+    background-color: #444;
+}
+
+.light table.summary-list tr.selected {
+    background-color: deepskyblue;
+}
+
+.dark table.summary-list tr.selected {
+    background-color: #304860;
+}
+
+table.summary-list td,
+table.summary-list th {
+    padding: 6px;
+    text-align: left;
+}
+
+table.summary-list th {
+    letter-spacing: 0.02em;
+    cursor: pointer;
+}
+table.summary-list th:first-child {
+    border-radius: 8px 0 0 0;
+}
+table.summary-list th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+.light table.summary-list th {
+    background-color: #bbb;
+}
+.dark table.summary-list th {
+    background-color: #222;
+    color: #ccc;
+}
+
+/* rows are selectable */
+table.summary-list td {
+    cursor: pointer;
+}
+
+.dark table.summary-list td {
+    color: #ccc;
+}
