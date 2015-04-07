@@ -20,6 +20,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -28,6 +29,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -105,5 +107,15 @@ public class DefaultSingleTablePipeline implements Pipeliner {
             }
         }));
         return future;
+    }
+
+    @Override
+    public Future<Boolean> next(Collection<NextObjective> nextObjectives) {
+        throw new UnsupportedOperationException("Single table does not next hop.");
+    }
+
+    @Override
+    public void setData(DriverData data) {
+
     }
 }

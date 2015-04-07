@@ -147,6 +147,7 @@
         <bundle>mvn:org.onosproject/onos-of-api/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-of-drivers/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-of-ctl/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-drivers/@ONOS-VERSION</bundle>
 
         <bundle>mvn:org.onosproject/onos-lldp-provider/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-host-provider/@ONOS-VERSION</bundle>

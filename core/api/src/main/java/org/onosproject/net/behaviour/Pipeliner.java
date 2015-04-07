@@ -17,8 +17,10 @@ package org.onosproject.net.behaviour;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 
 import java.util.Collection;
 import java.util.concurrent.Future;
@@ -26,7 +28,7 @@ import java.util.concurrent.Future;
 /**
  * Behaviour for handling various pipelines.
  */
-public interface Pipeliner {
+public interface Pipeliner extends HandlerBehaviour {
 
     /**
      * Injecting the service directory into the driver.
@@ -39,17 +41,24 @@ public interface Pipeliner {
     /**
      * Installs the filtering rules onto the device.
      *
-     * @param filters the collection of filters
+     * @param filteringObjectives the collection of filters
      * @return a future indicating the success of the operation
      */
-     Future<Boolean> filter(Collection<FilteringObjective> filters);
+     Future<Boolean> filter(Collection<FilteringObjective> filteringObjectives);
 
     /**
      * Installs the forwarding rules onto the device.
      *
-     * @param forwardings the collection of forwarding objectives
+     * @param forwardObjectives the collection of forwarding objectives
      * @return a future indicating the success of the operation
      */
-    Future<Boolean> forward(Collection<ForwardingObjective> forwardings);
+    Future<Boolean> forward(Collection<ForwardingObjective> forwardObjectives);
 
+    /**
+     * Installs the next hop elements into the device.
+     *
+     * @param nextObjectives the collection of next objectives
+     * @return a future indicating the success of the operation
+     */
+    Future<Boolean> next(Collection<NextObjective> nextObjectives);
 }
