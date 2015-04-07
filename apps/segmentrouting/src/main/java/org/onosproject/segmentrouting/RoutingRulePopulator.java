@@ -17,11 +17,11 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-
 import org.onlab.packet.MplsLabel;
-import org.onosproject.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
@@ -94,15 +94,15 @@ public class RoutingRulePopulator {
      * Populates IP flow rules for the subnets of the destination router.
      *
      * @param deviceId switch ID to set the rules
-     * @param subnetInfo subnet information
+     * @param subnets subnet information
      * @param destSw destination switch ID
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId deviceId, String subnetInfo,
+    public boolean populateIpRuleForSubnet(DeviceId deviceId, List<Ip4Prefix> subnets,
                                            DeviceId destSw, Set<DeviceId> nextHops) {
 
-        List<IpPrefix> subnets = extractSubnet(subnetInfo);
+        //List<IpPrefix> subnets = extractSubnet(subnetInfo);
         for (IpPrefix subnet: subnets) {
             if (!populateIpRuleForRouter(deviceId, subnet, destSw, nextHops)) {
                 return false;
@@ -369,21 +369,6 @@ public class RoutingRulePopulator {
 
         srManager.flowRuleService.applyFlowRules(flow);
 
-    }
-
-
-    private List<IpPrefix> extractSubnet(String subnetInfo) {
-        List<IpPrefix> subnetIpPrefixes = new ArrayList<>();
-
-        // TODO: refactoring required depending on the format of the subnet info
-        IpPrefix prefix = IpPrefix.valueOf(subnetInfo);
-        if (prefix == null) {
-            log.error("Wrong ip prefix type {}", subnetInfo);
-        } else {
-            subnetIpPrefixes.add(prefix);
-        }
-
-        return subnetIpPrefixes;
     }
 
     private Link selectOneLink(DeviceId srcId, Set<DeviceId> destIds) {

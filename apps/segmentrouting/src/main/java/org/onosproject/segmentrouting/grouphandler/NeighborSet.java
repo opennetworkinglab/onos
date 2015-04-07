@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.grouphandler;
+package org.onosproject.segmentrouting.grouphandler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

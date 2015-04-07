@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Lists;
+
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
@@ -26,39 +27,33 @@ import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
 /**
  * This class is temporary class and used only for test.
  * It will be replaced with "real" Network Config Manager.
+ *
+ * TODO: Knock off this wrapper and directly use DeviceConfiguration class
  */
 
 public class NetworkConfigHandler {
 
     private static Logger log = LoggerFactory.getLogger(NetworkConfigHandler.class);
     private SegmentRoutingManager srManager;
-    private DeviceConfiguration deviceConfig = new DeviceConfiguration();
+    private DeviceConfiguration deviceConfig;
 
-    public NetworkConfigHandler(SegmentRoutingManager srManager) {
+    public NetworkConfigHandler(SegmentRoutingManager srManager,
+                                DeviceConfiguration deviceConfig) {
         this.srManager = srManager;
+        this.deviceConfig = deviceConfig;
     }
 
-    public Ip4Address getGatewayIpAddress(DeviceId deviceId) {
-
-        if (deviceId.uri().equals(URI.create("of:0000000000000001"))) {
-            return Ip4Address.valueOf("10.0.1.128");
-        } else if (deviceId.uri().equals(URI.create("of:0000000000000006"))) {
-            return Ip4Address.valueOf("7.7.7.128");
-        }
-
-        log.warn("No gateway Ip address was found for {}", deviceId);
-        return Ip4Address.valueOf("0.0.0.0");
+    public List<Ip4Address> getGatewayIpAddress(DeviceId deviceId) {
+        return this.deviceConfig.getSubnetGatewayIps(deviceId);
     }
 
     public IpPrefix getRouterIpAddress(DeviceId deviceId) {
-
         return IpPrefix.valueOf(deviceConfig.getRouterIp(deviceId), 32);
     }
 
@@ -68,17 +63,13 @@ public class NetworkConfigHandler {
 
     public boolean inSameSubnet(DeviceId deviceId, Ip4Address destIp) {
 
-        String subnetInfo = getSubnetInfo(deviceId);
-        if (subnetInfo == null) {
+        List<Ip4Prefix> subnets = getSubnetInfo(deviceId);
+        if (subnets == null) {
             return false;
         }
 
-        IpPrefix prefix = IpPrefix.valueOf(subnetInfo);
-        if (prefix.contains(destIp)) {
-            return true;
-        }
-
-        return false;
+        return subnets.stream()
+               .anyMatch((subnet) -> subnet.contains(destIp));
     }
 
     public boolean inSameSubnet(Ip4Address address, int sid) {
@@ -88,43 +79,23 @@ public class NetworkConfigHandler {
             return false;
         }
 
-        String subnetInfo = getSubnetInfo(deviceId);
-        if (subnetInfo == null) {
-            log.warn("Cannot find the subnet info for {}", deviceId);
-            return false;
-        }
-
-        Ip4Prefix subnet = Ip4Prefix.valueOf(subnetInfo);
-        if (subnet.contains(address)) {
-            return true;
-        }
-
-        return false;
-
+        return inSameSubnet(deviceId, address);
     }
 
-    public String getSubnetInfo(DeviceId deviceId) {
-        // TODO : supports multiple subnet
-        if (deviceId.uri().equals(URI.create("of:0000000000000001"))) {
-            return "10.0.1.1/24";
-        } else if (deviceId.uri().equals(URI.create("of:0000000000000006"))) {
-            return "7.7.7.7/24";
-        } else {
-            log.error("Switch {} is not an edge router", deviceId);
-            return null;
-        }
+    public List<Ip4Prefix> getSubnetInfo(DeviceId deviceId) {
+        return deviceConfig.getSubnets(deviceId);
     }
 
     public int getMplsId(DeviceId deviceId) {
         return deviceConfig.getSegmentId(deviceId);
     }
 
-    public int getMplsId(MacAddress mac) {
-        return deviceConfig.getSegmentId(mac);
+    public int getMplsId(MacAddress routerMac) {
+        return deviceConfig.getSegmentId(routerMac);
     }
 
-    public int getMplsId(Ip4Address address) {
-        return deviceConfig.getSegmentId(address);
+    public int getMplsId(Ip4Address routerIpAddress) {
+        return deviceConfig.getSegmentId(routerIpAddress);
     }
 
     public boolean isEcmpNotSupportedInTransit(DeviceId deviceId) {
@@ -132,17 +103,12 @@ public class NetworkConfigHandler {
     }
 
     public boolean isTransitRouter(DeviceId deviceId) {
-        return true;
+        return !(deviceConfig.isEdgeDevice(deviceId));
     }
 
 
     public boolean isEdgeRouter(DeviceId deviceId) {
-        if (deviceId.uri().equals(URI.create("of:0000000000000001"))
-                || deviceId.uri().equals(URI.create("of:0000000000000006"))) {
-            return true;
-        }
-
-        return false;
+        return deviceConfig.isEdgeDevice(deviceId);
     }
 
     private List<PortNumber> getPortsToNeighbors(DeviceId deviceId, List<DeviceId> fwdSws) {
@@ -177,16 +143,7 @@ public class NetworkConfigHandler {
 
 
     public Ip4Address getDestinationRouterAddress(Ip4Address destIpAddress) {
-        // TODO: need to check the subnet info
-        if (destIpAddress.toString().equals("10.0.1.1")) {
-            return Ip4Address.valueOf("192.168.0.1");
-        } else if (destIpAddress.toString().equals("7.7.7.7")) {
-            return Ip4Address.valueOf("192.168.0.6");
-        } else {
-            log.warn("No router was found for {}", destIpAddress);
-            return null;
-        }
-
+        return deviceConfig.getRouterIpAddressForASubnetHost(destIpAddress);
     }
 
     public DeviceId getDeviceId(Ip4Address ip4Address) {
@@ -194,13 +151,6 @@ public class NetworkConfigHandler {
     }
 
     public MacAddress getRouterMac(Ip4Address targetAddress) {
-        if (targetAddress.toString().equals("10.0.1.128")) {
-            return MacAddress.valueOf("00:00:00:00:00:01");
-        } else if (targetAddress.toString().equals("7.7.7.128")) {
-            return MacAddress.valueOf("00:00:00:00:00:06");
-        } else {
-            log.warn("Cannot find a router for {}", targetAddress);
-            return null;
-        }
+        return deviceConfig.getRouterMacForAGatewayIp(targetAddress);
     }
 }

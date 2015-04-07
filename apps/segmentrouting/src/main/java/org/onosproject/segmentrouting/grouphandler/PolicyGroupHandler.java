@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.grouphandler;
+package org.onosproject.segmentrouting.grouphandler;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -26,7 +26,7 @@ import java.util.List;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
-import org.onosproject.grouphandler.GroupBucketIdentifier.BucketOutputType;
+import org.onosproject.segmentrouting.grouphandler.GroupBucketIdentifier.BucketOutputType;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;

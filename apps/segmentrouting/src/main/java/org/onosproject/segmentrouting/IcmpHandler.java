@@ -16,7 +16,7 @@
 package org.onosproject.segmentrouting;
 
 import java.nio.ByteBuffer;
-
+import java.util.List;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
@@ -69,14 +69,14 @@ public class IcmpHandler {
         DeviceId deviceId = connectPoint.deviceId();
         Ip4Address destinationAddress =
                 Ip4Address.valueOf(ipv4.getDestinationAddress());
-        Ip4Address gatewayIpAddress = config.getGatewayIpAddress(deviceId);
+        List<Ip4Address> gatewayIpAddresses = config.getGatewayIpAddress(deviceId);
         IpPrefix routerIpPrefix = config.getRouterIpAddress(deviceId);
         Ip4Address routerIpAddress = routerIpPrefix.getIp4Prefix().address();
 
         // ICMP to the router IP or gateway IP
         if (((ICMP) ipv4.getPayload()).getIcmpType() == ICMP.TYPE_ECHO_REQUEST &&
                 (destinationAddress.equals(routerIpAddress) ||
-                        gatewayIpAddress.equals(destinationAddress))) {
+                        gatewayIpAddresses.contains(destinationAddress))) {
             sendICMPResponse(ethernet, connectPoint);
             // TODO: do we need to set the flow rule again ??
 

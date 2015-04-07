@@ -25,8 +25,8 @@ import org.onlab.packet.IPv4;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
-import org.onosproject.grouphandler.DefaultGroupHandler;
-import org.onosproject.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
+import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -52,6 +52,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.segmentrouting.config.NetworkConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,16 +99,15 @@ public class SegmentRoutingManager {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
-
-    protected NetworkConfigHandler networkConfigHandler = new NetworkConfigHandler(this);
-    protected ArpHandler arpHandler = new ArpHandler(this);
-    protected IcmpHandler icmpHandler = new IcmpHandler(this);
-    protected IpHandler ipHandler = new IpHandler(this);
-    protected RoutingRulePopulator routingRulePopulator = new RoutingRulePopulator(this);
+    protected NetworkConfigHandler networkConfigHandler = null;
+    protected ArpHandler arpHandler = null;
+    protected IcmpHandler icmpHandler = null;
+    protected IpHandler ipHandler = null;
+    protected RoutingRulePopulator routingRulePopulator = null;
     protected ApplicationId appId;
 
-    private DefaultRoutingHandler defaultRoutingHandler = new DefaultRoutingHandler(this);
-    private DeviceConfiguration deviceConfiguration = new DeviceConfiguration();
+    private DefaultRoutingHandler defaultRoutingHandler = null;
+    private DeviceConfiguration deviceConfiguration = null;
     private InternalPacketProcessor processor = new InternalPacketProcessor();
     private InternalEventHandler eventHandler = new InternalEventHandler();
 
@@ -118,6 +118,8 @@ public class SegmentRoutingManager {
     private Map<DeviceId, DefaultGroupHandler> groupHandlerMap
             = new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
 
+    private NetworkConfigManager networkConfigService = new NetworkConfigManager();;
+
     private static int numOfEvents = 0;
     private static int numOfHandlerExecution = 0;
     private static int numOfHandlerScheduled = 0;
@@ -125,6 +127,16 @@ public class SegmentRoutingManager {
     @Activate
     protected void activate() {
         appId = coreService.registerApplication("org.onosproject.segmentrouting");
+        networkConfigService.init();
+        deviceConfiguration = new DeviceConfiguration(networkConfigService);
+        networkConfigHandler = new NetworkConfigHandler(this,
+                                                        deviceConfiguration);
+        arpHandler = new ArpHandler(this);
+        icmpHandler = new IcmpHandler(this);
+        ipHandler = new IpHandler(this);
+        routingRulePopulator = new RoutingRulePopulator(this);
+        defaultRoutingHandler = new DefaultRoutingHandler(this);
+
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         linkService.addListener(new InternalLinkListener());
         groupService.addListener(new InternalGroupListener());
@@ -271,6 +283,7 @@ public class SegmentRoutingManager {
 
     private class InternalEventHandler implements Runnable {
 
+        @Override
         public void run() {
             numOfHandlerExecution++;
             while (!eventQueue.isEmpty()) {
@@ -326,7 +339,11 @@ public class SegmentRoutingManager {
         log.debug("A new device with ID {} was added", device.id());
         defaultRoutingHandler.populateTtpRules(device.id());
         DefaultGroupHandler dgh = DefaultGroupHandler.createGroupHandler(
-                device.id(), appId, new DeviceConfiguration(), linkService, groupService);
+                device.id(),
+                appId,
+                deviceConfiguration,
+                linkService,
+                groupService);
         dgh.createGroups();
         groupHandlerMap.put(device.id(), dgh);
     }

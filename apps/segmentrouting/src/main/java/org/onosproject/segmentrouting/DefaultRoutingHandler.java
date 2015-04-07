@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -139,8 +141,11 @@ public class DefaultRoutingHandler {
         // If both target switch and dest switch are edge routers, then set IP rule
         // for both subnet and router IP.
         if (config.isEdgeRouter(targetSw) && config.isEdgeRouter(destSw)) {
-            String subnets = config.getSubnetInfo(destSw);
-            result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets, destSw, nextHops);
+            List<Ip4Prefix> subnets = config.getSubnetInfo(destSw);
+            result = rulePopulator.populateIpRuleForSubnet(targetSw,
+                                                           subnets,
+                                                           destSw,
+                                                           nextHops);
             if (!result) {
                 return false;
             }

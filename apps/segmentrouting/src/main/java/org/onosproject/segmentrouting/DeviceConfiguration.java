@@ -1,171 +1,218 @@
 package org.onosproject.segmentrouting;
 
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-import org.onosproject.grouphandler.DeviceProperties;
+import org.onosproject.segmentrouting.grouphandler.DeviceProperties;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.segmentrouting.config.NetworkConfig.SwitchConfig;
+import org.onosproject.segmentrouting.config.NetworkConfigManager;
+import org.onosproject.segmentrouting.config.SegmentRouterConfig;
+import org.onosproject.segmentrouting.config.SegmentRouterConfig.Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Segment Routing configuration component that reads the
+ * segment routing related configuration from Network Configuration Manager
+ * component and organizes in more accessible formats.
+ *
+ * TODO: Merge multiple Segment Routing configuration wrapper classes into one.
+ */
 public class DeviceConfiguration implements DeviceProperties {
 
     private static final Logger log = LoggerFactory
             .getLogger(DeviceConfiguration.class);
-    private final List<Integer> allSegmentIds =
-            Arrays.asList(101, 102, 103, 104, 105, 106);
-    private HashMap<DeviceId, Integer> deviceSegmentIdMap =
-            new HashMap<DeviceId, Integer>() {
-                {
-                    put(DeviceId.deviceId("of:0000000000000001"), 101);
-                    put(DeviceId.deviceId("of:0000000000000002"), 102);
-                    put(DeviceId.deviceId("of:0000000000000003"), 103);
-                    put(DeviceId.deviceId("of:0000000000000004"), 104);
-                    put(DeviceId.deviceId("of:0000000000000005"), 105);
-                    put(DeviceId.deviceId("of:0000000000000006"), 106);
-                }
-            };
-    private final HashMap<DeviceId, MacAddress> deviceMacMap =
-            new HashMap<DeviceId, MacAddress>() {
-                {
-                    put(DeviceId.deviceId("of:0000000000000001"),
-                            MacAddress.valueOf("00:00:00:00:00:01"));
-                    put(DeviceId.deviceId("of:0000000000000002"),
-                            MacAddress.valueOf("00:00:00:00:00:02"));
-                    put(DeviceId.deviceId("of:0000000000000003"),
-                            MacAddress.valueOf("00:00:00:00:00:03"));
-                    put(DeviceId.deviceId("of:0000000000000004"),
-                            MacAddress.valueOf("00:00:00:00:00:04"));
-                    put(DeviceId.deviceId("of:0000000000000005"),
-                            MacAddress.valueOf("00:00:00:00:00:05"));
-                    put(DeviceId.deviceId("of:0000000000000006"),
-                            MacAddress.valueOf("00:00:00:00:00:06"));
-                }
-            };
+    private final List<Integer> allSegmentIds = new ArrayList<Integer>();
+    private final HashMap<DeviceId, SegmentRouterInfo> deviceConfigMap = new HashMap<>();
+    private final NetworkConfigManager configService;
 
-    private final HashMap<DeviceId, Ip4Address> deviceIpMap =
-            new HashMap<DeviceId, Ip4Address>() {
-                {
-                    put(DeviceId.deviceId("of:0000000000000001"),
-                            Ip4Address.valueOf("192.168.0.1"));
-                    put(DeviceId.deviceId("of:0000000000000002"),
-                            Ip4Address.valueOf("192.168.0.2"));
-                    put(DeviceId.deviceId("of:0000000000000003"),
-                            Ip4Address.valueOf("192.168.0.3"));
-                    put(DeviceId.deviceId("of:0000000000000004"),
-                            Ip4Address.valueOf("192.168.0.4"));
-                    put(DeviceId.deviceId("of:0000000000000005"),
-                            Ip4Address.valueOf("192.168.0.5"));
-                    put(DeviceId.deviceId("of:0000000000000006"),
-                            Ip4Address.valueOf("192.168.0.6"));
-                }
-            };
+    private class SegmentRouterInfo {
+        int nodeSid;
+        DeviceId deviceId;
+        Ip4Address ip;
+        MacAddress mac;
+        boolean isEdge;
+        HashMap<PortNumber, Ip4Address> gatewayIps;
+        HashMap<PortNumber, Ip4Prefix> subnets;
+    }
 
+    /**
+     * Constructor. Reads all the configuration for all devices of type
+     * Segment Router and organizes into various maps for easier access.
+     *
+     * @param configService handle to network configuration manager
+     * component from where the relevant configuration is retrieved.
+     */
+    public DeviceConfiguration(NetworkConfigManager configService) {
+        this.configService = checkNotNull(configService);
+        List<SwitchConfig> allSwitchCfg =
+                this.configService.getConfiguredAllowedSwitches();
+        for (SwitchConfig cfg : allSwitchCfg) {
+            if (!(cfg instanceof SegmentRouterConfig)) {
+                continue;
+            }
+            SegmentRouterInfo info = new SegmentRouterInfo();
+            info.nodeSid = ((SegmentRouterConfig) cfg).getNodeSid();
+            info.deviceId = ((SegmentRouterConfig) cfg).getDpid();
+            info.mac = MacAddress.valueOf(((
+                    SegmentRouterConfig) cfg).getRouterMac());
+            String routerIp = ((SegmentRouterConfig) cfg).getRouterIp();
+            Ip4Prefix prefix = checkNotNull(IpPrefix.valueOf(routerIp).getIp4Prefix());
+            info.ip = prefix.address();
+            info.isEdge = ((SegmentRouterConfig) cfg).isEdgeRouter();
+            info.subnets = new HashMap<>();
+            info.gatewayIps = new HashMap<PortNumber, Ip4Address>();
+            for (Subnet s: ((SegmentRouterConfig) cfg).getSubnets()) {
+                info.subnets.put(PortNumber.portNumber(s.getPortNo()),
+                                 Ip4Prefix.valueOf(s.getSubnetIp()));
+                String gatewayIp = s.getSubnetIp().
+                        substring(0, s.getSubnetIp().indexOf('/'));
+                info.gatewayIps.put(PortNumber.portNumber(s.getPortNo()),
+                                    Ip4Address.valueOf(gatewayIp));
+            }
+            this.deviceConfigMap.put(info.deviceId, info);
+            this.allSegmentIds.add(info.nodeSid);
+        }
+    }
+
+    /**
+     * Returns the segment id of a segment router.
+     *
+     * @param deviceId device identifier
+     * @return segment id
+     */
     @Override
     public int getSegmentId(DeviceId deviceId) {
-        if (deviceSegmentIdMap.get(deviceId) != null) {
+        if (deviceConfigMap.get(deviceId) != null) {
             log.debug("getSegmentId for device{} is {}",
                     deviceId,
-                    deviceSegmentIdMap.get(deviceId));
-            return deviceSegmentIdMap.get(deviceId);
+                    deviceConfigMap.get(deviceId).nodeSid);
+            return deviceConfigMap.get(deviceId).nodeSid;
         } else {
             throw new IllegalStateException();
         }
     }
 
+    /**
+     * Returns the segment id of a segment router given its mac address.
+     *
+     * @param routerMac router mac address
+     * @return segment id
+     */
+    public int getSegmentId(MacAddress routerMac) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+                    deviceConfigMap.entrySet()) {
+            if (entry.getValue().mac.equals(routerMac)) {
+                return entry.getValue().nodeSid;
+            }
+        }
 
+        return -1;
+    }
+
+    /**
+     * Returns the segment id of a segment router given its router ip address.
+     *
+     * @param routerAddress router ip address
+     * @return segment id
+     */
+    public int getSegmentId(Ip4Address routerAddress) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+            deviceConfigMap.entrySet()) {
+            if (entry.getValue().ip.equals(routerAddress)) {
+                return entry.getValue().nodeSid;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Returns the router mac of a segment router.
+     *
+     * @param deviceId device identifier
+     * @return router mac address
+     */
     @Override
     public MacAddress getDeviceMac(DeviceId deviceId) {
-        if (deviceMacMap.get(deviceId) != null) {
+        if (deviceConfigMap.get(deviceId) != null) {
             log.debug("getDeviceMac for device{} is {}",
                     deviceId,
-                    deviceMacMap.get(deviceId));
-            return deviceMacMap.get(deviceId);
+                    deviceConfigMap.get(deviceId).mac);
+            return deviceConfigMap.get(deviceId).mac;
         } else {
             throw new IllegalStateException();
         }
     }
 
-
-    @Override
-    public boolean isEdgeDevice(DeviceId deviceId) {
-        if (deviceId.equals(DeviceId.deviceId("of:0000000000000001"))
-                || deviceId.equals(DeviceId.deviceId("of:0000000000000006"))) {
-            return true;
+    /**
+     * Returns the router ip address of a segment router.
+     *
+     * @param deviceId device identifier
+     * @return router ip address
+     */
+    public Ip4Address getRouterIp(DeviceId deviceId) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            log.debug("getDeviceIp for device{} is {}",
+                    deviceId,
+                    deviceConfigMap.get(deviceId).ip);
+            return deviceConfigMap.get(deviceId).ip;
+        } else {
+            throw new IllegalStateException();
         }
-
-        return false;
     }
 
+    /**
+     * Indicates if the segment router is a edge router or
+     * a transit/back bone router.
+     *
+     * @param deviceId device identifier
+     * @return boolean
+     */
+    @Override
+    public boolean isEdgeDevice(DeviceId deviceId) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            log.debug("isEdgeDevice for device{} is {}",
+                    deviceId,
+                    deviceConfigMap.get(deviceId).isEdge);
+            return deviceConfigMap.get(deviceId).isEdge;
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * Returns the segment ids of all configured segment routers.
+     *
+     * @return list of segment ids
+     */
     @Override
     public List<Integer> getAllDeviceSegmentIds() {
         return allSegmentIds;
     }
 
-
     /**
-     * Returns Segment ID for the router with the MAC address given.
+     * Returns the device identifier or data plane identifier (dpid)
+     * of a segment router given its segment id.
      *
-     * @param targetMac Mac address for the router
-     * @return Segment ID for the router with the MAC address
-     */
-    public int getSegmentId(MacAddress targetMac) {
-        for (Map.Entry<DeviceId, MacAddress> entry: deviceMacMap.entrySet()) {
-            if (entry.getValue().equals(targetMac)) {
-                return deviceSegmentIdMap.get(entry.getKey());
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * Returns Segment ID for the router withe IP address given.
-     *
-     * @param targetAddress IP address of the router
-     * @return Segment ID for the router with the IP address
-     */
-    public int getSegmentId(Ip4Address targetAddress) {
-        for (Map.Entry<DeviceId, Ip4Address> entry: deviceIpMap.entrySet()) {
-            if (entry.getValue().equals(targetAddress)) {
-                return deviceSegmentIdMap.get(entry.getKey());
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * Returns Router IP address for the router with the device ID given.
-     *
-     * @param deviceId device ID of the router
-     * @return IP address of the router
-     */
-    public Ip4Address getRouterIp(DeviceId deviceId) {
-        if (deviceIpMap.get(deviceId) != null) {
-            log.debug("getDeviceIp for device{} is {}",
-                    deviceId,
-                    deviceIpMap.get(deviceId));
-            return deviceIpMap.get(deviceId);
-        } else {
-            throw new IllegalStateException();
-        }
-    }
-
-    /**
-     * Returns the Device ID of the router with the Segment ID given.
-     *
-     * @param sid Segment ID of the router
-     * @return Device ID of the router
+     * @param sid segment id
+     * @return deviceId device identifier
      */
     public DeviceId getDeviceId(int sid) {
-        for (Map.Entry<DeviceId, Integer> entry: deviceSegmentIdMap.entrySet()) {
-            if (entry.getValue() == sid) {
-                return entry.getKey();
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+            deviceConfigMap.entrySet()) {
+            if (entry.getValue().nodeSid == sid) {
+                return entry.getValue().deviceId;
             }
         }
 
@@ -173,18 +220,97 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the Device ID of the router with the IP address given.
+     * Returns the device identifier or data plane identifier (dpid)
+     * of a segment router given its router ip address.
      *
-     * @param ipAddress IP address of the router
-     * @return Device ID of the router
+     * @param ipAddress router ip address
+     * @return deviceId device identifier
      */
     public DeviceId getDeviceId(Ip4Address ipAddress) {
-        for (Map.Entry<DeviceId, Ip4Address> entry: deviceIpMap.entrySet()) {
-            if (entry.getValue().equals(ipAddress)) {
-                return entry.getKey();
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+            deviceConfigMap.entrySet()) {
+            if (entry.getValue().ip.equals(ipAddress)) {
+                return entry.getValue().deviceId;
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Returns the configured subnet gateway ip addresses for a segment router.
+     *
+     * @param deviceId device identifier
+     * @return list of ip addresses
+     */
+    public List<Ip4Address> getSubnetGatewayIps(DeviceId deviceId) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            log.debug("getSubnetGatewayIps for device{} is {}",
+                    deviceId,
+                    deviceConfigMap.get(deviceId).gatewayIps.values());
+            return new ArrayList<Ip4Address>(deviceConfigMap.
+                    get(deviceId).gatewayIps.values());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the configured subnet prefixes for a segment router.
+     *
+     * @param deviceId device identifier
+     * @return list of ip prefixes
+     */
+    public List<Ip4Prefix> getSubnets(DeviceId deviceId) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            log.debug("getSubnets for device{} is {}",
+                    deviceId,
+                    deviceConfigMap.get(deviceId).subnets.values());
+            return new ArrayList<Ip4Prefix>(deviceConfigMap.
+                    get(deviceId).subnets.values());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the router ip address of segment router that has the
+     * specified ip address in its subnets.
+     *
+     * @param destIpAddress target ip address
+     * @return router ip address
+     */
+    public Ip4Address getRouterIpAddressForASubnetHost(Ip4Address destIpAddress) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+                    deviceConfigMap.entrySet()) {
+            for (Ip4Prefix prefix:entry.getValue().subnets.values()) {
+                if (prefix.contains(destIpAddress)) {
+                    return entry.getValue().ip;
+                }
+            }
+        }
+
+        log.debug("No router was found for {}", destIpAddress);
+        return null;
+    }
+
+    /**
+     * Returns the router mac address of segment router that has the
+     * specified ip address as one of its subnet gateway ip address.
+     *
+     * @param gatewayIpAddress router gateway ip address
+     * @return router mac address
+     */
+    public MacAddress getRouterMacForAGatewayIp(Ip4Address gatewayIpAddress) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+                deviceConfigMap.entrySet()) {
+            if (entry.getValue().gatewayIps.
+                    values().contains(gatewayIpAddress)) {
+                return entry.getValue().mac;
+            }
+        }
+
+        log.debug("Cannot find a router for {}", gatewayIpAddress);
         return null;
     }
 }
