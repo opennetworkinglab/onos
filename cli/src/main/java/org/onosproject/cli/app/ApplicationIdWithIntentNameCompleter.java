@@ -16,31 +16,29 @@
 package org.onosproject.cli.app;
 
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
+import org.onosproject.net.intent.IntentService;
 
 /**
  * Application name completer.
  */
-public class ApplicationIdNameCompleter implements Completer {
+public class ApplicationIdWithIntentNameCompleter implements Completer {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
         // Fetch our service and feed it's offerings to the string completer
-        CoreService service = AbstractShellCommand.get(CoreService.class);
-        Set<ApplicationId> ids = service.getAppIds();
+        IntentService service = AbstractShellCommand.get(IntentService.class);
         SortedSet<String> strings = delegate.getStrings();
-        for (ApplicationId id : ids) {
-            strings.add(id.name());
-        }
+
+        service.getIntents()
+                .forEach(intent ->
+                        strings.add(intent.appId().name()));
 
         // Now let the completer do the work for figuring out what to offer.
         return delegate.complete(buffer, cursor, candidates);
