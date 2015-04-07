@@ -44,6 +44,7 @@
 
         //X: { id: 'nodelock-tog', gid: 'lock', isel: false },
         Z: { id: 'oblique-tog', gid: 'oblique', isel: false },
+        N: { id: 'filters-btn', gid: 'filters' },
         L: { id: 'cycleLabels-btn', gid: 'cycleLabels' },
         R: { id: 'resetZoom-btn', gid: 'resetZoom' },
 
@@ -93,6 +94,7 @@
     function addSecondRow() {
         //addToggle('X');
         addToggle('Z');
+        addButton('N');
         addButton('L');
         addButton('R');
     }

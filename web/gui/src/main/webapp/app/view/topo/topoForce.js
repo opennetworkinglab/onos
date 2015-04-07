@@ -816,7 +816,7 @@
                 tss.initSelect(mkSelectApi(uplink));
                 tts.initTraffic(mkTrafficApi(uplink));
                 tos.initOblique(mkObliqueApi(uplink, fltr));
-                fltr.initFilter(mkFilterApi(uplink), d3.select('#mast-right'));
+                fltr.initFilter(mkFilterApi(uplink));
                 tls.initLink(mkLinkApi(svg, uplink), td3);
 
                 settings = angular.extend({}, defaultSettings, opts);
@@ -855,7 +855,6 @@
                 force.stop();
 
                 tls.destroyLink();
-                fltr.destroyFilter();
                 tos.destroyOblique();
                 tts.destroyTraffic();
                 tss.destroySelect();

@@ -100,8 +100,8 @@
     // to get the height of the table
     function setTableHeight(thead, tbody) {
         var titleHeight = h2Pdg + fs.noPxStyle(d3.select('h2'), 'height'),
-            thHeight = thPdg + fs.noPxStyle(d3.select('th'), 'height'),
-            totalHeight = titleHeight + thHeight + tbodyPdg + mastPdg,
+            thHeight = thPdg + fs.noPxStyle(thead, 'height'),
+            totalHeight = titleHeight + thHeight + mastPdg - tbodyPdg,
             tableHeight = fs.windowSize(mast.mastHeight() + totalHeight).height;
 
         thead.style('display', 'block');

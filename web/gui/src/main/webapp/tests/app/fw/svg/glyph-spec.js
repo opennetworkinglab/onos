@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 34,
+    var numBaseGlyphs = 35,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -46,6 +46,7 @@ describe('factory: fw/svg/glyph.js', function() {
             map: 'M95.8,9.2H14.2c-2.8,0-5,2.2-5,5v66',
             cycleLabels: 'M72.5,33.9c',
             oblique: 'M80.9,30.2h',
+            filters: 'M24.8,13.3L',
             resetZoom: 'M86,79.8L',
             relatedIntents: 'M99.9,43.7',
             nextIntent: 'M88.1,55.7',
@@ -74,8 +75,8 @@ describe('factory: fw/svg/glyph.js', function() {
             'unknown', 'node', 'switch', 'roadm', 'endstation', 'router',
             'bgpSpeaker', 'chain', 'crown', 'lock',
             'summary', 'details', 'ports', 'map', 'cycleLabels', 'oblique',
-            'resetZoom', 'relatedIntents', 'nextIntent', 'prevIntent',
-            'intentTraffic', 'allTraffic', 'flows', 'eqMaster'
+            'filters', 'resetZoom', 'relatedIntents', 'nextIntent',
+            'prevIntent', 'intentTraffic', 'allTraffic', 'flows', 'eqMaster'
         ],
         badgeIds = [
             'uiAttached', 'checkMark', 'xMark', 'triangleUp', 'triangleDown',

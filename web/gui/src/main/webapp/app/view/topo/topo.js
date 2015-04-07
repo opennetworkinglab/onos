@@ -29,7 +29,7 @@
 
     // references to injected services etc.
     var $log, fs, ks, zs, gs, ms, sus, flash, wss,
-        tes, tfs, tps, tis, tss, tls, tts, tos, ttbs;
+        tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
@@ -55,6 +55,7 @@
 
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
             Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
+            N: [fltr.clickAction, 'Cycle node layers'],
             L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
             U: [tfs.unpin, 'Unpin node (hover mouse over)'],
             R: [resetZoom, 'Reset pan / zoom'],
@@ -75,7 +76,7 @@
 
             _helpFormat: [
                 ['I', 'O', 'D', '-', 'H', 'M', 'P', 'dash', 'B' ],
-                ['X', 'Z', 'L', 'U', 'R', '-', 'dot'],
+                ['X', 'Z', 'N', 'L', 'U', 'R', '-', 'dot'],
                 ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
             ]
         };
@@ -244,11 +245,12 @@
             'WebSocketService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
-            'TopoTrafficService', 'TopoObliqueService', 'TopoToolbarService',
+            'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
+            'TopoToolbarService',
 
         function ($scope, _$log_, $loc, $timeout, _fs_, mast, _ks_, _zs_,
                   _gs_, _ms_, _sus_, _flash_, _wss_, _tes_, _tfs_, _tps_,
-                  _tis_, _tss_, _tls_, _tts_, _tos_, _ttbs_) {
+                  _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_) {
             var self = this,
                 projection,
                 dim,
@@ -281,6 +283,7 @@
             tls = _tls_;
             tts = _tts_;
             tos = _tos_;
+            fltr = _fltr_;
             ttbs = _ttbs_;
 
             self.notifyResize = function () {

@@ -35,86 +35,51 @@
 
     // which "layer" a particular item "belongs to"
     var layerLookup = {
-        host: {
-            endstation: 'pkt', // default, if host event does not define type
-            router:     'pkt',
-            bgpSpeaker: 'pkt'
-        },
-        device: {
-            switch: 'pkt',
-            roadm: 'opt'
-        },
-        link: {
-            hostLink: 'pkt',
-            direct: 'pkt',
-            indirect: '',
-            tunnel: '',
-            optical: 'opt'
-        }
-    };
-
-    var idPrefix = 'topo-rb-';
-
-    var dispatch = {
-            all: function () { suppressLayers(false); },
-            pkt: function () { showLayer('pkt'); },
-            opt: function () { showLayer('opt'); }
-        },
-        filterButtons = [
-            { text: 'All Layers', id: 'all' },
-            { text: 'Packet Only', id: 'pkt' },
-            { text: 'Optical Only', id: 'opt' }
-        ],
-        btnG,
-        btnDef = {},
-        targetDiv;
-
-
-    function injectButtons(div) {
-        targetDiv = div;
-
-        btnG = div.append('div').attr('id', 'topo-radio-group');
-
-        filterButtons.forEach(function (btn, i) {
-            var bid = btn.id,
-                txt = btn.text,
-                uid = idPrefix + bid,
-                button = btnG.append('span')
-                    .attr({
-                        id: uid,
-                        'class': 'radio'
-                    })
-                    .text(txt);
-            btnDef[uid] = btn;
-
-            if (i === 0) {
-                button.classed('active', true);
-                btnG.selected = bid;
+            host: {
+                endstation: 'pkt', // default, if host event does not define type
+                router:     'pkt',
+                bgpSpeaker: 'pkt'
+            },
+            device: {
+                switch: 'pkt',
+                roadm: 'opt'
+            },
+            link: {
+                hostLink: 'pkt',
+                direct: 'pkt',
+                indirect: '',
+                tunnel: '',
+                optical: 'opt'
             }
-        });
+        },
+        // order of layer cycling in button
+        dispatch = [
+            {
+                type: 'all',
+                action: function () { suppressLayers(false); },
+                msg: 'All Layers Shown'
+            },
+            {
+                type: 'pkt',
+                action: function () { showLayer('pkt'); },
+                msg: 'Packet Layer Shown'
+            },
+            {
+                type: 'opt',
+                action: function () { showLayer('opt'); },
+                msg: 'Optical Layer Shown'
+            }
+        ],
+        layer = 0;
 
-        btnG.selectAll('span')
-            .on('click', function () {
-               var button = d3.select(this),
-                   uid = button.attr('id'),
-                   btn = btnDef[uid],
-                   act = button.classed('active');
-
-                if (!act) {
-                    btnG.selectAll('span').classed('active', false);
-                    button.classed('active', true);
-                    btnG.selected = btn.id;
-                    clickAction(btn.id);
-                }
-            });
-    }
-
-    function clickAction(which) {
-        dispatch[which]();
+    function clickAction() {
+        layer = (layer + 1) % dispatch.length;
+        dispatch[layer].action();
+        flash.flash(dispatch[layer].msg);
     }
 
     function selected() {
-        return btnG ? btnG.selected : '';
+        return dispatch[layer].type;
     }
 
     function inLayer(d, layer) {
@@ -169,20 +134,12 @@
                 tps = _tps_;
                 tts = _tts_;
 
-                function initFilter(_api_, div) {
+                function initFilter(_api_) {
                     api = _api_;
-                    injectButtons(div);
-                }
-
-                function destroyFilter() {
-                    targetDiv.select('#topo-radio-group').remove();
-                    btnG = null;
-                    btnDef = {};
                 }
 
                 return {
                     initFilter: initFilter,
-                    destroyFilter: destroyFilter,
 
                     clickAction: clickAction,
                     selected: selected,

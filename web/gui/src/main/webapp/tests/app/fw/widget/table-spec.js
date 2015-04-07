@@ -19,11 +19,12 @@
  */
 describe('factory: fw/widget/table.js', function () {
     var $log, $compile, $rootScope,
-        fs, is,
+        fs, mast, is,
         scope, compiled,
-        table, thead, tbody,
+        table, thead, tbody, mockHeader,
+        mockh2Height = '10px',
         tableIconTdSize = 100,
-        bottomMargin = 200,
+        pdgTop = 101,
         numTestElems = 4;
 
     var onosFixedHeaderTags = '<table ' +
@@ -73,7 +74,7 @@ describe('factory: fw/widget/table.js', function () {
                                 '</tbody>' +
                                 '</table>';
 
-    beforeEach(module('onosWidget', 'onosUtil', 'onosSvg'));
+    beforeEach(module('onosWidget', 'onosUtil', 'onosMast', 'onosSvg'));
 
     var mockWindow = {
         innerWidth: 400,
@@ -92,11 +93,12 @@ describe('factory: fw/widget/table.js', function () {
     });
 
     beforeEach(inject(function (_$log_, _$compile_, _$rootScope_,
-                                FnService, IconService) {
+                                FnService, MastService, IconService) {
         $log = _$log_;
         $compile = _$compile_;
         $rootScope = _$rootScope_;
         fs = FnService;
+        mast = MastService;
         is = IconService;
     }));
 
@@ -104,10 +106,18 @@ describe('factory: fw/widget/table.js', function () {
         scope = $rootScope.$new();
     });
 
+    beforeEach(function () {
+        mockHeader = d3.select('body')
+            .append('h2')
+            .style('height', mockh2Height)
+            .html('Some Header');
+    });
+
     afterEach(function () {
         table = null;
         thead = null;
         tbody = null;
+        mockHeader.remove();
     });
 
     function compileTable() {
@@ -127,11 +137,11 @@ describe('factory: fw/widget/table.js', function () {
     }
 
     function verifyCssDisplay() {
-        var winHeight = fs.windowSize().height;
+        var tableHeight = fs.windowSize(pdgTop).height;
 
         expect(thead.css('display')).toBe('block');
         expect(tbody.css('display')).toBe('block');
-        expect(tbody.css('height')).toBe((winHeight - bottomMargin) + 'px');
+        expect(tbody.css('height')).toBe(tableHeight + 'px');
         expect(tbody.css('overflow')).toBe('auto');
     }
 
