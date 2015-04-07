@@ -20,13 +20,26 @@
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import static org.onlab.packet.PacketUtils.*;
 
 /**
  *
  */
 public class LLDP extends BasePacket {
+    public static final byte CHASSIS_TLV_TYPE = 1;
+    public static final short CHASSIS_TLV_SIZE = 7;
+    public static final byte CHASSIS_TLV_SUBTYPE = 4;
+
+    public static final byte PORT_TLV_TYPE = 2;
+    public static final short PORT_TLV_SIZE = 5;
+    public static final byte PORT_TLV_SUBTYPE = 2;
+
+    public static final byte TTL_TLV_TYPE = 3;
+    public static final short TTL_TLV_SIZE = 2;
+
     protected LLDPTLV chassisId;
     protected LLDPTLV portId;
     protected LLDPTLV ttl;
@@ -34,7 +47,7 @@ public class LLDP extends BasePacket {
     protected short ethType;
 
     public LLDP() {
-        this.optionalTLVList = new ArrayList<LLDPTLV>();
+        this.optionalTLVList = new LinkedList<>();
         this.ethType = Ethernet.TYPE_LLDP;
     }
 
@@ -134,11 +147,15 @@ public class LLDP extends BasePacket {
 
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         LLDPTLV tlv;
         do {
-            tlv = new LLDPOrganizationalTLV().deserialize(bb);
+            try {
+                tlv = new LLDPOrganizationalTLV().deserialize(bb);
+            } catch (DeserializationException e) {
+                break;
+            }
 
             // if there was a failure to deserialize stop processing TLVs
             if (tlv == null) {
@@ -227,4 +244,57 @@ public class LLDP extends BasePacket {
         }
         return true;
     }
+
+    /**
+     * Deserializer function for LLDP packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<LLDP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, 0);
+
+            LLDP lldp = new LLDP();
+
+            int currentIndex = 0;
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            LLDPTLV tlv;
+            do {
+                // Each new TLV must be a minimum of 2 bytes
+                // (containing the type and length fields).
+                currentIndex += 2;
+                checkHeaderLength(length, currentIndex);
+
+                tlv = new LLDPOrganizationalTLV().deserialize(bb);
+
+                // if there was a failure to deserialize stop processing TLVs
+                if (tlv == null) {
+                    break;
+                }
+                switch (tlv.getType()) {
+                case 0x0:
+                    // can throw this one away, it's just an end delimiter
+                    break;
+                case 0x1:
+                    lldp.chassisId = tlv;
+                    break;
+                case 0x2:
+                    lldp.portId = tlv;
+                    break;
+                case 0x3:
+                    lldp.ttl = tlv;
+                    break;
+                default:
+                    lldp.optionalTLVList.add(tlv);
+                    break;
+                }
+
+                currentIndex += tlv.getLength();
+            } while (tlv.getType() != 0);
+
+            return lldp;
+        };
+    }
+
 }

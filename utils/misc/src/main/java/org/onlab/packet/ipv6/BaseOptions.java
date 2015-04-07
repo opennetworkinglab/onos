@@ -18,11 +18,16 @@ package org.onlab.packet.ipv6;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static org.onlab.packet.PacketUtils.checkHeaderLength;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Base class for hop-by-hop options and destination options.
@@ -151,22 +156,19 @@ public class BaseOptions extends BasePacket implements IExtensionHeader {
         this.options = new byte[optionLength];
         bb.get(this.options, 0, optionLength);
 
-        IPacket payload;
-        if (IPv6.PROTOCOL_CLASS_MAP.containsKey(this.nextHeader)) {
-            final Class<? extends IPacket> clazz = IPv6.PROTOCOL_CLASS_MAP
-                    .get(this.nextHeader);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for BaseOptions packet", e);
-            }
+        Deserializer<? extends IPacket> deserializer;
+        if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(this.nextHeader)) {
+            deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(this.nextHeader);
         } else {
-            payload = new Data();
+            deserializer = Data.deserializer();
         }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                    bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
 
         return this;
     }
@@ -218,5 +220,41 @@ public class BaseOptions extends BasePacket implements IExtensionHeader {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for IPv6 base options.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<BaseOptions> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, FIXED_HEADER_LENGTH);
+
+            BaseOptions baseOptions = new BaseOptions();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            baseOptions.nextHeader = bb.get();
+            baseOptions.headerExtLength = bb.get();
+            int optionLength =
+                    FIXED_OPTIONS_LENGTH + LENGTH_UNIT * baseOptions.headerExtLength;
+
+            checkHeaderLength(bb.remaining(), optionLength);
+
+            baseOptions.options = new byte[optionLength];
+            bb.get(baseOptions.options, 0, optionLength);
+
+            Deserializer<? extends IPacket> deserializer;
+            if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(baseOptions.nextHeader)) {
+                deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(baseOptions.nextHeader);
+            } else {
+                deserializer = Data.deserializer();
+            }
+            baseOptions.payload = deserializer.deserialize(data, bb.position(),
+                                               bb.limit() - bb.position());
+            baseOptions.payload.setParent(baseOptions);
+
+            return baseOptions;
+        };
     }
 }

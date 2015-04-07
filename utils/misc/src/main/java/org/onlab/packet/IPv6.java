@@ -22,13 +22,16 @@ import org.onlab.packet.ipv6.Authentication;
 import org.onlab.packet.ipv6.DestinationOptions;
 import org.onlab.packet.ipv6.EncapSecurityPayload;
 import org.onlab.packet.ipv6.Fragment;
-import org.onlab.packet.ipv6.IExtensionHeader;
 import org.onlab.packet.ipv6.HopByHopOptions;
+import org.onlab.packet.ipv6.IExtensionHeader;
 import org.onlab.packet.ipv6.Routing;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements IPv6 packet format. (RFC 2460)
@@ -47,19 +50,19 @@ public class IPv6 extends BasePacket implements IExtensionHeader {
     public static final byte PROTOCOL_DSTOPT = 0x3C;
 
 
-    public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP =
+    public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
             new HashMap<>();
 
     static {
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_ICMP6, ICMP6.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_TCP, TCP.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_UDP, UDP.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_HOPOPT, HopByHopOptions.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_ROUTING, Routing.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_FRAG, Fragment.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_ESP, EncapSecurityPayload.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_AH, Authentication.class);
-        IPv6.PROTOCOL_CLASS_MAP.put(IPv6.PROTOCOL_DSTOPT, DestinationOptions.class);
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_ICMP6, ICMP6.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_TCP, TCP.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_UDP, UDP.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_HOPOPT, HopByHopOptions.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_ROUTING, Routing.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_FRAG, Fragment.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_ESP, EncapSecurityPayload.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_AH, Authentication.deserializer());
+        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_DSTOPT, DestinationOptions.deserializer());
     }
 
     protected byte version;
@@ -256,22 +259,19 @@ public class IPv6 extends BasePacket implements IExtensionHeader {
         bb.get(this.sourceAddress, 0, Ip6Address.BYTE_LENGTH);
         bb.get(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
 
-        IPacket payload;
-        if (IPv6.PROTOCOL_CLASS_MAP.containsKey(this.nextHeader)) {
-            final Class<? extends IPacket> clazz = IPv6.PROTOCOL_CLASS_MAP
-                    .get(this.nextHeader);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for IPv6 packet", e);
-            }
+        Deserializer<? extends IPacket> deserializer;
+        if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(this.nextHeader)) {
+            deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(this.nextHeader);
         } else {
-            payload = new Data();
+            deserializer = Data.deserializer();
         }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                    bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
 
         return this;
     }
@@ -342,5 +342,43 @@ public class IPv6 extends BasePacket implements IExtensionHeader {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for IPv6 packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<IPv6> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, FIXED_HEADER_LENGTH);
+
+            IPv6 ipv6 = new IPv6();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            int iscratch = bb.getInt();
+
+            ipv6.version = (byte) (iscratch >> 28 & 0xf);
+            ipv6.trafficClass = (byte) (iscratch >> 20 & 0xff);
+            ipv6.flowLabel = iscratch & 0xfffff;
+            ipv6.payloadLength = bb.getShort();
+            ipv6.nextHeader = bb.get();
+            ipv6.hopLimit = bb.get();
+            bb.get(ipv6.sourceAddress, 0, Ip6Address.BYTE_LENGTH);
+            bb.get(ipv6.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
+
+            Deserializer<? extends IPacket> deserializer;
+            if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(ipv6.nextHeader)) {
+                deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(ipv6.nextHeader);
+            } else {
+                deserializer = Data.deserializer();
+            }
+            ipv6.payload = deserializer.deserialize(data, bb.position(),
+                                               bb.limit() - bb.position());
+            ipv6.payload.setParent(ipv6);
+
+            return ipv6;
+        };
     }
 }

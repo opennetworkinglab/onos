@@ -22,23 +22,27 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  *
  */
 
 public class UDP extends BasePacket {
-    public static final Map<Short, Class<? extends IPacket>> DECODE_MAP =
+    public static final Map<Short, Deserializer<? extends IPacket>> PORT_DESERIALIZER_MAP =
             new HashMap<>();
     public static final short DHCP_SERVER_PORT = (short) 67;
     public static final short DHCP_CLIENT_PORT = (short) 68;
+
+    private static final short UDP_HEADER_LENGTH = 8;
 
     static {
         /*
          * Disable DHCP until the deserialize code is hardened to deal with
          * garbage input
          */
-        UDP.DECODE_MAP.put(UDP.DHCP_SERVER_PORT, DHCP.class);
-        UDP.DECODE_MAP.put(UDP.DHCP_CLIENT_PORT, DHCP.class);
+        UDP.PORT_DESERIALIZER_MAP.put(UDP.DHCP_SERVER_PORT, DHCP.deserializer());
+        UDP.PORT_DESERIALIZER_MAP.put(UDP.DHCP_CLIENT_PORT, DHCP.deserializer());
 
     }
 
@@ -192,6 +196,34 @@ public class UDP extends BasePacket {
         return data;
     }
 
+    @Override
+    public IPacket deserialize(final byte[] data, final int offset,
+                               final int length) {
+        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+        this.sourcePort = bb.getShort();
+        this.destinationPort = bb.getShort();
+        this.length = bb.getShort();
+        this.checksum = bb.getShort();
+
+        Deserializer<? extends IPacket> deserializer;
+        if (UDP.PORT_DESERIALIZER_MAP.containsKey(this.destinationPort)) {
+            deserializer = UDP.PORT_DESERIALIZER_MAP.get(this.destinationPort);
+        } else if (UDP.PORT_DESERIALIZER_MAP.containsKey(this.sourcePort)) {
+            deserializer = UDP.PORT_DESERIALIZER_MAP.get(this.sourcePort);
+        } else {
+            deserializer = Data.deserializer();
+        }
+
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                   bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
+        return this;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -240,35 +272,36 @@ public class UDP extends BasePacket {
         return true;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.sourcePort = bb.getShort();
-        this.destinationPort = bb.getShort();
-        this.length = bb.getShort();
-        this.checksum = bb.getShort();
+    /**
+     * Deserializer function for UDP packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<UDP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, UDP_HEADER_LENGTH);
 
-        if (UDP.DECODE_MAP.containsKey(this.destinationPort)) {
-            try {
-                this.payload = UDP.DECODE_MAP.get(this.destinationPort)
-                        .getConstructor().newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException("Failure instantiating class", e);
+            UDP udp = new UDP();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            udp.sourcePort = bb.getShort();
+            udp.destinationPort = bb.getShort();
+            udp.length = bb.getShort();
+            udp.checksum = bb.getShort();
+
+            Deserializer<? extends IPacket> deserializer;
+            if (UDP.PORT_DESERIALIZER_MAP.containsKey(udp.destinationPort)) {
+                deserializer = UDP.PORT_DESERIALIZER_MAP.get(udp.destinationPort);
+            } else if (UDP.PORT_DESERIALIZER_MAP.containsKey(udp.sourcePort)) {
+                deserializer = UDP.PORT_DESERIALIZER_MAP.get(udp.sourcePort);
+            } else {
+                deserializer = Data.deserializer();
             }
-        } else if (UDP.DECODE_MAP.containsKey(this.sourcePort)) {
-            try {
-                this.payload = UDP.DECODE_MAP.get(this.sourcePort)
-                        .getConstructor().newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException("Failure instantiating class", e);
-            }
-        } else {
-            this.payload = new Data();
-        }
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
-        return this;
+
+            udp.payload = deserializer.deserialize(data, bb.position(),
+                                                   bb.limit() - bb.position());
+            udp.payload.setParent(udp);
+            return udp;
+        };
     }
 }

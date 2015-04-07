@@ -93,25 +93,27 @@ public class EthType {
 
     public static enum EtherType {
 
-        ARP(0x806, "arp", ARP.class),
-        RARP(0x8035, "rarp", null),
-        IPV4(0x800, "ipv4", IPv4.class),
-        IPV6(0x86dd, "ipv6", IPv6.class),
-        LLDP(0x88cc, "lldp", LLDP.class),
-        VLAN(0x8100, "vlan", null),
-        BDDP(0x8942, "bddp", LLDP.class),
-        MPLS_UNICAST(0x8847, "mpls_unicast", null),
-        MPLS_MULTICAST(0x8848, "mpls_unicast", null);
+        ARP(0x806, "arp", ARP.class, org.onlab.packet.ARP.deserializer()),
+        RARP(0x8035, "rarp", null, org.onlab.packet.ARP.deserializer()),
+        IPV4(0x800, "ipv4", IPv4.class, org.onlab.packet.IPv4.deserializer()),
+        IPV6(0x86dd, "ipv6", IPv6.class, org.onlab.packet.IPv6.deserializer()),
+        LLDP(0x88cc, "lldp", LLDP.class, org.onlab.packet.LLDP.deserializer()),
+        VLAN(0x8100, "vlan", null, null),
+        BDDP(0x8942, "bddp", LLDP.class, org.onlab.packet.LLDP.deserializer()),
+        MPLS_UNICAST(0x8847, "mpls_unicast", null, org.onlab.packet.MPLS.deserializer()),
+        MPLS_MULTICAST(0x8848, "mpls_unicast", null, org.onlab.packet.MPLS.deserializer());
 
 
         private final Class clazz;
         private EthType ethType;
         private String type;
+        private Deserializer<?> deserializer;
 
-        EtherType(int ethType, String type, Class clazz) {
+        EtherType(int ethType, String type, Class clazz, Deserializer deserializer) {
             this.ethType = new EthType(ethType);
             this.type = type;
             this.clazz = clazz;
+            this.deserializer = deserializer;
         }
 
         public EthType ethType() {
@@ -127,6 +129,8 @@ public class EthType {
             return clazz;
         }
 
-
+        public Deserializer<?> deserializer() {
+            return deserializer;
+        }
     }
 }

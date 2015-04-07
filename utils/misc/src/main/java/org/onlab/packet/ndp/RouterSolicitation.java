@@ -16,10 +16,13 @@
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements ICMPv6 Router Solicitation packet format. (RFC 4861)
@@ -27,8 +30,7 @@ import java.util.List;
 public class RouterSolicitation extends BasePacket {
     public static final byte HEADER_LENGTH = 4; // bytes
 
-    private final NeighborDiscoveryOptions options =
-        new NeighborDiscoveryOptions();
+    private final NeighborDiscoveryOptions options = new NeighborDiscoveryOptions();
 
     /**
      * Gets the Neighbor Discovery Protocol packet options.
@@ -121,5 +123,31 @@ public class RouterSolicitation extends BasePacket {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for router solicitation packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<RouterSolicitation> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            RouterSolicitation routerSolicitation = new RouterSolicitation();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            bb.getInt();
+
+            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+
+            for (NeighborDiscoveryOptions.Option option : options.options()) {
+                routerSolicitation.addOption(option.type(), option.data());
+            }
+
+            return routerSolicitation;
+        };
     }
 }

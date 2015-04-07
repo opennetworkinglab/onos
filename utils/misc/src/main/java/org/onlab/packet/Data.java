@@ -20,6 +20,8 @@ package org.onlab.packet;
 
 import java.util.Arrays;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  *
  */
@@ -30,6 +32,7 @@ public class Data extends BasePacket {
      *
      */
     public Data() {
+        data = new byte[0];
     }
 
     /**
@@ -63,7 +66,7 @@ public class Data extends BasePacket {
 
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         this.data = Arrays.copyOfRange(data, offset, data.length);
         return this;
     }
@@ -103,4 +106,27 @@ public class Data extends BasePacket {
         }
         return true;
     }
+
+    /**
+     * Deserializer function for generic payload data.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<Data> deserializer() {
+        return (data, offset, length) -> {
+            // Allow zero-length data for now
+            if (length == 0) {
+                return new Data();
+            }
+
+            checkInput(data, offset, length, 1);
+
+            Data dataObject = new Data();
+
+            dataObject.data = Arrays.copyOfRange(data, offset, data.length);
+
+            return dataObject;
+        };
+    }
+
 }

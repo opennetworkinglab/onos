@@ -67,8 +67,12 @@ public class TCPTest {
             (byte) 0x00, (byte) 0x01  // urgent
     };
 
+    private static Deserializer<TCP> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        deserializer = TCP.deserializer();
+
         ipv4.setSourceAddress(IPv4.toIPv4Address(IPV4_SOURCE_ADDRESS));
         ipv4.setDestinationAddress(IPv4.toIPv4Address(IPV4_DESTINATION_ADDRESS));
         ipv4.setProtocol(IPv4.PROTOCOL_TCP);
@@ -100,13 +104,22 @@ public class TCPTest {
         assertArrayEquals(bytePacketTCP6, tcp.serialize());
     }
 
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(deserializer);
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        PacketTestUtils.testDeserializeTruncated(deserializer, bytePacketTCP4);
+    }
+
     /**
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        TCP tcp = new TCP();
-        tcp.deserialize(bytePacketTCP4, 0, bytePacketTCP4.length);
+    public void testDeserialize() throws Exception {
+        TCP tcp = deserializer.deserialize(bytePacketTCP4, 0, bytePacketTCP4.length);
 
         assertThat(tcp.getSourcePort(), is((short) 0x50));
         assertThat(tcp.getDestinationPort(), is((short) 0x60));

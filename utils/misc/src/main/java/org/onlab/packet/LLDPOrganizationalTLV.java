@@ -154,10 +154,15 @@ public class LLDPOrganizationalTLV extends LLDPTLV {
     }
 
     @Override
-    public LLDPTLV deserialize(final ByteBuffer bb) {
-        LLDPTLV tlv = super.deserialize(bb);
-        if (tlv.getType() != LLDPOrganizationalTLV.ORGANIZATIONAL_TLV_TYPE) {
-            return tlv;
+    public LLDPTLV deserialize(final ByteBuffer bb) throws DeserializationException {
+        super.deserialize(bb);
+        if (this.getType() != LLDPOrganizationalTLV.ORGANIZATIONAL_TLV_TYPE) {
+            return this;
+        }
+
+        if (this.getLength() <= OUI_LENGTH + SUBTYPE_LENGTH) {
+            throw new DeserializationException(
+                    "TLV length is less than required for organizational TLV");
         }
 
         final ByteBuffer optionalField = ByteBuffer.wrap(this.value);

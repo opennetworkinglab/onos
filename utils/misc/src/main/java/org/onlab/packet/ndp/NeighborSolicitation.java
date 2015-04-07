@@ -16,12 +16,15 @@
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.Ip6Address;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements ICMPv6 Neighbor Solicitation packet format. (RFC 4861)
@@ -156,5 +159,32 @@ public class NeighborSolicitation extends BasePacket {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for neighbor solicitation packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<NeighborSolicitation> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            NeighborSolicitation neighborSolicitation = new NeighborSolicitation();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            bb.getInt();
+            bb.get(neighborSolicitation.targetAddress, 0, Ip6Address.BYTE_LENGTH);
+
+            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+
+            for (NeighborDiscoveryOptions.Option option : options.options()) {
+                neighborSolicitation.addOption(option.type(), option.data());
+            }
+
+            return neighborSolicitation;
+        };
     }
 }

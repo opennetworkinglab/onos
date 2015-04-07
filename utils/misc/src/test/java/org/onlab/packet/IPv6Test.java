@@ -18,14 +18,17 @@
 
 package org.onlab.packet;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
+
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for class {@link IPv6}.
@@ -42,6 +45,8 @@ public class IPv6Test {
     private static Data data;
     private static UDP udp;
     private static byte[] bytePacket;
+
+    private Deserializer<IPv6> deserializer;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -65,6 +70,11 @@ public class IPv6Test {
         System.arraycopy(bytePayload, 0, bytePacket, byteHeader.length, bytePayload.length);
     }
 
+    @Before
+    public void setUp() {
+        deserializer = IPv6.deserializer();
+    }
+
     /**
      * Tests serialize and setters.
      */
@@ -83,13 +93,26 @@ public class IPv6Test {
         assertArrayEquals(ipv6.serialize(), bytePacket);
     }
 
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(deserializer);
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        // Run the truncation test only on the IPv6 header
+        byte[] ipv6Header = new byte[IPv6.FIXED_HEADER_LENGTH];
+        ByteBuffer.wrap(bytePacket).get(ipv6Header);
+
+        PacketTestUtils.testDeserializeTruncated(deserializer, ipv6Header);
+    }
+
     /**
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        IPv6 ipv6 = new IPv6();
-        ipv6.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws DeserializationException {
+        IPv6 ipv6 = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(ipv6.getVersion(), is((byte) 6));
         assertThat(ipv6.getTrafficClass(), is((byte) 0x93));

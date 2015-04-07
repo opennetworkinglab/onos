@@ -16,10 +16,13 @@
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements ICMPv6 Router Advertisement packet format. (RFC 4861)
@@ -283,5 +286,38 @@ public class RouterAdvertisement extends BasePacket {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for router advertisement packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<RouterAdvertisement> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            RouterAdvertisement routerAdvertisement = new RouterAdvertisement();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            int bscratch;
+
+            routerAdvertisement.currentHopLimit = bb.get();
+            bscratch = bb.get();
+            routerAdvertisement.mFlag = (byte) ((bscratch >> 7) & 0x1);
+            routerAdvertisement.oFlag = (byte) ((bscratch >> 6) & 0x1);
+            routerAdvertisement.routerLifetime = bb.getShort();
+            routerAdvertisement.reachableTime = bb.getInt();
+            routerAdvertisement.retransmitTimer = bb.getInt();
+
+            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+
+            for (NeighborDiscoveryOptions.Option option : options.options()) {
+                routerAdvertisement.addOption(option.type(), option.data());
+            }
+
+            return routerAdvertisement;
+        };
     }
 }

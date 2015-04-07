@@ -20,6 +20,8 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  * This class represents an Link Local Control header that is used in Ethernet
  * 802.3.
@@ -27,6 +29,9 @@ import java.nio.ByteBuffer;
  *
  */
 public class LLC extends BasePacket {
+
+    public static final byte LLC_HEADER_LENGTH = 3;
+
     private byte dsap = 0;
     private byte ssap = 0;
     private byte ctrl = 0;
@@ -67,11 +72,31 @@ public class LLC extends BasePacket {
 
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         this.dsap = bb.get();
         this.ssap = bb.get();
         this.ctrl = bb.get();
         return this;
+    }
+
+    /**
+     * Deserializer function for LLC packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<LLC> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, LLC_HEADER_LENGTH);
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            LLC llc = new LLC();
+
+            llc.dsap = bb.get();
+            llc.ssap = bb.get();
+            llc.ctrl = bb.get();
+
+            return llc;
+        };
     }
 }

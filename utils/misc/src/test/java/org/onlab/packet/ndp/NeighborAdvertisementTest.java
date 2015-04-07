@@ -17,6 +17,8 @@ package org.onlab.packet.ndp;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.MacAddress;
 
 import static org.hamcrest.Matchers.is;
@@ -39,6 +41,9 @@ public class NeighborAdvertisementTest {
         MacAddress.valueOf("11:22:33:44:55:66");
 
     private static byte[] bytePacket;
+
+    private Deserializer<NeighborAdvertisement> deserializer
+            = NeighborAdvertisement.deserializer();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -75,9 +80,8 @@ public class NeighborAdvertisementTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        NeighborAdvertisement na = new NeighborAdvertisement();
-        na.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws DeserializationException {
+        NeighborAdvertisement na = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(na.getRouterFlag(), is((byte) 1));
         assertThat(na.getSolicitedFlag(), is((byte) 1));

@@ -49,8 +49,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class HostMonitorTest {
 
@@ -151,10 +157,9 @@ public class HostMonitorTest {
         assertEquals(portNum, oi.port());
 
         // Check the output packet is correct (well the important bits anyway)
-        Ethernet eth = new Ethernet();
         final byte[] pktData = new byte[packet.data().remaining()];
         packet.data().get(pktData);
-        eth.deserialize(pktData, 0, pktData.length);
+        Ethernet eth = Ethernet.deserializer().deserialize(pktData, 0, pktData.length);
         assertEquals(Ethernet.VLAN_UNTAGGED, eth.getVlanID());
         ARP arp = (ARP) eth.getPayload();
         assertArrayEquals(SOURCE_ADDR.toOctets(),
@@ -220,10 +225,9 @@ public class HostMonitorTest {
         assertEquals(portNum, oi.port());
 
         // Check the output packet is correct (well the important bits anyway)
-        Ethernet eth = new Ethernet();
         final byte[] pktData = new byte[packet.data().remaining()];
         packet.data().get(pktData);
-        eth.deserialize(pktData, 0, pktData.length);
+        Ethernet eth = Ethernet.deserializer().deserialize(pktData, 0, pktData.length);
         assertEquals(vlan, eth.getVlanID());
         ARP arp = (ARP) eth.getPayload();
         assertArrayEquals(SOURCE_ADDR.toOctets(),

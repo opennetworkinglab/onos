@@ -21,6 +21,8 @@ package org.onlab.packet;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  *
  *
@@ -34,6 +36,8 @@ public class ARP extends BasePacket {
     public static final short OP_REPLY = 0x2;
     public static final short OP_RARP_REQUEST = 0x3;
     public static final short OP_RARP_REPLY = 0x4;
+
+    public static final short INITIAL_HEADER_LENGTH = 8;
 
     protected short hardwareType;
     protected short protocolType;
@@ -247,7 +251,7 @@ public class ARP extends BasePacket {
 
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         this.hardwareType = bb.getShort();
         this.protocolType = bb.getShort();
@@ -386,10 +390,50 @@ public class ARP extends BasePacket {
         arp.setTargetHardwareAddress(request.getSourceMACAddress());
 
         arp.setTargetProtocolAddress(((ARP) request.getPayload())
-                .getSenderProtocolAddress());
+                                             .getSenderProtocolAddress());
         arp.setSenderProtocolAddress(srcIp.toInt());
 
         eth.setPayload(arp);
         return eth;
     }
+
+    /**
+     * Deserializer function for ARP packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<ARP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, INITIAL_HEADER_LENGTH);
+
+            ARP arp = new ARP();
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            arp.setHardwareType(bb.getShort());
+            arp.setProtocolType(bb.getShort());
+
+            byte hwAddressLength = bb.get();
+            arp.setHardwareAddressLength(hwAddressLength);
+
+            byte protocolAddressLength = bb.get();
+            arp.setProtocolAddressLength(protocolAddressLength);
+            arp.setOpCode(bb.getShort());
+
+            // Check we have enough space for the addresses
+            checkHeaderLength(length, INITIAL_HEADER_LENGTH +
+                    2 * hwAddressLength +
+                    2 * protocolAddressLength);
+
+            arp.senderHardwareAddress = new byte[0xff & hwAddressLength];
+            bb.get(arp.senderHardwareAddress, 0, arp.senderHardwareAddress.length);
+            arp.senderProtocolAddress = new byte[0xff & protocolAddressLength];
+            bb.get(arp.senderProtocolAddress, 0, arp.senderProtocolAddress.length);
+            arp.targetHardwareAddress = new byte[0xff & hwAddressLength];
+            bb.get(arp.targetHardwareAddress, 0, arp.targetHardwareAddress.length);
+            arp.targetProtocolAddress = new byte[0xff & protocolAddressLength];
+            bb.get(arp.targetProtocolAddress, 0, arp.targetProtocolAddress.length);
+
+            return arp;
+        };
+    }
+
 }

@@ -64,6 +64,11 @@ public interface IPacket {
     /**
      * Deserializes this packet layer and all possible payloads.
      *
+     * NOTE: This method has been deprecated and will be removed in a future
+     * release. It is now recommended to use the Deserializer function provided
+     * by the deserialize() method on each packet to deserialize them. The
+     * Deserializer functions are robust to malformed input.
+     *
      * @param data bytes to deserialize
      * @param offset
      *            offset to start deserializing from
@@ -71,6 +76,7 @@ public interface IPacket {
      *            length of the data to deserialize
      * @return the deserialized data
      */
+    @Deprecated
     IPacket deserialize(byte[] data, int offset, int length);
 
     /**

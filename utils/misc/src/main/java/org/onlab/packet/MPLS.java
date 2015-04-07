@@ -4,16 +4,19 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.onlab.packet.PacketUtils.checkInput;
+
 public class MPLS extends BasePacket {
-    public static final int ADDRESS_LENGTH = 4;
+    public static final int HEADER_LENGTH = 4;
+
     public static final byte PROTOCOL_IPV4 = 0x1;
     public static final byte PROTOCOL_MPLS = 0x6;
-    public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP;
+    static Map<Byte, Deserializer<? extends IPacket>> protocolDeserializerMap
+            = new HashMap<>();
 
     static {
-        PROTOCOL_CLASS_MAP = new HashMap<Byte, Class<? extends IPacket>>();
-        PROTOCOL_CLASS_MAP.put(PROTOCOL_IPV4, IPv4.class);
-        PROTOCOL_CLASS_MAP.put(PROTOCOL_MPLS, MPLS.class);
+        protocolDeserializerMap.put(PROTOCOL_IPV4, IPv4.deserializer());
+        protocolDeserializerMap.put(PROTOCOL_MPLS, MPLS.deserializer());
     }
 
     protected int label; //20bits
@@ -59,19 +62,18 @@ public class MPLS extends BasePacket {
         this.bos = (byte) (mplsheader & 0x000000ff);
         this.protocol = (this.bos == 1) ? PROTOCOL_IPV4 : PROTOCOL_MPLS;
 
-        IPacket payload;
-        if (IPv4.PROTOCOL_CLASS_MAP.containsKey(this.protocol)) {
-            Class<? extends IPacket> clazz = IPv4.PROTOCOL_CLASS_MAP.get(this.protocol);
-            try {
-                payload = clazz.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Error parsing payload for MPLS packet", e);
-            }
+        Deserializer<? extends IPacket> deserializer;
+        if (protocolDeserializerMap.containsKey(this.protocol)) {
+            deserializer = protocolDeserializerMap.get(this.protocol);
         } else {
-            payload = new Data();
+            deserializer = Data.deserializer();
         }
-        this.payload = payload.deserialize(data, bb.position(), bb.limit() - bb.position());
-        this.payload.setParent(this);
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(), bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
 
         return this;
     }
@@ -112,4 +114,34 @@ public class MPLS extends BasePacket {
         this.ttl = ttl;
     }
 
+    /**
+     * Deserializer function for MPLS packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<MPLS> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            MPLS mpls = new MPLS();
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            int mplsheader = bb.getInt();
+            mpls.label = ((mplsheader & 0xfffff000) >>> 12);
+            mpls.bos = (byte) ((mplsheader & 0x00000100) >> 8);
+            mpls.ttl = (byte) (mplsheader & 0x000000ff);
+            mpls.protocol = (mpls.bos == 1) ? PROTOCOL_IPV4 : PROTOCOL_MPLS;
+
+            Deserializer<? extends IPacket> deserializer;
+            if (protocolDeserializerMap.containsKey(mpls.protocol)) {
+                deserializer = protocolDeserializerMap.get(mpls.protocol);
+            } else {
+                deserializer = Data.deserializer();
+            }
+            mpls.payload = deserializer.deserialize(data, bb.position(), bb.limit() - bb.position());
+            mpls.payload.setParent(mpls);
+
+            return mpls;
+        };
+    }
 }

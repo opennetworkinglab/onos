@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  *
  */
@@ -429,33 +431,9 @@ public class DHCP extends BasePacket {
         return data;
     }
 
-    protected void writeString(final String string, final ByteBuffer bb,
-            final int maxLength) {
-        if (string == null) {
-            for (int i = 0; i < maxLength; ++i) {
-                bb.put((byte) 0x0);
-            }
-        } else {
-            byte[] bytes = null;
-            try {
-                bytes = string.getBytes("ascii");
-            } catch (final UnsupportedEncodingException e) {
-                throw new RuntimeException("Failure encoding server name", e);
-            }
-            int writeLength = bytes.length;
-            if (writeLength > maxLength) {
-                writeLength = maxLength;
-            }
-            bb.put(bytes, 0, writeLength);
-            for (int i = writeLength; i < maxLength; ++i) {
-                bb.put((byte) 0x0);
-            }
-        }
-    }
-
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         if (bb.remaining() < DHCP.MIN_HEADER_LENGTH) {
             return this;
@@ -529,7 +507,31 @@ public class DHCP extends BasePacket {
         return this;
     }
 
-    protected String readString(final ByteBuffer bb, final int maxLength) {
+    protected void writeString(final String string, final ByteBuffer bb,
+            final int maxLength) {
+        if (string == null) {
+            for (int i = 0; i < maxLength; ++i) {
+                bb.put((byte) 0x0);
+            }
+        } else {
+            byte[] bytes = null;
+            try {
+                bytes = string.getBytes("ascii");
+            } catch (final UnsupportedEncodingException e) {
+                throw new RuntimeException("Failure encoding server name", e);
+            }
+            int writeLength = bytes.length;
+            if (writeLength > maxLength) {
+                writeLength = maxLength;
+            }
+            bb.put(bytes, 0, writeLength);
+            for (int i = writeLength; i < maxLength; ++i) {
+                bb.put((byte) 0x0);
+            }
+        }
+    }
+
+    private static String readString(final ByteBuffer bb, final int maxLength) {
         final byte[] bytes = new byte[maxLength];
         bb.get(bytes);
         String result = null;
@@ -539,5 +541,85 @@ public class DHCP extends BasePacket {
             throw new RuntimeException("Failure decoding string", e);
         }
         return result;
+    }
+
+    /**
+     * Deserializer function for DHCP packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<DHCP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, MIN_HEADER_LENGTH);
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            DHCP dhcp = new DHCP();
+
+            dhcp.opCode = bb.get();
+            dhcp.hardwareType = bb.get();
+            dhcp.hardwareAddressLength = bb.get();
+            dhcp.hops = bb.get();
+            dhcp.transactionId = bb.getInt();
+            dhcp.seconds = bb.getShort();
+            dhcp.flags = bb.getShort();
+            dhcp.clientIPAddress = bb.getInt();
+            dhcp.yourIPAddress = bb.getInt();
+            dhcp.serverIPAddress = bb.getInt();
+            dhcp.gatewayIPAddress = bb.getInt();
+            final int hardwareAddressLength = 0xff & dhcp.hardwareAddressLength;
+            dhcp.clientHardwareAddress = new byte[hardwareAddressLength];
+
+            bb.get(dhcp.clientHardwareAddress);
+            for (int i = hardwareAddressLength; i < 16; ++i) {
+                bb.get();
+            }
+            dhcp.serverName = readString(bb, 64);
+            dhcp.bootFileName = readString(bb, 128);
+            // read the magic cookie
+            // magic cookie
+            bb.get();
+            bb.get();
+            bb.get();
+            bb.get();
+
+            // read options
+            boolean foundEndOptionsMarker = false;
+            while (bb.hasRemaining()) {
+                final DHCPOption option = new DHCPOption();
+                int code = 0xff & bb.get(); // convert signed byte to int in range
+                // [0,255]
+                option.setCode((byte) code);
+                if (code == 0) {
+                    // skip these
+                    continue;
+                } else if (code != 255) {
+                    if (bb.hasRemaining()) {
+                        final int l = 0xff & bb.get(); // convert signed byte to
+                        // int in range [0,255]
+                        option.setLength((byte) l);
+                        if (bb.remaining() >= l) {
+                            final byte[] optionData = new byte[l];
+                            bb.get(optionData);
+                            option.setData(optionData);
+                            dhcp.options.add(option);
+                        } else {
+                            throw new DeserializationException(
+                                    "Buffer underflow while reading DHCP option");
+                        }
+                    }
+                } else if (code == 255) {
+                    // remaining bytes are supposed to be 0, but ignore them just in
+                    // case
+                    foundEndOptionsMarker = true;
+                    break;
+                }
+            }
+
+            if (!foundEndOptionsMarker) {
+                throw new DeserializationException("DHCP End options marker was missing");
+            }
+
+            return dhcp;
+        };
     }
 }

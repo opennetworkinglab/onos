@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  *
  */
@@ -32,18 +34,20 @@ public class IPv4 extends BasePacket {
     public static final byte PROTOCOL_ICMP = 0x1;
     public static final byte PROTOCOL_TCP = 0x6;
     public static final byte PROTOCOL_UDP = 0x11;
-    public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP =
+    public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
             new HashMap<>();
 
     static {
-        IPv4.PROTOCOL_CLASS_MAP.put(IPv4.PROTOCOL_ICMP, ICMP.class);
-        IPv4.PROTOCOL_CLASS_MAP.put(IPv4.PROTOCOL_TCP, TCP.class);
-        IPv4.PROTOCOL_CLASS_MAP.put(IPv4.PROTOCOL_UDP, UDP.class);
+        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_ICMP, ICMP.deserializer());
+        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_TCP, TCP.deserializer());
+        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_UDP, UDP.deserializer());
     }
 
     private static final byte DSCP_MASK = 0x3f;
     private static final byte DSCP_OFFSET = 2;
     private static final byte ECN_MASK = 0x3;
+
+    private static final short HEADER_LENGTH = 20;
 
     protected byte version;
     protected byte headerLength;
@@ -414,7 +418,7 @@ s     */
 
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
         short sscratch;
 
@@ -439,27 +443,24 @@ s     */
             bb.get(this.options);
         }
 
-        IPacket payload;
-        if (IPv4.PROTOCOL_CLASS_MAP.containsKey(this.protocol)) {
-            final Class<? extends IPacket> clazz = IPv4.PROTOCOL_CLASS_MAP
-                    .get(this.protocol);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for IPv4 packet", e);
-            }
-        } else {
-            payload = new Data();
-        }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
-
         if (this.totalLength != length) {
             this.isTruncated = true;
         } else {
             this.isTruncated = false;
+        }
+
+        Deserializer<? extends IPacket> deserializer;
+        if (IPv4.PROTOCOL_DESERIALIZER_MAP.containsKey(this.protocol)) {
+            deserializer = IPv4.PROTOCOL_DESERIALIZER_MAP.get(this.protocol);
+        } else {
+            deserializer = Data.deserializer();
+        }
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                    bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
         }
 
         return this;
@@ -668,5 +669,61 @@ s     */
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for IPv4 packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<IPv4> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            IPv4 ipv4 = new IPv4();
+
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            byte versionByte = bb.get();
+            ipv4.headerLength = (byte) (versionByte & 0xf);
+            ipv4.setVersion((byte) (versionByte >> 4 & 0xf));
+            ipv4.setDiffServ(bb.get());
+            ipv4.totalLength = bb.getShort();
+            ipv4.identification = bb.getShort();
+            short flagsFragment = bb.getShort();
+            ipv4.flags = (byte) (flagsFragment >> 13 & 0x7);
+            ipv4.fragmentOffset = (short) (flagsFragment & 0x1fff);
+            ipv4.ttl = bb.get();
+            ipv4.protocol = bb.get();
+            ipv4.checksum = bb.getShort();
+            ipv4.sourceAddress = bb.getInt();
+            ipv4.destinationAddress = bb.getInt();
+
+            if (ipv4.headerLength > 5) {
+                checkHeaderLength(length, ipv4.headerLength * 4);
+
+                int optionsLength = (ipv4.headerLength - 5) * 4;
+                ipv4.options = new byte[optionsLength];
+                bb.get(ipv4.options);
+            }
+
+            Deserializer<? extends IPacket> deserializer;
+            if (IPv4.PROTOCOL_DESERIALIZER_MAP.containsKey(ipv4.protocol)) {
+                deserializer = IPv4.PROTOCOL_DESERIALIZER_MAP.get(ipv4.protocol);
+            } else {
+                deserializer = Data.deserializer();
+            }
+            ipv4.payload = deserializer.deserialize(data, bb.position(),
+                                                    bb.limit() - bb.position());
+            ipv4.payload.setParent(ipv4);
+
+            if (ipv4.totalLength != length) {
+                ipv4.isTruncated = true;
+            } else {
+                ipv4.isTruncated = false;
+            }
+
+            return ipv4;
+        };
     }
 }

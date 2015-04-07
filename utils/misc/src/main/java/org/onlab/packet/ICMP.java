@@ -20,6 +20,8 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  * Implements ICMP packet format.
  *
@@ -32,6 +34,8 @@ public class ICMP extends BasePacket {
     public static final byte TYPE_ECHO_REQUEST = 0x08;
     public static final byte TYPE_ECHO_REPLY = 0x00;
     public static final byte SUBTYPE_ECHO_REPLY = 0x00;
+
+    public static final short ICMP_HEADER_LENGTH = 4;
 
     /**
      * @return the icmpType
@@ -134,6 +138,21 @@ public class ICMP extends BasePacket {
         return data;
     }
 
+    @Override
+    public IPacket deserialize(final byte[] data, final int offset,
+                               final int length) {
+        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+        this.icmpType = bb.get();
+        this.icmpCode = bb.get();
+        this.checksum = bb.getShort();
+
+        this.payload = new Data();
+        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
+                - bb.position());
+        this.payload.setParent(this);
+        return this;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -178,18 +197,27 @@ public class ICMP extends BasePacket {
         return true;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.icmpType = bb.get();
-        this.icmpCode = bb.get();
-        this.checksum = bb.getShort();
+    /**
+     * Deserializer function for ICMP packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<ICMP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, ICMP_HEADER_LENGTH);
 
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
-        return this;
+            ICMP icmp = new ICMP();
+
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            icmp.icmpType = bb.get();
+            icmp.icmpCode = bb.get();
+            icmp.checksum = bb.getShort();
+
+            icmp.payload = Data.deserializer()
+                    .deserialize(data, bb.position(), bb.limit()
+                            - bb.position());
+            icmp.payload.setParent(icmp);
+            return icmp;
+        };
     }
 }

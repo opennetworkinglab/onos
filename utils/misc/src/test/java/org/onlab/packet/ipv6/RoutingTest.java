@@ -16,9 +16,12 @@
 
 package org.onlab.packet.ipv6;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.UDP;
 
 import static org.hamcrest.Matchers.is;
@@ -42,6 +45,8 @@ public class RoutingTest {
     };
     private static byte[] bytePacket;
 
+    private Deserializer<Routing> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         data = new Data();
@@ -61,6 +66,11 @@ public class RoutingTest {
         bytePacket = new byte[byteHeader.length + bytePayload.length];
         System.arraycopy(byteHeader, 0, bytePacket, 0, byteHeader.length);
         System.arraycopy(bytePayload, 0, bytePacket, byteHeader.length, bytePayload.length);
+    }
+
+    @Before
+    public void setUp() {
+        deserializer = Routing.deserializer();
     }
 
     /**
@@ -83,9 +93,8 @@ public class RoutingTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        Routing routing = new Routing();
-        routing.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws DeserializationException {
+        Routing routing = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(routing.getNextHeader(), is((byte) 0x11));
         assertThat(routing.getHeaderExtLength(), is((byte) 0x02));

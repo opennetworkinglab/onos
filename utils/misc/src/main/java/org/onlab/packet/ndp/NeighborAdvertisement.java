@@ -16,12 +16,15 @@
 package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.Ip6Address;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements ICMPv6 Neighbor Advertisement packet format (RFC 4861).
@@ -237,5 +240,37 @@ public class NeighborAdvertisement extends BasePacket {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for neighbor advertisement packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<NeighborAdvertisement> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            NeighborAdvertisement neighborAdvertisement = new NeighborAdvertisement();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            int iscratch;
+
+            iscratch = bb.getInt();
+            neighborAdvertisement.routerFlag = (byte) (iscratch >> 31 & 0x1);
+            neighborAdvertisement.solicitedFlag = (byte) (iscratch >> 30 & 0x1);
+            neighborAdvertisement.overrideFlag = (byte) (iscratch >> 29 & 0x1);
+            bb.get(neighborAdvertisement.targetAddress, 0, Ip6Address.BYTE_LENGTH);
+
+            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+
+            for (NeighborDiscoveryOptions.Option option : options.options()) {
+                neighborAdvertisement.addOption(option.type(), option.data());
+            }
+
+            return neighborAdvertisement;
+        };
     }
 }

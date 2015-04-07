@@ -61,8 +61,12 @@ public class UDPTest {
             (byte) 0x02, (byte) 0x2a, // checksum
     };
 
+    private static Deserializer<UDP> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        deserializer = UDP.deserializer();
+
         ipv4.setSourceAddress(IPv4.toIPv4Address(IPV4_SOURCE_ADDRESS));
         ipv4.setDestinationAddress(IPv4.toIPv4Address(IPV4_DESTINATION_ADDRESS));
         ipv4.setProtocol(IPv4.PROTOCOL_UDP);
@@ -88,13 +92,22 @@ public class UDPTest {
         assertArrayEquals(bytePacketUDP6, udp.serialize());
     }
 
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(deserializer);
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        PacketTestUtils.testDeserializeTruncated(deserializer, bytePacketUDP4);
+    }
+
     /**
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        UDP udp = new UDP();
-        udp.deserialize(bytePacketUDP4, 0, bytePacketUDP4.length);
+    public void testDeserialize() throws Exception {
+        UDP udp = deserializer.deserialize(bytePacketUDP4, 0, bytePacketUDP4.length);
 
         assertThat(udp.getSourcePort(), is((short) 0x50));
         assertThat(udp.getDestinationPort(), is((short) 0x60));

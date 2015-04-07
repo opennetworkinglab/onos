@@ -16,9 +16,12 @@
 
 package org.onlab.packet.ipv6;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.UDP;
 
 import static org.hamcrest.Matchers.is;
@@ -35,6 +38,8 @@ public class FragmentTest {
     private static UDP udp;
     private static byte[] bytePacket;
 
+    private Deserializer<Fragment> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         data = new Data();
@@ -50,6 +55,11 @@ public class FragmentTest {
         bytePacket = new byte[byteHeader.length + bytePayload.length];
         System.arraycopy(byteHeader, 0, bytePacket, 0, byteHeader.length);
         System.arraycopy(bytePayload, 0, bytePacket, byteHeader.length, bytePayload.length);
+    }
+
+    @Before
+    public void setUp() {
+        deserializer = Fragment.deserializer();
     }
 
     /**
@@ -71,9 +81,8 @@ public class FragmentTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        Fragment frag = new Fragment();
-        frag.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws DeserializationException {
+        Fragment frag = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(frag.getNextHeader(), is((byte) 0x11));
         assertThat(frag.getFragmentOffset(), is((short) 0x1f));

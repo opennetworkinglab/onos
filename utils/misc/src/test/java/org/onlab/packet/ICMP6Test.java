@@ -67,13 +67,22 @@ public class ICMP6Test {
         assertArrayEquals(bytePacket, icmp6.serialize());
     }
 
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(ICMP6.deserializer());
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        PacketTestUtils.testDeserializeTruncated(ICMP6.deserializer(), bytePacket);
+    }
+
     /**
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        ICMP6 icmp6 = new ICMP6();
-        icmp6.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws Exception {
+        ICMP6 icmp6 = ICMP6.deserializer().deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(icmp6.getIcmpType(), is(ICMP6.ECHO_REQUEST));
         assertThat(icmp6.getIcmpCode(), is((byte) 0x00));

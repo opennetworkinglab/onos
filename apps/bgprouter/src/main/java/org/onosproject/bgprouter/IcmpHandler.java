@@ -15,8 +15,6 @@
  */
 package org.onosproject.bgprouter;
 
-import java.nio.ByteBuffer;
-
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
@@ -35,6 +33,8 @@ import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
 
 public class IcmpHandler {
 
@@ -100,7 +100,7 @@ public class IcmpHandler {
         icmpReplyIpv4.setTtl((byte) 64);
         icmpReplyIpv4.setChecksum((short) 0);
 
-        ICMP icmpReply = (ICMP) icmpRequestIpv4.getPayload().clone();
+        ICMP icmpReply = new ICMP();
         icmpReply.setIcmpType(ICMP.TYPE_ECHO_REPLY);
         icmpReply.setIcmpCode(ICMP.SUBTYPE_ECHO_REPLY);
         icmpReply.setChecksum((short) 0);

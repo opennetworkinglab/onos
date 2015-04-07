@@ -18,9 +18,13 @@ package org.onlab.packet.ipv6;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Data;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
+
 import java.nio.ByteBuffer;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements IPv6 Encapsulating Security Payload (ESP) extension header format.
@@ -113,7 +117,7 @@ public class EncapSecurityPayload extends BasePacket {
 
         this.payload = new Data();
         this.payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
+                                 bb.limit() - bb.position());
         this.payload.setParent(this);
 
         return this;
@@ -157,5 +161,28 @@ public class EncapSecurityPayload extends BasePacket {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for encapsulated security payload headers.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<EncapSecurityPayload> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            EncapSecurityPayload encapSecurityPayload = new EncapSecurityPayload();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            encapSecurityPayload.securityParamIndex = bb.getInt();
+            encapSecurityPayload.sequence = bb.getInt();
+
+            encapSecurityPayload.payload = Data.deserializer().deserialize(
+                    data, bb.position(), bb.limit() - bb.position());
+            encapSecurityPayload.payload.setParent(encapSecurityPayload);
+
+            return encapSecurityPayload;
+        };
     }
 }

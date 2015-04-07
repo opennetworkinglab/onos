@@ -15,8 +15,6 @@
  */
 package org.onosproject.segmentrouting;
 
-import java.nio.ByteBuffer;
-import java.util.List;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
@@ -32,6 +30,9 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -109,7 +110,7 @@ public class IcmpHandler {
         icmpReplyIpv4.setTtl((byte) 64);
         icmpReplyIpv4.setChecksum((short) 0);
 
-        ICMP icmpReply = (ICMP) icmpRequestIpv4.getPayload().clone();
+        ICMP icmpReply = new ICMP();
         icmpReply.setIcmpType(ICMP.TYPE_ECHO_REPLY);
         icmpReply.setIcmpCode(ICMP.SUBTYPE_ECHO_REPLY);
         icmpReply.setChecksum((short) 0);

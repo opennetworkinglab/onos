@@ -18,10 +18,15 @@ package org.onlab.packet.ipv6;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements IPv6 authentication extension header format. (RFC 4302)
@@ -186,22 +191,20 @@ public class Authentication extends BasePacket implements IExtensionHeader {
         this.integrityCheck = new byte[icvLength];
         bb.get(this.integrityCheck, 0, icvLength);
 
-        IPacket payload;
-        if (IPv6.PROTOCOL_CLASS_MAP.containsKey(this.nextHeader)) {
-            final Class<? extends IPacket> clazz = IPv6.PROTOCOL_CLASS_MAP
-                    .get(this.nextHeader);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for Authentication packet", e);
-            }
+        Deserializer<? extends IPacket> deserializer;
+        if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(this.nextHeader)) {
+            deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(this.nextHeader);
         } else {
-            payload = new Data();
+            deserializer = Data.deserializer();
         }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
+
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                              bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
 
         return this;
     }
@@ -258,5 +261,40 @@ public class Authentication extends BasePacket implements IExtensionHeader {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for authentication headers.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<Authentication> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, FIXED_HEADER_LENGTH);
+
+            Authentication authentication = new Authentication();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            authentication.nextHeader = bb.get();
+            authentication.payloadLength = bb.get();
+            bb.getShort();
+            authentication.securityParamIndex = bb.getInt();
+            authentication.sequence = bb.getInt();
+            int icvLength = (authentication.payloadLength + MINUS) * LENGTH_UNIT - FIXED_HEADER_LENGTH;
+            authentication.integrityCheck = new byte[icvLength];
+            bb.get(authentication.integrityCheck, 0, icvLength);
+
+            Deserializer<? extends IPacket> deserializer;
+            if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(authentication.nextHeader)) {
+                deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(authentication.nextHeader);
+            } else {
+                deserializer = Data.deserializer();
+            }
+            authentication.payload = deserializer.deserialize(data, bb.position(),
+                                               bb.limit() - bb.position());
+            authentication.payload.setParent(authentication);
+
+            return authentication;
+        };
     }
 }

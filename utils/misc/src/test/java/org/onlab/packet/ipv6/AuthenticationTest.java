@@ -16,9 +16,11 @@
 
 package org.onlab.packet.ipv6;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.Data;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.UDP;
 
 import static org.hamcrest.Matchers.is;
@@ -38,6 +40,8 @@ public class AuthenticationTest {
     };
     private static byte[] bytePacket;
 
+    private Deserializer<Authentication> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         data = new Data();
@@ -55,6 +59,11 @@ public class AuthenticationTest {
         bytePacket = new byte[byteHeader.length + bytePayload.length];
         System.arraycopy(byteHeader, 0, bytePacket, 0, byteHeader.length);
         System.arraycopy(bytePayload, 0, bytePacket, byteHeader.length, bytePayload.length);
+    }
+
+    @Before
+    public void setUp() {
+        deserializer = Authentication.deserializer();
     }
 
     /**
@@ -77,9 +86,8 @@ public class AuthenticationTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        Authentication auth = new Authentication();
-        auth.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws Exception {
+        Authentication auth = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(auth.getNextHeader(), is((byte) 0x11));
         assertThat(auth.getPayloadLength(), is((byte) 0x02));

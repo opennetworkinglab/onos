@@ -15,7 +15,7 @@
  */
 package org.onosproject.openflow.controller;
 
-
+import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onosproject.core.Permission;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
@@ -26,6 +26,8 @@ import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.BufferUnderflowException;
 import java.util.Collections;
@@ -97,11 +99,12 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     public Ethernet parsed() {
         checkPermission(Permission.PACKET_READ);
 
-        Ethernet eth = new Ethernet();
         try {
-            eth.deserialize(pktin.getData(), 0, pktin.getData().length);
-            return eth;
-        } catch (BufferUnderflowException | NullPointerException e) {
+            return Ethernet.deserializer().deserialize(pktin.getData(), 0, pktin.getData().length);
+        } catch (BufferUnderflowException | NullPointerException |
+                DeserializationException e) {
+            Logger log = LoggerFactory.getLogger(getClass());
+            log.warn("packet deserialization problem");
             return null;
         }
     }

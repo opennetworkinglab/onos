@@ -15,13 +15,17 @@
  */
 package org.onlab.packet.ndp;
 
+import org.onlab.packet.BasePacket;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
+import org.onlab.packet.IPacket;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.onlab.packet.BasePacket;
-import org.onlab.packet.IPacket;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Neighbor Discovery Protocol packet options.
@@ -32,6 +36,11 @@ public class NeighborDiscoveryOptions extends BasePacket {
     public static final byte TYPE_PREFIX_INFORMATION = 3;
     public static final byte TYPE_REDIRECTED_HEADER = 4;
     public static final byte TYPE_MTU = 5;
+
+    public static final byte INITIAL_HEADER_REQUIRED = 2;
+
+    private static final String BUFFER_UNDERFLOW_ERROR =
+            "Not enough bytes in buffer to read option";
 
     private final List<Option> options = new ArrayList<>();
 
@@ -187,7 +196,7 @@ public class NeighborDiscoveryOptions extends BasePacket {
             }
             byte lengthField = bb.get();
             int dataLength = lengthField * 8;   // The data length field is in
-                                                // unit of 8 octets
+            // unit of 8 octets
 
             // Exclude the type and length fields
             if (dataLength < 2) {
@@ -228,5 +237,45 @@ public class NeighborDiscoveryOptions extends BasePacket {
             return this.options.equals(other.options);
         }
         return false;
+    }
+
+    public static Deserializer<NeighborDiscoveryOptions> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, INITIAL_HEADER_REQUIRED);
+
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            NeighborDiscoveryOptions ndo = new NeighborDiscoveryOptions();
+
+            ndo.options.clear();
+
+            //
+            // Deserialize all options
+            //
+            while (bb.hasRemaining()) {
+                byte type = bb.get();
+                if (!bb.hasRemaining()) {
+                    throw new DeserializationException(BUFFER_UNDERFLOW_ERROR);
+                }
+                byte lengthField = bb.get();
+                int dataLength = lengthField * 8;   // The data length field is in
+                // unit of 8 octets
+
+                // Exclude the type and length fields
+                if (dataLength < 2) {
+                    break;
+                }
+                dataLength -= 2;
+
+                if (bb.remaining() < dataLength) {
+                    throw new DeserializationException(BUFFER_UNDERFLOW_ERROR);
+                }
+                byte[] optionData = new byte[dataLength];
+                bb.get(optionData, 0, optionData.length);
+                ndo.addOption(type, optionData);
+            }
+
+            return ndo;
+        };
     }
 }

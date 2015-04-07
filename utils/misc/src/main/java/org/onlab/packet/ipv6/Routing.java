@@ -18,11 +18,16 @@ package org.onlab.packet.ipv6;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static org.onlab.packet.PacketUtils.checkHeaderLength;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements IPv6 routing extension header format. (RFC 2460)
@@ -175,22 +180,19 @@ public class Routing extends BasePacket implements IExtensionHeader {
         this.routingData = new byte[dataLength];
         bb.get(this.routingData, 0, dataLength);
 
-        IPacket payload;
-        if (IPv6.PROTOCOL_CLASS_MAP.containsKey(this.nextHeader)) {
-            final Class<? extends IPacket> clazz = IPv6.PROTOCOL_CLASS_MAP
-                    .get(this.nextHeader);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for Routing packet", e);
-            }
+        Deserializer<? extends IPacket> deserializer;
+        if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(this.nextHeader)) {
+            deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(this.nextHeader);
         } else {
-            payload = new Data();
+            deserializer = new Data().deserializer();
         }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                    bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
 
         return this;
     }
@@ -247,5 +249,43 @@ public class Routing extends BasePacket implements IExtensionHeader {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Deserializer function for routing headers.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<Routing> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, FIXED_HEADER_LENGTH);
+
+            Routing routing = new Routing();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            routing.nextHeader = bb.get();
+            routing.headerExtLength = bb.get();
+            routing.routingType = bb.get();
+            routing.segmentsLeft = bb.get();
+            int dataLength =
+                    FIXED_ROUTING_DATA_LENGTH + LENGTH_UNIT * routing.headerExtLength;
+
+            checkHeaderLength(bb.remaining(), dataLength);
+
+            routing.routingData = new byte[dataLength];
+            bb.get(routing.routingData, 0, dataLength);
+
+            Deserializer<? extends IPacket> deserializer;
+            if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(routing.nextHeader)) {
+                deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(routing.nextHeader);
+            } else {
+                deserializer = new Data().deserializer();
+            }
+            routing.payload = deserializer.deserialize(data, bb.position(),
+                                               bb.limit() - bb.position());
+            routing.payload.setParent(routing);
+
+            return routing;
+        };
     }
 }

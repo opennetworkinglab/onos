@@ -17,7 +17,9 @@ package org.onlab.packet.ndp;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.PacketTestUtils;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
@@ -35,6 +37,9 @@ public class RouterSolicitationTest {
         MacAddress.valueOf("11:22:33:44:55:00");
 
     private static byte[] bytePacket;
+
+    private Deserializer<RouterSolicitation> deserializer
+            = RouterSolicitation.deserializer();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -59,13 +64,22 @@ public class RouterSolicitationTest {
         assertArrayEquals(rs.serialize(), bytePacket);
     }
 
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(RouterSolicitation.deserializer());
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        PacketTestUtils.testDeserializeTruncated(RouterSolicitation.deserializer(), bytePacket);
+    }
+
     /**
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        RouterSolicitation rs = new RouterSolicitation();
-        rs.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws Exception {
+        RouterSolicitation rs = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         // Check the option(s)
         assertThat(rs.getOptions().size(), is(1));

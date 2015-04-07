@@ -24,9 +24,12 @@ import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.Redirect;
 import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onlab.packet.ndp.RouterSolicitation;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  * Implements ICMPv6 packet format. (RFC 4443)
@@ -96,15 +99,15 @@ public class ICMP6 extends BasePacket {
     /** Unrecognized IPv6 option encountered. */
     public static final byte IPV6_OPT_ERR = (byte) 0x01;
 
-    public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP =
+    public static final Map<Byte, Deserializer<? extends IPacket>> TYPE_DESERIALIZER_MAP =
             new HashMap<>();
 
     static {
-        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.ROUTER_SOLICITATION, RouterSolicitation.class);
-        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.ROUTER_ADVERTISEMENT, RouterAdvertisement.class);
-        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.NEIGHBOR_SOLICITATION, NeighborSolicitation.class);
-        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.NEIGHBOR_ADVERTISEMENT, NeighborAdvertisement.class);
-        ICMP6.PROTOCOL_CLASS_MAP.put(ICMP6.REDIRECT, Redirect.class);
+        ICMP6.TYPE_DESERIALIZER_MAP.put(ICMP6.ROUTER_SOLICITATION, RouterSolicitation.deserializer());
+        ICMP6.TYPE_DESERIALIZER_MAP.put(ICMP6.ROUTER_ADVERTISEMENT, RouterAdvertisement.deserializer());
+        ICMP6.TYPE_DESERIALIZER_MAP.put(ICMP6.NEIGHBOR_SOLICITATION, NeighborSolicitation.deserializer());
+        ICMP6.TYPE_DESERIALIZER_MAP.put(ICMP6.NEIGHBOR_ADVERTISEMENT, NeighborAdvertisement.deserializer());
+        ICMP6.TYPE_DESERIALIZER_MAP.put(ICMP6.REDIRECT, Redirect.deserializer());
     }
 
     protected byte icmpType;
@@ -261,6 +264,31 @@ public class ICMP6 extends BasePacket {
         return data;
     }
 
+    @Override
+    public IPacket deserialize(final byte[] data, final int offset,
+                               final int length) {
+        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+        this.icmpType = bb.get();
+        this.icmpCode = bb.get();
+        this.checksum = bb.getShort();
+
+        Deserializer<? extends IPacket> deserializer;
+        if (ICMP6.TYPE_DESERIALIZER_MAP.containsKey(icmpType)) {
+            deserializer = TYPE_DESERIALIZER_MAP.get(icmpType);
+        } else {
+            deserializer = Data.deserializer();
+        }
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                     bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
+
+        return this;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -305,31 +333,34 @@ public class ICMP6 extends BasePacket {
         return true;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.icmpType = bb.get();
-        this.icmpCode = bb.get();
-        this.checksum = bb.getShort();
+    /**
+     * Deserializer function for ICMPv6 packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<ICMP6> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
 
-        IPacket payload;
-        if (ICMP6.PROTOCOL_CLASS_MAP.containsKey(this.icmpType)) {
-            final Class<? extends IPacket> clazz = ICMP6.PROTOCOL_CLASS_MAP
-                    .get(this.icmpType);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for ICMP6 packet", e);
+            ICMP6 icmp6 = new ICMP6();
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+            icmp6.icmpType = bb.get();
+            icmp6.icmpCode = bb.get();
+            icmp6.checksum = bb.getShort();
+
+            Deserializer<? extends IPacket> deserializer;
+            if (ICMP6.TYPE_DESERIALIZER_MAP.containsKey(icmp6.icmpType)) {
+                deserializer = TYPE_DESERIALIZER_MAP.get(icmp6.icmpType);
+            } else {
+                deserializer = Data.deserializer();
             }
-        } else {
-            payload = new Data();
-        }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
+            icmp6.payload = deserializer.deserialize(data, bb.position(),
+                                                bb.limit() - bb.position());
+            icmp6.payload.setParent(icmp6);
 
-        return this;
+            return icmp6;
+        };
     }
 }

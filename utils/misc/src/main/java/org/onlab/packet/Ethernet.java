@@ -18,13 +18,14 @@
 
 package org.onlab.packet;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.packet.PacketUtils.checkHeaderLength;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  *
@@ -42,15 +43,21 @@ public class Ethernet extends BasePacket {
     public static final short MPLS_UNICAST = EthType.MPLS_UNICAST;
     public static final short MPLS_MULTICAST = EthType.MPLS_MULTICAST;
 
+
     public static final short VLAN_UNTAGGED = (short) 0xffff;
+
+    public static final short ETHERNET_HEADER_LENGTH = 14; // bytes
+    public static final short VLAN_HEADER_LENGTH = 4; // bytes
+
     public static final short DATALAYER_ADDRESS_LENGTH = 6; // bytes
-    public static final Map<Short, Class<? extends IPacket>> ETHER_TYPE_CLASS_MAP =
-        new HashMap<>();
+
+    private static final Map<Short, Deserializer<? extends IPacket>> ETHERTYPE_DESERIALIZER_MAP =
+            new HashMap<>();
 
     static {
        for (EthType.EtherType ethType : EthType.EtherType.values()) {
            if (ethType.clazz() != null) {
-               ETHER_TYPE_CLASS_MAP.put(ethType.ethType().toShort(), ethType.clazz());
+               ETHERTYPE_DESERIALIZER_MAP.put(ethType.ethType().toShort(), ethType.deserializer());
            }
        }
     }
@@ -300,7 +307,7 @@ public class Ethernet extends BasePacket {
 
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
+                               final int length) {
         if (length <= 0) {
             return null;
         }
@@ -331,21 +338,19 @@ public class Ethernet extends BasePacket {
         this.etherType = ethType;
 
         IPacket payload;
-        if (Ethernet.ETHER_TYPE_CLASS_MAP.containsKey(this.etherType)) {
-            final Class<? extends IPacket> clazz = Ethernet.ETHER_TYPE_CLASS_MAP
-                    .get(this.etherType);
-            try {
-                payload = clazz.newInstance();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                        "Error parsing payload for Ethernet packet", e);
-            }
+        Deserializer<? extends IPacket> deserializer;
+        if (Ethernet.ETHERTYPE_DESERIALIZER_MAP.containsKey(ethType)) {
+            deserializer = Ethernet.ETHERTYPE_DESERIALIZER_MAP.get(ethType);
         } else {
-            payload = new Data();
+            deserializer = Data.deserializer();
         }
-        this.payload = payload.deserialize(data, bb.position(),
-                bb.limit() - bb.position());
-        this.payload.setParent(this);
+        try {
+            this.payload = deserializer.deserialize(data, bb.position(),
+                                                    bb.limit() - bb.position());
+            this.payload.setParent(this);
+        } catch (DeserializationException e) {
+            return this;
+        }
         return this;
     }
 
@@ -565,6 +570,55 @@ public class Ethernet extends BasePacket {
             builder.append(String.format("%02x", b));
         }
         return builder.toString();
+    }
+
+    /**
+     * Deserializer function for Ethernet packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<Ethernet> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, ETHERNET_HEADER_LENGTH);
+
+            byte[] addressBuffer = new byte[DATALAYER_ADDRESS_LENGTH];
+
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            Ethernet eth = new Ethernet();
+            // Read destination MAC address into buffer
+            bb.get(addressBuffer);
+            eth.setDestinationMACAddress(addressBuffer);
+
+            // Read source MAC address into buffer
+            bb.get(addressBuffer);
+            eth.setSourceMACAddress(addressBuffer);
+
+            short ethType = bb.getShort();
+            if (ethType == TYPE_VLAN) {
+                checkHeaderLength(length, ETHERNET_HEADER_LENGTH + VLAN_HEADER_LENGTH);
+                final short tci = bb.getShort();
+                eth.setPriorityCode((byte) (tci >> 13 & 0x07));
+                eth.setVlanID((short) (tci & 0x0fff));
+                ethType = bb.getShort();
+            } else {
+                eth.setVlanID(Ethernet.VLAN_UNTAGGED);
+            }
+            eth.setEtherType(ethType);
+
+            IPacket payload;
+            Deserializer<? extends IPacket> deserializer;
+            if (Ethernet.ETHERTYPE_DESERIALIZER_MAP.containsKey(ethType)) {
+                deserializer = Ethernet.ETHERTYPE_DESERIALIZER_MAP.get(ethType);
+            } else {
+                deserializer = Data.deserializer();
+            }
+            payload = deserializer.deserialize(data, bb.position(),
+                                               bb.limit() - bb.position());
+            payload.setParent(eth);
+            eth.setPayload(payload);
+
+            return eth;
+        };
     }
 
 }

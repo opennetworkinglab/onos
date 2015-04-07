@@ -16,9 +16,13 @@
 
 package org.onlab.packet.ipv6;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
+
 import java.util.Arrays;
 
 import static org.hamcrest.Matchers.is;
@@ -35,6 +39,8 @@ public class EncapSecurityPayloadTest {
     private static byte[] dataByte = new byte[32];
     private static byte[] bytePacket;
 
+    private Deserializer<EncapSecurityPayload> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         Arrays.fill(dataByte, (byte) 0xff);
@@ -48,6 +54,11 @@ public class EncapSecurityPayloadTest {
         bytePacket = new byte[byteHeader.length + bytePayload.length];
         System.arraycopy(byteHeader, 0, bytePacket, 0, byteHeader.length);
         System.arraycopy(bytePayload, 0, bytePacket, byteHeader.length, bytePayload.length);
+    }
+
+    @Before
+    public void setUp() {
+        deserializer = EncapSecurityPayload.deserializer();
     }
 
     /**
@@ -67,9 +78,8 @@ public class EncapSecurityPayloadTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        EncapSecurityPayload esp = new EncapSecurityPayload();
-        esp.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws DeserializationException {
+        EncapSecurityPayload esp = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(esp.getSecurityParamIndex(), is(0x13572468));
         assertThat(esp.getSequence(), is(0xffff00));

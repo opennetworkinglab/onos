@@ -95,18 +95,23 @@ public class LLDPTLV {
         return data;
     }
 
-    public LLDPTLV deserialize(final ByteBuffer bb) {
-        short sscratch;
-        sscratch = bb.getShort();
-        this.type = (byte) (sscratch >> 9 & 0x7f);
-        this.length = (short) (sscratch & 0x1ff);
+    public LLDPTLV deserialize(final ByteBuffer bb) throws DeserializationException {
+        if (bb.remaining() < 2) {
+            throw new DeserializationException(
+                    "Not enough bytes to deserialize TLV type and length");
+        }
+        short typeLength;
+        typeLength = bb.getShort();
+        this.type = (byte) (typeLength >> 9 & 0x7f);
+        this.length = (short) (typeLength & 0x1ff);
 
         if (this.length > 0) {
             this.value = new byte[this.length];
 
             // if there is an underrun just toss the TLV
             if (bb.remaining() < this.length) {
-                return null;
+                throw new DeserializationException(
+                        "Remaining bytes are less then the length of the TLV");
             }
             bb.get(this.value);
         }

@@ -16,9 +16,11 @@
 
 package org.onlab.packet.ipv6;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.Data;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.UDP;
 
@@ -40,6 +42,8 @@ public class BaseOptionsTest {
     };
     private static byte[] bytePacket;
 
+    private Deserializer<BaseOptions> deserializer;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         data = new Data();
@@ -55,6 +59,11 @@ public class BaseOptionsTest {
         bytePacket = new byte[byteHeader.length + bytePayload.length];
         System.arraycopy(byteHeader, 0, bytePacket, 0, byteHeader.length);
         System.arraycopy(bytePayload, 0, bytePacket, byteHeader.length, bytePayload.length);
+    }
+
+    @Before
+    public void setUp() {
+        deserializer = BaseOptions.deserializer();
     }
 
     /**
@@ -75,9 +84,8 @@ public class BaseOptionsTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        BaseOptions baseopt = new BaseOptions();
-        baseopt.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws Exception {
+        BaseOptions baseopt = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertThat(baseopt.getNextHeader(), is((byte) 0x11));
         assertThat(baseopt.getHeaderExtLength(), is((byte) 0x00));

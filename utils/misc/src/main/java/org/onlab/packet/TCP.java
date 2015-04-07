@@ -20,11 +20,16 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static org.onlab.packet.PacketUtils.*;
+
 /**
  * Implements TCP packet format.
  */
 
 public class TCP extends BasePacket {
+
+    private static final short TCP_HEADER_LENGTH = 20;
+
     protected short sourcePort;
     protected short destinationPort;
     protected int sequence;
@@ -339,6 +344,40 @@ public class TCP extends BasePacket {
         return data;
     }
 
+    @Override
+    public IPacket deserialize(final byte[] data, final int offset,
+                               final int length) {
+        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+        this.sourcePort = bb.getShort();
+        this.destinationPort = bb.getShort();
+        this.sequence = bb.getInt();
+        this.acknowledge = bb.getInt();
+        this.flags = bb.getShort();
+        this.dataOffset = (byte) (this.flags >> 12 & 0xf);
+        this.flags = (short) (this.flags & 0x1ff);
+        this.windowSize = bb.getShort();
+        this.checksum = bb.getShort();
+        this.urgentPointer = bb.getShort();
+        if (this.dataOffset > 5) {
+            int optLength = (this.dataOffset << 2) - 20;
+            if (bb.limit() < bb.position() + optLength) {
+                optLength = bb.limit() - bb.position();
+            }
+            try {
+                this.options = new byte[optLength];
+                bb.get(this.options, 0, optLength);
+            } catch (final IndexOutOfBoundsException e) {
+                this.options = null;
+            }
+        }
+
+        this.payload = new Data();
+        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
+                - bb.position());
+        this.payload.setParent(this);
+        return this;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -384,37 +423,39 @@ public class TCP extends BasePacket {
                 && (this.dataOffset == 5 || this.options.equals(other.options));
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.sourcePort = bb.getShort();
-        this.destinationPort = bb.getShort();
-        this.sequence = bb.getInt();
-        this.acknowledge = bb.getInt();
-        this.flags = bb.getShort();
-        this.dataOffset = (byte) (this.flags >> 12 & 0xf);
-        this.flags = (short) (this.flags & 0x1ff);
-        this.windowSize = bb.getShort();
-        this.checksum = bb.getShort();
-        this.urgentPointer = bb.getShort();
-        if (this.dataOffset > 5) {
-            int optLength = (this.dataOffset << 2) - 20;
-            if (bb.limit() < bb.position() + optLength) {
-                optLength = bb.limit() - bb.position();
-            }
-            try {
-                this.options = new byte[optLength];
-                bb.get(this.options, 0, optLength);
-            } catch (final IndexOutOfBoundsException e) {
-                this.options = null;
-            }
-        }
+    /**
+     * Deserializer function for TCP packets.
+     *
+     * @return deserializer function
+     */
+    public static Deserializer<TCP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, TCP_HEADER_LENGTH);
 
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
-        return this;
+            TCP tcp = new TCP();
+
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            tcp.sourcePort = bb.getShort();
+            tcp.destinationPort = bb.getShort();
+            tcp.sequence = bb.getInt();
+            tcp.acknowledge = bb.getInt();
+            tcp.flags = bb.getShort();
+            tcp.dataOffset = (byte) (tcp.flags >> 12 & 0xf);
+            tcp.flags = (short) (tcp.flags & 0x1ff);
+            tcp.windowSize = bb.getShort();
+            tcp.checksum = bb.getShort();
+            tcp.urgentPointer = bb.getShort();
+            if (tcp.dataOffset > 5) {
+                int optLength = (tcp.dataOffset << 2) - 20;
+                checkHeaderLength(length, TCP_HEADER_LENGTH + tcp.dataOffset);
+                tcp.options = new byte[optLength];
+                bb.get(tcp.options, 0, optLength);
+            }
+
+            tcp.payload = Data.deserializer()
+                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+            tcp.payload.setParent(tcp);
+            return tcp;
+        };
     }
 }

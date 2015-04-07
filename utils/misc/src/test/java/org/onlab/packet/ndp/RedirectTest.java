@@ -17,6 +17,8 @@ package org.onlab.packet.ndp;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.MacAddress;
 
 import static org.hamcrest.Matchers.is;
@@ -51,6 +53,8 @@ public class RedirectTest {
         MacAddress.valueOf("11:22:33:44:55:66");
 
     private static byte[] bytePacket;
+
+    private Deserializer<Redirect> deserializer = Redirect.deserializer();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -89,9 +93,8 @@ public class RedirectTest {
      * Tests deserialize and getters.
      */
     @Test
-    public void testDeserialize() {
-        Redirect rd = new Redirect();
-        rd.deserialize(bytePacket, 0, bytePacket.length);
+    public void testDeserialize() throws DeserializationException {
+        Redirect rd = deserializer.deserialize(bytePacket, 0, bytePacket.length);
 
         assertArrayEquals(rd.getTargetAddress(), TARGET_ADDRESS);
         assertArrayEquals(rd.getDestinationAddress(), DESTINATION_ADDRESS);
