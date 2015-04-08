@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
         description = "Lists information about atomic counters in the system")
 public class CountersListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "name=%s next_value=%d";
+    private static final String FMT = "name=%s value=%d";
 
     /**
      * Displays counters as text.
@@ -41,7 +41,7 @@ public class CountersListCommand extends AbstractShellCommand {
      * @param mapInfo map descriptions
      */
     private void displayCounters(Map<String, Long> counters) {
-        counters.forEach((name, nextValue) -> print(FMT, name, nextValue));
+        counters.forEach((name, value) -> print(FMT, name, value));
     }
 
     /**

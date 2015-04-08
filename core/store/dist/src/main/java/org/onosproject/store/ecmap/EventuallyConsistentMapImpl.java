@@ -18,6 +18,7 @@ package org.onosproject.store.ecmap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,6 +33,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.impl.LogicalTimestamp;
 import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.impl.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoSerializer;
@@ -223,6 +225,7 @@ public class EventuallyConsistentMapImpl<K, V>
             protected void setupKryoPool() {
                 // Add the map's internal helper classes to the user-supplied serializer
                 serializerPool = builder
+                        .register(LogicalTimestamp.class)
                         .register(WallClockTimestamp.class)
                         .register(PutEntry.class)
                         .register(RemoveEntry.class)

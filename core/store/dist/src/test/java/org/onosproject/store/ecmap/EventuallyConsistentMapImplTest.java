@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +36,7 @@ import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.service.ClockService;
+import org.onosproject.store.impl.LogicalTimestamp;
 import org.onosproject.store.impl.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
@@ -102,6 +104,7 @@ public class EventuallyConsistentMapImplTest {
                     .register(KryoNamespaces.API)
                     .register(TestTimestamp.class)
                     // Below is the classes that the map internally registers
+                    .register(LogicalTimestamp.class)
                     .register(WallClockTimestamp.class)
                     .register(PutEntry.class)
                     .register(RemoveEntry.class)

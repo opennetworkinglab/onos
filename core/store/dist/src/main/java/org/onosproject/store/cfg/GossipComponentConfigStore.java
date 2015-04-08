@@ -26,11 +26,11 @@ import org.onosproject.cfg.ComponentConfigEvent;
 import org.onosproject.cfg.ComponentConfigStore;
 import org.onosproject.cfg.ComponentConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.impl.WallclockClockManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
@@ -59,6 +59,9 @@ public class GossipComponentConfigStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LogicalClockService clockService;
+
     @Activate
     public void activate() {
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
@@ -67,7 +70,7 @@ public class GossipComponentConfigStore
         properties = storageService.<String, String>eventuallyConsistentMapBuilder()
                 .withName("cfg")
                 .withSerializer(serializer)
-                .withClockService(new WallclockClockManager<>())
+                .withClockService((k, v) -> clockService.getTimestamp())
                 .build();
 
         properties.addListener(new InternalPropertiesListener());

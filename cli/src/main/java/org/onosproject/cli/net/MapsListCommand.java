@@ -37,7 +37,7 @@ public class MapsListCommand extends AbstractShellCommand {
     // TODO: Add support to display different eventually
     // consistent maps as well.
 
-    private static final String FMT = "%-20s %8s";
+    private static final String FMT = "name=%s size=%d";
 
     /**
      * Displays map info as text.
@@ -45,16 +45,8 @@ public class MapsListCommand extends AbstractShellCommand {
      * @param mapInfo map descriptions
      */
     private void displayMaps(List<MapInfo> mapInfo) {
-        print("------------------------------");
-        print(FMT, "Name", "Size");
-        print("------------------------------");
-
-
         for (MapInfo info : mapInfo) {
             print(FMT, info.name(), info.size());
-        }
-        if (mapInfo.size() > 0) {
-            print("------------------------------");
         }
     }
 
