@@ -22,13 +22,14 @@
     'use strict';
 
     var moduleDependencies = [
+        'ngCookies',
         'onosUtil',
         'onosSvg',
         'onosRemote'
     ];
 
     // references to injected services etc.
-    var $log, fs, ks, zs, gs, ms, sus, flash, wss,
+    var $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss,
         tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs;
 
     // DOM elements
@@ -43,9 +44,9 @@
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
         actionMap = {
-            I: [toggleInstances, 'Toggle ONOS instances pane'],
-            O: [tps.toggleSummary, 'Toggle ONOS summary pane'],
-            D: [tps.toggleDetails, 'Disable / enable details pane'],
+            I: [toggleInstances, 'Toggle ONOS instances panel'],
+            O: [tps.toggleSummary, 'Toggle ONOS summary panel'],
+            D: [tps.toggleDetails, 'Disable / enable details panel'],
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
@@ -96,14 +97,25 @@
 
     // NOTE: this really belongs in the TopoPanelService -- but how to
     //       cleanly link in the updateDeviceColors() call? To be fixed later.
-    function toggleInstances() {
-        tis.toggle();
+    function toggleInstances(x) {
+        if (x === 'keyev') {
+            tis.toggle();
+            updateCookieState('insts', tis.isVisible());
+        } else if (x) {
+            tis.show();
+        } else {
+            tis.hide();
+        }
         tfs.updateDeviceColors();
     }
 
-    function toggleMap() {
-        sus.visible(mapG, !sus.visible(mapG));
+    function toggleMap(x) {
+        var on = (x === 'keyev') ? !sus.visible(mapG) : !!x;
+        sus.visible(mapG, on);
+        updateCookieState('bg', on);
     }
+
+    //  TODO: need wrapper functions for state changes needed in cookies
 
     function resetZoom() {
         zoomer.reset();
@@ -236,11 +248,85 @@
             .attr('opacity', b ? 1 : 0);
     }
 
+    // --- Config from Cookies -------------------------------------------
+
+    // TODO: write a general purpose cookie service, rather than custom here
+
+    // NOTE: in Angular 1.3.5, $cookies is just a simple object, and
+    //       cookie values are just strings. From the 1.3.5 docs:
+    //
+    //       "Only a simple Object is exposed and by adding or removing
+    //        properties to/from this object, new cookies are created/deleted
+    //        at the end of current $eval. The object's properties can only
+    //        be strings."
+    //
+    //       We may want to upgrade the version of Angular sometime soon
+    //        since later version support objects as cookie values.
+
+    var defaultCookieState = {
+        bg: 1,
+        insts: 1,
+        summary: 1,
+        detail: 1,
+        hosts: 0
+    };
+
+    var cookieState = {};
+
+    function writeCookieState() {
+        var bits = [],
+            str;
+        angular.forEach(cookieState, function (value, key) {
+            bits.push(key + ':' + value);
+        });
+        str = bits.join(',');
+
+        // The angular way of doing this...
+        // $cookies.topo_state = str;
+        //  ...but it appears that this gets delayed, and doesn't 'stick' ??
+
+        // FORCE cookie to be set by writing directly to document.cookie...
+        document.cookie = 'topo_state=' + encodeURIComponent(str);
+        $log.debug('<<>> Wrote cookie:', str);
+    }
+
+    function readCookieState() {
+        var cook = $cookies.topo_state || '',
+            bits;
+
+        if (!cook) {
+            cookieState = angular.extend({}, defaultCookieState);
+            writeCookieState(); // seed the pot
+
+        } else {
+            bits = cook.split(',');
+            bits.forEach(function (value) {
+                var x = value.split(':');
+                cookieState[x[0]] = Number(x[1]);
+            });
+        }
+    }
+
+    function updateCookieState(what, b) {
+        cookieState[what] = b ? 1 : 0;
+        writeCookieState();
+    }
+
+    function restoreConfigFromCookies() {
+        readCookieState();
+        $log.debug('Cookie State:', cookieState);
+
+        toggleInstances(cookieState.insts);
+        tps.toggleSummary(cookieState.summary);
+        tps.toggleDetails(cookieState.detail);
+    }
+
+
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
         .controller('OvTopoCtrl', ['$scope', '$log', '$location', '$timeout',
-            'FnService', 'MastService', 'KeyService', 'ZoomService',
+            '$cookies', 'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'WebSocketService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
@@ -248,8 +334,8 @@
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
             'TopoToolbarService',
 
-        function ($scope, _$log_, $loc, $timeout, _fs_, mast, _ks_, _zs_,
-                  _gs_, _ms_, _sus_, _flash_, _wss_, _tes_, _tfs_, _tps_,
+        function ($scope, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
+                  _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _tes_, _tfs_, _tps_,
                   _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_) {
             var self = this,
                 projection,
@@ -264,6 +350,7 @@
                 };
 
             $log = _$log_;
+            $cookies = _$cookies_;
             fs = _fs_;
             ks = _ks_;
             zs = _zs_;
@@ -316,6 +403,7 @@
                 function (proj) {
                     projection = proj;
                     $log.debug('** We installed the projection: ', proj);
+                    toggleMap(cookieState.bg);
                 }
             );
 
@@ -324,6 +412,9 @@
             tis.initInst({ showMastership: tfs.showMastership });
             tps.initPanels();
             tes.start();
+
+            // temporary solution for persisting user settings
+            restoreConfigFromCookies();
 
             $log.log('OvTopoCtrl has been created');
         }]);

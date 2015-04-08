@@ -225,13 +225,15 @@
         showSummaryPanel();
     }
 
-    function toggleSummary() {
-        if (summaryPanel.isVisible()) {
-            hideSummaryPanel();
-        } else {
+    function toggleSummary(x) {
+        var on = (x === 'keyev') ? !summaryPanel.isVisible() : !!x;
+
+        if (on) {
             // ask server to start sending summary data.
             wss.sendEvent('requestSummary');
             // note: the summary panel will appear, once data arrives
+        } else {
+            hideSummaryPanel();
         }
     }
 
@@ -289,8 +291,8 @@
         dp.up = function (cb) { dp._move(dp.ypos.up, cb); };
     }
 
-    function toggleDetails() {
-        useDetails = !useDetails;
+    function toggleDetails(x) {
+        useDetails = (x === 'keyev') ? !useDetails : !!x;
         if (useDetails) {
             flash.flash('Enable details panel');
             if (haveDetails) {

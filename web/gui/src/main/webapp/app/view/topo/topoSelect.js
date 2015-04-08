@@ -61,7 +61,7 @@
 
     function nodeMouseOver(m) {
         if (!m.dragStarted) {
-            $log.debug("MouseOver()...", m);
+            //$log.debug("MouseOver()...", m);
             if (hovered != m) {
                 hovered = m;
                 tts.requestTrafficForMode();
@@ -75,7 +75,7 @@
                 hovered = null;
                 tts.requestTrafficForMode();
             }
-            $log.debug("MouseOut()...", m);
+            //$log.debug("MouseOut()...", m);
         }
     }
 
