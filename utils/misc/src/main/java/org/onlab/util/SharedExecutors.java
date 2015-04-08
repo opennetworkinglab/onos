@@ -18,6 +18,8 @@ package org.onlab.util;
 
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -34,15 +36,18 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 public final class SharedExecutors {
 
+    private static final Logger log = LoggerFactory.getLogger(SharedExecutors.class);
+
     // TODO: make this configurable via setPoolSize static method
-    private static int numberOfThreads = 30;
+    public static final int DEFAULT_THREAD_SIZE = 30;
+    private static int poolSize = DEFAULT_THREAD_SIZE;
 
     private static ExecutorService singleThreadExecutor =
             newSingleThreadExecutor(groupedThreads("onos/shared",
                                                    "onos-single-executor"));
 
     private static ExecutorService poolThreadExecutor =
-            newFixedThreadPool(numberOfThreads, groupedThreads("onos/shared",
+            newFixedThreadPool(poolSize, groupedThreads("onos/shared",
                                                                "onos-pool-executor-%d"));
 
     private static Timer sharedTimer = new Timer("onos-shared-timer");
@@ -78,4 +83,19 @@ public final class SharedExecutors {
         return sharedTimer;
     }
 
+    /**
+     * Sets the shared thread pool size.
+     * @param poolSize
+     */
+    public static void setPoolSize(int poolSize) {
+        if (poolSize > 0) {
+            SharedExecutors.poolSize = poolSize;
+            //TODO: wait for execution previous task in the queue .
+            poolThreadExecutor.shutdown();
+            poolThreadExecutor = newFixedThreadPool(poolSize, groupedThreads("onos/shared",
+                    "onos-pool-executor-%d"));
+        } else {
+            log.warn("Shared Pool Size size must be greater than 0");
+        }
+    }
 }
