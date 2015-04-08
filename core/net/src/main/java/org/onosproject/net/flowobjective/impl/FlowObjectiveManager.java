@@ -31,6 +31,8 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
@@ -73,18 +75,23 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private MastershipListener mastershipListener = new InnerMastershipListener();
 
+    private DeviceListener deviceListener = new InnerDeviceListener();
+
     private Map<DeviceId, DriverHandler> driverHandlers =
             Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
         mastershipService.addListener(mastershipListener);
+        deviceService.addListener(deviceListener);
+        deviceService.getDevices().forEach(device -> setupDriver(device.id()));
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         mastershipService.removeListener(mastershipListener);
+        deviceService.removeListener(deviceListener);
         log.info("Stopped");
     }
 
@@ -121,27 +128,15 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         return pipe.next(nextObjectives);
     }
 
+
+
     private class InnerMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
             switch (event.type()) {
 
                 case MASTER_CHANGED:
-                    //TODO: refactor this into a method
-                    if (event.roleInfo().master().equals(
-                            clusterService.getLocalNode().id())) {
-                        DriverHandler handler = lookupDriver(event.subject());
-                        if (handler != null) {
-                            Pipeliner pipe = handler.behaviour(Pipeliner.class);
-                            pipe.init(event.subject(), serviceDirectory);
-                            driverHandlers.put(event.subject(), handler);
-                            log.info("Driver {} bound to device {}",
-                                     handler.data().type().name(), event.subject());
-                        } else {
-                            log.error("No driver for device {}", event.subject());
-                        }
-
-                    }
+                    setupDriver(event.subject());
 
                     break;
                 case BACKUPS_CHANGED:
@@ -151,13 +146,64 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
         }
 
-        private DriverHandler lookupDriver(DeviceId deviceId) {
-            Device device = deviceService.getDevice(deviceId);
 
-            Driver driver = driverService.getDriver(device.manufacturer(),
-                                           device.hwVersion(), device.swVersion());
+    }
 
-            return driverService.createHandler(driver.name(), deviceId);
+    private class InnerDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    setupDriver(event.subject().id());
+                    break;
+                case DEVICE_UPDATED:
+                    break;
+                case DEVICE_REMOVED:
+                    break;
+                case DEVICE_SUSPENDED:
+                    break;
+                case PORT_ADDED:
+                    break;
+                case PORT_UPDATED:
+                    break;
+                case PORT_REMOVED:
+                    break;
+                default:
+                    log.warn("Unknown event type {}", event.type());
+            }
         }
     }
+
+    private void setupDriver(DeviceId deviceId) {
+        //TODO: Refactor this to make it nicer and use a cache.
+        if (mastershipService.getMasterFor(
+                deviceId).equals(clusterService.getLocalNode().id())) {
+
+            DriverHandler handler = lookupDriver(deviceId);
+            if (handler != null) {
+                Pipeliner pipe = handler.behaviour(Pipeliner.class);
+                pipe.init(deviceId, serviceDirectory);
+                driverHandlers.put(deviceId, handler);
+                log.info("Driver {} bound to device {}",
+                         handler.data().type().name(), deviceId);
+            } else {
+                log.error("No driver for device {}", deviceId);
+            }
+        }
+    }
+
+
+    private DriverHandler lookupDriver(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
+            log.warn("Device is null!");
+            return null;
+        }
+        Driver driver = driverService.getDriver(device.manufacturer(),
+                                                device.hwVersion(), device.swVersion());
+
+        return driverService.createHandler(driver.name(), deviceId);
+    }
+
 }
