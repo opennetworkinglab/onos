@@ -33,11 +33,6 @@
             viewGestures: []
         };
 
-    // TODO: do we still need to have the concept of view token here..?
-    function getViewToken() {
-        return 'NotYetAViewToken';
-    }
-
     function whatKey(code) {
         switch (code) {
             case 13: return 'enter';
@@ -80,7 +75,7 @@
             vk = kh.viewKeys[key],
             kl = fs.isF(kh.viewKeys._keyListener),
             vcb = fs.isF(vk) || (fs.isA(vk) && fs.isF(vk[0])) || fs.isF(kh.viewFn),
-            token = getViewToken();
+            token = 'keyev';    // indicate this was a key-pressed event
 
         d3.event.stopPropagation();
 
