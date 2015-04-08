@@ -294,6 +294,8 @@
             <action class="org.onosproject.cli.net.AddMplsIntent"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
             </completers>
         </command>
     </command-bundle>
