@@ -15,6 +15,7 @@
  */
 package org.onosproject.cluster;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,5 +62,15 @@ public class LeadershipServiceAdapter implements LeadershipService {
     @Override
     public void removeListener(LeadershipEventListener listener) {
 
+    }
+
+    @Override
+    public Map<String, List<NodeId>> getCandidates() {
+        return null;
+    }
+
+    @Override
+    public List<NodeId> getCandidates(String path) {
+        return null;
     }
 }

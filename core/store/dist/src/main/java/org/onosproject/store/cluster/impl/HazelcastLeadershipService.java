@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -572,5 +573,15 @@ public class HazelcastLeadershipService implements LeadershipService {
                 topic.receivedLeadershipEvent(leadershipEvent);
                 eventDispatcher.post(leadershipEvent);
         }
+    }
+
+    @Override
+    public Map<String, List<NodeId>> getCandidates() {
+        return null;
+    }
+
+    @Override
+    public List<NodeId> getCandidates(String path) {
+        return null;
     }
 }

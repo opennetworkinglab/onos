@@ -49,11 +49,10 @@ public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leaders
         LEADER_BOOTED,
 
         /**
-         * Signifies that the list of candidates for leadership for a resource
-         * has changed. If the change in the backups list is accompanied by a
-         * change in the leader, the event is subsumed by the leadership change.
+         * Signifies that the list of candidates for leadership for a topic has
+         * changed.
          */
-        LEADER_CANDIDATES_CHANGED
+        CANDIDATES_CHANGED
     }
 
     /**

@@ -17,6 +17,7 @@ package org.onosproject.store.trivial.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -107,5 +108,15 @@ public class SimpleLeadershipManager implements LeadershipService {
     @Override
     public void removeListener(LeadershipEventListener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public Map<String, List<NodeId>> getCandidates() {
+        return null;
+    }
+
+    @Override
+    public List<NodeId> getCandidates(String path) {
+        return null;
     }
 }

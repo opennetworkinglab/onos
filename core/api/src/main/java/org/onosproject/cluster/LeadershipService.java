@@ -17,6 +17,7 @@ package org.onosproject.cluster;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 
 /**
  * Service for leader election.
@@ -65,6 +66,19 @@ public interface LeadershipService {
      * @return mapping from topic to leadership info.
      */
     Map<String, Leadership> getLeaderBoard();
+
+    /**
+     * Returns the candidates for all known topics.
+     * @return A map of topics to lists of NodeIds.
+     */
+    Map<String, List<NodeId>> getCandidates();
+
+    /**
+     * Returns the candidates for a given topic.
+     * @param path topic
+     * @return A lists of NodeIds, which may be empty.
+     */
+    List<NodeId> getCandidates(String path);
 
     /**
      * Registers a event listener to be notified of leadership events.

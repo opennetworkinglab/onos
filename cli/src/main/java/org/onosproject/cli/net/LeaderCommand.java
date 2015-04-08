@@ -17,12 +17,15 @@ package org.onosproject.cli.net;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.List;
 
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +39,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 public class LeaderCommand extends AbstractShellCommand {
 
     private static final String FMT = "%-20s | %-15s | %-6s | %-10s |";
+    private static final String FMT_C = "%-20s | %-15s | %-19s |";
+
+    @Option(name = "-c", aliases = "--candidates",
+            description = "List candidate Nodes for each topic's leadership race",
+            required = false, multiValued = false)
+    private boolean showCandidates = false;
 
     /**
      * Compares leaders, sorting by toString() output.
@@ -75,6 +84,28 @@ public class LeaderCommand extends AbstractShellCommand {
         print("--------------------------------------------------------------");
     }
 
+    private void displayCandidates(Map<String, Leadership> leaderBoard,
+            Map<String, List<NodeId>> candidates) {
+        print("--------------------------------------------------------------");
+        print(FMT_C, "Topic", "Leader", "Candidates");
+        print("--------------------------------------------------------------");
+        leaderBoard
+                .values()
+                .stream()
+                .sorted(leadershipComparator)
+                .forEach(l -> {
+                        List<NodeId> list = candidates.get(l.topic());
+                        print(FMT_C,
+                            l.topic(),
+                            l.leader(),
+                            list.remove(0).toString());
+                            // formatting hacks to get it into a table
+                            list.forEach(n -> print(FMT_C, " ", " ", n));
+                            print(FMT_C, " ", " ", " ");
+                        });
+        print("--------------------------------------------------------------");
+    }
+
     /**
      * Returns JSON node representing the leaders.
      *
@@ -91,6 +122,7 @@ public class LeaderCommand extends AbstractShellCommand {
                             mapper.createObjectNode()
                                 .put("topic", l.topic())
                                 .put("leader", l.leader().toString())
+                                .put("candidates", l.candidates().toString())
                                 .put("epoch", l.epoch())
                                 .put("electedTime", Tools.timeAgo(l.electedTime()))));
 
@@ -106,7 +138,12 @@ public class LeaderCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(leaderBoard));
         } else {
-            displayLeaders(leaderBoard);
+            if (showCandidates) {
+                Map<String, List<NodeId>> candidates = leaderService.getCandidates();
+                displayCandidates(leaderBoard, candidates);
+            } else {
+                displayLeaders(leaderBoard);
+            }
         }
     }
 }
