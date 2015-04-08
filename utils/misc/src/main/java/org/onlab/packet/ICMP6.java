@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import java.util.Map;
 public class ICMP6 extends BasePacket {
     public static final byte HEADER_LENGTH = 4; // bytes
 
+    public static final byte ECHO_REQUEST = (byte) 0x80;
+    public static final byte ECHO_REPLY = (byte) 0x81;
     public static final byte ROUTER_SOLICITATION = (byte) 0x85;
     public static final byte ROUTER_ADVERTISEMENT = (byte) 0x86;
     public static final byte NEIGHBOR_SOLICITATION = (byte) 0x87;
@@ -149,8 +151,8 @@ public class ICMP6 extends BasePacket {
             }
         }
         if (ipv6Parent != null) {
-            bbChecksum.put(((IPv6) ipv6Parent).getSourceAddress());
-            bbChecksum.put(((IPv6) ipv6Parent).getDestinationAddress());
+            bbChecksum.put(ipv6Parent.getSourceAddress());
+            bbChecksum.put(ipv6Parent.getDestinationAddress());
         } else {
             // NOTE: IPv6 source and destination addresses unknown. Use zeroes.
             bbChecksum.put(ZERO_ADDRESS);

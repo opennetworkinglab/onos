@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,14 +148,32 @@ public class UDP extends BasePacket {
             int accumulation = 0;
 
             // compute pseudo header mac
-            if (this.parent != null && this.parent instanceof IPv4) {
-                final IPv4 ipv4 = (IPv4) this.parent;
-                accumulation += (ipv4.getSourceAddress() >> 16 & 0xffff)
-                        + (ipv4.getSourceAddress() & 0xffff);
-                accumulation += (ipv4.getDestinationAddress() >> 16 & 0xffff)
-                        + (ipv4.getDestinationAddress() & 0xffff);
-                accumulation += ipv4.getProtocol() & 0xff;
-                accumulation += this.length & 0xffff;
+            if (this.parent != null) {
+                if (this.parent instanceof IPv4) {
+                    final IPv4 ipv4 = (IPv4) this.parent;
+                    accumulation += (ipv4.getSourceAddress() >> 16 & 0xffff)
+                            + (ipv4.getSourceAddress() & 0xffff);
+                    accumulation += (ipv4.getDestinationAddress() >> 16 & 0xffff)
+                            + (ipv4.getDestinationAddress() & 0xffff);
+                    accumulation += ipv4.getProtocol() & 0xff;
+                    accumulation += length & 0xffff;
+                } else if (this.parent instanceof IPv6) {
+                    final IPv6 ipv6 = (IPv6) this.parent;
+                    final int bbLength =
+                            Ip6Address.BYTE_LENGTH * 2 // IPv6 src, dst
+                                    + 2  // nextHeader (with padding)
+                                    + 4; // length
+                    final ByteBuffer bbChecksum = ByteBuffer.allocate(bbLength);
+                    bbChecksum.put(ipv6.getSourceAddress());
+                    bbChecksum.put(ipv6.getDestinationAddress());
+                    bbChecksum.put((byte) 0); // padding
+                    bbChecksum.put(ipv6.getNextHeader());
+                    bbChecksum.putInt(length);
+                    bbChecksum.rewind();
+                    for (int i = 0; i < bbLength / 2; ++i) {
+                        accumulation += 0xffff & bbChecksum.getShort();
+                    }
+                }
             }
 
             for (int i = 0; i < this.length / 2; ++i) {

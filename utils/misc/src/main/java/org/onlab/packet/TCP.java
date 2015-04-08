@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.onlab.packet;
 import java.nio.ByteBuffer;
 
 /**
- *
+ * Implements TCP packet format.
  */
 
 public class TCP extends BasePacket {
@@ -37,15 +37,18 @@ public class TCP extends BasePacket {
     protected byte[] options;
 
     /**
-     * @return the sourcePort
+     * Gets TCP source port.
+     *
+     * @return TCP source port
      */
     public short getSourcePort() {
         return this.sourcePort;
     }
 
     /**
-     * @param sourcePort
-     *            the sourcePort to set
+     * Sets TCP source port.
+     *
+     * @param sourcePort the sourcePort to set
      * @return this
      */
     public TCP setSourcePort(final short sourcePort) {
@@ -54,6 +57,8 @@ public class TCP extends BasePacket {
     }
 
     /**
+     * Gets TCP destination port.
+     *
      * @return the destinationPort
      */
     public short getDestinationPort() {
@@ -61,8 +66,9 @@ public class TCP extends BasePacket {
     }
 
     /**
-     * @param destinationPort
-     *            the destinationPort to set
+     * Sets TCP destination port.
+     *
+     * @param destinationPort the destinationPort to set
      * @return this
      */
     public TCP setDestinationPort(final short destinationPort) {
@@ -71,63 +77,122 @@ public class TCP extends BasePacket {
     }
 
     /**
+     * Gets checksum.
+     *
      * @return the checksum
      */
     public short getChecksum() {
         return this.checksum;
     }
 
+    /**
+     * Sets checksum.
+     *
+     * @param checksum the checksum to set
+     * @return this
+     */
+    public TCP setChecksum(final short checksum) {
+        this.checksum = checksum;
+        return this;
+    }
+
+    /**
+     * Gets sequence number.
+     *
+     * @return the sequence number
+     */
     public int getSequence() {
         return this.sequence;
     }
 
+    /**
+     * Sets sequence number.
+     *
+     * @param seq the sequence number to set
+     * @return this
+     */
     public TCP setSequence(final int seq) {
         this.sequence = seq;
         return this;
     }
 
+    /**
+     * Gets acknowledge number.
+     *
+     * @return the acknowledge number
+     */
     public int getAcknowledge() {
         return this.acknowledge;
     }
 
+    /**
+     * Sets acknowledge number.
+     *
+     * @param ack the acknowledge number to set
+     * @return this
+     */
     public TCP setAcknowledge(final int ack) {
         this.acknowledge = ack;
         return this;
     }
 
+    /**
+     * Gets offset.
+     *
+     * @return the offset
+     */
     public byte getDataOffset() {
         return this.dataOffset;
     }
 
+    /**
+     * Sets offset.
+     *
+     * @param offset the offset to set
+     * @return this
+     */
     public TCP setDataOffset(final byte offset) {
         this.dataOffset = offset;
         return this;
     }
 
+    /**
+     * Gets TCP flags.
+     *
+     * @return the TCP flags
+     */
     public short getFlags() {
         return this.flags;
     }
 
+    /**
+     * Sets TCP flags.
+     *
+     * @param flags the TCP flags to set
+     * @return this
+     */
     public TCP setFlags(final short flags) {
         this.flags = flags;
         return this;
     }
 
+    /**
+     * Gets TCP window size.
+     *
+     * @return the TCP window size
+     */
     public short getWindowSize() {
         return this.windowSize;
     }
 
+    /**
+     * Sets TCP window size.
+     *
+     * @param windowSize the TCP window size to set
+     * @return this
+     */
     public TCP setWindowSize(final short windowSize) {
         this.windowSize = windowSize;
-        return this;
-    }
-
-    public short getTcpChecksum() {
-        return this.checksum;
-    }
-
-    public TCP setTcpChecksum(final short checksum) {
-        this.checksum = checksum;
         return this;
     }
 
@@ -137,32 +202,44 @@ public class TCP extends BasePacket {
         super.resetChecksum();
     }
 
-    public short getUrgentPointer(final short urgentPointer) {
+    /**
+     * Gets urgent pointer.
+     *
+     * @return the urgent pointer
+     */
+    public short getUrgentPointer() {
         return this.urgentPointer;
     }
 
+    /**
+     * Sets urgent pointer.
+     *
+     * @param urgentPointer the urgent pointer to set
+     * @return this
+     */
     public TCP setUrgentPointer(final short urgentPointer) {
         this.urgentPointer = urgentPointer;
         return this;
     }
 
+    /**
+     * Gets TCP options.
+     *
+     * @return the TCP options
+     */
     public byte[] getOptions() {
         return this.options;
     }
 
+    /**
+     * Sets TCP options.
+     *
+     * @param options the options to set
+     * @return this
+     */
     public TCP setOptions(final byte[] options) {
         this.options = options;
         this.dataOffset = (byte) (20 + options.length + 3 >> 2);
-        return this;
-    }
-
-    /**
-     * @param checksum
-     *            the checksum to set
-     * @return this
-     */
-    public TCP setChecksum(final short checksum) {
-        this.checksum = checksum;
         return this;
     }
 
@@ -218,14 +295,32 @@ public class TCP extends BasePacket {
             int accumulation = 0;
 
             // compute pseudo header mac
-            if (this.parent != null && this.parent instanceof IPv4) {
-                final IPv4 ipv4 = (IPv4) this.parent;
-                accumulation += (ipv4.getSourceAddress() >> 16 & 0xffff)
-                        + (ipv4.getSourceAddress() & 0xffff);
-                accumulation += (ipv4.getDestinationAddress() >> 16 & 0xffff)
-                        + (ipv4.getDestinationAddress() & 0xffff);
-                accumulation += ipv4.getProtocol() & 0xff;
-                accumulation += length & 0xffff;
+            if (this.parent != null) {
+                if (this.parent instanceof IPv4) {
+                    final IPv4 ipv4 = (IPv4) this.parent;
+                    accumulation += (ipv4.getSourceAddress() >> 16 & 0xffff)
+                            + (ipv4.getSourceAddress() & 0xffff);
+                    accumulation += (ipv4.getDestinationAddress() >> 16 & 0xffff)
+                            + (ipv4.getDestinationAddress() & 0xffff);
+                    accumulation += ipv4.getProtocol() & 0xff;
+                    accumulation += length & 0xffff;
+                } else if (this.parent instanceof IPv6) {
+                    final IPv6 ipv6 = (IPv6) this.parent;
+                    final int bbLength =
+                            Ip6Address.BYTE_LENGTH * 2 // IPv6 src, dst
+                                    + 2  // nextHeader (with padding)
+                                    + 4; // length
+                    final ByteBuffer bbChecksum = ByteBuffer.allocate(bbLength);
+                    bbChecksum.put(ipv6.getSourceAddress());
+                    bbChecksum.put(ipv6.getDestinationAddress());
+                    bbChecksum.put((byte) 0); // padding
+                    bbChecksum.put(ipv6.getNextHeader());
+                    bbChecksum.putInt(length);
+                    bbChecksum.rewind();
+                    for (int i = 0; i < bbLength / 2; ++i) {
+                        accumulation += 0xffff & bbChecksum.getShort();
+                    }
+                }
             }
 
             for (int i = 0; i < length / 2; ++i) {
