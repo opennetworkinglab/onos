@@ -28,7 +28,7 @@ import java.util.Set;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Manages application inventory.
+ * Manages component configuration.
  */
 @Command(scope = "onos", name = "cfg",
         description = "Manages component configuration")
@@ -46,7 +46,7 @@ public class ComponentConfigCommand extends AbstractShellCommand {
 
 
     @Argument(index = 0, name = "command",
-            description = "Command name (activate|deactivate|uninstall)",
+            description = "Command name (get|set)",
             required = false, multiValued = false)
     String command = null;
 
