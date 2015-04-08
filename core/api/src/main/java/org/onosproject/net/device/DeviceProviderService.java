@@ -19,6 +19,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.provider.ProviderService;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -69,5 +70,13 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
      * @param response mastership role the switch accepted
      */
     void receivedRoleReply(DeviceId deviceId, MastershipRole requested, MastershipRole response);
+
+    /**
+     * Sends statistics about all ports of a device.
+     *
+     * @param deviceId          identity of the device
+     * @param portStatistics  list of device port statistics
+     */
+    void updatePortStatistics(DeviceId deviceId, Collection<PortStatistics> portStatistics);
 
 }

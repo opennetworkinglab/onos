@@ -42,6 +42,7 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onlab.packet.ChassisId;
@@ -49,6 +50,7 @@ import org.onlab.util.NewConcurrentHashMap;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,6 +96,8 @@ public class SimpleDeviceStore
     private final ConcurrentMap<DeviceId, Device> devices = Maps.newConcurrentMap();
     private final ConcurrentMap<DeviceId, ConcurrentMap<PortNumber, Port>>
             devicePorts = Maps.newConcurrentMap();
+    private final ConcurrentMap<DeviceId, ConcurrentMap<PortNumber, PortStatistics>>
+            devicePortStats = Maps.newConcurrentMap();
 
     // Available (=UP) devices
     private final Set<DeviceId> availableDevices = Sets.newConcurrentHashSet();
@@ -416,9 +420,36 @@ public class SimpleDeviceStore
     }
 
     @Override
+    public DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
+                                            Collection<PortStatistics> portStats) {
+
+        ConcurrentMap<PortNumber, PortStatistics> statsMap = devicePortStats.get(deviceId);
+        if (statsMap == null) {
+            statsMap = Maps.newConcurrentMap();
+            devicePortStats.put(deviceId, statsMap);
+        }
+
+        for (PortStatistics stat: portStats) {
+            PortNumber portNumber = PortNumber.portNumber(stat.port());
+            statsMap.put(portNumber, stat);
+        }
+
+        return new DeviceEvent(PORT_STATS_UPDATED,  devices.get(deviceId), null);
+    }
+
+    @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         Map<PortNumber, Port> ports = devicePorts.get(deviceId);
         return ports == null ? null : ports.get(portNumber);
+    }
+
+    @Override
+    public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
+        Map<PortNumber, PortStatistics> portStats = devicePortStats.get(deviceId);
+        if (portStats == null) {
+            return Collections.emptyList();
+        }
+        return ImmutableList.copyOf(portStats.values());
     }
 
     @Override

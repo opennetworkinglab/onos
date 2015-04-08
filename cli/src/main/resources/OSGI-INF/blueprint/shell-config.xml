@@ -280,6 +280,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.DevicePortStatsCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.FlowsListCommand"/>
             <completers>
                 <ref component-id="flowRuleStatusCompleter"/>

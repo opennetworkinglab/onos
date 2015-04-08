@@ -50,10 +50,12 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -171,6 +173,12 @@ public class DeviceManager
     public List<Port> getPorts(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPorts(deviceId);
+    }
+
+    @Override
+    public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getPortStatistics(deviceId);
     }
 
     @Override
@@ -462,6 +470,19 @@ public class DeviceManager
                 }
             }
 
+        }
+
+        @Override
+        public void updatePortStatistics(DeviceId deviceId, Collection<PortStatistics> portStatistics) {
+            checkNotNull(deviceId, DEVICE_ID_NULL);
+            checkNotNull(portStatistics,
+                    "Port statistics list cannot be null");
+            checkValidity();
+
+            DeviceEvent event = store.updatePortStatistics(this.provider().id(),
+                    deviceId, portStatistics);
+
+            post(event);
         }
     }
 

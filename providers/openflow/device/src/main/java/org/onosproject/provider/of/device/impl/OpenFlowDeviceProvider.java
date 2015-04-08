@@ -15,6 +15,8 @@
  */
 package org.onosproject.provider.of.device.impl;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,31 +31,43 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
+import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortState;
+import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import com.google.common.base.Strings;
@@ -83,7 +97,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private DeviceProviderService providerService;
 
-    private final OpenFlowSwitchListener listener = new InternalDeviceProvider();
+    private final InternalDeviceProvider listener = new InternalDeviceProvider();
+
+    // TODO: We need to make the poll interval configurable.
+    static final int POLL_INTERVAL = 10;
+
+    private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
 
     /**
      * Creates an OpenFlow device provider.
@@ -96,6 +115,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void activate() {
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
+        controller.addEventListener(listener);
         for (OpenFlowSwitch sw : controller.getSwitches()) {
             try {
                 listener.switchAdded(new Dpid(sw.getId()));
@@ -105,6 +125,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // disconnect to trigger switch-add later
                 sw.disconnectSwitch();
             }
+            PortStatsCollector psc = new PortStatsCollector(sw, POLL_INTERVAL);
+            psc.start();
+            collectors.put(new Dpid(sw.getId()), psc);
         }
         LOG.info("Started");
     }
@@ -174,7 +197,45 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.info("Accepting mastership role change for device {}", deviceId);
     }
 
-    private class InternalDeviceProvider implements OpenFlowSwitchListener {
+    private void pushPortMetrics(Dpid dpid, OFPortStatsReply msg) {
+        DeviceId deviceId = DeviceId.deviceId(dpid.uri(dpid));
+
+        Collection<PortStatistics> stats = buildPortStatistics(deviceId, msg);
+
+        providerService.updatePortStatistics(deviceId, stats);
+    }
+
+    private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId, OFPortStatsReply msg) {
+
+        HashSet<PortStatistics> stats = Sets.newHashSet();
+
+        for (OFPortStatsEntry entry: msg.getEntries()) {
+            if (entry.getPortNo().getPortNumber() < 0) {
+                continue;
+            }
+            DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+            DefaultPortStatistics stat = builder.setDeviceId(deviceId)
+                    .setPort(entry.getPortNo().getPortNumber())
+                    .setPacketsReceived(entry.getRxPackets().getValue())
+                    .setPacketsSent(entry.getTxPackets().getValue())
+                    .setBytesReceived(entry.getRxBytes().getValue())
+                    .setBytesSent(entry.getTxBytes().getValue())
+                    .setPacketsRxDropped(entry.getRxDropped().getValue())
+                    .setPacketsTxDropped(entry.getTxDropped().getValue())
+                    .setPacketsRxErrors(entry.getRxErrors().getValue())
+                    .setPacketsTxErrors(entry.getTxErrors().getValue())
+                    .setDurationSec(entry.getDurationSec())
+                    .setDurationNano(entry.getDurationNsec())
+                    .build();
+
+            stats.add(stat);
+        }
+
+        return Collections.unmodifiableSet(stats);
+
+    }
+
+    private class InternalDeviceProvider implements OpenFlowSwitchListener, OpenFlowEventListener {
         @Override
         public void switchAdded(Dpid dpid) {
             if (providerService == null) {
@@ -201,6 +262,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                                                  cId, annotations);
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
+
+            PortStatsCollector psc = new PortStatsCollector(
+                        controller.getSwitch(dpid), POLL_INTERVAL);
+            psc.start();
+            collectors.put(dpid, psc);
         }
 
         @Override
@@ -209,8 +275,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 return;
             }
             providerService.deviceDisconnected(deviceId(uri(dpid)));
-        }
 
+            PortStatsCollector collector = collectors.remove(dpid);
+            if (collector != null) {
+                collector.stop();
+            }
+        }
 
         @Override
         public void switchChanged(Dpid dpid) {
@@ -327,6 +397,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 portSpeed = PortSpeed.max(portSpeed, feat.getPortSpeed());
             }
             return portSpeed.getSpeedBps() / MBPS;
+        }
+
+        @Override
+        public void handleMessage(Dpid dpid, OFMessage msg) {
+            switch (msg.getType()) {
+                case STATS_REPLY:
+                    if (((OFStatsReply) msg).getStatsType() == OFStatsType.PORT) {
+                        pushPortMetrics(dpid, (OFPortStatsReply) msg);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

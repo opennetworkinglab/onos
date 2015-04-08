@@ -22,6 +22,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -114,6 +115,26 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     List<Port> getPorts(DeviceId deviceId);
 
     /**
+     * Updates the port statistics of the specified device using the give port
+     * statistics.
+     *
+     * @param providerId  provider identifier
+     * @param deviceId    device identifier
+     * @param portStats   list of port statistics
+     * @return ready to send event describing what occurred;
+     */
+    DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
+                                     Collection<PortStatistics> portStats);
+
+    /**
+     * Returns the list of port statistics of the specified device.
+     *
+     * @param deviceId device identifier
+     * @return list of port statistics of all ports of the device
+     */
+    List<PortStatistics> getPortStatistics(DeviceId deviceId);
+
+    /**
      * Returns the specified device port.
      *
      * @param deviceId   device identifier
@@ -137,4 +158,6 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * @return null if no such device, or was forwarded to remove master
      */
     DeviceEvent removeDevice(DeviceId deviceId);
+
+
 }

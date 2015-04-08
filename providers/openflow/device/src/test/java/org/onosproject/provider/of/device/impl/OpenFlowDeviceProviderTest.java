@@ -23,6 +23,7 @@ import static org.onosproject.net.Device.Type.*;
 import static org.onosproject.net.MastershipRole.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
@@ -215,6 +217,11 @@ public class OpenFlowDeviceProviderTest {
             public void receivedRoleReply(DeviceId deviceId,
                     MastershipRole requested, MastershipRole response) {
                 roles.put(requested, Dpid.dpid(deviceId.uri()));
+            }
+
+            @Override
+            public void updatePortStatistics(DeviceId deviceId, Collection<PortStatistics> portStatistics) {
+
             }
 
         }

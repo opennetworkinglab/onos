@@ -47,6 +47,8 @@ import org.projectfloodlight.openflow.protocol.OFGroupStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
@@ -102,6 +104,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             ArrayListMultimap.create();
 
     protected Multimap<Dpid, OFGroupDescStatsEntry> fullGroupDescStats =
+            ArrayListMultimap.create();
+
+    protected Multimap<Dpid, OFPortStatsEntry> fullPortStats =
             ArrayListMultimap.create();
 
     private final Controller ctrl = new Controller();
@@ -216,6 +221,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         Collection<OFFlowStatsEntry> flowStats;
         Collection<OFGroupStatsEntry> groupStats;
         Collection<OFGroupDescStatsEntry> groupDescStats;
+        Collection<OFPortStatsEntry> portStats;
 
         switch (msg.getType()) {
         case PORT_STATUS:
@@ -280,6 +286,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                         executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
+                case PORT:
+                    executorMsgs.submit(new OFMessageHandler(dpid, reply));
+                    break;
                 default:
                     log.warn("Unsupported stats type : {}", reply.getStatsType());
             }
@@ -339,6 +348,15 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         fullGroupDescStats.putAll(dpid, reply.getEntries());
         if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
             return fullGroupDescStats.removeAll(dpid);
+        }
+        return null;
+    }
+
+    private synchronized Collection<OFPortStatsEntry> publishPortStats(Dpid dpid,
+                                                                 OFPortStatsReply reply) {
+        fullPortStats.putAll(dpid, reply.getEntries());
+        if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+            return fullPortStats.removeAll(dpid);
         }
         return null;
     }

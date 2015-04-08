@@ -78,6 +78,14 @@ public interface DeviceService {
     List<Port> getPorts(DeviceId deviceId);
 
     /**
+     * Returns the list of port statistics associated with the device.
+     *
+     * @param deviceId device identitifer
+     * @return list of port statistics
+     */
+    List<PortStatistics> getPortStatistics(DeviceId deviceId);
+
+    /**
      * Returns the port with the specified number and hosted by the given device.
      *
      * @param deviceId   device identifier
