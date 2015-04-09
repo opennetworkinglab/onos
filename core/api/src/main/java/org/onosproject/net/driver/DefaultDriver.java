@@ -16,6 +16,7 @@
 package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import java.util.Map;
 import java.util.Set;
@@ -72,8 +73,8 @@ public class DefaultDriver implements Driver {
     @Override
     public Driver merge(Driver other) {
         // Merge the behaviours.
-        ImmutableMap.Builder<Class<? extends Behaviour>, Class<? extends Behaviour>>
-                behaviours = ImmutableMap.builder();
+        Map<Class<? extends Behaviour>, Class<? extends Behaviour>>
+                behaviours = Maps.newHashMap();
         behaviours.putAll(this.behaviours);
         other.behaviours().forEach(b -> behaviours.put(b, other.implementation(b)));
 
@@ -82,7 +83,7 @@ public class DefaultDriver implements Driver {
         properties.putAll(this.properties).putAll(other.properties());
 
         return new DefaultDriver(name, manufacturer, hwVersion, swVersion,
-                                 behaviours.build(), properties.build());
+                                 ImmutableMap.copyOf(behaviours), properties.build());
     }
 
     @Override
