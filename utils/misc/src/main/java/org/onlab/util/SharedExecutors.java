@@ -18,9 +18,8 @@ package org.onlab.util;
 
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -36,21 +35,20 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 public final class SharedExecutors {
 
-    private static final Logger log = LoggerFactory.getLogger(SharedExecutors.class);
+    public static final int DEFAULT_POOL_SIZE = 30;
 
-    // TODO: make this configurable via setPoolSize static method
-    public static final int DEFAULT_THREAD_SIZE = 30;
-    private static int poolSize = DEFAULT_THREAD_SIZE;
+    private static SharedExecutorService singleThreadExecutor =
+            new SharedExecutorService(
+                    newSingleThreadExecutor(groupedThreads("onos/shared",
+                                                           "onos-single-executor")));
 
-    private static ExecutorService singleThreadExecutor =
-            newSingleThreadExecutor(groupedThreads("onos/shared",
-                                                   "onos-single-executor"));
+    private static SharedExecutorService poolThreadExecutor =
+            new SharedExecutorService(
+                    newFixedThreadPool(DEFAULT_POOL_SIZE,
+                                       groupedThreads("onos/shared",
+                                                      "onos-pool-executor-%d")));
 
-    private static ExecutorService poolThreadExecutor =
-            newFixedThreadPool(poolSize, groupedThreads("onos/shared",
-                                                               "onos-pool-executor-%d"));
-
-    private static Timer sharedTimer = new Timer("onos-shared-timer");
+    private static SharedTimer sharedTimer = new SharedTimer();
 
     // Ban public construction
     private SharedExecutors() {
@@ -85,17 +83,41 @@ public final class SharedExecutors {
 
     /**
      * Sets the shared thread pool size.
-     * @param poolSize
+     *
+     * @param poolSize new pool size
      */
     public static void setPoolSize(int poolSize) {
-        if (poolSize > 0) {
-            SharedExecutors.poolSize = poolSize;
-            //TODO: wait for execution previous task in the queue .
-            poolThreadExecutor.shutdown();
-            poolThreadExecutor = newFixedThreadPool(poolSize, groupedThreads("onos/shared",
-                    "onos-pool-executor-%d"));
-        } else {
-            log.warn("Shared Pool Size size must be greater than 0");
+        checkArgument(poolSize > 0, "Shared pool size size must be greater than 0");
+        poolThreadExecutor.setBackingExecutor(
+                newFixedThreadPool(poolSize, groupedThreads("onos/shared",
+                                                            "onos-pool-executor-%d")));
+    }
+
+    /**
+     * Shuts down all shared timers and executors and therefore should be
+     * called only by the framework.
+     */
+    public static void shutdown() {
+        sharedTimer.shutdown();
+        singleThreadExecutor.backingExecutor().shutdown();
+        poolThreadExecutor.backingExecutor().shutdown();
+    }
+
+    // Timer extension which does not allow outside cancel method.
+    private static class SharedTimer extends Timer {
+
+        public SharedTimer() {
+            super("onos-shared-timer");
+        }
+
+        @Override
+        public void cancel() {
+            throw new UnsupportedOperationException("Cancel of shared timer is not allowed");
+        }
+
+        private void shutdown() {
+            super.cancel();
         }
     }
+
 }

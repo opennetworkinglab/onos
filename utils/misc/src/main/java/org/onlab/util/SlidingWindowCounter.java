@@ -58,13 +58,13 @@ public final class SlidingWindowCounter {
 
         // Initialize each item in the list to an AtomicLong of 0
         this.counters = Collections.nCopies(windowSlots, 0)
-                    .stream()
-                    .map(AtomicLong::new)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                .stream()
+                .map(AtomicLong::new)
+                .collect(Collectors.toCollection(ArrayList::new));
 
         background = Executors.newSingleThreadScheduledExecutor();
         background.scheduleWithFixedDelay(this::advanceHead, 0,
-                SLIDE_WINDOW_PERIOD_SECONDS, TimeUnit.SECONDS);
+                                          SLIDE_WINDOW_PERIOD_SECONDS, TimeUnit.SECONDS);
     }
 
     /**

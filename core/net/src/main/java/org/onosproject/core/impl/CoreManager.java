@@ -64,9 +64,9 @@ public class CoreManager implements CoreService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "sharedThreadPoolSize", intValue = SharedExecutors.DEFAULT_THREAD_SIZE,
+    @Property(name = "sharedThreadPoolSize", intValue = SharedExecutors.DEFAULT_POOL_SIZE,
             label = "Configure shared pool maximum size ")
-    private int sharedThreadPoolSize = SharedExecutors.DEFAULT_THREAD_SIZE;
+    private int sharedThreadPoolSize = SharedExecutors.DEFAULT_POOL_SIZE;
 
     @Activate
     public void activate() {
@@ -80,6 +80,7 @@ public class CoreManager implements CoreService {
     @Deactivate
     public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
+        SharedExecutors.shutdown();
     }
 
     @Override
