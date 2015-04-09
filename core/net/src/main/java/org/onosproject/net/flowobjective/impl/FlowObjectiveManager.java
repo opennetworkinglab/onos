@@ -143,7 +143,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         public void event(MastershipEvent event) {
             switch (event.type()) {
                 case MASTER_CHANGED:
-                    setupPipelineHandler(event.subject());
+                    if (event.roleInfo().master() != null) {
+                        setupPipelineHandler(event.subject());
+                    }
+                    break;
+                case BACKUPS_CHANGED:
                     break;
                 default:
                     break;
@@ -158,7 +162,21 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
-                    setupPipelineHandler(event.subject().id());
+                    if (deviceService.isAvailable(event.subject().id())) {
+                        setupPipelineHandler(event.subject().id());
+                    }
+                    break;
+                case DEVICE_UPDATED:
+                    break;
+                case DEVICE_REMOVED:
+                    break;
+                case DEVICE_SUSPENDED:
+                    break;
+                case PORT_ADDED:
+                    break;
+                case PORT_UPDATED:
+                    break;
+                case PORT_REMOVED:
                     break;
                 default:
                     break;
