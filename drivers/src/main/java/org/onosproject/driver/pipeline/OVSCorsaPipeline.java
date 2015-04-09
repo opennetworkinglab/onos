@@ -24,7 +24,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
-import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.driver.AbstractBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -45,9 +45,9 @@ import java.util.concurrent.Future;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Created by ash on 07/04/15.
+ * Corsa pipeline handler.
  */
-public class OVSCorsaPipeline implements Pipeliner {
+public class OVSCorsaPipeline extends AbstractBehaviour implements Pipeliner {
 
     private static final int CONTROLLER_PRIORITY = 255;
     private static final int DROP_PRIORITY = 0;
@@ -92,12 +92,6 @@ public class OVSCorsaPipeline implements Pipeliner {
         return null;
     }
 
-    @Override
-    public void setData(DriverData data) {
-
-    }
-
-
     private void pushDefaultRules() {
         boolean install = true;
         processTableZero(install);
@@ -128,7 +122,6 @@ public class OVSCorsaPipeline implements Pipeliner {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
 
         ops = install ? ops.add(rule) : ops.remove(rule);
-
 
 
         //Drop rule
@@ -193,7 +186,6 @@ public class OVSCorsaPipeline implements Pipeliner {
         TrafficTreatment.Builder treatment;
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         FlowRule rule;
-
 
 
         //Drop rule

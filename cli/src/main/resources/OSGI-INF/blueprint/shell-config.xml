@@ -71,6 +71,14 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.DriversListCommand"/>
+            <completers>
+                <ref component-id="driverNameCompleter"/>
+                <null/>
+            </completers>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.DevicesListCommand"/>
         </command>
         <command>
@@ -316,5 +324,6 @@
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
     <bean id="ethTypeCompleter" class="org.onosproject.cli.net.EthTypeCompleter"/>
     <bean id="ipProtocolCompleter" class="org.onosproject.cli.net.IpProtocolCompleter"/>
+    <bean id="driverNameCompleter" class="org.onosproject.cli.net.DriverNameCompleter"/>
 
 </blueprint>

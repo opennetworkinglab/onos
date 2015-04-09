@@ -25,13 +25,19 @@ import java.util.Set;
 public interface DriverService {
 
     /**
-     * Returns the overall set of drivers being provided, optionally
-     * filtered to only those that support all specified behaviours.
+     * Returns the overall set of drivers being provided.
      *
-     * @param withBehaviours optional behaviour classes to query by
      * @return provided drivers
      */
-    Set<Driver> getDrivers(Class<? extends Behaviour>... withBehaviours);
+    Set<Driver> getDrivers();
+
+    /**
+     * Returns the set of drivers which support the specified behaviour.
+     *
+     * @param withBehaviour behaviour class to query by
+     * @return provided drivers
+     */
+    Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour);
 
     /**
      * Returns the specified driver.

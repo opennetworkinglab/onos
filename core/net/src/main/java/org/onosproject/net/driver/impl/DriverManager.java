@@ -30,6 +30,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.DefaultDriverProvider;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverHandler;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.AnnotationKeys.DRIVER;
@@ -49,7 +51,7 @@ import static org.onosproject.net.AnnotationKeys.DRIVER;
  */
 @Component(immediate = true)
 @Service
-public class DriverManager implements DriverAdminService {
+public class DriverManager extends DefaultDriverProvider implements DriverAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -61,7 +63,6 @@ public class DriverManager implements DriverAdminService {
     protected DeviceService deviceService;
 
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();
-    private Map<String, Driver> driverByName = Maps.newConcurrentMap();
     private Map<String, Driver> driverByKey = Maps.newConcurrentMap();
 
     @Activate
@@ -83,7 +84,7 @@ public class DriverManager implements DriverAdminService {
     @Override
     public void registerProvider(DriverProvider provider) {
         provider.getDrivers().forEach(driver -> {
-            driverByName.put(driver.name(), driver);
+            addDrivers(provider.getDrivers());
             driverByKey.put(key(driver.manufacturer(),
                                 driver.hwVersion(),
                                 driver.swVersion()), driver);
@@ -94,7 +95,7 @@ public class DriverManager implements DriverAdminService {
     @Override
     public void unregisterProvider(DriverProvider provider) {
         provider.getDrivers().forEach(driver -> {
-            driverByName.remove(driver.name());
+            removeDrivers(provider.getDrivers());
             driverByKey.remove(key(driver.manufacturer(),
                                    driver.hwVersion(),
                                    driver.swVersion()));
@@ -103,21 +104,22 @@ public class DriverManager implements DriverAdminService {
     }
 
     @Override
-    public Set<Driver> getDrivers(Class<? extends Behaviour>... withBehaviours) {
+    public Set<Driver> getDrivers() {
         ImmutableSet.Builder<Driver> builder = ImmutableSet.builder();
-        for (Class<? extends Behaviour> behaviour : withBehaviours) {
-            driverByName.forEach((name, driver) -> {
-                if (driver.hasBehaviour(behaviour)) {
-                    builder.add(driver);
-                }
-            });
-        }
+        drivers.values().forEach(builder::add);
         return builder.build();
     }
 
     @Override
+    public Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour) {
+        return drivers.values().stream()
+                .filter(d -> d.hasBehaviour(withBehaviour))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Driver getDriver(String driverName) {
-        return nullIsNotFound(driverByName.get(driverName), NO_DRIVER);
+        return nullIsNotFound(drivers.get(driverName), NO_DRIVER);
     }
 
     @Override
@@ -134,7 +136,7 @@ public class DriverManager implements DriverAdminService {
                 .filter(d -> matches(d, mfr, hw, sw)).findFirst();
 
         // If no matching driver is found, return default.
-        return optional.isPresent() ? optional.get() : driverByName.get(DEFAULT);
+        return optional.isPresent() ? optional.get() : drivers.get(DEFAULT);
     }
 
     // Matches the given driver using ERE matching against the given criteria.
@@ -163,6 +165,7 @@ public class DriverManager implements DriverAdminService {
         return new DefaultDriverHandler(new DefaultDriverData(driver));
     }
 
+    // Produces a composite driver key using the specified components.
     private String key(String mfr, String hw, String sw) {
         return String.format("%s-%s-%s", mfr, hw, sw);
     }

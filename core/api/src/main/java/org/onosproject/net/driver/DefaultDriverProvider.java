@@ -16,8 +16,8 @@
 package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,7 +28,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultDriverProvider implements DriverProvider {
 
-    private final Map<String, DefaultDriver> drivers = new HashMap<>();
+    protected final Map<String, Driver> drivers = Maps.newConcurrentMap();
 
     @Override
     public Set<Driver> getDrivers() {
@@ -36,30 +36,47 @@ public class DefaultDriverProvider implements DriverProvider {
     }
 
     /**
-     * Adds the specified driver to be provided.
+     * Adds the specified drivers to the provider.
      *
-     * @param driverClasses driver to be provided
+     * @param drivers drivers to be added
      */
-    public void addDrivers(Set<DefaultDriver> driverClasses) {
-        for (DefaultDriver driverClass : driverClasses) {
-            addDriver(driverClass);
+    public void addDrivers(Set<Driver> drivers) {
+        drivers.forEach(this::addDriver);
+    }
+
+    /**
+     * Adds the specified driver to the provider.
+     *
+     * @param driver driver to be provided
+     */
+    public void addDriver(Driver driver) {
+        Driver ddc = drivers.get(driver.name());
+        if (ddc == null) {
+            // If we don't have the driver yet, just use the new one.
+            drivers.put(driver.name(), driver);
+        } else {
+            // Otherwise merge the existing driver with the new one and rebind.
+            drivers.put(driver.name(), ddc.merge(driver));
         }
     }
 
     /**
-     * Adds the specified driver to be provided.
+     * Removes the specified drivers from the provider.
      *
-     * @param driverClass driver to be provided
+     * @param drivers drivers to be removed
      */
-    public void addDriver(DefaultDriver driverClass) {
-        DefaultDriver ddc = drivers.get(driverClass.name());
-        if (ddc == null) {
-            // If we don't have the driver yet, just use the new one.
-            drivers.put(driverClass.name(), driverClass);
-        } else {
-            // Otherwise merge the existing driver with the new one and rebind.
-            drivers.put(driverClass.name(), ddc.merge(driverClass));
-        }
+    public void removeDrivers(Set<Driver> drivers) {
+        drivers.forEach(this::removeDriver);
+    }
+
+    /**
+     * Removes the specified driver from the provider.
+     *
+     * @param driver driver to be removed
+     */
+    public void removeDriver(Driver driver) {
+        // TODO: make selective if possible
+        drivers.remove(driver.name());
     }
 
     @Override

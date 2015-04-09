@@ -63,6 +63,14 @@ public interface Driver extends Annotations {
     Set<Class<? extends Behaviour>> behaviours();
 
     /**
+     * Returns the implementation class for the specified behaviour.
+     *
+     * @param behaviour behaviour interface
+     * @return implementation class
+     */
+    Class<? extends Behaviour> implementation(Class<? extends Behaviour> behaviour);
+
+    /**
      * Indicates whether or not the driver supports the specified class
      * of behaviour.
      *
@@ -89,5 +97,14 @@ public interface Driver extends Annotations {
      * @return map of properties
      */
     Map<String, String> properties();
+
+    /**
+     * Merges the specified driver behaviours and properties into this one,
+     * giving preference to the other driver when dealing with conflicts.
+     *
+     * @param other other driver
+     * @return merged driver
+     */
+    Driver merge(Driver other);
 
 }

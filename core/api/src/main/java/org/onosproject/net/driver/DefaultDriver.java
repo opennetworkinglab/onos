@@ -69,15 +69,17 @@ public class DefaultDriver implements Driver {
      * @param other other driver
      * @return new driver
      */
-    DefaultDriver merge(DefaultDriver other) {
+    @Override
+    public Driver merge(Driver other) {
         // Merge the behaviours.
         ImmutableMap.Builder<Class<? extends Behaviour>, Class<? extends Behaviour>>
                 behaviours = ImmutableMap.builder();
-        behaviours.putAll(other.behaviours).putAll(this.behaviours);
+        behaviours.putAll(this.behaviours);
+        other.behaviours().forEach(b -> behaviours.put(b, other.implementation(b)));
 
         // Merge the properties.
         ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
-        properties.putAll(other.properties).putAll(this.properties);
+        properties.putAll(this.properties).putAll(other.properties());
 
         return new DefaultDriver(name, manufacturer, hwVersion, swVersion,
                                  behaviours.build(), properties.build());
@@ -106,6 +108,11 @@ public class DefaultDriver implements Driver {
     @Override
     public Set<Class<? extends Behaviour>> behaviours() {
         return behaviours.keySet();
+    }
+
+    @Override
+    public Class<? extends Behaviour> implementation(Class<? extends Behaviour> behaviour) {
+        return behaviours.get(behaviour);
     }
 
     @Override

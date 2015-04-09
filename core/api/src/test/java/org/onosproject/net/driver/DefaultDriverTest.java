@@ -50,7 +50,7 @@ public class DefaultDriverTest {
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class),
                                               ImmutableMap.of("foo", "bar"));
-        DefaultDriver ddc =
+        Driver ddc =
                 one.merge(new DefaultDriver("foo.bar", "", "", "",
                                             ImmutableMap.of(TestBehaviourTwo.class,
                                                             TestBehaviourTwoImpl.class),
