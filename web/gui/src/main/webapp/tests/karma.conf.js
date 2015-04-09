@@ -19,6 +19,7 @@ module.exports = function(config) {
         '../tp/angular.js',
         '../tp/angular-mocks.js',
         '../tp/angular-route.js',
+        '../tp/angular-cookies.js',
         '../tp/d3.js',
         '../tp/topojson.v1.min.js',
 

@@ -23,13 +23,14 @@
     'use strict';
 
     // injected references
-    var $log, tbs, api;
+    var $log, tbs, ps, api;
 
     // internal state
     var toolbar, keyData;
 
     // constants
-    var name = 'topo-tbar';
+    var name = 'topo-tbar',
+        cooktag = 'topo_prefs';
 
     // key to button mapping data
     var k2b = {
@@ -58,8 +59,46 @@
         E: { id: 'eqMaster-btn', gid: 'eqMaster' }
     };
 
+    // initial toggle state: default settings and tag to key mapping
+    var defaultPrefsState = {
+            bg: 1,
+            insts: 1,
+            summary: 1,
+            detail: 1,
+            hosts: 0
+        },
+        prefsMap = {
+            bg: 'B',
+            insts: 'I',
+            summary: 'O',
+            details: 'D',
+            hosts: 'H'
+        };
+
     function init(_api_) {
         api = _api_;
+
+        // retrieve initial toggle button settings from user prefs
+        setInitToggleState();
+    }
+
+    function topoDefPrefs() {
+        return angular.extend({}, defaultPrefsState);
+    }
+
+    function setInitToggleState() {
+        var state = ps.getPrefs(cooktag);
+        $log.debug('TOOLBAR---- read prefs state:', state);
+
+        if (!state) {
+            state = topoDefPrefs();
+            ps.setPrefs(cooktag, state);
+            $log.debug('TOOLBAR---- Set default prefs state:', state);
+        }
+
+        angular.forEach(prefsMap, function (v, k) {
+            k2b[v].isel = !!state[k];
+        });
     }
 
     function initKeyData() {
@@ -142,11 +181,13 @@
     }
 
     angular.module('ovTopo')
-        .factory('TopoToolbarService', ['$log', 'ToolbarService',
+        .factory('TopoToolbarService',
+        ['$log', 'ToolbarService', 'PrefsService',
 
-        function (_$log_, _tbs_) {
+        function (_$log_, _tbs_, _ps_) {
             $log = _$log_;
             tbs = _tbs_;
+            ps = _ps_;
 
             return {
                 init: init,
