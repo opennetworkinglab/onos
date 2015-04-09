@@ -226,7 +226,9 @@
     }
 
     function toggleSummary(x) {
-        var on = (x === 'keyev') ? !summaryPanel.isVisible() : !!x;
+        var kev = (x === 'keyev'),
+            on = kev ? !summaryPanel.isVisible() : !!x,
+            verb = on ? 'Show' : 'Hide';
 
         if (on) {
             // ask server to start sending summary data.
@@ -235,6 +237,8 @@
         } else {
             hideSummaryPanel();
         }
+        flash.flash(verb + ' summary panel');
+        return on;
     }
 
     // === -----------------------------------------------------
@@ -292,16 +296,21 @@
     }
 
     function toggleDetails(x) {
-        useDetails = (x === 'keyev') ? !useDetails : !!x;
+        var kev = (x === 'keyev'),
+            verb;
+
+        useDetails = kev ? !useDetails : !!x;
+        verb = useDetails ? 'Enable' : 'Disable';
+
         if (useDetails) {
-            flash.flash('Enable details panel');
             if (haveDetails) {
                 showDetailPanel();
             }
         } else {
-            flash.flash('Disable details panel');
             hideDetailPanel();
         }
+        flash.flash(verb + ' details panel');
+        return useDetails;
     }
 
     // ==========================

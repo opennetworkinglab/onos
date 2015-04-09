@@ -86,7 +86,6 @@
                 openListener = wss.addOpenListener(wsOpen);
                 wss.bindHandlers(handlerMap);
                 wss.sendEvent('topoStart');
-                wss.sendEvent('requestSummary');
                 $log.debug('topo comms started');
             }
 

@@ -125,6 +125,7 @@
             } else {
                 showPanel(cb);
             }
+            return p.on;
         }
 
         function emptyPanel() {

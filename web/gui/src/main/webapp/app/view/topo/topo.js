@@ -45,8 +45,8 @@
         // thus, deferred to here...
         actionMap = {
             I: [toggleInstances, 'Toggle ONOS instances panel'],
-            O: [tps.toggleSummary, 'Toggle ONOS summary panel'],
-            D: [tps.toggleDetails, 'Disable / enable details panel'],
+            O: [toggleSummary, 'Toggle ONOS summary panel'],
+            D: [toggleDetails, 'Disable / enable details panel'],
 
             H: [tfs.toggleHosts, 'Toggle host visibility'],
             M: [tfs.toggleOffline, 'Toggle offline visibility'],
@@ -95,27 +95,26 @@
 
     // --- Keystroke functions -------------------------------------------
 
-    // NOTE: this really belongs in the TopoPanelService -- but how to
-    //       cleanly link in the updateDeviceColors() call? To be fixed later.
     function toggleInstances(x) {
-        if (x === 'keyev') {
-            tis.toggle();
-            updatePrefsState('insts', tis.isVisible());
-        } else if (x) {
-            tis.show();
-        } else {
-            tis.hide();
-        }
+        updatePrefsState('insts', tis.toggle(x));
         tfs.updateDeviceColors();
     }
 
-    function toggleMap(x) {
-        var on = (x === 'keyev') ? !sus.visible(mapG) : !!x;
-        sus.visible(mapG, on);
-        updatePrefsState('bg', on);
+    function toggleSummary(x) {
+        updatePrefsState('summary', tps.toggleSummary(x));
     }
 
-    //  TODO: need wrapper functions for state changes needed in cookies
+    function toggleDetails(x) {
+        updatePrefsState('detail', tps.toggleDetails(x));
+    }
+
+    function toggleMap(x) {
+        var on = (x === 'keyev') ? !sus.visible(mapG) : !!x,
+            verb = on ? 'Show' : 'Hide';
+        sus.visible(mapG, on);
+        updatePrefsState('bg', on);
+        flash.flash(verb + ' background map');
+    }
 
     function resetZoom() {
         zoomer.reset();
@@ -250,19 +249,7 @@
 
     // --- User Preferemces ----------------------------------------------
 
-    var defaultPrefsState = {
-        bg: 1,
-        insts: 1,
-        summary: 1,
-        detail: 1,
-        hosts: 0
-    };
-
     var prefsState = {};
-
-    function topoDefPrefs() {
-        return angular.extend({}, defaultPrefsState);
-    }
 
     function updatePrefsState(what, b) {
         prefsState[what] = b ? 1 : 0;
@@ -277,8 +264,8 @@
         $log.debug('TOPO---- Prefs State:', prefsState);
 
         toggleInstances(prefsState.insts);
-        tps.toggleSummary(prefsState.summary);
-        tps.toggleDetails(prefsState.detail);
+        toggleSummary(prefsState.summary);
+        toggleDetails(prefsState.detail);
     }
 
 

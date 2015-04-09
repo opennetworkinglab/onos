@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, ps, sus, gs, ts, fs;
+    var $log, ps, sus, gs, ts, fs, flash;
 
     // api from topo
     var api;
@@ -309,20 +309,49 @@
         oiShowMaster = false;
     }
 
+    function showInsts() {
+        oiBox.show();
+    }
+
+    function hideInsts() {
+        oiBox.hide();
+    }
+
+    function toggleInsts(x) {
+        var kev = (x === 'keyev'),
+            on,
+            verb;
+
+        if (kev) {
+            on = oiBox.toggle();
+        } else {
+            on = !!x;
+            if (on) {
+                showInsts();
+            } else {
+                hideInsts();
+            }
+        }
+        verb = on ? 'Show' : 'Hide';
+        flash.flash(verb + ' instances panel');
+        return on;
+    }
+
     // ==========================
 
     angular.module('ovTopo')
     .factory('TopoInstService',
         ['$log', 'PanelService', 'SvgUtilService', 'GlyphService',
-            'ThemeService', 'FnService',
+            'ThemeService', 'FnService', 'FlashService',
 
-        function (_$log_, _ps_, _sus_, _gs_, _ts_, _fs_) {
+        function (_$log_, _ps_, _sus_, _gs_, _ts_, _fs_, _flash_) {
             $log = _$log_;
             ps = _ps_;
             sus = _sus_;
             gs = _gs_;
             ts = _ts_;
             fs = _fs_;
+            flash = _flash_;
 
             return {
                 initInst: initInst,
@@ -335,9 +364,9 @@
                 cancelAffinity: cancelAffinity,
 
                 isVisible: function () { return oiBox.isVisible(); },
-                show: function () { oiBox.show(); },
-                hide: function () { oiBox.hide(); },
-                toggle: function () { oiBox.toggle(); },
+                show: showInsts,
+                hide: hideInsts,
+                toggle: toggleInsts,
                 showMaster: function () { return oiShowMaster; }
             };
         }]);
