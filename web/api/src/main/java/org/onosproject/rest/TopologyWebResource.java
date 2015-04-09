@@ -15,15 +15,9 @@
  */
 package org.onosproject.rest;
 
-import java.util.List;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -33,9 +27,15 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyService;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.List;
+
+import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
  * REST resource for interacting with the inventory of clusters.
@@ -55,8 +55,7 @@ public class TopologyWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTopology() {
         Topology topology = get(TopologyService.class).currentTopology();
-        ObjectNode root =
-                codec(Topology.class).encode(topology, this);
+        ObjectNode root = codec(Topology.class).encode(topology, this);
         return ok(root).build();
     }
 
@@ -69,11 +68,10 @@ public class TopologyWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("clusters")
     public Response getClusters() {
-        Topology topology = get(TopologyService.class).currentTopology();
-        Iterable<TopologyCluster> clusters =
-                get(TopologyService.class).getClusters(topology);
-        ObjectNode root =
-                encodeArray(TopologyCluster.class, "clusters", clusters);
+        TopologyService service = get(TopologyService.class);
+        Topology topology = service.currentTopology();
+        Iterable<TopologyCluster> clusters = service.getClusters(topology);
+        ObjectNode root = encodeArray(TopologyCluster.class, "clusters", clusters);
         return ok(root).build();
     }
 
@@ -88,15 +86,16 @@ public class TopologyWebResource extends AbstractWebResource {
     @Path("clusters/{id}")
     public Response getCluster(@PathParam("id") int clusterId) {
         Topology topology = get(TopologyService.class).currentTopology();
-        TopologyCluster cluster =
-                nullIsNotFound(
-                        get(TopologyService.class)
-                                .getCluster(topology,
-                                        ClusterId.clusterId(clusterId)),
-                        CLUSTER_NOT_FOUND);
-        ObjectNode root =
-                codec(TopologyCluster.class).encode(cluster, this);
+        TopologyCluster cluster = getTopologyCluster(clusterId, topology);
+        ObjectNode root = codec(TopologyCluster.class).encode(cluster, this);
         return ok(root).build();
+    }
+
+    private TopologyCluster getTopologyCluster(int clusterId, Topology topology) {
+        return nullIsNotFound(
+                get(TopologyService.class)
+                        .getCluster(topology, ClusterId.clusterId(clusterId)),
+                CLUSTER_NOT_FOUND);
     }
 
     /**
@@ -109,24 +108,16 @@ public class TopologyWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("clusters/{id}/devices")
     public Response getClusterDevices(@PathParam("id") int clusterId) {
-        Topology topology = get(TopologyService.class).currentTopology();
-        TopologyCluster cluster =
-                nullIsNotFound(
-                        get(TopologyService.class)
-                                .getCluster(topology,
-                                        ClusterId.clusterId(clusterId)),
-                        CLUSTER_NOT_FOUND);
+        TopologyService service = get(TopologyService.class);
+        Topology topology = service.currentTopology();
+        TopologyCluster cluster = getTopologyCluster(clusterId, topology);
 
         List<DeviceId> deviceIds =
-                Lists.newArrayList(get(TopologyService.class)
-                        .getClusterDevices(topology, cluster));
+                Lists.newArrayList(service.getClusterDevices(topology, cluster));
 
         ObjectNode root = mapper().createObjectNode();
         ArrayNode devicesNode = root.putArray("devices");
-
-        for (DeviceId deviceId : deviceIds) {
-            devicesNode.add(deviceId.toString());
-        }
+        deviceIds.forEach(id -> devicesNode.add(id.toString()));
         return ok(root).build();
     }
 
@@ -141,10 +132,7 @@ public class TopologyWebResource extends AbstractWebResource {
     @Path("clusters/{id}/links")
     public Response getClusterLinks(@PathParam("id") int clusterId) {
         Topology topology = get(TopologyService.class).currentTopology();
-        TopologyCluster cluster =
-                nullIsNotFound(get(TopologyService.class).getCluster(topology,
-                                ClusterId.clusterId(clusterId)),
-                        CLUSTER_NOT_FOUND);
+        TopologyCluster cluster = getTopologyCluster(clusterId, topology);
 
         List<Link> links =
                 Lists.newArrayList(get(TopologyService.class)

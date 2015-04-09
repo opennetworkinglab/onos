@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.intent.IntentState.FAILED;
 import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;

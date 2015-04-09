@@ -27,6 +27,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.DeviceId.deviceId;
 
 /**

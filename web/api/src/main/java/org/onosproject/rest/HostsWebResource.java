@@ -27,6 +27,7 @@ import org.onosproject.net.host.HostService;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.HostId.hostId;
 
 /**

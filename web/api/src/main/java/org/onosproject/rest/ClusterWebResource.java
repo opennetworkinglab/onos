@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 
+import static org.onlab.util.Tools.nullIsNotFound;
+
 /**
  * REST resource for interacting with the ONOS cluster subsystem.
  */

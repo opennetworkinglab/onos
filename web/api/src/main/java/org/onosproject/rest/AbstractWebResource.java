@@ -17,11 +17,10 @@ package org.onosproject.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.util.ItemNotFoundException;
+import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
-import org.onlab.rest.BaseResource;
 
 /**
  * Abstract REST resource.
@@ -59,23 +58,6 @@ public class AbstractWebResource extends BaseResource implements CodecContext {
         ObjectNode result = mapper().createObjectNode();
         result.set(field, codec(codecClass).encode(items, this));
         return result;
-    }
-
-    /**
-     * Returns the specified item if that items is null; otherwise throws
-     * not found exception.
-     *
-     * @param item    item to check
-     * @param message not found message
-     * @param <T>     item type
-     * @return item if not null
-     * @throws org.onlab.util.ItemNotFoundException if item is null
-     */
-    protected <T> T nullIsNotFound(T item, String message) {
-        if (item == null) {
-            throw new ItemNotFoundException(message);
-        }
-        return item;
     }
 
 }
