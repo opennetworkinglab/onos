@@ -29,27 +29,27 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultDriverData implements DriverData {
 
-    private final Driver type;
+    private final Driver driver;
     private final Map<String, String> properties;
 
     /**
      * Creates new driver data.
      *
-     * @param type parent driver type
+     * @param driver parent driver type
      */
-    public DefaultDriverData(Driver type) {
-        this.type = type;
+    public DefaultDriverData(Driver driver) {
+        this.driver = driver;
         this.properties = new HashMap<>();
     }
 
     @Override
-    public Driver type() {
-        return type;
+    public Driver driver() {
+        return driver;
     }
 
     @Override
     public <T extends Behaviour> T behaviour(Class<T> behaviourClass) {
-        return type.createBehaviour(this, behaviourClass, false);
+        return driver.createBehaviour(this, behaviourClass, false);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class DefaultDriverData implements DriverData {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("type", type)
+                .add("type", driver)
                 .add("properties", properties)
                 .toString();
     }

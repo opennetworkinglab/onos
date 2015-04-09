@@ -28,7 +28,7 @@ public interface DriverData extends MutableAnnotations {
      *
      * @return device driver
      */
-    Driver type();
+    Driver driver();
 
     /**
      * Returns the specified facet of behaviour to access the device data.

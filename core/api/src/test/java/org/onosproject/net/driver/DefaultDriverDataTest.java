@@ -37,7 +37,7 @@ public class DefaultDriverDataTest {
 
     @Test
     public void basics() {
-        assertSame("incorrect type", ddc, data.type());
+        assertSame("incorrect type", ddc, data.driver());
         assertTrue("incorrect toString", data.toString().contains("foo.bar"));
     }
 

@@ -21,14 +21,36 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 /**
- * Created by ash on 07/04/15.
+ * Service for programming data plane flow rules in manner independent of
+ * specific device table pipeline configuration.
  */
 public interface FlowObjectiveService {
 
-    Future<Boolean> filter(DeviceId deviceId, Collection<FilteringObjective> filterObjectives);
+    /**
+     * Installs the filtering rules onto the specified device.
+     *
+     * @param deviceId            device identifier
+     * @param filteringObjectives the collection of filters
+     * @return a future indicating the success of the operation
+     */
+    Future<Boolean> filter(DeviceId deviceId, Collection<FilteringObjective> filteringObjectives);
 
+    /**
+     * Installs the forwarding rules onto the specified device.
+     *
+     * @param deviceId             device identifier
+     * @param forwardingObjectives the collection of forwarding objectives
+     * @return a future indicating the success of the operation
+     */
     Future<Boolean> forward(DeviceId deviceId, Collection<ForwardingObjective> forwardingObjectives);
 
+    /**
+     * Installs the next hop elements into the specified device.
+     *
+     * @param deviceId       device identifier
+     * @param nextObjectives the collection of next objectives
+     * @return a future indicating the success of the operation
+     */
     Future<Boolean> next(DeviceId deviceId, Collection<NextObjective> nextObjectives);
 
 }

@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Bootstrap for built in drivers.
@@ -36,6 +37,8 @@ public class DefaultDrivers {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String DRIVERS_XML = "/onos-drivers.xml";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverAdminService driverService;
 
@@ -43,25 +46,23 @@ public class DefaultDrivers {
 
     @Activate
     protected void activate() {
-        XmlDriverLoader xmlDriverLoader =
-                new XmlDriverLoader(getClass().getClassLoader());
+        ClassLoader classLoader = getClass().getClassLoader();
         try {
-            provider = xmlDriverLoader.loadDrivers(
-                    getClass().getResourceAsStream("/default.xml"));
-            driverService.registerProvider(
-                    provider);
+            InputStream stream = classLoader.getResourceAsStream(DRIVERS_XML);
+            provider = new XmlDriverLoader(classLoader).loadDrivers(stream);
+            driverService.registerProvider(provider);
         } catch (IOException e) {
-            log.warn("Unable to load drivers");
+            log.error("Unable to load default drivers", e);
         }
-
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        driverService.unregisterProvider(provider);
+        if (provider != null) {
+            driverService.unregisterProvider(provider);
+        }
         log.info("Stopped");
     }
-
 
 }

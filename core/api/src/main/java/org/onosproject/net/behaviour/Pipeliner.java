@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.behaviour;
 
-import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.flowobjective.FilteringObjective;
@@ -31,20 +30,20 @@ import java.util.concurrent.Future;
 public interface Pipeliner extends HandlerBehaviour {
 
     /**
-     * Injecting the service directory into the driver.
+     * Initializes the driver with context required for its operation.
      *
      * @param deviceId the deviceId
-     * @param serviceDirectory the service directory.
+     * @param context  processing context
      */
-    void init(DeviceId deviceId, ServiceDirectory serviceDirectory);
+    void init(DeviceId deviceId, PipelinerContext context);
 
     /**
      * Installs the filtering rules onto the device.
      *
-     * @param filteringObjectives the collection of filters
+     * @param filterObjectives the collection of filters
      * @return a future indicating the success of the operation
      */
-     Future<Boolean> filter(Collection<FilteringObjective> filteringObjectives);
+    Future<Boolean> filter(Collection<FilteringObjective> filterObjectives);
 
     /**
      * Installs the forwarding rules onto the device.

@@ -24,23 +24,26 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +54,15 @@ import java.util.concurrent.Future;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Created by ash on 07/04/15.
+ * Provides implementation of the flow objective programming service.
  */
 @Component(immediate = true)
 @Service
 public class FlowObjectiveManager implements FlowObjectiveService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    public static final String NOT_INITIALIZED = "Driver not initialized";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
@@ -71,20 +76,31 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    // Note: The following dependencies are added on behalf of the pipeline
+    // driver behaviours to assure these services are available for their
+    // initialization.
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GroupService groupService;
+
+
+    private final Map<DeviceId, DriverHandler> driverHandlers = Maps.newConcurrentMap();
+
+    private final PipelinerContext context = new InnerPipelineContext();
+    private final MastershipListener mastershipListener = new InnerMastershipListener();
+    private final DeviceListener deviceListener = new InnerDeviceListener();
+
     protected ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
-
-    private MastershipListener mastershipListener = new InnerMastershipListener();
-
-    private DeviceListener deviceListener = new InnerDeviceListener();
-
-    private Map<DeviceId, DriverHandler> driverHandlers =
-            Maps.newConcurrentMap();
+    private NodeId localNode;
 
     @Activate
     protected void activate() {
+        localNode = clusterService.getLocalNode().id();
         mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);
-        deviceService.getDevices().forEach(device -> setupDriver(device.id()));
+        deviceService.getDevices().forEach(device -> setupPipelineHandler(device.id()));
         log.info("Started");
     }
 
@@ -97,113 +113,90 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Override
     public Future<Boolean> filter(DeviceId deviceId,
-                                  Collection<FilteringObjective> filterObjectives) {
-        DriverHandler handler = driverHandlers.get(deviceId);
-        checkState(handler != null, "Driver not initialized");
-
-        Pipeliner pipe = handler.behaviour(Pipeliner.class);
-
-        return pipe.filter(filterObjectives);
+                                  Collection<FilteringObjective> filteringObjectives) {
+        return getDevicePipeliner(deviceId).filter(filteringObjectives);
     }
 
     @Override
     public Future<Boolean> forward(DeviceId deviceId,
                                    Collection<ForwardingObjective> forwardingObjectives) {
-        DriverHandler handler = driverHandlers.get(deviceId);
-        checkState(handler != null, "Driver not initialized");
-
-        Pipeliner pipe = handler.behaviour(Pipeliner.class);
-
-        return pipe.forward(forwardingObjectives);
+        return getDevicePipeliner(deviceId).forward(forwardingObjectives);
     }
 
     @Override
     public Future<Boolean> next(DeviceId deviceId,
                                 Collection<NextObjective> nextObjectives) {
+        return getDevicePipeliner(deviceId).next(nextObjectives);
+    }
+
+    // Retrieves the device handler pipeline behaviour from the cache.
+    private Pipeliner getDevicePipeliner(DeviceId deviceId) {
         DriverHandler handler = driverHandlers.get(deviceId);
-        checkState(handler != null, "Driver not initialized");
-
-        Pipeliner pipe = handler.behaviour(Pipeliner.class);
-
-        return pipe.next(nextObjectives);
+        checkState(handler != null, NOT_INITIALIZED);
+        return handler != null ? handler.behaviour(Pipeliner.class) : null;
     }
 
 
-
+    // Triggers driver setup when the local node becomes a device master.
     private class InnerMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
             switch (event.type()) {
-
                 case MASTER_CHANGED:
-                    setupDriver(event.subject());
-
-                    break;
-                case BACKUPS_CHANGED:
+                    setupPipelineHandler(event.subject());
                     break;
                 default:
-                    log.warn("Unknown mastership type {}", event.type());
+                    break;
             }
         }
-
-
     }
 
+    // Triggers driver setup when a device is (re)detected.
     private class InnerDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
-                    setupDriver(event.subject().id());
-                    break;
-                case DEVICE_UPDATED:
-                    break;
-                case DEVICE_REMOVED:
-                    break;
-                case DEVICE_SUSPENDED:
-                    break;
-                case PORT_ADDED:
-                    break;
-                case PORT_UPDATED:
-                    break;
-                case PORT_REMOVED:
+                    setupPipelineHandler(event.subject().id());
                     break;
                 default:
-                    log.warn("Unknown event type {}", event.type());
+                    break;
             }
         }
     }
 
-    private void setupDriver(DeviceId deviceId) {
-        //TODO: Refactor this to make it nicer and use a cache.
-        if (mastershipService.getMasterFor(
-                deviceId).equals(clusterService.getLocalNode().id())) {
-
-            DriverHandler handler = lookupDriver(deviceId);
-            if (handler != null) {
-                Pipeliner pipe = handler.behaviour(Pipeliner.class);
-                pipe.init(deviceId, serviceDirectory);
+    private void setupPipelineHandler(DeviceId deviceId) {
+        if (localNode.equals(mastershipService.getMasterFor(deviceId))) {
+            // Attempt to lookup the handler in the cache
+            DriverHandler handler = driverHandlers.get(deviceId);
+            if (handler == null) {
+                try {
+                    // Otherwise create it and if it has pipeline behaviour, cache it
+                    handler = driverService.createHandler(deviceId);
+                    if (!handler.driver().hasBehaviour(Pipeliner.class)) {
+                        log.warn("Pipeline behaviour not supported for device {}",
+                                 deviceId);
+                        return;
+                    }
+                } catch (ItemNotFoundException e) {
+                    log.warn("No applicable driver for device {}", deviceId);
+                    return;
+                }
                 driverHandlers.put(deviceId, handler);
-                log.info("Driver {} bound to device {}",
-                         handler.data().type().name(), deviceId);
-            } else {
-                log.error("No driver for device {}", deviceId);
             }
+
+            // Always (re)initialize the pipeline behaviour
+            handler.behaviour(Pipeliner.class).init(deviceId, context);
+            log.info("Driver {} bound to device {}", handler.driver().name(), deviceId);
         }
     }
 
-
-    private DriverHandler lookupDriver(DeviceId deviceId) {
-        Device device = deviceService.getDevice(deviceId);
-        if (device == null) {
-            log.warn("Device is null!");
-            return null;
+    // Processing context for initializing pipeline driver behaviours.
+    private class InnerPipelineContext implements PipelinerContext {
+        @Override
+        public ServiceDirectory directory() {
+            return serviceDirectory;
         }
-        Driver driver = driverService.getDriver(device.manufacturer(),
-                                                device.hwVersion(), device.swVersion());
-
-        return driverService.createHandler(driver.name(), deviceId);
     }
-
 }

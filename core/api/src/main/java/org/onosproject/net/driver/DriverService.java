@@ -38,6 +38,8 @@ public interface DriverService {
      *
      * @param driverName driver name
      * @return driver
+     * @throws org.onlab.util.ItemNotFoundException if driver with the given
+     *                                              name is not found
      */
     Driver getDriver(String driverName);
 
@@ -53,25 +55,33 @@ public interface DriverService {
     Driver getDriver(String mfr, String hw, String sw);
 
     /**
-     * Creates a new driver handler for the specified driver.
+     * Returns the driver for the specified device. If the device carries
+     * {@code driver} annotation, its value is used to look-up the driver.
+     * Otherwise, the device manufacturer, hardware and software version
+     * attributes are used to look-up the driver. First using their literal
+     * values and if no driver is found, using ERE matching against the
+     * driver manufacturer, hardware and software version fields.
      *
-     * @param driverName  driver name
-     * @param deviceId    device identifier
-     * @param credentials optional login credentials in string form
-     * @return driver handler
+     * @param deviceId device identifier
+     * @return driver or null of no matching one is found
+     * @throws org.onlab.util.ItemNotFoundException if device or driver for it
+     *                                              are not found
      */
-    DriverHandler createHandler(String driverName, DeviceId deviceId,
-                                String... credentials);
+    Driver getDriver(DeviceId deviceId);
 
     /**
-     * Creates a new driver handler for the specified driver data.
+     * Creates a new driver handler for interacting with the specified device.
+     * The driver is looked-up using the same semantics as
+     * {@link #getDriver(DeviceId)} method.
      *
-     * @param data        driver data
      * @param deviceId    device identifier
      * @param credentials optional login credentials in string form
      * @return driver handler
+     * @throws org.onlab.util.ItemNotFoundException if device or driver for it
+     *                                              are not found
      */
-    DriverHandler createHandler(DriverData data, DeviceId deviceId,
-                                String... credentials);
+    DriverHandler createHandler(DeviceId deviceId, String... credentials);
+
+    // TODO: Devise a mechanism for retaining DriverData for devices
 
 }

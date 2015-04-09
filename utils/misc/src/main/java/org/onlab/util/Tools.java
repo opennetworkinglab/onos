@@ -112,6 +112,23 @@ public abstract class Tools {
     }
 
     /**
+     * Returns the specified item if that items is null; otherwise throws
+     * not found exception.
+     *
+     * @param item    item to check
+     * @param message not found message
+     * @param <T>     item type
+     * @return item if not null
+     * @throws org.onlab.util.ItemNotFoundException if item is null
+     */
+    public static <T> T nullIsNotFound(T item, String message) {
+        if (item == null) {
+            throw new ItemNotFoundException(message);
+        }
+        return item;
+    }
+
+    /**
      * Converts a string from hex to long.
      *
      * @param string hex number in string form; sans 0x

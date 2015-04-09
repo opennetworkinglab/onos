@@ -21,28 +21,44 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverAdminService;
-import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onosproject.net.AnnotationKeys.DRIVER;
 
+/**
+ * Manages inventory of device drivers.
+ */
 @Component(immediate = true)
 @Service
 public class DriverManager implements DriverAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String NO_DRIVER = "Driver not found";
+    private static final String NO_DEVICE = "Device not found";
+    private static final String DEFAULT = "default";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();
     private Map<String, Driver> driverByName = Maps.newConcurrentMap();
@@ -88,30 +104,63 @@ public class DriverManager implements DriverAdminService {
 
     @Override
     public Set<Driver> getDrivers(Class<? extends Behaviour>... withBehaviours) {
-        //TODO
-        return null;
+        ImmutableSet.Builder<Driver> builder = ImmutableSet.builder();
+        for (Class<? extends Behaviour> behaviour : withBehaviours) {
+            driverByName.forEach((name, driver) -> {
+                if (driver.hasBehaviour(behaviour)) {
+                    builder.add(driver);
+                }
+            });
+        }
+        return builder.build();
     }
 
     @Override
     public Driver getDriver(String driverName) {
-        //TODO: replace with fallback driver.
-        return driverByName.getOrDefault(driverName, driverByName.get("default"));
+        return nullIsNotFound(driverByName.get(driverName), NO_DRIVER);
     }
 
     @Override
     public Driver getDriver(String mfr, String hw, String sw) {
-        return driverByKey.getOrDefault(key(mfr, hw, sw), driverByName.get("default"));
+        // First attempt a literal search.
+        Driver driver = driverByKey.get(key(mfr, hw, sw));
+        if (driver != null) {
+            return driver;
+        }
+
+        // Otherwise, sweep through the key space and attempt to match using
+        // regular expression matching.
+        Optional<Driver> optional = driverByKey.values().stream()
+                .filter(d -> matches(d, mfr, hw, sw)).findFirst();
+
+        // If no matching driver is found, return default.
+        return optional.isPresent() ? optional.get() : driverByName.get(DEFAULT);
+    }
+
+    // Matches the given driver using ERE matching against the given criteria.
+    private boolean matches(Driver d, String mfr, String hw, String sw) {
+        // TODO: consider pre-compiling the expressions in the future
+        return mfr.matches(d.manufacturer()) &&
+                hw.matches(d.hwVersion()) &&
+                sw.matches(d.swVersion());
     }
 
     @Override
-    public DriverHandler createHandler(String driverName, DeviceId deviceId, String... credentials) {
-        Driver driver = driverByName.get(driverName);
+    public Driver getDriver(DeviceId deviceId) {
+        Device device = nullIsNotFound(deviceService.getDevice(deviceId), NO_DEVICE);
+        String driverName = device.annotations().value(DRIVER);
+        if (driverName != null) {
+            return getDriver(driverName);
+        }
+        return nullIsNotFound(getDriver(device.manufacturer(),
+                                        device.hwVersion(), device.swVersion()),
+                              NO_DRIVER);
+    }
+
+    @Override
+    public DriverHandler createHandler(DeviceId deviceId, String... credentials) {
+        Driver driver = getDriver(deviceId);
         return new DefaultDriverHandler(new DefaultDriverData(driver));
-    }
-
-    @Override
-    public DriverHandler createHandler(DriverData data, DeviceId deviceId, String... credentials) {
-        return null;
     }
 
     private String key(String mfr, String hw, String sw) {

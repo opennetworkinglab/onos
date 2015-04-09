@@ -20,6 +20,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowRule;
@@ -49,8 +50,8 @@ public class DefaultSingleTablePipeline implements Pipeliner {
     private DeviceId deviceId;
 
     @Override
-    public void init(DeviceId deviceId, ServiceDirectory serviceDirectory) {
-        this.serviceDirectory = serviceDirectory;
+    public void init(DeviceId deviceId, PipelinerContext context) {
+        this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
         flowRuleService = serviceDirectory.get(FlowRuleService.class);

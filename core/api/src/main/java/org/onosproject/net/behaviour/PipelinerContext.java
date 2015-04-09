@@ -13,34 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.driver;
+package org.onosproject.net.behaviour;
+
+import org.onlab.osgi.ServiceDirectory;
 
 /**
- * Representation of context for interacting with a device.
+ * Processing context and supporting services for the pipeline behaviour.
  */
-public interface DriverHandler {
+public interface PipelinerContext {
 
     /**
-     * Returns the parent device driver.
+     * Returns the service directory which can be used to obtain references
+     * to various supporting services.
      *
-     * @return device driver
+     * @return service directory
      */
-    Driver driver();
+    ServiceDirectory directory();
 
-    /**
-     * Returns the device driver data.
-     *
-     * @return device driver data
-     */
-    DriverData data();
-
-    /**
-     * Returns the specified facet of behaviour to interact with the device.
-     *
-     * @param behaviourClass behaviour class
-     * @param <T>            type of behaviour
-     * @return behaviour
-     */
-    <T extends Behaviour> T behaviour(Class<T> behaviourClass);
-
+    // TODO: add means to store and access shared state
 }

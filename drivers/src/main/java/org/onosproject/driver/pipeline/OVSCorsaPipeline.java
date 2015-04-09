@@ -23,6 +23,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -61,8 +62,8 @@ public class OVSCorsaPipeline implements Pipeliner {
     private ApplicationId appId;
 
     @Override
-    public void init(DeviceId deviceId, ServiceDirectory serviceDirectory) {
-        this.serviceDirectory = serviceDirectory;
+    public void init(DeviceId deviceId, PipelinerContext context) {
+        this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
 

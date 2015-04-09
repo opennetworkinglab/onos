@@ -50,6 +50,11 @@ public final class AnnotationKeys {
     public static final String PROTOCOL = "protocol";
 
     /**
+     * Annotation key for the device driver name.
+     */
+    public static final String DRIVER = "driver";
+
+    /**
      * Annotation key for durable links.
      */
     public static final String DURABLE = "durable";
