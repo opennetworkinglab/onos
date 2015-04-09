@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import java.util.Collection;
@@ -27,12 +28,23 @@ import java.util.Collection;
  */
 public interface FilteringObjective extends Objective {
 
+    enum Type {
+        /**
+         * Enables the filtering condition.
+         */
+        PERMIT,
+
+        /**
+         * Disables the filtering condition.
+         */
+        DENY
+    }
+
     /**
-     * Represents filtering key used in this filter.
-     *
-     * @return a criterion
+     * Obtain this filtering type.
+     * @return the type
      */
-    Criterion key();
+    public Type type();
 
     /**
      * The set of conditions the filter must provision at the device.
@@ -55,12 +67,23 @@ public interface FilteringObjective extends Objective {
         public Builder addCondition(Criterion criterion);
 
         /**
-         * Add a filtering key.
-         *
-         * @param criterion new criterion
-         * @return a filtering builder.
+         * Permit this filtering condition set.
+         * @return a filtering builder
          */
-        public Builder withKey(Criterion criterion);
+        public Builder permit();
+
+        /**
+         * Deny this filtering condition set.
+         * @return a filtering builder
+         */
+        public Builder deny();
+
+        /**
+         * Assigns an application id.
+         * @param appId an application id
+         * @return a filtering builder
+         */
+        public Builder fromApp(ApplicationId appId);
 
         /**
          * Builds the filtering objective that will be added.

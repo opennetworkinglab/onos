@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class DefaultFilteringObjective implements FilteringObjective {
 
 
-    private final Criterion key;
+    private final Type type;
     private final boolean permanent;
     private final int timeout;
     private final ApplicationId appId;
@@ -41,10 +41,10 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     private final int id;
     private final Operation op;
 
-    private DefaultFilteringObjective(Criterion key, boolean permanent, int timeout,
+    private DefaultFilteringObjective(Type type, boolean permanent, int timeout,
                                       ApplicationId appId, int priority,
                                       List<Criterion> conditions, Operation op) {
-        this.key = key;
+        this.type = type;
         this.permanent = permanent;
         this.timeout = timeout;
         this.appId = appId;
@@ -52,14 +52,13 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         this.conditions = conditions;
         this.op = op;
 
-        this.id = Objects.hash(key, conditions, permanent,
+        this.id = Objects.hash(type, conditions, permanent,
                                timeout, appId, priority);
     }
 
-
     @Override
-    public Criterion key() {
-        return key;
+    public Type type() {
+        return this.type;
     }
 
     @Override
@@ -111,7 +110,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private final ImmutableList.Builder<Criterion> listBuilder
                 = ImmutableList.builder();
 
-        private Criterion key;
+        private Type type;
         private boolean permanent = DEFAULT_PERMANENT;
         private int timeout = DEFAULT_TIMEOUT;
         private ApplicationId appId;
@@ -124,8 +123,14 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         }
 
         @Override
-        public Builder withKey(Criterion criterion) {
-            key = criterion;
+        public Builder permit() {
+            this.type = Type.PERMIT;
+            return this;
+        }
+
+        @Override
+        public Builder deny() {
+            this.type = Type.DENY;
             return this;
         }
 
@@ -157,11 +162,11 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         @Override
         public FilteringObjective add() {
             List<Criterion> conditions = listBuilder.build();
-            checkNotNull(key, "Must have a key.");
+            checkNotNull(type, "Must have a type.");
             checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
             checkNotNull(appId, "Must supply an application id");
 
-            return new DefaultFilteringObjective(key, permanent, timeout,
+            return new DefaultFilteringObjective(type, permanent, timeout,
                                                 appId, priority, conditions,
                                                 Operation.ADD);
 
@@ -170,11 +175,11 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         @Override
         public FilteringObjective remove() {
             List<Criterion> conditions = listBuilder.build();
-            checkNotNull(key, "Must have a key.");
+            checkNotNull(type, "Must have a type.");
             checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
             checkNotNull(appId, "Must supply an application id");
 
-            return new DefaultFilteringObjective(key, permanent, timeout,
+            return new DefaultFilteringObjective(type, permanent, timeout,
                                                  appId, priority, conditions,
                                                  Operation.REMOVE);
 

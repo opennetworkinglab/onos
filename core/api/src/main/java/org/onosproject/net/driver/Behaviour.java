@@ -29,4 +29,11 @@ public interface Behaviour {
      */
     void setData(DriverData data);
 
+    /**
+     * Obtains the driver data.
+     *
+     * @return driver data
+     */
+    DriverData data();
+
 }

@@ -15,14 +15,11 @@
  */
 package org.onosproject.bgprouter;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,12 +42,14 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRule.Type;
 import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -73,11 +72,13 @@ import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ConcurrentHashMultiset;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multiset;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * BgpRouter component.
@@ -155,6 +156,10 @@ public class BgpRouter {
                     .register(byte[].class)
                     .register(NextHopGroupKey.class)
                     .build();
+
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
 
     @Activate
     protected void activate() {
@@ -377,336 +382,28 @@ public class BgpRouter {
 
     private class InternalTableHandler {
 
-        private static final int CONTROLLER_PRIORITY = 255;
-        private static final int DROP_PRIORITY = 0;
-        private static final int HIGHEST_PRIORITY = 0xffff;
         private Set<InterfaceIpAddress> intfIps = new HashSet<InterfaceIpAddress>();
         private Set<MacAddress> intfMacs = new HashSet<MacAddress>();
         private Map<PortNumber, VlanId> portVlanPair = Maps.newHashMap();
 
         public void provision(boolean install, Set<Interface> intfs) {
             getInterfaceConfig(intfs);
-            processTableZero(install);
-            processTableOne(install);
-            processTableTwo(install);
-            processTableFour(install);
-            processTableFive(install);
-            processTableSix(install);
-            processTableNine(install);
         }
 
         private void getInterfaceConfig(Set<Interface> intfs) {
             log.info("Processing {} router interfaces", intfs.size());
             for (Interface intf : intfs) {
+                FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+                flowObjectiveService.filter(deviceId, Collections.singletonList(
+                        fob.addCondition(Criteria.matchEthDst(intf.mac()))
+                                .fromApp(appId).permit().add()));
                 intfIps.addAll(intf.ipAddresses());
                 intfMacs.add(intf.mac());
                 portVlanPair.put(intf.connectPoint().port(), intf.vlan());
             }
         }
 
-        private void processTableZero(boolean install) {
-            TrafficSelector.Builder selector;
-            TrafficTreatment.Builder treatment;
 
-            // Bcast rule
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            selector.matchEthDst(MacAddress.BROADCAST);
-            treatment.transition(FlowRule.Type.VLAN_MPLS);
-
-            FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
-                                                treatment.build(),
-                                                CONTROLLER_PRIORITY, appId, 0,
-                                                true, FlowRule.Type.FIRST);
-
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            // Interface MACs
-            for (MacAddress mac : intfMacs) {
-                log.debug("adding rule for MAC: {}", mac);
-                selector = DefaultTrafficSelector.builder();
-                treatment = DefaultTrafficTreatment.builder();
-
-                selector.matchEthDst(mac);
-                treatment.transition(FlowRule.Type.VLAN_MPLS);
-
-                rule = new DefaultFlowRule(deviceId, selector.build(),
-                                           treatment.build(),
-                                           CONTROLLER_PRIORITY, appId, 0,
-                                           true, FlowRule.Type.FIRST);
-
-                ops = install ? ops.add(rule) : ops.remove(rule);
-            }
-
-            //Drop rule
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            treatment.drop();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.FIRST);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned default table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision default table for bgp router");
-                }
-            }));
-
-        }
-
-        private void processTableOne(boolean install) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                    .builder();
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            FlowRule rule;
-
-            selector.matchVlanId(VlanId.ANY);
-            treatment.transition(FlowRule.Type.VLAN);
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.VLAN_MPLS);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned vlan/mpls table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info(
-                            "Failed to provision vlan/mpls table for bgp router");
-                }
-            }));
-
-        }
-
-        private void processTableTwo(boolean install) {
-            TrafficSelector.Builder selector;
-            TrafficTreatment.Builder treatment;
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            FlowRule rule;
-
-            //Interface Vlans
-            for (Map.Entry<PortNumber, VlanId> portVlan : portVlanPair.entrySet()) {
-                log.debug("adding rule for VLAN: {}", portVlan);
-                selector = DefaultTrafficSelector.builder();
-                treatment = DefaultTrafficTreatment.builder();
-
-                selector.matchVlanId(portVlan.getValue());
-                selector.matchInPort(portVlan.getKey());
-                treatment.transition(Type.ETHER);
-                treatment.deferred().popVlan();
-
-                rule = new DefaultFlowRule(deviceId, selector.build(),
-                                           treatment.build(), CONTROLLER_PRIORITY, appId,
-                                           0, true, FlowRule.Type.VLAN);
-
-                ops = install ? ops.add(rule) : ops.remove(rule);
-            }
-
-            //Drop rule
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            treatment.drop();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.VLAN);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned vlan table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision vlan table for bgp router");
-                }
-            }));
-        }
-
-        private void processTableFour(boolean install) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                    .builder();
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            FlowRule rule;
-
-            selector.matchEthType(Ethernet.TYPE_ARP);
-            treatment.punt();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.ETHER);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            selector.matchEthType(Ethernet.TYPE_IPV4);
-            treatment.transition(FlowRule.Type.COS);
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.ETHER);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            //Drop rule
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            treatment.drop();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.ETHER);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned ether table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision ether table for bgp router");
-                }
-            }));
-
-        }
-
-        private void processTableFive(boolean install) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                    .builder();
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            FlowRule rule;
-
-            treatment.transition(FlowRule.Type.IP);
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.COS);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned cos table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision cos table for bgp router");
-                }
-            }));
-
-        }
-
-        private void processTableSix(boolean install) {
-            TrafficSelector.Builder selector;
-            TrafficTreatment.Builder treatment;
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            FlowRule rule;
-
-
-            //Interface IPs
-            for (InterfaceIpAddress ipAddr : intfIps) {
-                log.debug("adding rule for IPs: {}", ipAddr.ipAddress());
-                selector = DefaultTrafficSelector.builder();
-                treatment = DefaultTrafficTreatment.builder();
-
-                selector.matchEthType(Ethernet.TYPE_IPV4);
-                selector.matchIPDst(IpPrefix.valueOf(ipAddr.ipAddress(), 32));
-                treatment.transition(Type.ACL);
-
-                rule = new DefaultFlowRule(deviceId, selector.build(),
-                                           treatment.build(), HIGHEST_PRIORITY, appId,
-                                           0, true, FlowRule.Type.IP);
-
-                ops = install ? ops.add(rule) : ops.remove(rule);
-            }
-
-
-            //Drop rule
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-
-            treatment.drop();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), DROP_PRIORITY, appId,
-                                       0, true, FlowRule.Type.IP);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned FIB table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision FIB table for bgp router");
-                }
-            }));
-        }
-
-        private void processTableNine(boolean install) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                    .builder();
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            FlowRule rule;
-
-            treatment.punt();
-
-            rule = new DefaultFlowRule(deviceId, selector.build(),
-                                       treatment.build(), CONTROLLER_PRIORITY,
-                                       appId, 0, true, FlowRule.Type.DEFAULT);
-
-            ops = install ? ops.add(rule) : ops.remove(rule);
-
-            flowService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Provisioned Local table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to provision Local table for bgp router");
-                }
-            }));
-        }
     }
 
     private class InternalGroupListener implements GroupListener {

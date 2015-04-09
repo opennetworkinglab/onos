@@ -15,6 +15,8 @@
  */
 package org.onosproject.driver.pipeline;
 
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.SettableFuture;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
@@ -34,9 +36,12 @@ import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -79,7 +84,54 @@ public class OVSCorsaPipeline extends AbstractBehaviour implements Pipeliner {
 
     @Override
     public Future<Boolean> filter(Collection<FilteringObjective> filteringObjectives) {
-        return null;
+        Collection<Future<Boolean>> results =
+                Sets.newHashSet();
+        filteringObjectives.stream()
+                .filter(obj -> obj.type() == FilteringObjective.Type.PERMIT)
+                .forEach(obj -> obj.conditions()
+                        .forEach(condition ->
+                            results.add(processCondition(condition,
+                                                   obj.op() == Objective.Operation.ADD,
+                                                   obj.appId()))
+                        ));
+
+        //TODO: return something more helpful/sensible in the future (no pun intended)
+        return results.iterator().next();
+
+    }
+
+    private Future<Boolean> processCondition(Criterion c, boolean install,
+                                             ApplicationId applicationId) {
+        SettableFuture<Boolean> result = SettableFuture.create();
+        if (c.type() == Criterion.Type.ETH_DST) {
+            Criteria.EthCriterion e = (Criteria.EthCriterion) c;
+            log.debug("adding rule for MAC: {}", e.mac());
+
+            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            selector.matchEthDst(e.mac());
+            treatment.transition(FlowRule.Type.VLAN_MPLS);
+            FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
+                                                treatment.build(),
+                                                CONTROLLER_PRIORITY, applicationId, 0,
+                                                true, FlowRule.Type.FIRST);
+            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+            ops =  install ? ops.add(rule) : ops.remove(rule);
+            flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+                @Override
+                public void onSuccess(FlowRuleOperations ops) {
+                    result.set(true);
+                    log.info("Provisioned default table for bgp router");
+                }
+
+                @Override
+                public void onError(FlowRuleOperations ops) {
+                    result.set(false);
+                    log.info("Failed to provision default table for bgp router");
+                }
+            }));
+        }
+        return result;
     }
 
     @Override

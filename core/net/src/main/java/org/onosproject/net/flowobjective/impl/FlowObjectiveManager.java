@@ -15,7 +15,9 @@
  */
 package org.onosproject.net.flowobjective.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -43,11 +45,13 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Future;
 
@@ -87,12 +91,16 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
 
     private final Map<DeviceId, DriverHandler> driverHandlers = Maps.newConcurrentMap();
+    private final Map<DeviceId, Pipeliner> pipeliners = Maps.newConcurrentMap();
 
     private final PipelinerContext context = new InnerPipelineContext();
     private final MastershipListener mastershipListener = new InnerMastershipListener();
     private final DeviceListener deviceListener = new InnerDeviceListener();
 
     protected ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
+
+    private final Map<DeviceId, Collection<Objective>> pendingObjectives =
+            Maps.newConcurrentMap();
     private NodeId localNode;
 
     @Activate
@@ -114,26 +122,51 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public Future<Boolean> filter(DeviceId deviceId,
                                   Collection<FilteringObjective> filteringObjectives) {
-        return getDevicePipeliner(deviceId).filter(filteringObjectives);
+        if (deviceService.isAvailable(deviceId)) {
+            return getDevicePipeliner(deviceId).filter(filteringObjectives);
+        } else {
+            filteringObjectives.forEach(obj -> updatePendingMap(deviceId, obj));
+        }
+        return Futures.immediateFuture(true);
     }
+
+
 
     @Override
     public Future<Boolean> forward(DeviceId deviceId,
                                    Collection<ForwardingObjective> forwardingObjectives) {
-        return getDevicePipeliner(deviceId).forward(forwardingObjectives);
+        if (deviceService.isAvailable(deviceId)) {
+            return getDevicePipeliner(deviceId).forward(forwardingObjectives);
+        } else {
+            forwardingObjectives.forEach(obj -> updatePendingMap(deviceId, obj));
+        }
+        return Futures.immediateFuture(true);
     }
 
     @Override
     public Future<Boolean> next(DeviceId deviceId,
                                 Collection<NextObjective> nextObjectives) {
-        return getDevicePipeliner(deviceId).next(nextObjectives);
+        if (deviceService.isAvailable(deviceId)) {
+            return getDevicePipeliner(deviceId).next(nextObjectives);
+        } else {
+            nextObjectives.forEach(obj -> updatePendingMap(deviceId, obj));
+        }
+        return Futures.immediateFuture(true);
     }
 
-    // Retrieves the device handler pipeline behaviour from the cache.
+    private void updatePendingMap(DeviceId deviceId, Objective pending) {
+        if (pendingObjectives.putIfAbsent(deviceId, Lists.newArrayList(pending)) != null) {
+            Collection<Objective> objectives = pendingObjectives.get(deviceId);
+            objectives.add(pending);
+        }
+
+    }
+
+    // Retrieves the device pipeline behaviour from the cache.
     private Pipeliner getDevicePipeliner(DeviceId deviceId) {
-        DriverHandler handler = driverHandlers.get(deviceId);
-        checkState(handler != null, NOT_INITIALIZED);
-        return handler != null ? handler.behaviour(Pipeliner.class) : null;
+        Pipeliner pipeliner = pipeliners.get(deviceId);
+        checkState(pipeliner != null, NOT_INITIALIZED);
+        return pipeliner;
     }
 
 
@@ -164,6 +197,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(event.subject().id())) {
                         setupPipelineHandler(event.subject().id());
+                        processPendingObjectives(event.subject().id());
                     }
                     break;
                 case DEVICE_UPDATED:
@@ -181,6 +215,21 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 default:
                     break;
             }
+        }
+
+        private void processPendingObjectives(DeviceId deviceId) {
+            pendingObjectives.get(deviceId).forEach(obj -> {
+                if (obj instanceof NextObjective) {
+                    getDevicePipeliner(deviceId)
+                            .next(Collections.singletonList((NextObjective) obj));
+                } else if (obj instanceof ForwardingObjective) {
+                    getDevicePipeliner(deviceId)
+                            .forward(Collections.singletonList((ForwardingObjective) obj));
+                } else {
+                    getDevicePipeliner(deviceId)
+                            .filter(Collections.singletonList((FilteringObjective) obj));
+                }
+            });
         }
     }
 
@@ -205,7 +254,9 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             // Always (re)initialize the pipeline behaviour
-            handler.behaviour(Pipeliner.class).init(deviceId, context);
+            Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
+            pipeliner.init(deviceId, context);
+            pipeliners.putIfAbsent(deviceId, pipeliner);
             log.info("Driver {} bound to device {}", handler.driver().name(), deviceId);
         }
     }

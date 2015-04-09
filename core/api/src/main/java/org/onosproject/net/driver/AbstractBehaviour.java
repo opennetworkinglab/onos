@@ -26,4 +26,9 @@ public class AbstractBehaviour implements Behaviour {
     public void setData(DriverData data) {
         this.data = data;
     }
+
+    @Override
+    public DriverData data() {
+        return data;
+    }
 }
