@@ -161,7 +161,7 @@
 
     // return the given string with the first character capitalized.
     function cap(s) {
-        return s.replace(/^[a-z]/, function (m) {
+        return s.toLowerCase().replace(/^[a-z]/, function (m) {
             return m.toUpperCase();
         });
     }

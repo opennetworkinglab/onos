@@ -5,6 +5,7 @@
     - Key Handler
     - Theme Service
     - Alert Service
+    - Preference Service
 
 - Mast
     - Masthead
@@ -27,4 +28,6 @@
 
 - Widget
     - Table Styling Directives
+    - Table Builder Service
     - Toolbar Service
+    - Button Service

@@ -15,12 +15,15 @@
  */
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
@@ -28,31 +31,61 @@ import org.onosproject.net.link.LinkService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-//import org.onosproject.net.Link;
-//import java.util.Set;
+import java.util.Set;
 
 /**
  * Message handler for device view related messages.
  */
 public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler {
 
+    private static final String ID = "id";
+    private static final String TYPE = "type";
+    private static final String AVAILABLE = "available";
+    private static final String AVAILABLE_IID = "_iconid_available";
+    private static final String TYPE_IID = "_iconid_type";
+    private static final String DEV_ICON_PREFIX = "devIcon_";
+    private static final String NUM_PORTS = "num_ports";
+    private static final String LINK_DEST = "elinks_dest";
+    private static final String MFR = "mfr";
+    private static final String HW = "hw";
+    private static final String SW = "sw";
+    private static final String PROTOCOL = "protocol";
+    private static final String MASTER_ID = "masterid";
+    private static final String CHASSIS_ID = "chassisid";
+    private static final String SERIAL = "serial";
+    private static final String PORTS = "ports";
+    private static final String ENABLED = "enabled";
+    private static final String SPEED = "speed";
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+
     /**
      * Creates a new message handler for the device messages.
      */
     protected DeviceViewMessageHandler() {
-        super(ImmutableSet.of("deviceDataRequest"));
+        super(ImmutableSet.of("deviceDataRequest", "deviceDetailsRequest"));
     }
 
     @Override
-    public void process(ObjectNode message) {
-        ObjectNode payload = payload(message);
+    public void process(ObjectNode event) {
+        String type = string(event, "event", "unknown");
+        if (type.equals("deviceDataRequest")) {
+            dataRequest(event);
+        } else if (type.equals("deviceDetailsRequest")) {
+            detailsRequest(event);
+        }
+    }
+
+    private void dataRequest(ObjectNode event) {
+        ObjectNode payload = payload(event);
         String sortCol = string(payload, "sortCol", "id");
         String sortDir = string(payload, "sortDir", "asc");
 
         DeviceService service = get(DeviceService.class);
         MastershipService mastershipService = get(MastershipService.class);
         LinkService linkService = get(LinkService.class);
+
         TableRow[] rows = generateTableRows(service,
                                             mastershipService,
                                             linkService);
@@ -64,6 +97,37 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         rootNode.set("devices", devices);
 
         connection().sendMessage("deviceDataResponse", 0, rootNode);
+    }
+
+    private void detailsRequest(ObjectNode event) {
+        ObjectNode payload = payload(event);
+        String id = string(payload, "id", "of:0000000000000000");
+
+        DeviceId deviceId = DeviceId.deviceId(id);
+        DeviceService service = get(DeviceService.class);
+        MastershipService ms = get(MastershipService.class);
+        Device device = service.getDevice(deviceId);
+        ObjectNode data = MAPPER.createObjectNode();
+
+        data.put(ID, deviceId.toString());
+        data.put(TYPE, device.type().toString());
+        data.put(MFR, device.manufacturer());
+        data.put(HW, device.hwVersion());
+        data.put(SW, device.swVersion());
+        data.put(SERIAL, device.serialNumber());
+        data.put(CHASSIS_ID, device.chassisId().toString());
+        data.put(MASTER_ID, ms.getMasterFor(deviceId).toString());
+        data.put(PROTOCOL, device.annotations().value(PROTOCOL));
+
+        ArrayNode ports = MAPPER.createArrayNode();
+        for (Port p : service.getPorts(deviceId)) {
+            ports.add(portData(p, deviceId));
+        }
+        data.set(PORTS, ports);
+
+        ObjectNode rootNode = mapper.createObjectNode();
+        rootNode.set("details", data);
+        connection().sendMessage("deviceDetailsResponse", 0, rootNode);
     }
 
     private TableRow[] generateTableRows(DeviceService service,
@@ -79,46 +143,42 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         return list.toArray(new TableRow[list.size()]);
     }
 
+    private ObjectNode portData(Port p, DeviceId id) {
+        ObjectNode port = MAPPER.createObjectNode();
+        LinkService ls = get(LinkService.class);
+
+        port.put(ID, p.number().toString());
+        port.put(TYPE, p.type().toString());
+        port.put(SPEED, p.portSpeed());
+        port.put(ENABLED, p.isEnabled());
+
+        Set<Link> links = ls.getEgressLinks(new ConnectPoint(id, p.number()));
+        if (!links.isEmpty()) {
+            String egressLinks = "";
+            for (Link l : links) {
+                ConnectPoint dest = l.dst();
+                egressLinks += dest.elementId().toString()
+                        + "/" + dest.port().toString() + " ";
+            }
+            port.put(LINK_DEST, egressLinks);
+        }
+
+        return port;
+    }
+
     /**
      * TableRow implementation for {@link Device devices}.
      */
     private static class DeviceTableRow extends AbstractTableRow {
 
-        private static final String ID = "id";
-        private static final String AVAILABLE = "available";
-        private static final String AVAILABLE_IID = "_iconid_available";
-        private static final String TYPE_IID = "_iconid_type";
-        private static final String DEV_ICON_PREFIX = "devIcon_";
-        private static final String NUM_PORTS = "num_ports";
-        private static final String NUM_EGRESS_LINKS = "num_elinks";
-        private static final String MFR = "mfr";
-        private static final String HW = "hw";
-        private static final String SW = "sw";
-        private static final String PROTOCOL = "protocol";
-        private static final String MASTERID = "masterid";
-        private static final String CHASSISID = "chassisid";
-        private static final String SERIAL = "serial";
-
         private static final String[] COL_IDS = {
                 AVAILABLE, AVAILABLE_IID, TYPE_IID, ID,
-                NUM_PORTS, NUM_EGRESS_LINKS, MASTERID, MFR, HW, SW,
-                PROTOCOL, CHASSISID, SERIAL
+                NUM_PORTS, MASTER_ID, MFR, HW, SW,
+                PROTOCOL, CHASSIS_ID, SERIAL
         };
 
         private static final String ICON_ID_ONLINE = "deviceOnline";
         private static final String ICON_ID_OFFLINE = "deviceOffline";
-
-        // TODO: use in details pane
-//        private String getPorts(List<Port> ports) {
-//            String formattedString = "";
-//            int numPorts = 0;
-//
-//            for (Port p : ports) {
-//                numPorts++;
-//                formattedString += p.number().toString() + ", ";
-//            }
-//            return formattedString + "Total: " + numPorts;
-//        }
 
         // TODO: use in details pane
 //        private String getEgressLinks(Set<Link> links) {
@@ -139,7 +199,6 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
             String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
             DeviceId id = d.id();
             List<Port> ports = service.getPorts(id);
-//            Set<Link> links = ls.getDeviceEgressLinks(id);
 
             add(ID, id.toString());
             add(AVAILABLE, Boolean.toString(available));
@@ -148,12 +207,9 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
             add(MFR, d.manufacturer());
             add(HW, d.hwVersion());
             add(SW, d.swVersion());
-//            add(SERIAL, d.serialNumber());
             add(PROTOCOL, d.annotations().value(PROTOCOL));
             add(NUM_PORTS, Integer.toString(ports.size()));
-//            add(NUM_EGRESS_LINKS, Integer.toString(links.size()));
-//            add(CHASSISID, d.chassisId().toString());
-            add(MASTERID, ms.getMasterFor(d.id()).toString());
+            add(MASTER_ID, ms.getMasterFor(d.id()).toString());
         }
 
         private String getTypeIconId(Device d) {

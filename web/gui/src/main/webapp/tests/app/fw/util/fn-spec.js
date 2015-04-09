@@ -386,6 +386,8 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.cap('Foo')).toEqual('Foo');
         expect(fs.cap('foo')).toEqual('Foo');
         expect(fs.cap('foo bar')).toEqual('Foo bar');
+        expect(fs.cap('FOO BAR')).toEqual('Foo bar');
+        expect(fs.cap('foo Bar')).toEqual('Foo bar');
     });
 
     // === Tests for noPx()
