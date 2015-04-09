@@ -28,10 +28,22 @@ import org.projectfloodlight.openflow.types.OFPort;
 
 import java.util.List;
 
+/**
+ * Packet context used with the OpenFlow providers.
+ */
 public class OpenFlowCorePacketContext extends DefaultPacketContext {
 
     private final OpenFlowPacketContext ofPktCtx;
 
+    /**
+     * Creates a new OpenFlow core packet context.
+     *
+     * @param time creation time
+     * @param inPkt inbound packet
+     * @param outPkt outbound packet
+     * @param block whether the context is blocked or not
+     * @param ofPktCtx OpenFlow packet context
+     */
     protected OpenFlowCorePacketContext(long time, InboundPacket inPkt,
                                         OutboundPacket outPkt, boolean block,
                                         OpenFlowPacketContext ofPktCtx) {

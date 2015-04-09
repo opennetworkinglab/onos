@@ -15,13 +15,15 @@
  */
 package org.onosproject.net.packet;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment.Builder;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Default implementation of a packet context.
+ */
 public abstract class DefaultPacketContext implements PacketContext {
 
     private final long time;
@@ -31,7 +33,14 @@ public abstract class DefaultPacketContext implements PacketContext {
 
     private final AtomicBoolean block;
 
-
+    /**
+     * Creates a new packet context.
+     *
+     * @param time creation time
+     * @param inPkt inbound packet
+     * @param outPkt outbound packet
+     * @param block whether the context is blocked or not
+     */
     protected DefaultPacketContext(long time, InboundPacket inPkt,
             OutboundPacket outPkt, boolean block) {
         super();

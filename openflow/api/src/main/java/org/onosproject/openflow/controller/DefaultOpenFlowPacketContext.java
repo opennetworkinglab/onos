@@ -19,6 +19,7 @@ package org.onosproject.openflow.controller;
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
@@ -29,6 +30,9 @@ import java.nio.BufferUnderflowException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Default implementation of an OpenFlowPacketContext.
+ */
 public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext {
 
     private final AtomicBoolean free = new AtomicBoolean(true);
@@ -99,6 +103,13 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         return new Dpid(sw.getId());
     }
 
+    /**
+     * Creates an OpenFlow packet context based on a packet-in.
+     *
+     * @param s OpenFlow switch
+     * @param pkt OpenFlow packet-in
+     * @return the OpenFlow packet context
+     */
     public static OpenFlowPacketContext packetContextFromPacketIn(OpenFlowSwitch s,
                                                                   OFPacketIn pkt) {
         return new DefaultOpenFlowPacketContext(s, pkt);
@@ -110,12 +121,10 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     }
 
     private OFPort pktinInPort() {
-        //FIXME: this has to change in loxi
-        try {
+        if (pktin.getVersion() == OFVersion.OF_10) {
             return pktin.getInPort();
-        } catch (UnsupportedOperationException e) {
-            return pktin.getMatch().get(MatchField.IN_PORT);
         }
+        return pktin.getMatch().get(MatchField.IN_PORT);
     }
 
     @Override
