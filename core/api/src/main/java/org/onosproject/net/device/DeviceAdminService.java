@@ -20,7 +20,7 @@ import org.onosproject.net.DeviceId;
 /**
  * Service for administering the inventory of infrastructure devices.
  */
-public interface DeviceAdminService {
+public interface DeviceAdminService extends DeviceService {
 
     /**
      * Removes the device with the specified identifier.

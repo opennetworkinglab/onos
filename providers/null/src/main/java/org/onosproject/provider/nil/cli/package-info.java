@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.app;
-
-import com.google.common.collect.ImmutableList;
-import org.onosproject.cli.AbstractChoicesCompleter;
-
-import java.util.List;
-
-import static org.onosproject.cli.app.ApplicationCommand.*;
 
 /**
- * Application command completer.
+ * Null provider CLI commands and completers.
  */
-public class ApplicationCommandCompleter extends AbstractChoicesCompleter {
-    @Override
-    public List<String> choices() {
-        return ImmutableList.of(INSTALL, UNINSTALL, ACTIVATE, DEACTIVATE);
-    }
-
-}
+package org.onosproject.provider.nil.cli;

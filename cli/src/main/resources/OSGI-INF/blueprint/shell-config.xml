@@ -332,4 +332,7 @@
     <bean id="ipProtocolCompleter" class="org.onosproject.cli.net.IpProtocolCompleter"/>
     <bean id="driverNameCompleter" class="org.onosproject.cli.net.DriverNameCompleter"/>
 
+    <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>
+    <bean id="upDownCompleter" class="org.onosproject.cli.UpDownCompleter"/>
+
 </blueprint>

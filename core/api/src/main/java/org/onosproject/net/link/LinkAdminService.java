@@ -21,7 +21,7 @@ import org.onosproject.net.DeviceId;
 /**
  * Service for administering the inventory of infrastructure links.
  */
-public interface LinkAdminService {
+public interface LinkAdminService extends LinkService {
 
     /**
      * Removes all infrastructure links leading to and from the

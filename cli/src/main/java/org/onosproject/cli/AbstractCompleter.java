@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.net;
+package org.onosproject.cli;
 
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CommandSessionHolder;

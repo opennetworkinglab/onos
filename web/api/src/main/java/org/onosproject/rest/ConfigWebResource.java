@@ -18,6 +18,7 @@ package org.onosproject.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onlab.rest.BaseResource;
@@ -40,9 +41,9 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
  * devices, ports and links.
  */
 @Path("config")
-public class ConfigResource extends BaseResource {
+public class ConfigWebResource extends BaseResource {
 
-    private static Logger log = LoggerFactory.getLogger(ConfigResource.class);
+    private static Logger log = LoggerFactory.getLogger(ConfigWebResource.class);
 
     @POST
     @Path("topology")
@@ -52,7 +53,8 @@ public class ConfigResource extends BaseResource {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode cfg = mapper.readTree(input);
-            new ConfigProvider(cfg, get(DeviceProviderRegistry.class),
+            new ConfigProvider(cfg, get(DeviceService.class),
+                               get(DeviceProviderRegistry.class),
                                get(LinkProviderRegistry.class),
                                get(HostProviderRegistry.class)).parse();
             return Response.ok().build();

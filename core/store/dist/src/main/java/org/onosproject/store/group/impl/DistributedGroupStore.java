@@ -705,7 +705,8 @@ public class DistributedGroupStore
                         remove(new GroupStoreKeyMapKey(deviceId, group.appCookie()));
                 }
             } else {
-                if (deviceAuditStatus.get(deviceId)) {
+                Boolean audited = deviceAuditStatus.get(deviceId);
+                if (audited != null && audited) {
                     log.debug("deviceInitialAuditCompleted: Clearing AUDIT "
                                       + "status for device {}", deviceId);
                     deviceAuditStatus.put(deviceId, false);
@@ -717,8 +718,8 @@ public class DistributedGroupStore
     @Override
     public boolean deviceInitialAuditStatus(DeviceId deviceId) {
         synchronized (deviceAuditStatus) {
-            return (deviceAuditStatus.get(deviceId) != null)
-                    ? deviceAuditStatus.get(deviceId) : false;
+            Boolean audited = deviceAuditStatus.get(deviceId);
+            return audited != null && audited;
         }
     }
 

@@ -13,49 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.app;
+package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onosproject.app.ApplicationService;
-import org.onosproject.app.ApplicationState;
 import org.onosproject.cli.AbstractCompleter;
-import org.onosproject.core.Application;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.link.LinkService;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
-import static org.onosproject.app.ApplicationState.ACTIVE;
-import static org.onosproject.app.ApplicationState.INSTALLED;
-import static org.onosproject.cli.AbstractShellCommand.get;
-
 /**
- * Application name completer.
+ * Link end-point completer.
  */
-public class ApplicationNameCompleter extends AbstractCompleter {
+public class LinkSrcCompleter extends AbstractCompleter {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
-        // Command name is the second argument.
-        ArgumentCompleter.ArgumentList list = getArgumentList();
-        String cmd = list.getArguments()[1];
-
         // Fetch our service and feed it's offerings to the string completer
-        ApplicationService service = get(ApplicationService.class);
-        Iterator<Application> it = service.getApplications().iterator();
+        LinkService service = AbstractShellCommand.get(LinkService.class);
+
+        // Generate the device ID/port number identifiers
         SortedSet<String> strings = delegate.getStrings();
-        while (it.hasNext()) {
-            Application app = it.next();
-            ApplicationState state = service.getState(app.id());
-            if (cmd.equals("uninstall") ||
-                    (cmd.equals("activate") && state == INSTALLED) ||
-                    (cmd.equals("deactivate") && state == ACTIVE)) {
-                strings.add(app.id().name());
-            }
-        }
+        service.getLinks()
+                .forEach(link -> strings.add(link.src().elementId().toString() +
+                                                     "/" + link.src().port()));
 
         // Now let the completer do the work for figuring out what to offer.
         return delegate.complete(buffer, cursor, candidates);

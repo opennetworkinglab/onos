@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.app;
+package org.onosproject.cli;
 
-import com.google.common.collect.ImmutableList;
-import org.onosproject.cli.AbstractChoicesCompleter;
+import org.apache.karaf.shell.console.completer.StringsCompleter;
 
 import java.util.List;
-
-import static org.onosproject.cli.app.ApplicationCommand.*;
+import java.util.SortedSet;
 
 /**
- * Application command completer.
+ * Abstraction of a completer with preset choices.
  */
-public class ApplicationCommandCompleter extends AbstractChoicesCompleter {
+public abstract class AbstractChoicesCompleter extends AbstractCompleter {
+
+    protected abstract List<String> choices();
+
     @Override
-    public List<String> choices() {
-        return ImmutableList.of(INSTALL, UNINSTALL, ACTIVATE, DEACTIVATE);
+    public int complete(String buffer, int cursor, List<String> candidates) {
+        StringsCompleter delegate = new StringsCompleter();
+        SortedSet<String> strings = delegate.getStrings();
+        choices().forEach(strings::add);
+        return delegate.complete(buffer, cursor, candidates);
     }
 
 }

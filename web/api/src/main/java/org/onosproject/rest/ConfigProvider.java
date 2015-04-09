@@ -16,6 +16,11 @@
 package org.onosproject.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -30,9 +35,12 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -43,10 +51,8 @@ import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.provider.ProviderId;
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -54,37 +60,60 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 
 /**
  * Provider of devices and links parsed from a JSON configuration structure.
  */
 class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private static final ProviderId PID =
             new ProviderId("cfg", "org.onosproject.rest", true);
 
+    private static final String UNKNOWN = "unknown";
+
+    private CountDownLatch deviceLatch;
+
     private final JsonNode cfg;
+    private final DeviceService deviceService;
+
     private final DeviceProviderRegistry deviceProviderRegistry;
     private final LinkProviderRegistry linkProviderRegistry;
     private final HostProviderRegistry hostProviderRegistry;
+
+    private DeviceProviderService deviceProviderService;
+    private LinkProviderService linkProviderService;
+    private HostProviderService hostProviderService;
+
+    private DeviceListener deviceEventCounter = new DeviceEventCounter();
+    private List<ConnectPoint> connectPoints = Lists.newArrayList();
 
     /**
      * Creates a new configuration provider.
      *
      * @param cfg                    JSON configuration
+     * @param deviceService          device service
      * @param deviceProviderRegistry device provider registry
      * @param linkProviderRegistry   link provider registry
      * @param hostProviderRegistry   host provider registry
      */
     ConfigProvider(JsonNode cfg,
+                   DeviceService deviceService,
                    DeviceProviderRegistry deviceProviderRegistry,
                    LinkProviderRegistry linkProviderRegistry,
                    HostProviderRegistry hostProviderRegistry) {
         this.cfg = checkNotNull(cfg, "Configuration cannot be null");
+        this.deviceService = checkNotNull(deviceService, "Device service cannot be null");
         this.deviceProviderRegistry = checkNotNull(deviceProviderRegistry, "Device provider registry cannot be null");
         this.linkProviderRegistry = checkNotNull(linkProviderRegistry, "Link provider registry cannot be null");
         this.hostProviderRegistry = checkNotNull(hostProviderRegistry, "Host provider registry cannot be null");
@@ -94,56 +123,74 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
      * Parses the given JSON and provides links as configured.
      */
     void parse() {
-        parseDevices();
-        parseLinks();
-        parseHosts();
+        try {
+            register();
+            parseDevices();
+            parseLinks();
+            parseHosts();
+            addMissingPorts();
+        } finally {
+            unregister();
+        }
+    }
+
+    private void register() {
+        deviceProviderService = deviceProviderRegistry.register(this);
+        linkProviderService = linkProviderRegistry.register(this);
+        hostProviderService = hostProviderRegistry.register(this);
+    }
+
+    private void unregister() {
+        deviceProviderRegistry.unregister(this);
+        linkProviderRegistry.unregister(this);
+        hostProviderRegistry.unregister(this);
     }
 
     // Parses the given JSON and provides devices.
     private void parseDevices() {
         try {
-            DeviceProviderService dps = deviceProviderRegistry.register(this);
             JsonNode nodes = cfg.get("devices");
             if (nodes != null) {
+                prepareForDeviceEvents(nodes.size());
                 for (JsonNode node : nodes) {
-                    parseDevice(dps, node);
+                    parseDevice(node);
                 }
             }
         } finally {
-            deviceProviderRegistry.unregister(this);
+            waitForDeviceEvents();
         }
     }
 
     // Parses the given node with device data and supplies the device.
-    private void parseDevice(DeviceProviderService dps, JsonNode node) {
+    private void parseDevice(JsonNode node) {
         URI uri = URI.create(get(node, "uri"));
-        Device.Type type = Device.Type.valueOf(get(node, "type"));
-        String mfr = get(node, "mfr");
-        String hw = get(node, "hw");
-        String sw = get(node, "sw");
-        String serial = get(node, "serial");
-        ChassisId cid = new ChassisId(get(node, "mac"));
+        Device.Type type = Device.Type.valueOf(get(node, "type", "SWITCH"));
+        String mfr = get(node, "mfr", UNKNOWN);
+        String hw = get(node, "hw", UNKNOWN);
+        String sw = get(node, "sw", UNKNOWN);
+        String serial = get(node, "serial", UNKNOWN);
+        ChassisId cid = new ChassisId(get(node, "mac", "000000000000"));
         SparseAnnotations annotations = annotations(node.get("annotations"));
 
         DeviceDescription desc =
                 new DefaultDeviceDescription(uri, type, mfr, hw, sw, serial,
                                              cid, annotations);
         DeviceId deviceId = deviceId(uri);
-        dps.deviceConnected(deviceId, desc);
+        deviceProviderService.deviceConnected(deviceId, desc);
 
         JsonNode ports = node.get("ports");
         if (ports != null) {
-            parsePorts(dps, deviceId, ports);
+            parsePorts(deviceId, ports);
         }
     }
 
     // Parses the given node with list of device ports.
-    private void parsePorts(DeviceProviderService dps, DeviceId deviceId, JsonNode nodes) {
+    private void parsePorts(DeviceId deviceId, JsonNode nodes) {
         List<PortDescription> ports = new ArrayList<>();
         for (JsonNode node : nodes) {
             ports.add(parsePort(node));
         }
-        dps.updatePorts(deviceId, ports);
+        deviceProviderService.updatePorts(deviceId, ports);
     }
 
     // Parses the given node with port information.
@@ -156,43 +203,41 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
     // Parses the given JSON and provides links as configured.
     private void parseLinks() {
-        try {
-            LinkProviderService lps = linkProviderRegistry.register(this);
-            JsonNode nodes = cfg.get("links");
-            if (nodes != null) {
-                for (JsonNode node : nodes) {
-                    parseLink(lps, node, false);
-                    if (!node.has("halfplex")) {
-                        parseLink(lps, node, true);
-                    }
+        JsonNode nodes = cfg.get("links");
+        if (nodes != null) {
+            for (JsonNode node : nodes) {
+                parseLink(node, false);
+                if (!node.has("halfplex")) {
+                    parseLink(node, true);
                 }
             }
-        } finally {
-            linkProviderRegistry.unregister(this);
         }
     }
 
     // Parses the given node with link data and supplies the link.
-    private void parseLink(LinkProviderService lps, JsonNode node, boolean reverse) {
+    private void parseLink(JsonNode node, boolean reverse) {
         ConnectPoint src = connectPoint(get(node, "src"));
         ConnectPoint dst = connectPoint(get(node, "dst"));
-        Link.Type type = Link.Type.valueOf(get(node, "type"));
+        Link.Type type = Link.Type.valueOf(get(node, "type", "DIRECT"));
         SparseAnnotations annotations = annotations(node.get("annotations"));
 
         DefaultLinkDescription desc = reverse ?
                 new DefaultLinkDescription(dst, src, type, annotations) :
                 new DefaultLinkDescription(src, dst, type, annotations);
-        lps.linkDetected(desc);
+        linkProviderService.linkDetected(desc);
+
+        connectPoints.add(src);
+        connectPoints.add(dst);
     }
 
     // Parses the given JSON and provides hosts as configured.
     private void parseHosts() {
         try {
-            HostProviderService hps = hostProviderRegistry.register(this);
             JsonNode nodes = cfg.get("hosts");
             if (nodes != null) {
                 for (JsonNode node : nodes) {
-                    parseHost(hps, node);
+                    parseHost(node);
+                    parseHost(node); // FIXME: hack to make sure host positions take
                 }
             }
         } finally {
@@ -201,14 +246,14 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     }
 
     // Parses the given node with host data and supplies the host.
-    private void parseHost(HostProviderService hps, JsonNode node) {
+    private void parseHost(JsonNode node) {
         MacAddress mac = MacAddress.valueOf(get(node, "mac"));
-        VlanId vlanId = VlanId.vlanId(node.get("vlan").shortValue());
+        VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
         HostId hostId = HostId.hostId(mac, vlanId);
         SparseAnnotations annotations = annotations(node.get("annotations"));
         HostLocation location = new HostLocation(connectPoint(get(node, "location")), 0);
 
-        String[] ipStrings = get(node, "ip").split(",");
+        String[] ipStrings = get(node, "ip", "").split(",");
         Set<IpAddress> ips = new HashSet<>();
         for (String ip : ipStrings) {
             ips.add(IpAddress.valueOf(ip.trim()));
@@ -216,8 +261,44 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
         DefaultHostDescription desc =
                 new DefaultHostDescription(mac, vlanId, location, ips, annotations);
-        hps.hostDetected(hostId, desc);
+        hostProviderService.hostDetected(hostId, desc);
+
+        connectPoints.add(location);
     }
+
+    // Adds any missing device ports for configured links and host locations.
+    private void addMissingPorts() {
+        deviceService.getDevices().forEach(this::addMissingPorts);
+    }
+
+    // Adds any missing device ports.
+    private void addMissingPorts(Device device) {
+        List<Port> ports = deviceService.getPorts(device.id());
+        Set<ConnectPoint> existing = ports.stream()
+                .map(p -> new ConnectPoint(device.id(), p.number()))
+                .collect(Collectors.toSet());
+        Set<ConnectPoint> missing = connectPoints.stream()
+                .filter(cp -> !existing.contains(cp))
+                .collect(Collectors.toSet());
+
+        if (!missing.isEmpty()) {
+            List<PortDescription> newPorts = Lists.newArrayList();
+            ports.forEach(p -> newPorts.add(description(p)));
+            missing.forEach(cp -> newPorts.add(description(cp)));
+            deviceProviderService.updatePorts(device.id(), newPorts);
+        }
+    }
+
+    // Creates a port description from the specified port.
+    private PortDescription description(Port p) {
+        return new DefaultPortDescription(p.number(), p.isEnabled(), p.type(), p.portSpeed());
+    }
+
+    // Creates a port description from the specified connection point.
+    private PortDescription description(ConnectPoint cp) {
+        return new DefaultPortDescription(cp.port(), true);
+    }
+
 
     // Produces set of annotations from the given JSON node.
     private SparseAnnotations annotations(JsonNode node) {
@@ -246,12 +327,18 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         return node.path(name).asText();
     }
 
-    @Override
-    public void triggerProbe(DeviceId deviceId) {
+    // Returns string form of the named property in the given JSON object.
+    private String get(JsonNode node, String name, String defaultValue) {
+        return node.path(name).asText(defaultValue);
     }
 
     @Override
     public void roleChanged(DeviceId device, MastershipRole newRole) {
+        deviceProviderService.receivedRoleReply(device, newRole, newRole);
+    }
+
+    @Override
+    public void triggerProbe(DeviceId deviceId) {
     }
 
     @Override
@@ -265,6 +352,40 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
     @Override
     public boolean isReachable(DeviceId device) {
-        return false;
+        return true;
     }
+
+    /**
+     * Prepares to count device added/available/removed events.
+     *
+     * @param count number of events to count
+     */
+    protected void prepareForDeviceEvents(int count) {
+        deviceLatch = new CountDownLatch(count);
+        deviceService.addListener(deviceEventCounter);
+    }
+
+    /**
+     * Waits for all expected device added/available/removed events.
+     */
+    protected void waitForDeviceEvents() {
+        try {
+            deviceLatch.await(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.warn("Device events did not arrive in time");
+        }
+        deviceService.removeListener(deviceEventCounter);
+    }
+
+    // Counts down number of device added/available/removed events.
+    private class DeviceEventCounter implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            DeviceEvent.Type type = event.type();
+            if (type == DEVICE_ADDED || type == DEVICE_AVAILABILITY_CHANGED) {
+                deviceLatch.countDown();
+            }
+        }
+    }
+
 }

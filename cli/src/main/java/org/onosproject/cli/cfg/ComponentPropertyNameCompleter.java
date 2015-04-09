@@ -19,7 +19,7 @@ import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
-import org.onosproject.cli.net.AbstractCompleter;
+import org.onosproject.cli.AbstractCompleter;
 
 import java.util.List;
 import java.util.Set;

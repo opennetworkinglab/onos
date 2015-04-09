@@ -79,7 +79,7 @@
                         <group>
                             <title>Null Providers</title>
                             <packages>
-                                org.onosproject.provider.nil.*
+                                org.onosproject.provider.nil:org.onosproject.provider.nil.*
                             </packages>
                         </group>
                         <group>

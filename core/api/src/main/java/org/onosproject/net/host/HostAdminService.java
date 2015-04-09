@@ -21,7 +21,7 @@ import org.onosproject.net.HostId;
 /**
  * Service for administering the inventory of end-station hosts.
  */
-public interface HostAdminService {
+public interface HostAdminService extends HostService {
 
     /**
      * Removes the end-station host with the specified identifier.

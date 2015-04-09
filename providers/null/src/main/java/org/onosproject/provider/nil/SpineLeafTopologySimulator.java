@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.app;
-
-import com.google.common.collect.ImmutableList;
-import org.onosproject.cli.AbstractChoicesCompleter;
-
-import java.util.List;
-
-import static org.onosproject.cli.app.ApplicationCommand.*;
+package org.onosproject.provider.nil;
 
 /**
- * Application command completer.
+ * Spine-leaf topology with hosts at the leaf devices.
  */
-public class ApplicationCommandCompleter extends AbstractChoicesCompleter {
+public class SpineLeafTopologySimulator extends TopologySimulator {
+
     @Override
-    public List<String> choices() {
-        return ImmutableList.of(INSTALL, UNINSTALL, ACTIVATE, DEACTIVATE);
+    protected void processTopoShape(String shape) {
+        super.processTopoShape(shape);
+        // FIXME: implement this
+    }
+
+    @Override
+    public void setUpTopology() {
+        // checkArgument(FIXME, "There must be at least one spine tier");
+        super.setUpTopology();
+    }
+
+    @Override
+    protected void createLinks() {
+    }
+
+    @Override
+    protected void createHosts() {
     }
 
 }

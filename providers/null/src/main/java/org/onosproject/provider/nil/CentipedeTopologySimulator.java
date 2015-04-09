@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.app;
-
-import com.google.common.collect.ImmutableList;
-import org.onosproject.cli.AbstractChoicesCompleter;
-
-import java.util.List;
-
-import static org.onosproject.cli.app.ApplicationCommand.*;
+package org.onosproject.provider.nil;
 
 /**
- * Application command completer.
+ * Linear topology with hosts on every device.
  */
-public class ApplicationCommandCompleter extends AbstractChoicesCompleter {
-    @Override
-    public List<String> choices() {
-        return ImmutableList.of(INSTALL, UNINSTALL, ACTIVATE, DEACTIVATE);
+public class CentipedeTopologySimulator extends LinearTopologySimulator {
+
+    /**
+     * Creates simulated hosts.
+     */
+    protected void createHosts() {
+        deviceIds.forEach(id -> createHosts(id, infrastructurePorts));
     }
 
 }

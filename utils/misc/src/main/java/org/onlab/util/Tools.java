@@ -192,6 +192,20 @@ public abstract class Tools {
     }
 
     /**
+     * Suspends the current thread for a specified number of millis and nanos.
+     *
+     * @param ms    number of millis
+     * @param nanos number of nanos
+     */
+    public static void delay(int ms, int nanos) {
+        try {
+            Thread.sleep(ms, nanos);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted", e);
+        }
+    }
+
+    /**
      * Slurps the contents of a file into a list of strings, one per line.
      *
      * @param path file path
