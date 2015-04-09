@@ -28,6 +28,10 @@ import static org.junit.Assert.fail;
  * Unit tests for bad REST requests.
  */
 public class BadRequestTest extends ResourceTest {
+
+    /**
+     * Tests the response for an invalid URL.
+     */
     @Test
     public void badUrl() {
         WebResource rs = resource();
@@ -37,6 +41,21 @@ public class BadRequestTest extends ResourceTest {
         } catch (UniformInterfaceException ex) {
             assertThat(ex.getMessage(),
                     containsString("returned a response status of 404 Not Found"));
+        }
+    }
+
+    /**
+     * Tests the response for a request with a bad method.
+     */
+    @Test
+    public void badMethod() {
+        WebResource rs = resource();
+        try {
+            rs.path("hosts").delete();
+            fail("Fetch of non-existent URL did not throw an exception");
+        } catch (UniformInterfaceException ex) {
+            assertThat(ex.getMessage(),
+                    containsString("returned a response status of 405 Method Not Allowed"));
         }
     }
 }
