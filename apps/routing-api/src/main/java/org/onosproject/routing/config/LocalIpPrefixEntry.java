@@ -20,6 +20,7 @@ import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 
 /**
@@ -28,6 +29,7 @@ import org.onlab.packet.IpPrefix;
 public class LocalIpPrefixEntry {
     private final IpPrefix ipPrefix;
     private final IpPrefixType type;
+    private final IpAddress gatewayIpAddress;
 
     /**
      * Specifies the type of local IP prefix.
@@ -55,9 +57,12 @@ public class LocalIpPrefixEntry {
      * @param type an IP prefix type as an IpPrefixType
      */
     public LocalIpPrefixEntry(@JsonProperty("ipPrefix") String ipPrefix,
-                              @JsonProperty("type") IpPrefixType type) {
+                              @JsonProperty("type") IpPrefixType type,
+                              @JsonProperty("gatewayIp") IpAddress
+                              gatewayIpAddress) {
         this.ipPrefix = IpPrefix.valueOf(ipPrefix);
         this.type = type;
+        this.gatewayIpAddress = gatewayIpAddress;
     }
 
     /**
@@ -76,6 +81,15 @@ public class LocalIpPrefixEntry {
      */
     public IpPrefixType ipPrefixType() {
         return type;
+    }
+
+    /**
+     * Gets the gateway IP address of the IP prefix entry.
+     *
+     * @return the gateway IP address
+     */
+    public IpAddress getGatewayIpAddress() {
+        return gatewayIpAddress;
     }
 
     /**

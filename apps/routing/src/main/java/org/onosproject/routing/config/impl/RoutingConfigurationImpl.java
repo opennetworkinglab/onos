@@ -29,6 +29,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.routing.config.BgpPeer;
@@ -43,6 +44,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,6 +70,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
 
     private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
     private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
+    private Set<IpAddress> gatewayIpAddresses = new HashSet<>();
 
     private InvertedRadixTree<LocalIpPrefixEntry>
             localPrefixTable4 = new ConcurrentInvertedRadixTree<>(
@@ -76,6 +79,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
             localPrefixTable6 = new ConcurrentInvertedRadixTree<>(
                     new DefaultByteArrayNodeFactory());
 
+    private MacAddress virtualGatewayMacAddress;
     private HostToInterfaceAdaptor hostAdaptor;
 
     @Activate
@@ -109,11 +113,15 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
             for (LocalIpPrefixEntry entry : config.getLocalIp4PrefixEntries()) {
                 localPrefixTable4.put(createBinaryString(entry.ipPrefix()),
                                       entry);
+                gatewayIpAddresses.add(entry.getGatewayIpAddress());
             }
             for (LocalIpPrefixEntry entry : config.getLocalIp6PrefixEntries()) {
                 localPrefixTable6.put(createBinaryString(entry.ipPrefix()),
                                       entry);
+                gatewayIpAddresses.add(entry.getGatewayIpAddress());
             }
+
+            virtualGatewayMacAddress = config.getVirtualGatewayMacAddress();
 
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
@@ -176,6 +184,16 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
                 createBinaryString(ipPrefix)) != null ||
                 localPrefixTable6.getValueForExactKey(
                 createBinaryString(ipPrefix)) != null);
+    }
+
+    @Override
+    public boolean isVirtualGatewayIpAddress(IpAddress ipAddress) {
+        return gatewayIpAddresses.contains(ipAddress);
+    }
+
+    @Override
+    public MacAddress getVirtualGatewayMacAddress() {
+        return virtualGatewayMacAddress;
     }
 
 }

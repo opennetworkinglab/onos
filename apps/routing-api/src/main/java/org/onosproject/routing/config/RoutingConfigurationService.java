@@ -17,6 +17,7 @@ package org.onosproject.routing.config;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.Map;
@@ -40,6 +41,21 @@ public interface RoutingConfigurationService {
      * @return the map from peer IP address to BgpPeer object
      */
     public Map<IpAddress, BgpPeer> getBgpPeers();
+
+    /**
+     * Gets the MAC address configured for virtual gateway in SDN network.
+     *
+     * @return the MAC address of virtual gateway
+     */
+    public MacAddress getVirtualGatewayMacAddress();
+
+    /**
+     * Evaluates whether an IP address is a virtual gateway IP address.
+     *
+     * @param ipAddress the IP address to evaluate
+     * @return true if the IP address is a virtual gateway address, otherwise false
+     */
+    public boolean isVirtualGatewayIpAddress(IpAddress ipAddress);
 
     /**
      * Evaluates whether an IP address belongs to local SDN network.

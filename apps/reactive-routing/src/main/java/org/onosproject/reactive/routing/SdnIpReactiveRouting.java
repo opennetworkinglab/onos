@@ -16,13 +16,17 @@
 package org.onosproject.reactive.routing;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.nio.ByteBuffer;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
@@ -40,6 +44,7 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
 /**
@@ -64,6 +69,9 @@ public class SdnIpReactiveRouting {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingService routingService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingConfigurationService config;
+
     private ApplicationId appId;
 
     private ReactiveRoutingProcessor processor =
@@ -78,6 +86,9 @@ public class SdnIpReactiveRouting {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         // TODO: to support IPv6 later
         selector.matchEthType(Ethernet.TYPE_IPV4);
+        packetService.requestPackets(selector.build(),
+                                     PacketPriority.REACTIVE, appId);
+        selector.matchEthType(Ethernet.TYPE_ARP);
         packetService.requestPackets(selector.build(),
                                      PacketPriority.REACTIVE, appId);
 
@@ -100,31 +111,56 @@ public class SdnIpReactiveRouting {
             if (ethPkt == null) {
                 return;
             }
-
-            // In theory, we do not need to check whether it is Ethernet
-            // TYPE_IPV4. However, due to the current implementation of the
-            // packetService, we will receive all packets from all subscribers.
-            // Hence, we have to check the Ethernet type again here.
-            if (ethPkt.getEtherType() != Ethernet.TYPE_IPV4) {
-                return;
-            }
-
-            // Parse packet
-            IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
-            IpAddress dstIp =
-                    IpAddress.valueOf(ipv4Packet.getDestinationAddress());
-            IpAddress srcIp =
-                    IpAddress.valueOf(ipv4Packet.getSourceAddress());
             ConnectPoint srcConnectPoint = pkt.receivedFrom();
-            MacAddress srcMac = ethPkt.getSourceMAC();
-            routingService.packetReactiveProcessor(dstIp, srcIp,
-                                                   srcConnectPoint, srcMac);
 
-            // TODO emit packet first or packetReactiveProcessor first
-            ConnectPoint egressConnectPoint = null;
-            egressConnectPoint = routingService.getEgressConnectPoint(dstIp);
-            if (egressConnectPoint != null) {
-                forwardPacketToDst(context, egressConnectPoint);
+            switch (ethPkt.getEtherType()) {
+            case Ethernet.TYPE_ARP:
+                ARP arpPacket = (ARP) ethPkt.getPayload();
+                Ip4Address targetIpAddress = Ip4Address
+                        .valueOf(arpPacket.getTargetProtocolAddress());
+                // Only when it is an ARP request packet and the target IP
+                // address is a virtual gateway IP address, then it will be
+                // processed.
+                if (arpPacket.getOpCode() == ARP.OP_REQUEST
+                        && config.isVirtualGatewayIpAddress(targetIpAddress)) {
+                    MacAddress gatewayMacAddress =
+                            config.getVirtualGatewayMacAddress();
+                    if (gatewayMacAddress == null) {
+                        break;
+                    }
+                    Ethernet eth = ARP.buildArpReply(targetIpAddress,
+                                                     gatewayMacAddress,
+                                                     ethPkt);
+
+                    TrafficTreatment.Builder builder =
+                            DefaultTrafficTreatment.builder();
+                    builder.setOutput(srcConnectPoint.port());
+                    packetService.emit(new DefaultOutboundPacket(
+                            srcConnectPoint.deviceId(),
+                            builder.build(),
+                            ByteBuffer.wrap(eth.serialize())));
+                }
+                break;
+            case Ethernet.TYPE_IPV4:
+                // Parse packet
+                IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
+                IpAddress dstIp =
+                        IpAddress.valueOf(ipv4Packet.getDestinationAddress());
+                IpAddress srcIp =
+                        IpAddress.valueOf(ipv4Packet.getSourceAddress());
+                MacAddress srcMac = ethPkt.getSourceMAC();
+                routingService.packetReactiveProcessor(dstIp, srcIp,
+                                                       srcConnectPoint, srcMac);
+
+                // TODO emit packet first or packetReactiveProcessor first
+                ConnectPoint egressConnectPoint = null;
+                egressConnectPoint = routingService.getEgressConnectPoint(dstIp);
+                if (egressConnectPoint != null) {
+                    forwardPacketToDst(context, egressConnectPoint);
+                }
+                break;
+            default:
+                break;
             }
         }
     }

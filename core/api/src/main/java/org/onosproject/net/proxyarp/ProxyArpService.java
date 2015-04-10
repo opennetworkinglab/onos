@@ -61,5 +61,4 @@ public interface ProxyArpService {
      * @return true if handled, false otherwise.
      */
     boolean handlePacket(PacketContext context);
-
 }

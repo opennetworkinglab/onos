@@ -156,7 +156,7 @@ public class ProxyArpManager implements ProxyArpService {
                 for (InterfaceIpAddress ia : addresses.ipAddresses()) {
                     if (ia.ipAddress().equals(targetAddress)) {
                         Ethernet arpReply =
-                                buildArpReply(targetAddress, addresses.mac(), eth);
+                                ARP.buildArpReply(targetAddress, addresses.mac(), eth);
                         sendTo(arpReply, inPort);
                     }
                 }
@@ -181,7 +181,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         if (src != null && dst != null) {
             // We know the target host so we can respond
-            Ethernet arpReply = buildArpReply(targetAddress, dst.mac(), eth);
+            Ethernet arpReply = ARP.buildArpReply(targetAddress, dst.mac(), eth);
             sendTo(arpReply, inPort);
             return;
         }
@@ -295,7 +295,6 @@ public class ProxyArpManager implements ProxyArpService {
         Ethernet ndpReply = buildNdpReply(targetAddress, dst.mac(), eth);
         sendTo(ndpReply, inPort);
     }
-
 
     /**
      * Outputs the given packet out the given port.
@@ -479,41 +478,6 @@ public class ProxyArpManager implements ProxyArpService {
             portNumbers.add(p.number());
         }
         return portNumbers;
-    }
-
-    /**
-     * Builds an ARP reply based on a request.
-     *
-     * @param srcIp the IP address to use as the reply source
-     * @param srcMac the MAC address to use as the reply source
-     * @param request the ARP request we got
-     * @return an Ethernet frame containing the ARP reply
-     */
-    private Ethernet buildArpReply(Ip4Address srcIp, MacAddress srcMac,
-            Ethernet request) {
-
-        Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress(request.getSourceMAC());
-        eth.setSourceMACAddress(srcMac);
-        eth.setEtherType(Ethernet.TYPE_ARP);
-        eth.setVlanID(request.getVlanID());
-
-        ARP arp = new ARP();
-        arp.setOpCode(ARP.OP_REPLY);
-        arp.setProtocolType(ARP.PROTO_TYPE_IP);
-        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
-
-        arp.setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH);
-        arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
-        arp.setSenderHardwareAddress(srcMac.toBytes());
-        arp.setTargetHardwareAddress(request.getSourceMACAddress());
-
-        arp.setTargetProtocolAddress(((ARP) request.getPayload())
-                .getSenderProtocolAddress());
-        arp.setSenderProtocolAddress(srcIp.toInt());
-
-        eth.setPayload(arp);
-        return eth;
     }
 
     /**

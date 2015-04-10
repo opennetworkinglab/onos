@@ -17,6 +17,7 @@ package org.onosproject.routing.config.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.onlab.packet.MacAddress;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
 import org.onosproject.routing.config.LocalIpPrefixEntry;
@@ -33,6 +34,7 @@ public class Configuration {
     // the BGP routers outside our SDN network the BGP peers.
     private List<BgpSpeaker> bgpSpeakers;
     private List<BgpPeer> peers;
+    private MacAddress virtualGatewayMacAddress;
 
     // All IP prefixes from the configuration are local
     private List<LocalIpPrefixEntry> localIp4PrefixEntries =
@@ -77,13 +79,33 @@ public class Configuration {
     }
 
     /**
-     * Sets a list of BGP peers we are configured to peer with.
+     * Sets a list of BGP peers we configured to peer with.
      *
      * @param peers the list of BGP peers
      */
     @JsonProperty("bgpPeers")
     public void setPeers(List<BgpPeer> peers) {
         this.peers = peers;
+    }
+
+    /**
+     * Gets the MAC address we configured for virtual gateway
+     * in SDN network.
+     *
+     * @return the MAC address of virtual gateway
+     */
+    public MacAddress getVirtualGatewayMacAddress() {
+        return virtualGatewayMacAddress;
+    }
+
+    /**
+     * Sets the MAC address for virtual gateway in SDN network.
+     *
+     * @param virtualGatewayMacAddress the MAC address of virtual gateway
+     */
+    @JsonProperty("virtualGatewayMacAddress")
+    public void setVirtualGatewayMacAddress(MacAddress virtualGatewayMacAddress) {
+        this.virtualGatewayMacAddress = virtualGatewayMacAddress;
     }
 
     /**

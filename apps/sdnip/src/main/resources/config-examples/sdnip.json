@@ -66,17 +66,21 @@
     "ip4LocalPrefixes" : [
         {
                 "ipPrefix" : "100.0.0.0/24",
-                "type" : "PUBLIC"
+                "type" : "PUBLIC",
+                "gatewayIp" : "100.0.0.1"
         },
         {
                 "ipPrefix" : "200.0.0.0/8",
-                "type" : "PUBLIC"
+                "type" : "PUBLIC",
+                "gatewayIp" : "200.0.0.3"
         },
         {
                 "ipPrefix" : "192.0.0.0/24",
-                "type" : "PRIVATE"
+                "type" : "PRIVATE",
+                "gatewayIp" : "192.0.0.254"
         }
     ],
     "ip6LocalPrefixes" : [
-    ]
+    ],
+    "virtualGatewayMacAddress" : "00:00:00:00:00:01"
 }
