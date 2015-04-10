@@ -218,7 +218,8 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
 
         private void processPendingObjectives(DeviceId deviceId) {
-            pendingObjectives.get(deviceId).forEach(obj -> {
+            pendingObjectives.getOrDefault(deviceId,
+                                           Collections.emptySet()).forEach(obj -> {
                 if (obj instanceof NextObjective) {
                     getDevicePipeliner(deviceId)
                             .next(Collections.singletonList((NextObjective) obj));
