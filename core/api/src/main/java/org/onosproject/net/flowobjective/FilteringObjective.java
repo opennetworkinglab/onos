@@ -41,6 +41,13 @@ public interface FilteringObjective extends Objective {
     }
 
     /**
+     * Obtain the key for this filter.
+     *
+     * @return a criterion
+     */
+    public Criterion key();
+
+    /**
      * Obtain this filtering type.
      * @return the type
      */
@@ -57,6 +64,14 @@ public interface FilteringObjective extends Objective {
      * Builder of Filtering objective entities.
      */
     public interface Builder extends Objective.Builder {
+
+        /**
+         * Specify the key for the filter.
+         *
+         * @param key a criterion
+         * @return a filter objective builder
+         */
+        public Builder withKey(Criterion key);
 
         /**
          * Add a filtering condition.

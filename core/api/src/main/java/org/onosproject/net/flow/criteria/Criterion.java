@@ -124,7 +124,12 @@ public interface Criterion {
         /** Optical channel signal ID (lambda). */
         OCH_SIGID,
         /** Optical channel signal type (fixed or flexible). */
-        OCH_SIGTYPE
+        OCH_SIGTYPE,
+
+        /**
+         * An empty criterion.
+         */
+        DUMMY
     }
 
     /**

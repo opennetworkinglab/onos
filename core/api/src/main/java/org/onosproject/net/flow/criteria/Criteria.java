@@ -375,6 +375,10 @@ public final class Criteria {
         return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }
 
+    public static Criterion dummy() {
+        return new DummyCriterion();
+    }
+
     /**
      * Implementation of input port criterion.
      */
@@ -1727,6 +1731,17 @@ public final class Criteria {
                         Objects.equals(type, that.type);
             }
             return false;
+        }
+    }
+
+    /**
+     * Dummy Criterion used with @see{FilteringObjective}.
+     */
+    private static class DummyCriterion implements Criterion {
+
+        @Override
+        public Type type() {
+            return Type.DUMMY;
         }
     }
 }

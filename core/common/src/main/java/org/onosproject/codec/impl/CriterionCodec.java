@@ -74,6 +74,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         formatMap.put(Criterion.Type.IPV6_EXTHDR, new FormatIpV6Exthdr());
         formatMap.put(Criterion.Type.OCH_SIGID, new FormatOchSigId());
         formatMap.put(Criterion.Type.OCH_SIGTYPE, new FormatOchSigType());
+        formatMap.put(Criterion.Type.DUMMY, new FormatDummyType());
 
         // Currently unimplemented
         formatMap.put(Criterion.Type.ARP_OP, new FormatUnknown());
@@ -316,6 +317,17 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         }
     }
 
+    private class FormatDummyType implements CriterionTypeFormatter {
+
+        @Override
+        public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
+            checkNotNull(criterion, "Criterion cannot be null");
+
+            return root.put("type", criterion.type().toString());
+
+        }
+    }
+
     @Override
     public ObjectNode encode(Criterion criterion, CodecContext context) {
         checkNotNull(criterion, "Criterion cannot be null");
@@ -331,4 +343,6 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
 
         return formatter.formatCriterion(result, criterion);
     }
+
+
 }

@@ -17,6 +17,7 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import java.util.Collection;
@@ -37,13 +38,15 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     private final int timeout;
     private final ApplicationId appId;
     private final int priority;
+    private final Criterion key;
     private final List<Criterion> conditions;
     private final int id;
     private final Operation op;
 
     private DefaultFilteringObjective(Type type, boolean permanent, int timeout,
-                                      ApplicationId appId, int priority,
+                                      ApplicationId appId, int priority, Criterion key,
                                       List<Criterion> conditions, Operation op) {
+        this.key = key;
         this.type = type;
         this.permanent = permanent;
         this.timeout = timeout;
@@ -52,8 +55,13 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         this.conditions = conditions;
         this.op = op;
 
-        this.id = Objects.hash(type, conditions, permanent,
+        this.id = Objects.hash(type, key, conditions, permanent,
                                timeout, appId, priority);
+    }
+
+    @Override
+    public Criterion key() {
+        return key;
     }
 
     @Override
@@ -115,6 +123,13 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private int timeout = DEFAULT_TIMEOUT;
         private ApplicationId appId;
         private int priority = DEFAULT_PRIORITY;
+        private Criterion key = Criteria.dummy();
+
+        @Override
+        public Builder withKey(Criterion key) {
+            this.key = key;
+            return this;
+        }
 
         @Override
         public Builder addCondition(Criterion criterion) {
@@ -167,7 +182,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             checkNotNull(appId, "Must supply an application id");
 
             return new DefaultFilteringObjective(type, permanent, timeout,
-                                                appId, priority, conditions,
+                                                appId, priority, key, conditions,
                                                 Operation.ADD);
 
         }
@@ -179,8 +194,9 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
             checkNotNull(appId, "Must supply an application id");
 
+
             return new DefaultFilteringObjective(type, permanent, timeout,
-                                                 appId, priority, conditions,
+                                                 appId, priority, key, conditions,
                                                  Operation.REMOVE);
 
         }
