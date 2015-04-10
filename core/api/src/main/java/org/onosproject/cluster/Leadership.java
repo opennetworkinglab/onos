@@ -62,6 +62,7 @@ public class Leadership {
 
     /**
      * The topic for which this leadership applies.
+     *
      * @return leadership topic.
      */
     public String topic() {
@@ -70,6 +71,7 @@ public class Leadership {
 
     /**
      * The nodeId of leader for this topic.
+     *
      * @return leader node.
      */
     public NodeId leader() {
@@ -108,6 +110,7 @@ public class Leadership {
      * clock skew, relying on this value for determining event ordering
      * is discouraged. Epoch is more appropriate for determining
      * event ordering.
+     *
      * @return elected time.
      */
     public long electedTime() {

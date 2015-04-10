@@ -30,6 +30,7 @@ public interface LeadershipService {
 
     /**
      * Returns the current leader for the topic.
+     *
      * @param path topic
      * @return nodeId of the leader, null if so such topic exists.
      */
@@ -37,6 +38,7 @@ public interface LeadershipService {
 
     /**
      * Returns the current leadership info for the topic.
+     *
      * @param path topic
      * @return leadership info or null if so such topic exists.
      */
@@ -44,6 +46,7 @@ public interface LeadershipService {
 
     /**
      * Returns the set of topics owned by the specified node.
+     *
      * @param nodeId node Id.
      * @return set of topics for which this node is the current leader.
      */
@@ -51,30 +54,35 @@ public interface LeadershipService {
 
     /**
      * Joins the leadership contest.
+     *
      * @param path topic for which this controller node wishes to be a leader.
      */
     void runForLeadership(String path);
 
     /**
      * Withdraws from a leadership contest.
+     *
      * @param path topic for which this controller node no longer wishes to be a leader.
      */
     void withdraw(String path);
 
     /**
      * Returns the current leader board.
+     *
      * @return mapping from topic to leadership info.
      */
     Map<String, Leadership> getLeaderBoard();
 
     /**
      * Returns the candidates for all known topics.
+     *
      * @return A map of topics to lists of NodeIds.
      */
     Map<String, List<NodeId>> getCandidates();
 
     /**
      * Returns the candidates for a given topic.
+     *
      * @param path topic
      * @return A lists of NodeIds, which may be empty.
      */
@@ -82,12 +90,14 @@ public interface LeadershipService {
 
     /**
      * Registers a event listener to be notified of leadership events.
+     *
      * @param listener listener that will asynchronously notified of leadership events.
      */
     void addListener(LeadershipEventListener listener);
 
     /**
      * Unregisters a event listener for leadership events.
+     *
      * @param listener listener to be removed.
      */
     void removeListener(LeadershipEventListener listener);
