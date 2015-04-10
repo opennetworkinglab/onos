@@ -440,7 +440,7 @@ public class IntentManager
                     store.write(toInstall);
                 }
                 // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
-                // if toUninstall was cause of error, then CORRUPT (another job will lean this up)
+                // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
             }
         });
 
