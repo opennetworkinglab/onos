@@ -16,6 +16,7 @@
 package org.onosproject.cli.cfg;
 
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.felix.service.command.CommandSession;
@@ -24,6 +25,7 @@ import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
@@ -46,8 +48,11 @@ public class ComponentPropertyNameCompleter implements Completer {
                 AbstractShellCommand.get(ComponentConfigService.class);
 
         SortedSet<String> strings = delegate.getStrings();
-        service.getProperties(componentName)
-                .forEach(property -> strings.add(property.name()));
+        Set<ConfigProperty> properties =
+            service.getProperties(componentName);
+        if (properties != null) {
+            properties.forEach(property -> strings.add(property.name()));
+        }
 
         // Now let the completer do the work for figuring out what to offer.
         return delegate.complete(buffer, cursor, candidates);

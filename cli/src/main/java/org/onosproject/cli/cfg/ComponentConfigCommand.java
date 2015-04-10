@@ -107,6 +107,11 @@ public class ComponentConfigCommand extends AbstractShellCommand {
 
     private void listComponentProperty(String component, String name) {
         Set<ConfigProperty> props = service.getProperties(component);
+
+        if (props == null) {
+            return;
+        }
+
         Optional<ConfigProperty> property = props.stream()
                 .filter(p -> p.name().equals(name)).findFirst();
         if (!property.isPresent()) {
