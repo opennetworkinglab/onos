@@ -373,37 +373,39 @@ public class IntentManager
     private void applyIntentData(IntentData data,
                                  FlowRuleOperations.Builder builder,
                                  Direction direction) {
-        if (data != null) {
-            List<Intent> intentsToApply = data.installables();
-            if (!intentsToApply.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
-                throw new IllegalStateException("installable intents must be FlowRuleIntent");
-            }
+        if (data == null) {
+            return;
+        }
 
+        List<Intent> intentsToApply = data.installables();
+        if (!intentsToApply.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
+            throw new IllegalStateException("installable intents must be FlowRuleIntent");
+        }
+
+        if (direction == Direction.ADD) {
+            trackerService.addTrackedResources(data.key(), data.intent().resources());
+            intentsToApply.forEach(installable ->
+                    trackerService.addTrackedResources(data.key(), installable.resources()));
+        } else {
+            trackerService.removeTrackedResources(data.key(), data.intent().resources());
+            intentsToApply.forEach(installable ->
+                    trackerService.removeTrackedResources(data.intent().key(),
+                            installable.resources()));
+        }
+
+        // FIXME do FlowRuleIntents have stages??? Can we do uninstall work in parallel? I think so.
+        builder.newStage();
+
+        List<Collection<FlowRule>> stages = intentsToApply.stream()
+                .map(x -> (FlowRuleIntent) x)
+                .map(FlowRuleIntent::flowRules)
+                .collect(Collectors.toList());
+
+        for (Collection<FlowRule> rules : stages) {
             if (direction == Direction.ADD) {
-                trackerService.addTrackedResources(data.key(), data.intent().resources());
-                intentsToApply.forEach(installable ->
-                        trackerService.addTrackedResources(data.key(), installable.resources()));
+                rules.forEach(builder::add);
             } else {
-                trackerService.removeTrackedResources(data.key(), data.intent().resources());
-                intentsToApply.forEach(installable ->
-                        trackerService.removeTrackedResources(data.intent().key(),
-                                installable.resources()));
-            }
-
-            // FIXME do FlowRuleIntents have stages??? Can we do uninstall work in parallel? I think so.
-            builder.newStage();
-
-            List<Collection<FlowRule>> stages = intentsToApply.stream()
-                    .map(x -> (FlowRuleIntent) x)
-                    .map(FlowRuleIntent::flowRules)
-                    .collect(Collectors.toList());
-
-            for (Collection<FlowRule> rules : stages) {
-                if (direction == Direction.ADD) {
-                    rules.forEach(builder::add);
-                } else {
-                    rules.forEach(builder::remove);
-                }
+                rules.forEach(builder::remove);
             }
         }
 
