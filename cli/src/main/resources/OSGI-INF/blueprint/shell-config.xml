@@ -37,6 +37,7 @@
             <completers>
                 <ref component-id="cfgCommandCompleter"/>
                 <ref component-id="componentNameCompleter"/>
+                <ref component-id="componentPropertyNameCompleter"/>
                 <null/>
             </completers>
         </command>
@@ -317,6 +318,7 @@
     <bean id="appIdWithIntentNameCompleter" class="org.onosproject.cli.app.ApplicationIdWithIntentNameCompleter"/>
     <bean id="cfgCommandCompleter" class="org.onosproject.cli.cfg.ComponentConfigCommandCompleter"/>
     <bean id="componentNameCompleter" class="org.onosproject.cli.cfg.ComponentNameCompleter"/>
+    <bean id="componentPropertyNameCompleter" class="org.onosproject.cli.cfg.ComponentPropertyNameCompleter"/>
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="clusterIdCompleter" class="org.onosproject.cli.net.ClusterIdCompleter"/>
