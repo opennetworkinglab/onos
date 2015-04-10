@@ -20,4 +20,19 @@ package org.onosproject.net.driver;
  * with a device (in context of {@link org.onosproject.net.driver.DriverHandler}).
  */
 public interface HandlerBehaviour extends Behaviour {
+
+    /**
+     * Returns the driver handler context on which this behaviour operates.
+     *
+     * @return driver handler context
+     */
+    DriverHandler handler();
+
+    /**
+     * Sets the driver handler context for this behaviour.
+     *
+     * @param handler driver handler
+     */
+    void setHandler(DriverHandler handler);
+
 }

@@ -15,25 +15,24 @@
  */
 package org.onosproject.net.driver;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
- * Representation of a facet of device behaviour that can be used to talk about
- * a device (in context of {@link DriverData}) or to a device (in context of
- * {@link DriverHandler}).
+ * Base implementation of device driver handler behaviour.
  */
-public interface Behaviour {
+public class AbstractHandlerBehaviour
+        extends AbstractBehaviour implements HandlerBehaviour {
 
-    /**
-     * Returns the driver data context.
-     *
-     * @return driver data
-     */
-    DriverData data();
+    private DriverHandler handler;
 
-    /**
-     * Sets the driver data context on this this behaviour should operate.
-     *
-     * @param data driver data
-     */
-    void setData(DriverData data);
+    @Override
+    public DriverHandler handler() {
+        return handler;
+    }
 
+    @Override
+    public void setHandler(DriverHandler handler) {
+        checkState(this.handler == null, "Driver handler already set");
+        this.handler = handler;
+    }
 }

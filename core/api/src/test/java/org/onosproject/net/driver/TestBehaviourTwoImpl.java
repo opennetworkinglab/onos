@@ -18,5 +18,5 @@ package org.onosproject.net.driver;
 /**
  * Test behaviour.
  */
-public class TestBehaviourTwoImpl extends AbstractBehaviour implements TestBehaviourTwo {
+public class TestBehaviourTwoImpl extends AbstractHandlerBehaviour implements TestBehaviourTwo {
 }

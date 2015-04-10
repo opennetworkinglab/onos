@@ -84,12 +84,20 @@ public interface Driver extends Annotations {
      *
      * @param data           driver data context
      * @param behaviourClass driver behaviour class
-     * @param handler        indicates behaviour is intended for handler context
      * @param <T>            type of behaviour
      * @return behaviour instance
      */
-    <T extends Behaviour> T createBehaviour(DriverData data, Class<T> behaviourClass,
-                                            boolean handler);
+    <T extends Behaviour> T createBehaviour(DriverData data, Class<T> behaviourClass);
+
+    /**
+     * Creates an instance of behaviour primed with the specified driver data.
+     *
+     * @param handler        driver handler context
+     * @param behaviourClass driver behaviour class
+     * @param <T>            type of behaviour
+     * @return behaviour instance
+     */
+    <T extends Behaviour> T createBehaviour(DriverHandler handler, Class<T> behaviourClass);
 
     /**
      * Returns the set of annotations as map of key/value properties.

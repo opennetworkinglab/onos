@@ -49,7 +49,7 @@ public class DefaultDriverData implements DriverData {
 
     @Override
     public <T extends Behaviour> T behaviour(Class<T> behaviourClass) {
-        return driver.createBehaviour(this, behaviourClass, false);
+        return driver.createBehaviour(this, behaviourClass);
     }
 
     @Override

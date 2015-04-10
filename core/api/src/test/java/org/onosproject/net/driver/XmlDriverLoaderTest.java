@@ -67,7 +67,7 @@ public class XmlDriverLoaderTest {
         InputStream stream = getClass().getResourceAsStream("drivers.noconstructor.xml");
         DriverProvider provider = loader.loadDrivers(stream);
         Driver driver = provider.getDrivers().iterator().next();
-        driver.createBehaviour(new DefaultDriverData(driver), TestBehaviour.class, false);
+        driver.createBehaviour(new DefaultDriverData(driver), TestBehaviour.class);
     }
 
 }

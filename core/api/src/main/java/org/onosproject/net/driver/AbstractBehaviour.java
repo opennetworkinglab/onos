@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.driver;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * Base implementation of device driver behaviour.
  */
@@ -23,12 +25,13 @@ public class AbstractBehaviour implements Behaviour {
     private DriverData data;
 
     @Override
-    public void setData(DriverData data) {
-        this.data = data;
+    public DriverData data() {
+        return data;
     }
 
     @Override
-    public DriverData data() {
-        return data;
+    public void setData(DriverData data) {
+        checkState(this.data == null, "Driver data already set");
+        this.data = data;
     }
 }

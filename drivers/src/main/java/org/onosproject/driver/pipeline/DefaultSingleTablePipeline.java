@@ -21,7 +21,7 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
-import org.onosproject.net.driver.AbstractBehaviour;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -41,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Simple single table pipeline abstraction.
  */
-public class DefaultSingleTablePipeline extends AbstractBehaviour implements Pipeliner {
+public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private final Logger log = getLogger(getClass());
 
@@ -55,7 +55,6 @@ public class DefaultSingleTablePipeline extends AbstractBehaviour implements Pip
         this.deviceId = deviceId;
 
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
-
     }
 
     @Override

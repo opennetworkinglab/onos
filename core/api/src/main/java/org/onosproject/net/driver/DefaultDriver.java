@@ -63,13 +63,6 @@ public class DefaultDriver implements Driver {
         this.properties = copyOf(checkNotNull(properties, "Properties cannot be null"));
     }
 
-    /**
-     * Merges the two drivers while giving preference to this driver when
-     * dealing with conflicts.
-     *
-     * @param other other driver
-     * @return new driver
-     */
     @Override
     public Driver merge(Driver other) {
         // Merge the behaviours.
@@ -121,19 +114,22 @@ public class DefaultDriver implements Driver {
         return behaviours.containsKey(behaviourClass);
     }
 
-    /**
-     * Creates an instance of behaviour primed with the specified driver data.
-     *
-     * @param data           driver data context
-     * @param behaviourClass driver behaviour class
-     * @param handler        indicates behaviour is intended for handler context
-     * @param <T>            type of behaviour
-     * @return behaviour instance
-     */
+    @Override
     public <T extends Behaviour> T createBehaviour(DriverData data,
-                                                   Class<T> behaviourClass,
-                                                   boolean handler) {
-        checkArgument(handler || !HandlerBehaviour.class.isAssignableFrom(behaviourClass),
+                                                   Class<T> behaviourClass) {
+        return createBehaviour(data, null, behaviourClass);
+    }
+
+    @Override
+    public <T extends Behaviour> T createBehaviour(DriverHandler handler,
+                                                   Class<T> behaviourClass) {
+        return createBehaviour(handler.data(), handler, behaviourClass);
+    }
+
+    // Creates an instance of behaviour primed with the specified driver data.
+    private <T extends Behaviour> T createBehaviour(DriverData data, DriverHandler handler,
+                                                    Class<T> behaviourClass) {
+        checkArgument(handler != null || !HandlerBehaviour.class.isAssignableFrom(behaviourClass),
                       "{} is applicable only to handler context", behaviourClass.getName());
 
         // Locate the implementation of the requested behaviour.
@@ -143,6 +139,11 @@ public class DefaultDriver implements Driver {
         // Create an instance of the behaviour and apply data as its context.
         T behaviour = createBehaviour(behaviourClass, implementation);
         behaviour.setData(data);
+
+        // If this is a handler behaviour, also apply handler as its context.
+        if (handler != null) {
+            ((HandlerBehaviour) behaviour).setHandler(handler);
+        }
         return behaviour;
     }
 

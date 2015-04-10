@@ -26,7 +26,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
-import org.onosproject.net.driver.AbstractBehaviour;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -52,7 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Corsa pipeline handler.
  */
-public class OVSCorsaPipeline extends AbstractBehaviour implements Pipeliner {
+public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private static final int CONTROLLER_PRIORITY = 255;
     private static final int DROP_PRIORITY = 0;
@@ -79,7 +79,6 @@ public class OVSCorsaPipeline extends AbstractBehaviour implements Pipeliner {
                 "org.onosproject.driver.OVSCorsaPipeline");
 
         pushDefaultRules();
-
     }
 
     @Override

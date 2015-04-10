@@ -45,7 +45,7 @@ public class DefaultDriverHandler implements DriverHandler {
 
     @Override
     public <T extends Behaviour> T behaviour(Class<T> behaviourClass) {
-        return data.driver().createBehaviour(this.data, behaviourClass, true);
+        return data.driver().createBehaviour(this, behaviourClass);
     }
 
     @Override
