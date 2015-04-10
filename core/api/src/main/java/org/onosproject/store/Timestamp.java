@@ -26,10 +26,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public interface Timestamp extends Comparable<Timestamp> {
 
     @Override
-    public abstract int hashCode();
+    int hashCode();
 
     @Override
-    public abstract boolean equals(Object obj);
+    boolean equals(Object obj);
 
     /**
      * Tests if this timestamp is newer than the specified timestamp.
@@ -37,7 +37,7 @@ public interface Timestamp extends Comparable<Timestamp> {
      * @param other timestamp to compare against
      * @return true if this instance is newer
      */
-    public default boolean isNewerThan(Timestamp other) {
+    default boolean isNewerThan(Timestamp other) {
         return this.compareTo(checkNotNull(other)) > 0;
     }
 }
