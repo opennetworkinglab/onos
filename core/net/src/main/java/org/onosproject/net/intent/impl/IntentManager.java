@@ -347,8 +347,9 @@ public class IntentManager
         public void execute(Collection<IntentData> operations) {
             log.debug("Execute {} operation(s).", operations.size());
             log.trace("Execute operations: {}", operations);
+
+            // batchExecutor is single-threaded, so only one batch is in flight at a time
             batchExecutor.execute(new IntentBatchProcess(operations));
-            // TODO ensure that only one batch is in flight at a time
         }
     }
 
