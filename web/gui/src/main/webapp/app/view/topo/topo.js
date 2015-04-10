@@ -247,6 +247,25 @@
             .attr('opacity', b ? 1 : 0);
     }
 
+    function addSprites() {
+        var g = zoomLayer.append ('g').attr('id', 'topo-sprites');
+
+        function cloud(g, x, y) {
+            g.append('use').attr({
+                width: 100,
+                height: 100,
+                'xlink:href': '#cloud',
+                transform: sus.translate([x, y]) + sus.scale(4,4)
+            }).style('stroke', 'goldenrod')
+                .style('fill', 'none')
+                .style('stroke-width', 1.0);
+        }
+
+        cloud(g, 0, 50);
+        cloud(g, 800, 40);
+        cloud(g, 400, 450);
+    }
+
     // --- User Preferemces ----------------------------------------------
 
     var prefsState = {};
@@ -354,6 +373,7 @@
                     toggleMap(prefsState.bg);
                 }
             );
+     //       addSprites();
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);

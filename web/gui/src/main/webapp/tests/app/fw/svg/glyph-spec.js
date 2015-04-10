@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 35,
+    var numBaseGlyphs = 36,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -67,6 +67,8 @@ describe('factory: fw/svg/glyph.js', function() {
             play: 'M2.5,2l5.5,3',
             stop: 'M2.5,2.5h5',
 
+            cloud: 'M37.6,79.5c-6.9,8.7-20.4,8.6',
+
             // our test ones..
             triangle: 'M.5,.2',
             diamond: 'M.2,.5'
@@ -81,6 +83,9 @@ describe('factory: fw/svg/glyph.js', function() {
         badgeIds = [
             'uiAttached', 'checkMark', 'xMark', 'triangleUp', 'triangleDown',
             'plus', 'minus', 'play', 'stop'
+        ],
+        spriteIds = [
+            'cloud'
         ];
 
     beforeEach(module('onosUtil', 'onosSvg'));
@@ -106,8 +111,9 @@ describe('factory: fw/svg/glyph.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(gs, [
-            'clear', 'init', 'register', 'ids', 'glyph', 'loadDefs', 'addGlyph'
-        ])).toBeTruthy();
+            'clear', 'init', 'registerGlyphs', 'registerGlyphSet',
+            'ids', 'glyph', 'loadDefs', 'addGlyph'
+        ])).toBe(true);
     });
 
     it('should start with no glyphs loaded', function () {
@@ -131,7 +137,7 @@ describe('factory: fw/svg/glyph.js', function() {
             glyph = gs.glyph(id),
             prefix = prefixLookup[pfxId],
             plen = prefix.length;
-        expect(fs.contains(gs.ids(), id)).toBeTruthy();
+        expect(fs.contains(gs.ids(), id)).toBe(true);
         expect(glyph).toBeDefined();
         expect(glyph.id).toEqual(id);
         expect(glyph.vb).toEqual(vbox);
@@ -139,7 +145,8 @@ describe('factory: fw/svg/glyph.js', function() {
     }
 
     it('should be configured with the correct number of glyphs', function () {
-        expect(1 + glyphIds.length + badgeIds.length).toEqual(numBaseGlyphs);
+        var nGlyphs = 1 + glyphIds.length + badgeIds.length + spriteIds.length;
+        expect(nGlyphs).toEqual(numBaseGlyphs);
     });
 
     it('should load the bird glyph', function() {
@@ -161,29 +168,64 @@ describe('factory: fw/svg/glyph.js', function() {
         });
     });
 
+    it('should load the sprites', function () {
+        gs.init();
+        spriteIds.forEach(function (id) {
+            verifyGlyphLoadedInCache(id, vbGlyph);
+        });
+    });
+
 
     // define some glyphs that we want to install
 
     var testVbox = '0 0 1 1',
+        triVbox = '0 0 12 12',
+        diaVbox = '0 0 15 15',
         dTriangle = 'M.5,.2l.3,.6,h-.6z',
         dDiamond = 'M.2,.5l.3,-.3l.3,.3l-.3,.3z',
         newGlyphs = {
+            _viewbox: testVbox,
             triangle: dTriangle,
             diamond: dDiamond
         },
         dupGlyphs = {
+            _viewbox: testVbox,
             router: dTriangle,
             switch: dDiamond
         },
-        idCollision = 'GlyphService.register(): ID collision: ';
+        altNewGlyphs = {
+            _triangle: triVbox,
+            triangle: dTriangle,
+            _diamond: diaVbox,
+            diamond: dDiamond
+        },
+        altDupGlyphs = {
+            _router: triVbox,
+            router: dTriangle,
+            _switch: diaVbox,
+            switch: dDiamond
+        },
+        badGlyphSet = {
+            triangle: dTriangle,
+            diamond: dDiamond
+        },
+        warnMsg = 'GlyphService.registerGlyphs(): ',
+        warnMsgSet = 'GlyphService.registerGlyphSet(): ',
+        idCollision = warnMsg + 'ID collision: ',
+        idCollisionSet = warnMsgSet + 'ID collision: ',
+        missVbSet = warnMsgSet + 'no "_viewbox" property found',
+        missVbCustom = warnMsg + 'Missing viewbox property: ',
+        missVbTri = missVbCustom + '"_triangle"',
+        missVbDia = missVbCustom + '"_diamond"';
 
-    it('should install new glyphs', function () {
+
+    it('should install new glyphs as a glyph-set', function () {
         gs.init();
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         spyOn($log, 'warn');
 
-        var ok = gs.register(testVbox, newGlyphs);
-        expect(ok).toBeTruthy();
+        var ok = gs.registerGlyphSet(newGlyphs);
+        expect(ok).toBe(true);
         expect($log.warn).not.toHaveBeenCalled();
 
         expect(gs.ids().length).toEqual(numBaseGlyphs + 2);
@@ -191,13 +233,69 @@ describe('factory: fw/svg/glyph.js', function() {
         verifyGlyphLoadedInCache('diamond', testVbox);
     });
 
+    it('should not overwrite glyphs (via glyph-set) with dup IDs', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.registerGlyphSet(dupGlyphs);
+        expect(ok).toBe(false);
+        expect($log.warn).toHaveBeenCalledWith(idCollisionSet + '"switch"');
+        expect($log.warn).toHaveBeenCalledWith(idCollisionSet + '"router"');
+
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        // verify original glyphs still exist...
+        verifyGlyphLoadedInCache('router', vbGlyph);
+        verifyGlyphLoadedInCache('switch', vbGlyph);
+    });
+
+    it('should replace glyphs (via glyph-set) if asked nicely', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.registerGlyphSet(dupGlyphs, true);
+        expect(ok).toBe(true);
+        expect($log.warn).not.toHaveBeenCalled();
+
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        // verify glyphs have been overwritten...
+        verifyGlyphLoadedInCache('router', testVbox, 'triangle');
+        verifyGlyphLoadedInCache('switch', testVbox, 'diamond');
+    });
+
+    it ('should complain if missing _viewbox in a glyph-set', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.registerGlyphSet(badGlyphSet);
+        expect(ok).toBe(false);
+        expect($log.warn).toHaveBeenCalledWith(missVbSet);
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+    });
+
+    it('should install new glyphs', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.registerGlyphs(altNewGlyphs);
+        expect(ok).toBe(true);
+        expect($log.warn).not.toHaveBeenCalled();
+
+        expect(gs.ids().length).toEqual(numBaseGlyphs + 2);
+        verifyGlyphLoadedInCache('triangle', triVbox);
+        verifyGlyphLoadedInCache('diamond', diaVbox);
+    });
+
     it('should not overwrite glyphs with dup IDs', function () {
         gs.init();
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         spyOn($log, 'warn');
 
-        var ok = gs.register(testVbox, dupGlyphs);
-        expect(ok).toBeFalsy();
+        var ok = gs.registerGlyphs(altDupGlyphs);
+        expect(ok).toBe(false);
         expect($log.warn).toHaveBeenCalledWith(idCollision + '"switch"');
         expect($log.warn).toHaveBeenCalledWith(idCollision + '"router"');
 
@@ -212,14 +310,26 @@ describe('factory: fw/svg/glyph.js', function() {
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         spyOn($log, 'warn');
 
-        var ok = gs.register(testVbox, dupGlyphs, true);
-        expect(ok).toBeTruthy();
+        var ok = gs.registerGlyphs(altDupGlyphs, true);
+        expect(ok).toBe(true);
         expect($log.warn).not.toHaveBeenCalled();
 
         expect(gs.ids().length).toEqual(numBaseGlyphs);
         // verify glyphs have been overwritten...
-        verifyGlyphLoadedInCache('router', testVbox, 'triangle');
-        verifyGlyphLoadedInCache('switch', testVbox, 'diamond');
+        verifyGlyphLoadedInCache('router', triVbox, 'triangle');
+        verifyGlyphLoadedInCache('switch', diaVbox, 'diamond');
+    });
+
+    it ('should complain if missing custom viewbox', function () {
+        gs.init();
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
+        spyOn($log, 'warn');
+
+        var ok = gs.registerGlyphs(badGlyphSet);
+        expect(ok).toBe(false);
+        expect($log.warn).toHaveBeenCalledWith(missVbTri);
+        expect($log.warn).toHaveBeenCalledWith(missVbDia);
+        expect(gs.ids().length).toEqual(numBaseGlyphs);
     });
 
     function verifyPathPrefix(elem, prefix) {
@@ -245,7 +355,7 @@ describe('factory: fw/svg/glyph.js', function() {
 
     it('should load custom glyphs into the DOM', function () {
         gs.init();
-        gs.register(testVbox, newGlyphs);
+        gs.registerGlyphSet(newGlyphs);
         gs.loadDefs(d3Elem);
         expect(d3Elem.selectAll('symbol').size()).toEqual(numBaseGlyphs + 2);
         verifyLoadedInDom('diamond', testVbox);

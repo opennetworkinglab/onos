@@ -24,15 +24,13 @@
     var $log, fs, sus;
 
     // internal state
-    var glyphs = d3.map(),
-        msgGS = 'GlyphService.';
+    var glyphs = d3.map();
 
     // ----------------------------------------------------------------------
     // Base set of Glyphs...
 
-    var birdViewBox = '352 224 113 112',
-
-        birdData = {
+    var birdData = {
+            _bird: "352 224 113 112",
             bird: "M427.7,300.4 c-6.9,0.6-13.1,5-19.2,7.1c-18.1,6.2-33.9," +
             "9.1-56.5,4.7c24.6,17.2,36.6,13,63.7,0.1c-0.5,0.6-0.7,1.3-1.3," +
             "1.9c1.4-0.4,2.4-1.7,3.4-2.2c-0.4,0.7-0.9,1.5-1.4,1.9c2.2-0.6," +
@@ -47,9 +45,9 @@
             "C429.9,285.5,426.7,293.2,427.7,300.4z"
         },
 
-        glyphViewBox = '0 0 110 110',
+        glyphDataSet = {
+            _viewbox: "0 0 110 110",
 
-        glyphData = {
             unknown: "M35,40a5,5,0,0,1,5-5h30a5,5,0,0,1,5,5v30a5,5,0,0,1-5,5" +
             "h-30a5,5,0,0,1-5-5z",
 
@@ -288,9 +286,9 @@
             "L22,23.7z M97.9,46.5H77.2L88,23.7L97.9,46.5z"
         },
 
-        badgeViewBox = '0 0 10 10',
+        badgeDataSet = {
+            _viewbox: "0 0 10 10",
 
-        badgeData = {
             uiAttached: "M2,2.5a.5,.5,0,0,1,.5-.5h5a.5,.5,0,0,1,.5,.5v3" +
             "a.5,.5,0,0,1-.5,.5h-5a.5,.5,0,0,1-.5-.5zM2.5,2.8a.3,.3,0,0,1," +
             ".3-.3h4.4a.3,.3,0,0,1,.3,.3v2.4a.3,.3,0,0,1-.3,.3h-4.4" +
@@ -324,9 +322,70 @@
             play: "M2.5,2l5.5,3l-5.5,3z",
 
             stop: "M2.5,2.5h5v5h-5z"
+        },
+
+        spriteData = {
+            _cloud: '0 0 110 110',
+            cloud: "M37.6,79.5c-6.9,8.7-20.4,8.6-22.2-2.7" +
+            "M16.3,41.2c-0.8-13.9,19.4-19.2,23.5-7.8" +
+            "M38.9,30.9c5.1-9.4,15.1-8.5,16.9-1.3" +
+            "M54.4,32.9c4-12.9,14.8-9.6,18.6-3.8" +
+            "M95.8,58.5c10-4.1,11.7-17.8-0.9-19.8" +
+            "M18.1,76.4C5.6,80.3,3.8,66,13.8,61.5" +
+            "M16.2,62.4C2.1,58.4,3.5,36,16.8,36.6" +
+            "M93.6,74.7c10.2-2,10.7-14,5.8-18.3" +
+            "M71.1,79.3c11.2,7.6,24.6,6.4,22.1-11.7" +
+            "M36.4,76.8c3.4,13.3,35.4,11.6,36.1-1.4" +
+            "M70.4,31c11.8-10.4,26.2-5.2,24.7,10.1"
         };
 
     // ----------------------------------------------------------------------
+    // === Constants
+
+    var msgGS = 'GlyphService.',
+        rg = "registerGlyphs(): ",
+        rgs = "registerGlyphSet(): ";
+
+    // ----------------------------------------------------------------------
+
+    function warn(msg) {
+        $log.warn(msgGS + msg);
+    }
+
+    function addToMap(key, value, vbox, overwrite, dups) {
+        if (!overwrite && glyphs.get(key)) {
+            dups.push(key);
+        } else {
+            glyphs.set(key, {id: key, vb: vbox, d: value});
+        }
+    }
+
+    function reportDups(dups, which) {
+        var ok = (dups.length == 0),
+            msg = 'ID collision: ';
+
+        if (!ok) {
+            dups.forEach(function (id) {
+                warn(which + msg + '"' + id + '"');
+            });
+        }
+        return ok;
+    }
+
+    function reportMissVb(missing, which) {
+        var ok = (missing.length == 0),
+            msg = 'Missing viewbox property: ';
+
+        if (!ok) {
+            missing.forEach(function (vbk) {
+                warn(which + msg + '"' + vbk + '"');
+            });
+        }
+        return ok;
+    }
+
+    // ----------------------------------------------------------------------
+    // === API functions ===
 
     function clear() {
         // start with a fresh map
@@ -335,30 +394,46 @@
 
     function init() {
         clear();
-        register(birdViewBox, birdData);
-        register(glyphViewBox, glyphData);
-        register(badgeViewBox, badgeData);
+        registerGlyphs(birdData);
+        registerGlyphSet(glyphDataSet);
+        registerGlyphSet(badgeDataSet);
+        registerGlyphs(spriteData);
     }
 
-    function register(viewBox, data, overwrite) {
-        var dmap = d3.map(data),
-            dups = [],
-            ok;
+    function registerGlyphs(data, overwrite) {
+        var dups = [],
+            missvb = [];
 
-        dmap.forEach(function (key, value) {
-            if (!overwrite && glyphs.get(key)) {
-                dups.push(key);
-            } else {
-                glyphs.set(key, {id: key, vb: viewBox, d: value});
+        angular.forEach(data, function (value, key) {
+            var vbk = '_' + key,
+                vb = data[vbk];
+
+            if (key[0] !== '_') {
+                if (!vb) {
+                    missvb.push(vbk);
+                    return;
+                }
+                addToMap(key, value, vb, overwrite, dups);
             }
         });
-        ok = (dups.length == 0);
-        if (!ok) {
-            dups.forEach(function (id) {
-                $log.warn(msgGS + 'register(): ID collision: "'+id+'"');
-            });
+        return reportDups(dups, rg) && reportMissVb(missvb, rg);
+    }
+
+    function registerGlyphSet(data, overwrite) {
+        var dups = [],
+            vb = data._viewbox;
+
+        if (!vb) {
+            warn(rgs + 'no "_viewbox" property found');
+            return false;
         }
-        return ok;
+
+        angular.forEach(data, function (value, key) {
+            if (key[0] !== '_') {
+                addToMap(key, value, vb, overwrite, dups);
+            }
+        });
+        return reportDups(dups, rgs);
     }
 
     function ids() {
@@ -428,7 +503,8 @@
             return {
                 clear: clear,
                 init: init,
-                register: register,
+                registerGlyphs: registerGlyphs,
+                registerGlyphSet: registerGlyphSet,
                 ids: ids,
                 glyph: glyph,
                 loadDefs: loadDefs,
