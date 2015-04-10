@@ -40,4 +40,14 @@ public interface Timestamp extends Comparable<Timestamp> {
     default boolean isNewerThan(Timestamp other) {
         return this.compareTo(checkNotNull(other)) > 0;
     }
+
+    /**
+     * Tests if this timestamp is older than the specified timestamp.
+     *
+     * @param other timestamp to compare against
+     * @return true if this instance is older
+     */
+    default boolean isOlderThan(Timestamp other) {
+        return this.compareTo(checkNotNull(other)) < 0;
+    }
 }

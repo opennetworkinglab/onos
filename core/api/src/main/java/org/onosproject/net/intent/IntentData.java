@@ -191,9 +191,9 @@ public class IntentData { //FIXME need to make this "immutable"
 
         if (currentData == null) {
             return true;
-        } else if (currentData.version().compareTo(newData.version()) < 0) {
+        } else if (currentData.version().isOlderThan(newData.version())) {
             return true;
-        } else if (currentData.version().compareTo(newData.version()) > 0) {
+        } else if (currentData.version().isNewerThan(newData.version())) {
             return false;
         }
 
