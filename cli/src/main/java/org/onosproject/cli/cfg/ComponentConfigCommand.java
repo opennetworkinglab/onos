@@ -95,7 +95,9 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     private void listComponentProperties(String component) {
         Set<ConfigProperty> props = service.getProperties(component);
         print("%s", component);
-        if (shortOnly) {
+        if (props == null) {
+            print("No properties for component " + component + " found");
+        } else if (shortOnly) {
             props.forEach(p -> print(SHORT_FMT, p.name(), p.value()));
         } else {
             props.forEach(p -> print(FMT, p.name(), p.type().toString().toLowerCase(),
@@ -108,7 +110,7 @@ public class ComponentConfigCommand extends AbstractShellCommand {
         Optional<ConfigProperty> property = props.stream()
                 .filter(p -> p.name().equals(name)).findFirst();
         if (!property.isPresent()) {
-            System.err.println("Property " + name + " for component " + component + " not found");
+            print("Property " + name + " for component " + component + " not found");
             return;
         }
         ConfigProperty p = property.get();
