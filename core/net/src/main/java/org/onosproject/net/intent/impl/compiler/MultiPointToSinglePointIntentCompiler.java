@@ -107,6 +107,7 @@ public class MultiPointToSinglePointIntentCompiler
                 .ingressPoints(intent.ingressPoints())
                 .egressPoints(ImmutableSet.of(intent.egressPoint()))
                 .priority(intent.priority())
+                .constraints(intent.constraints())
                 .build();
 
         return Arrays.asList(result);
