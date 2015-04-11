@@ -219,7 +219,7 @@ public class IntentPerfCollector {
 
     private void broadcastSample(long time, NodeId nodeId, double overallRate, double currentRate) {
         String data = String.format("%d|%f|%f", time, overallRate, currentRate);
-        communicationService.broadcast(new ClusterMessage(nodeId, SAMPLE, data.getBytes()));
+        communicationService.broadcast(data, SAMPLE, str -> str.getBytes());
     }
 
     private class InternalSampleCollector implements ClusterMessageHandler {

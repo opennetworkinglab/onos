@@ -131,9 +131,7 @@ public class DistributedPacketStore
         }
 
         // TODO check unicast return value
-        communicationService.unicast(new ClusterMessage(myId, PACKET_OUT_SUBJECT,
-                                                        SERIALIZER.encode(packet)),
-                                     master);
+        communicationService.unicast(packet, PACKET_OUT_SUBJECT, SERIALIZER::encode, master);
         // error log: log.warn("Failed to send packet-out to {}", master);
     }
 

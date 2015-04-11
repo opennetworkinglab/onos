@@ -419,10 +419,9 @@ public class HazelcastLeadershipService implements LeadershipService {
                             // Dispatch to all instances
 
                             clusterCommunicator.broadcastIncludeSelf(
-                                    new ClusterMessage(
-                                            clusterService.getLocalNode().id(),
-                                            LEADERSHIP_EVENT_MESSAGE_SUBJECT,
-                                            SERIALIZER.encode(leadershipEvent)));
+                                    leadershipEvent,
+                                    LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                                    SERIALIZER::encode);
                         } else {
                             //
                             // Test if time to expire a stale leader
@@ -491,11 +490,11 @@ public class HazelcastLeadershipService implements LeadershipService {
                         leadershipEvent = new LeadershipEvent(
                                              LeadershipEvent.Type.LEADER_ELECTED,
                                              new Leadership(topicName, localNodeId, myLastLeaderTerm, 0));
+
                         clusterCommunicator.broadcastIncludeSelf(
-                                new ClusterMessage(
-                                        clusterService.getLocalNode().id(),
-                                        LEADERSHIP_EVENT_MESSAGE_SUBJECT,
-                                        SERIALIZER.encode(leadershipEvent)));
+                                leadershipEvent,
+                                LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                                SERIALIZER::encode);
                     }
 
                     // Sleep forever until interrupted
@@ -519,11 +518,12 @@ public class HazelcastLeadershipService implements LeadershipService {
                         leadershipEvent = new LeadershipEvent(
                                                  LeadershipEvent.Type.LEADER_BOOTED,
                                                  new Leadership(topicName, localNodeId, myLastLeaderTerm, 0));
+
                         clusterCommunicator.broadcastIncludeSelf(
-                                new ClusterMessage(
-                                        clusterService.getLocalNode().id(),
-                                        LEADERSHIP_EVENT_MESSAGE_SUBJECT,
-                                        SERIALIZER.encode(leadershipEvent)));
+                                leadershipEvent,
+                                LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                                SERIALIZER::encode);
+
                         if (leaderLock.isLockedByCurrentThread()) {
                             leaderLock.unlock();
                         }

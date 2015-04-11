@@ -477,21 +477,13 @@ public class GossipHostStore
     }
 
     private void broadcastMessage(MessageSubject subject, Object event) {
-        ClusterMessage message = new ClusterMessage(
-                clusterService.getLocalNode().id(),
-                subject,
-                SERIALIZER.encode(event));
-        clusterCommunicator.broadcast(message);
+        clusterCommunicator.broadcast(event, subject, SERIALIZER::encode);
     }
 
     private void unicastMessage(NodeId peer,
                                 MessageSubject subject,
                                 Object event) throws IOException {
-        ClusterMessage message = new ClusterMessage(
-                clusterService.getLocalNode().id(),
-                subject,
-                SERIALIZER.encode(event));
-        clusterCommunicator.unicast(message, peer);
+        clusterCommunicator.unicast(event, subject, SERIALIZER::encode, peer);
     }
 
     private void notifyDelegateIfNotNull(HostEvent event) {

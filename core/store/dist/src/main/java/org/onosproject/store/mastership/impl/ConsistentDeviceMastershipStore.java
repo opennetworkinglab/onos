@@ -181,20 +181,14 @@ public class ConsistentDeviceMastershipStore
             } else {
                 return MastershipRole.NONE;
             }
-        } else {
-            try {
-                MastershipRole role = complete(clusterCommunicator.sendAndReceive(
-                                                        new ClusterMessage(
-                                                                    localNodeId,
-                                                                    ROLE_QUERY_SUBJECT,
-                                                                    SERIALIZER.encode(deviceId)),
-                                                        nodeId));
-                return role == null ? MastershipRole.NONE : role;
-            } catch (IOException e) {
-                log.warn("Failed to query {} for {}'s role. Defaulting to NONE", nodeId, deviceId, e);
-                return MastershipRole.NONE;
-            }
         }
+        MastershipRole role = complete(clusterCommunicator.sendAndReceive(
+                deviceId,
+                ROLE_QUERY_SUBJECT,
+                SERIALIZER::encode,
+                SERIALIZER::decode,
+                nodeId));
+        return role == null ? MastershipRole.NONE : role;
     }
 
     @Override
@@ -276,17 +270,12 @@ public class ConsistentDeviceMastershipStore
         if (!nodeId.equals(localNodeId)) {
             log.debug("Forwarding request to relinquish "
                     + "role for device {} to {}", deviceId, nodeId);
-            try {
-                return complete(clusterCommunicator.sendAndReceive(
-                                                        new ClusterMessage(
-                                                                    localNodeId,
-                                                                    ROLE_RELINQUISH_SUBJECT,
-                                                                    SERIALIZER.encode(deviceId)),
-                                                        nodeId));
-            } catch (IOException e) {
-                log.warn("Failed to send a request to relinquish role for {} to {}", deviceId, nodeId, e);
-                return null;
-            }
+            return complete(clusterCommunicator.sendAndReceive(
+                    deviceId,
+                    ROLE_RELINQUISH_SUBJECT,
+                    SERIALIZER::encode,
+                    SERIALIZER::decode,
+                    nodeId));
         }
 
         // Check if this node is can be managed by this node.

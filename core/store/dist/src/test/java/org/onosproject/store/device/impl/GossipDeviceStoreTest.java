@@ -65,6 +65,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
@@ -181,8 +182,9 @@ public class GossipDeviceStoreTest {
                 new DefaultDeviceDescription(deviceId.uri(), SWITCH, MFR,
                         HW, swVersion, SN, CID, annotations);
         reset(clusterCommunicator);
-        expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
-            .andReturn(true).anyTimes();
+        clusterCommunicator.<InternalDeviceEvent>broadcast(
+                anyObject(InternalDeviceEvent.class), anyObject(MessageSubject.class), anyObject(Function.class));
+        expectLastCall().anyTimes();
         replay(clusterCommunicator);
         deviceStore.createOrUpdateDevice(PID, deviceId, description);
         verify(clusterCommunicator);
@@ -296,36 +298,43 @@ public class GossipDeviceStoreTest {
     }
 
     private void assertInternalDeviceEvent(NodeId sender,
-                                           DeviceId deviceId,
-                                           ProviderId providerId,
-                                           DeviceDescription expectedDesc,
-                                           Capture<ClusterMessage> actualMsg) {
-        assertTrue(actualMsg.hasCaptured());
-        assertEquals(sender, actualMsg.getValue().sender());
+            DeviceId deviceId,
+            ProviderId providerId,
+            DeviceDescription expectedDesc,
+            Capture<InternalDeviceEvent> actualEvent,
+            Capture<MessageSubject> actualSubject,
+            Capture<Function<InternalDeviceEvent, byte[]>> actualEncoder) {
+        assertTrue(actualEvent.hasCaptured());
+        assertTrue(actualSubject.hasCaptured());
+        assertTrue(actualEncoder.hasCaptured());
+
         assertEquals(GossipDeviceStoreMessageSubjects.DEVICE_UPDATE,
-                     actualMsg.getValue().subject());
-        InternalDeviceEvent addEvent
-            = testGossipDeviceStore.deserialize(actualMsg.getValue().payload());
-        assertEquals(deviceId, addEvent.deviceId());
-        assertEquals(providerId, addEvent.providerId());
-        assertDeviceDescriptionEquals(expectedDesc, addEvent.deviceDescription().value());
+                actualSubject.getValue());
+        assertEquals(deviceId, actualEvent.getValue().deviceId());
+        assertEquals(providerId, actualEvent.getValue().providerId());
+        assertDeviceDescriptionEquals(expectedDesc, actualEvent.getValue().deviceDescription().value());
     }
 
     private void assertInternalDeviceEvent(NodeId sender,
-                                           DeviceId deviceId,
-                                           ProviderId providerId,
-                                           DeviceDescription expectedDesc,
-                                           List<SparseAnnotations> expectedAnnotations,
-                                           Capture<ClusterMessage> actualMsg) {
-        assertTrue(actualMsg.hasCaptured());
-        assertEquals(sender, actualMsg.getValue().sender());
+            DeviceId deviceId,
+            ProviderId providerId,
+            DeviceDescription expectedDesc,
+            List<SparseAnnotations> expectedAnnotations,
+            Capture<InternalDeviceEvent> actualEvent,
+            Capture<MessageSubject> actualSubject,
+            Capture<Function<InternalDeviceEvent, byte[]>> actualEncoder) {
+        assertTrue(actualEvent.hasCaptured());
+        assertTrue(actualSubject.hasCaptured());
+        assertTrue(actualEncoder.hasCaptured());
+
         assertEquals(GossipDeviceStoreMessageSubjects.DEVICE_UPDATE,
-                actualMsg.getValue().subject());
-        InternalDeviceEvent addEvent
-            = testGossipDeviceStore.deserialize(actualMsg.getValue().payload());
-        assertEquals(deviceId, addEvent.deviceId());
-        assertEquals(providerId, addEvent.providerId());
-        assertDeviceDescriptionEquals(expectedDesc, expectedAnnotations, addEvent.deviceDescription().value());
+                actualSubject.getValue());
+        assertEquals(deviceId, actualEvent.getValue().deviceId());
+        assertEquals(providerId, actualEvent.getValue().providerId());
+        assertDeviceDescriptionEquals(
+                expectedDesc,
+                expectedAnnotations,
+                actualEvent.getValue().deviceDescription().value());
     }
 
     @Test
@@ -333,26 +342,28 @@ public class GossipDeviceStoreTest {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
                         HW, SW1, SN, CID);
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalDeviceEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PID, DID1, description);
         assertEquals(DEVICE_ADDED, event.type());
         assertDevice(DID1, SW1, event.subject());
         verify(clusterCommunicator);
-        assertInternalDeviceEvent(NID1, DID1, PID, description, bcast);
+        assertInternalDeviceEvent(NID1, DID1, PID, description, message, subject, encoder);
 
 
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
                         HW, SW2, SN, CID);
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
         assertEquals(DEVICE_UPDATED, event2.type());
         assertDevice(DID1, SW2, event2.subject());
 
         verify(clusterCommunicator);
-        assertInternalDeviceEvent(NID1, DID1, PID, description2, bcast);
+        assertInternalDeviceEvent(NID1, DID1, PID, description2, message, subject, encoder);
         reset(clusterCommunicator);
 
         assertNull("No change expected", deviceStore.createOrUpdateDevice(PID, DID1, description2));
@@ -366,7 +377,11 @@ public class GossipDeviceStoreTest {
                         HW, SW1, SN, CID, A2);
         Capture<ClusterMessage> bcast = new Capture<>();
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        Capture<InternalDeviceEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
+
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PIDA, DID1, description);
         assertEquals(DEVICE_ADDED, event.type());
         assertDevice(DID1, SW1, event.subject());
@@ -374,13 +389,13 @@ public class GossipDeviceStoreTest {
         assertAnnotationsEquals(event.subject().annotations(), A2);
         assertFalse("Ancillary will not bring device up", deviceStore.isAvailable(DID1));
         verify(clusterCommunicator);
-        assertInternalDeviceEvent(NID1, DID1, PIDA, description, bcast);
+        assertInternalDeviceEvent(NID1, DID1, PIDA, description, message, subject, encoder);
 
         // update from primary
         DeviceDescription description2 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
                         HW, SW2, SN, CID, A1);
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
 
         DeviceEvent event2 = deviceStore.createOrUpdateDevice(PID, DID1, description2);
         assertEquals(DEVICE_UPDATED, event2.type());
@@ -389,17 +404,17 @@ public class GossipDeviceStoreTest {
         assertAnnotationsEquals(event2.subject().annotations(), A1, A2);
         assertTrue(deviceStore.isAvailable(DID1));
         verify(clusterCommunicator);
-        assertInternalDeviceEvent(NID1, DID1, PID, description2, bcast);
+        assertInternalDeviceEvent(NID1, DID1, PID, description2, message, subject, encoder);
 
         // no-op update from primary
-        resetCommunicatorExpectingNoBroadcast(bcast);
+        resetCommunicatorExpectingNoBroadcast(message, subject, encoder);
         assertNull("No change expected", deviceStore.createOrUpdateDevice(PID, DID1, description2));
 
         verify(clusterCommunicator);
         assertFalse("no broadcast expected", bcast.hasCaptured());
 
         // For now, Ancillary is ignored once primary appears
-        resetCommunicatorExpectingNoBroadcast(bcast);
+        resetCommunicatorExpectingNoBroadcast(message, subject, encoder);
 
         assertNull("No change expected", deviceStore.createOrUpdateDevice(PIDA, DID1, description));
 
@@ -410,7 +425,7 @@ public class GossipDeviceStoreTest {
         DeviceDescription description3 =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
                         HW, SW1, SN, CID, A2_2);
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
 
         DeviceEvent event3 = deviceStore.createOrUpdateDevice(PIDA, DID1, description3);
         assertEquals(DEVICE_UPDATED, event3.type());
@@ -423,7 +438,7 @@ public class GossipDeviceStoreTest {
         verify(clusterCommunicator);
         // note: only annotation from PIDA is sent over the wire
         assertInternalDeviceEvent(NID1, DID1, PIDA, description3,
-                                  asList(union(A2, A2_2)), bcast);
+                                  asList(union(A2, A2_2)), message, subject, encoder);
 
     }
 
@@ -434,23 +449,25 @@ public class GossipDeviceStoreTest {
         putDevice(DID1, SW1);
         assertTrue(deviceStore.isAvailable(DID1));
 
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalDeviceEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event = deviceStore.markOffline(DID1);
         assertEquals(DEVICE_AVAILABILITY_CHANGED, event.type());
         assertDevice(DID1, SW1, event.subject());
         assertFalse(deviceStore.isAvailable(DID1));
         verify(clusterCommunicator);
         // TODO: verify broadcast message
-        assertTrue(bcast.hasCaptured());
+        assertTrue(message.hasCaptured());
 
 
-        resetCommunicatorExpectingNoBroadcast(bcast);
+        resetCommunicatorExpectingNoBroadcast(message, subject, encoder);
         DeviceEvent event2 = deviceStore.markOffline(DID1);
         assertNull("No change, no event", event2);
         verify(clusterCommunicator);
-        assertFalse(bcast.hasCaptured());
+        assertFalse(message.hasCaptured());
     }
 
     @Test
@@ -460,13 +477,15 @@ public class GossipDeviceStoreTest {
                 new DefaultPortDescription(P1, true),
                 new DefaultPortDescription(P2, true)
                 );
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalDeviceEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         List<DeviceEvent> events = deviceStore.updatePorts(PID, DID1, pds);
         verify(clusterCommunicator);
         // TODO: verify broadcast message
-        assertTrue(bcast.hasCaptured());
+        assertTrue(message.hasCaptured());
 
         Set<PortNumber> expectedPorts = Sets.newHashSet(P1, P2);
         for (DeviceEvent event : events) {
@@ -485,11 +504,11 @@ public class GossipDeviceStoreTest {
                 new DefaultPortDescription(P3, true)
                 );
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         events = deviceStore.updatePorts(PID, DID1, pds2);
         verify(clusterCommunicator);
         // TODO: verify broadcast message
-        assertTrue(bcast.hasCaptured());
+        assertTrue(message.hasCaptured());
 
         assertFalse("event should be triggered", events.isEmpty());
         for (DeviceEvent event : events) {
@@ -513,11 +532,11 @@ public class GossipDeviceStoreTest {
                 new DefaultPortDescription(P1, false),
                 new DefaultPortDescription(P2, true)
                 );
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         events = deviceStore.updatePorts(PID, DID1, pds3);
         verify(clusterCommunicator);
         // TODO: verify broadcast message
-        assertTrue(bcast.hasCaptured());
+        assertTrue(message.hasCaptured());
 
         assertFalse("event should be triggered", events.isEmpty());
         for (DeviceEvent event : events) {
@@ -544,9 +563,11 @@ public class GossipDeviceStoreTest {
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalPortStatusEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalPortStatusEvent, byte[]>> encoder = new Capture<>();
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         final DefaultPortDescription desc = new DefaultPortDescription(P1, false);
         DeviceEvent event = deviceStore.updatePortStatus(PID, DID1, desc);
         assertEquals(PORT_UPDATED, event.type());
@@ -554,8 +575,8 @@ public class GossipDeviceStoreTest {
         assertEquals(P1, event.port().number());
         assertFalse("Port is disabled", event.port().isEnabled());
         verify(clusterCommunicator);
-        assertInternalPortStatusEvent(NID1, DID1, PID, desc, NO_ANNOTATION, bcast);
-        assertTrue(bcast.hasCaptured());
+        assertInternalPortStatusEvent(NID1, DID1, PID, desc, NO_ANNOTATION, message, subject, encoder);
+        assertTrue(message.hasCaptured());
     }
 
     @Test
@@ -567,11 +588,13 @@ public class GossipDeviceStoreTest {
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
-        Capture<ClusterMessage> bcast = new Capture<>();
-
+        Capture<InternalPortStatusEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalPortStatusEvent, byte[]>> encoder = new Capture<>();
 
         // update port from primary
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
+
         final DefaultPortDescription desc1 = new DefaultPortDescription(P1, false, A1_2);
         DeviceEvent event = deviceStore.updatePortStatus(PID, DID1, desc1);
         assertEquals(PORT_UPDATED, event.type());
@@ -580,19 +603,19 @@ public class GossipDeviceStoreTest {
         assertAnnotationsEquals(event.port().annotations(), A1, A1_2);
         assertFalse("Port is disabled", event.port().isEnabled());
         verify(clusterCommunicator);
-        assertInternalPortStatusEvent(NID1, DID1, PID, desc1, asList(A1, A1_2), bcast);
-        assertTrue(bcast.hasCaptured());
+        assertInternalPortStatusEvent(NID1, DID1, PID, desc1, asList(A1, A1_2), message, subject, encoder);
+        assertTrue(message.hasCaptured());
 
         // update port from ancillary with no attributes
-        resetCommunicatorExpectingNoBroadcast(bcast);
+        resetCommunicatorExpectingNoBroadcast(message, subject, encoder);
         final DefaultPortDescription desc2 = new DefaultPortDescription(P1, true);
         DeviceEvent event2 = deviceStore.updatePortStatus(PIDA, DID1, desc2);
         assertNull("Ancillary is ignored if primary exists", event2);
         verify(clusterCommunicator);
-        assertFalse(bcast.hasCaptured());
+        assertFalse(message.hasCaptured());
 
         // but, Ancillary annotation update will be notified
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         final DefaultPortDescription desc3 = new DefaultPortDescription(P1, true, A2);
         DeviceEvent event3 = deviceStore.updatePortStatus(PIDA, DID1, desc3);
         assertEquals(PORT_UPDATED, event3.type());
@@ -601,11 +624,11 @@ public class GossipDeviceStoreTest {
         assertAnnotationsEquals(event3.port().annotations(), A1, A1_2, A2);
         assertFalse("Port is disabled", event3.port().isEnabled());
         verify(clusterCommunicator);
-        assertInternalPortStatusEvent(NID1, DID1, PIDA, desc3, asList(A2), bcast);
-        assertTrue(bcast.hasCaptured());
+        assertInternalPortStatusEvent(NID1, DID1, PIDA, desc3, asList(A2), message, subject, encoder);
+        assertTrue(message.hasCaptured());
 
         // port only reported from Ancillary will be notified as down
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         final DefaultPortDescription desc4 = new DefaultPortDescription(P2, true);
         DeviceEvent event4 = deviceStore.updatePortStatus(PIDA, DID1, desc4);
         assertEquals(PORT_ADDED, event4.type());
@@ -616,25 +639,29 @@ public class GossipDeviceStoreTest {
                         event4.port().isEnabled());
         verify(clusterCommunicator);
         // TODO: verify broadcast message content
-        assertInternalPortStatusEvent(NID1, DID1, PIDA, desc4, NO_ANNOTATION, bcast);
-        assertTrue(bcast.hasCaptured());
+        assertInternalPortStatusEvent(NID1, DID1, PIDA, desc4, NO_ANNOTATION, message, subject, encoder);
+        assertTrue(message.hasCaptured());
     }
 
-    private void assertInternalPortStatusEvent(NodeId sender, DeviceId did,
-            ProviderId pid, DefaultPortDescription expectedDesc,
-            List<SparseAnnotations> expectedAnnotations, Capture<ClusterMessage> actualMsg) {
+    private void assertInternalPortStatusEvent(NodeId sender,
+            DeviceId did,
+            ProviderId pid,
+            DefaultPortDescription expectedDesc,
+            List<SparseAnnotations> expectedAnnotations,
+            Capture<InternalPortStatusEvent> actualEvent,
+            Capture<MessageSubject> actualSubject,
+            Capture<Function<InternalPortStatusEvent, byte[]>> actualEncoder) {
 
-        assertTrue(actualMsg.hasCaptured());
-        assertEquals(sender, actualMsg.getValue().sender());
+        assertTrue(actualEvent.hasCaptured());
+        assertTrue(actualSubject.hasCaptured());
+        assertTrue(actualEncoder.hasCaptured());
+
         assertEquals(GossipDeviceStoreMessageSubjects.PORT_STATUS_UPDATE,
-                actualMsg.getValue().subject());
-        InternalPortStatusEvent addEvent
-            = testGossipDeviceStore.deserialize(actualMsg.getValue().payload());
-        assertEquals(did, addEvent.deviceId());
-        assertEquals(pid, addEvent.providerId());
+                actualSubject.getValue());
+        assertEquals(did, actualEvent.getValue().deviceId());
+        assertEquals(pid, actualEvent.getValue().providerId());
         assertPortDescriptionEquals(expectedDesc, expectedAnnotations,
-                addEvent.portDescription().value());
-
+                actualEvent.getValue().portDescription().value());
     }
 
     private void assertPortDescriptionEquals(
@@ -649,19 +676,31 @@ public class GossipDeviceStoreTest {
                          expectedAnnotations.toArray(new SparseAnnotations[0]));
     }
 
-    private void resetCommunicatorExpectingNoBroadcast(
-            Capture<ClusterMessage> bcast) {
-        bcast.reset();
+    private <T> void resetCommunicatorExpectingNoBroadcast(
+            Capture<T> message,
+            Capture<MessageSubject> subject,
+            Capture<Function<T, byte[]>> encoder) {
+        message.reset();
+        subject.reset();
+        encoder.reset();
         reset(clusterCommunicator);
         replay(clusterCommunicator);
     }
 
-    private void resetCommunicatorExpectingSingleBroadcast(
-            Capture<ClusterMessage> bcast) {
+    private <T> void resetCommunicatorExpectingSingleBroadcast(
+            Capture<T> message,
+            Capture<MessageSubject> subject,
+            Capture<Function<T, byte[]>> encoder) {
 
-        bcast.reset();
+        message.reset();
+        subject.reset();
+        encoder.reset();
         reset(clusterCommunicator);
-        expect(clusterCommunicator.broadcast(capture(bcast))).andReturn(true).once();
+        clusterCommunicator.broadcast(
+                    capture(message),
+                    capture(subject),
+                    capture(encoder));
+        expectLastCall().once();
         replay(clusterCommunicator);
     }
 
@@ -724,9 +763,11 @@ public class GossipDeviceStoreTest {
         assertAnnotationsEquals(deviceStore.getDevice(DID1).annotations(), A1);
         assertAnnotationsEquals(deviceStore.getPort(DID1, P1).annotations(), A2);
 
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalDeviceEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
 
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
 
         DeviceEvent event = deviceStore.removeDevice(DID1);
         assertEquals(DEVICE_REMOVED, event.type());
@@ -736,7 +777,7 @@ public class GossipDeviceStoreTest {
         assertEquals(0, deviceStore.getPorts(DID1).size());
         verify(clusterCommunicator);
         // TODO: verify broadcast message
-        assertTrue(bcast.hasCaptured());
+        assertTrue(message.hasCaptured());
 
         // putBack Device, Port w/o annotation
         putDevice(DID1, SW1);
@@ -824,10 +865,6 @@ public class GossipDeviceStoreTest {
             this.deviceClockService = deviceClockService;
             this.clusterService = clusterService;
             this.clusterCommunicator = clusterCommunicator;
-        }
-
-        public <T> T deserialize(byte[] bytes) {
-            return SERIALIZER.decode(bytes);
         }
     }
 

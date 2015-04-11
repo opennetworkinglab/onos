@@ -15,13 +15,16 @@
  */
 package org.onosproject.store.cluster.messaging;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 import org.onosproject.cluster.NodeId;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import com.google.common.util.concurrent.ListenableFuture;
 
-// TODO: remove IOExceptions?
 /**
  * Service for assisting communications between controller cluster nodes.
  */
@@ -33,6 +36,7 @@ public interface ClusterCommunicationService {
      * @param message  message to send
      * @return true if the message was sent successfully to all nodes; false otherwise.
      */
+    @Deprecated
     boolean broadcast(ClusterMessage message);
 
     /**
@@ -41,6 +45,7 @@ public interface ClusterCommunicationService {
      * @param message  message to send
      * @return true if the message was sent successfully to all nodes; false otherwise.
      */
+    @Deprecated
     boolean broadcastIncludeSelf(ClusterMessage message);
 
     /**
@@ -50,6 +55,7 @@ public interface ClusterCommunicationService {
      * @param toNodeId node identifier
      * @return true if the message was sent successfully; false otherwise.
      */
+    @Deprecated
     boolean unicast(ClusterMessage message, NodeId toNodeId);
 
     /**
@@ -59,6 +65,7 @@ public interface ClusterCommunicationService {
      * @param nodeIds  recipient node identifiers
      * @return true if the message was sent successfully to all nodes in the group; false otherwise.
      */
+    @Deprecated
     boolean multicast(ClusterMessage message, Iterable<NodeId> nodeIds);
 
     /**
@@ -66,18 +73,9 @@ public interface ClusterCommunicationService {
      * @param message message to send
      * @param toNodeId recipient node identifier
      * @return reply future.
-     * @throws IOException when I/O exception of some sort has occurred
-     */
-    ListenableFuture<byte[]> sendAndReceive(ClusterMessage message, NodeId toNodeId) throws IOException;
-
-    /**
-     * Adds a new subscriber for the specified message subject.
-     *
-     * @param subject    message subject
-     * @param subscriber message subscriber
      */
     @Deprecated
-    void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber);
+    ListenableFuture<byte[]> sendAndReceive(ClusterMessage message, NodeId toNodeId);
 
     /**
      * Adds a new subscriber for the specified message subject.
@@ -86,13 +84,115 @@ public interface ClusterCommunicationService {
      * @param subscriber message subscriber
      * @param executor executor to use for running handler.
      */
+    @Deprecated
     void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber, ExecutorService executor);
+
+    /**
+     * Broadcasts a message to all controller nodes.
+     *
+     * @param message message to send
+     * @param subject message subject
+     * @param encoder function for encoding message to byte[]
+     * @param <M> message type
+     */
+    <M> void broadcast(M message,
+                       MessageSubject subject,
+                       Function<M, byte[]> encoder);
+
+    /**
+     * Broadcasts a message to all controller nodes including self.
+     *
+     * @param message message to send
+     * @param subject message subject
+     * @param encoder function for encoding message to byte[]
+     * @param <M> message type
+     */
+    <M> void broadcastIncludeSelf(M message,
+                                  MessageSubject subject,
+                                  Function<M, byte[]> encoder);
+
+    /**
+     * Sends a message to the specified controller node.
+     *
+     * @param message message to send
+     * @param subject message subject
+     * @param encoder function for encoding message to byte[]
+     * @param toNodeId destination node identifier
+     * @param <M> message type
+     * @return true if the message was sent successfully; false otherwise
+     */
+    <M> boolean unicast(M message,
+                        MessageSubject subject,
+                        Function<M, byte[]> encoder,
+                        NodeId toNodeId);
+
+    /**
+     * Multicasts a message to a set of controller nodes.
+     *
+     * @param message message to send
+     * @param subject message subject
+     * @param encoder function for encoding message to byte[]
+     * @param nodeIds  recipient node identifiers
+     * @param <M> message type
+     */
+    <M> void multicast(M message,
+                       MessageSubject subject,
+                       Function<M, byte[]> encoder,
+                       Set<NodeId> nodeIds);
+
+    /**
+     * Sends a message and expects a reply.
+     *
+     * @param message message to send
+     * @param subject message subject
+     * @param encoder function for encoding request to byte[]
+     * @param decoder function for decoding response from byte[]
+     * @param toNodeId recipient node identifier
+     * @param <M> request type
+     * @param <R> reply type
+     * @return reply future
+     */
+    <M, R> CompletableFuture<R> sendAndReceive(M message,
+                                               MessageSubject subject,
+                                               Function<M, byte[]> encoder,
+                                               Function<byte[], R> decoder,
+                                               NodeId toNodeId);
+
+    /**
+     * Adds a new subscriber for the specified message subject.
+     *
+     * @param subject message subject
+     * @param decoder decoder for resurrecting incoming message
+     * @param handler handler function that process the incoming message and produces a reply
+     * @param encoder encoder for serializing reply
+     * @param executor executor to run this handler on
+     * @param <M> incoming message type
+     * @param <R> reply message type
+     */
+    <M, R> void addSubscriber(MessageSubject subject,
+                              Function<byte[], M> decoder,
+                              Function<M, R> handler,
+                              Function<R, byte[]> encoder,
+                              ExecutorService executor);
+
+    /**
+     * Adds a new subscriber for the specified message subject.
+     *
+     * @param subject message subject
+     * @param decoder decoder to resurrecting incoming message
+     * @param handler handler for handling message
+     * @param executor executor to run this handler on
+     * @param <M> incoming message type
+     */
+    <M> void addSubscriber(MessageSubject subject,
+                           Function<byte[], M> decoder,
+                           Consumer<M> handler,
+                           ExecutorService executor);
 
     /**
      * Removes a subscriber for the specified message subject.
      *
-     * @param subject    message subject
+     * @param subject message subject
      */
     void removeSubscriber(MessageSubject subject);
-
 }

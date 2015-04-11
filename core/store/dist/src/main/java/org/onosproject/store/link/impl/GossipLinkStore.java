@@ -334,17 +334,12 @@ public class GossipLinkStore
 
 
             LinkInjectedEvent linkInjectedEvent = new LinkInjectedEvent(providerId, linkDescription);
-            ClusterMessage linkInjectedMessage = new ClusterMessage(localNode,
-                    GossipLinkStoreMessageSubjects.LINK_INJECTED, SERIALIZER.encode(linkInjectedEvent));
 
             // TODO check unicast return value
-            clusterCommunicator.unicast(linkInjectedMessage, dstNode);
-            /* error log:
-            log.warn("Failed to process link update between src: {} and dst: {} " +
-                            "(cluster messaging failed: {})",
-                    linkDescription.src(), linkDescription.dst(), e);
-            */
-
+            clusterCommunicator.unicast(linkInjectedEvent,
+                    GossipLinkStoreMessageSubjects.LINK_INJECTED,
+                    SERIALIZER::encode,
+                    dstNode);
         }
 
         return linkEvent;
@@ -653,19 +648,11 @@ public class GossipLinkStore
     }
 
     private void broadcastMessage(MessageSubject subject, Object event) {
-        ClusterMessage message = new ClusterMessage(
-                clusterService.getLocalNode().id(),
-                subject,
-                SERIALIZER.encode(event));
-        clusterCommunicator.broadcast(message);
+        clusterCommunicator.broadcast(event, subject, SERIALIZER::encode);
     }
 
     private void unicastMessage(NodeId recipient, MessageSubject subject, Object event) throws IOException {
-        ClusterMessage message = new ClusterMessage(
-                clusterService.getLocalNode().id(),
-                subject,
-                SERIALIZER.encode(event));
-        clusterCommunicator.unicast(message, recipient);
+        clusterCommunicator.unicast(event, subject, SERIALIZER::encode, recipient);
     }
 
     private void notifyPeers(InternalLinkEvent event) {

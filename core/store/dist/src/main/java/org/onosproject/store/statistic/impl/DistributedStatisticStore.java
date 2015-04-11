@@ -16,6 +16,7 @@
 package org.onosproject.store.statistic.impl;
 
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -23,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -47,12 +49,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.onlab.util.Tools.groupedThreads;
@@ -218,20 +217,15 @@ public class DistributedStatisticStore implements StatisticStore {
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getCurrentStatisticInternal(connectPoint);
         } else {
-            ClusterMessage message = new ClusterMessage(
-                    clusterService.getLocalNode().id(),
-                    GET_CURRENT,
-                    SERIALIZER.encode(connectPoint));
-
-            try {
-                Future<byte[]> response =
-                        clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
-                return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
-                                                      TimeUnit.MILLISECONDS));
-            } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-                log.warn("Unable to communicate with peer {}", replicaInfo.master().get());
-                return Collections.emptySet();
-            }
+            return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(
+                                        connectPoint,
+                                        GET_CURRENT,
+                                        SERIALIZER::encode,
+                                        SERIALIZER::decode,
+                                        replicaInfo.master().get()),
+                                   STATISTIC_STORE_TIMEOUT_MILLIS,
+                                   TimeUnit.MILLISECONDS,
+                                   Collections.emptySet());
         }
 
     }
@@ -251,22 +245,16 @@ public class DistributedStatisticStore implements StatisticStore {
         if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
             return getPreviousStatisticInternal(connectPoint);
         } else {
-            ClusterMessage message = new ClusterMessage(
-                    clusterService.getLocalNode().id(),
-                    GET_PREVIOUS,
-                    SERIALIZER.encode(connectPoint));
-
-            try {
-                Future<byte[]> response =
-                        clusterCommunicator.sendAndReceive(message, replicaInfo.master().get());
-                return SERIALIZER.decode(response.get(STATISTIC_STORE_TIMEOUT_MILLIS,
-                                                      TimeUnit.MILLISECONDS));
-            } catch (IOException | TimeoutException | ExecutionException | InterruptedException e) {
-                log.warn("Unable to communicate with peer {}", replicaInfo.master().get());
-                return Collections.emptySet();
-            }
+            return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(
+                                        connectPoint,
+                                        GET_PREVIOUS,
+                                        SERIALIZER::encode,
+                                        SERIALIZER::decode,
+                                        replicaInfo.master().get()),
+                                   STATISTIC_STORE_TIMEOUT_MILLIS,
+                                   TimeUnit.MILLISECONDS,
+                                   Collections.emptySet());
         }
-
     }
 
     private synchronized Set<FlowEntry> getPreviousStatisticInternal(ConnectPoint connectPoint) {

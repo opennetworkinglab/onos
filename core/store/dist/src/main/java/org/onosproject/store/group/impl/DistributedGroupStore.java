@@ -382,17 +382,13 @@ public class DistributedGroupStore
             GroupStoreMessage groupOp = GroupStoreMessage.
                     createGroupAddRequestMsg(groupDesc.deviceId(),
                                              groupDesc);
-            ClusterMessage message = new ClusterMessage(
-                                    clusterService.getLocalNode().id(),
-                                    GroupStoreMessageSubjects.
-                                    REMOTE_GROUP_OP_REQUEST,
-                                    kryoBuilder.build().serialize(groupOp));
-            if (!clusterCommunicator.unicast(message,
-                                             mastershipService.
-                                             getMasterFor(
-                                                groupDesc.deviceId()))) {
+
+            if (!clusterCommunicator.unicast(groupOp,
+                    GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
+                    m -> kryoBuilder.build().serialize(m),
+                    mastershipService.getMasterFor(groupDesc.deviceId()))) {
                 log.warn("Failed to send request to master: {} to {}",
-                         message,
+                         groupOp,
                          mastershipService.getMasterFor(groupDesc.deviceId()));
                 //TODO: Send Group operation failure event
             }
@@ -472,16 +468,13 @@ public class DistributedGroupStore
                                                 type,
                                                 newBuckets,
                                                 newAppCookie);
-            ClusterMessage message =
-                    new ClusterMessage(clusterService.getLocalNode().id(),
-                                       GroupStoreMessageSubjects.
-                                              REMOTE_GROUP_OP_REQUEST,
-                                       kryoBuilder.build().serialize(groupOp));
-            if (!clusterCommunicator.unicast(message,
-                                             mastershipService.
-                                             getMasterFor(deviceId))) {
+
+            if (!clusterCommunicator.unicast(groupOp,
+                        GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
+                        m -> kryoBuilder.build().serialize(m),
+                        mastershipService.getMasterFor(deviceId))) {
                 log.warn("Failed to send request to master: {} to {}",
-                         message,
+                         groupOp,
                          mastershipService.getMasterFor(deviceId));
                 //TODO: Send Group operation failure event
             }
@@ -584,16 +577,13 @@ public class DistributedGroupStore
             GroupStoreMessage groupOp = GroupStoreMessage.
                     createGroupDeleteRequestMsg(deviceId,
                                                 appCookie);
-            ClusterMessage message =
-                    new ClusterMessage(clusterService.getLocalNode().id(),
-                                       GroupStoreMessageSubjects.
-                                              REMOTE_GROUP_OP_REQUEST,
-                                       kryoBuilder.build().serialize(groupOp));
-            if (!clusterCommunicator.unicast(message,
-                                             mastershipService.
-                                             getMasterFor(deviceId))) {
+
+            if (!clusterCommunicator.unicast(groupOp,
+                    GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
+                    m -> kryoBuilder.build().serialize(m),
+                    mastershipService.getMasterFor(deviceId))) {
                 log.warn("Failed to send request to master: {} to {}",
-                         message,
+                         groupOp,
                          mastershipService.getMasterFor(deviceId));
                 //TODO: Send Group operation failure event
             }

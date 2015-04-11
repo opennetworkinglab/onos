@@ -16,9 +16,8 @@
 package org.onlab.netty;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-
-import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Interface for low level messaging primitives.
@@ -40,9 +39,8 @@ public interface MessagingService {
      * @param type type of message.
      * @param payload message payload.
      * @return a response future
-     * @throws IOException when I/O exception of some sort has occurred
      */
-    public ListenableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) throws IOException;
+    public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload);
 
     /**
      * Registers a new message handler for message type.

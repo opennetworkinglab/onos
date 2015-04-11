@@ -343,11 +343,9 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     private void notifyPeers(LeadershipEvent event) {
         eventDispatcher.post(event);
-        clusterCommunicator.broadcast(
-                new ClusterMessage(
-                        clusterService.getLocalNode().id(),
-                        LEADERSHIP_EVENT_MESSAGE_SUBJECT,
-                        SERIALIZER.encode(event)));
+        clusterCommunicator.broadcast(event,
+                LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                SERIALIZER::encode);
     }
 
     private void notifyRemovedLeader(String path, NodeId leader, long epoch, long electedTime) {
@@ -366,11 +364,9 @@ public class DistributedLeadershipManager implements LeadershipService {
         if (updatedLeader) {
             LeadershipEvent event = new LeadershipEvent(LeadershipEvent.Type.LEADER_BOOTED, oldLeadership);
             eventDispatcher.post(event);
-            clusterCommunicator.broadcast(
-                    new ClusterMessage(
-                            clusterService.getLocalNode().id(),
-                            LEADERSHIP_EVENT_MESSAGE_SUBJECT,
-                            SERIALIZER.encode(event)));
+            clusterCommunicator.broadcast(event,
+                    LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                    SERIALIZER::encode);
         }
     }
 
@@ -469,11 +465,9 @@ public class DistributedLeadershipManager implements LeadershipService {
             leaderBoard.forEach((path, leadership) -> {
                 if (leadership.leader().equals(localNodeId)) {
                     LeadershipEvent event = new LeadershipEvent(LeadershipEvent.Type.LEADER_ELECTED, leadership);
-                    clusterCommunicator.broadcast(
-                            new ClusterMessage(
-                                    clusterService.getLocalNode().id(),
-                                    LEADERSHIP_EVENT_MESSAGE_SUBJECT,
-                                    SERIALIZER.encode(event)));
+                    clusterCommunicator.broadcast(event,
+                            LEADERSHIP_EVENT_MESSAGE_SUBJECT,
+                            SERIALIZER::encode);
                 }
             });
         } catch (Exception e) {

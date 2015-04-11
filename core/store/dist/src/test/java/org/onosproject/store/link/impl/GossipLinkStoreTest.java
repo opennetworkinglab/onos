@@ -28,7 +28,6 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.ConnectPoint;
@@ -48,7 +47,6 @@ import org.onosproject.net.link.LinkStoreDelegate;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.cluster.StaticClusterService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.device.impl.DeviceClockManager;
@@ -59,6 +57,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -119,7 +118,6 @@ public class GossipLinkStoreTest {
     private DeviceClockManager deviceClockManager;
     private DeviceClockService deviceClockService;
     private ClusterCommunicationService clusterCommunicator;
-    private MastershipService mastershipService;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -171,26 +169,24 @@ public class GossipLinkStoreTest {
         ConnectPoint src = new ConnectPoint(srcId, srcNum);
         ConnectPoint dst = new ConnectPoint(dstId, dstNum);
         reset(clusterCommunicator);
-        expect(clusterCommunicator.broadcast(anyObject(ClusterMessage.class)))
-            .andReturn(true).anyTimes();
+        clusterCommunicator.<InternalLinkEvent>broadcast(
+                anyObject(InternalLinkEvent.class), anyObject(MessageSubject.class), anyObject(Function.class));
+        expectLastCall().anyTimes();
         replay(clusterCommunicator);
         linkStore.createOrUpdateLink(PID, new DefaultLinkDescription(src, dst, type, annotations));
         verify(clusterCommunicator);
     }
 
-    private void resetCommunicatorExpectingNoBroadcast(
-                                                       Capture<ClusterMessage> bcast) {
-        bcast.reset();
+    private <T> void resetCommunicatorExpectingSingleBroadcast(
+            Capture<T> message,
+            Capture<MessageSubject> subject,
+            Capture<Function<T, byte[]>> encoder) {
+        message.reset();
+        subject.reset();
+        encoder.reset();
         reset(clusterCommunicator);
-        replay(clusterCommunicator);
-    }
-
-    private void resetCommunicatorExpectingSingleBroadcast(
-                                                           Capture<ClusterMessage> bcast) {
-
-        bcast.reset();
-        reset(clusterCommunicator);
-        expect(clusterCommunicator.broadcast(capture(bcast))).andReturn(true).once();
+        clusterCommunicator.broadcast(capture(message), capture(subject), capture(encoder));
+        expectLastCall().once();
         replay(clusterCommunicator);
     }
 
@@ -367,56 +363,55 @@ public class GossipLinkStoreTest {
         ConnectPoint src = new ConnectPoint(DID1, P1);
         ConnectPoint dst = new ConnectPoint(DID2, P2);
 
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalLinkEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalLinkEvent, byte[]>> encoder = new Capture<>();
 
         // add link
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         final DefaultLinkDescription linkDescription = new DefaultLinkDescription(src, dst, INDIRECT);
         LinkEvent event = linkStore.createOrUpdateLink(PID,
                     linkDescription);
-        verifyLinkBroadcastMessage(PID, NID1, src, dst, INDIRECT, bcast);
+        verifyLinkBroadcastMessage(PID, NID1, src, dst, INDIRECT, message, subject, encoder);
 
         assertLink(DID1, P1, DID2, P2, INDIRECT, event.subject());
         assertEquals(LINK_ADDED, event.type());
 
         // update link type
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event2 = linkStore.createOrUpdateLink(PID,
                 new DefaultLinkDescription(src, dst, DIRECT));
-        verifyLinkBroadcastMessage(PID, NID1, src, dst, DIRECT, bcast);
+        verifyLinkBroadcastMessage(PID, NID1, src, dst, DIRECT, message, subject, encoder);
 
         assertLink(DID1, P1, DID2, P2, DIRECT, event2.subject());
         assertEquals(LINK_UPDATED, event2.type());
 
         // no change
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event3 = linkStore.createOrUpdateLink(PID,
                 new DefaultLinkDescription(src, dst, DIRECT));
-        verifyNoBroadcastMessage(bcast);
+        verifyNoBroadcastMessage(message);
 
         assertNull("No change event expected", event3);
     }
 
-    private void verifyNoBroadcastMessage(Capture<ClusterMessage> bcast) {
-        assertFalse("No broadcast expected", bcast.hasCaptured());
+    private <T> void verifyNoBroadcastMessage(Capture<T> message) {
+        assertFalse("No broadcast expected", message.hasCaptured());
     }
 
     private void verifyLinkBroadcastMessage(ProviderId providerId,
-                                            NodeId sender,
-                                            ConnectPoint src,
-                                            ConnectPoint dst,
-                                            Type type,
-                                            Capture<ClusterMessage> actualMsg) {
+            NodeId sender,
+            ConnectPoint src,
+            ConnectPoint dst,
+            Type type,
+            Capture<InternalLinkEvent> actualLinkEvent,
+            Capture<MessageSubject> actualSubject,
+            Capture<Function<InternalLinkEvent, byte[]>> actualEncoder) {
         verify(clusterCommunicator);
-        assertTrue(actualMsg.hasCaptured());
-        assertEquals(sender, actualMsg.getValue().sender());
-        assertEquals(GossipLinkStoreMessageSubjects.LINK_UPDATE,
-                     actualMsg.getValue().subject());
-        InternalLinkEvent linkEvent
-            = GossipLinkStore.SERIALIZER.decode(actualMsg.getValue().payload());
-        assertEquals(providerId, linkEvent.providerId());
-        assertLinkDescriptionEquals(src, dst, type, linkEvent.linkDescription().value());
-
+        assertTrue(actualLinkEvent.hasCaptured());
+        assertEquals(GossipLinkStoreMessageSubjects.LINK_UPDATE, actualSubject.getValue());
+        assertEquals(providerId, actualLinkEvent.getValue().providerId());
+        assertLinkDescriptionEquals(src, dst, type, actualLinkEvent.getValue().linkDescription().value());
     }
 
     private static void assertLinkDescriptionEquals(ConnectPoint src,
@@ -434,31 +429,33 @@ public class GossipLinkStoreTest {
         ConnectPoint src = new ConnectPoint(DID1, P1);
         ConnectPoint dst = new ConnectPoint(DID2, P2);
 
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<InternalLinkEvent> message = new Capture<>();
+        Capture<MessageSubject> subject = new Capture<>();
+        Capture<Function<InternalLinkEvent, byte[]>> encoder = new Capture<>();
 
         // add Ancillary link
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event = linkStore.createOrUpdateLink(PIDA,
                     new DefaultLinkDescription(src, dst, INDIRECT, A1));
-        verifyLinkBroadcastMessage(PIDA, NID1, src, dst, INDIRECT, bcast);
+        verifyLinkBroadcastMessage(PIDA, NID1, src, dst, INDIRECT, message, subject, encoder);
 
         assertNotNull("Ancillary only link is ignored", event);
 
         // add Primary link
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event2 = linkStore.createOrUpdateLink(PID,
                 new DefaultLinkDescription(src, dst, INDIRECT, A2));
-        verifyLinkBroadcastMessage(PID, NID1, src, dst, INDIRECT, bcast);
+        verifyLinkBroadcastMessage(PID, NID1, src, dst, INDIRECT, message, subject, encoder);
 
         assertLink(DID1, P1, DID2, P2, INDIRECT, event2.subject());
         assertAnnotationsEquals(event2.subject().annotations(), A2, A1);
         assertEquals(LINK_UPDATED, event2.type());
 
         // update link type
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event3 = linkStore.createOrUpdateLink(PID,
                 new DefaultLinkDescription(src, dst, DIRECT, A2));
-        verifyLinkBroadcastMessage(PID, NID1, src, dst, DIRECT, bcast);
+        verifyLinkBroadcastMessage(PID, NID1, src, dst, DIRECT, message, subject, encoder);
 
         assertLink(DID1, P1, DID2, P2, DIRECT, event3.subject());
         assertAnnotationsEquals(event3.subject().annotations(), A2, A1);
@@ -466,38 +463,38 @@ public class GossipLinkStoreTest {
 
 
         // no change
-        resetCommunicatorExpectingNoBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event4 = linkStore.createOrUpdateLink(PID,
                 new DefaultLinkDescription(src, dst, DIRECT));
-        verifyNoBroadcastMessage(bcast);
+        verifyNoBroadcastMessage(message);
 
         assertNull("No change event expected", event4);
 
         // update link annotation (Primary)
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event5 = linkStore.createOrUpdateLink(PID,
                 new DefaultLinkDescription(src, dst, DIRECT, A2_2));
-        verifyLinkBroadcastMessage(PID, NID1, src, dst, DIRECT, bcast);
+        verifyLinkBroadcastMessage(PID, NID1, src, dst, DIRECT, message, subject, encoder);
 
         assertLink(DID1, P1, DID2, P2, DIRECT, event5.subject());
         assertAnnotationsEquals(event5.subject().annotations(), A2, A2_2, A1);
         assertEquals(LINK_UPDATED, event5.type());
 
         // update link annotation (Ancillary)
-        resetCommunicatorExpectingSingleBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event6 = linkStore.createOrUpdateLink(PIDA,
                 new DefaultLinkDescription(src, dst, DIRECT, A1_2));
-        verifyLinkBroadcastMessage(PIDA, NID1, src, dst, DIRECT, bcast);
+        verifyLinkBroadcastMessage(PIDA, NID1, src, dst, DIRECT, message, subject, encoder);
 
         assertLink(DID1, P1, DID2, P2, DIRECT, event6.subject());
         assertAnnotationsEquals(event6.subject().annotations(), A2, A2_2, A1, A1_2);
         assertEquals(LINK_UPDATED, event6.type());
 
         // update link type (Ancillary) : ignored
-        resetCommunicatorExpectingNoBroadcast(bcast);
+        resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         LinkEvent event7 = linkStore.createOrUpdateLink(PIDA,
                 new DefaultLinkDescription(src, dst, EDGE));
-        verifyNoBroadcastMessage(bcast);
+        verifyNoBroadcastMessage(message);
         assertNull("Ancillary change other than annotation is ignored", event7);
     }
 

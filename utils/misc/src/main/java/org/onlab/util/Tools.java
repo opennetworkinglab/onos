@@ -15,10 +15,10 @@
  */
 package org.onlab.util;
 
-import com.google.common.base.Strings;
-import com.google.common.primitives.UnsignedLongs;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.slf4j.Logger;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.walkFileTree;
+import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,12 +37,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import static java.nio.file.Files.delete;
-import static java.nio.file.Files.walkFileTree;
-import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
-import static org.slf4j.LoggerFactory.getLogger;
+import org.slf4j.Logger;
+
+import com.google.common.base.Strings;
+import com.google.common.primitives.UnsignedLongs;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Miscellaneous utility methods.
@@ -322,6 +327,51 @@ public abstract class Tools {
         walkFileTree(Paths.get(src.getAbsolutePath()),
                      new DirectoryCopier(src.getAbsolutePath(),
                                          dst.getAbsolutePath()));
+    }
+
+    /**
+     * Returns the future value when complete or if future
+     * completes exceptionally returns the defaultValue.
+     * @param future future
+     * @param defaultValue default value
+     * @param <T> future value type
+     * @return future value when complete or if future
+     * completes exceptionally returns the defaultValue.
+     */
+    public static <T> T futureGetOrElse(Future<T> future, T defaultValue) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return defaultValue;
+        } catch (ExecutionException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Returns the future value when complete or if future
+     * completes exceptionally returns the defaultValue.
+     * @param future future
+     * @param timeout time to wait for successful completion
+     * @param timeUnit time unit
+     * @param defaultValue default value
+     * @param <T> future value type
+     * @return future value when complete or if future
+     * completes exceptionally returns the defaultValue.
+     */
+    public static <T> T futureGetOrElse(Future<T> future,
+                                        long timeout,
+                                        TimeUnit timeUnit,
+                                        T defaultValue) {
+        try {
+            return future.get(timeout, timeUnit);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return defaultValue;
+        } catch (ExecutionException | TimeoutException e) {
+            return defaultValue;
+        }
     }
 
     // Auxiliary path visitor for recursive directory structure copying.

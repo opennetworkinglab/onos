@@ -510,11 +510,7 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private boolean unicastMessage(NodeId peer, MessageSubject subject, Object event) {
-        ClusterMessage message = new ClusterMessage(
-                clusterService.getLocalNode().id(),
-                subject,
-                serializer.encode(event));
-        return clusterCommunicator.unicast(message, peer);
+        return clusterCommunicator.unicast(event, subject, serializer::encode, peer);
         // Note: we had this flipped before...
 //        communicationExecutor.execute(() -> clusterCommunicator.unicast(message, peer));
     }

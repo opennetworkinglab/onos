@@ -249,14 +249,14 @@ public class IntentPerfInstaller {
     public void start() {
         if (stopped) {
             stopped = false;
-            communicationService.broadcast(new ClusterMessage(nodeId, CONTROL, START.getBytes()));
+            communicationService.broadcast(START, CONTROL, str -> str.getBytes());
             startTestRun();
         }
     }
 
     public void stop() {
         if (!stopped) {
-            communicationService.broadcast(new ClusterMessage(nodeId, CONTROL, STOP.getBytes()));
+            communicationService.broadcast(STOP, CONTROL, str -> str.getBytes());
             stopTestRun();
         }
     }
