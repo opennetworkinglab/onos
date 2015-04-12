@@ -15,31 +15,46 @@
  */
 package org.onosproject.cli.app;
 
-import org.apache.karaf.shell.console.Completer;
+import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.app.ApplicationService;
-import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.app.ApplicationState;
+import org.onosproject.cli.net.AbstractCompleter;
 import org.onosproject.core.Application;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
+import static org.onosproject.app.ApplicationState.ACTIVE;
+import static org.onosproject.app.ApplicationState.INSTALLED;
+import static org.onosproject.cli.AbstractShellCommand.get;
+
 /**
  * Application name completer.
  */
-public class ApplicationNameCompleter implements Completer {
+public class ApplicationNameCompleter extends AbstractCompleter {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
+        // Command name is the second argument.
+        ArgumentCompleter.ArgumentList list = getArgumentList();
+        String cmd = list.getArguments()[1];
+
         // Fetch our service and feed it's offerings to the string completer
-        ApplicationService service = AbstractShellCommand.get(ApplicationService.class);
+        ApplicationService service = get(ApplicationService.class);
         Iterator<Application> it = service.getApplications().iterator();
         SortedSet<String> strings = delegate.getStrings();
         while (it.hasNext()) {
-            strings.add(it.next().id().name());
+            Application app = it.next();
+            ApplicationState state = service.getState(app.id());
+            if (cmd.equals("uninstall") ||
+                    (cmd.equals("activate") && state == INSTALLED) ||
+                    (cmd.equals("deactivate") && state == ACTIVE)) {
+                strings.add(app.id().name());
+            }
         }
 
         // Now let the completer do the work for figuring out what to offer.

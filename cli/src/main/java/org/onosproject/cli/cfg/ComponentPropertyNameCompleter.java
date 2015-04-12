@@ -15,41 +15,35 @@
  */
 package org.onosproject.cli.cfg;
 
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-
-import org.apache.felix.service.command.CommandSession;
-import org.apache.karaf.shell.console.CommandSessionHolder;
-import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
-import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.AbstractCompleter;
+
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+
+import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
  * Component property name completer.
  */
-public class ComponentPropertyNameCompleter implements Completer {
+public class ComponentPropertyNameCompleter extends AbstractCompleter {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
-        CommandSession session = CommandSessionHolder.getSession();
-        ArgumentCompleter.ArgumentList list =
-                (ArgumentCompleter.ArgumentList) session.get(
-                        ArgumentCompleter.ARGUMENTS_LIST);
-
         // Component name is the previous argument.
+        ArgumentCompleter.ArgumentList list = getArgumentList();
         String componentName = list.getArguments()[list.getCursorArgumentIndex() - 1];
-        ComponentConfigService service =
-                AbstractShellCommand.get(ComponentConfigService.class);
+        ComponentConfigService service = get(ComponentConfigService.class);
 
         SortedSet<String> strings = delegate.getStrings();
         Set<ConfigProperty> properties =
-            service.getProperties(componentName);
+                service.getProperties(componentName);
         if (properties != null) {
             properties.forEach(property -> strings.add(property.name()));
         }
