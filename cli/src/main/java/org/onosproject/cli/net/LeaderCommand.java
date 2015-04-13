@@ -85,7 +85,7 @@ public class LeaderCommand extends AbstractShellCommand {
     }
 
     private void displayCandidates(Map<String, Leadership> leaderBoard,
-            Map<String, List<NodeId>> candidates) {
+            Map<String, Leadership> candidates) {
         print("--------------------------------------------------------------");
         print(FMT_C, "Topic", "Leader", "Candidates");
         print("--------------------------------------------------------------");
@@ -94,13 +94,13 @@ public class LeaderCommand extends AbstractShellCommand {
                 .stream()
                 .sorted(leadershipComparator)
                 .forEach(l -> {
-                        List<NodeId> list = candidates.get(l.topic());
+                        List<NodeId> list = candidates.get(l.topic()).candidates();
                         print(FMT_C,
                             l.topic(),
                             l.leader(),
-                            list.remove(0).toString());
+                            list.get(0).toString());
                             // formatting hacks to get it into a table
-                            list.forEach(n -> print(FMT_C, " ", " ", n));
+                            list.subList(1, list.size()).forEach(n -> print(FMT_C, " ", " ", n));
                             print(FMT_C, " ", " ", " ");
                         });
         print("--------------------------------------------------------------");
@@ -139,7 +139,7 @@ public class LeaderCommand extends AbstractShellCommand {
             print("%s", json(leaderBoard));
         } else {
             if (showCandidates) {
-                Map<String, List<NodeId>> candidates = leaderService.getCandidates();
+                Map<String, Leadership> candidates = leaderService.getCandidates();
                 displayCandidates(leaderBoard, candidates);
             } else {
                 displayLeaders(leaderBoard);

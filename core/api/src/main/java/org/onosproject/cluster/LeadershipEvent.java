@@ -43,14 +43,14 @@ public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leaders
         LEADER_REELECTED,
 
         /**
-         * Signifies that the leader has been booted and lost leadership. The event subject is the
-         * former leader.
+         * Signifies that the leader has been booted and lost leadership. The
+         * event subject is the former leader.
          */
         LEADER_BOOTED,
 
         /**
          * Signifies that the list of candidates for leadership for a topic has
-         * changed.
+         * changed. This event does not guarantee accurate leader information.
          */
         CANDIDATES_CHANGED
     }

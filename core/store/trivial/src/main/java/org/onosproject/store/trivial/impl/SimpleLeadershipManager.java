@@ -111,7 +111,7 @@ public class SimpleLeadershipManager implements LeadershipService {
     }
 
     @Override
-    public Map<String, List<NodeId>> getCandidates() {
+    public Map<String, Leadership> getCandidates() {
         return null;
     }
 

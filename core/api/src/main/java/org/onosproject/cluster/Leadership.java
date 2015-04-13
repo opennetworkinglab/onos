@@ -17,6 +17,7 @@ package org.onosproject.cluster;
 
 import java.util.Objects;
 import java.util.List;
+import java.util.Optional;
 
 import org.joda.time.DateTime;
 
@@ -33,19 +34,21 @@ import com.google.common.collect.ImmutableList;
  * rest in decreasing preference order.</li>
  * <li>The epoch is the logical age of a Leadership construct, and should be
  * used for comparing two Leaderships, but only of the same topic.</li>
+ * <li>The leader may be null if its accuracy can't be guaranteed. This applies
+ * to CANDIDATES_CHANGED events and candidate board contents.</li>
  * </ul>
  */
 public class Leadership {
 
     private final String topic;
-    private final NodeId leader;
+    private final Optional<NodeId> leader;
     private final List<NodeId> candidates;
     private final long epoch;
     private final long electedTime;
 
     public Leadership(String topic, NodeId leader, long epoch, long electedTime) {
         this.topic = topic;
-        this.leader = leader;
+        this.leader = Optional.of(leader);
         this.candidates = ImmutableList.of(leader);
         this.epoch = epoch;
         this.electedTime = electedTime;
@@ -54,7 +57,16 @@ public class Leadership {
     public Leadership(String topic, NodeId leader, List<NodeId> candidates,
             long epoch, long electedTime) {
         this.topic = topic;
-        this.leader = leader;
+        this.leader = Optional.of(leader);
+        this.candidates = ImmutableList.copyOf(candidates);
+        this.epoch = epoch;
+        this.electedTime = electedTime;
+    }
+
+    public Leadership(String topic, List<NodeId> candidates,
+            long epoch, long electedTime) {
+        this.topic = topic;
+        this.leader = Optional.empty();
         this.candidates = ImmutableList.copyOf(candidates);
         this.epoch = epoch;
         this.electedTime = electedTime;
@@ -74,8 +86,9 @@ public class Leadership {
      *
      * @return leader node.
      */
+    // This will return Optional<NodeId> in the future.
     public NodeId leader() {
-        return leader;
+        return leader.orElse(null);
     }
 
     /**

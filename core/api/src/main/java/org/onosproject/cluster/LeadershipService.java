@@ -76,9 +76,9 @@ public interface LeadershipService {
     /**
      * Returns the candidates for all known topics.
      *
-     * @return A map of topics to lists of NodeIds.
+     * @return A mapping from topics to up-to-date candidate info.
      */
-    Map<String, List<NodeId>> getCandidates();
+    Map<String, Leadership> getCandidates();
 
     /**
      * Returns the candidates for a given topic.

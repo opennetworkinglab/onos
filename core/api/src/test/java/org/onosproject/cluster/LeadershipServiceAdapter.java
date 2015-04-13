@@ -65,7 +65,7 @@ public class LeadershipServiceAdapter implements LeadershipService {
     }
 
     @Override
-    public Map<String, List<NodeId>> getCandidates() {
+    public Map<String, Leadership> getCandidates() {
         return null;
     }
 
