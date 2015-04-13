@@ -83,7 +83,8 @@
 
         tHeaders.each(function (d, i) {
             var thElement = d3.select(this),
-                tdElement = t.select('td:nth-of-type(' + (i + 1) + ')'),
+                tr = t.select('tr:nth-of-type(2)'),
+                tdElement = tr.select('td:nth-of-type(' + (i + 1) + ')'),
                 custWidth = thElement.attr(colWidth);
 
             if (custWidth) {
@@ -105,9 +106,10 @@
             tableHeight = fs.windowSize(mast.mastHeight() + totalHeight).height;
 
         thead.style('display', 'block');
-        tbody.style({'display': 'block',
-            'height': (tableHeight + 'px'),
-            'overflow': 'auto'
+        tbody.style({
+            display: 'block',
+            height: tableHeight + 'px',
+            overflow: 'auto'
         });
     }
 

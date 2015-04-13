@@ -18,24 +18,24 @@
  ONOS GUI -- Intent View -- CSS file
  */
 
-.light #ov-intent tr:nth-child(6n + 1),
 .light #ov-intent tr:nth-child(6n + 2),
-.light #ov-intent tr:nth-child(6n + 3) {
+.light #ov-intent tr:nth-child(6n + 3),
+.light #ov-intent tr:nth-child(6n + 4) {
     background-color: #eee;
 }
-.light #ov-intent tr:nth-child(6n + 4),
 .light #ov-intent tr:nth-child(6n + 5),
-.light #ov-intent tr:nth-child(6n) {
+.light #ov-intent tr:nth-child(6n + 6),
+.light #ov-intent tr:nth-child(6n + 1) {
     background-color: #ddd;
 }
-.dark #ov-intent tr:nth-child(6n + 1),
 .dark #ov-intent tr:nth-child(6n + 2),
-.dark #ov-intent tr:nth-child(6n + 3) {
+.dark #ov-intent tr:nth-child(6n + 3),
+.dark #ov-intent tr:nth-child(6n + 4) {
     background-color: #444;
 }
-.dark #ov-intent tr:nth-child(6n + 4),
 .dark #ov-intent tr:nth-child(6n + 5),
-.dark #ov-intent tr:nth-child(6n) {
+.dark #ov-intent tr:nth-child(6n + 6),
+.dark #ov-intent tr:nth-child(6n + 1) {
     background-color: #333;
 }
 
