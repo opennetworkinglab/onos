@@ -21,12 +21,15 @@
 (function () {
     'use strict';
 
+    var selRow;
+
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
         ['$log', '$scope', 'TableBuilderService',
 
     function ($log, $scope, tbs) {
-        function selCb(row) {
+        function selCb($event, row) {
+            selRow = angular.element($event.currentTarget);
             // adjust which toolbar buttons are selected
             $log.debug('Got a click on:', row);
         }

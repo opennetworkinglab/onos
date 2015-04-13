@@ -84,11 +84,8 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
 
         DeviceService service = get(DeviceService.class);
         MastershipService mastershipService = get(MastershipService.class);
-        LinkService linkService = get(LinkService.class);
 
-        TableRow[] rows = generateTableRows(service,
-                                            mastershipService,
-                                            linkService);
+        TableRow[] rows = generateTableRows(service, mastershipService);
         RowComparator rc =
                 new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
@@ -111,6 +108,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
 
         data.put(ID, deviceId.toString());
         data.put(TYPE, device.type().toString());
+        data.put(TYPE_IID, getTypeIconId(device));
         data.put(MFR, device.manufacturer());
         data.put(HW, device.hwVersion());
         data.put(SW, device.swVersion());
@@ -131,13 +129,11 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
     }
 
     private TableRow[] generateTableRows(DeviceService service,
-                                         MastershipService mastershipService,
-                                         LinkService linkService) {
+                                         MastershipService mastershipService) {
         List<TableRow> list = new ArrayList<>();
         for (Device dev : service.getDevices()) {
             list.add(new DeviceTableRow(service,
                                         mastershipService,
-                                        linkService,
                                         dev));
         }
         return list.toArray(new TableRow[list.size()]);
@@ -166,6 +162,10 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         return port;
     }
 
+    private static String getTypeIconId(Device d) {
+        return DEV_ICON_PREFIX + d.type().toString();
+    }
+
     /**
      * TableRow implementation for {@link Device devices}.
      */
@@ -180,20 +180,8 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         private static final String ICON_ID_ONLINE = "deviceOnline";
         private static final String ICON_ID_OFFLINE = "deviceOffline";
 
-        // TODO: use in details pane
-//        private String getEgressLinks(Set<Link> links) {
-//            String formattedString = "";
-//
-//            for (Link l : links) {
-//                formattedString += l.dst().port().toString() + ", ";
-//            }
-//            return formattedString;
-//        }
-
-        // TODO: include "extra" backend information in device details pane
         public DeviceTableRow(DeviceService service,
                               MastershipService ms,
-                              LinkService ls,
                               Device d) {
             boolean available = service.isAvailable(d.id());
             String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
@@ -210,10 +198,6 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
             add(PROTOCOL, d.annotations().value(PROTOCOL));
             add(NUM_PORTS, Integer.toString(ports.size()));
             add(MASTER_ID, ms.getMasterFor(d.id()).toString());
-        }
-
-        private String getTypeIconId(Device d) {
-            return DEV_ICON_PREFIX + d.type().toString();
         }
 
         @Override

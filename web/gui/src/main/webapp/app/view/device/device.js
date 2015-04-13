@@ -26,11 +26,13 @@
 
     // internal state
     var self,
-        detailsPane,
-        container, top, bottom, closeBtn;
+        detailsPanel,
+        container, top, bottom, iconDiv,
+        selRow;
 
     // constants
     // TODO: consider having a set y height that all tables start at
+    // to make calculations easier
     var h2Pdg = 40,
         mastPdg = 8,
         tbodyPdg = 5,
@@ -53,14 +55,26 @@
             'Enabled', 'ID', 'Speed', 'Type', 'Egress Links'
         ];
 
-    function setUpPanel() {
-        detailsPane.empty();
+    function addCloseBtn(div) {
+        is.loadEmbeddedIcon(div, 'appPlus', 30);
+        div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
 
-        container = detailsPane.append('div').classed('container', true);
+        div.on('click', function () {
+            detailsPanel.hide();
+            selRow.removeClass('selected');
+        });
+    }
+
+    function setUpPanel() {
+        var closeBtn;
+        detailsPanel.empty();
+
+        container = detailsPanel.append('div').classed('container', true);
 
         top = container.append('div').classed('top', true);
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
+        iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
         top.append('table');
 
@@ -76,70 +90,20 @@
             panelTop = headerHeight + tbodyPdg + mast.mastHeight() + mastPdg,
             wSize = fs.windowSize(panelTop);
 
-        detailsPane = ps.createPanel(pName, {
+        detailsPanel = ps.createPanel(pName, {
             height: wSize.height,
-            width: wSize.width / 2,
             margin: 0,
             hideMargin: 0
         });
 
-        detailsPane.el().style({
+        detailsPanel.el().style({
             position: 'absolute',
             top: panelTop + 'px'
         });
 
         setUpPanel();
 
-        detailsPane.hide();
-    }
-
-    function addCloseBtn(div) {
-        is.loadEmbeddedIcon(div, 'appPlus', 30);
-        div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
-        div.on('click', function () {
-            detailsPane.hide();
-            // TODO: deselect the table row when button is clicked
-            //$scope.sel = null;
-        });
-    }
-
-    function populateTopHalf(tbody, details) {
-        top.select('h2').text(details['id']);
-
-        propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, details[prop]);
-        });
-    }
-
-    function populateBottomHalf(table, ports) {
-        var theader = table.append('thead').append('tr'),
-            tbody = table.append('tbody'),
-            tbWidth, tbHeight,
-            scrollSize = 20,
-            btmPdg = 50;
-
-        friendlyPortCols.forEach(function (header) {
-            theader.append('th').html(header);
-        });
-        ports.forEach(function (port) {
-            addPortRow(tbody, port);
-        });
-
-        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
-        tbHeight = detailsPane.height()
-                    - (fs.noPxStyle(detailsPane.el().select('.top'), 'height')
-                    + fs.noPxStyle(detailsPane.el().select('hr'), 'height')
-                    + fs.noPxStyle(detailsPane.el().select('h2'), 'height')
-                    + btmPdg);
-
-        table.style({
-            height: tbHeight + 'px',
-            width: tbWidth + 'px',
-            overflow: 'auto',
-            display: 'block'
-        });
-
-        detailsPane.width(tbWidth + cntrPdg);
+        detailsPanel.hide();
     }
 
     function addProp(tbody, index, value) {
@@ -150,6 +114,15 @@
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
+    }
+
+    function populateTop(tbody, details) {
+        is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
+        top.select('h2').text(details.id);
+
+        propOrder.forEach(function (prop, i) {
+            addProp(tbody, i, details[prop]);
+        });
     }
 
     function addPortRow(tbody, port) {
@@ -163,21 +136,52 @@
         });
     }
 
+    function populateBottom(table, ports) {
+        var theader = table.append('thead').append('tr'),
+            tbody = table.append('tbody'),
+            tbWidth, tbHeight,
+            scrollSize = 20,
+            padding = 55;
+
+        friendlyPortCols.forEach(function (col) {
+            theader.append('th').html(col);
+        });
+        ports.forEach(function (port) {
+            addPortRow(tbody, port);
+        });
+
+        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
+        tbHeight = detailsPanel.height()
+                    - (fs.noPxStyle(detailsPanel.el().select('.top'), 'height')
+                    + fs.noPxStyle(detailsPanel.el().select('hr'), 'height')
+                    + fs.noPxStyle(detailsPanel.el().select('h2'), 'height')
+                    + padding);
+
+        table.style({
+            height: tbHeight + 'px',
+            width: tbWidth + 'px',
+            overflow: 'auto',
+            display: 'block'
+        });
+
+        detailsPanel.width(tbWidth + cntrPdg);
+    }
+
     function populateDetails(details) {
         setUpPanel();
 
-        var toptbody = top.select('table').append('tbody'),
-            btmTable = bottom.select('table'),
+        var topTb = top.select('table').append('tbody'),
+            btmTbl = bottom.select('table'),
             ports = details.ports;
 
-        populateTopHalf(toptbody, details);
-        populateBottomHalf(btmTable, ports);
+        populateTop(topTb, details);
+        populateBottom(btmTbl, ports);
     }
 
     function respDetailsCb(data) {
-        self.panelData = data['details'];
+        self.panelData = data.details;
         populateDetails(self.panelData);
-        detailsPane.show();
+        detailsPanel.show();
     }
 
     angular.module('ovDevice', [])
@@ -197,13 +201,13 @@
             var handlers = {};
             self.panelData = [];
 
-            function selCb(row) {
-                // request the server for more information
-                // get the id from the row to request details with
+            function selCb($event, row) {
+                selRow = angular.element($event.currentTarget);
+
                 if ($scope.sel) {
                     wss.sendEvent(detailsReq, { id: row.id });
                 } else {
-                    detailsPane.hide();
+                    detailsPanel.hide();
                 }
                 $log.debug('Got a click on:', row);
             }
@@ -217,7 +221,6 @@
 
             createDetailsPane();
 
-            // bind websocket handlers
             handlers[detailsResp] = respDetailsCb;
             wss.bindHandlers(handlers);
 

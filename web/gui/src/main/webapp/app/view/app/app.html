@@ -31,7 +31,7 @@
             </tr>
 
             <tr ng-repeat="app in ctrl.tableData"
-                ng-click="selectCallback(app)"
+                ng-click="selectCallback($event, app)"
                 ng-class="{selected: app === sel}"
                 ng-repeat-done>
                 <td class="table-icon">

@@ -27,7 +27,7 @@
             </tr>
 
             <tr ng-repeat="dev in ctrl.tableData"
-                ng-click="selectCallback(dev)"
+                ng-click="selectCallback($event, dev)"
                 ng-class="{selected: dev === sel}"
                 ng-repeat-done>
                 <td class="table-icon">

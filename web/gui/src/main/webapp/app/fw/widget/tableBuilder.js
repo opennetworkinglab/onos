@@ -52,9 +52,9 @@
         }
         o.scope.sortCallback = sortCb;
 
-        function selCb(sel) {
+        function selCb($event, sel) {
             o.scope.sel = (o.scope.sel === sel) ? null : sel;
-            onSel && onSel(o.scope.sel);
+            onSel && onSel($event, o.scope.sel);
         }
         o.scope.selectCallback = selCb;
 

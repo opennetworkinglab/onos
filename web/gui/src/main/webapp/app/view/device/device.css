@@ -26,10 +26,10 @@
 }
 
 .light #device-details-panel.floatpanel {
-    background-color: rgb(226, 248, 255);
+    background-color: rgb(229, 234, 237);
 }
 .dark #device-details-panel.floatpanel {
-    background-color: #444;
+    background-color: #3A4042;
 }
 
 #device-details-panel .container {
@@ -40,13 +40,29 @@
     position: absolute;
     right: 10px;
     top: 0;
+    cursor: pointer;
 }
-.close-btn svg.embeddedIcon .icon.appPlus .glyph {
-    /* works for both dark and light themes */
+.light .close-btn svg.embeddedIcon .icon.appPlus .glyph {
+    fill: #aaa;
+}
+.dark .close-btn svg.embeddedIcon .icon.appPlus .glyph {
     fill: #ccc;
 }
 
+#device-details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+.light .dev-icon svg.embeddedIcon .glyph {
+    fill: rgb(0, 172, 229);
+}
+.dark .dev-icon svg.embeddedIcon .glyph {
+    fill: #486D91;
+}
+
 #device-details-panel h2 {
+    display: inline-block;
     margin: 8px 0;
 }
 
@@ -78,11 +94,11 @@
 }
 
 .light #device-details-panel .bottom th {
-    background-color: #D0E1ED;
+    background-color: #CCC;
     /* default text color */
 }
 .dark #device-details-panel .bottom th {
-    background-color: #2b2b2b;
+    background-color: #131313;
     color: #ccc;
 }
 
@@ -100,4 +116,7 @@
 }
 .dark #device-details-panel .bottom tr:nth-child(odd) {
     background-color: #333;
+}
+.dark #device-details-panel .bottom tr:nth-child(even) {
+    background-color: #555;
 }
