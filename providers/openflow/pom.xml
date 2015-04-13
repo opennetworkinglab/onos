@@ -33,8 +33,6 @@
 
     <modules>
         <module>device</module>
-        <module>link</module>
-        <module>host</module>
         <module>packet</module>
         <module>flow</module>
         <module>group</module>
