@@ -60,7 +60,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Provides implementation of the flow objective programming service.
  */
-@Component(immediate = true)
+@Component(immediate = false)
 @Service
 public class FlowObjectiveManager implements FlowObjectiveService {
 
