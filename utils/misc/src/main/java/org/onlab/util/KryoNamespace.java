@@ -233,13 +233,17 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
      */
     public byte[] serialize(final Object obj, final int bufferSize) {
         ByteBufferOutput out = new ByteBufferOutput(bufferSize, MAX_BUFFER_SIZE);
-        Kryo kryo = borrow();
         try {
-            kryo.writeClassAndObject(out, obj);
-            out.flush();
-            return out.toBytes();
+            Kryo kryo = borrow();
+            try {
+                kryo.writeClassAndObject(out, obj);
+                out.flush();
+                return out.toBytes();
+            } finally {
+                release(kryo);
+            }
         } finally {
-            release(kryo);
+            out.release();
         }
     }
 
