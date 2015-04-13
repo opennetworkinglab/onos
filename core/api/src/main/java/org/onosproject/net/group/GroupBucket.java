@@ -64,4 +64,17 @@ public interface GroupBucket {
      */
     public GroupId watchGroup();
 
+    /**
+     * Returns the number of packets processed by this group bucket.
+     *
+     * @return number of packets
+     */
+    long packets();
+
+    /**
+     * Returns the number of bytes processed by this group bucket.
+     *
+     * @return number of bytes
+     */
+    long bytes();
 }

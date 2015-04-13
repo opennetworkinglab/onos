@@ -17,6 +17,7 @@
 package org.onosproject.provider.of.group.impl;
 
 import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -34,6 +35,7 @@ import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupProvider;
 import org.onosproject.net.group.GroupProviderRegistry;
 import org.onosproject.net.group.GroupProviderService;
+import org.onosproject.net.group.StoredGroupBucketEntry;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
@@ -42,6 +44,7 @@ import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
+import org.projectfloodlight.openflow.protocol.OFBucketCounter;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
@@ -208,6 +211,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
         Map<Integer, Group> groups = Maps.newHashMap();
 
+
         for (OFGroupDescStatsEntry entry: groupDescStatsReply.getEntries()) {
             int id = entry.getGroup().getGroupNumber();
             GroupId groupId = new DefaultGroupId(id);
@@ -226,6 +230,19 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                 group.setLife(entry.getDurationSec());
                 group.setPackets(entry.getPacketCount().getValue());
                 group.setReferenceCount(entry.getRefCount());
+                int bucketIndex = 0;
+                for (OFBucketCounter bucketStats:entry.getBucketStats()) {
+                    ((StoredGroupBucketEntry) group.buckets().buckets()
+                            .get(bucketIndex))
+                            .setPackets(bucketStats
+                                        .getPacketCount().getValue());
+                    ((StoredGroupBucketEntry) group.buckets().buckets()
+                            .get(bucketIndex))
+                            .setBytes(entry.getBucketStats()
+                                      .get(bucketIndex)
+                                      .getByteCount().getValue());
+                    bucketIndex++;
+                }
             }
         }
 

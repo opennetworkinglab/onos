@@ -70,7 +70,7 @@ public final class GroupBuckets {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("buckets", buckets)
+                .add("buckets", buckets.toString())
                 .toString();
     }
 }

@@ -38,12 +38,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * in the group. A failover group bucket is associated with a
  * specific port or group that controls its liveness.
  */
-public final class DefaultGroupBucket implements GroupBucket {
+public final class DefaultGroupBucket implements GroupBucket, StoredGroupBucketEntry {
     private final GroupDescription.Type type;
     private final TrafficTreatment treatment;
     private final short weight;
     private final PortNumber watchPort;
     private final GroupId watchGroup;
+    private long packets;
+    private long bytes;
 
     /**
      * Group bucket constructor with the parameters.
@@ -223,6 +225,28 @@ public final class DefaultGroupBucket implements GroupBucket {
         return toStringHelper(this)
                 .add("type", type)
                 .add("treatment", treatment)
+                .add("packets", packets)
+                .add("bytes", bytes)
                 .toString();
+    }
+
+    @Override
+    public long packets() {
+        return packets;
+    }
+
+    @Override
+    public long bytes() {
+        return bytes;
+    }
+
+    @Override
+    public void setPackets(long packets) {
+        this.packets = packets;
+    }
+
+    @Override
+    public void setBytes(long bytes) {
+        this.bytes = bytes;
     }
 }

@@ -15,8 +15,10 @@
  */
 package org.onosproject.store.group.impl;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -54,6 +56,7 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStoreDelegate;
+import org.onosproject.net.group.StoredGroupBucketEntry;
 import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.Timestamp;
@@ -624,6 +627,22 @@ public class DistributedGroupStore
                     group.id(),
                     group.deviceId());
             synchronized (existing) {
+                for (GroupBucket bucket:group.buckets().buckets()) {
+                    java.util.Optional<GroupBucket> matchingBucket =
+                            existing.buckets().buckets()
+                            .stream()
+                            .filter((existingBucket)->(existingBucket.equals(bucket)))
+                            .findFirst();
+                    if (matchingBucket.isPresent()) {
+                        ((StoredGroupBucketEntry) matchingBucket.
+                                get()).setPackets(bucket.packets());
+                        ((StoredGroupBucketEntry) matchingBucket.
+                                get()).setBytes(bucket.bytes());
+                    } else {
+                        log.warn("addOrUpdateGroupEntry: No matching "
+                                + "buckets to update stats");
+                    }
+                }
                 existing.setLife(group.life());
                 existing.setPackets(group.packets());
                 existing.setBytes(group.bytes());

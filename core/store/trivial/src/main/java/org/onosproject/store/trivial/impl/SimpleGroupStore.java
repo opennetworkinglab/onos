@@ -46,6 +46,7 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStoreDelegate;
+import org.onosproject.net.group.StoredGroupBucketEntry;
 import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
@@ -416,6 +417,22 @@ public class SimpleGroupStore
 
         if (existing != null) {
             synchronized (existing) {
+                for (GroupBucket bucket:group.buckets().buckets()) {
+                    java.util.Optional<GroupBucket> matchingBucket =
+                            existing.buckets().buckets()
+                            .stream()
+                            .filter((existingBucket)->(existingBucket.equals(bucket)))
+                            .findFirst();
+                    if (matchingBucket.isPresent()) {
+                        ((StoredGroupBucketEntry) matchingBucket.
+                                get()).setPackets(bucket.packets());
+                        ((StoredGroupBucketEntry) matchingBucket.
+                                get()).setBytes(bucket.bytes());
+                    } else {
+                        log.warn("addOrUpdateGroupEntry: No matching "
+                                + "buckets to update stats");
+                    }
+                }
                 existing.setLife(group.life());
                 existing.setPackets(group.packets());
                 existing.setBytes(group.bytes());
@@ -424,7 +441,7 @@ public class SimpleGroupStore
                     event = new GroupEvent(Type.GROUP_ADDED, existing);
                 } else {
                     if (existing.state() == GroupState.PENDING_UPDATE) {
-                        existing.setState(GroupState.PENDING_UPDATE);
+                        existing.setState(GroupState.ADDED);
                     }
                     event = new GroupEvent(Type.GROUP_UPDATED, existing);
                 }

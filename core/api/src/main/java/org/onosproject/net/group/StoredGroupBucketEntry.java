@@ -20,18 +20,18 @@ package org.onosproject.net.group;
  * group object. A group bucket entry provides additional info of
  * group bucket like statistics...etc
  */
-public interface GroupBucketEntry extends GroupBucket {
+public interface StoredGroupBucketEntry extends GroupBucket {
     /**
-     * Returns Number of packets processed by bucket.
+     * Sets number of packets processed by this group bucket entry.
      *
-     * @return long
+     * @param packets a long value
      */
-    public long packets();
+    void setPackets(long packets);
 
     /**
-     * Returns Number of bytes processed by bucket.
+     * Sets number of bytes processed by this group bucket entry.
      *
-     * @return long
+     * @param bytes a long value
      */
-    public long bytes();
+    void setBytes(long bytes);
 }

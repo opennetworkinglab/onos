@@ -15,11 +15,23 @@
  */
 package org.onosproject.cli.net;
 
+import static com.google.common.collect.Lists.newArrayList;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.Comparators;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.Group.GroupState;
+import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupService;
 
 /**
@@ -30,23 +42,75 @@ import org.onosproject.net.group.GroupService;
 public class GroupsListCommand extends AbstractShellCommand {
 
     private static final String FORMAT =
-            "   key=%s, id=%s, state=%s, bytes=%s, packets=%s, appId=%s, buckets=%s";
+            "   id=%s, state=%s, bytes=%s, packets=%s, appId=%s";
+    private static final String BUCKET_FORMAT =
+            "   id=%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
+
+    @Argument(index = 1, name = "uri", description = "Device ID",
+            required = false, multiValued = false)
+    String uri = null;
+
+    @Argument(index = 0, name = "state", description = "Group state",
+            required = false, multiValued = false)
+    String state;
 
     @Override
     protected void execute() {
         DeviceService deviceService = get(DeviceService.class);
         GroupService groupService = get(GroupService.class);
+        SortedMap<Device, List<Group>> sortedGroups =
+                getSortedGroups(deviceService, groupService);
 
-        deviceService.getDevices().forEach(d ->
-                printGroups(d.id(), groupService.getGroups(d.id()))
-        );
+        sortedGroups.forEach((device, groups) -> printGroups(device.id(), groups));
     }
 
-    private void printGroups(DeviceId deviceId, Iterable<Group> groups) {
+    /**
+     * Returns the list of devices sorted using the device ID URIs.
+     *
+     * @param deviceService device service
+     * @param groupService group service
+     * @return sorted device list
+     */
+    protected SortedMap<Device, List<Group>>
+        getSortedGroups(DeviceService deviceService,
+                        GroupService groupService) {
+        SortedMap<Device, List<Group>> sortedGroups =
+                new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
+        List<Group> groups;
+        GroupState s = null;
+        if (state != null && !state.equals("any")) {
+            s = GroupState.valueOf(state.toUpperCase());
+        }
+        Iterable<Device> devices = (uri == null) ? deviceService.getDevices() :
+                Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
+        for (Device d : devices) {
+            if (s == null) {
+                groups = newArrayList(groupService.getGroups(d.id()));
+            } else {
+                groups = newArrayList();
+                for (Group g : groupService.getGroups(d.id())) {
+                    if (g.state().equals(s)) {
+                        groups.add(g);
+                    }
+                }
+            }
+            groups.sort(Comparators.GROUP_COMPARATOR);
+            sortedGroups.put(d, groups);
+        }
+        return sortedGroups;
+    }
+
+    private void printGroups(DeviceId deviceId, List<Group> groups) {
         print("deviceId=%s", deviceId);
         for (Group group : groups) {
-            print(FORMAT, group.appCookie(), group.id(), group.state(),
-                  group.bytes(), group.packets(), group.appId(), group.buckets());
+            print(FORMAT, group.id().id(), group.state(),
+                  group.bytes(), group.packets(), group.appId().name());
+            int i = 0;
+            for (GroupBucket bucket:group.buckets().buckets()) {
+                print(BUCKET_FORMAT, group.id().id(), ++i,
+                      bucket.bytes(), bucket.packets(),
+                      bucket.treatment().allInstructions());
+            }
         }
     }
 }

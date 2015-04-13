@@ -25,6 +25,7 @@ import org.onosproject.net.Element;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.group.Group;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.topology.TopologyCluster;
 
@@ -69,6 +70,13 @@ public final class Comparators {
         @Override
         public int compare(FlowRule f1, FlowRule f2) {
             return Long.valueOf(f1.id().value()).compareTo(f2.id().value());
+        }
+    };
+
+    public static final Comparator<Group> GROUP_COMPARATOR = new Comparator<Group>() {
+        @Override
+        public int compare(Group g1, Group g2) {
+            return Long.valueOf(g1.id().id()).compareTo(Long.valueOf(g2.id().id()));
         }
     };
 

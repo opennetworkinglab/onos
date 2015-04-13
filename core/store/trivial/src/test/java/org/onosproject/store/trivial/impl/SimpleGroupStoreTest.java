@@ -34,6 +34,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -46,6 +47,8 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore.UpdateType;
 import org.onosproject.net.group.GroupStoreDelegate;
+import org.onosproject.net.group.StoredGroupBucketEntry;
+import org.onosproject.net.group.StoredGroupEntry;
 
 import com.google.common.collect.Iterables;
 
@@ -98,6 +101,26 @@ public class SimpleGroupStoreTest {
                              event.subject().state());
             } else if (expectedEvent == GroupEvent.Type.GROUP_ADDED) {
                 createdGroupId = event.subject().id();
+                assertEquals(Group.GroupState.ADDED,
+                             event.subject().state());
+            } else if (expectedEvent == GroupEvent.Type.GROUP_UPDATED) {
+                createdGroupId = event.subject().id();
+                assertEquals(true,
+                             event.subject().buckets().
+                             buckets().containsAll(createdBuckets.buckets()));
+                assertEquals(true,
+                             createdBuckets.buckets().
+                             containsAll(event.subject().buckets().buckets()));
+                for (GroupBucket bucket:event.subject().buckets().buckets()) {
+                    java.util.Optional<GroupBucket> matched = createdBuckets.buckets()
+                            .stream()
+                            .filter((expected) -> expected.equals(bucket))
+                            .findFirst();
+                    assertEquals(matched.get().packets(),
+                                 bucket.packets());
+                    assertEquals(matched.get().bytes(),
+                                 bucket.bytes());
+                }
                 assertEquals(Group.GroupState.ADDED,
                              event.subject().state());
             } else if (expectedEvent == GroupEvent.Type.GROUP_UPDATE_REQUESTED) {
@@ -243,13 +266,33 @@ public class SimpleGroupStoreTest {
     // Testing addOrUpdateGroupEntry operation from southbound
     private void testUpdateGroupEntryFromSB(GroupKey currKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
+        int totalPkts = 0;
+        int totalBytes = 0;
+        List<GroupBucket> newBucketList = new ArrayList<GroupBucket>();
+        for (GroupBucket bucket:existingGroup.buckets().buckets()) {
+            StoredGroupBucketEntry newBucket =
+                    (StoredGroupBucketEntry)
+                    DefaultGroupBucket.createSelectGroupBucket(bucket.treatment());
+            newBucket.setPackets(10);
+            newBucket.setBytes(10 * 256 * 8);
+            totalPkts += 10;
+            totalBytes += 10 * 256 * 8;
+            newBucketList.add(newBucket);
+        }
+        GroupBuckets updatedBuckets = new GroupBuckets(newBucketList);
+        Group updatedGroup = new DefaultGroup(existingGroup.id(),
+                                              existingGroup.deviceId(),
+                                              existingGroup.type(),
+                                              updatedBuckets);
+        ((StoredGroupEntry) updatedGroup).setPackets(totalPkts);
+        ((StoredGroupEntry) updatedGroup).setBytes(totalBytes);
 
         InternalGroupStoreDelegate updateGroupEntryDelegate =
                 new InternalGroupStoreDelegate(currKey,
-                                               existingGroup.buckets(),
+                                               updatedBuckets,
                                                GroupEvent.Type.GROUP_UPDATED);
         simpleGroupStore.setDelegate(updateGroupEntryDelegate);
-        simpleGroupStore.addOrUpdateGroupEntry(existingGroup);
+        simpleGroupStore.addOrUpdateGroupEntry(updatedGroup);
         simpleGroupStore.unsetDelegate(updateGroupEntryDelegate);
     }
 
