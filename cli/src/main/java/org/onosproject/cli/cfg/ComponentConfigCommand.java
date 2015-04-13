@@ -15,6 +15,9 @@
  */
 package org.onosproject.cli.cfg;
 
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -22,8 +25,10 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cli.AbstractShellCommand;
 
-import java.util.Optional;
-import java.util.Set;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -85,23 +90,67 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     }
 
     private void listAllComponentsProperties() {
-        service.getComponentNames().forEach(this::listComponentProperties);
+        if (outputJson()) {
+            print("%s", jsonComponentProperties());
+        } else {
+            service.getComponentNames().forEach(this::listComponentProperties);
+        }
+    }
+
+    private JsonNode jsonProperty(ConfigProperty configProperty, ObjectMapper mapper) {
+        return mapper.createObjectNode()
+                .put("name", configProperty.name())
+                .put("type", configProperty.type().toString().toLowerCase())
+                .put("value", configProperty.value())
+                .put("defaultValue", configProperty.defaultValue())
+                .put("description", configProperty.description());
+    }
+
+    private JsonNode jsonComponent(String component, ObjectMapper mapper) {
+        ObjectNode node = mapper.createObjectNode()
+                .put("componentName", component);
+        final ArrayNode propertiesJson = node.putArray("properties");
+        Set<ConfigProperty> properties = service.getProperties(component);
+        if (properties != null) {
+            properties.forEach(configProperty -> propertiesJson.add(
+                    jsonProperty(configProperty, mapper)));
+        }
+        return node;
+    }
+
+    private JsonNode jsonComponentProperties() {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        service.getComponentNames()
+                .forEach(component -> result.add(jsonComponent(component, mapper)));
+
+        return result;
     }
 
     private void listComponents() {
-        service.getComponentNames().forEach(n -> print("%s", n));
+        if (outputJson()) {
+            ArrayNode node = new ObjectMapper().createArrayNode();
+            service.getComponentNames().forEach(node::add);
+            print("%s", node);
+        } else {
+            service.getComponentNames().forEach(n -> print("%s", n));
+        }
     }
 
     private void listComponentProperties(String component) {
-        Set<ConfigProperty> props = service.getProperties(component);
-        print("%s", component);
-        if (props == null) {
-            print("No properties for component " + component + " found");
-        } else if (shortOnly) {
-            props.forEach(p -> print(SHORT_FMT, p.name(), p.value()));
+        if (outputJson()) {
+            print("%s", jsonComponent(component, new ObjectMapper()));
         } else {
-            props.forEach(p -> print(FMT, p.name(), p.type().toString().toLowerCase(),
-                                     p.value(), p.defaultValue(), p.description()));
+            Set<ConfigProperty> props = service.getProperties(component);
+            print("%s", component);
+            if (props == null) {
+                print("No properties for component " + component + " found");
+            } else if (shortOnly) {
+                props.forEach(p -> print(SHORT_FMT, p.name(), p.value()));
+            } else {
+                props.forEach(p -> print(FMT, p.name(), p.type().toString().toLowerCase(),
+                        p.value(), p.defaultValue(), p.description()));
+            }
         }
     }
 
@@ -111,19 +160,22 @@ public class ComponentConfigCommand extends AbstractShellCommand {
         if (props == null) {
             return;
         }
-
         Optional<ConfigProperty> property = props.stream()
                 .filter(p -> p.name().equals(name)).findFirst();
-        if (!property.isPresent()) {
-            print("Property " + name + " for component " + component + " not found");
-            return;
-        }
-        ConfigProperty p = property.get();
-        if (shortOnly) {
-            print(SHORT_FMT, p.name(), p.value());
+        if (outputJson()) {
+            print("%s", jsonProperty(property.get(), new ObjectMapper()));
         } else {
-            print(FMT, p.name(), p.type().toString().toLowerCase(), p.value(),
-                  p.defaultValue(), p.description());
+            if (!property.isPresent()) {
+                print("Property " + name + " for component " + component + " not found");
+                return;
+            }
+            ConfigProperty p = property.get();
+            if (shortOnly) {
+                print(SHORT_FMT, p.name(), p.value());
+            } else {
+                print(FMT, p.name(), p.type().toString().toLowerCase(), p.value(),
+                        p.defaultValue(), p.description());
+            }
         }
     }
 
