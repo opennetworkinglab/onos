@@ -42,7 +42,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -202,11 +202,11 @@ public class NettyMessagingService implements MessagingService {
     }
 
     @Override
-    public void registerHandler(String type, MessageHandler handler, ExecutorService executor) {
+    public void registerHandler(String type, MessageHandler handler, Executor executor) {
         handlers.put(type, new MessageHandler() {
             @Override
             public void handle(Message message) throws IOException {
-                executor.submit(() -> {
+                executor.execute(() -> {
                     try {
                         handler.handle(message);
                     } catch (Exception e) {

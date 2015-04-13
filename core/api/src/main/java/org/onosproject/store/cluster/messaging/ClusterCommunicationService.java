@@ -17,6 +17,7 @@ package org.onosproject.store.cluster.messaging;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -173,7 +174,7 @@ public interface ClusterCommunicationService {
                               Function<byte[], M> decoder,
                               Function<M, R> handler,
                               Function<R, byte[]> encoder,
-                              ExecutorService executor);
+                              Executor executor);
 
     /**
      * Adds a new subscriber for the specified message subject.
@@ -187,7 +188,7 @@ public interface ClusterCommunicationService {
     <M> void addSubscriber(MessageSubject subject,
                            Function<byte[], M> decoder,
                            Consumer<M> handler,
-                           ExecutorService executor);
+                           Executor executor);
 
     /**
      * Removes a subscriber for the specified message subject.

@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -780,13 +781,13 @@ public class EventuallyConsistentMapImplTest {
         @Override
         public <M, R> void addSubscriber(MessageSubject subject,
                 Function<byte[], M> decoder, Function<M, R> handler,
-                Function<R, byte[]> encoder, ExecutorService executor) {
+                Function<R, byte[]> encoder, Executor executor) {
         }
 
         @Override
         public <M> void addSubscriber(MessageSubject subject,
                 Function<byte[], M> decoder, Consumer<M> handler,
-                ExecutorService executor) {
+                Executor executor) {
         }
 
         @Override

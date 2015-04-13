@@ -43,6 +43,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -270,7 +271,7 @@ public class ClusterCommunicationManager
             Function<byte[], M> decoder,
             Function<M, R> handler,
             Function<R, byte[]> encoder,
-            ExecutorService executor) {
+            Executor executor) {
         messagingService.registerHandler(subject.value(),
                 new InternalMessageResponder<>(decoder, encoder, handler),
                 executor);
@@ -280,7 +281,7 @@ public class ClusterCommunicationManager
     public <M> void addSubscriber(MessageSubject subject,
             Function<byte[], M> decoder,
             Consumer<M> handler,
-            ExecutorService executor) {
+            Executor executor) {
         messagingService.registerHandler(subject.value(),
                 new InternalMessageConsumer<>(decoder, handler),
                 executor);

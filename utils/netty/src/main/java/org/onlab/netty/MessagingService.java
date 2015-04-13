@@ -17,7 +17,7 @@ package org.onlab.netty;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Interface for low level messaging primitives.
@@ -48,7 +48,7 @@ public interface MessagingService {
      * @param handler message handler
      * @param executor executor to use for running message handler logic.
      */
-    public void registerHandler(String type, MessageHandler handler, ExecutorService executor);
+    public void registerHandler(String type, MessageHandler handler, Executor executor);
 
     /**
      * Registers a new message handler for message type.
