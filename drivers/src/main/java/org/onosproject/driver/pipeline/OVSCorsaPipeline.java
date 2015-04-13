@@ -83,53 +83,94 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     @Override
     public Future<Boolean> filter(Collection<FilteringObjective> filteringObjectives) {
-        Collection<Future<Boolean>> results =
-                Sets.newHashSet();
+        Collection<Future<Boolean>> results = Sets.newHashSet();
         filteringObjectives.stream()
                 .filter(obj -> obj.type() == FilteringObjective.Type.PERMIT)
-                .forEach(obj -> obj.conditions()
-                        .forEach(condition ->
-                            results.add(processCondition(condition,
-                                                   obj.op() == Objective.Operation.ADD,
-                                                   obj.appId()))
-                        ));
+                .forEach(filtobj -> results.add(processFilter(filtobj,
+                                        filtobj.op() == Objective.Operation.ADD,
+                                        filtobj.appId()
+                        )));
 
         //TODO: return something more helpful/sensible in the future (no pun intended)
         return results.iterator().next();
 
     }
 
-    private Future<Boolean> processCondition(Criterion c, boolean install,
+    private Future<Boolean> processFilter(FilteringObjective filt, boolean install,
                                              ApplicationId applicationId) {
         SettableFuture<Boolean> result = SettableFuture.create();
-        if (c.type() == Criterion.Type.ETH_DST) {
-            Criteria.EthCriterion e = (Criteria.EthCriterion) c;
-            log.debug("adding rule for MAC: {}", e.mac());
-
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            selector.matchEthDst(e.mac());
-            treatment.transition(FlowRule.Type.VLAN_MPLS);
-            FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
-                                                treatment.build(),
-                                                CONTROLLER_PRIORITY, applicationId, 0,
-                                                true, FlowRule.Type.FIRST);
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            ops =  install ? ops.add(rule) : ops.remove(rule);
-            flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    result.set(true);
-                    log.info("Provisioned default table for bgp router");
-                }
-
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    result.set(false);
-                    log.info("Failed to provision default table for bgp router");
-                }
-            }));
+        // This driver only processes filtering criteria defined with switch
+        // ports as the key
+        Criteria.PortCriterion p = null;
+        if (!filt.key().equals(Criteria.dummy()) &&
+                filt.key().type() == Criterion.Type.IN_PORT) {
+            p = (Criteria.PortCriterion) filt.key();
+        } else {
+            log.warn("No key defined in filtering objective from app: {}. Not"
+                    + "processing filtering objective", applicationId);
+            return null;
         }
+        // convert filtering conditions for switch-intfs into flowrules
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        for (Criterion c : filt.conditions()) {
+            if (c.type() == Criterion.Type.ETH_DST) {
+                Criteria.EthCriterion e = (Criteria.EthCriterion) c;
+                log.debug("adding rule for MAC: {}", e.mac());
+                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+                selector.matchEthDst(e.mac());
+                treatment.transition(FlowRule.Type.VLAN_MPLS);
+                FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
+                                                    treatment.build(),
+                                                    CONTROLLER_PRIORITY, applicationId,
+                                                    0, true, FlowRule.Type.FIRST);
+                ops =  install ? ops.add(rule) : ops.remove(rule);
+            } else if (c.type() == Criterion.Type.VLAN_VID) {
+                Criteria.VlanIdCriterion v = (Criteria.VlanIdCriterion) c;
+                log.debug("adding rule for VLAN: {}", v.vlanId());
+                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+                selector.matchVlanId(v.vlanId());
+                selector.matchInPort(p.port());
+                treatment.transition(FlowRule.Type.ETHER);
+                treatment.deferred().popVlan();
+                FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
+                                           treatment.build(),
+                                           CONTROLLER_PRIORITY, applicationId,
+                                           0, true, FlowRule.Type.VLAN);
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            } else if (c.type() == Criterion.Type.IPV4_DST) {
+                Criteria.IPCriterion ip = (Criteria.IPCriterion) c;
+                log.debug("adding rule for IP: {}", ip.ip());
+                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+                selector.matchEthType(Ethernet.TYPE_IPV4);
+                selector.matchIPDst(ip.ip());
+                treatment.transition(FlowRule.Type.ACL);
+                FlowRule rule = new DefaultFlowRule(deviceId, selector.build(),
+                                           treatment.build(), HIGHEST_PRIORITY, appId,
+                                           0, true, FlowRule.Type.IP);
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            } else {
+                log.warn("Driver does not currently process filtering condition"
+                        + " of type: {}", c.type());
+            }
+        }
+        // apply filtering flow rules
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                result.set(true);
+                log.info("Provisioned default table for bgp router");
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                result.set(false);
+                log.info("Failed to provision default table for bgp router");
+            }
+        }));
+
         return result;
     }
 

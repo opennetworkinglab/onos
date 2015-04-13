@@ -20,6 +20,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,14 +31,11 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -60,7 +58,6 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
@@ -75,7 +72,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -146,8 +142,6 @@ public class BgpRouter {
 
     private IcmpHandler icmpHandler;
 
-    private InternalTableHandler provisionStaticTables = new InternalTableHandler();
-
     private KryoNamespace appKryo = new KryoNamespace.Builder()
                     .register(IpAddress.Version.class)
                     .register(IpAddress.class)
@@ -168,7 +162,7 @@ public class BgpRouter {
 
         groupService.addListener(groupListener);
 
-        provisionStaticTables.provision(true, configService.getInterfaces());
+        processIntfFilters(true, configService.getInterfaces());
 
         connectivityManager = new TunnellingConnectivityManager(appId,
                                                                 configService,
@@ -192,7 +186,7 @@ public class BgpRouter {
         routingService.stop();
         connectivityManager.stop();
         icmpHandler.stop();
-        provisionStaticTables.provision(false, configService.getInterfaces());
+        processIntfFilters(false, configService.getInterfaces());
 
         groupService.removeListener(groupListener);
 
@@ -380,30 +374,20 @@ public class BgpRouter {
         }
     }
 
-    private class InternalTableHandler {
-
-        private Set<InterfaceIpAddress> intfIps = new HashSet<InterfaceIpAddress>();
-        private Set<MacAddress> intfMacs = new HashSet<MacAddress>();
-        private Map<PortNumber, VlanId> portVlanPair = Maps.newHashMap();
-
-        public void provision(boolean install, Set<Interface> intfs) {
-            getInterfaceConfig(intfs);
+    private void processIntfFilters(boolean install, Set<Interface> intfs) {
+        log.info("Processing {} router interfaces", intfs.size());
+        for (Interface intf : intfs) {
+            FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+            fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
+               .addCondition(Criteria.matchEthDst(intf.mac()))
+               .addCondition(Criteria.matchVlanId(intf.vlan()));
+            intf.ipAddresses().stream()
+                .forEach(ipaddr -> fob.addCondition(
+                                   Criteria.matchIPDst(ipaddr.subnetAddress())));
+            fob.permit().fromApp(appId);
+            flowObjectiveService.filter(deviceId,
+                                 Collections.singletonList(fob.add()));
         }
-
-        private void getInterfaceConfig(Set<Interface> intfs) {
-            log.info("Processing {} router interfaces", intfs.size());
-            for (Interface intf : intfs) {
-                FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-                flowObjectiveService.filter(deviceId, Collections.singletonList(
-                        fob.addCondition(Criteria.matchEthDst(intf.mac()))
-                                .fromApp(appId).permit().add()));
-                intfIps.addAll(intf.ipAddresses());
-                intfMacs.add(intf.mac());
-                portVlanPair.put(intf.connectPoint().port(), intf.vlan());
-            }
-        }
-
-
     }
 
     private class InternalGroupListener implements GroupListener {
