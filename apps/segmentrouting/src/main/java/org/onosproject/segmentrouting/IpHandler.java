@@ -139,6 +139,7 @@ public class IpHandler {
                     OutboundPacket packet = new DefaultOutboundPacket(deviceId,
                             treatment, ByteBuffer.wrap(eth.serialize()));
                     srManager.packetService.emit(packet);
+                    ipPacketQueue.get(destIpAddress).remove(ipPacket);
                 }
             }
         }

@@ -151,8 +151,7 @@ public class SegmentRoutingManager {
                 groupHandler.createGroups();
                 groupHandlerMap.put(device.id(), groupHandler);
                 log.debug("Initiating default group handling for {}", device.id());
-
-                defaultRoutingHandler.startPopulationProcess();
+                defaultRoutingHandler.populateTtpRules(device.id());
             } else {
                 log.debug("Activate: Local role {} "
                                 + "is not MASTER for device {}",
@@ -161,6 +160,8 @@ public class SegmentRoutingManager {
                         device.id());
             }
         }
+
+        defaultRoutingHandler.startPopulationProcess();
 
         log.info("Started");
     }
@@ -239,6 +240,8 @@ public class SegmentRoutingManager {
             switch (event.type()) {
             case DEVICE_ADDED:
             case PORT_REMOVED:
+            case DEVICE_UPDATED:
+            case DEVICE_AVAILABILITY_CHANGED:
                 scheduleEventHandlerIfNotScheduled(event);
                 break;
             default:
@@ -294,8 +297,12 @@ public class SegmentRoutingManager {
                     processLinkRemoved((Link) event.subject());
                 } else if (event.type() == GroupEvent.Type.GROUP_ADDED) {
                     processGroupAdded((Group) event.subject());
-                } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED) {
-                    processDeviceAdded((Device) event.subject());
+                } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED ||
+                        event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
+                        event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
+                    if (deviceService.isAvailable(((Device) event.subject()).id())) {
+                        processDeviceAdded((Device) event.subject());
+                    }
                 } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
                     processPortRemoved((Device) event.subject(),
                             ((DeviceEvent) event).port());
@@ -321,12 +328,12 @@ public class SegmentRoutingManager {
                 groupHandler.linkUp(link);
             }
         }
-        defaultRoutingHandler.startPopulationProcess();
+        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null);
     }
 
     private void processLinkRemoved(Link link) {
         log.debug("A link {} was removed", link.toString());
-        defaultRoutingHandler.startPopulationProcess();
+        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
     }
 
 

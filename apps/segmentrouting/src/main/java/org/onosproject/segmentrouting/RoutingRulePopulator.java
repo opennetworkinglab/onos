@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -47,8 +48,9 @@ public class RoutingRulePopulator {
 
     private static final Logger log = LoggerFactory.getLogger(RoutingRulePopulator.class);
 
-    private SegmentRoutingManager srManager;
-    private NetworkConfigHandler config;
+    private final SegmentRoutingManager srManager;
+    private final NetworkConfigHandler config;
+    private AtomicLong rulePopulationCounter;
 
     /**
      * Creates a RoutingRulePopulator object.
@@ -58,6 +60,21 @@ public class RoutingRulePopulator {
     public RoutingRulePopulator(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.config = checkNotNull(srManager.networkConfigHandler);
+        this.rulePopulationCounter = new AtomicLong(0);
+    }
+
+    /**
+     * Resets the population counter.
+     */
+    public void resetCounter() {
+        rulePopulationCounter.set(0);
+    }
+
+    /**
+     * Returns the number of rules populated.
+     */
+    public long getCounter() {
+        return rulePopulationCounter.get();
     }
 
     /**
@@ -87,6 +104,7 @@ public class RoutingRulePopulator {
                 srManager.appId, 600, false, FlowRule.Type.IP);
 
         srManager.flowRuleService.applyFlowRules(f);
+        rulePopulationCounter.incrementAndGet();
         log.debug("Flow rule {} is set to switch {}", f, deviceId);
     }
 
@@ -162,6 +180,7 @@ public class RoutingRulePopulator {
                 srManager.appId, 600, false, FlowRule.Type.IP);
 
         srManager.flowRuleService.applyFlowRules(f);
+        rulePopulationCounter.incrementAndGet();
         log.debug("IP flow rule {} is set to switch {}", f, deviceId);
 
         return true;
@@ -216,6 +235,7 @@ public class RoutingRulePopulator {
             FlowRule f = new DefaultFlowRule(deviceId, selector, treatment, 100,
                     srManager.appId, 600, false, FlowRule.Type.MPLS);
             srManager.flowRuleService.applyFlowRules(f);
+            rulePopulationCounter.incrementAndGet();
             log.debug("MPLS rule {} is set to {}", f, deviceId);
         }
 
