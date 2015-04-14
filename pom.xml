@@ -578,12 +578,20 @@
                 <plugin>
                     <groupId>org.onosproject</groupId>
                     <artifactId>onos-maven-plugin</artifactId>
-                    <version>1.1.0</version>
+                    <version>1.2</version>
                     <executions>
                         <execution>
+                            <id>cfg</id>
                             <phase>generate-resources</phase>
                             <goals>
                                 <goal>cfg</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>app</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>app</goal>
                             </goals>
                         </execution>
                     </executions>
