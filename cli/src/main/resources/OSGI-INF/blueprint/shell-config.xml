@@ -105,6 +105,13 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.AnnotateDeviceCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <null/>
+            </completers>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.net.LinksListCommand"/>
