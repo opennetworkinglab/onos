@@ -25,10 +25,7 @@
 
     // constants
     var tableIconTdSize = 33,
-        mastPdg = 8,
-        h2Pdg = 40,
-        thPdg = 12,
-        tbodyPdg = 5,
+        pdg = 12,
         colWidth = 'col-width',
         tableIcon = 'table-icon';
 
@@ -100,15 +97,15 @@
     // get the size of the window and then subtract the extra space at the top
     // to get the height of the table
     function setTableHeight(thead, tbody) {
-        var titleHeight = h2Pdg + fs.noPxStyle(d3.select('h2'), 'height'),
-            thHeight = thPdg + fs.noPxStyle(thead, 'height'),
-            totalHeight = titleHeight + thHeight + mastPdg - tbodyPdg,
-            tableHeight = fs.windowSize(mast.mastHeight() + totalHeight).height;
+        var ttlHgt = fs.noPxStyle(d3.select('.tabular-header'), 'height'),
+            thHgt = fs.noPxStyle(thead, 'height'),
+            totalHgt = ttlHgt + thHgt + pdg,
+            tbleHgt = fs.windowSize(mast.mastHeight() + totalHgt).height;
 
         thead.style('display', 'block');
         tbody.style({
             display: 'block',
-            height: tableHeight + 'px',
+            height: tbleHgt + 'px',
             overflow: 'auto'
         });
     }

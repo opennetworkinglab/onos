@@ -27,19 +27,20 @@
     // internal state
     var self,
         detailsPanel,
-        container, top, bottom, iconDiv,
-        selRow;
+        pStartY, pHeight,
+        top, bottom, iconDiv,
+        wSize, selRow;
 
     // constants
-    // TODO: consider having a set y height that all tables start at
-    // to make calculations easier
-    var h2Pdg = 40,
-        mastPdg = 8,
-        tbodyPdg = 5,
-        cntrPdg = 24,
+    var topPdg = 13,
+        ctnrPdg = 24,
+        scrollSize = 10,
+        portsTblPdg = 50,
+
         pName = 'device-details-panel',
         detailsReq = 'deviceDetailsRequest',
         detailsResp = 'deviceDetailsResponse',
+
         propOrder = [
             'type', 'masterid', 'chassisid',
             'mfr', 'hw', 'sw', 'protocol', 'serial'
@@ -66,7 +67,7 @@
     }
 
     function setUpPanel() {
-        var closeBtn;
+        var container, closeBtn;
         detailsPanel.empty();
 
         container = detailsPanel.append('div').classed('container', true);
@@ -77,33 +78,11 @@
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
         top.append('table');
-
-        container.append('hr');
+        top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').text('Ports');
+        bottom.append('h2').classed('ports-title', true).html('Ports');
         bottom.append('table');
-    }
-
-    function createDetailsPane() {
-        var headerHeight = h2Pdg + fs.noPxStyle(d3.select('h2'), 'height'),
-            panelTop = headerHeight + tbodyPdg + mast.mastHeight() + mastPdg,
-            wSize = fs.windowSize(panelTop);
-
-        detailsPanel = ps.createPanel(pName, {
-            height: wSize.height,
-            margin: 0,
-            hideMargin: 0
-        });
-
-        detailsPanel.el().style({
-            position: 'absolute',
-            top: panelTop + 'px'
-        });
-
-        setUpPanel();
-
-        detailsPanel.hide();
     }
 
     function addProp(tbody, index, value) {
@@ -118,7 +97,7 @@
 
     function populateTop(tbody, details) {
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
-        top.select('h2').text(details.id);
+        top.select('h2').html(details.id);
 
         propOrder.forEach(function (prop, i) {
             addProp(tbody, i, details[prop]);
@@ -139,9 +118,7 @@
     function populateBottom(table, ports) {
         var theader = table.append('thead').append('tr'),
             tbody = table.append('tbody'),
-            tbWidth, tbHeight,
-            scrollSize = 20,
-            padding = 55;
+            tbWidth, tbHeight;
 
         friendlyPortCols.forEach(function (col) {
             theader.append('th').html(col);
@@ -151,11 +128,12 @@
         });
 
         tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
-        tbHeight = detailsPanel.height()
-                    - (fs.noPxStyle(detailsPanel.el().select('.top'), 'height')
-                    + fs.noPxStyle(detailsPanel.el().select('hr'), 'height')
-                    + fs.noPxStyle(detailsPanel.el().select('h2'), 'height')
-                    + padding);
+        tbHeight = pHeight
+                    - (fs.noPxStyle(detailsPanel.el()
+                                        .select('.top'), 'height')
+                    + fs.noPxStyle(detailsPanel.el()
+                                        .select('.ports-title'), 'height')
+                    + portsTblPdg);
 
         table.style({
             height: tbHeight + 'px',
@@ -164,24 +142,40 @@
             display: 'block'
         });
 
-        detailsPanel.width(tbWidth + cntrPdg);
+        detailsPanel.width(tbWidth + ctnrPdg);
     }
 
     function populateDetails(details) {
+        var topTb, btmTbl, ports;
         setUpPanel();
 
-        var topTb = top.select('table').append('tbody'),
-            btmTbl = bottom.select('table'),
-            ports = details.ports;
+        topTb = top.select('table').append('tbody');
+        btmTbl = bottom.select('table');
+        ports = details.ports;
 
         populateTop(topTb, details);
         populateBottom(btmTbl, ports);
+
+        detailsPanel.height(pHeight);
     }
 
     function respDetailsCb(data) {
         self.panelData = data.details;
         populateDetails(self.panelData);
         detailsPanel.show();
+    }
+
+    function createDetailsPane() {
+        detailsPanel = ps.createPanel(pName, {
+            width: wSize.width,
+            margin: 0,
+            hideMargin: 0
+        });
+        detailsPanel.el().style({
+            position: 'absolute',
+            top: pStartY + 'px'
+        });
+        detailsPanel.hide();
     }
 
     angular.module('ovDevice', [])
@@ -200,10 +194,13 @@
             self = this;
             var handlers = {};
             self.panelData = [];
+            pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
+                                            + mast.mastHeight() + topPdg;
+            wSize = fs.windowSize(pStartY);
+            pHeight = wSize.height;
 
             function selCb($event, row) {
                 selRow = angular.element($event.currentTarget);
-
                 if ($scope.sel) {
                     wss.sendEvent(detailsReq, { id: row.id });
                 } else {
@@ -218,7 +215,6 @@
                 tag: 'device',
                 selCb: selCb
             });
-
             createDetailsPane();
 
             handlers[detailsResp] = respDetailsCb;

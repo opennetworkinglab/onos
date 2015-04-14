@@ -1,6 +1,9 @@
 <!-- Device partial HTML -->
 <div id="ov-device">
-    <h2>Devices ({{ctrl.tableData.length}} total)</h2>
+    <div class="tabular-header">
+        <h2>Devices ({{ctrl.tableData.length}} total)</h2>
+    </div>
+
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -46,5 +49,4 @@
             </tr>
         </tbody>
     </table>
-
 </div>

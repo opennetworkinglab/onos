@@ -16,7 +16,9 @@
 
 <!-- Intent partial HTML -->
 <div id="ov-intent">
-    <h2>Intents ({{ctrl.tableData.length}} total)</h2>
+    <div class="tabular-header">
+        <h2>Intents ({{ctrl.tableData.length}} total)</h2>
+    </div>
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -51,5 +53,4 @@
             </tr>
         </tbody>
     </table>
-
 </div>

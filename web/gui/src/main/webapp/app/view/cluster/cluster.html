@@ -16,7 +16,10 @@
 
 <!-- Cluster partial HTML -->
 <div id="ov-cluster">
-    <h2>Cluster Nodes ({{ctrl.tableData.length}} total)</h2>
+    <div class="tabular-header">
+        <h2>Cluster Nodes ({{ctrl.tableData.length}} total)</h2>
+    </div>
+
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -50,5 +53,4 @@
         </tr>
         </tbody>
     </table>
-
 </div>

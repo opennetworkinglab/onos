@@ -16,7 +16,10 @@
 
 <!-- Link partial HTML -->
 <div id="ov-link">
-    <h2>Links ({{ctrl.tableData.length}} total)</h2>
+    <div class="tabular-header">
+        <h2>Links ({{ctrl.tableData.length}} total)</h2>
+    </div>
+
     <table class="summary-list"
            onos-fixed-header
            onos-sortable-header
@@ -52,5 +55,4 @@
             </tr>
         </tbody>
     </table>
-
 </div>
