@@ -42,6 +42,7 @@
         'app',
         'intent',
         'cluster',
+        'link',
         'sample',
         // {INJECTED-VIEW-IDS-END}
 

@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Link partial HTML -->
+<div id="ov-link">
+    <h2>Links ({{ctrl.tableData.length}} total)</h2>
+    <table class="summary-list"
+           onos-fixed-header
+           onos-sortable-header
+           sort-callback="sortCallback(requestParams)">
+        <thead>
+            <tr>
+                <th colId="src" sortable>Source </th>
+                <th colId="dst" sortable>Destination </th>
+                <th colId="type" sortable>Type </th>
+                <th colId="state" sortable>State </th>
+                <th colId="durable" sortable>Durable </th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-hide="ctrl.tableData.length">
+                <td class="nodata" colspan="5">
+                    No Links found
+                </td>
+            </tr>
+
+            <tr ng-repeat="link in ctrl.tableData"
+                ng-repeat-done>
+                <td>{{link.src}}</td>
+                <td>{{link.dst}}</td>
+                <td>{{link.type}}</td>
+                <td>{{link.state}}</td>
+                <td>{{link.durable}}</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>

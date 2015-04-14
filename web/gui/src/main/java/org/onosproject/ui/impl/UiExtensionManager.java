@@ -62,6 +62,7 @@ public class UiExtensionManager implements UiExtensionService {
                                     new UiView("app", "Applications"),
                                     new UiView("intent", "Intents"),
                                     new UiView("cluster", "Cluster Nodes"),
+                                    new UiView("link", "Links"),
                                     new UiView("sample", "Sample"));
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
@@ -70,7 +71,8 @@ public class UiExtensionManager implements UiExtensionService {
                         new HostViewMessageHandler(),
                         new ApplicationViewMessageHandler(),
                         new IntentViewMessageHandler(),
-                        new ClusterViewMessageHandler()
+                        new ClusterViewMessageHandler(),
+                        new LinkViewMessageHandler()
                 );
         return new UiExtension(coreViews, messageHandlerFactory, "core",
                                UiExtensionManager.class.getClassLoader());
