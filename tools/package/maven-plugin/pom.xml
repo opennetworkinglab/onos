@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>onos-maven-plugin</artifactId>
-    <version>1.2</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <description>Maven plugin for packaging ONOS applications or generating
