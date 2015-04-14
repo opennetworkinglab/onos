@@ -48,3 +48,5 @@ case $cmd in
 
     *) usage;;
 esac
+
+echo #new line for prompt
