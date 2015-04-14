@@ -25,7 +25,7 @@ public class RerouteTopologySimulator extends LinearTopologySimulator {
     @Override
     protected void processTopoShape(String shape) {
         super.processTopoShape(shape);
-        infrastructurePorts = 3;
+        infrastructurePorts = 5;
         deviceCount = (topoShape.length == 1) ? deviceCount : Integer.parseInt(topoShape[1]);
     }
 
@@ -37,13 +37,15 @@ public class RerouteTopologySimulator extends LinearTopologySimulator {
 
     @Override
     protected void createLinks() {
+        int portOffset = 1;
         for (int i = 0, n = deviceCount - 2; i < n; i++) {
-            createLink(i, i + 1);
+            createLink(i, i + 1, portOffset, 1);
+            portOffset = 2;
         }
         int middle = (deviceCount - 1) / 2;
         int alternate = deviceCount - 1;
-        createLink(middle - 1, alternate);
-        createLink(middle, alternate);
+        createLink(middle - 1, alternate, 3, 1);
+        createLink(middle, alternate, 3, 2);
     }
 
     @Override

@@ -42,8 +42,10 @@ public class LinearTopologySimulator extends TopologySimulator {
 
     @Override
     protected void createLinks() {
+        int portOffset = 1;
         for (int i = 0, n = deviceCount - 1; i < n; i++) {
-            createLink(i, i + 1);
+            createLink(i, i + 1, portOffset, 1);
+            portOffset = 2;
         }
     }
 

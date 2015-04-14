@@ -187,15 +187,27 @@ public abstract class TopologySimulator {
         deviceIds.add(id);
     }
 
+//    /**
+//     * Creates simulated link between two devices on port 1 and port 2.
+//     *
+//     * @param i  index of one simulated device
+//     * @param j  index of another simulated device
+//     */
+//    protected void createLink(int i, int j) {
+//        createLink(i, j, 1, 2);
+//    }
+
     /**
      * Creates simulated link between two devices.
      *
-     * @param i index of one simulated device
-     * @param j index of another simulated device
+     * @param i  index of one simulated device
+     * @param j  index of another simulated device
+     * @param pi port number of i-th device
+     * @param pj port number of j-th device
      */
-    protected void createLink(int i, int j) {
-        ConnectPoint one = new ConnectPoint(deviceIds.get(i), PortNumber.portNumber(1));
-        ConnectPoint two = new ConnectPoint(deviceIds.get(j), PortNumber.portNumber(2));
+    protected void createLink(int i, int j, int pi, int pj) {
+        ConnectPoint one = new ConnectPoint(deviceIds.get(i), PortNumber.portNumber(pi));
+        ConnectPoint two = new ConnectPoint(deviceIds.get(j), PortNumber.portNumber(pj));
         linkProviderService.linkDetected(new DefaultLinkDescription(one, two, DIRECT));
         linkProviderService.linkDetected(new DefaultLinkDescription(two, one, DIRECT));
     }

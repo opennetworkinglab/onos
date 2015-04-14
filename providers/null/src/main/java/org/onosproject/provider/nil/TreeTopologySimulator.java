@@ -55,14 +55,16 @@ public class TreeTopologySimulator extends TopologySimulator {
 
     @Override
     protected void createLinks() {
+        int portOffset = 1;
         for (int t = 1; t < tierOffset.length; t++) {
             int child = tierOffset[t];
             for (int parent = tierOffset[t - 1]; parent < tierOffset[t]; parent++) {
                 for (int i = 0; i < tierMultiplier[t]; i++) {
-                    createLink(parent, child);
+                    createLink(parent, child, i + portOffset, 1);
                     child++;
                 }
             }
+            portOffset = 2; // beyond first tier, allow for up-links
         }
     }
 
