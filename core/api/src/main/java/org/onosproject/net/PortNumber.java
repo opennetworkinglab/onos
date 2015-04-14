@@ -15,9 +15,9 @@
  */
 package org.onosproject.net;
 
-import java.util.Objects;
-
 import com.google.common.primitives.UnsignedLongs;
+
+import java.util.Objects;
 
 /**
  * Representation of a port number.
@@ -48,10 +48,17 @@ public final class PortNumber {
     public static final PortNumber CONTROLLER = new PortNumber(CONTROLLER_NUMBER);
 
     private final long number;
+    private final String name;
 
     // Public creation is prohibited
     private PortNumber(long number) {
         this.number = number;
+        this.name = UnsignedLongs.toString(number);
+    }
+
+    private PortNumber(long number, String name) {
+        this.number = number;
+        this.name = name;
     }
 
     /**
@@ -72,6 +79,17 @@ public final class PortNumber {
      */
     public static PortNumber portNumber(String string) {
         return new PortNumber(UnsignedLongs.decode(string));
+    }
+
+    /**
+     * Returns the port number representing the specified long value and name.
+     *
+     * @param number port number as long value
+     * @param name port name as string value
+     * @return port number
+     */
+    public static PortNumber portNumber(long number, String name) {
+        return new PortNumber(number, name);
     }
 
     /**
@@ -115,7 +133,7 @@ public final class PortNumber {
     @Override
     public String toString() {
         if (!isLogical()) {
-            return UnsignedLongs.toString(number);
+            return name;
         } else {
             return decodeLogicalPort();
         }

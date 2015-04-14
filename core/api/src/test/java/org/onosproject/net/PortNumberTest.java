@@ -15,12 +15,11 @@
  */
 package org.onosproject.net;
 
-import static org.junit.Assert.assertEquals;
-import static org.onosproject.net.PortNumber.portNumber;
-
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
-import com.google.common.testing.EqualsTester;
+import static org.junit.Assert.assertEquals;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Test of the port number.
@@ -30,9 +29,8 @@ public class PortNumberTest {
     @Test
     public void basics() {
         new EqualsTester()
-        .addEqualityGroup(portNumber(123),
-                portNumber("123"))
-                .addEqualityGroup(portNumber(321))
+                .addEqualityGroup(portNumber(123), portNumber("123"))
+                .addEqualityGroup(portNumber(321), portNumber(321, "LIM-3-2-1"))
                 .testEquals();
     }
 
