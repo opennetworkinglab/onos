@@ -151,6 +151,9 @@
                 <ref component-id="hostIdCompleter"/>
                 <null/>
             </completers>
+            <optional-completers>
+                <entry key="-a" value-ref="allAppNameCompleter"/>
+            </optional-completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.AddPointToPointIntentCommand"/>
@@ -162,6 +165,7 @@
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
                 <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -171,6 +175,9 @@
                 <ref component-id="connectPointCompleter"/>
                 <null/>
             </completers>
+            <optional-completers>
+                <entry key="-a" value-ref="allAppNameCompleter"/>
+            </optional-completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.GetStatistics"/>
@@ -186,6 +193,7 @@
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
                 <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -196,6 +204,7 @@
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
                 <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -317,11 +326,15 @@
                 <ref component-id="connectPointCompleter"/>
                 <null/>
             </completers>
+            <optional-completers>
+                <entry key="-a" value-ref="allAppNameCompleter"/>
+            </optional-completers>
         </command>
     </command-bundle>
 
     <bean id="appCommandCompleter" class="org.onosproject.cli.app.ApplicationCommandCompleter"/>
     <bean id="appNameCompleter" class="org.onosproject.cli.app.ApplicationNameCompleter"/>
+    <bean id="allAppNameCompleter" class="org.onosproject.cli.app.AllApplicationNamesCompleter"/>
     <bean id="appIdWithIntentNameCompleter" class="org.onosproject.cli.app.ApplicationIdWithIntentNameCompleter"/>
     <bean id="cfgCommandCompleter" class="org.onosproject.cli.cfg.ComponentConfigCommandCompleter"/>
     <bean id="componentNameCompleter" class="org.onosproject.cli.cfg.ComponentNameCompleter"/>

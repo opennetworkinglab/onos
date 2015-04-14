@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -83,6 +85,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-l", aliases = "--lambda", description = "Lambda",
             required = false, multiValued = false)
     private boolean lambda = false;
+
+    @Option(name = "-a", aliases = "--appId", description = "Application Id",
+            required = false, multiValued = false)
+    private String appId = null;
 
     @Option(name = "-k", aliases = "--key", description = "Intent Key",
             required = false, multiValued = false)
@@ -229,6 +235,18 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         return constraints;
     }
 
+    @Override
+    protected ApplicationId appId() {
+        ApplicationId appIdForIntent;
+        if (appId == null) {
+            appIdForIntent = super.appId();
+        } else {
+            CoreService service = get(CoreService.class);
+            appIdForIntent = service.getAppId(appId);
+        }
+        return appIdForIntent;
+    }
+
     /**
      * Creates a key for an intent based on command line arguments.  If a key
      * has been specified, it is returned.  If no key is specified, null
@@ -238,6 +256,8 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      */
     protected Key key() {
         Key key = null;
+        ApplicationId appIdForIntent;
+
         if (intentKey != null) {
             key = Key.of(intentKey, appId());
         }
