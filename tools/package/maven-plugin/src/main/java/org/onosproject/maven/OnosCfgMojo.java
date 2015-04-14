@@ -45,13 +45,13 @@ public class OnosCfgMojo extends AbstractMojo {
     /**
      * The directory where the generated catalogue file will be put.
      */
-    @Parameter( defaultValue = "${basedir}" )
+    @Parameter(defaultValue = "${basedir}")
     protected File srcDirectory;
 
     /**
      * The directory where the generated catalogue file will be put.
      */
-    @Parameter( defaultValue = "${project.build.outputDirectory}" )
+    @Parameter(defaultValue = "${project.build.outputDirectory}")
     protected File dstDirectory;
 
     @Override

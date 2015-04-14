@@ -24,10 +24,12 @@
     </parent>
 
     <artifactId>onos-maven-plugin</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
-    <description>Maven plugin for packaging ONOS applications or generating component configuration resources</description>
+    <description>Maven plugin for packaging ONOS applications or generating
+        component configuration resources
+    </description>
 
     <dependencies>
         <dependency>
@@ -37,9 +39,33 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.thoughtworks.qdox</groupId>
             <artifactId>qdox</artifactId>
             <version>2.0-M3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.10</version>
         </dependency>
 
         <!-- dependencies to annotations -->

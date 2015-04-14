@@ -15,49 +15,325 @@
  */
 package org.onosproject.maven;
 
+import com.google.common.io.ByteStreams;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectHelper;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static org.codehaus.plexus.util.FileUtils.*;
 
 /**
- * Produces ONOS application archive.
+ * Produces ONOS application archive using the app.xml file information.
  */
 @Mojo(name = "app", defaultPhase = LifecyclePhase.PACKAGE)
 public class OnosAppMojo extends AbstractMojo {
 
-    @Parameter
-    private String name;
+    private static final String APP = "app";
+    private static final String NAME = "[@name]";
+    private static final String VERSION = "[@version]";
+    private static final String FEATURES_REPO = "[@featuresRepo]";
+    private static final String DESCRIPTION = "description";
+    private static final String ARTIFACT = "artifact";
 
-    @Parameter
-    private String version;
+    private static final String APP_XML = "app.xml";
+    private static final String FEATURES_XML = "features.xml";
 
-    @Parameter
-    private String origin;
+    private static final String MVN_URL = "mvn:";
+    private static final String M2_REPOSITORY = ".m2/repository";
+    private static final String M2_PREFIX = "m2";
 
-    @Parameter
-    private String description;
+    private static final String SNAPSHOT = "-SNAPSHOT";
+    private static final String JAR = "jar";
+    private static final String XML = "xml";
+    private static final String APP_ZIP = "oar";
+    private static final String PACKAGE_DIR = "oar";
 
-    @Parameter
-    private String featuresRepo;
+    private static final int BUFFER_ZIZE = 8192;
 
-    @Parameter
-    private String features;
-
-    @Parameter
-    private String permissions;
-
-    @Parameter
+    private String name, version;
+    private String description, featuresRepo;
     private List<String> artifacts;
 
+    /**
+     * The project base directory.
+     */
+    @Parameter(defaultValue = "${basedir}")
+    protected File baseDir;
 
+    /**
+     * The directory where the generated catalogue file will be put.
+     */
+    @Parameter(defaultValue = "${project.build.directory}")
+    protected File dstDirectory;
+
+    /**
+     * The project group ID.
+     */
+    @Parameter(defaultValue = "${project.groupId}")
+    protected String projectGroupId;
+
+    /**
+     * The project artifact ID.
+     */
+    @Parameter(defaultValue = "${project.artifactId}")
+    protected String projectArtifactId;
+
+    /**
+     * The project version.
+     */
+    @Parameter(defaultValue = "${project.version}")
+    protected String projectVersion;
+
+    /**
+     * The project version.
+     */
+    @Parameter(defaultValue = "${project.description}")
+    protected String projectDescription;
+
+    /**
+     * Maven project
+     */
+    @Component
+    private MavenProject project;
+
+    /**
+     * Maven project helper.
+     */
+    @Component
+    private MavenProjectHelper projectHelper;
+
+
+    private File m2Directory;
+    protected File stageDirectory;
+    protected String projectPath;
+    protected String featureVersion;
+
+    @Override
     public void execute() throws MojoExecutionException {
-        getLog().info("Building ONOS application archive " + name + " version " + version);
+        File appFile = new File(baseDir, APP_XML);
+        File featuresFile = new File(baseDir, FEATURES_XML);
 
+        if (!appFile.exists()) {
+            return;
+        }
+
+        m2Directory = new File(System.getProperty("user.home"), M2_REPOSITORY);
+        stageDirectory = new File(dstDirectory, PACKAGE_DIR);
+        featureVersion = projectVersion.replace(SNAPSHOT, "");
+        projectPath = M2_PREFIX + "/" + artifactDir(projectGroupId, projectArtifactId, projectVersion);
+
+        loadAppFile(appFile);
+
+        // If there are any artifacts, stage the
+        if (!artifacts.isEmpty()) {
+            getLog().info("Building ONOS application package for " + name + " (v" + version + ")");
+            artifacts.forEach(a -> getLog().debug("Including artifact: " + a));
+
+            stageDirectory.mkdirs();
+            processAppXml(appFile);
+            processFeaturesXml(featuresFile);
+            processArtifacts();
+            generateAppPackage();
+        }
+    }
+
+    // Loads the app.xml file.
+    private void loadAppFile(File appFile) throws MojoExecutionException {
+        XMLConfiguration xml = new XMLConfiguration();
+        xml.setRootElementName(APP);
+
+        try (FileInputStream stream = new FileInputStream(appFile)) {
+            xml.load(stream);
+            xml.setAttributeSplittingDisabled(true);
+            xml.setDelimiterParsingDisabled(true);
+
+            name = xml.getString(NAME);
+            version = eval(xml.getString(VERSION));
+            description = xml.getString(DESCRIPTION)
+                    .replaceAll("\\$\\{project.description\\}", projectDescription);
+            featuresRepo = eval(xml.getString(FEATURES_REPO));
+
+            artifacts = xml.configurationsAt(ARTIFACT).stream()
+                    .map(cfg -> eval(cfg.getRootNode().getValue().toString()))
+                    .collect(Collectors.toList());
+
+        } catch (ConfigurationException e) {
+            throw new MojoExecutionException("Unable to parse app.xml file", e);
+        } catch (FileNotFoundException e) {
+            throw new MojoExecutionException("Unable to find app.xml file", e);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Unable to read app.xml file", e);
+        }
+    }
+
+    // Processes and stages the app.xml file.
+    private void processAppXml(File appFile) throws MojoExecutionException {
+        try {
+            File file = new File(stageDirectory, APP_XML);
+            forceMkdir(stageDirectory);
+            String s = eval(fileRead(appFile));
+            fileWrite(file.getAbsolutePath(), s);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Unable to process app.xml", e);
+        }
+    }
+
+    private void processFeaturesXml(File featuresFile) throws MojoExecutionException {
+        boolean specified = featuresRepo != null && featuresRepo.length() > 0;
+
+        // If featuresRepo attribute is specified and there is a features.xml
+        // file present, add the features repo as an artifact
+        try {
+            if (specified && featuresFile.exists()) {
+                processFeaturesXml(new FileInputStream(featuresFile));
+            } else if (specified) {
+                processFeaturesXml(getClass().getResourceAsStream(FEATURES_XML));
+            }
+        } catch (FileNotFoundException e) {
+            throw new MojoExecutionException("Unable to find features.xml file", e);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Unable to process features.xml file", e);
+        }
+    }
+
+    // Processes and stages the features.xml file.
+    private void processFeaturesXml(InputStream stream) throws IOException {
+        String featuresArtifact =
+                artifactFile(projectArtifactId, projectVersion, XML, "features");
+        File dstDir = new File(stageDirectory, projectPath);
+        forceMkdir(dstDir);
+        String s = eval(new String(ByteStreams.toByteArray(stream)));
+        fileWrite(new File(dstDir, featuresArtifact).getAbsolutePath(), s);
+    }
+
+    // Stages all artifacts.
+    private void processArtifacts() {
+        artifacts.forEach(this::processArtifact);
+    }
+
+    // Stages the specified artifact.
+    private void processArtifact(String artifact) {
+        if (!artifact.startsWith(MVN_URL)) {
+            getLog().error("Unsupported artifact URL:" + artifact);
+            return;
+        }
+
+        String[] fields = artifact.substring(4).split("/");
+        if (fields.length < 3) {
+            getLog().error("Illegal artifact URL:" + artifact);
+            return;
+        }
+
+        try {
+            String file = artifactFile(fields);
+
+            if (projectGroupId.equals(fields[0]) && projectArtifactId.equals(fields[1])) {
+                // Local artifact is not installed yet, package it from target directory.
+                File dstDir = new File(stageDirectory, projectPath);
+                forceMkdir(dstDir);
+                copyFile(new File(dstDirectory, file), new File(dstDir, file));
+            } else {
+                // Other artifacts are packaged from ~/.m2/repository directory.
+                String m2Path = artifactDir(fields);
+                File srcDir = new File(m2Directory, m2Path);
+                File dstDir = new File(stageDirectory, m2Path);
+                forceMkdir(dstDir);
+                copyFile(new File(srcDir, file), new File(dstDir, file));
+            }
+        } catch (IOException e) {
+            getLog().error("Unable to stage artifact " + artifact + " due to ", e);
+        }
+    }
+
+    // Generates the ONOS package ZIP file.
+    private void generateAppPackage() throws MojoExecutionException {
+        File appZip = new File(dstDirectory, artifactFile(projectArtifactId, projectVersion,
+                                                          APP_ZIP, null));
+        try (FileOutputStream fos = new FileOutputStream(appZip);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+            zipDirectory("", stageDirectory, zos);
+            projectHelper.attachArtifact(this.project, APP_ZIP, null, appZip);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Unable to compress application package", e);
+        }
+    }
+
+    // Generates artifact directory name from the specified fields.
+    private String artifactDir(String[] fields) {
+        return artifactDir(fields[0], fields[1], fields[2]);
+    }
+
+    // Generates artifact directory name from the specified elements.
+    private String artifactDir(String gid, String aid, String version) {
+        return gid.replace('.', '/') + "/" + aid.replace('.', '/') + "/" + version;
+    }
+
+    // Generates artifact file name from the specified fields.
+    private String artifactFile(String[] fields) {
+        return fields.length < 5 ?
+                artifactFile(fields[1], fields[2],
+                             (fields.length < 4 ? JAR : fields[3]), null) :
+                artifactFile(fields[1], fields[2], fields[3], fields[4]);
+    }
+
+    // Generates artifact file name from the specified elements.
+    private String artifactFile(String aid, String version, String type,
+                                String classifier) {
+        return classifier == null ? aid + "-" + version + "." + type :
+                aid + "-" + version + "-" + classifier + "." + type;
+    }
+
+    // Returns the given string with project variable substitutions.
+    private String eval(String string) {
+        return string == null ? null :
+                string.replaceAll("\\$\\{project.groupId\\}", projectGroupId)
+                        .replaceAll("\\$\\{project.artifactId\\}", projectArtifactId)
+                        .replaceAll("\\$\\{project.version\\}", projectVersion)
+                        .replaceAll("\\$\\{project.description\\}", description)
+                        .replaceAll("\\$\\{feature.version\\}", featureVersion);
+    }
+
+    // Recursively archives the specified directory into a given ZIP stream.
+    private void zipDirectory(String root, File dir, ZipOutputStream zos)
+            throws IOException {
+        byte[] buffer = new byte[BUFFER_ZIZE];
+        File[] files = dir.listFiles();
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    String path = root + file.getName() + "/";
+                    zos.putNextEntry(new ZipEntry(path));
+                    zipDirectory(path, file, zos);
+                    zos.closeEntry();
+                } else {
+                    FileInputStream fin = new FileInputStream(file);
+                    zos.putNextEntry(new ZipEntry(root + file.getName()));
+                    int length;
+                    while ((length = fin.read(buffer)) > 0) {
+                        zos.write(buffer, 0, length);
+                    }
+                    zos.closeEntry();
+                    fin.close();
+                }
+            }
+        }
     }
 }
-
-
