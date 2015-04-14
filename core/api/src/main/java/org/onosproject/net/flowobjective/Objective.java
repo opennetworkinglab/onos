@@ -17,6 +17,8 @@ package org.onosproject.net.flowobjective;
 
 import org.onosproject.core.ApplicationId;
 
+import java.util.Optional;
+
 /**
  * Base representation of an flow description.
  */
@@ -82,6 +84,14 @@ public interface Objective {
      * @return an operation
      */
     Operation op();
+
+    /**
+     * Obtains an optional context.
+     *
+     * @return optional; which will be empty if there is no context.
+     * Otherwise it will return the context.
+     */
+    Optional<ObjectiveContext> context();
 
     /**
      * An objective builder.

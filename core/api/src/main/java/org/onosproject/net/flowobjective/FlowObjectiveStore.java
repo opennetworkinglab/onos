@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.behaviour;
+package org.onosproject.net.flowobjective;
 
-import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.net.flowobjective.FlowObjectiveStore;
+import org.onosproject.net.behaviour.NextGroup;
+import org.onosproject.store.Store;
 
 /**
- * Processing context and supporting services for the pipeline behaviour.
+ * The flow objective store.
  */
-public interface PipelinerContext {
+public interface FlowObjectiveStore
+        extends Store<ObjectiveEvent, FlowObjectiveStoreDelegate> {
 
     /**
-     * Returns the service directory which can be used to obtain references
-     * to various supporting services.
+     * Adds a NextGroup to the store.
      *
-     * @return service directory
+     * @param nextId an integer
+     * @param group a next group opaque object
      */
-    ServiceDirectory directory();
+    void putNextGroup(Integer nextId, NextGroup group);
 
     /**
-     * Returns the Objective Store where data can be stored and retrieved.
-     * @return the flow objective store
+     * Fetch a next group from the store.
+     * @param nextId an integer
+     * @return a next group
      */
-    FlowObjectiveStore store();
-
-    // TODO: add means to store and access shared state
+    NextGroup getNextGroup(Integer nextId);
 }

@@ -20,6 +20,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,6 +39,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     private final int nextId;
     private final TrafficTreatment treatment;
     private final Operation op;
+    private final Optional<ObjectiveContext> context;
 
     private final int id;
 
@@ -55,6 +57,29 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         this.nextId = nextId;
         this.treatment = treatment;
         this.op = op;
+        this.context = Optional.empty();
+
+        this.id = Objects.hash(selector, flag, permanent,
+                               timeout, appId, priority, nextId,
+                               treatment, op);
+    }
+
+    private DefaultForwardingObjective(TrafficSelector selector,
+                                       Flag flag, boolean permanent,
+                                       int timeout, ApplicationId appId,
+                                       int priority, int nextId,
+                                       TrafficTreatment treatment,
+                                       ObjectiveContext context, Operation op) {
+        this.selector = selector;
+        this.flag = flag;
+        this.permanent = permanent;
+        this.timeout = timeout;
+        this.appId = appId;
+        this.priority = priority;
+        this.nextId = nextId;
+        this.treatment = treatment;
+        this.op = op;
+        this.context = Optional.ofNullable(context);
 
         this.id = Objects.hash(selector, flag, permanent,
                                timeout, appId, priority, nextId,
@@ -111,6 +136,11 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     @Override
     public Operation op() {
         return op;
+    }
+
+    @Override
+    public Optional<ObjectiveContext> context() {
+        return context;
     }
 
     /**
@@ -186,7 +216,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         public ForwardingObjective add() {
             checkNotNull(selector, "Must have a selector");
             checkNotNull(flag, "A flag must be set");
-            checkArgument(nextId != null && treatment != null, "Must supply at " +
+            checkArgument(nextId != null || treatment != null, "Must supply at " +
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
             return new DefaultForwardingObjective(selector, flag, permanent,
@@ -198,12 +228,38 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         public ForwardingObjective remove() {
             checkNotNull(selector, "Must have a selector");
             checkNotNull(flag, "A flag must be set");
-            checkArgument(nextId != null && treatment != null, "Must supply at " +
+            checkArgument(nextId != null || treatment != null, "Must supply at " +
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
             return new DefaultForwardingObjective(selector, flag, permanent,
                                                    timeout, appId, priority,
                                                    nextId, treatment, Operation.REMOVE);
+        }
+
+        @Override
+        public ForwardingObjective add(ObjectiveContext context) {
+            checkNotNull(selector, "Must have a selector");
+            checkNotNull(flag, "A flag must be set");
+            checkArgument(nextId != null || treatment != null, "Must supply at " +
+                    "least a treatment and/or a nextId");
+            checkNotNull(appId, "Must supply an application id");
+            return new DefaultForwardingObjective(selector, flag, permanent,
+                                                  timeout, appId, priority,
+                                                  nextId, treatment,
+                                                  context, Operation.ADD);
+        }
+
+        @Override
+        public ForwardingObjective remove(ObjectiveContext context) {
+            checkNotNull(selector, "Must have a selector");
+            checkNotNull(flag, "A flag must be set");
+            checkArgument(nextId != null || treatment != null, "Must supply at " +
+                    "least a treatment and/or a nextId");
+            checkNotNull(appId, "Must supply an application id");
+            return new DefaultForwardingObjective(selector, flag, permanent,
+                                                  timeout, appId, priority,
+                                                  nextId, treatment,
+                                                  context, Operation.REMOVE);
         }
     }
 }

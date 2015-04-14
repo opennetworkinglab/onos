@@ -13,29 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.behaviour;
-
-import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.net.flowobjective.FlowObjectiveStore;
+package org.onosproject.net.flowobjective;
 
 /**
- * Processing context and supporting services for the pipeline behaviour.
+ * Represents the set of errors possible when processing an objective.
  */
-public interface PipelinerContext {
+public enum ObjectiveError {
 
     /**
-     * Returns the service directory which can be used to obtain references
-     * to various supporting services.
-     *
-     * @return service directory
+     * The driver processing this objective does not know how to process it.
      */
-    ServiceDirectory directory();
+    UNSUPPORTED,
 
     /**
-     * Returns the Objective Store where data can be stored and retrieved.
-     * @return the flow objective store
+     * The flow installation for this objective failed.
      */
-    FlowObjectiveStore store();
+    FLOWINSTALLATIONFAILED,
 
-    // TODO: add means to store and access shared state
+    /**
+     * THe group installation for this objective failed.
+     */
+    GROUPINSTALLATIONFAILED,
+
+    /**
+     * The group was reported as installed but is not missing.
+     */
+    GROUPMISSING,
+
+    /**
+     * An unknown error occurred.
+     */
+    UNKNOWN
 }

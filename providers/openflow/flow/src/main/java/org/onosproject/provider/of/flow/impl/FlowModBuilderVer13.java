@@ -195,7 +195,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         for (Instruction i : treatments) {
             switch (i.type()) {
                 case DROP:
-                    log.warn("Saw drop action; assigning drop action");
                     return new LinkedList<>();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));

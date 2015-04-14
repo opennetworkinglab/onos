@@ -23,6 +23,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -42,6 +43,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     private final List<Criterion> conditions;
     private final int id;
     private final Operation op;
+    private final Optional<ObjectiveContext> context;
 
     private DefaultFilteringObjective(Type type, boolean permanent, int timeout,
                                       ApplicationId appId, int priority, Criterion key,
@@ -54,6 +56,25 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         this.priority = priority;
         this.conditions = conditions;
         this.op = op;
+        this.context = Optional.empty();
+
+        this.id = Objects.hash(type, key, conditions, permanent,
+                               timeout, appId, priority);
+    }
+
+    public DefaultFilteringObjective(Type type, boolean permanent, int timeout,
+                                     ApplicationId appId, int priority, Criterion key,
+                                     List<Criterion> conditions,
+                                     ObjectiveContext context, Operation op) {
+        this.key = key;
+        this.type = type;
+        this.permanent = permanent;
+        this.timeout = timeout;
+        this.appId = appId;
+        this.priority = priority;
+        this.conditions = conditions;
+        this.op = op;
+        this.context = Optional.ofNullable(context);
 
         this.id = Objects.hash(type, key, conditions, permanent,
                                timeout, appId, priority);
@@ -102,6 +123,11 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     @Override
     public Operation op() {
         return op;
+    }
+
+    @Override
+    public Optional<ObjectiveContext> context() {
+        return context;
     }
 
     /**
@@ -199,6 +225,31 @@ public final class DefaultFilteringObjective implements FilteringObjective {
                                                  appId, priority, key, conditions,
                                                  Operation.REMOVE);
 
+        }
+
+        @Override
+        public FilteringObjective add(ObjectiveContext context) {
+            List<Criterion> conditions = listBuilder.build();
+            checkNotNull(type, "Must have a type.");
+            checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
+            checkNotNull(appId, "Must supply an application id");
+
+            return new DefaultFilteringObjective(type, permanent, timeout,
+                                                 appId, priority, key, conditions,
+                                                 context, Operation.ADD);
+        }
+
+        @Override
+        public FilteringObjective remove(ObjectiveContext context) {
+            List<Criterion> conditions = listBuilder.build();
+            checkNotNull(type, "Must have a type.");
+            checkArgument(!conditions.isEmpty(), "Must have at least one condition.");
+            checkNotNull(appId, "Must supply an application id");
+
+
+            return new DefaultFilteringObjective(type, permanent, timeout,
+                                                 appId, priority, key, conditions,
+                                                 context, Operation.REMOVE);
         }
 
 

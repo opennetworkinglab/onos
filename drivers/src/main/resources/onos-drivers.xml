@@ -19,7 +19,7 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
     </driver>
-    <driver name="ovs-corsa" manufacturer="Nicira, Inc." hwVersion="Open vSwitch" swVersion="2.3.0">
+    <driver name="ovs-corsa" manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
     </driver>

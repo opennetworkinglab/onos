@@ -114,6 +114,24 @@ public interface FilteringObjective extends Objective {
          */
         public FilteringObjective remove();
 
+        /**
+         * Builds the filtering objective that will be added.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a filtering objective
+         */
+        public FilteringObjective add(ObjectiveContext context);
+
+        /**
+         * Builds the filtering objective that will be removed.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a filtering objective
+         */
+        public FilteringObjective remove(ObjectiveContext context);
+
 
     }
 

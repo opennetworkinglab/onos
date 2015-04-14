@@ -121,5 +121,23 @@ public interface ForwardingObjective extends Objective {
          * @return a forwarding objective.
          */
         public ForwardingObjective remove();
+
+        /**
+         * Builds the forwarding objective that will be added.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a forwarding objective
+         */
+        public ForwardingObjective add(ObjectiveContext context);
+
+        /**
+         * Builds the forwarding objective that will be removed.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a forwarding objective
+         */
+        public ForwardingObjective remove(ObjectiveContext context);
     }
 }

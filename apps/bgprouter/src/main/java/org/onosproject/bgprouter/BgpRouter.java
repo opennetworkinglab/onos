@@ -20,7 +20,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,35 +27,29 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.group.DefaultGroupBucket;
-import org.onosproject.net.group.DefaultGroupDescription;
-import org.onosproject.net.group.DefaultGroupKey;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.group.GroupEvent;
-import org.onosproject.net.group.GroupListener;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.FibEntry;
@@ -74,7 +67,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static org.onlab.util.Tools.delay;
 
 /**
  * BgpRouter component.
@@ -124,7 +118,7 @@ public class BgpRouter {
     private final Map<IpPrefix, IpAddress> prefixToNextHop = Maps.newHashMap();
 
     // Mapping from next hop IP to next hop object containing group info
-    private final Map<IpAddress, NextHop> nextHops = Maps.newHashMap();
+    private final Map<IpAddress, Integer> nextHops = Maps.newHashMap();
 
     // Stores FIB updates that are waiting for groups to be set up
     private final Multimap<NextHopGroupKey, FibEntry> pendingUpdates = HashMultimap.create();
@@ -136,7 +130,7 @@ public class BgpRouter {
     // learned from config
     private DeviceId ctrlDeviceId;
 
-    private final GroupListener groupListener = new InternalGroupListener();
+    //private final GroupListener groupListener = new InternalGroupListener();
 
     private TunnellingConnectivityManager connectivityManager;
 
@@ -160,7 +154,7 @@ public class BgpRouter {
         appId = coreService.registerApplication(BGP_ROUTER_APP);
         getDeviceConfiguration(configService.getBgpSpeakers());
 
-        groupService.addListener(groupListener);
+        //groupService.addListener(groupListener);
 
         processIntfFilters(true, configService.getInterfaces());
 
@@ -179,6 +173,14 @@ public class BgpRouter {
         icmpHandler.start();
 
         log.info("BgpRouter started");
+
+        delay(1000);
+
+        FibEntry fibEntry = new FibEntry(Ip4Prefix.valueOf("10.1.0.0/16"),
+                                         Ip4Address.valueOf("192.168.10.1"),
+                                         MacAddress.valueOf("DE:AD:BE:EF:FE:ED"));
+        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
+        updateFibEntry(Collections.singletonList(fibUpdate));
     }
 
     @Deactivate
@@ -188,7 +190,7 @@ public class BgpRouter {
         icmpHandler.stop();
         processIntfFilters(false, configService.getInterfaces());
 
-        groupService.removeListener(groupListener);
+        //groupService.removeListener(groupListener);
 
         log.info("BgpRouter stopped");
     }
@@ -213,16 +215,18 @@ public class BgpRouter {
     }
 
     private void updateFibEntry(Collection<FibUpdate> updates) {
-        Map<FibEntry, Group> toInstall = new HashMap<>(updates.size());
+        Map<FibEntry, Integer> toInstall = new HashMap<>(updates.size());
 
         for (FibUpdate update : updates) {
             FibEntry entry = update.entry();
 
             addNextHop(entry);
 
-            Group group;
+            Integer nextId;
             synchronized (pendingUpdates) {
-                NextHop nextHop = nextHops.get(entry.nextHopIp());
+                nextId = nextHops.get(entry.nextHopIp());
+
+                /*
                 group = groupService.getGroup(deviceId,
                                               new DefaultGroupKey(
                                               appKryo.serialize(nextHop.group())));
@@ -231,66 +235,70 @@ public class BgpRouter {
                     log.debug("Adding pending flow {}", update.entry());
                     pendingUpdates.put(nextHop.group(), update.entry());
                     continue;
-                }
+                }*/
             }
 
-            toInstall.put(update.entry(), group);
+            toInstall.put(update.entry(), nextId);
         }
 
         installFlows(toInstall);
     }
 
-    private void installFlows(Map<FibEntry, Group> entriesToInstall) {
-        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+    private void installFlows(Map<FibEntry, Integer> entriesToInstall) {
 
-        for (Map.Entry<FibEntry, Group> entry : entriesToInstall.entrySet()) {
+        for (Map.Entry<FibEntry, Integer> entry : entriesToInstall.entrySet()) {
             FibEntry fibEntry = entry.getKey();
-            Group group = entry.getValue();
+            Integer nextId = entry.getValue();
 
-            FlowRule flowRule = generateRibFlowRule(fibEntry.prefix(), group);
+            flowObjectiveService.forward(deviceId,
+                                         generateRibFlowRule(fibEntry.prefix(), nextId).add());
 
-            builder.add(flowRule);
+
         }
+        log.info("Sending flow forwarding objective");
 
-        flowService.apply(builder.build());
     }
 
     private synchronized void deleteFibEntry(Collection<FibUpdate> withdraws) {
-        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
 
         for (FibUpdate update : withdraws) {
             FibEntry entry = update.entry();
+            Integer nextId = nextHops.get(entry.nextHopIp());
 
-            Group group = deleteNextHop(entry.prefix());
+            /*Group group = deleteNextHop(entry.prefix());
             if (group == null) {
                 log.warn("Group not found when deleting {}", entry);
                 return;
-            }
+            }*/
 
-            FlowRule flowRule = generateRibFlowRule(entry.prefix(), group);
+            flowObjectiveService.forward(deviceId,
+                                         generateRibFlowRule(entry.prefix(), nextId).remove());
 
-            builder.remove(flowRule);
         }
 
-        flowService.apply(builder.build());
     }
 
-    private FlowRule generateRibFlowRule(IpPrefix prefix, Group group) {
+    private ForwardingObjective.Builder generateRibFlowRule(IpPrefix prefix, Integer nextId) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(prefix)
                 .build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .group(group.id())
-                .build();
 
 
         int priority = prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
 
-        return new DefaultFlowRule(deviceId, selector, treatment,
-                                   priority, appId, 0, true,
-                                   FlowRule.Type.IP);
+        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .nextStep(nextId)
+                .withSelector(selector)
+                .withPriority(priority)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
+
+        return fwdBuilder;
+
+
     }
 
     private synchronized void addNextHop(FibEntry entry) {
@@ -317,6 +325,16 @@ public class BgpRouter {
                     .setOutput(egressIntf.connectPoint().port())
                     .build();
 
+            NextObjective nextObjective = DefaultNextObjective.builder()
+                    .withId(entry.hashCode())
+                    .addTreatment(treatment)
+                    .withType(NextObjective.Type.SIMPLE)
+                    .fromApp(appId)
+                    .add();
+
+            flowObjectiveService.next(deviceId, nextObjective);
+
+            /*
             GroupBucket bucket = DefaultGroupBucket.createIndirectGroupBucket(treatment);
 
             GroupDescription groupDescription
@@ -328,15 +346,16 @@ public class BgpRouter {
                                                   appId);
 
             groupService.addGroup(groupDescription);
+            */
 
-            nextHops.put(nextHop.ip(), nextHop);
+            nextHops.put(nextHop.ip(), entry.hashCode());
 
         }
 
         nextHopsCount.add(entry.nextHopIp());
     }
 
-    private synchronized Group deleteNextHop(IpPrefix prefix) {
+    /*private synchronized Group deleteNextHop(IpPrefix prefix) {
         IpAddress nextHopIp = prefixToNextHop.remove(prefix);
         NextHop nextHop = nextHops.get(nextHopIp);
         if (nextHop == null) {
@@ -349,7 +368,7 @@ public class BgpRouter {
                                                                 serialize(nextHop.group())));
 
         // FIXME disabling group deletes for now until we verify the logic is OK
-        /*if (nextHopsCount.remove(nextHopIp, 1) <= 1) {
+        *//*if (nextHopsCount.remove(nextHopIp, 1) <= 1) {
             // There was one or less next hops, so there are now none
 
             log.debug("removing group for next hop {}", nextHop);
@@ -359,10 +378,10 @@ public class BgpRouter {
             groupService.removeGroup(deviceId,
                                      new DefaultGroupKey(appKryo.build().serialize(nextHop.group())),
                                      appId);
-        }*/
+        }*//*
 
         return group;
-    }
+    }*/
 
     private class InternalFibListener implements FibListener {
 
@@ -385,12 +404,11 @@ public class BgpRouter {
                 .forEach(ipaddr -> fob.addCondition(
                                    Criteria.matchIPDst(ipaddr.subnetAddress())));
             fob.permit().fromApp(appId);
-            flowObjectiveService.filter(deviceId,
-                                 Collections.singletonList(fob.add()));
+            flowObjectiveService.filter(deviceId, fob.add());
         }
     }
 
-    private class InternalGroupListener implements GroupListener {
+   /* private class InternalGroupListener implements GroupListener {
 
         @Override
         public void event(GroupEvent event) {
@@ -412,5 +430,5 @@ public class BgpRouter {
                 }
             }
         }
-    }
+    }*/
 }

@@ -21,6 +21,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,13 +35,28 @@ public final class DefaultNextObjective implements NextObjective {
     private final ApplicationId appId;
     private final Type type;
     private final Integer id;
+    private final Operation op;
+    private final Optional<ObjectiveContext> context;
 
     private DefaultNextObjective(Integer id, List<TrafficTreatment> treatments,
-                                ApplicationId appId, Type type) {
+                                ApplicationId appId, Type type, Operation op) {
         this.treatments = treatments;
         this.appId = appId;
         this.type = type;
         this.id = id;
+        this.op = op;
+        this.context = Optional.empty();
+    }
+
+    private DefaultNextObjective(Integer id, List<TrafficTreatment> treatments,
+                                 ApplicationId appId, ObjectiveContext context,
+                                 Type type, Operation op) {
+        this.treatments = treatments;
+        this.appId = appId;
+        this.type = type;
+        this.id = id;
+        this.op = op;
+        this.context = Optional.ofNullable(context);
     }
 
     @Override
@@ -80,7 +96,12 @@ public final class DefaultNextObjective implements NextObjective {
 
     @Override
     public Operation op() {
-        throw new UnsupportedOperationException("Next Objective has no operation");
+        return op;
+    }
+
+    @Override
+    public Optional<ObjectiveContext> context() {
+        return context;
     }
 
     /**
@@ -100,8 +121,6 @@ public final class DefaultNextObjective implements NextObjective {
 
         private final ImmutableList.Builder<TrafficTreatment> listBuilder
                 = ImmutableList.builder();
-
-
 
         @Override
         public NextObjective.Builder withId(int nextId) {
@@ -143,7 +162,7 @@ public final class DefaultNextObjective implements NextObjective {
         }
 
         @Override
-        public Builder fromApp(ApplicationId appId) {
+        public NextObjective.Builder fromApp(ApplicationId appId) {
             this.appId = appId;
             return this;
         }
@@ -160,14 +179,49 @@ public final class DefaultNextObjective implements NextObjective {
         }
 
         @Override
-        public NextObjective build() {
+        public NextObjective add() {
             List<TrafficTreatment> treatments = listBuilder.build();
             checkNotNull(appId, "Must supply an application id");
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
             checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
 
-            return new DefaultNextObjective(id, treatments, appId, type);
+            return new DefaultNextObjective(id, treatments, appId, type, Operation.ADD);
+        }
+
+        @Override
+        public NextObjective remove() {
+            List<TrafficTreatment> treatments = listBuilder.build();
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
+
+            return new DefaultNextObjective(id, treatments, appId, type, Operation.REMOVE);
+        }
+
+        @Override
+        public NextObjective add(ObjectiveContext context) {
+            List<TrafficTreatment> treatments = listBuilder.build();
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
+
+            return new DefaultNextObjective(id, treatments, appId,
+                                            context, type, Operation.ADD);
+        }
+
+        @Override
+        public NextObjective remove(ObjectiveContext context) {
+            List<TrafficTreatment> treatments = listBuilder.build();
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
+
+            return new DefaultNextObjective(id, treatments, appId,
+                                            context, type, Operation.REMOVE);
         }
     }
 }

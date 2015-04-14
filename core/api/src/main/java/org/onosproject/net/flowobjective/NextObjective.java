@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Collection;
@@ -95,12 +96,40 @@ public interface NextObjective extends Objective {
          */
         public Builder addTreatment(TrafficTreatment treatment);
 
+        @Override
+        public Builder fromApp(ApplicationId appId);
+
         /**
-         * Builds a next step.
+         * Builds the next objective that will be added.
          *
-         * @return a next step
+         * @return a next objective
          */
-        public NextObjective build();
+        public NextObjective add();
+
+        /**
+         * Builds the next objective that will be removed.
+         *
+         * @return a next objective.
+         */
+        public NextObjective remove();
+
+        /**
+         * Builds the next objective that will be added.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a next objective
+         */
+        public NextObjective add(ObjectiveContext context);
+
+        /**
+         * Builds the next objective that will be removed.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a next objective
+         */
+        public NextObjective remove(ObjectiveContext context);
 
     }
 

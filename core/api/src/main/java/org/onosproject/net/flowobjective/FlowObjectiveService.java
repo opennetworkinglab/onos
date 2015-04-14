@@ -17,9 +17,6 @@ package org.onosproject.net.flowobjective;
 
 import org.onosproject.net.DeviceId;
 
-import java.util.Collection;
-import java.util.concurrent.Future;
-
 /**
  * Service for programming data plane flow rules in manner independent of
  * specific device table pipeline configuration.
@@ -30,27 +27,24 @@ public interface FlowObjectiveService {
      * Installs the filtering rules onto the specified device.
      *
      * @param deviceId            device identifier
-     * @param filteringObjectives the collection of filters
-     * @return a future indicating the success of the operation
+     * @param filteringObjective the filtering objective
      */
-    Future<Boolean> filter(DeviceId deviceId, Collection<FilteringObjective> filteringObjectives);
+    void filter(DeviceId deviceId, FilteringObjective filteringObjective);
 
     /**
      * Installs the forwarding rules onto the specified device.
      *
      * @param deviceId             device identifier
-     * @param forwardingObjectives the collection of forwarding objectives
-     * @return a future indicating the success of the operation
+     * @param forwardingObjective the forwarding objective
      */
-    Future<Boolean> forward(DeviceId deviceId, Collection<ForwardingObjective> forwardingObjectives);
+    void forward(DeviceId deviceId, ForwardingObjective forwardingObjective);
 
     /**
      * Installs the next hop elements into the specified device.
      *
      * @param deviceId       device identifier
-     * @param nextObjectives the collection of next objectives
-     * @return a future indicating the success of the operation
+     * @param nextObjective a next objective
      */
-    Future<Boolean> next(DeviceId deviceId, Collection<NextObjective> nextObjectives);
+    void next(DeviceId deviceId, NextObjective nextObjective);
 
 }

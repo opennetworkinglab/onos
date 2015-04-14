@@ -15,27 +15,16 @@
  */
 package org.onosproject.net.behaviour;
 
-import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.net.flowobjective.FlowObjectiveStore;
-
 /**
- * Processing context and supporting services for the pipeline behaviour.
+ * Opaque data type for carrying group-like information.
+ * Only relevant to a pipeliner driver.
  */
-public interface PipelinerContext {
+public interface NextGroup {
 
     /**
-     * Returns the service directory which can be used to obtain references
-     * to various supporting services.
-     *
-     * @return service directory
+     * Serialized form of the next group.
+     * @return a byte array.
      */
-    ServiceDirectory directory();
+    byte[] data();
 
-    /**
-     * Returns the Objective Store where data can be stored and retrieved.
-     * @return the flow objective store
-     */
-    FlowObjectiveStore store();
-
-    // TODO: add means to store and access shared state
 }

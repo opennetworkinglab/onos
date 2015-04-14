@@ -31,10 +31,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
-
-import java.util.Collection;
-import java.util.concurrent.Future;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -58,59 +56,62 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
     }
 
     @Override
-    public Future<Boolean> filter(Collection<FilteringObjective> filters) {
+    public void filter(FilteringObjective filter) {
         throw new UnsupportedOperationException("Single table does not filter.");
     }
 
     @Override
-    public Future<Boolean> forward(Collection<ForwardingObjective> forwardings) {
+    public void forward(ForwardingObjective fwd) {
         FlowRuleOperations.Builder flowBuilder = FlowRuleOperations.builder();
-        forwardings.forEach(fwd -> {
-            if (fwd.flag() != ForwardingObjective.Flag.VERSATILE) {
-                throw new UnsupportedOperationException(
-                        "Only VERSATILE is supported.");
-            }
 
-            TrafficSelector selector = fwd.selector();
+        if (fwd.flag() != ForwardingObjective.Flag.VERSATILE) {
+            throw new UnsupportedOperationException(
+                    "Only VERSATILE is supported.");
+        }
 
-            FlowRule rule = new DefaultFlowRule(deviceId, selector,
-                                                fwd.treatment(),
-                                                fwd.priority(), fwd.appId(),
-                                                new DefaultGroupId(fwd.id()),
-                                                fwd.timeout(), fwd.permanent());
+        TrafficSelector selector = fwd.selector();
 
-            switch (fwd.op()) {
+        FlowRule rule = new DefaultFlowRule(deviceId, selector,
+                                            fwd.treatment(),
+                                            fwd.priority(), fwd.appId(),
+                                            new DefaultGroupId(fwd.id()),
+                                            fwd.timeout(), fwd.permanent());
 
-                case ADD:
-                    flowBuilder.add(rule);
-                    break;
-                case REMOVE:
-                    flowBuilder.remove(rule);
-                    break;
-                default:
-                    log.warn("Unknown operation {}", fwd.op());
-            }
+        switch (fwd.op()) {
 
-        });
+            case ADD:
+                flowBuilder.add(rule);
+                break;
+            case REMOVE:
+                flowBuilder.remove(rule);
+                break;
+            default:
+                log.warn("Unknown operation {}", fwd.op());
+        }
+
 
         SettableFuture<Boolean> future = SettableFuture.create();
 
         flowRuleService.apply(flowBuilder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                future.set(true);
+                if (fwd.context().isPresent()) {
+                    fwd.context().get().onSuccess(fwd);
+                }
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                future.set(false);
+                if (fwd.context().isPresent()) {
+                    fwd.context().get().onError(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
+                }
             }
         }));
-        return future;
+
     }
 
     @Override
-    public Future<Boolean> next(Collection<NextObjective> nextObjectives) {
+    public void next(NextObjective nextObjective) {
         throw new UnsupportedOperationException("Single table does not next hop.");
     }
 

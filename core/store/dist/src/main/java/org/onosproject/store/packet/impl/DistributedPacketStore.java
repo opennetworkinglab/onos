@@ -167,10 +167,13 @@ public class DistributedPacketStore
         public PacketRequestTracker() {
             requests = storageService.<PacketRequest, Boolean>consistentMapBuilder()
                     .withName("packet-requests")
+                    .withSerializer(Serializer.using(
+                            new KryoNamespace.Builder().register(KryoNamespaces.API).build()))
                     .withSerializer(new Serializer() {
                         KryoNamespace kryo = new KryoNamespace.Builder()
                                 .register(KryoNamespaces.API)
                                 .build();
+
                         @Override
                         public <T> byte[] encode(T object) {
                             return kryo.serialize(object);

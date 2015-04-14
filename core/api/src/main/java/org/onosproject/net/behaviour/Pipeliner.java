@@ -21,9 +21,6 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 
-import java.util.Collection;
-import java.util.concurrent.Future;
-
 /**
  * Behaviour for handling various pipelines.
  */
@@ -40,24 +37,21 @@ public interface Pipeliner extends HandlerBehaviour {
     /**
      * Installs the filtering rules onto the device.
      *
-     * @param filterObjectives the collection of filters
-     * @return a future indicating the success of the operation
+     * @param filterObjective a filtering objective
      */
-    Future<Boolean> filter(Collection<FilteringObjective> filterObjectives);
+    void filter(FilteringObjective filterObjective);
 
     /**
      * Installs the forwarding rules onto the device.
      *
-     * @param forwardObjectives the collection of forwarding objectives
-     * @return a future indicating the success of the operation
+     * @param forwardObjective a forwarding objective
      */
-    Future<Boolean> forward(Collection<ForwardingObjective> forwardObjectives);
+    void forward(ForwardingObjective forwardObjective);
 
     /**
      * Installs the next hop elements into the device.
      *
-     * @param nextObjectives the collection of next objectives
-     * @return a future indicating the success of the operation
+     * @param nextObjective a next objectives
      */
-    Future<Boolean> next(Collection<NextObjective> nextObjectives);
+    void next(NextObjective nextObjective);
 }
