@@ -23,27 +23,29 @@
            sort-callback="sortCallback(requestParams)">
         <thead>
             <tr>
-                <th colId="src" sortable>Source </th>
-                <th colId="dst" sortable>Destination </th>
+                <th colId="one" sortable>Port 1 </th>
+                <th colId="two" sortable>Port 2 </th>
                 <th colId="type" sortable>Type </th>
                 <th colId="state" sortable>State </th>
+                <th colId="direction" sortable>Direction </th>
                 <th colId="durable" sortable>Durable </th>
             </tr>
         </thead>
 
         <tbody>
             <tr ng-hide="ctrl.tableData.length">
-                <td class="nodata" colspan="5">
+                <td class="nodata" colspan="6">
                     No Links found
                 </td>
             </tr>
 
             <tr ng-repeat="link in ctrl.tableData"
                 ng-repeat-done>
-                <td>{{link.src}}</td>
-                <td>{{link.dst}}</td>
+                <td>{{link.one}}</td>
+                <td>{{link.two}}</td>
                 <td>{{link.type}}</td>
                 <td>{{link.state}}</td>
+                <td>{{link.direction}}</td>
                 <td>{{link.durable}}</td>
             </tr>
         </tbody>

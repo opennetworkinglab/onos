@@ -719,7 +719,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
 
-    private BiLink addLink(Map<LinkKey, BiLink> biLinks, Link link) {
+    static BiLink addLink(Map<LinkKey, BiLink> biLinks, Link link) {
         LinkKey key = canonicalLinkKey(link);
         BiLink biLink = biLinks.get(key);
         if (biLink != null) {
@@ -816,7 +816,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Produces canonical link key, i.e. one that will match link and its inverse.
-    private LinkKey canonicalLinkKey(Link link) {
+    static LinkKey canonicalLinkKey(Link link) {
         String sn = link.src().elementId().toString();
         String dn = link.dst().elementId().toString();
         return sn.compareTo(dn) < 0 ?
@@ -824,7 +824,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Representation of link and its inverse and any traffic data.
-    private class BiLink {
+    static class BiLink {
         public final LinkKey key;
         public final Link one;
         public Link two;
@@ -861,7 +861,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Auxiliary key/value carrier.
-    private class Prop {
+    static class Prop {
         public final String key;
         public final String value;
 
@@ -872,14 +872,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Auxiliary properties separator
-    private class Separator extends Prop {
+    static class Separator extends Prop {
         protected Separator() {
             super("-", "");
         }
     }
 
     // Auxiliary carrier of data for requesting traffic message.
-    protected class TrafficClass {
+    static class TrafficClass {
         public final boolean showTraffic;
         public final String type;
         public final Iterable<Intent> intents;

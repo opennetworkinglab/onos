@@ -19,13 +19,18 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.addLink;
 
 /**
  * Message handler for link view related messages.
@@ -42,7 +47,7 @@ public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
     @Override
     public void process(ObjectNode message) {
         ObjectNode payload = payload(message);
-        String sortCol = string(payload, "sortCol", "src");
+        String sortCol = string(payload, "sortCol", "one");
         String sortDir = string(payload, "sortDir", "asc");
 
         LinkService service = get(LinkService.class);
@@ -59,36 +64,54 @@ public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
 
     private TableRow[] generateTableRows(LinkService service) {
         List<TableRow> list = new ArrayList<>();
-        for (Link link : service.getLinks()) {
-            list.add(new LinkTableRow(link));
-        }
+
+        // First consolidate all uni-directional links into two-directional ones.
+        Map<LinkKey, BiLink> biLinks = Maps.newHashMap();
+        service.getLinks().forEach(link -> addLink(biLinks, link));
+
+        // Now scan over all bi-links and produce table rows from them.
+        biLinks.values().forEach(biLink -> list.add(new LinkTableRow(biLink)));
         return list.toArray(new TableRow[list.size()]);
     }
 
     /**
-     * TableRow implementation for {@link Link links}.
+     * TableRow implementation for {@link org.onosproject.net.Link links}.
      */
     private static class LinkTableRow extends AbstractTableRow {
 
-        private static final String SOURCE = "src";
-        private static final String DEST = "dst";
+        private static final String ONE = "one";
+        private static final String TWO = "two";
         private static final String TYPE = "type";
         private static final String STATE = "state";
+        private static final String DIRECTION = "direction";
         private static final String DURABLE = "durable";
 
         private static final String[] COL_IDS = {
-                SOURCE, DEST, TYPE, STATE, DURABLE
+                ONE, TWO, TYPE, STATE, DIRECTION, DURABLE
         };
 
-        public LinkTableRow(Link l) {
-            ConnectPoint src = l.src();
-            ConnectPoint dst = l.dst();
+        public LinkTableRow(BiLink link) {
+            ConnectPoint src = link.one.src();
+            ConnectPoint dst = link.one.dst();
 
-            add(SOURCE, src.elementId().toString() + "/" + src.port().toString());
-            add(DEST, dst.elementId().toString() + "/" + dst.port().toString());
-            add(TYPE, l.type().toString());
-            add(STATE, l.state().toString());
-            add(DURABLE, Boolean.toString(l.isDurable()));
+            add(ONE, src.elementId().toString() + "/" + src.port().toString());
+            add(TWO, dst.elementId().toString() + "/" + dst.port().toString());
+            add(TYPE, linkType(link).toLowerCase());
+            add(STATE, linkState(link).toLowerCase());
+            add(DIRECTION, link.two != null ? "A <-> B" : "A -> B");
+            add(DURABLE, Boolean.toString(link.one.isDurable()));
+        }
+
+        private String linkState(BiLink link) {
+            return link.two == null || link.one.state() == link.two.state() ?
+                    link.one.state().toString() :
+                    link.one.state().toString() + "/" + link.two.state().toString();
+        }
+
+        private String linkType(BiLink link) {
+            return link.two == null || link.one.type() == link.two.type() ?
+                    link.one.type().toString() :
+                    link.one.type().toString() + "/" + link.two.type().toString();
         }
 
         @Override

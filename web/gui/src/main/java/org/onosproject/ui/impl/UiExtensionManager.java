@@ -58,21 +58,21 @@ public class UiExtensionManager implements UiExtensionService {
     private static UiExtension createCoreExtension() {
         List<UiView> coreViews = of(new UiView("topo", "Topology View"),
                                     new UiView("device", "Devices"),
-                                    new UiView("host", "Hosts"),
-                                    new UiView("app", "Applications"),
-                                    new UiView("intent", "Intents"),
-                                    new UiView("cluster", "Cluster Nodes"),
                                     new UiView("link", "Links"),
+                                    new UiView("host", "Hosts"),
+                                    new UiView("intent", "Intents"),
+                                    new UiView("app", "Applications"),
+                                    new UiView("cluster", "Cluster Nodes"),
                                     new UiView("sample", "Sample"));
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
                         new DeviceViewMessageHandler(),
+                        new LinkViewMessageHandler(),
                         new HostViewMessageHandler(),
-                        new ApplicationViewMessageHandler(),
                         new IntentViewMessageHandler(),
-                        new ClusterViewMessageHandler(),
-                        new LinkViewMessageHandler()
+                        new ApplicationViewMessageHandler(),
+                        new ClusterViewMessageHandler()
                 );
         return new UiExtension(coreViews, messageHandlerFactory, "core",
                                UiExtensionManager.class.getClassLoader());
