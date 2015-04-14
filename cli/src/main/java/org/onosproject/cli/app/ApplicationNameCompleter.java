@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.app;
 
+import com.google.common.collect.Sets;
 import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.app.ApplicationService;
@@ -22,8 +23,11 @@ import org.onosproject.app.ApplicationState;
 import org.onosproject.cli.AbstractCompleter;
 import org.onosproject.core.Application;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 import static org.onosproject.app.ApplicationState.ACTIVE;
@@ -43,6 +47,15 @@ public class ApplicationNameCompleter extends AbstractCompleter {
         ArgumentCompleter.ArgumentList list = getArgumentList();
         String cmd = list.getArguments()[1];
 
+        // Grab apps already on the command (to prevent tab-completed duplicates)
+        final Set previousApps;
+        if (list.getArguments().length > 2) {
+            previousApps = Sets.newHashSet(
+                    Arrays.copyOfRange(list.getArguments(), 2, list.getArguments().length));
+        } else {
+            previousApps = Collections.emptySet();
+        }
+
         // Fetch our service and feed it's offerings to the string completer
         ApplicationService service = get(ApplicationService.class);
         Iterator<Application> it = service.getApplications().iterator();
@@ -50,6 +63,9 @@ public class ApplicationNameCompleter extends AbstractCompleter {
         while (it.hasNext()) {
             Application app = it.next();
             ApplicationState state = service.getState(app.id());
+            if (previousApps.contains(app.id().name())) {
+                continue;
+            }
             if (cmd.equals("uninstall") ||
                     (cmd.equals("activate") && state == INSTALLED) ||
                     (cmd.equals("deactivate") && state == ACTIVE)) {
