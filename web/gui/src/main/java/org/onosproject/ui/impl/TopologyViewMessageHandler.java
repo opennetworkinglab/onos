@@ -145,7 +145,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                               "cancelTraffic",
                               "requestSummary",
                               "cancelSummary",
-                              "equalizeMasters"
+                              "equalizeMasters",
+                              "spriteListRequest",
+                              "spriteDataRequest"
         ));
     }
 
@@ -210,6 +212,11 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         } else if (type.equals("equalizeMasters")) {
             equalizeMasters(event);
+
+        } else if (type.equals("spriteListRequest")) {
+            sendSpriteList(event);
+        } else if (type.equals("spriteDataRequest")) {
+            sendSpriteData(event);
 
         } else if (type.equals("topoStart")) {
             sendAllInitialData();
@@ -561,6 +568,22 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     // Forces mastership role rebalancing.
     private void equalizeMasters(ObjectNode event) {
         directory.get(MastershipAdminService.class).balanceRoles();
+    }
+
+    // Sends a list of sprite names.
+    private void sendSpriteList(ObjectNode event) {
+        ObjectNode root = mapper.createObjectNode();
+        ArrayNode names = mapper.createArrayNode();
+        get(SpriteService.class).getNames().forEach(names::add);
+        root.set("names", names);
+        sendMessage(envelope("spriteListResponse", number(event, "sid"), root));
+    }
+
+    // Sends requested sprite data.
+    private void sendSpriteData(ObjectNode event) {
+        ObjectNode root = mapper.createObjectNode();
+        root.set("defn", get(SpriteService.class).get(event.path("payload").path("name").asText()));
+        sendMessage(envelope("spriteDataResponse", number(event, "sid"), root));
     }
 
 

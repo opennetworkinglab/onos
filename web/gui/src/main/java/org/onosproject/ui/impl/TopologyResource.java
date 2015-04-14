@@ -15,16 +15,21 @@
  */
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.rest.BaseResource;
 import org.slf4j.Logger;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -39,8 +44,7 @@ public class TopologyResource extends BaseResource {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-
-    @Path("/geoloc")
+    @Path("geoloc")
     @GET
     @Produces("application/json")
     public Response getGeoLocations() {
@@ -75,6 +79,16 @@ public class TopologyResource extends BaseResource {
         } catch (Exception e) {
             log.debug("Skipping geo entry");
         }
+    }
+
+    @Path("sprites")
+    @POST
+    @Consumes("application/json")
+    public Response setSprites(InputStream stream) throws IOException {
+        JsonNode root = mapper.readTree(stream);
+        String name = root.path("defn_id").asText("sprites");
+        get(SpriteService.class).put(name, root);
+        return Response.ok().build();
     }
 
 }

@@ -15,7 +15,9 @@
  */
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toSet;
@@ -40,7 +43,7 @@ import static java.util.stream.Collectors.toSet;
  */
 @Component(immediate = true)
 @Service
-public class UiExtensionManager implements UiExtensionService {
+public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -115,4 +118,25 @@ public class UiExtensionManager implements UiExtensionService {
     public synchronized UiExtension getViewExtension(String viewId) {
         return views.get(viewId);
     }
+
+
+    // Provisional tracking of sprite definitions
+    private Map<String, JsonNode> sprites = Maps.newHashMap();
+
+    @Override
+    public Set<String> getNames() {
+        return ImmutableSet.copyOf(sprites.keySet());
+    }
+
+    @Override
+    public void put(String name, JsonNode spriteData) {
+        log.info("Registered sprite definition {}", name);
+        sprites.put(name, spriteData);
+    }
+
+    @Override
+    public JsonNode get(String name) {
+        return sprites.get(name);
+    }
+
 }

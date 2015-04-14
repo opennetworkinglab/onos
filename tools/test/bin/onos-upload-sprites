@@ -1,0 +1,12 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Tool to upload GUI sprites definitions using GUI REST API.
+# -----------------------------------------------------------------------------
+
+node=${1}
+sprites=${2}
+
+export URL=http://$node:8181/onos/ui/rs/topology/sprites
+export HDR="-HContent-Type:application/json"
+
+curl --fail -sS -X POST $HDR $URL --data @$sprites
