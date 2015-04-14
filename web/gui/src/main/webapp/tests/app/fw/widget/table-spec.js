@@ -39,6 +39,11 @@ describe('factory: fw/widget/table.js', function () {
                                 '</thead>' +
                                 '<tbody>' +
                                 '<tr>' +
+                                '<td colspan="4">' +
+                                    'No Devices found' +
+                                '</td>' +
+                                '</tr>' +
+                                '<tr>' +
                                 '<td class="table-icon">' +
                                     '<div icon icon-id="{{dev._iconid_available}}">' +
                                     '</div>' +
@@ -147,7 +152,7 @@ describe('factory: fw/widget/table.js', function () {
 
     function verifyColWidth() {
         var winWidth = fs.windowSize().width,
-            colWidth, thElems, tdElem;
+            colWidth, thElems, tr, tdElem;
 
         colWidth = Math.floor(winWidth / numTestElems);
 
@@ -155,7 +160,8 @@ describe('factory: fw/widget/table.js', function () {
 
         angular.forEach(thElems, function (thElem, i) {
             thElem = angular.element(thElems[i]);
-            tdElem = angular.element(tbody.find('td').eq(i));
+            tr = angular.element(tbody.find('tr').eq(1));
+            tdElem = angular.element(tr.find('td').eq(i));
             var custWidth = thElem.attr('col-width');
 
             if (custWidth) {
@@ -193,7 +199,7 @@ describe('factory: fw/widget/table.js', function () {
         div = currentTh.find('div');
         expect(div.html()).toBe('<svg class="embeddedIcon" ' +
                                 'width="10" height="10" viewBox="0 0 50 50">' +
-                                '<g class="icon tableColSortAsc">' +
+                                '<g class="icon upArrow">' +
                                 '<rect width="50" height="50" rx="5"></rect>' +
                                 '<use width="50" height="50" class="glyph" ' +
                                 'xmlns:xlink="http://www.w3.org/1999/xlink" ' +
@@ -204,7 +210,7 @@ describe('factory: fw/widget/table.js', function () {
         div = currentTh.find('div');
         expect(div.html()).toBe('<svg class="embeddedIcon" ' +
                                 'width="10" height="10" viewBox="0 0 50 50">' +
-                                '<g class="icon tableColSortDesc">' +
+                                '<g class="icon downArrow">' +
                                 '<rect width="50" height="50" rx="5"></rect>' +
                                 '<use width="50" height="50" class="glyph" ' +
                                 'xmlns:xlink="http://www.w3.org/1999/xlink" ' +
@@ -222,7 +228,7 @@ describe('factory: fw/widget/table.js', function () {
         div = currentTh.children();
         expect(div.html()).toBe('<svg class="embeddedIcon" ' +
                                 'width="10" height="10" viewBox="0 0 50 50">' +
-                                '<g class="icon tableColSortAsc">' +
+                                '<g class="icon upArrow">' +
                                 '<rect width="50" height="50" rx="5"></rect>' +
                                 '<use width="50" height="50" class="glyph" ' +
                                 'xmlns:xlink="http://www.w3.org/1999/xlink" ' +

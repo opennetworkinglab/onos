@@ -31,7 +31,7 @@
             "devices": [{
                 "id": "of:0000000000000001",
                 "available": true,
-                "_iconid_available": "deviceOnline",
+                "_iconid_available": "active",
                 "role": "MASTER",
                 "mfr": "Nicira, Inc.",
                 "hw": "Open vSwitch",
@@ -44,7 +44,7 @@
                 {
                     "id": "of:0000000000000004",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -57,7 +57,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -70,7 +70,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -83,7 +83,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -96,7 +96,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -109,7 +109,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -122,7 +122,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -135,7 +135,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -148,7 +148,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -161,7 +161,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -174,7 +174,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",
@@ -187,7 +187,7 @@
                 {
                     "id": "of:0000000000000092",
                     "available": false,
-                    "_iconid_available": "deviceOffline",
+                    "_iconid_available": "inactive",
                     "role": "MASTER",
                     "mfr": "Nicira, Inc.",
                     "hw": "Open vSwitch",

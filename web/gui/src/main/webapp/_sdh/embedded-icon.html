@@ -41,11 +41,11 @@
             fill-rule: evenodd;
         }
 
-        svg .icon.deviceOnline {
+        svg .icon.active {
             fill: green;
         }
 
-        svg .icon.deviceOffline {
+        svg .icon.inactive {
             fill: darkred;
         }
 
@@ -72,12 +72,12 @@
         <tr> <th></th> <th>Two</th> <th>Three</th> </tr>
         <tr>
             <td>
-                <div icon icon-id="deviceOnline">
+                <div icon icon-id="active">
 
                     <!-- icon directive needs to inject the following structure -->
                     <!-- ------------------------------------------------ -->
                     <svg width="20" height="20" viewBox="0 0 50 50">
-                        <g class="icon deviceOnline">
+                        <g class="icon active">
                             <rect width="50" height="50" rx="4"></rect>
                             <use class="glyph" xlink:href="#ui" width="50" height="50"></use>
                         </g>
@@ -91,12 +91,12 @@
         </tr>
         <tr>
             <td>
-                <div icon icon-id="deviceOffline">
+                <div icon icon-id="inactive">
 
                     <!-- icon directive needs to inject the following structure -->
                     <!-- ------------------------------------------------ -->
                     <svg width="20" height="20" viewBox="0 0 50 50">
-                        <g class="icon deviceOffline">
+                        <g class="icon inactive">
                             <rect width="50" height="50" rx="4"></rect>
                             <use class="glyph" xlink:href="#ui" width="50" height="50"></use>
                         </g>

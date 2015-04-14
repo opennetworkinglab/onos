@@ -177,8 +177,8 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
                 PROTOCOL, CHASSIS_ID, SERIAL
         };
 
-        private static final String ICON_ID_ONLINE = "deviceOnline";
-        private static final String ICON_ID_OFFLINE = "deviceOffline";
+        private static final String ICON_ID_ONLINE = "active";
+        private static final String ICON_ID_OFFLINE = "inactive";
 
         public DeviceTableRow(DeviceService service,
                               MastershipService ms,

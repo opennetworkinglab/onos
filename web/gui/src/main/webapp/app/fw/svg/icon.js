@@ -29,27 +29,26 @@
     // Maps icon ID to the glyph ID it uses.
     // NOTE: icon ID maps to a CSS class for styling that icon
     var glyphMapping = {
-        appActive: 'checkMark',
-        appInactive: 'unknown',
-        appPlus: 'plus',
-        appMinus: 'minus',
-        appPlay: 'play',
-        appStop: 'stop',
+        active: 'checkMark',
+        inactive: 'xMark',
 
-        deviceOnline: 'checkMark',
-        deviceOffline: 'xMark',
+        plus: 'plus',
+        minus: 'minus',
+        play: 'play',
+        stop: 'stop',
+
+        upArrow: 'triangleUp',
+        downArrow: 'triangleDown',
+
+        appInactive: 'unknown',
+
         devIcon_SWITCH: 'switch',
         devIcon_ROADM: 'roadm',
 
         hostIcon_endstation: 'endstation',
         hostIcon_router: 'router',
-        hostIcon_bgpSpeaker: 'bgpSpeaker',
-
-        tableColSortAsc: 'triangleUp',
-        tableColSortDesc: 'triangleDown'
+        hostIcon_bgpSpeaker: 'bgpSpeaker'
     };
-
-
 
     function ensureIconLibDefs() {
         var body = d3.select('body'),
@@ -187,13 +186,13 @@
     function createSortIcon() {
         function sortAsc(div) {
             div.style('display', 'inline-block');
-            loadEmbeddedIcon(div, 'tableColSortAsc', 10);
+            loadEmbeddedIcon(div, 'upArrow', 10);
             div.classed('tableColSort', true);
         }
 
         function sortDesc(div) {
             div.style('display', 'inline-block');
-            loadEmbeddedIcon(div, 'tableColSortDesc', 10);
+            loadEmbeddedIcon(div, 'downArrow', 10);
             div.classed('tableColSort', true);
         }
 

@@ -23,10 +23,10 @@
            sort-callback="sortCallback(requestParams)">
         <thead>
         <tr>
+            <th colId="_iconid_state" class="table-icon" sortable></th>
             <th colId="id" sortable>ID </th>
             <th colId="ip" sortable>IP Address </th>
             <th colId="tcp" sortable>TCP Port </th>
-            <th colId="state" sortable>State </th>
             <th colId="updated" sortable>Last Updated </th>
         </tr>
         </thead>
@@ -40,10 +40,12 @@
 
         <tr ng-repeat="node in ctrl.tableData"
             ng-repeat-done>
+            <td class="table-icon">
+                <div icon icon-id="{{node._iconid_state}}"></div>
+            </td>
             <td>{{node.id}}</td>
             <td>{{node.ip}}</td>
             <td>{{node.tcp}}</td>
-            <td>{{node.state}}</td>
             <td>{{node.updated}}</td>
         </tr>
         </tbody>

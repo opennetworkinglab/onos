@@ -57,10 +57,10 @@ svg.embeddedIcon .icon.appInactive .glyph {
     fill: none;
 }
 
-.light svg.embeddedIcon .icon.appActive .glyph {
+.light svg.embeddedIcon .icon.active .glyph {
     fill: green;
 }
-.dark svg.embeddedIcon .icon.appActive .glyph {
+.dark svg.embeddedIcon .icon.active .glyph {
     fill: #308C10;
 }
 
@@ -78,15 +78,15 @@ svg.embeddedIcon .icon.appInactive .glyph {
     fill: #ccc;
 }
 
-.light svg.embeddedIcon .icon.deviceOnline .glyph {
+.light svg.embeddedIcon .icon.active .glyph {
     fill: green;
 }
-.light svg.embeddedIcon .icon.deviceOffline .glyph {
+.light svg.embeddedIcon .icon.inactive .glyph {
     fill: darkred;
 }
-.dark svg.embeddedIcon .icon.deviceOnline .glyph {
+.dark svg.embeddedIcon .icon.active .glyph {
     fill: #308C10;
 }
-.dark svg.embeddedIcon .icon.deviceOffline .glyph {
+.dark svg.embeddedIcon .icon.inactive .glyph {
     fill: #AD2D2D;
 }

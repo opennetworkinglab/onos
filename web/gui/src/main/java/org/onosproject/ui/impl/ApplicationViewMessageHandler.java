@@ -81,7 +81,7 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
                 STATE, STATE_IID, ID, VERSION, ORIGIN, DESC
         };
 
-        private static final String ICON_ID_ACTIVE = "appActive";
+        private static final String ICON_ID_ACTIVE = "active";
         private static final String ICON_ID_INACTIVE = "appInactive";
 
 

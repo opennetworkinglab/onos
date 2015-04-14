@@ -56,7 +56,7 @@
         ];
 
     function addCloseBtn(div) {
-        is.loadEmbeddedIcon(div, 'appPlus', 30);
+        is.loadEmbeddedIcon(div, 'plus', 30);
         div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
 
         div.on('click', function () {

@@ -76,22 +76,27 @@ public class ClusterViewMessageHandler extends AbstractTabularViewMessageHandler
         private static final String ID = "id";
         private static final String IP = "ip";
         private static final String TCP_PORT = "tcp";
-        private static final String STATE = "state";
+        private static final String STATE_IID = "_iconid_state";
         private static final String UPDATED = "updated";
 
         private static final String[] COL_IDS = {
-                ID, IP, TCP_PORT, STATE, UPDATED
+                ID, IP, TCP_PORT, STATE_IID, UPDATED
         };
+
+        private static final String ICON_ID_ONLINE = "active";
+        private static final String ICON_ID_OFFLINE = "inactive";
 
         public ControllerNodeTableRow(ClusterService service, ControllerNode n) {
             NodeId id = n.id();
             DateTime lastUpdated = service.getLastUpdated(id);
             org.joda.time.format.DateTimeFormatter format = DateTimeFormat.longTime();
+            String iconId = (service.getState(id) == ControllerNode.State.ACTIVE) ?
+                    ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
             add(ID, id.toString());
             add(IP, n.ip().toString());
             add(TCP_PORT, Integer.toString(n.tcpPort()));
-            add(STATE, service.getState(id).toString());
+            add(STATE_IID, iconId);
             add(UPDATED, format.print(lastUpdated));
         }
 

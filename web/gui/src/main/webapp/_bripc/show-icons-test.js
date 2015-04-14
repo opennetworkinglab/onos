@@ -81,9 +81,9 @@
                 var div = d3.select('#showIcons');
 
                 // show device online and offline icons
-                icns.loadEmbeddedIcon(div, 'deviceOnline', 50);
+                icns.loadEmbeddedIcon(div, 'active', 50);
                 div.append('span').style('padding-left', '15px');
-                icns.loadEmbeddedIcon(div, 'deviceOffline', 50);
+                icns.loadEmbeddedIcon(div, 'inactive', 50);
 
                 var defs = d3.select('defs');
 

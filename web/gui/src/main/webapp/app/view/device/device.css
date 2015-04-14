@@ -42,10 +42,10 @@
     top: 0;
     cursor: pointer;
 }
-.light .close-btn svg.embeddedIcon .icon.appPlus .glyph {
+.light .close-btn svg.embeddedIcon .icon.plus .glyph {
     fill: #aaa;
 }
-.dark .close-btn svg.embeddedIcon .icon.appPlus .glyph {
+.dark .close-btn svg.embeddedIcon .icon.plus .glyph {
     fill: #ccc;
 }
 

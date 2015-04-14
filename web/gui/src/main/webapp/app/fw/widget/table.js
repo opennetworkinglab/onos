@@ -125,12 +125,12 @@
         currCol.colId = thElem.attr('colId');
 
         if (currCol.colId === prevCol.colId) {
-            (currCol.icon === 'tableColSortDesc') ?
-                currCol.icon = 'tableColSortAsc' :
-                currCol.icon = 'tableColSortDesc';
+            (currCol.icon === 'downArrow') ?
+                currCol.icon = 'upArrow' :
+                currCol.icon = 'downArrow';
             prevCol.icon = currCol.icon;
         } else {
-            currCol.icon = 'tableColSortAsc';
+            currCol.icon = 'upArrow';
             prevCol.icon = 'tableColSortNone';
         }
 
@@ -138,7 +138,7 @@
         api.sortNone(div);
         div = thElem.append('div');
 
-        if (currCol.icon === 'tableColSortAsc') {
+        if (currCol.icon === 'upArrow') {
             api.sortAsc(div);
         } else {
             api.sortDesc(div);
@@ -156,7 +156,7 @@
     function sortRequestParams() {
         return {
             sortCol: currCol.colId,
-            sortDir: (currCol.icon === 'tableColSortAsc' ? 'asc' : 'desc')
+            sortDir: (currCol.icon === 'upArrow' ? 'asc' : 'desc')
         };
     }
 

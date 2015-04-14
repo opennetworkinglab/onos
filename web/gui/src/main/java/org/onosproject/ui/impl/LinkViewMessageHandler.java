@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
@@ -82,7 +83,7 @@ public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
         private static final String ONE = "one";
         private static final String TWO = "two";
         private static final String TYPE = "type";
-        private static final String STATE = "state";
+        private static final String STATE = "_iconid_state";
         private static final String DIRECTION = "direction";
         private static final String DURABLE = "durable";
 
@@ -90,28 +91,32 @@ public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
                 ONE, TWO, TYPE, STATE, DIRECTION, DURABLE
         };
 
+        private static final String ICON_ID_ONLINE = "active";
+        private static final String ICON_ID_OFFLINE = "inactive";
+
         public LinkTableRow(BiLink link) {
             ConnectPoint src = link.one.src();
             ConnectPoint dst = link.one.dst();
+            linkState(link);
 
             add(ONE, src.elementId().toString() + "/" + src.port().toString());
             add(TWO, dst.elementId().toString() + "/" + dst.port().toString());
             add(TYPE, linkType(link).toLowerCase());
-            add(STATE, linkState(link).toLowerCase());
-            add(DIRECTION, link.two != null ? "A <-> B" : "A -> B");
+            add(STATE, linkState(link));
+            add(DIRECTION, link.two != null ? "A <--> B" : "A --> B");
             add(DURABLE, Boolean.toString(link.one.isDurable()));
         }
 
         private String linkState(BiLink link) {
-            return link.two == null || link.one.state() == link.two.state() ?
-                    link.one.state().toString() :
-                    link.one.state().toString() + "/" + link.two.state().toString();
+            return (link.one.state() == Link.State.ACTIVE ||
+                    link.two.state() == Link.State.ACTIVE) ?
+                    ICON_ID_ONLINE : ICON_ID_OFFLINE;
         }
 
         private String linkType(BiLink link) {
             return link.two == null || link.one.type() == link.two.type() ?
                     link.one.type().toString() :
-                    link.one.type().toString() + "/" + link.two.type().toString();
+                    link.one.type().toString() + " / " + link.two.type().toString();
         }
 
         @Override
