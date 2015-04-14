@@ -542,3 +542,46 @@
     fill: #eee;
 }
 
+/* Sprite Layer */
+
+#ov-topo svg #topo-sprites text {
+    text-anchor: middle;
+    font-size: 10pt;
+    font-style: italic;
+}
+
+.light #ov-topo svg #topo-sprites .sprite1 use {
+    stroke-width: 1.0;
+    stroke: goldenrod;
+    fill: none;
+}
+.dark #ov-topo svg #topo-sprites .sprite1 use {
+    stroke-width: 1.0;
+    stroke: #541;
+    fill: none;
+}
+
+.light #ov-topo svg #topo-sprites .sprite1 text {
+    fill: #eda;
+}
+.dark #ov-topo svg #topo-sprites .sprite1 text {
+    fill: #543;
+}
+
+.light #ov-topo svg #topo-sprites .sprite2 use {
+    stroke: #bbd;
+    stroke-width: 1.0;
+    fill: none;
+}
+.dark #ov-topo svg #topo-sprites .sprite2 use {
+    stroke: #445;
+    stroke-width: 1.0;
+    fill: none;
+}
+
+.light #ov-topo svg #topo-sprites .sprite2 text {
+    fill: #cce;
+}
+.dark #ov-topo svg #topo-sprites .sprite2 text {
+    fill: #446;
+}

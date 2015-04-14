@@ -42,6 +42,7 @@
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
         B: { id: 'bkgrnd-tog', gid: 'map', isel: true },
+        S: { id: 'sprite-tog', gid: 'cloud', isel: false },
 
         //X: { id: 'nodelock-tog', gid: 'lock', isel: false },
         Z: { id: 'oblique-tog', gid: 'oblique', isel: false },
@@ -62,6 +63,7 @@
     // initial toggle state: default settings and tag to key mapping
     var defaultPrefsState = {
             bg: 1,
+            sprites: 0,
             insts: 1,
             summary: 1,
             detail: 1,
@@ -69,6 +71,7 @@
         },
         prefsMap = {
             bg: 'B',
+            sprites: 'S',
             insts: 'I',
             summary: 'O',
             details: 'D',
@@ -129,6 +132,7 @@
         addToggle('M');
         addToggle('P');
         addToggle('B');
+        addToggle('S');
     }
     function addSecondRow() {
         //addToggle('X');

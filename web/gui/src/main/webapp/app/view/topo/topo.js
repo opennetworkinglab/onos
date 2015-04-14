@@ -33,7 +33,7 @@
         tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs;
 
     // DOM elements
-    var ovtopo, svg, defs, zoomLayer, mapG, forceG, noDevsLayer;
+    var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
 
     // Internal state
     var zoomer, actionMap;
@@ -53,6 +53,7 @@
             P: [tfs.togglePorts, 'Toggle Port Highlighting'],
             dash: [tfs.showBadLinks, 'Show bad links'],
             B: [toggleMap, 'Toggle background map'],
+            S: [toggleSprites, 'Toggle sprite layer'],
 
             //X: [toggleNodeLock, 'Lock / unlock node positions'],
             Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
@@ -114,6 +115,14 @@
         sus.visible(mapG, on);
         updatePrefsState('bg', on);
         flash.flash(verb + ' background map');
+    }
+
+    function toggleSprites(x) {
+        var on = (x === 'keyev') ? !sus.visible(spriteG) : !!x,
+            verb = on ? 'Show' : 'Hide';
+        sus.visible(spriteG, on);
+        updatePrefsState('sprites', on);
+        flash.flash(verb + ' sprite layer');
     }
 
     function resetZoom() {
@@ -247,24 +256,6 @@
             .attr('opacity', b ? 1 : 0);
     }
 
-    function addSprites() {
-        var g = zoomLayer.append ('g').attr('id', 'topo-sprites');
-
-        function cloud(g, x, y) {
-            g.append('use').attr({
-                width: 100,
-                height: 100,
-                'xlink:href': '#cloud',
-                transform: sus.translate([x, y]) + sus.scale(4,4)
-            }).style('stroke', 'goldenrod')
-                .style('fill', 'none')
-                .style('stroke-width', 1.0);
-        }
-
-        cloud(g, 0, 50);
-        cloud(g, 800, 40);
-        cloud(g, 400, 450);
-    }
 
     // --- User Preferemces ----------------------------------------------
 
@@ -285,6 +276,7 @@
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
         toggleDetails(prefsState.detail);
+        toggleSprites(prefsState.sprites);
     }
 
 
@@ -298,11 +290,11 @@
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
-            'TopoToolbarService',
+            'TopoToolbarService', 'TopoSpriteService',
 
         function ($scope, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tes_, _tfs_,
-                  _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_) {
+                  _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr) {
             var self = this,
                 projection,
                 dim,
@@ -373,7 +365,8 @@
                     toggleMap(prefsState.bg);
                 }
             );
-     //       addSprites();
+            spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
+            tspr.loadSprites(spriteG);
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);

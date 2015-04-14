@@ -1,44 +1,44 @@
 {
+  "file_desc": "Cloud Sprite Data",
+
   "_comment": [
     "configuration file for loading canned and/or custom sprites (and labels)",
     "into the topology view. These appear above the map layer, but below",
     "the nodes/links layer."
   ],
 
-  "_comment_defn": "'defn' array contains custom sprite definitions",
+  "_comment_custom": "'custom' contains custom path data",
+  "custom": [
+
+  ],
+
+  "_comment_defn": "'defn' array contains sprite definitions",
   "defn": [
-
-  ],
-
-  "_comment_defstyle": "'defstyle' defines default styles to apply",
-  "defstyle": {
-    "sprite": {
-      "stroke": "goldenrod",
-      "stroke-width": 1.0,
-      "fill": "none"
-    },
-    "text": {
-      "text-style": "italic",
-      "test-size": "20pt"
-    }
-  },
-
-  "_comment_load": [
-    "'load' array contains list of sprites/labels to load",
-    " note that 'copies' array defines [x,y] coords to position copies"
-  ],
-  "load": [
     {
-      "id": "cloud",
-      "width": 100,
-      "height": 100,
-      "scale": 4.0,
-      "copies": [
-        [0, 50], [800, 40], [400, 450]
-      ],
-      "style": {
-        "stroke": "green"
-      }
+      "id": "subnet",
+      "class": "sprite1",
+      "use": "cloud",
+      "width": 120,
+      "height": 120,
+      "scale": 3.0,
+      "textyoff": 0.4
+    },
+    {
+      "id": "subnet2",
+      "class": "sprite2",
+      "use": "cloud",
+      "width": 200,
+      "height": 200,
+      "scale": 3.0,
+      "textyoff": 0.4
     }
+  ],
+
+  "_comment_load": "'load' array contains list of sprites to load",
+  "load": [
+    { "id": "subnet", "x": -40, "y":20, "label":"apples" },
+    { "id": "subnet", "x":400, "y":40, "label":"bananas" },
+    { "id": "subnet", "x":840, "y":60, "label":"cherries" },
+    { "id": "subnet2", "x":300, "y":400 }
   ]
 }
