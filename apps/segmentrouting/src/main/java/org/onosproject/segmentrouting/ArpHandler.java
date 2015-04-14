@@ -43,7 +43,7 @@ public class ArpHandler {
     private static Logger log = LoggerFactory.getLogger(ArpHandler.class);
 
     private SegmentRoutingManager srManager;
-    private NetworkConfigHandler config;
+    private DeviceConfiguration config;
 
     /**
      * Creates an ArpHandler object.
@@ -52,7 +52,7 @@ public class ArpHandler {
      */
     public ArpHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-        this.config = checkNotNull(srManager.networkConfigHandler);
+        this.config = checkNotNull(srManager.deviceConfiguration);
     }
 
     /**
@@ -96,8 +96,8 @@ public class ArpHandler {
         // ARP request for router
         if (isArpReqForRouter(deviceId, arpRequest)) {
             Ip4Address targetAddress = Ip4Address.valueOf(arpRequest.getTargetProtocolAddress());
-            sendArpResponse(arpRequest, config.getRouterMac(targetAddress));
 
+            sendArpResponse(arpRequest, config.getRouterMacForAGatewayIp(targetAddress));
         // ARP request for known hosts
         } else if (srManager.hostService.getHost(targetHostId) != null) {
             MacAddress targetMac = srManager.hostService.getHost(targetHostId).mac();
@@ -111,7 +111,7 @@ public class ArpHandler {
 
 
     private boolean isArpReqForRouter(DeviceId deviceId, ARP arpRequest) {
-        List<Ip4Address> gatewayIpAddresses = config.getGatewayIpAddress(deviceId);
+        List<Ip4Address> gatewayIpAddresses = config.getSubnetGatewayIps(deviceId);
         if (gatewayIpAddresses != null) {
             Ip4Address targetProtocolAddress = Ip4Address.valueOf(arpRequest
                     .getTargetProtocolAddress());
@@ -123,7 +123,7 @@ public class ArpHandler {
     }
 
     private boolean isArpReqForSubnet(DeviceId deviceId, ARP arpRequest) {
-        return config.getSubnetInfo(deviceId).stream()
+        return config.getSubnets(deviceId).stream()
                      .anyMatch((prefix)->
                      prefix.contains(Ip4Address.
                                      valueOf(arpRequest.
@@ -139,9 +139,8 @@ public class ArpHandler {
      */
     public void sendArpRequest(DeviceId deviceId, IpAddress targetAddress, ConnectPoint inPort) {
 
-        byte[] senderMacAddress = config.getRouterMacAddress(deviceId).toBytes();
-        byte[] senderIpAddress = config.getRouterIpAddress(deviceId)
-                .getIp4Prefix().address().toOctets();
+        byte[] senderMacAddress = config.getDeviceMac(deviceId).toBytes();
+        byte[] senderIpAddress = config.getRouterIp(deviceId).toOctets();
 
         ARP arpRequest = new ARP();
         arpRequest.setHardwareType(ARP.HW_TYPE_ETHERNET)

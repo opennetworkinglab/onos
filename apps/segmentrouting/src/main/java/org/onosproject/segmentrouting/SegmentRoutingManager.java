@@ -99,15 +99,14 @@ public class SegmentRoutingManager {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
-    protected NetworkConfigHandler networkConfigHandler = null;
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
     protected IpHandler ipHandler = null;
     protected RoutingRulePopulator routingRulePopulator = null;
     protected ApplicationId appId;
+    protected DeviceConfiguration deviceConfiguration = null;
 
     private DefaultRoutingHandler defaultRoutingHandler = null;
-    private DeviceConfiguration deviceConfiguration = null;
     private InternalPacketProcessor processor = new InternalPacketProcessor();
     private InternalEventHandler eventHandler = new InternalEventHandler();
 
@@ -129,8 +128,6 @@ public class SegmentRoutingManager {
         appId = coreService.registerApplication("org.onosproject.segmentrouting");
         networkConfigService.init();
         deviceConfiguration = new DeviceConfiguration(networkConfigService);
-        networkConfigHandler = new NetworkConfigHandler(this,
-                                                        deviceConfiguration);
         arpHandler = new ArpHandler(this);
         icmpHandler = new IcmpHandler(this);
         ipHandler = new IpHandler(this);
@@ -150,8 +147,8 @@ public class SegmentRoutingManager {
                             appId, deviceConfiguration, linkService, groupService);
                 groupHandler.createGroups();
                 groupHandlerMap.put(device.id(), groupHandler);
-                log.debug("Initiating default group handling for {}", device.id());
                 defaultRoutingHandler.populateTtpRules(device.id());
+                log.debug("Initiating default group handling for {}", device.id());
             } else {
                 log.debug("Activate: Local role {} "
                                 + "is not MASTER for device {}",
@@ -162,7 +159,6 @@ public class SegmentRoutingManager {
         }
 
         defaultRoutingHandler.startPopulationProcess();
-
         log.info("Started");
     }
 

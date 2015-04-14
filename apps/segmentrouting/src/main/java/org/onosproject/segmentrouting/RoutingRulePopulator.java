@@ -48,10 +48,9 @@ public class RoutingRulePopulator {
 
     private static final Logger log = LoggerFactory.getLogger(RoutingRulePopulator.class);
 
-    private final SegmentRoutingManager srManager;
-    private final NetworkConfigHandler config;
     private AtomicLong rulePopulationCounter;
-
+    private SegmentRoutingManager srManager;
+    private DeviceConfiguration config;
     /**
      * Creates a RoutingRulePopulator object.
      *
@@ -59,7 +58,7 @@ public class RoutingRulePopulator {
      */
     public RoutingRulePopulator(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-        this.config = checkNotNull(srManager.networkConfigHandler);
+        this.config = checkNotNull(srManager.deviceConfiguration);
         this.rulePopulationCounter = new AtomicLong(0);
     }
 
@@ -94,7 +93,7 @@ public class RoutingRulePopulator {
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
 
         tbuilder.setEthDst(hostMac)
-                .setEthSrc(config.getRouterMacAddress(deviceId))
+                .setEthSrc(config.getDeviceMac(deviceId))
                 .setOutput(outPort);
 
         TrafficTreatment treatment = tbuilder.build();
@@ -156,7 +155,7 @@ public class RoutingRulePopulator {
             ns = new NeighborSet(nextHops);
         } else {
             tbuilder.copyTtlOut();
-            ns = new NeighborSet(nextHops, config.getMplsId(destSw));
+            ns = new NeighborSet(nextHops, config.getSegmentId(destSw));
         }
 
         DefaultGroupKey groupKey = (DefaultGroupKey) srManager.getGroupKey(ns);
@@ -201,7 +200,7 @@ public class RoutingRulePopulator {
         Collection<TrafficTreatment> treatments = new ArrayList<>();
 
         // TODO Handle the case of Bos == false
-        sbuilder.matchMplsLabel(MplsLabel.mplsLabel(config.getMplsId(destSwId)));
+        sbuilder.matchMplsLabel(MplsLabel.mplsLabel(config.getSegmentId(destSwId)));
         sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
 
         //If the next hop is the destination router, do PHP
@@ -262,15 +261,15 @@ public class RoutingRulePopulator {
             tbuilder.decMplsTtl();
         }
 
-        if (config.isEcmpNotSupportedInTransit(deviceId)
-                && config.isTransitRouter(deviceId)) {
+        if (!isECMPSupportedInTransitRouter() && !config.isEdgeDevice(deviceId)) {
             Link link = selectOneLink(deviceId, nextHops);
+            DeviceId nextHop = (DeviceId) nextHops.toArray()[0];
             if (link == null) {
                 log.warn("No link from {} to {}", deviceId, nextHops);
                 return null;
             }
-            tbuilder.setEthSrc(config.getRouterMacAddress(deviceId))
-                    .setEthDst(config.getRouterMacAddress(link.dst().deviceId()))
+            tbuilder.setEthSrc(config.getDeviceMac(deviceId))
+                    .setEthDst(config.getDeviceMac(nextHop))
                     .setOutput(link.src().port());
         } else {
             NeighborSet ns = new NeighborSet(nextHops);
@@ -290,6 +289,12 @@ public class RoutingRulePopulator {
         }
 
         return tbuilder.build();
+    }
+
+    private boolean isECMPSupportedInTransitRouter() {
+
+        // TODO: remove this function when objectives subsystem is supported.
+        return false;
     }
 
     /**
@@ -327,7 +332,7 @@ public class RoutingRulePopulator {
         // flow rule for IP packets
         TrafficSelector selectorIp = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchEthDst(config.getRouterMacAddress(deviceId))
+                .matchEthDst(config.getDeviceMac(deviceId))
                 .build();
         TrafficTreatment treatmentIp = DefaultTrafficTreatment.builder()
                 .transition(FlowRule.Type.IP)
@@ -341,7 +346,7 @@ public class RoutingRulePopulator {
         // flow rule for MPLS packets
         TrafficSelector selectorMpls = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.MPLS_UNICAST)
-                .matchEthDst(config.getRouterMacAddress(deviceId))
+                .matchEthDst(config.getDeviceMac(deviceId))
                 .build();
         TrafficTreatment treatmentMpls = DefaultTrafficTreatment.builder()
                 .transition(FlowRule.Type.MPLS)

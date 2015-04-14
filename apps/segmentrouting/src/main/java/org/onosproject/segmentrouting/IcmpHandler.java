@@ -39,7 +39,7 @@ public class IcmpHandler {
 
     private static Logger log = LoggerFactory.getLogger(IcmpHandler.class);
     private SegmentRoutingManager srManager;
-    private NetworkConfigHandler config;
+    private DeviceConfiguration config;
 
     /**
      * Creates an IcmpHandler object.
@@ -48,7 +48,7 @@ public class IcmpHandler {
      */
     public IcmpHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-        this.config = checkNotNull(srManager.networkConfigHandler);
+        this.config = checkNotNull(srManager.deviceConfiguration);
     }
 
     /**
@@ -69,8 +69,9 @@ public class IcmpHandler {
         DeviceId deviceId = connectPoint.deviceId();
         Ip4Address destinationAddress =
                 Ip4Address.valueOf(ipv4.getDestinationAddress());
-        List<Ip4Address> gatewayIpAddresses = config.getGatewayIpAddress(deviceId);
-        IpPrefix routerIpPrefix = config.getRouterIpAddress(deviceId);
+        List<Ip4Address> gatewayIpAddresses = config.getSubnetGatewayIps(deviceId);
+        Ip4Address routerIp = config.getRouterIp(deviceId);
+        IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
         Ip4Address routerIpAddress = routerIpPrefix.getIp4Prefix().address();
 
         // ICMP to the router IP or gateway IP
@@ -122,8 +123,8 @@ public class IcmpHandler {
         icmpReplyEth.setVlanID(icmpRequest.getVlanID());
 
         Ip4Address destIpAddress = Ip4Address.valueOf(icmpReplyIpv4.getDestinationAddress());
-        Ip4Address destRouterAddress = config.getDestinationRouterAddress(destIpAddress);
-        int sid = config.getMplsId(destRouterAddress);
+        Ip4Address destRouterAddress = config.getRouterIpAddressForASubnetHost(destIpAddress);
+        int sid = config.getSegmentId(destRouterAddress);
         if (sid < 0) {
             log.warn("Cannot find the Segment ID for {}", destAddress);
             return;
@@ -138,7 +139,7 @@ public class IcmpHandler {
         IPv4 ipPacket = (IPv4) payload.getPayload();
         Ip4Address destIpAddress = Ip4Address.valueOf(ipPacket.getDestinationAddress());
 
-        if (sid == -1 || config.getMplsId(payload.getDestinationMAC()) == sid ||
+        if (sid == -1 || config.getSegmentId(payload.getDestinationMAC()) == sid ||
                 config.inSameSubnet(outport.deviceId(), destIpAddress)) {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().
                     setOutput(outport.port()).build();
@@ -164,4 +165,6 @@ public class IcmpHandler {
             srManager.packetService.emit(packet);
         }
     }
+
+
 }

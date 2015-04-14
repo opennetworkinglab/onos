@@ -39,7 +39,7 @@ public class IpHandler {
 
     private static Logger log = LoggerFactory.getLogger(IpHandler.class);
     private SegmentRoutingManager srManager;
-    private NetworkConfigHandler config;
+    private DeviceConfiguration config;
     private ConcurrentHashMap<Ip4Address, ConcurrentLinkedQueue<IPv4>> ipPacketQueue;
 
     /**
@@ -49,7 +49,7 @@ public class IpHandler {
      */
     public IpHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-        this.config = checkNotNull(srManager.networkConfigHandler);
+        this.config = checkNotNull(srManager.deviceConfiguration);
         ipPacketQueue = new ConcurrentHashMap<Ip4Address, ConcurrentLinkedQueue<IPv4>>();
     }
 
@@ -129,8 +129,7 @@ public class IpHandler {
                 for (Host dest: srManager.hostService.getHostsByIp(destIpAddress)) {
                     Ethernet eth = new Ethernet();
                     eth.setDestinationMACAddress(dest.mac());
-                    eth.setSourceMACAddress(config.getRouterMacAddress(
-                            deviceId));
+                    eth.setSourceMACAddress(config.getDeviceMac(deviceId));
                     eth.setEtherType(Ethernet.TYPE_IPV4);
                     eth.setPayload(ipPacket);
 
@@ -141,7 +140,9 @@ public class IpHandler {
                     srManager.packetService.emit(packet);
                     ipPacketQueue.get(destIpAddress).remove(ipPacket);
                 }
+                ipPacketQueue.get(destIpAddress).remove(ipPacket);
             }
         }
     }
+
 }

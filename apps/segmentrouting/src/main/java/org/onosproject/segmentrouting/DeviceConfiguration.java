@@ -313,4 +313,31 @@ public class DeviceConfiguration implements DeviceProperties {
         log.debug("Cannot find a router for {}", gatewayIpAddress);
         return null;
     }
+
+
+    /**
+     * Checks if the host is in the subnet defined in the router with the
+     * device ID given.
+     *
+     * @param deviceId device identification of the router
+     * @param hostIp   host IP address to check
+     * @return true if the host is within the subnet of the router,
+     * false if no subnet is defined under the router or if the host is not
+     * within the subnet defined in the router
+     */
+    public boolean inSameSubnet(DeviceId deviceId, Ip4Address hostIp) {
+
+        List<Ip4Prefix> subnets = getSubnets(deviceId);
+        if (subnets == null) {
+            return false;
+        }
+
+        for (Ip4Prefix subnet: subnets) {
+            if (subnet.contains(hostIp)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

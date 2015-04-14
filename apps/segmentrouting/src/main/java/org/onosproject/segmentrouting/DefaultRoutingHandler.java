@@ -17,6 +17,7 @@ package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.Device;
@@ -41,8 +42,8 @@ public class DefaultRoutingHandler {
 
     private SegmentRoutingManager srManager;
     private RoutingRulePopulator rulePopulator;
-    private NetworkConfigHandler config;
     private HashMap<DeviceId, ECMPShortestPathGraph> currentEcmpSpgMap;
+    private DeviceConfiguration config;
     private Status populationStatus;
 
     /**
@@ -70,7 +71,7 @@ public class DefaultRoutingHandler {
     public DefaultRoutingHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.rulePopulator = checkNotNull(srManager.routingRulePopulator);
-        this.config = checkNotNull(srManager.networkConfigHandler);
+        this.config = checkNotNull(srManager.deviceConfiguration);
         this.populationStatus = Status.IDLE;
         this.currentEcmpSpgMap = Maps.newHashMap();
     }
@@ -356,8 +357,8 @@ public class DefaultRoutingHandler {
 
         // If both target switch and dest switch are edge routers, then set IP rule
         // for both subnet and router IP.
-        if (config.isEdgeRouter(targetSw) && config.isEdgeRouter(destSw)) {
-            List<Ip4Prefix> subnets = config.getSubnetInfo(destSw);
+        if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
+            List<Ip4Prefix> subnets = config.getSubnets(destSw);
             result = rulePopulator.populateIpRuleForSubnet(targetSw,
                                                            subnets,
                                                            destSw,
@@ -366,29 +367,28 @@ public class DefaultRoutingHandler {
                 return false;
             }
 
-            IpPrefix routerIp = config.getRouterIpAddress(destSw);
-            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIp, destSw, nextHops);
+            Ip4Address routerIp = config.getRouterIp(destSw);
+            IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
             }
 
         // If the target switch is an edge router, then set IP rules for the router IP.
-        } else if (config.isEdgeRouter(targetSw)) {
-            IpPrefix routerIp = config.getRouterIpAddress(destSw);
-            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIp, destSw, nextHops);
+        } else if (config.isEdgeDevice(targetSw)) {
+            Ip4Address routerIp = config.getRouterIp(destSw);
+            IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
             }
 
         // If the target switch is an transit router, then set MPLS rules only.
-        } else if (config.isTransitRouter(targetSw)) {
+        } else if (!config.isEdgeDevice(targetSw)) {
             result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
             if (!result) {
                 return false;
             }
-        } else {
-            log.warn("The switch {} is neither an edge router nor a transit router.", targetSw);
-            return false;
         }
 
         return true;
