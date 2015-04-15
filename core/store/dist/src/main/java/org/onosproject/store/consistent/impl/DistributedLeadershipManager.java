@@ -362,8 +362,8 @@ public class DistributedLeadershipManager implements LeadershipService {
         Leadership newInfo = new Leadership(path, candidates, epoch, electedTime);
         final MutableBoolean updated = new MutableBoolean(false);
         candidateBoard.compute(path, (k, current) -> {
-            if (current != null && current.epoch() == newInfo.epoch()) {
-                log.info("updating candidateboard with {}", newInfo);
+            if (current != null && current.epoch() <= newInfo.epoch()) {
+                log.info("updating candidateboard with removal of {}", newInfo);
                 updated.setTrue();
                 if (candidates.isEmpty()) {
                     return null;
@@ -452,7 +452,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                 });
             } else if (eventType.equals(LeadershipEvent.Type.LEADER_BOOTED)) {
                 leaderBoard.compute(topic, (k, currentLeadership) -> {
-                    if (currentLeadership == null || currentLeadership.epoch() < leadershipUpdate.epoch()) {
+                    if (currentLeadership == null || currentLeadership.epoch() == leadershipUpdate.epoch()) {
                         updateAccepted.setTrue();
                         return null;
                     }
@@ -462,6 +462,9 @@ public class DistributedLeadershipManager implements LeadershipService {
                 candidateBoard.compute(topic, (k, currentInfo) -> {
                     if (currentInfo == null || currentInfo.epoch() <= leadershipUpdate.epoch()) {
                         updateAccepted.setTrue();
+                        if (leadershipUpdate.candidates().isEmpty()) {
+                            return null;
+                        }
                         return leadershipUpdate;
                     }
                     return currentInfo;

@@ -16,6 +16,7 @@
 package org.onosproject.store.mastership.impl;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.futureGetOrElse;
 import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -25,12 +26,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -182,12 +179,12 @@ public class ConsistentDeviceMastershipStore
                 return MastershipRole.NONE;
             }
         }
-        MastershipRole role = complete(clusterCommunicator.sendAndReceive(
+        MastershipRole role = futureGetOrElse(clusterCommunicator.sendAndReceive(
                 deviceId,
                 ROLE_QUERY_SUBJECT,
                 SERIALIZER::encode,
                 SERIALIZER::decode,
-                nodeId));
+                nodeId), null);
         return role == null ? MastershipRole.NONE : role;
     }
 
@@ -270,12 +267,12 @@ public class ConsistentDeviceMastershipStore
         if (!nodeId.equals(localNodeId)) {
             log.debug("Forwarding request to relinquish "
                     + "role for device {} to {}", deviceId, nodeId);
-            return complete(clusterCommunicator.sendAndReceive(
+            return futureGetOrElse(clusterCommunicator.sendAndReceive(
                     deviceId,
                     ROLE_RELINQUISH_SUBJECT,
                     SERIALIZER::encode,
                     SERIALIZER::decode,
-                    nodeId));
+                    nodeId), null);
         }
 
         // Check if this node is can be managed by this node.
@@ -374,16 +371,4 @@ public class ConsistentDeviceMastershipStore
         return m.matches();
     }
 
-    private <T> T complete(Future<byte[]> future) {
-        try {
-            return SERIALIZER.decode(future.get(PEER_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Interrupted while waiting for operation to complete.", e);
-            return null;
-        } catch (TimeoutException | ExecutionException e) {
-            log.error("Failed remote operation", e);
-            return null;
-        }
-    }
 }

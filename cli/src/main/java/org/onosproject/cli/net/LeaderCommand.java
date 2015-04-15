@@ -18,7 +18,9 @@ package org.onosproject.cli.net;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.Tools;
@@ -40,6 +42,12 @@ public class LeaderCommand extends AbstractShellCommand {
 
     private static final String FMT = "%-20s | %-15s | %-6s | %-10s |";
     private static final String FMT_C = "%-20s | %-15s | %-19s |";
+    private boolean allTopics;
+    private Pattern pattern;
+
+    @Argument(index = 0, name = "topic", description = "A leadership topic. Can be a regex",
+            required = false, multiValued = false)
+    String topicPattern = null;
 
     @Option(name = "-c", aliases = "--candidates",
             description = "List candidate Nodes for each topic's leadership race",
@@ -75,6 +83,7 @@ public class LeaderCommand extends AbstractShellCommand {
 
         leaderBoard.values()
                 .stream()
+                .filter(l -> allTopics || pattern.matcher(l.topic()).matches())
                 .sorted(leadershipComparator)
                 .forEach(l -> print(FMT,
                         l.topic(),
@@ -92,6 +101,7 @@ public class LeaderCommand extends AbstractShellCommand {
         leaderBoard
                 .values()
                 .stream()
+                .filter(l -> allTopics || pattern.matcher(l.topic()).matches())
                 .sorted(leadershipComparator)
                 .forEach(l -> {
                         List<NodeId> list = candidates.get(l.topic()).candidates();
@@ -134,6 +144,13 @@ public class LeaderCommand extends AbstractShellCommand {
     protected void execute() {
         LeadershipService leaderService = get(LeadershipService.class);
         Map<String, Leadership> leaderBoard = leaderService.getLeaderBoard();
+
+        if (topicPattern == null) {
+            allTopics = true;
+        } else {
+            allTopics = false;
+            pattern = Pattern.compile(topicPattern);
+        }
 
         if (outputJson()) {
             print("%s", json(leaderBoard));
