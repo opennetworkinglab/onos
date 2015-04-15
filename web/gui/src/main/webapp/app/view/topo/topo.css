@@ -542,46 +542,60 @@
     fill: #eee;
 }
 
+/* ------------------------------------------------- */
 /* Sprite Layer */
 
+#ov-topo svg #topo-sprites use {
+    stroke-width: 1.0;
+}
 #ov-topo svg #topo-sprites text {
     text-anchor: middle;
     font-size: 10pt;
     font-style: italic;
 }
 
-.light #ov-topo svg #topo-sprites .sprite1 use {
-    stroke-width: 1.0;
-    stroke: goldenrod;
+.light #ov-topo svg #topo-sprites .gold1 use {
+    stroke: #da2;
     fill: none;
 }
-.dark #ov-topo svg #topo-sprites .sprite1 use {
-    stroke-width: 1.0;
+.dark #ov-topo svg #topo-sprites .gold1 use {
     stroke: #541;
     fill: none;
 }
-
-.light #ov-topo svg #topo-sprites .sprite1 text {
+.light #ov-topo svg #topo-sprites .gold1 text {
     fill: #eda;
 }
-.dark #ov-topo svg #topo-sprites .sprite1 text {
+.dark #ov-topo svg #topo-sprites .gold1 text {
     fill: #543;
 }
 
-.light #ov-topo svg #topo-sprites .sprite2 use {
+.light #ov-topo svg #topo-sprites .blue1 use {
     stroke: #bbd;
-    stroke-width: 1.0;
     fill: none;
 }
-.dark #ov-topo svg #topo-sprites .sprite2 use {
+.dark #ov-topo svg #topo-sprites .blue1 use {
     stroke: #445;
-    stroke-width: 1.0;
     fill: none;
 }
-
-.light #ov-topo svg #topo-sprites .sprite2 text {
+.light #ov-topo svg #topo-sprites .blue1 text {
     fill: #cce;
 }
-.dark #ov-topo svg #topo-sprites .sprite2 text {
+.dark #ov-topo svg #topo-sprites .blue1 text {
     fill: #446;
 }
+
+.light #ov-topo svg #topo-sprites .gray1 use {
+    stroke: #bbb;
+    fill: none;
+}
+.dark #ov-topo svg #topo-sprites .gray1 use {
+    stroke: #333;
+    fill: none;
+}
+.light #ov-topo svg #topo-sprites .gray1 text {
+    fill: #ccc;
+}
+.dark #ov-topo svg #topo-sprites .gray1 text {
+    fill: #444;
+}
+

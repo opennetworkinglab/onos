@@ -1,0 +1,122 @@
+{
+  "defn_name": "layout",
+  "defn_desc": "Sample Layout Sprite Data",
+
+  "_comment": [
+    "Sample sprite layout file, demonstrating user-defined outlines",
+    "(1) Register on the server with ...",
+    "    onos-upload-sprites localhost layout.json",
+    "(2) Load into topology view with ...",
+    "    http://localhost:8181/onos/ui/index.html#/topo?sprites=layout"
+  ],
+
+  "_comment_paths": [
+    "The 'paths' array contains custom path data.",
+    "Note that viewbox defaults to [0 0 1000 1000], which is the logical",
+    "coordinate space of the topology view."
+  ],
+  "paths": [
+    {
+      "tag": "border",
+      "d": "M0,0h1000v1000h-1000z",
+      "_comment": "bounds of viewbox 0 0 1000 1000"
+    },
+    {
+      "tag": "multi",
+      "d": [
+        "M500,500l-50,50v-200h100v200z",
+        "M600,400h200v50h-200z"
+      ],
+      "_comment": "shows path constructed from multiple strings"
+    },
+    {
+      "tag": "triangle",
+      "viewbox": "0 0 1 1",
+      "d": "M.5,.2l.3,.6,h-.6z",
+      "_comment": "defines its own viewbox"
+    },
+    {
+      "tag": "diamond",
+      "viewbox": "0 0 1 1",
+      "d": "M.2,.5l.3,-.3l.3,.3l-.3,.3z"
+    }
+  ],
+
+  "_comment_defn": [
+    "The 'defn' array contains sprite definitions that combine",
+    "path, dimensions, and label-offset into 'sprites' that can be",
+    "replicated (stamped) in different positions in the view.",
+    "",
+    "The 'glyph' property refers to glyphs registered with the UI.",
+    "Alternatively, the 'path' property refers to a custom path defined in",
+    "the path array above. The 'dim' property provides the [width,height]",
+    "bounds within which the glyph/path is drawn. The 'labelyoff' property",
+    "defines the Y-offset of the label as a percentage from the top of the",
+    "sprite; for example, 0.4 = 40%. The label is centered horizontally.",
+    "",
+    "Note that dimension (dim) defaults to [1000,1000] so that, by default,",
+    "there is a 1:1 scale mapping of custom paths to the topology view."
+  ],
+  "defn": [
+    {
+      "id": "border",
+      "path": "border"
+    },
+    {
+      "id": "multi",
+      "path": "multi"
+    },
+    {
+      "id": "small_tri",
+      "path": "triangle",
+      "dim":[80,80]
+    },
+    {
+      "id": "big_tri",
+      "path": "triangle",
+      "dim":[160,160]
+    },
+    {
+      "id": "subnet",
+      "glyph": "cloud",
+      "dim":[120,120],
+      "labelyoff": 0.4
+    },
+    {
+      "id": "subnet2",
+      "glyph": "cloud",
+      "dim":[200,200],
+      "labelyoff": 0.4
+    }
+  ],
+
+  "_comment_load": [
+    "The 'load' object contains sprites and labels to load into the view.",
+    "",
+    "Items in the sprite list associate sprites with a position,",
+    "style class, and optional label. Note that the coordinates of",
+    "the position define the top-left corner of the sprite.",
+    "Default 'pos' is [0,0]. Default 'class' is 'gray1'.",
+    "",
+    "Items in the label list associate labels with a position and",
+    "style class. Note that the text is centered on the x-coordinate."
+  ],
+  "load": {
+    "sprites": [
+      { "id": "border" },
+      { "id": "multi", "class": "gray1" },
+      { "id": "subnet", "pos":[-40,20], "label":"apples", "class": "blue1" },
+      { "id": "subnet", "pos":[400,40], "label":"bananas", "class": "blue1" },
+      { "id": "subnet", "pos":[840,60], "label":"cherries", "class": "blue1" },
+      { "id": "subnet2", "pos":[300,400], "class": "gray1" },
+      { "id": "small_tri", "pos":[10, 20] },
+      { "id": "small_tri", "pos":[110, 20] },
+      { "id": "small_tri", "pos":[210, 20] },
+      { "id": "small_tri", "pos":[310, 20] }
+    ],
+    "labels": [
+      { "pos":[500,940], "text":"Sample Layout", "class":"blue1" },
+      { "pos":[500,1000], "text":"Illustrating Sprites", "class":"gray1" }
+    ]
+  }
+}

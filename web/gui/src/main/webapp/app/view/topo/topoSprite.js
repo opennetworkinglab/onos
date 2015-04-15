@@ -16,46 +16,84 @@
 
 /*
  ONOS GUI -- Topology Sprite Module.
- Defines behavior for loading sprites.
+ Defines behavior for loading sprites into the sprite layer.
  */
 
 (function () {
     'use strict';
 
     // injected refs
-    var $log, $http, fs, sus, wss;
+    var $log, $http, fs, gs, sus, wss;
 
     var tssid = 'TopoSpriteService: ';
 
     // internal state
-    var spriteLayer;
+    var spriteLayer, defsElement;
 
-    function doSprite(def, item) {
-        var g;
+    function registerPathsAsGlyphs(paths) {
+        var custom = {},
+            ids = [];
 
-        function xfm(x, y, s) {
-            return sus.translate([x,y]) + sus.scale(s, s);
+        function mkd(d) {
+            return fs.isA(d) ? d.join('') : d;
         }
 
-        g = spriteLayer.append('g')
-            .classed(def['class'], true)
-            .attr('transform', xfm(item.x, item.y, def.scale));
+        if (paths) {
+            paths.forEach(function (path) {
+                var tag = 'spr_' + path.tag;
+                custom['_' + tag] = path.viewbox || '0 0 1000 1000';
+                custom[tag] = mkd(path.d);
+                ids.push(tag);
+            });
 
-        if (item.label) {
-            g.append('text')
-                .text(item.label)
-                .attr({
-                    x: def.width / 2,
-                    y: def.height * def.textyoff
-                });
+            gs.registerGlyphs(custom);
+            gs.loadDefs(defsElement, ids, true);
         }
+    }
+
+    function labAttr(def) {
+        var dim = def.dim || [1000,1000],
+            w = dim[0],
+            h = dim[1],
+            dy = def.labelyoff || 1;
+
+        return { x: w / 2, y: h * dy };
+    }
+
+    function doSprite(spr, def) {
+        var c = spr.class || 'gray1',
+            p = spr.pos || [0,0],
+            lab = spr.label,
+            dim = def.dim || [1000,1000],
+            w = dim[0],
+            h = dim[1],
+            use = def.glyph || 'spr_' + def.path,
+            g = spriteLayer.append('g')
+                .classed(c, true)
+                .attr('transform', sus.translate(p));
 
         g.append('use').attr({
-            width: def.width,
-            height: def.height,
-            'xlink:href': '#' + def.use
+            width: w,
+            height: h,
+            'xlink:href': '#' + use
         });
+
+        if (lab) {
+            g.append('text')
+                .text(lab)
+                .attr(labAttr(def));
+        }
     }
+
+    function doLabel(label) {
+        var c = label.class || 'gray1',
+            p = label.pos || [0,0];
+        spriteLayer.append('text')
+            .text(label.text)
+            .attr('transform', sus.translate(p))
+            .classed(c, true);
+    }
+
 
     // ==========================
     // event handlers
@@ -73,30 +111,49 @@
     //  data for the requested sprite definition.
     function inData(payload) {
         var data = payload.data,
-            name = data && data.defn_name,
-            desc = data && data.defn_desc,
+            name, desc, sprites, labels,
+            paths = {},
             defs = {};
 
         if (!data) {
             $log.warn(tssid + 'No sprite data loaded.')
             return;
         }
+        name = data.defn_name;
+        desc = data.defn_desc;
 
         $log.debug("Loading sprites...[" + name + "]", desc);
 
-        data.defn.forEach(function (d) {
-            defs[d.id] = d;
-        });
+        registerPathsAsGlyphs(data.paths);
 
-        data.load.forEach(function (item) {
-            doSprite(defs[item.id], item);
-        });
+        if (data.defn) {
+            data.defn.forEach(function (d) {
+                defs[d.id] = d;
+            });
+        }
+
+        // pull out the sprite and label items
+        if (data.load) {
+            sprites = data.load.sprites;
+            labels = data.load.labels;
+        }
+
+        if (sprites) {
+            sprites.forEach(function (spr) {
+               doSprite(spr, defs[spr.id]);
+            });
+        }
+
+        if (labels) {
+            labels.forEach(doLabel);
+        }
     }
 
 
-    function loadSprites(layer, defname) {
+    function loadSprites(layer, defsElem, defname) {
         var name = defname || 'sprites';
         spriteLayer = layer;
+        defsElement = defsElem;
 
         $log.info(tssid + 'Requesting sprite definition ['+name+']...');
 
@@ -109,12 +166,14 @@
 
     angular.module('ovTopo')
     .factory('TopoSpriteService',
-        ['$log', '$http', 'FnService', 'SvgUtilService', 'WebSocketService',
+        ['$log', '$http', 'FnService', 'GlyphService',
+            'SvgUtilService', 'WebSocketService',
 
-        function (_$log_, _$http_, _fs_, _sus_, _wss_) {
+        function (_$log_, _$http_, _fs_, _gs_, _sus_, _wss_) {
             $log = _$log_;
             $http = _$http_;
             fs = _fs_;
+            gs = _gs_;
             sus = _sus_;
             wss = _wss_;
 
