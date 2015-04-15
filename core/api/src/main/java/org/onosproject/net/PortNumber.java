@@ -111,6 +111,15 @@ public final class PortNumber {
         return number;
     }
 
+    /**
+     * Returns the backing string value.
+     *
+     * @return port name as string value
+     */
+    public String name() {
+        return name;
+    }
+
     private String decodeLogicalPort() {
         if (number == CONTROLLER_NUMBER) {
             return "CONTROLLER";
