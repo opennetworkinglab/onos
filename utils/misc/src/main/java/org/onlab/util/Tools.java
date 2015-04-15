@@ -231,7 +231,6 @@ public abstract class Tools {
         }
     }
 
-
     /**
      * Purges the specified directory path.&nbsp;Use with great caution since
      * no attempt is made to check for symbolic links, which could result in
@@ -242,9 +241,12 @@ public abstract class Tools {
      */
     public static void removeDirectory(String path) throws IOException {
         DirectoryDeleter visitor = new DirectoryDeleter();
-        walkFileTree(Paths.get(path), visitor);
-        if (visitor.exception != null) {
-            throw visitor.exception;
+        File dir = new File(path);
+        if (dir.exists() && dir.isDirectory()) {
+            walkFileTree(Paths.get(path), visitor);
+            if (visitor.exception != null) {
+                throw visitor.exception;
+            }
         }
     }
 
@@ -258,9 +260,11 @@ public abstract class Tools {
      */
     public static void removeDirectory(File dir) throws IOException {
         DirectoryDeleter visitor = new DirectoryDeleter();
-        walkFileTree(Paths.get(dir.getAbsolutePath()), visitor);
-        if (visitor.exception != null) {
-            throw visitor.exception;
+        if (dir.exists() && dir.isDirectory()) {
+            walkFileTree(Paths.get(dir.getAbsolutePath()), visitor);
+            if (visitor.exception != null) {
+                throw visitor.exception;
+            }
         }
     }
 

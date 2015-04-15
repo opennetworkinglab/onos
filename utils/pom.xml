@@ -39,6 +39,7 @@
         <module>osgi</module>
         <module>rest</module>
         <module>thirdparty</module>
+        <module>stc</module>
         <module>jdvue</module>
         <module>jnc</module> <!-- FIXME publish and remove before release -->
     </modules>

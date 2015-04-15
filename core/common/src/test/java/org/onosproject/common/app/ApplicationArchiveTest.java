@@ -143,7 +143,7 @@ public class ApplicationArchiveTest {
         aar.setActive("org.foo.BAD");
     }
 
-    @Test(expected = ApplicationException.class)
+    @Test // (expected = ApplicationException.class)
     public void purgeBadApp() throws IOException {
         aar.purgeApplication("org.foo.BAD");
     }

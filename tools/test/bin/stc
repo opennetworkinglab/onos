@@ -1,0 +1,13 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#   System Test Coordinator
+#-------------------------------------------------------------------------------
+
+STC_ROOT=${STC_ROOT:-$(dirname $0)/..}
+cd $STC_ROOT
+VER=1.2.0-SNAPSHOT
+
+PATH=$PWD/bin:$PATH
+
+java -jar ~/.m2/repository/org/onosproject/onlab-stc/$VER/onlab-stc-$VER.jar \
+    "${@:-$ONOS_ROOT/tools/test/scenarios/smoke.xml}"

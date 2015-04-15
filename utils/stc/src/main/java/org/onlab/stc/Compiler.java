@@ -1,0 +1,419 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onlab.stc;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.stc.Scenario.loadScenario;
+
+/**
+ * Entity responsible for loading a scenario and producing a redy-to-execute
+ * process flow graph.
+ */
+public class Compiler {
+
+    private static final String DEFAULT_LOG_DIR = "${env.WORKSPACE}/tmp/stc/";
+
+    private static final String IMPORT = "import";
+    private static final String GROUP = "group";
+    private static final String STEP = "step";
+    private static final String PARALLEL = "parallel";
+    private static final String DEPENDENCY = "dependency";
+
+    private static final String LOG_DIR = "[@logDir]";
+    private static final String NAME = "[@name]";
+    private static final String COMMAND = "[@exec]";
+    private static final String REQUIRES = "[@requires]";
+    private static final String IF = "[@if]";
+    private static final String UNLESS = "[@unless]";
+    private static final String VAR = "[@var]";
+    private static final String FILE = "[@file]";
+    private static final String NAMESPACE = "[@namespace]";
+
+    private static final String PROP_START = "${";
+    private static final String PROP_END = "}";
+    private static final String HASH = "#";
+
+    private final Scenario scenario;
+
+    private final Map<String, Step> steps = Maps.newHashMap();
+    private final Map<String, Step> inactiveSteps = Maps.newHashMap();
+    private final Set<Dependency> dependencies = Sets.newHashSet();
+    private final List<Integer> parallels = Lists.newArrayList();
+
+    private ProcessFlow processFlow;
+    private File logDir;
+
+    private String pfx = "";
+    private boolean debugOn = System.getenv("debug") != null;
+
+    /**
+     * Creates a new compiler for the specified scenario.
+     *
+     * @param scenario scenario to be compiled
+     */
+    public Compiler(Scenario scenario) {
+        this.scenario = scenario;
+    }
+
+    /**
+     * Returns the scenario being compiled.
+     *
+     * @return test scenario
+     */
+    public Scenario scenario() {
+        return scenario;
+    }
+
+    /**
+     * Compiles the specified scenario to produce a final process flow graph.
+     */
+    public void compile() {
+        compile(scenario.definition(), null, null);
+
+        // Produce the process flow
+        processFlow = new ProcessFlow(ImmutableSet.copyOf(steps.values()),
+                                      ImmutableSet.copyOf(dependencies));
+
+        // Extract the log directory if there was one specified
+        String path = scenario.definition().getString(LOG_DIR, DEFAULT_LOG_DIR);
+        logDir = new File(expand(path));
+    }
+
+    /**
+     * Returns the step with the specified name.
+     *
+     * @param name step or group name
+     * @return test step or group
+     */
+    public Step getStep(String name) {
+        return steps.get(name);
+    }
+
+    /**
+     * Returns the process flow generated from this scenario definition.
+     *
+     * @return process flow as a graph
+     */
+    public ProcessFlow processFlow() {
+        return processFlow;
+    }
+
+    /**
+     * Returns the log directory where scenario logs should be kept.
+     * @return scenario logs directory
+     */
+    public File logDir() {
+        return logDir;
+    }
+
+    /**
+     * Recursively elaborates this definition to produce a final process flow graph.
+     *
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     */
+    private void compile(HierarchicalConfiguration cfg,
+                         String namespace, Group parentGroup) {
+        String opfx = pfx;
+        pfx = pfx + ">";
+
+        // Scan all imports
+        cfg.configurationsAt(IMPORT)
+                .forEach(c -> processImport(c, namespace, parentGroup));
+
+        // Scan all steps
+        cfg.configurationsAt(STEP)
+                .forEach(c -> processStep(c, namespace, parentGroup));
+
+        // Scan all groups
+        cfg.configurationsAt(GROUP)
+                .forEach(c -> processGroup(c, namespace, parentGroup));
+
+        // Scan all parallel groups
+        cfg.configurationsAt(PARALLEL)
+                .forEach(c -> processParallelGroup(c, namespace, parentGroup));
+
+        // Scan all dependencies
+        cfg.configurationsAt(DEPENDENCY)
+                .forEach(c -> processDependency(c, namespace));
+
+        pfx = opfx;
+    }
+
+    /**
+     * Processes an import directive.
+     *
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     */
+    private void processImport(HierarchicalConfiguration cfg,
+                               String namespace, Group parentGroup) {
+        String file = checkNotNull(expand(cfg.getString(FILE)),
+                                   "Import directive must specify 'file'");
+        String newNamespace = expand(prefix(cfg.getString(NAMESPACE), namespace));
+        print("import file=%s namespace=%s", file, newNamespace);
+        try {
+            Scenario importScenario = loadScenario(new FileInputStream(file));
+            compile(importScenario.definition(), namespace, parentGroup);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Unable to import scenario", e);
+        }
+    }
+
+    /**
+     * Processes a step directive.
+     *
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     */
+    private void processStep(HierarchicalConfiguration cfg,
+                             String namespace, Group parentGroup) {
+        String name = expand(prefix(cfg.getString(NAME), namespace));
+        String defaultValue = parentGroup != null ? parentGroup.command() : null;
+        String command = expand(cfg.getString(COMMAND, defaultValue));
+
+        print("step name=%s command=%s", name, command);
+        Step step = new Step(name, command, parentGroup);
+        registerStep(step, cfg, namespace, parentGroup);
+    }
+
+    /**
+     * Processes a group directive.
+     *
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     */
+    private void processGroup(HierarchicalConfiguration cfg,
+                              String namespace, Group parentGroup) {
+        String name = expand(prefix(cfg.getString(NAME), namespace));
+        String defaultValue = parentGroup != null ? parentGroup.command() : null;
+        String command = expand(cfg.getString(COMMAND, defaultValue));
+
+        print("group name=%s command=%s", name, command);
+        Group group = new Group(name, command, parentGroup);
+        if (registerStep(group, cfg, namespace, parentGroup)) {
+            compile(cfg, namespace, group);
+        }
+    }
+
+    /**
+     * Registers the specified step or group.
+     *
+     * @param step        step or group
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     * @return true of the step or group was registered as active
+     */
+    private boolean registerStep(Step step, HierarchicalConfiguration cfg,
+                                 String namespace, Group parentGroup) {
+        String ifClause = expand(cfg.getString(IF));
+        String unlessClause = expand(cfg.getString(UNLESS));
+
+        if ((ifClause != null && ifClause.length() == 0) ||
+                (unlessClause != null && unlessClause.length() > 0) ||
+                (parentGroup != null && inactiveSteps.containsValue(parentGroup))) {
+            inactiveSteps.put(step.name(), step);
+            return false;
+        }
+
+        if (parentGroup != null) {
+            parentGroup.addChild(step);
+        }
+        steps.put(step.name(), step);
+        processRequirements(step, expand(cfg.getString(REQUIRES)), namespace);
+        return true;
+    }
+
+    /**
+     * Processes a parallel clone group directive.
+     *
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     */
+    private void processParallelGroup(HierarchicalConfiguration cfg,
+                                      String namespace, Group parentGroup) {
+        String var = cfg.getString(VAR);
+        print("parallel var=%s", var);
+
+        int i = 1;
+        while (condition(var, i).length() > 0) {
+            parallels.add(0, i);
+            compile(cfg, namespace, parentGroup);
+            parallels.remove(0);
+            i++;
+        }
+    }
+
+    /**
+     * Returns the elaborated repetition construct conditional.
+     *
+     * @param var repetition var property
+     * @param i   index to elaborate
+     * @return elaborated string
+     */
+    private String condition(String var, Integer i) {
+        return expand(var.replaceFirst("#", i.toString())).trim();
+    }
+
+    /**
+     * Processes a dependency directive.
+     *
+     * @param cfg       hierarchical definition
+     * @param namespace optional namespace
+     */
+    private void processDependency(HierarchicalConfiguration cfg, String namespace) {
+        String name = expand(prefix(cfg.getString(NAME), namespace));
+        String requires = expand(cfg.getString(REQUIRES));
+
+        print("dependency name=%s requires=%s", name, requires);
+        Step step = getStep(name, namespace);
+        processRequirements(step, requires, namespace);
+    }
+
+    /**
+     * Processes the specified requiremenst string and adds dependency for
+     * each requirement of the given step.
+     *
+     * @param src       source step
+     * @param requires  comma-separated list of required steps
+     * @param namespace optional namespace
+     */
+    private void processRequirements(Step src, String requires, String namespace) {
+        split(requires).forEach(name -> {
+            boolean isSoft = name.startsWith("-");
+            Step dst = getStep(expand(name.replaceFirst("^-", "")), namespace);
+            if (!inactiveSteps.containsValue(dst)) {
+                dependencies.add(new Dependency(src, dst, isSoft));
+            }
+        });
+    }
+
+    /**
+     * Retrieves the step or group with the specified name.
+     *
+     * @param name      step or group name
+     * @param namespace optional namespace
+     * @return step or group; null if none found in active or inactive steps
+     */
+    private Step getStep(String name, String namespace) {
+        String dName = prefix(name, namespace);
+        Step step = steps.get(dName);
+        step = step != null ? step : inactiveSteps.get(dName);
+        checkArgument(step != null, "Unknown step %s", dName);
+        return step;
+    }
+
+    /**
+     * Prefixes the specified name with the given namespace.
+     *
+     * @param name      name of a step or a group
+     * @param namespace optional namespace
+     * @return composite name
+     */
+    private String prefix(String name, String namespace) {
+        return namespace != null ? namespace + "." + name : name;
+    }
+
+    /**
+     * Expands any environment variables in the specified
+     * string. These are specified as ${property} tokens.
+     *
+     * @param string string to be processed
+     * @return original string with expanded substitutions
+     */
+    private String expand(String string) {
+        if (string == null) {
+            return null;
+        }
+
+        String pString = string;
+        StringBuilder sb = new StringBuilder();
+        int start, end, last = 0;
+        while ((start = pString.indexOf(PROP_START, last)) >= 0) {
+            end = pString.indexOf(PROP_END, start + PROP_START.length());
+            checkArgument(end > start, "Malformed property in %s", pString);
+            sb.append(pString.substring(last, start));
+            String prop = pString.substring(start + PROP_START.length(), end);
+            String value;
+            if (prop.equals(HASH)) {
+                value = parallels.get(0).toString();
+            } else if (prop.endsWith(HASH)) {
+                pString = pString.replaceFirst("#}", parallels.get(0).toString() + "}");
+                last = start;
+                continue;
+            } else {
+                // Try system property first, then fall back to env. variable.
+                value = System.getProperty(prop);
+                if (value == null) {
+                    value = System.getenv(prop);
+                }
+            }
+            sb.append(value != null ? value : "");
+            last = end + 1;
+        }
+        sb.append(pString.substring(last));
+        return sb.toString();
+    }
+
+    /**
+     * Splits the comma-separated string into a list of strings.
+     *
+     * @param string string to split
+     * @return list of strings
+     */
+    private List<String> split(String string) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        String[] fields = string != null ? string.split(",") : new String[0];
+        for (String field : fields) {
+            builder.add(field.trim());
+        }
+        return builder.build();
+    }
+
+    /**
+     * Prints formatted output.
+     *
+     * @param format printf format string
+     * @param args   arguments to be printed
+     */
+    private void print(String format, Object... args) {
+        if (debugOn) {
+            System.err.println(pfx + String.format(format, args));
+        }
+    }
+
+}

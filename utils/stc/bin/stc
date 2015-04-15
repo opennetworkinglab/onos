@@ -1,0 +1,12 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#   System Test Coordinator
+#-------------------------------------------------------------------------------
+
+STC_ROOT=${STC_ROOT:-$(dirname $0)/..}
+cd $STC_ROOT
+VER=1.2.0-SNAPSHOT
+
+PATH=$PWD/bin:$PATH
+
+java -jar target/onlab-stc-$VER.jar "$@"
