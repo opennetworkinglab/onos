@@ -225,21 +225,21 @@ public class OnosAppMojo extends AbstractMojo {
     }
 
     // Stages all artifacts.
-    private void processArtifacts() {
-        artifacts.forEach(this::processArtifact);
+    private void processArtifacts() throws MojoExecutionException {
+        for (String artifact : artifacts) {
+            processArtifact(artifact);
+        }
     }
 
     // Stages the specified artifact.
-    private void processArtifact(String artifact) {
+    private void processArtifact(String artifact) throws MojoExecutionException {
         if (!artifact.startsWith(MVN_URL)) {
-            getLog().error("Unsupported artifact URL:" + artifact);
-            return;
+            throw new MojoExecutionException("Unsupported artifact URL:" + artifact);
         }
 
         String[] fields = artifact.substring(4).split("/");
         if (fields.length < 3) {
-            getLog().error("Illegal artifact URL:" + artifact);
-            return;
+            throw new MojoExecutionException("Illegal artifact URL:" + artifact);
         }
 
         try {
@@ -254,12 +254,12 @@ public class OnosAppMojo extends AbstractMojo {
                 // Other artifacts are packaged from ~/.m2/repository directory.
                 String m2Path = artifactDir(fields);
                 File srcDir = new File(m2Directory, m2Path);
-                File dstDir = new File(stageDirectory, m2Path);
+                File dstDir = new File(stageDirectory, M2_PREFIX + "/" + m2Path);
                 forceMkdir(dstDir);
                 copyFile(new File(srcDir, file), new File(dstDir, file));
             }
         } catch (IOException e) {
-            getLog().error("Unable to stage artifact " + artifact + " due to ", e);
+            throw new MojoExecutionException("Unable to stage artifact " + artifact, e);
         }
     }
 
