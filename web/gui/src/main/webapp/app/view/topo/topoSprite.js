@@ -23,55 +23,12 @@
     'use strict';
 
     // injected refs
-    var $log, $http, fs, sus;
+    var $log, $http, fs, sus, wss;
+
+    var tssid = 'TopoSpriteService: ';
 
     // internal state
-    var spriteLayer,
-        cache = d3.map();
-
-    // constants
-    var urlPrefix = 'data/ext/';
-
-    function getUrl(id) {
-        return urlPrefix + id + '.json';
-    }
-
-    // =========================
-
-    function clearCache() {
-        cache = d3.map();
-    }
-
-
-    function loadSpriteData(id, cb) {
-        var url = getUrl(id),
-            promise = cache.get(id);
-
-        if (!promise) {
-            // need to fetch data and cache it
-            promise = $http.get(url);
-
-            promise.meta = {
-                id: id,
-                url: url,
-                wasCached: false
-            };
-
-            promise.then(function (response) {
-                // success
-                promise.spriteData = response.data;
-                cb(promise.spriteData);
-            }, function (response) {
-                // error
-                $log.warn('Failed to retrieve sprite data: ' + url,
-                    response.status, response.data);
-            });
-
-        } else {
-            promise.meta.wasCached = true;
-            cb(promise.spriteData);
-        }
-    }
+    var spriteLayer;
 
     function doSprite(def, item) {
         var g;
@@ -100,42 +57,71 @@
         });
     }
 
-    function loadSprites(layer) {
-        spriteLayer = layer;
+    // ==========================
+    // event handlers
 
-        loadSpriteData('sprites', function (data) {
-            var defs = {};
-
-            $log.debug("Loading sprites...", data.file_desc);
-
-            data.defn.forEach(function (d) {
-                defs[d.id] = d;
-            });
-
-            data.load.forEach(function (item) {
-                doSprite(defs[item.id], item);
-            });
-        });
-
+    // Handles response from 'spriteListRequest' which lists all the
+    // registered sprite definitions on the server.
+    // (see onos-upload-sprites)
+    function inList(payload) {
+        $log.debug(tssid + 'Registered sprite definitions:', payload.names);
+        // Some day, we will make this list available to the user in
+        //  a dropdown selection box...
     }
 
+    // Handles response from 'spriteDataRequest' which provides the
+    //  data for the requested sprite definition.
+    function inData(payload) {
+        var data = payload.data,
+            name = data && data.defn_name,
+            desc = data && data.defn_desc,
+            defs = {};
+
+        if (!data) {
+            $log.warn(tssid + 'No sprite data loaded.')
+            return;
+        }
+
+        $log.debug("Loading sprites...[" + name + "]", desc);
+
+        data.defn.forEach(function (d) {
+            defs[d.id] = d;
+        });
+
+        data.load.forEach(function (item) {
+            doSprite(defs[item.id], item);
+        });
+    }
+
+
+    function loadSprites(layer, defname) {
+        var name = defname || 'sprites';
+        spriteLayer = layer;
+
+        $log.info(tssid + 'Requesting sprite definition ['+name+']...');
+
+        wss.sendEvent('spriteListRequest');
+        wss.sendEvent('spriteDataRequest', {name: name});
+    }
 
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
 
     angular.module('ovTopo')
     .factory('TopoSpriteService',
-        ['$log', '$http', 'FnService', 'SvgUtilService',
+        ['$log', '$http', 'FnService', 'SvgUtilService', 'WebSocketService',
 
-        function (_$log_, _$http_, _fs_, _sus_) {
+        function (_$log_, _$http_, _fs_, _sus_, _wss_) {
             $log = _$log_;
             $http = _$http_;
             fs = _fs_;
             sus = _sus_;
+            wss = _wss_;
 
             return {
-                clearCache: clearCache,
-                loadSprites: loadSprites
+                loadSprites: loadSprites,
+                spriteListResponse: inList,
+                spriteDataResponse: inData
             };
         }]);
 

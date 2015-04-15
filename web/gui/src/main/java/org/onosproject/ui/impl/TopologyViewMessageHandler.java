@@ -581,8 +581,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Sends requested sprite data.
     private void sendSpriteData(ObjectNode event) {
+        String name = event.path("payload").path("name").asText();
         ObjectNode root = mapper.createObjectNode();
-        root.set("defn", get(SpriteService.class).get(event.path("payload").path("name").asText()));
+        root.set("data", get(SpriteService.class).get(name));
         sendMessage(envelope("spriteDataResponse", number(event, "sid"), root));
     }
 

@@ -6,6 +6,12 @@
 node=${1}
 sprites=${2}
 
+if [ -z "$node" -o -z "$sprites" ]
+then
+    echo "Usage: onos-upload-sprites <server-ip> <sprites-defn.json>"
+    exit 1
+fi
+
 export URL=http://$node:8181/onos/ui/rs/topology/sprites
 export HDR="-HContent-Type:application/json"
 

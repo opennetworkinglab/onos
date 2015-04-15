@@ -130,7 +130,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     @Override
     public void put(String name, JsonNode spriteData) {
-        log.info("Registered sprite definition {}", name);
+        log.info("Registered sprite definition [{}]", name);
         sprites.put(name, spriteData);
     }
 

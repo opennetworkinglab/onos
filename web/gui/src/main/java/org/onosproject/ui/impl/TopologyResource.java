@@ -86,7 +86,7 @@ public class TopologyResource extends BaseResource {
     @Consumes("application/json")
     public Response setSprites(InputStream stream) throws IOException {
         JsonNode root = mapper.readTree(stream);
-        String name = root.path("defn_id").asText("sprites");
+        String name = root.path("defn_name").asText("sprites");
         get(SpriteService.class).put(name, root);
         return Response.ok().build();
     }

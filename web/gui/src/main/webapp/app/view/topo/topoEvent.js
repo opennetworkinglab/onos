@@ -27,7 +27,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, tps, tis, tfs, tss, tts;
+    var $log, wss, tps, tis, tfs, tss, tts, tspr;
 
     // internal state
     var handlerMap,
@@ -55,7 +55,10 @@
             removeHost: tfs,
             addLink: tfs,
             updateLink: tfs,
-            removeLink: tfs
+            removeLink: tfs,
+
+            spriteListResponse: tspr,
+            spriteDataResponse: tspr
         };
     }
 
@@ -69,9 +72,9 @@
     .factory('TopoEventService',
         ['$log', '$location', 'WebSocketService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
-            'TopoSelectService', 'TopoTrafficService',
+            'TopoSelectService', 'TopoTrafficService', 'TopoSpriteService',
 
-        function (_$log_, $loc, _wss_, _tps_, _tis_, _tfs_, _tss_, _tts_) {
+        function (_$log_, $loc, _wss_, _tps_, _tis_, _tfs_, _tss_, _tts_, _tspr_) {
             $log = _$log_;
             wss = _wss_;
             tps = _tps_;
@@ -79,6 +82,7 @@
             tfs = _tfs_;
             tss = _tss_;
             tts = _tts_;
+            tspr = _tspr_;
 
             createHandlerMap();
 
@@ -86,8 +90,6 @@
                 openListener = wss.addOpenListener(wsOpen);
                 wss.bindHandlers(handlerMap);
                 wss.sendEvent('topoStart');
-                wss.sendEvent('spriteListRequest');
-                wss.sendEvent('spriteDataRequest', {name: 'sample'});
                 $log.debug('topo comms started');
             }
 

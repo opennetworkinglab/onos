@@ -366,7 +366,7 @@
                 }
             );
             spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
-            tspr.loadSprites(spriteG);
+            tspr.loadSprites(spriteG, $loc.search().sprites);
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);

@@ -1,6 +1,6 @@
 {
-  "defn_id": "sample",
-  "file_desc": "Cloud Sprite Data",
+  "defn_name": "sample",
+  "defn_desc": "Sample Cloud Sprite Data",
 
   "_comment": [
     "configuration file for loading canned and/or custom sprites (and labels)",
