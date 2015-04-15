@@ -18,6 +18,7 @@ package org.onosproject.maven;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -57,7 +58,6 @@ public class OnosAppMojo extends AbstractMojo {
     private static final String FEATURES_XML = "features.xml";
 
     private static final String MVN_URL = "mvn:";
-    private static final String M2_REPOSITORY = ".m2/repository";
     private static final String M2_PREFIX = "m2";
 
     private static final String SNAPSHOT = "-SNAPSHOT";
@@ -108,17 +108,20 @@ public class OnosAppMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.description}")
     protected String projectDescription;
 
+    @Parameter(defaultValue = "${localRepository}")
+    protected ArtifactRepository localRepository;
+
     /**
      * Maven project
      */
-    @Component
-    private MavenProject project;
+    @Parameter(defaultValue = "${project}")
+    protected MavenProject project;
 
     /**
      * Maven project helper.
      */
     @Component
-    private MavenProjectHelper projectHelper;
+    protected MavenProjectHelper projectHelper;
 
 
     private File m2Directory;
@@ -135,7 +138,7 @@ public class OnosAppMojo extends AbstractMojo {
             return;
         }
 
-        m2Directory = new File(System.getProperty("user.home"), M2_REPOSITORY);
+        m2Directory = new File(localRepository.getBasedir());
         stageDirectory = new File(dstDirectory, PACKAGE_DIR);
         featureVersion = projectVersion.replace(SNAPSHOT, "");
         projectPath = M2_PREFIX + "/" + artifactDir(projectGroupId, projectArtifactId, projectVersion);
@@ -147,11 +150,14 @@ public class OnosAppMojo extends AbstractMojo {
             getLog().info("Building ONOS application package for " + name + " (v" + version + ")");
             artifacts.forEach(a -> getLog().debug("Including artifact: " + a));
 
-            stageDirectory.mkdirs();
-            processAppXml(appFile);
-            processFeaturesXml(featuresFile);
-            processArtifacts();
-            generateAppPackage();
+            if (stageDirectory.exists() || stageDirectory.mkdirs()) {
+                processAppXml(appFile);
+                processFeaturesXml(featuresFile);
+                processArtifacts();
+                generateAppPackage();
+            } else {
+                throw new MojoExecutionException("Unable to create directory: " + stageDirectory);
+            }
         }
     }
 
