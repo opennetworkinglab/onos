@@ -14,7 +14,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.sdnip" origin="ON.Lab" version="1.2.0"
-        features="onos-app-sdnip">
-    <description>SDN/IP use-case application</description>
+<app name="org.onosproject.sdnip" origin="ON.Lab" version="${feature.version}"
+     featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
+     features="${project.artifactId}">
+    <description>${project.description}</description>
+    <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-routing-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-routing/${project.version}</artifact>
 </app>

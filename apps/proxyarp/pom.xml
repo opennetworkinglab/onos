@@ -29,7 +29,7 @@
     <artifactId>onos-app-proxyarp</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS simple proxy arp module</description>
+    <description>Proxy ARP/NDP application</description>
 
     <dependencies>
         <dependency>

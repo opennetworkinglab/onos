@@ -29,14 +29,9 @@
     <artifactId>onos-app-intent-perf</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS intent perf app bundle</description>
+    <description>Intent performance test application</description>
 
     <dependencies>
-        <dependency>
-            <groupId>org.apache.karaf.shell</groupId>
-            <artifactId>org.apache.karaf.shell.console</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-cli</artifactId>
@@ -46,6 +41,10 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
         <!-- Required for javadoc generation -->
         <dependency>
            <groupId>org.osgi</groupId>
@@ -53,24 +52,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.5.3</version>
-                <configuration>
-                    <descriptor>src/assembly/bin.xml</descriptor>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

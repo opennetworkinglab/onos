@@ -21,6 +21,9 @@ import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 
+import java.io.IOException;
+import java.net.URL;
+
 /**
  * Manages application inventory.
  */
@@ -34,11 +37,11 @@ public class ApplicationCommand extends AbstractShellCommand {
     static final String DEACTIVATE = "deactivate";
 
     @Argument(index = 0, name = "command",
-            description = "Command name (activate|deactivate|uninstall)",
+            description = "Command name (install|activate|deactivate|uninstall)",
             required = true, multiValued = false)
     String command = null;
 
-    @Argument(index = 1, name = "names", description = "Application name(s)",
+    @Argument(index = 1, name = "names", description = "Application name(s) or URL(s)",
             required = true, multiValued = true)
     String[] names = null;
 
@@ -46,27 +49,55 @@ public class ApplicationCommand extends AbstractShellCommand {
     protected void execute() {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         if (command.equals(INSTALL)) {
-            print("Not supported via CLI yet.");
+            for (String name : names) {
+                if (!installApp(service, name)) {
+                    return;
+                }
+            }
 
         } else {
             for (String name : names) {
-                ApplicationId appId = service.getId(name);
-                if (appId == null) {
-                    print("No such application: %s", name);
+                if (!manageApp(service, name)) {
                     return;
-                }
-
-                if (command.equals(UNINSTALL)) {
-                    service.uninstall(appId);
-                } else if (command.equals(ACTIVATE)) {
-                    service.activate(appId);
-                } else if (command.equals(DEACTIVATE)) {
-                    service.deactivate(appId);
-                } else {
-                    print("Unsupported command: %s", command);
                 }
             }
         }
+    }
+
+    // Installs the application from input of the specified URL
+    private boolean installApp(ApplicationAdminService service, String url) {
+        try {
+            if (url.equals("-")) {
+                service.install(System.in);
+            } else {
+                service.install(new URL(url).openStream());
+            }
+        } catch (IOException e) {
+            error("Unable to get URL: %s", url);
+            return false;
+        }
+        return true;
+    }
+
+    // Manages the specified application.
+    private boolean manageApp(ApplicationAdminService service, String name) {
+        ApplicationId appId = service.getId(name);
+        if (appId == null) {
+            print("No such application: %s", name);
+            return false;
+        }
+
+        if (command.equals(UNINSTALL)) {
+            service.uninstall(appId);
+        } else if (command.equals(ACTIVATE)) {
+            service.activate(appId);
+        } else if (command.equals(DEACTIVATE)) {
+            service.deactivate(appId);
+        } else {
+            print("Unsupported command: %s", command);
+            return false;
+        }
+        return true;
     }
 
 }

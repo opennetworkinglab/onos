@@ -30,7 +30,7 @@
     <artifactId>onos-app-election</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS app leadership election test</description>
+    <description>Master election test application</description>
 
     <dependencies>
 

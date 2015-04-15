@@ -77,6 +77,7 @@
                             org.slf4j,
                             org.osgi.framework,
                             javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
+                            javax.servlet.*,
                             com.sun.jersey.api,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.server.impl.container.servlet,

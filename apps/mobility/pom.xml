@@ -29,7 +29,7 @@
     <artifactId>onos-app-mobility</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS simple Mobility app</description>
+    <description>Host mobility application</description>
 
     <dependencies>
       <dependency>

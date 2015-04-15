@@ -29,7 +29,7 @@
     <artifactId>onos-app-demo</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS demo app bundle</description>
+    <description>Flow throughput test application</description>
 
     <properties>
         <web.context>/onos/demo</web.context>

@@ -56,7 +56,7 @@ fi
 
 if ! grep -q ",onos-api," $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
     # Patch the Apache Karaf distribution file to load default ONOS boot features
-    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui,onos-openflow"
+    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui"
     echo "Adding ONOS boot features $BOOT_FEATURES..."
     perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
         $KARAF_ROOT/etc/org.apache.karaf.features.cfg
@@ -89,19 +89,11 @@ cp $ONOS_ROOT/tools/package/etc/hazelcast.xml $KARAF_ROOT/etc/hazelcast.xml
 perl -pi.old -e "s/192.168.56/$SUBNET/" $KARAF_ROOT/etc/hazelcast.xml
 perl -pi.old -e "s/        <name>onos</        <name>$IP</" $KARAF_ROOT/etc/hazelcast.xml
 
-
 echo "Staging builtin apps..."
 rm -fr $STAGE/apps
-mkdir -p $STAGE/apps
-find $ONOS_ROOT -name 'app.xml' | egrep -v '/src/test/|/target/|org\.foo\.' | \
-    xargs grep 'name=' | sed 's/<app name="//g;s/".*//g' | while read line; do
-        appxml=${line%:*}
-        app=${line#*:}
-        mkdir $STAGE/apps/$app
-        cp $appxml $STAGE/apps/$app/app.xml
-    done
+onos-stage-apps $STAGE/apps $KARAF_ROOT/system
 
 echo "Customizing apps to be auto-activated..."
-for app in $(echo $ONOS_APPS | tr ',' ' '); do
+for app in $(echo ${ONOS_APPS:-openflow} | tr ',' ' '); do
     touch $STAGE/apps/org.onosproject.$app/active
 done

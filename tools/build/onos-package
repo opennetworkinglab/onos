@@ -28,8 +28,8 @@ fi
     echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
-[ -f $KARAF_ZIP ] && unzip -q $KARAF_ZIP && rm -rf $KARAF_DIST/demos
-[ -f $KARAF_TAR ] && tar zxf $KARAF_TAR && rm -rf $KARAF_DIST/demos
+[ -f $KARAF_ZIP ] && unzip -q $KARAF_ZIP && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
+[ -f $KARAF_TAR ] && tar zxf $KARAF_TAR && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
 mkdir bin
 
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
@@ -38,14 +38,7 @@ cp -r $ONOS_ROOT/tools/package/debian $ONOS_STAGE/debian
 cp -r $ONOS_ROOT/tools/package/etc/* $ONOS_STAGE/$KARAF_DIST/etc
 
 # Stage all builtin ONOS apps for factory install
-mkdir $ONOS_STAGE/apps
-find $ONOS_ROOT -name 'app.xml' | egrep -v '/src/test/|/target/|org\.foo\.' | \
-    xargs grep 'name=' | sed 's/<app name="//g;s/".*//g' | while read line; do
-        appxml=${line%:*}
-        app=${line#*:}
-        mkdir $ONOS_STAGE/apps/$app
-        cp $appxml $ONOS_STAGE/apps/$app/app.xml
-    done
+onos-stage-apps $ONOS_STAGE/apps $ONOS_STAGE/$KARAF_DIST/system
 
 # Patch-in proper Karaf version into the startup script
 sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
@@ -54,14 +47,13 @@ sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
     $ONOS_ROOT/tools/package/bin/onos > bin/onos
 
 # Stage the ONOS bundles, but only those that match the version
-mkdir -p $KARAF_DIST/system/org/onosproject
-# cp -r $M2_REPO/org/onosproject/ $KARAF_DIST/system/org/
+mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
 find $M2_REPO/org/onosproject/ -type d -name $ONOS_POM_VERSION | while read line; do
     path=${line#*/onosproject/}
     artifact=${path%/$ONOS_POM_VERSION}
-    mkdir -p $KARAF_DIST/system/org/onosproject/$artifact
+    mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject/$artifact
     cp -r $M2_REPO/org/onosproject/$artifact/$ONOS_POM_VERSION \
-        $KARAF_DIST/system/org/onosproject/$artifact/$ONOS_POM_VERSION
+        $ONOS_STAGE/$KARAF_DIST/system/org/onosproject/$artifact/$ONOS_POM_VERSION
 done
 
 # ONOS Patching ----------------------------------------------------------------
@@ -84,6 +76,7 @@ echo $ONOS_VERSION > $ONOS_STAGE/VERSION
 
 # Now package up the ONOS tar file
 cd $ONOS_STAGE_ROOT
+rm -f $ONOS_TAR $ONOS_ZIP
 COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
 which zip >/dev/null && zip -rq $ONOS_ZIP $ONOS_BITS
 ls -l $ONOS_TAR $ONOS_ZIP 2>/dev/null

@@ -628,7 +628,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void event(MastershipEvent event) {
             sendAllInstances("updateInstance");
             Device device = deviceService.getDevice(event.subject());
-            sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));
+            if (device != null) {
+                sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));
+            }
         }
     }
 

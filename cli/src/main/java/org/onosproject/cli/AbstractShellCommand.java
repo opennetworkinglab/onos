@@ -18,17 +18,17 @@ package org.onosproject.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Option;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.console.AbstractAction;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Annotations;
-import org.onlab.osgi.DefaultServiceDirectory;
-import org.onlab.osgi.ServiceNotFoundException;
 
 /**
  * Base abstraction of Karaf shell commands.
  */
-public abstract class AbstractShellCommand extends OsgiCommandSupport {
+public abstract class AbstractShellCommand extends AbstractAction {
 
     @Option(name = "-j", aliases = "--json", description = "Output JSON",
             required = false, multiValued = false)

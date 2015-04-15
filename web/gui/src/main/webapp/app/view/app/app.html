@@ -3,11 +3,16 @@
     <div class="tabular-header">
         <h2>Applications ({{ctrl.tableData.length}} total)</h2>
         <div class="ctrl-btns">
-            <div icon icon-size="36" icon-id="plus"></div>
-            <div icon icon-size="36" icon-id="minus" class="disabled"></div>
-            <div icon icon-size="36" icon-id="play" class="disabled"></div>
-            <div icon icon-size="36" icon-id="stop" class="disabled"></div>
+            <div id="app-install"    icon icon-size="36" icon-id="plus" class="active"></div>
+            <div id="app-activate"   icon icon-size="36" icon-id="play"></div>
+            <div id="app-deactivate" icon icon-size="36" icon-id="stop"></div>
+            <div id="app-uninstall"  icon icon-size="36" icon-id="minus"></div>
         </div>
+
+        <form id="app-form" method="POST" action="/onos/v1/applications/upload" enctype="multipart/form-data" style="display:none">
+            <input type="file" id="file" accept=".oar">
+            <button type="submit" id="app-upload">Upload</button>
+        </form>
     </div>
 
     <table class="summary-list"
@@ -20,7 +25,7 @@
                 <th colId="id" sortable>App ID </th>
                 <th colId="version" sortable>Version </th>
                 <th colId="origin" sortable>Origin </th>
-                <th colId="desc" col-width="400px">Description </th>
+                <th colId="desc" col-width="640px">Description </th>
             </tr>
         </thead>
 

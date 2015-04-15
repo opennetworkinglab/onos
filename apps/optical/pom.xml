@@ -29,7 +29,7 @@
     <artifactId>onos-app-optical</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS application for packet/optical deployments</description>
+    <description>Packet/Optical use-case application</description>
 
     <dependencies>
 

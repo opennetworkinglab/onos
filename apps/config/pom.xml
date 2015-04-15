@@ -29,7 +29,7 @@
     <artifactId>onos-app-config</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS simple network configuration reader</description>
+    <description>Network configuration application</description>
 
     <dependencies>
       <dependency>

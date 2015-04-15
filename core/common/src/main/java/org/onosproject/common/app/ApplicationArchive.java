@@ -58,6 +58,8 @@ import static com.google.common.io.Files.write;
 public class ApplicationArchive
         extends AbstractStore<ApplicationEvent, ApplicationStoreDelegate> {
 
+    private static Logger log = LoggerFactory.getLogger(ApplicationArchive.class);
+
     // Magic strings to search for at the beginning of the archive stream
     private static final String XML_MAGIC = "<?xml ";
 
@@ -72,7 +74,7 @@ public class ApplicationArchive
     private static final String FEATURES = "[@features]";
     private static final String DESCRIPTION = "description";
 
-    private static Logger log = LoggerFactory.getLogger(ApplicationArchive.class);
+    private static final String OAR = ".oar";
     private static final String APP_XML = "app.xml";
     private static final String M2_PREFIX = "m2";
 
@@ -222,7 +224,7 @@ public class ApplicationArchive
      */
     public synchronized InputStream getApplicationInputStream(String appName) {
         try {
-            File appFile = appFile(appName, appName + ".zip");
+            File appFile = appFile(appName, appName + OAR);
             return new FileInputStream(appFile.exists() ? appFile : appFile(appName, APP_XML));
         } catch (FileNotFoundException e) {
             throw new ApplicationException("Application " + appName + " not found");
@@ -304,7 +306,7 @@ public class ApplicationArchive
     // Saves the specified ZIP stream into a file under app-specific directory.
     private void saveApplication(InputStream stream, ApplicationDescription desc)
             throws IOException {
-        Files.write(toByteArray(stream), appFile(desc.name(), desc.name() + ".zip"));
+        Files.write(toByteArray(stream), appFile(desc.name(), desc.name() + OAR));
     }
 
     // Installs application artifacts into M2 repository.

@@ -160,7 +160,6 @@
         <url-pattern>/websock/*</url-pattern>
     </servlet-mapping>
 
-
     <servlet>
         <servlet-name>Legacy Web Socket Service</servlet-name>
         <servlet-class>org.onosproject.ui.impl.GuiWebSocketServlet</servlet-class>

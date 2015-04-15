@@ -1,0 +1,29 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Stages builtin ONOS apps into the specified directory for packaging.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+export APPS=${1:-/tmp/apps}
+export KARAF_M2=${2:-/tmp/karaf/system}
+export AUX=$APPS/aux
+
+# Bail on any errors
+set -e
+
+mkdir -p $APPS $KARAF_M2
+rm -fr $AUX
+
+find $M2_REPO/org/onosproject/ -name "*.oar" -path "*/${ONOS_POM_VERSION}/*" | while read line; do
+    mkdir -p $AUX && cd $AUX
+    cp $line $AUX
+    jar -xf $AUX/*.oar
+    name=$(grep "name=" $AUX/app.xml | sed 's/<app name="//g;s/".*//g')
+    mkdir -p $APPS/$name
+    cp $AUX/app.xml $APPS/$name/app.xml
+    cp $AUX/*.oar $APPS/$name/$name.oar
+    cp -rf $AUX/m2/* $KARAF_M2
+    rm -fr $AUX
+done

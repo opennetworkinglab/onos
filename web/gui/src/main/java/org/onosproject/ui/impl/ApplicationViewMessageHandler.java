@@ -18,9 +18,11 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.core.Application;
+import org.onosproject.core.ApplicationId;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,11 +39,20 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
      * Creates a new message handler for the application messages.
      */
     protected ApplicationViewMessageHandler() {
-        super(ImmutableSet.of("appDataRequest"));
+        super(ImmutableSet.of("appDataRequest", "appManagementRequest"));
     }
 
     @Override
     public void process(ObjectNode message) {
+        String type = string(message, "event", "unknown");
+        if (type.equals("appDataRequest")) {
+            sendAppList(message);
+        } else if (type.equals("appManagementRequest")) {
+            processManagementCommand(message);
+        }
+    }
+
+    private void sendAppList(ObjectNode message) {
         ObjectNode payload = payload(message);
         String sortCol = string(payload, "sortCol", "id");
         String sortDir = string(payload, "sortDir", "asc");
@@ -56,6 +67,24 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
         rootNode.set("apps", applications);
 
         connection().sendMessage("appDataResponse", 0, rootNode);
+    }
+
+    private void processManagementCommand(ObjectNode message) {
+        ObjectNode payload = payload(message);
+        String action = string(payload, "action");
+        String name = string(payload, "name");
+        if (action != null && name != null) {
+            ApplicationAdminService service = get(ApplicationAdminService.class);
+            ApplicationId appId = service.getId(name);
+            if (action.equals("activate")) {
+                service.activate(appId);
+            } else if (action.equals("deactivate")) {
+                service.deactivate(appId);
+            } else if (action.equals("uninstall")) {
+                service.uninstall(appId);
+            }
+            sendAppList(message);
+        }
     }
 
     private TableRow[] generateTableRows(ApplicationService service) {

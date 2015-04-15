@@ -29,7 +29,7 @@
     <artifactId>onos-app-fwd</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS simple reactive forwarding app</description>
+    <description>Reactive forwarding application using flow subsystem</description>
 
     <dependencies>
         <dependency>
