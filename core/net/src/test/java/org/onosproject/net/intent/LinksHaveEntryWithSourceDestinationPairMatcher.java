@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.onosproject.net.EdgeLink;
 import org.onosproject.net.Link;
 
 /**
@@ -46,6 +47,14 @@ public class LinksHaveEntryWithSourceDestinationPairMatcher extends
     @Override
     public boolean matchesSafely(Collection<Link> links) {
         for (Link link : links) {
+            if (source.equals(destination) && link instanceof EdgeLink) {
+                EdgeLink edgeLink = (EdgeLink) link;
+                if (edgeLink.hostLocation().elementId()
+                        .toString().endsWith(source)) {
+                    return true;
+                }
+            }
+
             if (link.src().elementId().toString().endsWith(source) &&
                     link.dst().elementId().toString().endsWith(destination)) {
                 return true;

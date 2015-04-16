@@ -43,6 +43,8 @@ import org.onosproject.net.topology.PathService;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+
 /**
  * An intent compiler for
  * {@link org.onosproject.net.intent.MultiPointToSinglePointIntent}.
@@ -71,28 +73,37 @@ public class MultiPointToSinglePointIntentCompiler
     public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
         Map<DeviceId, Link> links = new HashMap<>();
+        Map<DeviceId, Link> edgeLinks = new HashMap<>();
+        ConnectPoint egressPoint = intent.egressPoint();
 
         for (ConnectPoint ingressPoint : intent.ingressPoints()) {
-            Path path = getPath(ingressPoint, intent.egressPoint());
-            for (Link link : path.links()) {
-                if (links.containsKey(link.src().deviceId())) {
-                    // We've already reached the existing tree with the first
-                    // part of this path. Add the merging point with different
-                    // incoming port, but don't add the remainder of the path
-                    // in case it differs from the path we already have.
-                    links.put(link.src().deviceId(), link);
-                    break;
-                }
+            if (ingressPoint.deviceId().equals(egressPoint.deviceId())) {
+                edgeLinks.put(ingressPoint.deviceId(), createEdgeLink(ingressPoint, true));
+                edgeLinks.put(egressPoint.deviceId(), createEdgeLink(egressPoint, false));
+            } else {
+                Path path = getPath(ingressPoint, intent.egressPoint());
+                for (Link link : path.links()) {
+                    if (links.containsKey(link.src().deviceId())) {
+                        // We've already reached the existing tree with the first
+                        // part of this path. Add the merging point with different
+                        // incoming port, but don't add the remainder of the path
+                        // in case it differs from the path we already have.
+                        links.put(link.src().deviceId(), link);
+                        break;
+                    }
 
-                links.put(link.src().deviceId(), link);
+                    links.put(link.src().deviceId(), link);
+                }
             }
         }
 
+        Set<Link> allLinks = Sets.newHashSet(links.values());
+        allLinks.addAll(edgeLinks.values());
         Intent result = LinkCollectionIntent.builder()
                 .appId(intent.appId())
                 .selector(intent.selector())
                 .treatment(intent.treatment())
-                .links(Sets.newHashSet(links.values()))
+                .links(Sets.newHashSet(allLinks))
                 .ingressPoints(intent.ingressPoints())
                 .egressPoints(ImmutableSet.of(intent.egressPoint()))
                 .priority(intent.priority())

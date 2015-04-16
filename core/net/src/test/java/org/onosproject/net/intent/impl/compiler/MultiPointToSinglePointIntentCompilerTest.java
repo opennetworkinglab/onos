@@ -15,10 +15,14 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
@@ -32,10 +36,7 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -76,9 +77,11 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
 
             String[] allHops = new String[pathHops.length + 1];
             allHops[0] = src.toString();
-            System.arraycopy(pathHops, 0, allHops, 1, pathHops.length);
-
+            if (pathHops.length != 0) {
+                System.arraycopy(pathHops, 0, allHops, 1, pathHops.length);
+            }
             result.add(createPath(allHops));
+
             return result;
         }
 
@@ -98,7 +101,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
      */
     private MultiPointToSinglePointIntent makeIntent(String[] ingressIds, String egressId) {
         Set<ConnectPoint> ingressPoints = new HashSet<>();
-        ConnectPoint egressPoint = connectPoint(egressId, 1);
+        ConnectPoint egressPoint = connectPoint(egressId, 2);
 
         for (String ingressId : ingressIds) {
             ingressPoints.add(connectPoint(ingressId, 1));
@@ -226,6 +229,37 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
                                         "n1"));
             }
             assertThat(linkIntent.links(), linksHasPath("n1", egress));
+        }
+    }
+
+    /**
+     * Tests ingress and egress on the same device.
+     */
+    @Test
+    public void testSameDeviceCompilation() {
+        String[] ingress = {"i1", "i2"};
+        String egress = "i1";
+
+        MultiPointToSinglePointIntent intent = makeIntent(ingress, egress);
+        assertThat(intent, is(notNullValue()));
+
+        final String[] hops = {"i1", "i2"};
+        MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
+        assertThat(compiler, is(notNullValue()));
+
+        List<Intent> result = compiler.compile(intent, null, null);
+        assertThat(result, is(notNullValue()));
+        assertThat(result, hasSize(1));
+        Intent resultIntent = result.get(0);
+        assertThat(resultIntent, instanceOf(LinkCollectionIntent.class));
+
+        if (resultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent linkIntent = (LinkCollectionIntent) resultIntent;
+            assertThat(linkIntent.links(), hasSize(ingress.length + 1));
+
+            assertThat(linkIntent.links(), linksHasPath("i2", "i1"));
+
+            assertThat(linkIntent.links(), linksHasPath("i1", "i1"));
         }
     }
 }
