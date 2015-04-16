@@ -271,6 +271,17 @@
             .attr('opacity', b ? 1 : 0);
     }
 
+    function setUpSprites($loc, tspr) {
+        var s1 = $loc.search().sprites,
+            s2 = ps.getPrefs('topo_sprites'),
+            sprId = s1 || (s2 && s2.id);
+
+        spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
+        if (sprId) {
+            ps.setPrefs('topo_sprites', {id:sprId});
+            tspr.loadSprites(spriteG, defs, sprId);
+        }
+    }
 
     // --- User Preferemces ----------------------------------------------
 
@@ -292,7 +303,7 @@
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
         toggleDetails(prefsState.detail);
-        toggleSprites(prefsState.sprites);
+        toggleSprites(prefsState.spr);
         flash.enable(true);
     }
 
@@ -388,8 +399,7 @@
                     flash.enable(true);
                 }
             );
-            spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
-            tspr.loadSprites(spriteG, defs, $loc.search().sprites);
+            setUpSprites($loc, tspr);
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);
