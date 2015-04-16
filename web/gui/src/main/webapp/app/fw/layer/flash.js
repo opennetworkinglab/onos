@@ -41,7 +41,8 @@
     // internal state
     var settings,
         timer = null,
-        data = [];
+        data = [],
+        enabled;
 
     // DOM elements
     var flashDiv, svg;
@@ -123,6 +124,8 @@
     }
 
     function flash(msg) {
+        if (!enabled) return;
+
         if (timer) {
             $timeout.cancel(timer);
         }
@@ -136,6 +139,10 @@
         updateFlash();
     }
 
+    function enable(b) {
+        enabled = !!b;
+    }
+
     angular.module('onosLayer')
         .factory('FlashService', ['$log', '$timeout',
         function (_$log_, _$timeout_) {
@@ -145,11 +152,13 @@
             function initFlash(opts) {
                 settings = angular.extend({}, defaultSettings, opts);
                 flashDiv = d3.select('#flash');
+                enabled = true;
             }
 
             return {
                 initFlash: initFlash,
-                flash: flash
+                flash: flash,
+                enable: enable
             };
         }]);
 

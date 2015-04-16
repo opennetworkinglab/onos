@@ -273,10 +273,12 @@
 
         $log.debug('TOPO---- Prefs State:', prefsState);
 
+        flash.enable(false);
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
         toggleDetails(prefsState.detail);
         toggleSprites(prefsState.sprites);
+        flash.enable(true);
     }
 
 
@@ -362,7 +364,9 @@
                 function (proj) {
                     projection = proj;
                     $log.debug('** We installed the projection: ', proj);
+                    flash.enable(false);
                     toggleMap(prefsState.bg);
+                    flash.enable(true);
                 }
             );
             spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
