@@ -22,62 +22,63 @@ describe('factory: fw/widget/table.js', function () {
         fs, mast, is,
         scope, compiled,
         table, thead, tbody, mockHeader,
-        mockh2Height = '10px',
+        mockH2Height = 20,
+        mockMastHeight = 20,
+        mockHeaderHeight = mockH2Height + mockMastHeight,
         tableIconTdSize = 100,
-        pdgTop = 101,
         numTestElems = 4;
 
-    var onosFixedHeaderTags = '<table ' +
-                                'onos-fixed-header>' +
-                                '<thead>' +
-                                '<tr>' +
-                                '<th></th>' +
-                                '<th>Device ID </th>' +
-                                '<th col-width="100px">H/W Version </th>' +
-                                '<th>S/W Version </th>' +
-                                '</tr>' +
-                                '</thead>' +
-                                '<tbody>' +
-                                '<tr>' +
-                                '<td colspan="4">' +
-                                    'No Devices found' +
-                                '</td>' +
-                                '</tr>' +
-                                '<tr>' +
-                                '<td class="table-icon">' +
-                                    '<div icon icon-id="{{dev._iconid_available}}">' +
-                                    '</div>' +
-                                '</td>' +
-                                '<td>Some ID</td>' +
-                                '<td>Some HW</td>' +
-                                '<td>Some Software</td>' +
-                                '</tr>' +
-                                '</tbody>' +
-                                '</table>',
+    var onosFixedHeaderTags =
+            '<table onos-fixed-header>' +
+            '<thead style="height:27px;">' +
+            '<tr>' +
+            '<th></th>' +
+            '<th>Device ID </th>' +
+            '<th col-width="100px">H/W Version </th>' +
+            '<th>S/W Version </th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+            '<tr>' +
+            '<td colspan="4">' +
+                'No Devices found' +
+            '</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td class="table-icon">' +
+                '<div icon icon-id="{{dev._iconid_available}}">' +
+                '</div>' +
+            '</td>' +
+            '<td>Some ID</td>' +
+            '<td>Some HW</td>' +
+            '<td>Some Software</td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>',
 
-        onosSortableHeaderTags = '<table ' +
-                                'onos-sortable-header ' +
-                                'sort-callback="sortCallback(requestParams)">' +
-                                '<thead>' +
-                                '<tr>' +
-                                '<th colId="available"></th>' +
-                                '<th colId="id" sortable>Device ID </th>' +
-                                '<th colId="hw" sortable>H/W Version </th>' +
-                                '<th colId="sw" sortable>S/W Version </th>' +
-                                '</tr>' +
-                                '</thead>' +
-                                '<tbody>' +
-                                '<tr>' +
-                                '<td>' +
-                                    '<div icon icon-id="{{dev._iconid_available}}">' +
-                                    '</div>' +
-                                '</td>' +
-                                '<td>Some ID</td>' +
-                                '<td>Some HW</td>' +
-                                '<td>Some Software</td>' +
-                                '</tr>' +
-                                '</tbody>' +
-                                '</table>';
+        onosSortableHeaderTags =
+            '<table onos-sortable-header ' +
+            'sort-callback="sortCallback(requestParams)">' +
+            '<thead>' +
+            '<tr>' +
+            '<th colId="available"></th>' +
+            '<th colId="id" sortable>Device ID </th>' +
+            '<th colId="hw" sortable>H/W Version </th>' +
+            '<th colId="sw" sortable>S/W Version </th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+            '<tr>' +
+            '<td>' +
+                '<div icon icon-id="{{dev._iconid_available}}">' +
+                '</div>' +
+            '</td>' +
+            '<td>Some ID</td>' +
+            '<td>Some HW</td>' +
+            '<td>Some Software</td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>';
 
     beforeEach(module('onosWidget', 'onosUtil', 'onosMast', 'onosSvg'));
 
@@ -114,7 +115,8 @@ describe('factory: fw/widget/table.js', function () {
     beforeEach(function () {
         mockHeader = d3.select('body')
             .append('h2')
-            .style('height', mockh2Height)
+            .classed('tabular-header', true)
+            .style('height', mockHeaderHeight + 'px')
             .html('Some Header');
     });
 
@@ -142,12 +144,17 @@ describe('factory: fw/widget/table.js', function () {
     }
 
     function verifyCssDisplay() {
-        var tableHeight = fs.windowSize(pdgTop).height;
+        var padding = 21, // bottom table constant 12 + mastPadding(?) 9
+            tableHeight = fs.windowSize(mockHeaderHeight).height -
+                (fs.noPx(table.find('thead').css('height')) + padding);
 
         expect(thead.css('display')).toBe('block');
         expect(tbody.css('display')).toBe('block');
         expect(tbody.css('height')).toBe(tableHeight + 'px');
         expect(tbody.css('overflow')).toBe('auto');
+
+        // TODO: investigate why math for calculating the height works better
+        // in the browser window (thead height is 0 in this test?)
     }
 
     function verifyColWidth() {
