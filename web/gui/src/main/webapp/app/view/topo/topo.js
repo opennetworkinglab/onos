@@ -48,9 +48,9 @@
             O: [toggleSummary, 'Toggle ONOS summary panel'],
             D: [toggleDetails, 'Disable / enable details panel'],
 
-            H: [tfs.toggleHosts, 'Toggle host visibility'],
-            M: [tfs.toggleOffline, 'Toggle offline visibility'],
-            P: [tfs.togglePorts, 'Toggle Port Highlighting'],
+            H: [toggleHosts, 'Toggle host visibility'],
+            M: [toggleOffline, 'Toggle offline visibility'],
+            P: [togglePorts, 'Toggle Port Highlighting'],
             dash: [tfs.showBadLinks, 'Show bad links'],
             B: [toggleMap, 'Toggle background map'],
             S: [toggleSprites, 'Toggle sprite layer'],
@@ -109,20 +109,32 @@
         updatePrefsState('detail', tps.toggleDetails(x));
     }
 
-    function toggleMap(x) {
-        var on = (x === 'keyev') ? !sus.visible(mapG) : !!x,
+    function toggleHosts(x) {
+        updatePrefsState('hosts', tfs.toggleHosts(x));
+    }
+
+    function toggleOffline(x) {
+        updatePrefsState('offdev', tfs.toggleOffline(x));
+    }
+
+    function togglePorts(x) {
+        updatePrefsState('porthl', tfs.togglePorts(x));
+    }
+
+    function _togSvgLayer(x, G, tag, what) {
+        var on = (x === 'keyev') ? !sus.visible(G) : !!x,
             verb = on ? 'Show' : 'Hide';
-        sus.visible(mapG, on);
-        updatePrefsState('bg', on);
-        flash.flash(verb + ' background map');
+        sus.visible(G, on);
+        updatePrefsState(tag, on);
+        flash.flash(verb + ' ' + what);
+    }
+
+    function toggleMap(x) {
+        _togSvgLayer(x, mapG, 'bg', 'background map');
     }
 
     function toggleSprites(x) {
-        var on = (x === 'keyev') ? !sus.visible(spriteG) : !!x,
-            verb = on ? 'Show' : 'Hide';
-        sus.visible(spriteG, on);
-        updatePrefsState('sprites', on);
-        flash.flash(verb + ' sprite layer');
+        _togSvgLayer(x, spriteG, 'spr', 'sprite layer');
     }
 
     function resetZoom() {
@@ -269,7 +281,7 @@
 
     function restoreConfigFromPrefs() {
         // NOTE: toolbar will have set this for us..
-        prefsState = ps.getPrefs('topo_prefs');
+        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
 
         $log.debug('TOPO---- Prefs State:', prefsState);
 

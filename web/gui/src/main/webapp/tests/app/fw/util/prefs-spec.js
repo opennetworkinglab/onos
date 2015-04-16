@@ -44,12 +44,15 @@ describe('factory: fw/util/prefs.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ps, [
-            'getPrefs', 'setPrefs'
+            'getPrefs', 'asNumbers', 'setPrefs'
         ])).toBe(true);
     });
 
     // === Tests for getPrefs()
     // TODO unit tests for getPrefs()
+
+    // === Tests for asNumbers()
+    // TODO unit tests for asNumbers()
 
     // === Tests for setPrefs()
     // TODO unit tests for setPrefs()

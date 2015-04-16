@@ -241,17 +241,20 @@
 
     // ======================
 
-    function togglePorts() {
-        showPorts = !showPorts;
+    function togglePorts(x) {
+        var kev = (x === 'keyev'),
+            on = kev ? !showPorts : !!x,
+            what = on ? 'Enable' : 'Disable',
+            handler = on ? mouseMoveHandler : null;
 
-        var what = showPorts ? 'Enable' : 'Disable',
-            handler = showPorts ? mouseMoveHandler : null;
+        showPorts = on;
 
-        if (!showPorts) {
+        if (!on) {
             enhanceLink(null);
         }
         svg.on('mousemove', handler);
         flash.flash(what + ' port highlighting');
+        return on;
     }
 
     function deselectLink() {

@@ -37,7 +37,7 @@
     //       We may want to upgrade the version of Angular sometime soon
     //        since later version support objects as cookie values.
 
-    // NOTE: prefs represented as simple name/value(number) pairs
+    // NOTE: prefs represented as simple name/value pairs
     //       => a temporary restriction while we are encoding into cookies
     /*
         {
@@ -60,7 +60,7 @@
             bits = cook.split(',');
             bits.forEach(function (value) {
                 var x = value.split(':');
-                obj[x[0]] = Number(x[1]);
+                obj[x[0]] = x[1];
             });
 
             // update the cache
@@ -69,6 +69,23 @@
         }
         // perhaps we have a cached copy..
         return cache[name];
+    }
+
+    // converts string values to numbers for selected (or all) keys
+    function asNumbers(obj, keys) {
+        if (!obj) return null;
+
+        if (!keys) {
+            // do them all
+            angular.forEach(obj, function (v, k) {
+                obj[k] = Number(obj[k]);
+            });
+        } else {
+            keys.forEach(function (k) {
+                obj[k] = Number(obj[k]);
+            });
+        }
+        return obj;
     }
 
     function setPrefs(name, obj) {
@@ -100,6 +117,7 @@
 
             return {
                 getPrefs: getPrefs,
+                asNumbers: asNumbers,
                 setPrefs: setPrefs
             };
         }]);

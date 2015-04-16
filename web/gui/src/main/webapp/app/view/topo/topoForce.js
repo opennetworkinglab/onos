@@ -392,16 +392,24 @@
         return b ? 'visible' : 'hidden';
     }
 
-    function toggleHosts() {
-        showHosts = !showHosts;
+    function toggleHosts(x) {
+        var kev = (x === 'keyev'),
+            on = kev ? !showHosts : !!x;
+
+        showHosts = on;
         updateHostVisibility();
-        flash.flash('Hosts ' + vis(showHosts));
+        flash.flash('Hosts ' + vis(on));
+        return on;
     }
 
-    function toggleOffline() {
-        showOffline = !showOffline;
+    function toggleOffline(x) {
+        var kev = (x === 'keyev'),
+            on = kev ? !showOffline : !!x;
+
+        showOffline = on;
         updateOfflineVisibility();
-        flash.flash('Offline devices ' + vis(showOffline));
+        flash.flash('Offline devices ' + vis(on));
+        return on;
     }
 
     function cycleDeviceLabels() {

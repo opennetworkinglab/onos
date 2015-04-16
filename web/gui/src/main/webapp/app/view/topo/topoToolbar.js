@@ -26,7 +26,7 @@
     var $log, tbs, ps, api;
 
     // internal state
-    var toolbar, keyData;
+    var toolbar, keyData, cachedState;
 
     // constants
     var name = 'topo-tbar',
@@ -62,20 +62,26 @@
 
     // initial toggle state: default settings and tag to key mapping
     var defaultPrefsState = {
-            bg: 1,
-            sprites: 0,
-            insts: 1,
             summary: 1,
+            insts: 1,
             detail: 1,
-            hosts: 0
+            hosts: 0,
+            offdev: 1,
+            porthl: 1,
+            bg: 1,
+            spr: 0,
+            toolbar: 1
         },
         prefsMap = {
-            bg: 'B',
-            sprites: 'S',
-            insts: 'I',
             summary: 'O',
-            details: 'D',
-            hosts: 'H'
+            insts: 'I',
+            detail: 'D',
+            hosts: 'H',
+            offdev: 'M',
+            porthl: 'P',
+            bg: 'B',
+            spr: 'S'
+            // NOTE: toolbar state is handled separately
         };
 
     function init(_api_) {
@@ -90,17 +96,18 @@
     }
 
     function setInitToggleState() {
-        var state = ps.getPrefs(cooktag);
-        $log.debug('TOOLBAR---- read prefs state:', state);
+        cachedState = ps.asNumbers(ps.getPrefs(cooktag));
+        $log.debug('TOOLBAR---- read prefs state:', cachedState);
 
-        if (!state) {
-            state = topoDefPrefs();
-            ps.setPrefs(cooktag, state);
-            $log.debug('TOOLBAR---- Set default prefs state:', state);
+        if (!cachedState) {
+            cachedState = topoDefPrefs();
+            ps.setPrefs(cooktag, cachedState);
+            $log.debug('TOOLBAR---- Set default prefs state:', cachedState);
         }
 
         angular.forEach(prefsMap, function (v, k) {
-            k2b[v].isel = !!state[k];
+            var cfg = k2b[v];
+            cfg && (cfg.isel = !!cachedState[k]);
         });
     }
 
@@ -160,7 +167,11 @@
         addSecondRow();
         toolbar.addRow();
         addThirdRow();
-        toolbar.show();
+        if (cachedState.toolbar) {
+            toolbar.show();
+        } else {
+            toolbar.hide();
+        }
     }
 
     function destroyToolbar() {
