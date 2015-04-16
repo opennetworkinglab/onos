@@ -18,16 +18,18 @@
   "paths": [
     {
       "tag": "border",
-      "d": "M0,0h1000v1000h-1000z",
-      "_comment": "bounds of viewbox 0 0 1000 1000"
+      "viewbox": "0 0 1 1",
+      "d": "M0,0h1v1h-1z",
+      "_comment": "path defined in single string"
     },
     {
-      "tag": "multi",
+      "tag": "banner",
+      "viewbox": "0 0 4 8",
       "d": [
-        "M500,500l-50,50v-200h100v200z",
-        "M600,400h200v50h-200z"
+        "M0,0h4v6l-2,-2l-2,2z",
+        "M1,6h2v2h-2z"
       ],
-      "_comment": "shows path constructed from multiple strings"
+      "_comment": "path defined in multiple strings"
     },
     {
       "tag": "triangle",
@@ -49,18 +51,20 @@
     "",
     "The 'glyph' property refers to glyphs registered with the UI.",
     "Alternatively, the 'path' property refers to a custom path defined in",
-    "the path array above. The 'dim' property provides the [width,height]",
-    "bounds within which the glyph/path is drawn. The 'labelyoff' property",
-    "defines the Y-offset of the label as a percentage from the top of the",
-    "sprite; for example, 0.4 = 40%. The label is centered horizontally.",
-    "",
-    "Note that dimension (dim) defaults to [40,40] which is the",
-    "approximate size of a device icon."
+    " the path array above.",
+    "The 'dim' property provides the [width,height] bounds within which the",
+    " glyph/path is drawn. (default is [40,40])",
+    "The 'labelyoff' property defines the Y-offset of the label as a",
+    " percentage from the top of the sprite; for example, 0.4 = 40%. The",
+    " label is centered horizontally.",
+    "The 'scale' property (default is 1) defines the scaling factor, which",
+    " is applied after the sprite has been translated to its position."
   ],
   "defn": [
     {
       "id": "border",
-      "path": "border"
+      "path": "border",
+      "dim":[1000,1000]
     },
     {
       "id": "multi",
@@ -103,6 +107,7 @@
   ],
   "load": {
     "sprites": [
+      { "id": "border", "class": "gold1" },
       { "id": "subnet", "pos":[-40,20], "label":"apples", "class": "blue1" },
       { "id": "subnet", "pos":[400,40], "label":"bananas", "class": "blue1" },
       { "id": "subnet", "pos":[840,60], "label":"cherries", "class": "blue1" },

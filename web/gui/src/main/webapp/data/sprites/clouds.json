@@ -1,0 +1,59 @@
+{
+  "defn_name": "clouds",
+  "defn_desc": "Sample Subnet Cloud layout",
+
+  "_comment": [
+    "Sample cloud sprite layout",
+    "(1) Register on the server with ...",
+    "    onos-upload-sprites localhost clouds.json",
+    "(2) Load into topology view with ...",
+    "    http://localhost:8181/onos/ui/index.html#/topo?sprites=clouds"
+  ],
+
+  "paths": [
+    {
+      "tag": "cloud-dashed",
+      "stroke": {
+        "width": 0.8,
+        "dasharray": [4,2]
+      },
+      "glyph": "cloud"
+    },
+    {
+      "tag": "cloud-solid",
+      "stroke": {
+        "width": 1
+      },
+      "glyph": "cloud"
+    }
+  ],
+
+  "defn": [
+    {
+      "id": "subnetA",
+      "path": "cloud-dashed",
+      "dim": [400,400],
+      "labelyoff": 0.35
+    },
+    {
+      "id": "subnetB",
+      "path": "cloud-solid",
+      "dim": [600,600],
+      "labelyoff": 0.35
+    }
+  ],
+
+  "load": {
+    "sprites": [
+      { "id": "subnetA", "pos":[-200,40], "label":"apples", "class":"blue1" },
+      { "id": "subnetA", "pos":[250,40], "label":"bananas", "class":"blue1" },
+      { "id": "subnetA", "pos":[700,40], "label":"cherries", "class":"blue1" },
+      { "id": "subnetB", "pos":[-200,400], "label":"Menlo Park", "class":"gold1" },
+      { "id": "subnetB", "pos":[500,400], "label":"Stanford", "class":"gold1" }
+    ],
+    "labels": [
+      { "pos":[0,50], "text":"Sample Subnets", "size":1.4 }
+    ]
+  }
+
+}

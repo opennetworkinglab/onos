@@ -555,7 +555,7 @@
 }
 
 .light #ov-topo svg #topo-sprites .gold1 use {
-    stroke: #da2;
+    stroke: #fda;
     fill: none;
 }
 .dark #ov-topo svg #topo-sprites .gold1 use {

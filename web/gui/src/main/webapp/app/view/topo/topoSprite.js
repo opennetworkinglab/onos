@@ -32,6 +32,7 @@
     // internal state
     var spriteLayer, defsElement;
 
+
     function registerPathsAsGlyphs(paths) {
         var custom = {},
             ids = [];
@@ -40,21 +41,25 @@
             return fs.isA(d) ? d.join('') : d;
         }
 
-        if (paths) {
-            paths.forEach(function (path) {
-                var tag = 'spr_' + path.tag;
-                custom['_' + tag] = path.viewbox || '0 0 1000 1000';
-                custom[tag] = mkd(path.d);
-                ids.push(tag);
-            });
+        paths.forEach(function (path) {
+            var tag = 'spr_' + path.tag;
 
-            gs.registerGlyphs(custom);
-            gs.loadDefs(defsElement, ids, true);
-        }
+            if (path.glyph) {
+                // assumption is that we are using a built-in glyph
+                return;
+            }
+
+            custom['_' + tag] = path.viewbox || '0 0 1000 1000';
+            custom[tag] = mkd(path.d);
+            ids.push(tag);
+        });
+
+        gs.registerGlyphs(custom);
+        gs.loadDefs(defsElement, ids, true);
     }
 
 
-    function doSprite(spr, def, pstrk) {
+    function doSprite(spr, def, pmeta) {
         var c = spr.class || 'gray1',
             p = spr.pos || [0,0],
             lab = spr.label,
@@ -64,7 +69,6 @@
             dy = def.labelyoff || 1,
             sc = def.scale,
             xfm = sus.translate(p),
-            useId = def.glyph || 'spr_' + def.path,
             g, attr, use, style;
 
         if (sc) {
@@ -78,14 +82,14 @@
         attr = {
             width: w,
             height: h,
-            'xlink:href': '#' + useId
+            'xlink:href': '#' + pmeta.u
         };
 
         use = g.append('use').attr(attr);
 
-        if (pstrk) {
+        if (pmeta.s) {
             style = {};
-            angular.forEach(pstrk, function (value, key) {
+            angular.forEach(pmeta.s, function (value, key) {
                 style['stroke-' + key] = value;
             });
             use.style(style);
@@ -127,47 +131,66 @@
     //  data for the requested sprite definition.
     function inData(payload) {
         var data = payload.data,
-            name, desc, sprites, labels, alpha,
-            pathstrokes = {},
-            defs = {};
+            name, desc, pfx, sprites, labels, alpha,
+            paths, defn, load,
+            pathmeta = {},
+            defs = {},
+            warn = [];
 
         if (!data) {
-            $log.warn(tssid + 'No sprite data loaded.')
+            $log.warn(tssid + 'No sprite data loaded.');
             return;
         }
         name = data.defn_name;
         desc = data.defn_desc;
+        paths = data.paths;
+        defn = data.defn;
+        load = data.load;
+        pfx = tssid + '[' + name + ']: ';
 
         $log.debug("Loading sprites...[" + name + "]", desc);
 
-        if (data.paths) {
-            registerPathsAsGlyphs(data.paths);
-            data.paths.forEach(function (p) {
-                pathstrokes[p.tag] = p.stroke;
-            });
+        function no(what) {
+            warn.push(pfx + 'No ' + what + ' property defined');
         }
 
-        if (data.defn) {
-            data.defn.forEach(function (d) {
-                defs[d.id] = d;
-            });
+        if (!paths) no('paths');
+        if (!defn) no('defn');
+        if (!load) no('load');
+
+        if (warn.length) {
+            $log.error(warn.join('\n'));
+            return;
         }
 
-        // pull out the sprite and label items
-        if (data.load) {
-            sprites = data.load.sprites;
-            labels = data.load.labels;
-            alpha = data.load.alpha;
-            if (alpha) {
-                spriteLayer.style('opacity', alpha);
-            }
+        // any custom paths need to be added to the glyph DB, and imported
+        registerPathsAsGlyphs(paths);
+
+        paths.forEach(function (p) {
+            pathmeta[p.tag] = {
+                s: p.stroke,
+                u: p.glyph || 'spr_' + p.tag
+            };
+        });
+
+        defn.forEach(function (d) {
+            defs[d.id] = d;
+        });
+
+        // sprites, labels and alpha are each optional components of the load
+        sprites = load.sprites;
+        labels = load.labels;
+        alpha = load.alpha;
+
+        if (alpha) {
+            spriteLayer.style('opacity', alpha);
         }
 
         if (sprites) {
             sprites.forEach(function (spr) {
                 var def = defs[spr.id],
-                    pstrk = def.path && pathstrokes[def.path];
-                doSprite(spr, def, pstrk);
+                    pmeta = pathmeta[def.path];
+                doSprite(spr, def, pmeta);
             });
         }
 
