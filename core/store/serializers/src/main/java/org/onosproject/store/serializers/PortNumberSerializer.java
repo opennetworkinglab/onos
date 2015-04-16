@@ -38,12 +38,19 @@ public final class PortNumberSerializer extends
 
     @Override
     public void write(Kryo kryo, Output output, PortNumber object) {
+        output.writeBoolean(object.hasName());
         output.writeLong(object.toLong());
+        if (object.hasName()) {
+            output.writeString(object.name());
+        }
     }
 
     @Override
-    public PortNumber read(Kryo kryo, Input input,
-            Class<PortNumber> type) {
-        return PortNumber.portNumber(input.readLong());
+    public PortNumber read(Kryo kryo, Input input, Class<PortNumber> type) {
+        if (input.readBoolean()) {
+            return PortNumber.portNumber(input.readLong(), input.readString());
+        } else {
+            return PortNumber.portNumber(input.readLong());
+        }
     }
 }

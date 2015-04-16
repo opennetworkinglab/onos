@@ -49,16 +49,19 @@ public final class PortNumber {
 
     private final long number;
     private final String name;
+    private final boolean hasName;
 
     // Public creation is prohibited
     private PortNumber(long number) {
         this.number = number;
         this.name = UnsignedLongs.toString(number);
+        this.hasName = false;
     }
 
     private PortNumber(long number, String name) {
         this.number = number;
         this.name = name;
+        this.hasName = true;
     }
 
     /**
@@ -99,7 +102,11 @@ public final class PortNumber {
      * @return true if logical port number
      */
     public boolean isLogical() {
-        return number < 0 || number > MAX_NUMBER;
+        if (hasName) {
+            return false;
+        } else {
+            return (number < 0 || number > MAX_NUMBER);
+        }
     }
 
     /**
@@ -118,6 +125,16 @@ public final class PortNumber {
      */
     public String name() {
         return name;
+    }
+
+    /**
+     * Indicates whether this port number was created with a port name,
+     * or only with a number.
+     *
+     * @return true if port was created with name
+     */
+    public boolean hasName() {
+        return hasName;
     }
 
     private String decodeLogicalPort() {
