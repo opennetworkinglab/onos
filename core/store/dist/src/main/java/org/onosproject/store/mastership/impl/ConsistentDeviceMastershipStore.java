@@ -22,7 +22,6 @@ import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -300,11 +299,7 @@ public class ConsistentDeviceMastershipStore
         @Override
         public void handle(ClusterMessage message) {
             DeviceId deviceId = SERIALIZER.decode(message.payload());
-            try {
-                message.respond(SERIALIZER.encode(getRole(localNodeId, deviceId)));
-            } catch (IOException e) {
-                log.error("Failed to responsd to role query", e);
-            }
+            message.respond(SERIALIZER.encode(getRole(localNodeId, deviceId)));
         }
     }
 
@@ -318,11 +313,7 @@ public class ConsistentDeviceMastershipStore
         @Override
         public void handle(ClusterMessage message) {
             DeviceId deviceId = SERIALIZER.decode(message.payload());
-            try {
-                message.respond(SERIALIZER.encode(relinquishRole(localNodeId, deviceId)));
-            } catch (IOException e) {
-                log.error("Failed to relinquish role.", e);
-            }
+            message.respond(SERIALIZER.encode(relinquishRole(localNodeId, deviceId)));
         }
     }
 

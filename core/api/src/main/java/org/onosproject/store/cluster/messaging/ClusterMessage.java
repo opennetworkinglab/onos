@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.cluster.messaging;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
@@ -35,6 +34,7 @@ public class ClusterMessage {
     private final NodeId sender;
     private final MessageSubject subject;
     private final byte[] payload;
+    private transient byte[] response;
 
     /**
      * Creates a cluster message.
@@ -77,13 +77,21 @@ public class ClusterMessage {
     }
 
     /**
-     * Sends a response to the sender.
+     * Records the response to be sent to the sender.
      *
-     * @param data payload response.
-     * @throws IOException when I/O exception of some sort has occurred
+     * @param data response payload
      */
-    public void respond(byte[] data) throws IOException {
-        throw new IllegalStateException("One can only respond to message received from others.");
+    public void respond(byte[] data) {
+        response = data;
+    }
+
+    /**
+     * Returns the response to be sent to the sender.
+     *
+     * @return response bytes
+     */
+    public byte[] response() {
+        return response;
     }
 
     @Override

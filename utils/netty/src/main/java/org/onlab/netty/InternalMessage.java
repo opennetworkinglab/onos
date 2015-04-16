@@ -15,9 +15,8 @@
  */
 package org.onlab.netty;
 
-import java.io.IOException;
-
 import org.onlab.util.ByteArraySizeHashPrinter;
+import org.onosproject.store.cluster.messaging.Endpoint;
 
 import com.google.common.base.MoreObjects;
 
@@ -25,20 +24,14 @@ import com.google.common.base.MoreObjects;
  * Internal message representation with additional attributes
  * for supporting, synchronous request/reply behavior.
  */
-public final class InternalMessage implements Message {
+public final class InternalMessage {
 
-    public static final String REPLY_MESSAGE_TYPE = "NETTY_MESSAGING_REQUEST_REPLY";
+    private final long id;
+    private final Endpoint sender;
+    private final String type;
+    private final byte[] payload;
 
-    private long id;
-    private Endpoint sender;
-    private String type;
-    private byte[] payload;
-    private transient NettyMessagingService messagingService;
-
-    // Must be created using the Builder.
-    private InternalMessage() {}
-
-    InternalMessage(long id, Endpoint sender, String type, byte[] payload) {
+    public InternalMessage(long id, Endpoint sender, String type, byte[] payload) {
         this.id = id;
         this.sender = sender;
         this.type = type;
@@ -57,24 +50,8 @@ public final class InternalMessage implements Message {
         return sender;
     }
 
-    @Override
     public byte[] payload() {
         return payload;
-    }
-
-    protected void setMessagingService(NettyMessagingService messagingService) {
-        this.messagingService = messagingService;
-    }
-
-    @Override
-    public void respond(byte[] data) throws IOException {
-        Builder builder = new Builder(messagingService);
-        InternalMessage message = builder.withId(this.id)
-            .withSender(messagingService.localEp())
-            .withPayload(data)
-            .withType(REPLY_MESSAGE_TYPE)
-            .build();
-        messagingService.sendAsync(sender, message);
     }
 
     @Override
@@ -85,40 +62,5 @@ public final class InternalMessage implements Message {
                 .add("sender", sender)
                 .add("payload", ByteArraySizeHashPrinter.of(payload))
                 .toString();
-    }
-
-    /**
-     * Builder for InternalMessages.
-     */
-    public static final class Builder {
-        private InternalMessage message;
-
-        public Builder(NettyMessagingService messagingService) {
-            message = new InternalMessage();
-            message.messagingService = messagingService;
-        }
-
-        public Builder withId(long id) {
-            message.id = id;
-            return this;
-        }
-
-        public Builder withType(String type) {
-            message.type = type;
-            return this;
-        }
-
-        public Builder withSender(Endpoint sender) {
-            message.sender = sender;
-            return this;
-        }
-        public Builder withPayload(byte[] payload) {
-            message.payload = payload;
-            return this;
-        }
-
-        public InternalMessage build() {
-            return message;
-        }
     }
 }

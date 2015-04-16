@@ -37,6 +37,14 @@
             <artifactId>guava-testlib</artifactId>
             <scope>test</scope>
         </dependency>
+                <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>

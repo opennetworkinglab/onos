@@ -43,7 +43,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -118,11 +117,7 @@ public class DistributedStatisticStore implements StatisticStore {
             @Override
             public void handle(ClusterMessage message) {
                 ConnectPoint cp = SERIALIZER.decode(message.payload());
-                try {
-                    message.respond(SERIALIZER.encode(getCurrentStatisticInternal(cp)));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
+                message.respond(SERIALIZER.encode(getCurrentStatisticInternal(cp)));
             }
         }, messageHandlingExecutor);
 
@@ -131,11 +126,7 @@ public class DistributedStatisticStore implements StatisticStore {
             @Override
             public void handle(ClusterMessage message) {
                 ConnectPoint cp = SERIALIZER.decode(message.payload());
-                try {
-                    message.respond(SERIALIZER.encode(getPreviousStatisticInternal(cp)));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
+                message.respond(SERIALIZER.encode(getPreviousStatisticInternal(cp)));
             }
         }, messageHandlingExecutor);
         log.info("Started");

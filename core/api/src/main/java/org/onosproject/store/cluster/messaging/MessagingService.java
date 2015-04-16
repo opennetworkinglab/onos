@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.netty;
+package org.onosproject.store.cluster.messaging;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Interface for low level messaging primitives.
  */
 public interface MessagingService {
+
     /**
      * Sends a message asynchronously to the specified communication end point.
      * The message is specified using the type and payload.
@@ -31,7 +34,7 @@ public interface MessagingService {
      * @param payload message payload bytes.
      * @throws IOException when I/O exception of some sort has occurred
      */
-    public void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException;
+    void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException;
 
     /**
      * Sends a message synchronously and waits for a response.
@@ -40,7 +43,7 @@ public interface MessagingService {
      * @param payload message payload.
      * @return a response future
      */
-    public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload);
+    CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload);
 
     /**
      * Registers a new message handler for message type.
@@ -48,19 +51,19 @@ public interface MessagingService {
      * @param handler message handler
      * @param executor executor to use for running message handler logic.
      */
-    public void registerHandler(String type, MessageHandler handler, Executor executor);
+    void registerHandler(String type, Consumer<byte[]> handler, Executor executor);
 
     /**
      * Registers a new message handler for message type.
      * @param type message type.
      * @param handler message handler
+     * @param executor executor to use for running message handler logic.
      */
-    @Deprecated
-    public void registerHandler(String type, MessageHandler handler);
+    void registerHandler(String type, Function<byte[], byte[]> handler, Executor executor);
 
     /**
      * Unregister current handler, if one exists for message type.
      * @param type message type
      */
-    public void unregisterHandler(String type);
+    void unregisterHandler(String type);
 }

@@ -77,7 +77,6 @@ import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -278,11 +277,7 @@ public class DistributedFlowRuleStore
                 FlowRule rule = SERIALIZER.decode(message.payload());
                 log.trace("received get flow entry request for {}", rule);
                 FlowEntry flowEntry = flowTable.getFlowEntry(rule); //getFlowEntryInternal(rule);
-                try {
-                    message.respond(SERIALIZER.encode(flowEntry));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
+                message.respond(SERIALIZER.encode(flowEntry));
             }
         }, executor);
 
@@ -293,11 +288,7 @@ public class DistributedFlowRuleStore
                 DeviceId deviceId = SERIALIZER.decode(message.payload());
                 log.trace("Received get flow entries request for {} from {}", deviceId, message.sender());
                 Set<FlowEntry> flowEntries = flowTable.getFlowEntries(deviceId);
-                try {
-                    message.respond(SERIALIZER.encode(flowEntries));
-                } catch (IOException e) {
-                    log.error("Failed to respond to peer's getFlowEntries request", e);
-                }
+                message.respond(SERIALIZER.encode(flowEntries));
             }
         }, executor);
 
@@ -308,11 +299,7 @@ public class DistributedFlowRuleStore
                 FlowEntry rule = SERIALIZER.decode(message.payload());
                 log.trace("received get flow entry request for {}", rule);
                 FlowRuleEvent event = removeFlowRuleInternal(rule);
-                try {
-                    message.respond(SERIALIZER.encode(event));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
+                message.respond(SERIALIZER.encode(event));
             }
         }, executor);
     }
@@ -691,11 +678,7 @@ public class DistributedFlowRuleStore
                 // TODO: we might want to wrap response in envelope
                 // to distinguish sw programming failure and hand over
                 // it make sense in the latter case to retry immediately.
-                try {
-                    message.respond(SERIALIZER.encode(allFailed));
-                } catch (IOException e) {
-                    log.error("Failed to respond back", e);
-                }
+                message.respond(SERIALIZER.encode(allFailed));
                 return;
             }
 

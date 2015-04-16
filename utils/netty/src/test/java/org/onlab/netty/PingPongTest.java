@@ -18,13 +18,17 @@ package org.onlab.netty;
 import static org.junit.Assert.assertArrayEquals;
 
 import java.net.InetAddress;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.store.cluster.messaging.Endpoint;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Simple ping-pong test that exercises NettyMessagingService.
@@ -39,9 +43,9 @@ public class PingPongTest {
         try {
             pinger.activate();
             ponger.activate();
-            ponger.registerHandler("echo", new EchoHandler());
+            ponger.registerHandler("echo", Function.identity(), MoreExecutors.directExecutor());
             byte[] payload = RandomUtils.nextBytes(100);
-            Future<byte[]> responseFuture =
+            CompletableFuture<byte[]> responseFuture =
                     pinger.sendAndReceive(
                             new Endpoint(IpAddress.valueOf(InetAddress.getLocalHost()), 9086), "echo", payload);
             assertArrayEquals(payload, responseFuture.get(10000, TimeUnit.MILLISECONDS));

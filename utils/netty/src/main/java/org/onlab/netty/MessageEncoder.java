@@ -24,6 +24,7 @@ import java.io.IOException;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
+import org.onosproject.store.cluster.messaging.Endpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

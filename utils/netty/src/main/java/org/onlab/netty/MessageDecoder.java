@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
+import org.onosproject.store.cluster.messaging.Endpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +37,6 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final NettyMessagingService messagingService;
-
     private long messageId;
     private Version ipVersion;
     private IpAddress senderIp;
@@ -46,9 +45,8 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     private String messageType;
     private int contentLength;
 
-    public MessageDecoder(NettyMessagingService messagingService) {
+    public MessageDecoder() {
         super(DecoderState.READ_MESSAGE_ID);
-        this.messagingService = messagingService;
     }
 
     @Override
@@ -91,7 +89,6 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
                     new Endpoint(senderIp, senderPort),
                     messageType,
                     payload);
-            message.setMessagingService(messagingService);
             out.add(message);
             checkpoint(DecoderState.READ_MESSAGE_ID);
             break;

@@ -51,7 +51,6 @@ import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -143,11 +142,7 @@ public class DefaultFlowRuleExtRouter
                       @Override
                       public void run() {
                           FlowExtCompletedOperation result = Futures.getUnchecked(f);
-                          try {
-                              message.respond(SERIALIZER.encode(result));
-                          } catch (IOException e) {
-                              log.error("Failed to respond back", e);
-                          }
+                          message.respond(SERIALIZER.encode(result));
                       }
                   }, futureListeners);
               }

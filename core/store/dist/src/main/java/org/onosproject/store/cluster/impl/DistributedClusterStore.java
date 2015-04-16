@@ -19,14 +19,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.hazelcast.util.AddressUtil;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
-import org.onlab.netty.Endpoint;
-import org.onlab.netty.Message;
-import org.onlab.netty.MessageHandler;
 import org.onlab.netty.NettyMessagingService;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
@@ -38,6 +36,7 @@ import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.consistent.impl.DatabaseDefinition;
 import org.onosproject.store.consistent.impl.DatabaseDefinitionStore;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -56,6 +55,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -108,7 +108,7 @@ public class DistributedClusterStore
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
     private final Map<NodeId, State> nodeStates = Maps.newConcurrentMap();
     private final Map<NodeId, DateTime> nodeStateLastUpdatedTimes = Maps.newConcurrentMap();
-    private NettyMessagingService messagingService = new NettyMessagingService();
+    private NettyMessagingService messagingService;
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("onos/cluster/membership", "heartbeat-sender"));
     private ExecutorService heartBeatMessageHandler = Executors.newSingleThreadExecutor(
@@ -149,7 +149,6 @@ public class DistributedClusterStore
         establishSelfIdentity();
 
         messagingService = new NettyMessagingService(HEARTBEAT_FD_PORT);
-
         try {
             messagingService.activate();
         } catch (InterruptedException e) {
@@ -376,10 +375,10 @@ public class DistributedClusterStore
         throw new IllegalStateException("Unable to determine local ip");
     }
 
-    private class HeartbeatMessageHandler implements MessageHandler {
+    private class HeartbeatMessageHandler implements Consumer<byte[]> {
         @Override
-        public void handle(Message message) throws IOException {
-            HeartbeatMessage hb = SERIALIZER.decode(message.payload());
+        public void accept(byte[] message) {
+            HeartbeatMessage hb = SERIALIZER.decode(message);
             failureDetector.report(hb.source().id());
             hb.knownPeers().forEach(node -> {
                 allNodes.put(node.id(), node);

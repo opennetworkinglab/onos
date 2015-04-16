@@ -21,18 +21,17 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.netty.Endpoint;
-import org.onlab.netty.Message;
-import org.onlab.netty.MessageHandler;
-import org.onlab.netty.MessagingService;
 import org.onlab.netty.NettyMessagingService;
+import org.onlab.nio.service.IOLoopMessagingService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.cluster.messaging.MessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,17 +63,28 @@ public class ClusterCommunicationManager
     // TODO: This probably should not be a OSGi service.
     private MessagingService messagingService;
 
+    private final boolean useNetty = true;
+
     @Activate
     public void activate() {
         ControllerNode localNode = clusterService.getLocalNode();
-        NettyMessagingService netty = new NettyMessagingService(localNode.ip(), localNode.tcpPort());
-        // FIXME: workaround until it becomes a service.
-        try {
-            netty.activate();
-        } catch (Exception e) {
-            log.error("NettyMessagingService#activate", e);
+        if (useNetty) {
+            NettyMessagingService netty = new NettyMessagingService(localNode.ip(), localNode.tcpPort());
+            try {
+                netty.activate();
+                messagingService = netty;
+            } catch (Exception e) {
+                log.error("NettyMessagingService#activate", e);
+            }
+        } else {
+            IOLoopMessagingService ioLoop = new IOLoopMessagingService(localNode.ip(), localNode.tcpPort());
+            try {
+                ioLoop.activate();
+                messagingService = ioLoop;
+            } catch (Exception e) {
+                log.error("IOLoopMessagingService#activate", e);
+            }
         }
-        messagingService = netty;
         log.info("Started on {}:{}", localNode.ip(), localNode.tcpPort());
     }
 
@@ -83,9 +93,13 @@ public class ClusterCommunicationManager
         // TODO: cleanup messageingService if needed.
         // FIXME: workaround until it becomes a service.
         try {
-            ((NettyMessagingService) messagingService).deactivate();
+            if (useNetty) {
+                ((NettyMessagingService) messagingService).deactivate();
+            } else {
+                ((IOLoopMessagingService) messagingService).deactivate();
+            }
         } catch (Exception e) {
-            log.error("NettyMessagingService#deactivate", e);
+            log.error("MessagingService#deactivate", e);
         }
         log.info("Stopped");
     }
@@ -232,7 +246,9 @@ public class ClusterCommunicationManager
     public void addSubscriber(MessageSubject subject,
                               ClusterMessageHandler subscriber,
                               ExecutorService executor) {
-        messagingService.registerHandler(subject.value(), new InternalClusterMessageHandler(subscriber), executor);
+        messagingService.registerHandler(subject.value(),
+                new InternalClusterMessageHandler(subscriber),
+                executor);
     }
 
     @Override
@@ -240,31 +256,6 @@ public class ClusterCommunicationManager
         messagingService.unregisterHandler(subject.value());
     }
 
-    private final class InternalClusterMessageHandler implements MessageHandler {
-
-        private final ClusterMessageHandler handler;
-
-        public InternalClusterMessageHandler(ClusterMessageHandler handler) {
-            this.handler = handler;
-        }
-
-        @Override
-        public void handle(Message message) {
-            final ClusterMessage clusterMessage;
-            try {
-                clusterMessage = ClusterMessage.fromBytes(message.payload());
-            } catch (Exception e) {
-                log.error("Failed decoding {}", message, e);
-                throw e;
-            }
-            try {
-                handler.handle(new InternalClusterMessage(clusterMessage, message));
-            } catch (Exception e) {
-                log.trace("Failed handling {}", clusterMessage, e);
-                throw e;
-            }
-        }
-    }
 
     @Override
     public <M, R> void addSubscriber(MessageSubject subject,
@@ -287,7 +278,22 @@ public class ClusterCommunicationManager
                 executor);
     }
 
-    private class InternalMessageResponder<M, R> implements MessageHandler {
+    private class InternalClusterMessageHandler implements Function<byte[], byte[]> {
+        private ClusterMessageHandler handler;
+
+        public InternalClusterMessageHandler(ClusterMessageHandler handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public byte[] apply(byte[] bytes) {
+            ClusterMessage message = ClusterMessage.fromBytes(bytes);
+            handler.handle(message);
+            return message.response();
+        }
+    }
+
+    private class InternalMessageResponder<M, R> implements Function<byte[], byte[]> {
         private final Function<byte[], M> decoder;
         private final Function<R, byte[]> encoder;
         private final Function<M, R> handler;
@@ -299,14 +305,15 @@ public class ClusterCommunicationManager
             this.encoder = encoder;
             this.handler = handler;
         }
+
         @Override
-        public void handle(Message message) throws IOException {
-            R response = handler.apply(decoder.apply(ClusterMessage.fromBytes(message.payload()).payload()));
-            message.respond(encoder.apply(response));
+        public byte[] apply(byte[] bytes) {
+            R reply = handler.apply(decoder.apply(ClusterMessage.fromBytes(bytes).payload()));
+            return encoder.apply(reply);
         }
     }
 
-    private class InternalMessageConsumer<M> implements MessageHandler {
+    private class InternalMessageConsumer<M> implements Consumer<byte[]> {
         private final Function<byte[], M> decoder;
         private final Consumer<M> consumer;
 
@@ -314,24 +321,10 @@ public class ClusterCommunicationManager
             this.decoder = decoder;
             this.consumer = consumer;
         }
-        @Override
-        public void handle(Message message) throws IOException {
-            consumer.accept(decoder.apply(ClusterMessage.fromBytes(message.payload()).payload()));
-        }
-    }
-
-    public static final class InternalClusterMessage extends ClusterMessage {
-
-        private final Message rawMessage;
-
-        public InternalClusterMessage(ClusterMessage clusterMessage, Message rawMessage) {
-            super(clusterMessage.sender(), clusterMessage.subject(), clusterMessage.payload());
-            this.rawMessage = rawMessage;
-        }
 
         @Override
-        public void respond(byte[] response) throws IOException {
-            rawMessage.respond(response);
+        public void accept(byte[] bytes) {
+            consumer.accept(decoder.apply(ClusterMessage.fromBytes(bytes).payload()));
         }
     }
 }
