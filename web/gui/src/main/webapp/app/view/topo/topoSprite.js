@@ -25,7 +25,9 @@
     // injected refs
     var $log, $http, fs, gs, sus, wss;
 
-    var tssid = 'TopoSpriteService: ';
+    // constants
+    var tssid = 'TopoSpriteService: ',
+        fontsize = 20;  // default font size 20pt.
 
     // internal state
     var spriteLayer, defsElement;
@@ -51,47 +53,61 @@
         }
     }
 
-    function labAttr(def) {
-        var dim = def.dim || [1000,1000],
-            w = dim[0],
-            h = dim[1],
-            dy = def.labelyoff || 1;
 
-        return { x: w / 2, y: h * dy };
-    }
-
-    function doSprite(spr, def) {
+    function doSprite(spr, def, pstrk) {
         var c = spr.class || 'gray1',
             p = spr.pos || [0,0],
             lab = spr.label,
-            dim = def.dim || [1000,1000],
+            dim = def.dim || [40,40],
             w = dim[0],
             h = dim[1],
-            use = def.glyph || 'spr_' + def.path,
-            g = spriteLayer.append('g')
-                .classed(c, true)
-                .attr('transform', sus.translate(p));
+            dy = def.labelyoff || 1,
+            sc = def.scale,
+            xfm = sus.translate(p),
+            useId = def.glyph || 'spr_' + def.path,
+            g, attr, use, style;
 
-        g.append('use').attr({
+        if (sc) {
+            xfm += sus.scale(sc, sc);
+        }
+
+        g = spriteLayer.append('g')
+            .classed(c, true)
+            .attr('transform', xfm);
+
+        attr = {
             width: w,
             height: h,
-            'xlink:href': '#' + use
-        });
+            'xlink:href': '#' + useId
+        };
+
+        use = g.append('use').attr(attr);
+
+        if (pstrk) {
+            style = {};
+            angular.forEach(pstrk, function (value, key) {
+                style['stroke-' + key] = value;
+            });
+            use.style(style);
+        }
 
         if (lab) {
             g.append('text')
                 .text(lab)
-                .attr(labAttr(def));
+                .attr({ x: w / 2, y: h * dy });
         }
     }
 
     function doLabel(label) {
         var c = label.class || 'gray1',
-            p = label.pos || [0,0];
-        spriteLayer.append('text')
-            .text(label.text)
-            .attr('transform', sus.translate(p))
-            .classed(c, true);
+            p = label.pos || [0,0],
+            sz = label.size || 1.0,
+            g = spriteLayer.append('g')
+                .classed(c, true)
+                .attr('transform', sus.translate(p))
+                .append('text')
+                .text(label.text)
+                .style('font-size', (fontsize * sz)+'pt');
     }
 
 
@@ -111,8 +127,8 @@
     //  data for the requested sprite definition.
     function inData(payload) {
         var data = payload.data,
-            name, desc, sprites, labels,
-            paths = {},
+            name, desc, sprites, labels, alpha,
+            pathstrokes = {},
             defs = {};
 
         if (!data) {
@@ -124,7 +140,12 @@
 
         $log.debug("Loading sprites...[" + name + "]", desc);
 
-        registerPathsAsGlyphs(data.paths);
+        if (data.paths) {
+            registerPathsAsGlyphs(data.paths);
+            data.paths.forEach(function (p) {
+                pathstrokes[p.tag] = p.stroke;
+            });
+        }
 
         if (data.defn) {
             data.defn.forEach(function (d) {
@@ -136,11 +157,17 @@
         if (data.load) {
             sprites = data.load.sprites;
             labels = data.load.labels;
+            alpha = data.load.alpha;
+            if (alpha) {
+                spriteLayer.style('opacity', alpha);
+            }
         }
 
         if (sprites) {
             sprites.forEach(function (spr) {
-               doSprite(spr, defs[spr.id]);
+                var def = defs[spr.id],
+                    pstrk = def.path && pathstrokes[def.path];
+                doSprite(spr, def, pstrk);
             });
         }
 

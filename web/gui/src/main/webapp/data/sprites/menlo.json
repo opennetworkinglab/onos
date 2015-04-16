@@ -1,0 +1,76 @@
+{
+  "defn_name": "menlo",
+  "defn_desc": "Office Floor Plan of ONLab at Menlo Park",
+
+  "paths": [
+    {
+      "tag": "outerwalls",
+      "stroke": {
+        "width": 4
+      },
+      "viewbox": "0 0 925 550",
+      "d": [
+        "M36,342V516",
+        "M36,516H892",
+        "M36,24H892",
+        "M36,24V250",
+        "M892,516V274",
+        "M892,188V24"
+      ]
+    },
+    {
+      "tag": "innerwalls",
+      "stroke": {
+        "width": 2
+      },
+      "viewbox": "0 0 925 550",
+      "d": [
+        "M892,188H730V158",
+        "M640,24V254H676H676V368",
+        "M892,312H742",
+        "M742,342V516",
+        "M638,368H546V272",
+        "M544,282H674",
+        "M546,232V66H494V26",
+        "M494,130V60",
+        "M454,130H340",
+        "M400,24V130",
+        "M640,178H546",
+        "M638,188H672V158",
+        "M700,410H602",
+        "M518,410H444",
+        "M400,410H276",
+        "M238,408V516",
+        "M352,410V516",
+        "M444,410V516",
+        "M562,410V516",
+        "M650,410V516",
+        "M88,178H300V24",
+        "M88,60H186V178",
+        "M88,140H108V60"
+      ]
+    }
+  ],
+
+  "defn": [
+    { "id": "owalls", "path": "outerwalls", "dim":[1400,1400] },
+    { "id": "iwalls", "path": "innerwalls", "dim":[1400,1400] }
+  ],
+
+  "load": {
+    "alpha": 0.9,
+    "sprites": [
+      { "id": "owalls", "pos":[-200,-200] },
+      { "id": "iwalls", "pos":[-200,-200] }
+    ],
+    "labels": [
+      { "pos":[160,220], "text":"Kitchen", "class":"gold1" },
+      { "pos":[480,220], "text":"Guru", "class":"gold1" },
+      { "pos":[980,220], "text":"Admin", "class":"gold1" },
+      { "pos":[700,400], "text":"Servers", "class":"gold1" },
+      { "pos":[720,580], "text":"Sm.Conf.", "class":"gold1" },
+      { "pos":[1040,700], "text":"Lg.Conf.", "class":"gold1" },
+      { "pos":[500,80], "text":"ONLab at Menlo Park", "class":"blue1", "size":1.4 }
+    ]
+  }
+}

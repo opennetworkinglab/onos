@@ -546,11 +546,11 @@
 /* Sprite Layer */
 
 #ov-topo svg #topo-sprites use {
-    stroke-width: 1.0;
+    stroke-width: 2;
 }
 #ov-topo svg #topo-sprites text {
     text-anchor: middle;
-    font-size: 10pt;
+    font-size: 20pt;
     font-style: italic;
 }
 
@@ -585,7 +585,7 @@
 }
 
 .light #ov-topo svg #topo-sprites .gray1 use {
-    stroke: #bbb;
+    stroke: #ccc;
     fill: none;
 }
 .dark #ov-topo svg #topo-sprites .gray1 use {
@@ -593,7 +593,7 @@
     fill: none;
 }
 .light #ov-topo svg #topo-sprites .gray1 text {
-    fill: #ccc;
+    fill: #ddd;
 }
 .dark #ov-topo svg #topo-sprites .gray1 text {
     fill: #444;

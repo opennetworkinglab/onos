@@ -3,7 +3,7 @@
   "defn_desc": "Sample Layout Sprite Data",
 
   "_comment": [
-    "Sample sprite layout file, demonstrating user-defined outlines",
+    "Sample sprite layout file, demonstrating user-defined paths",
     "(1) Register on the server with ...",
     "    onos-upload-sprites localhost layout.json",
     "(2) Load into topology view with ...",
@@ -54,8 +54,8 @@
     "defines the Y-offset of the label as a percentage from the top of the",
     "sprite; for example, 0.4 = 40%. The label is centered horizontally.",
     "",
-    "Note that dimension (dim) defaults to [1000,1000] so that, by default,",
-    "there is a 1:1 scale mapping of custom paths to the topology view."
+    "Note that dimension (dim) defaults to [40,40] which is the",
+    "approximate size of a device icon."
   ],
   "defn": [
     {
@@ -69,17 +69,17 @@
     {
       "id": "small_tri",
       "path": "triangle",
-      "dim":[80,80]
+      "scale":4
     },
     {
       "id": "big_tri",
       "path": "triangle",
-      "dim":[160,160]
+      "scale":12
     },
     {
       "id": "subnet",
       "glyph": "cloud",
-      "dim":[120,120],
+      "scale":8,
       "labelyoff": 0.4
     },
     {
@@ -103,20 +103,22 @@
   ],
   "load": {
     "sprites": [
-      { "id": "border" },
-      { "id": "multi", "class": "gray1" },
       { "id": "subnet", "pos":[-40,20], "label":"apples", "class": "blue1" },
       { "id": "subnet", "pos":[400,40], "label":"bananas", "class": "blue1" },
       { "id": "subnet", "pos":[840,60], "label":"cherries", "class": "blue1" },
-      { "id": "subnet2", "pos":[300,400], "class": "gray1" },
-      { "id": "small_tri", "pos":[10, 20] },
-      { "id": "small_tri", "pos":[110, 20] },
-      { "id": "small_tri", "pos":[210, 20] },
-      { "id": "small_tri", "pos":[310, 20] }
+      { "id": "subnet2", "pos":[300,400], "class": "gray1" }
     ],
     "labels": [
-      { "pos":[500,940], "text":"Sample Layout", "class":"blue1" },
-      { "pos":[500,1000], "text":"Illustrating Sprites", "class":"gray1" }
+      { "pos":[500,850], "text":"Sample Layout", "class":"blue1", "size":1.6 },
+      { "pos":[500,900], "text":"Illustrating Sprites", "class":"gray1" }
     ]
-  }
+  },
+  "junk":[
+    { "id": "border" },
+    { "id": "multi", "class": "gray1" },
+    { "id": "small_tri", "pos":[10, 20] },
+    { "id": "small_tri", "pos":[110, 20] },
+    { "id": "small_tri", "pos":[210, 20] },
+    { "id": "small_tri", "pos":[310, 20] }
+  ]
 }
