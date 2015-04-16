@@ -53,13 +53,14 @@ public class LocalIpPrefixEntry {
     /**
      * Creates a new IP prefix entry.
      *
-     * @param ipPrefix an IP prefix as a String
-     * @param type an IP prefix type as an IpPrefixType
+     * @param ipPrefix         an IP prefix as a String
+     * @param type             an IP prefix type as an IpPrefixType
+     * @param gatewayIpAddress IP of the gateway
      */
     public LocalIpPrefixEntry(@JsonProperty("ipPrefix") String ipPrefix,
                               @JsonProperty("type") IpPrefixType type,
                               @JsonProperty("gatewayIp") IpAddress
-                              gatewayIpAddress) {
+                                      gatewayIpAddress) {
         this.ipPrefix = IpPrefix.valueOf(ipPrefix);
         this.type = type;
         this.gatewayIpAddress = gatewayIpAddress;

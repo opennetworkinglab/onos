@@ -53,7 +53,7 @@ public class RoutingRulePopulator {
     /**
      * Creates a RoutingRulePopulator object.
      *
-     * @param srManager
+     * @param srManager segment routing manager reference
      */
     public RoutingRulePopulator(SegmentRoutingManager srManager) {
         this.srManager = srManager;

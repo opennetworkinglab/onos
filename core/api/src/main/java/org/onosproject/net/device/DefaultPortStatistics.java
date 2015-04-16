@@ -248,7 +248,7 @@ public final class DefaultPortStatistics implements PortStatistics {
         /**
          * Sets the number of packets dropped by TX.
          *
-         * @param packets
+         * @param packets number of packets
          * @return builder object
          */
         public Builder setPacketsTxDropped(long packets) {

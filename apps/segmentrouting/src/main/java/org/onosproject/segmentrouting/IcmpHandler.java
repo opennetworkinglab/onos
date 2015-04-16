@@ -58,7 +58,7 @@ public class IcmpHandler {
      * If it is an ICMP packet to unknown host in a subnet, then sends an ARP request
      * to the subnet.
      *
-     * @param pkt
+     * @param pkt inbound packet
      */
     public void processPacketIn(InboundPacket pkt) {
 

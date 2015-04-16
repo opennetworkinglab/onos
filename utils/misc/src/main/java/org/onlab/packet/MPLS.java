@@ -88,7 +88,7 @@ public class MPLS extends BasePacket {
     /**
      * Sets the MPLS label.
      *
-     * @param label
+     * @param label MPLS label
      */
     public void setLabel(int label) {
         this.label = label;
