@@ -206,7 +206,10 @@
     }
 
     function zoomCallback() {
-        var sc = zoomer.scale();
+        var sc = zoomer.scale(),
+            tr = zoomer.translate();
+
+        ps.setPrefs('topo_zoom', {tx:tr[0], ty:tr[1], sc:sc});
 
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
@@ -374,8 +377,12 @@
             setUpNoDevs();
             setUpMap().then(
                 function (proj) {
+                    var z = ps.getPrefs('topo_zoom') || {tx:0, ty:0, sc:1};
+                    zoomer.panZoom([z.tx, z.ty], z.sc);
+                    $log.debug('** Zoom restored:', z);
+
                     projection = proj;
-                    $log.debug('** We installed the projection: ', proj);
+                    $log.debug('** We installed the projection:', proj);
                     flash.enable(false);
                     toggleMap(prefsState.bg);
                     flash.enable(true);
