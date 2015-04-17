@@ -43,7 +43,6 @@
         'intent',
         'cluster',
         'link',
-        'sample',
         // {INJECTED-VIEW-IDS-END}
 
         // dummy entry

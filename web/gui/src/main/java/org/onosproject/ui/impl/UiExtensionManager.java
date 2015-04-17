@@ -65,8 +65,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                                     new UiView("host", "Hosts"),
                                     new UiView("intent", "Intents"),
                                     new UiView("app", "Applications"),
-                                    new UiView("cluster", "Cluster Nodes"),
-                                    new UiView("sample", "Sample"));
+                                    new UiView("cluster", "Cluster Nodes"));
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
