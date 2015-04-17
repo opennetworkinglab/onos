@@ -52,5 +52,12 @@
             <artifactId>onos-app-config</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-proxyarp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+ 
     </dependencies>
 </project>
