@@ -266,7 +266,8 @@ public class DistributedLeadershipManager implements LeadershipService {
                 }
             }
             if (success) {
-                notifyCandidateRemoved(path, candidateList, candidates.version(), candidates.creationTime());
+                Versioned<List<NodeId>> newCandidates = candidateMap.get(path);
+                notifyCandidateRemoved(path, candidates.version(), candidates.creationTime(), newCandidates);
             } else {
                 log.warn("Failed to withdraw from candidates list. Will retry");
                 retryWithdraw(path);
@@ -358,23 +359,33 @@ public class DistributedLeadershipManager implements LeadershipService {
     }
 
     private void notifyCandidateRemoved(
-            String path, List<NodeId> candidates, long epoch, long electedTime) {
-        Leadership newInfo = new Leadership(path, candidates, epoch, electedTime);
+            String path, long oldEpoch, long oldTime, Versioned<List<NodeId>> candidates) {
+        Leadership newInfo = (candidates == null)
+                ? new Leadership(path, ImmutableList.of(), oldEpoch, oldTime)
+                : new Leadership(path, candidates.value(), candidates.version(), candidates.creationTime());
         final MutableBoolean updated = new MutableBoolean(false);
+
         candidateBoard.compute(path, (k, current) -> {
-            if (current != null && current.epoch() <= newInfo.epoch()) {
-                log.info("updating candidateboard with removal of {}", newInfo);
-                updated.setTrue();
-                if (candidates.isEmpty()) {
+            if (candidates != null) {
+                if (current != null && current.epoch() < newInfo.epoch()) {
+                    updated.setTrue();
+                    if (candidates.value().isEmpty()) {
+                        return null;
+                    } else {
+                        return newInfo;
+                    }
+                }
+            } else {
+                if (current != null && current.epoch() == oldEpoch) {
+                    updated.setTrue();
                     return null;
-                } else {
-                    return newInfo;
                 }
             }
             return current;
         });
         // maybe rethink types of candidates events
         if (updated.booleanValue()) {
+            log.debug("updated candidateboard with removal: {}", newInfo);
             LeadershipEvent event = new LeadershipEvent(LeadershipEvent.Type.CANDIDATES_CHANGED, newInfo);
             notifyPeers(event);
         }
