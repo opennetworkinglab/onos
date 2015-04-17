@@ -30,4 +30,8 @@
 
     <description>Segment routing application</description>
 
+    <properties>
+        <onos.app.name>org.onosproject.segmentrouting</onos.app.name>
+    </properties>
+
 </project>

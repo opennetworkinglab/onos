@@ -31,8 +31,11 @@
 
     <description>Packet/Optical use-case application</description>
 
-    <dependencies>
+    <properties>
+        <onos.app.name>org.onosproject.optical</onos.app.name>
+    </properties>
 
+    <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-cli</artifactId>

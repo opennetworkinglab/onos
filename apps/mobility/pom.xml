@@ -31,6 +31,10 @@
 
     <description>Host mobility application</description>
 
+    <properties>
+        <onos.app.name>org.onosproject.mobility</onos.app.name>
+    </properties>
+
     <dependencies>
       <dependency>
         <groupId>com.google.guava</groupId>

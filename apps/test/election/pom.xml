@@ -32,8 +32,11 @@
 
     <description>Master election test application</description>
 
-    <dependencies>
+    <properties>
+        <onos.app.name>org.onosproject.election</onos.app.name>
+    </properties>
 
+    <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>

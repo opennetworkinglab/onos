@@ -14,9 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.proxyarp" origin="ON.Lab" version="${feature.version}"
-     featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}">
+<app name="${onos.app.name}" origin="${onos.app.origin}" version="${short.version}"
+        featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
+        features="${project.artifactId}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
 </app>

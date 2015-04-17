@@ -31,6 +31,10 @@
 
     <description>Reactive forwarding application using flow subsystem</description>
 
+    <properties>
+        <onos.app.name>org.onosproject.fwd</onos.app.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>

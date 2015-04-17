@@ -31,6 +31,10 @@
 
     <description>Proxy ARP/NDP application</description>
 
+    <properties>
+        <onos.app.name>org.onosproject.proxyarp</onos.app.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>

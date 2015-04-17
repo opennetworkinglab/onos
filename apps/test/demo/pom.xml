@@ -32,6 +32,7 @@
     <description>Flow throughput test application</description>
 
     <properties>
+        <onos.app.name>org.onosproject.demo</onos.app.name>
         <web.context>/onos/demo</web.context>
     </properties>
 

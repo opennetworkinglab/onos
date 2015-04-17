@@ -31,6 +31,10 @@
 
     <description>Performance metrics collection</description>
 
+    <properties>
+        <onos.app.name>org.onosproject.metrics</onos.app.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>

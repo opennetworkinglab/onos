@@ -32,6 +32,10 @@
 
     <description>Builtin device drivers</description>
 
+    <properties>
+        <onos.app.name>org.onosproject.drivers</onos.app.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -41,12 +45,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-core-serializers</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
