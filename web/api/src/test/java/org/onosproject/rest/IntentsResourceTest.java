@@ -22,7 +22,6 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
@@ -60,7 +59,6 @@ import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
 /**
  * Unit tests for Intents REST APIs.
  */
-@Ignore
 public class IntentsResourceTest extends ResourceTest {
     final IntentService mockIntentService = createMock(IntentService.class);
     final CoreService mockCoreService = createMock(CoreService.class);
