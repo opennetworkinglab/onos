@@ -26,10 +26,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-of-providers-app</artifactId>
+    <artifactId>onos-openflow</artifactId>
     <packaging>pom</packaging>
 
-    <description>ONOS OpenFlow providers app</description>
+    <description>OpenFlow protocol southbound providers</description>
 
     <dependencies>
         <dependency>

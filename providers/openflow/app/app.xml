@@ -15,8 +15,9 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.openflow" origin="ON.Lab" version="${feature.version}"
-     features="onos-openflow">
-    <description>OpenFlow protocol southbound providers</description>
+     featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
+     features="${project.artifactId}">
+    <description>${project.description}</description>
 
     <artifact>mvn:${project.groupId}/onos-of-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-drivers/${project.version}</artifact>

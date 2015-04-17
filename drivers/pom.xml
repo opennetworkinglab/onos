@@ -30,7 +30,7 @@
     <artifactId>onos-drivers</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS Default Device Drivers</description>
+    <description>Builtin device drivers</description>
 
     <dependencies>
         <dependency>
@@ -66,7 +66,10 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
             </plugin>
-
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
 </project>

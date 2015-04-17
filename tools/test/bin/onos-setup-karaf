@@ -94,6 +94,6 @@ rm -fr $STAGE/apps
 onos-stage-apps $STAGE/apps $KARAF_ROOT/system
 
 echo "Customizing apps to be auto-activated..."
-for app in $(echo ${ONOS_APPS:-openflow} | tr ',' ' '); do
+for app in $(echo ${ONOS_APPS:-drivers,openflow} | tr ',' ' '); do
     touch $STAGE/apps/org.onosproject.$app/active
 done

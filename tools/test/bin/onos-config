@@ -12,7 +12,7 @@ remote=$ONOS_USER@${1:-$OCI}
 export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui}"
 
 # ONOS builtin apps and providers ignited by default
-export ONOS_APPS="${ONOS_APPS:-openflow}"
+export ONOS_APPS="${ONOS_APPS:-drivers,openflow}"
 
 # Generate a cluster.json from the ON* environment variables
 CDEF_FILE=/tmp/${remote}.cluster.json

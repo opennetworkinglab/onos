@@ -68,9 +68,10 @@
     </feature>
 
     <feature name="onos-thirdparty-web" version="@FEATURE-VERSION"
-             description="ONOS 3rd party dependencies">
+             description="ONOS 3rd party dependencies for web apps">
         <feature>war</feature>
         <feature>onos-thirdparty-base</feature>
+        <!-- FIXME: we should upgrade our jersey eventually -->
         <bundle>mvn:com.sun.jersey/jersey-core/1.19</bundle>
         <bundle>mvn:com.sun.jersey/jersey-server/1.19</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/1.19</bundle>
@@ -120,29 +121,9 @@
         <bundle>mvn:org.onosproject/onos-cli/@ONOS-VERSION</bundle>
     </feature>
 
-    <!-- ONOS OpenFlow provider app features -->
-
-    <feature name="onos-openflow" version="@FEATURE-VERSION"
-             description="ONOS OpenFlow API, Controller &amp; Providers">
-        <feature>onos-api</feature>
-        <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
-        <bundle>mvn:org.onosproject/onos-of-api/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-of-drivers/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-of-ctl/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-drivers/@ONOS-VERSION</bundle>
-
-        <bundle>mvn:org.onosproject/onos-lldp-provider/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-host-provider/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-device/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-packet/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-flow/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-of-provider-group/@ONOS-VERSION</bundle>
-    </feature>
-
     <!-- Deprecated! For standalone testing only. -->
-
     <feature name="onos-core-trivial" version="@FEATURE-VERSION"
-             description="ONOS core components">
+             description="ONOS trivial core components">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-common/@ONOS-VERSION</bundle>
