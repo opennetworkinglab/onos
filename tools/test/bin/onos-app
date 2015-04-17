@@ -12,11 +12,14 @@ export HDR="-HContent-Type:application/octet-stream"
 export curl="curl -sS"
 
 function usage {
-    echo "usage: onos-app {install|install!} <app-file>" >&2
-    echo "       onos-app {reinstall|reinstall!} <app-name> <app-file>" >&2
-    echo "       onos-app {activate|deactivate|uninstall} <app-name>" >&2
+    echo "usage: onos-app <node-ip> list" >&2
+    echo "       onos-app <node-ip> {install|install!} <app-file>" >&2
+    echo "       onos-app <node-ip> {reinstall|reinstall!} <app-name> <app-file>" >&2
+    echo "       onos-app <node-ip> {activate|deactivate|uninstall} <app-name>" >&2
     exit 1
 }
+
+[ -z $node -o "$node" = "-h" -o "$node" = "--help" -o "$node" = "-?" ] && usage
 
 case $cmd in
     list) $curl -X GET $URL;;
@@ -49,4 +52,4 @@ case $cmd in
     *) usage;;
 esac
 
-echo #new line for prompt
+echo # new line for prompt
