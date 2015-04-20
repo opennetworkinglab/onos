@@ -166,8 +166,8 @@ public class DistributedLeadershipManager implements LeadershipService {
     }
 
     @Override
-    public Map<String, Leadership> getCandidates() {
-        return ImmutableMap.copyOf(candidateBoard);
+    public Map<String, List<NodeId>> getCandidates() {
+        return Maps.toMap(candidateBoard.keySet(), this::getCandidates);
     }
 
     @Override

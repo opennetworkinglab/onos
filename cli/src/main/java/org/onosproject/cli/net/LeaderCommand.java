@@ -16,8 +16,8 @@
 package org.onosproject.cli.net;
 
 import java.util.Comparator;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.karaf.shell.commands.Argument;
@@ -94,7 +94,7 @@ public class LeaderCommand extends AbstractShellCommand {
     }
 
     private void displayCandidates(Map<String, Leadership> leaderBoard,
-            Map<String, Leadership> candidates) {
+            Map<String, List<NodeId>> candidates) {
         print("--------------------------------------------------------------");
         print(FMT_C, "Topic", "Leader", "Candidates");
         print("--------------------------------------------------------------");
@@ -104,7 +104,7 @@ public class LeaderCommand extends AbstractShellCommand {
                 .filter(l -> allTopics || pattern.matcher(l.topic()).matches())
                 .sorted(leadershipComparator)
                 .forEach(l -> {
-                        List<NodeId> list = candidates.get(l.topic()).candidates();
+                        List<NodeId> list = candidates.get(l.topic());
                         print(FMT_C,
                             l.topic(),
                             l.leader(),
@@ -156,7 +156,7 @@ public class LeaderCommand extends AbstractShellCommand {
             print("%s", json(leaderBoard));
         } else {
             if (showCandidates) {
-                Map<String, Leadership> candidates = leaderService.getCandidates();
+                Map<String, List<NodeId>> candidates = leaderService.getCandidates();
                 displayCandidates(leaderBoard, candidates);
             } else {
                 displayLeaders(leaderBoard);

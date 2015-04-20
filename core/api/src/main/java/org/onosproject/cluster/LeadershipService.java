@@ -15,9 +15,9 @@
  */
 package org.onosproject.cluster;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.List;
 
 /**
  * Service for leader election.
@@ -76,9 +76,9 @@ public interface LeadershipService {
     /**
      * Returns the candidates for all known topics.
      *
-     * @return A mapping from topics to up-to-date candidate info.
+     * @return A mapping from topics to corresponding list of candidates.
      */
-    Map<String, Leadership> getCandidates();
+    Map<String, List<NodeId>> getCandidates();
 
     /**
      * Returns the candidates for a given topic.
