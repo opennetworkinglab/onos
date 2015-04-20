@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.ecmap;
 
+import java.util.Objects;
+
 import org.onosproject.store.Timestamp;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -65,5 +67,22 @@ public abstract class AbstractEntry<K, V> implements Comparable<AbstractEntry<K,
     @Override
     public int compareTo(AbstractEntry<K, V> o) {
         return this.timestamp.compareTo(o.timestamp);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(timestamp);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof AbstractEntry) {
+            final AbstractEntry that = (AbstractEntry) o;
+            return this.timestamp.equals(that.timestamp);
+        }
+        return false;
     }
 }
