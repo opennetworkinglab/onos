@@ -167,6 +167,7 @@ public class DistributedPacketStore
         public PacketRequestTracker() {
             requests = storageService.<PacketRequest, Boolean>consistentMapBuilder()
                     .withName("packet-requests")
+                    .withPartitionsDisabled()
                     .withSerializer(Serializer.using(
                             new KryoNamespace.Builder().register(KryoNamespaces.API).build()))
                     .withSerializer(new Serializer() {
