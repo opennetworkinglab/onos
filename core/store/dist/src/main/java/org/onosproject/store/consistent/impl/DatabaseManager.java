@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 
 import net.kuujo.copycat.CopycatConfig;
 import net.kuujo.copycat.cluster.ClusterConfig;
@@ -68,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +90,6 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     public static final String PARTITION_DEFINITION_FILE = "../config/tablets.json";
     public static final String BASE_PARTITION_NAME = "p0";
 
-    private static final int DATABASE_STARTUP_TIMEOUT_SEC = 60;
     private static final int RAFT_ELECTION_TIMEOUT_MILLIS = 3000;
     private static final int DATABASE_OPERATION_TIMEOUT_MILLIS = 5000;
 
@@ -176,27 +175,18 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         partitionedDatabase = new PartitionedDatabase("onos-store", partitions);
 
-        CountDownLatch latch = new CountDownLatch(1);
-
-        coordinator.open()
+        CompletableFuture<Void> status = coordinator.open()
             .thenCompose(v -> CompletableFuture.allOf(inMemoryDatabase.open(), partitionedDatabase.open())
             .whenComplete((db, error) -> {
                 if (error != null) {
-                    log.warn("Failed to create databases.", error);
+                    log.error("Failed to initialize database.", error);
                 } else {
-                    latch.countDown();
-                    log.info("Successfully created databases.");
+                    log.info("Successfully initialized database.");
                 }
             }));
 
-        try {
-            if (!latch.await(DATABASE_STARTUP_TIMEOUT_SEC, TimeUnit.SECONDS)) {
-                log.warn("Timed out waiting for database to initialize.");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("Failed to complete database initialization.");
-        }
+        Futures.getUnchecked(status);
+
         transactionManager = new TransactionManager(partitionedDatabase);
         log.info("Started");
     }
