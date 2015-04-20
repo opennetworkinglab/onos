@@ -38,6 +38,7 @@ import java.util.function.Function;
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.onlab.nio.AcceptorLoop;
+import org.onlab.nio.SelectorLoop;
 import org.onlab.packet.IpAddress;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
@@ -53,7 +54,7 @@ import com.google.common.collect.Lists;
 /**
  * MessagingService implementation based on IOLoop.
  */
-public class IOLoopMessagingService implements MessagingService {
+public class IOLoopMessagingManager implements MessagingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -81,7 +82,7 @@ public class IOLoopMessagingService implements MessagingService {
     private final Endpoint localEp;
 
     private GenericKeyedObjectPool<Endpoint, DefaultMessageStream> streams =
-            new GenericKeyedObjectPool<Endpoint, DefaultMessageStream>(new DefaultMessageStreamFactory());
+            new GenericKeyedObjectPool<>(new DefaultMessageStreamFactory());
 
     private final ConcurrentMap<String, Consumer<DefaultMessage>> handlers = new ConcurrentHashMap<>();
     private final AtomicLong messageIdGenerator = new AtomicLong(0);
@@ -97,20 +98,21 @@ public class IOLoopMessagingService implements MessagingService {
             .build();
 
 
-    public IOLoopMessagingService(int port) {
+    public IOLoopMessagingManager(int port) {
         this(new Endpoint(IpAddress.valueOf("127.0.0.1"), port));
     }
 
-    public IOLoopMessagingService(IpAddress ip, int port) {
+    public IOLoopMessagingManager(IpAddress ip, int port) {
         this(new Endpoint(ip, port));
     }
 
-    public IOLoopMessagingService(Endpoint localEp) {
+    public IOLoopMessagingManager(Endpoint localEp) {
         this.localEp = localEp;
     }
 
     /**
      * Returns the local endpoint.
+     *
      * @return local endpoint
      */
     public Endpoint localEp() {
@@ -119,6 +121,7 @@ public class IOLoopMessagingService implements MessagingService {
 
     /**
      * Activates IO Loops.
+     *
      * @throws IOException is activation fails
      */
     public void activate() throws IOException {
@@ -129,7 +132,7 @@ public class IOLoopMessagingService implements MessagingService {
             ioLoops.add(new DefaultIOLoop(this::dispatchLocally));
         }
 
-        ioLoops.forEach(loop -> ioThreadPool.execute(loop));
+        ioLoops.forEach(ioThreadPool::execute);
         acceptorThreadPool.execute(acceptorLoop);
         ioLoops.forEach(loop -> loop.awaitStart(TIMEOUT));
         acceptorLoop.awaitStart(TIMEOUT);
@@ -139,7 +142,7 @@ public class IOLoopMessagingService implements MessagingService {
      * Shuts down IO loops.
      */
     public void deactivate() {
-        ioLoops.forEach(loop -> loop.shutdown());
+        ioLoops.forEach(SelectorLoop::shutdown);
         acceptorLoop.shutdown();
         ioThreadPool.shutdown();
         acceptorThreadPool.shutdown();

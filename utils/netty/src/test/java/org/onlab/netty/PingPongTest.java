@@ -38,8 +38,8 @@ public class PingPongTest {
     @Ignore("Turning off fragile test")
     @Test
     public void testPingPong() throws Exception {
-        NettyMessagingService pinger = new NettyMessagingService(8085);
-        NettyMessagingService ponger = new NettyMessagingService(9086);
+        NettyMessagingManager pinger = new NettyMessagingManager(8085);
+        NettyMessagingManager ponger = new NettyMessagingManager(9086);
         try {
             pinger.activate();
             ponger.activate();

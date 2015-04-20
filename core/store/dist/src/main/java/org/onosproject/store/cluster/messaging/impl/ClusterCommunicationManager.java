@@ -21,8 +21,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.netty.NettyMessagingService;
-import org.onlab.nio.service.IOLoopMessagingService;
+import org.onlab.netty.NettyMessagingManager;
+import org.onlab.nio.service.IOLoopMessagingManager;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -69,7 +69,7 @@ public class ClusterCommunicationManager
     public void activate() {
         ControllerNode localNode = clusterService.getLocalNode();
         if (useNetty) {
-            NettyMessagingService netty = new NettyMessagingService(localNode.ip(), localNode.tcpPort());
+            NettyMessagingManager netty = new NettyMessagingManager(localNode.ip(), localNode.tcpPort());
             try {
                 netty.activate();
                 messagingService = netty;
@@ -77,7 +77,7 @@ public class ClusterCommunicationManager
                 log.error("NettyMessagingService#activate", e);
             }
         } else {
-            IOLoopMessagingService ioLoop = new IOLoopMessagingService(localNode.ip(), localNode.tcpPort());
+            IOLoopMessagingManager ioLoop = new IOLoopMessagingManager(localNode.ip(), localNode.tcpPort());
             try {
                 ioLoop.activate();
                 messagingService = ioLoop;
@@ -94,9 +94,9 @@ public class ClusterCommunicationManager
         // FIXME: workaround until it becomes a service.
         try {
             if (useNetty) {
-                ((NettyMessagingService) messagingService).deactivate();
+                ((NettyMessagingManager) messagingService).deactivate();
             } else {
-                ((IOLoopMessagingService) messagingService).deactivate();
+                ((IOLoopMessagingManager) messagingService).deactivate();
             }
         } catch (Exception e) {
             log.error("MessagingService#deactivate", e);

@@ -65,7 +65,7 @@ import com.google.common.cache.RemovalNotification;
 /**
  * Implementation of MessagingService based on <a href="http://netty.io/">Netty</a> framework.
  */
-public class NettyMessagingService implements MessagingService {
+public class NettyMessagingManager implements MessagingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -111,15 +111,15 @@ public class NettyMessagingService implements MessagingService {
         clientChannelClass = NioSocketChannel.class;
     }
 
-    public NettyMessagingService(IpAddress ip, int port) {
+    public NettyMessagingManager(IpAddress ip, int port) {
         localEp = new Endpoint(ip, port);
     }
 
-    public NettyMessagingService() {
+    public NettyMessagingManager() {
         this(8080);
     }
 
-    public NettyMessagingService(int port) {
+    public NettyMessagingManager(int port) {
         try {
             localEp = new Endpoint(IpAddress.valueOf(InetAddress.getLocalHost()), port);
         } catch (UnknownHostException e) {

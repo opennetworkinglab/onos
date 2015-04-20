@@ -25,7 +25,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
-import org.onlab.netty.NettyMessagingService;
+import org.onlab.netty.NettyMessagingManager;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterEvent;
@@ -108,7 +108,7 @@ public class DistributedClusterStore
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
     private final Map<NodeId, State> nodeStates = Maps.newConcurrentMap();
     private final Map<NodeId, DateTime> nodeStateLastUpdatedTimes = Maps.newConcurrentMap();
-    private NettyMessagingService messagingService;
+    private NettyMessagingManager messagingService;
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("onos/cluster/membership", "heartbeat-sender"));
     private ExecutorService heartBeatMessageHandler = Executors.newSingleThreadExecutor(
@@ -148,7 +148,7 @@ public class DistributedClusterStore
 
         establishSelfIdentity();
 
-        messagingService = new NettyMessagingService(HEARTBEAT_FD_PORT);
+        messagingService = new NettyMessagingManager(HEARTBEAT_FD_PORT);
         try {
             messagingService.activate();
         } catch (InterruptedException e) {
