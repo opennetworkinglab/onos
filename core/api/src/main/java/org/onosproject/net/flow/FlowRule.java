@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 
@@ -32,6 +33,7 @@ public interface FlowRule {
      * needs to be put for multi-table support switch.
      * For single table switch, Default is used.
      */
+    @Deprecated
     public static enum Type {
         /* Default type - used in flow rule for single table switch
          * NOTE: this setting should not be used as Table 0 in a multi-table pipeline*/
@@ -59,7 +61,6 @@ public interface FlowRule {
         FIRST,
     }
 
-    //TODO: build cookie value
     /**
      * Returns the ID of this flow.
      *
@@ -130,6 +131,105 @@ public interface FlowRule {
      *
      * @return flow rule type
      */
+    @Deprecated
     Type type();
+
+    /**
+     * Returns the table id for this rule.
+     *
+     * @return an integer.
+     */
+    int tableId();
+
+    /**
+     * A flowrule builder.
+     */
+    public interface Builder {
+
+        /**
+         * Assigns a cookie value to this flowrule. Mutually exclusive with the
+         * fromApp method. This method is intended to take a cookie value from
+         * the dataplane and not from the application.
+         *
+         * @param cookie a long value
+         * @return this
+         */
+        Builder withCookie(long cookie);
+
+        /**
+         * Assigns the application that built this flow rule to this object.
+         * The short value of the appId will be used as a basis for the
+         * cookie value computation. It is expected that application use this
+         * call to set their application id.
+         *
+         * @param appId an application id
+         * @return this
+         */
+        Builder fromApp(ApplicationId appId);
+
+        /**
+         * Sets the priority for this flow rule.
+         *
+         * @param priority an integer
+         * @return this
+         */
+        Builder withPriority(int priority);
+
+        /**
+         * Sets the deviceId for this flow rule.
+         *
+         * @param deviceId a device id
+         * @return this
+         */
+        Builder forDevice(DeviceId deviceId);
+
+        /**
+         * Sets the table id for this flow rule. Default value is 0.
+         *
+         * @param tableId an integer
+         * @return this
+         */
+        Builder forTable(int tableId);
+
+        /**
+         * Sets the selector (or match field) for this flow rule.
+         *
+         * @param selector a traffic selector
+         * @return this
+         */
+        Builder withSelector(TrafficSelector selector);
+
+        /**
+         * Sets the traffic treatment for this flow rule.
+         *
+         * @param treatment a traffic treatment
+         * @return this
+         */
+        Builder withTreatment(TrafficTreatment treatment);
+
+        /**
+         * Makes this rule permanent on the dataplane.
+         *
+         * @return this
+         */
+        Builder makePermanent();
+
+        /**
+         * Makes this rule temporary and timeout after the specified amount
+         * of time.
+         *
+         * @param timeout an integer
+         * @return this
+         */
+        Builder makeTemporary(int timeout);
+
+        /**
+         * Builds a flow rule object.
+         *
+         * @return a flow rule.
+         */
+        FlowRule build();
+
+    }
 
 }

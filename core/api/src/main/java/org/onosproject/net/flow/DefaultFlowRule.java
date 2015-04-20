@@ -23,6 +23,8 @@ import org.onosproject.net.DeviceId;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultFlowRule implements FlowRule {
 
@@ -34,15 +36,17 @@ public class DefaultFlowRule implements FlowRule {
 
     private final FlowId id;
 
-    private final short appId;
+    private final Short appId;
 
     private final int timeout;
     private final boolean permanent;
     private final GroupId groupId;
 
     private final Type type;
+    private final Integer tableId;
 
 
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
             TrafficTreatment treatment, int priority, long flowId,
             int timeout, boolean permanent) {
@@ -58,8 +62,10 @@ public class DefaultFlowRule implements FlowRule {
         this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
         this.type = Type.DEFAULT;
+        this.tableId = 0;
     }
 
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, long flowId,
                            int timeout, boolean permanent, Type tableType) {
@@ -75,8 +81,11 @@ public class DefaultFlowRule implements FlowRule {
         this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
         this.type = tableType;
+        this.tableId = 0;
+
     }
 
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            int timeout, boolean permanent) {
@@ -84,6 +93,7 @@ public class DefaultFlowRule implements FlowRule {
                 timeout, permanent);
     }
 
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            int timeout, boolean permanent, Type type) {
@@ -102,6 +112,7 @@ public class DefaultFlowRule implements FlowRule {
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
         this.type = type;
+        this.tableId = 0;
 
         /*
          * id consists of the following.
@@ -112,6 +123,7 @@ public class DefaultFlowRule implements FlowRule {
 
     }
 
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority, ApplicationId appId,
                            GroupId groupId, int timeout, boolean permanent) {
@@ -130,6 +142,7 @@ public class DefaultFlowRule implements FlowRule {
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
         this.type = Type.DEFAULT;
+        this.tableId = 0;
 
         /*
          * id consists of the following.
@@ -151,6 +164,31 @@ public class DefaultFlowRule implements FlowRule {
         this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
         this.type = rule.type();
+        this.tableId = rule.tableId();
+
+    }
+
+    private DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
+                            TrafficTreatment treatment, Integer priority,
+                            FlowId flowId, Boolean permanent, Integer timeout,
+                            Integer tableId) {
+
+        this.deviceId = deviceId;
+        this.selector = selector;
+        this.treatment = treatment;
+        this.priority = priority;
+        this.appId = (short) (flowId.value() >>> 48);
+        this.id = flowId;
+        this.permanent = permanent;
+        this.timeout = timeout;
+        this.tableId = tableId;
+        this.created = System.currentTimeMillis();
+
+
+        //FIXME: fields below will be removed.
+        this.groupId = null;
+        this.type = null;
+
 
     }
 
@@ -197,7 +235,7 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public int hashCode() {
-        return Objects.hash(deviceId, selector, priority, type);
+        return Objects.hash(deviceId, selector, priority, type, tableId);
     }
 
     public int hash() {
@@ -220,6 +258,7 @@ public class DefaultFlowRule implements FlowRule {
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(priority, that.priority) &&
                     Objects.equals(selector, that.selector) &&
+                    Objects.equals(tableId, that.tableId) &&
                     Objects.equals(type, that.type);
 
         }
@@ -252,6 +291,109 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public Type type() {
         return type;
+    }
+
+    @Override
+    public int tableId() {
+        return tableId;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private static final class Builder implements FlowRule.Builder {
+
+        private FlowId flowId;
+        private Integer priority;
+        private DeviceId deviceId;
+        private Integer tableId = 0;
+        private TrafficSelector selector;
+        private TrafficTreatment treatment;
+        private Integer timeout;
+        private Boolean permanent;
+
+        @Override
+        public FlowRule.Builder withCookie(long cookie) {
+            this.flowId = FlowId.valueOf(cookie);
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder fromApp(ApplicationId appId) {
+            this.flowId = computeFlowId(appId);
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder withPriority(int priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder forDevice(DeviceId deviceId) {
+            this.deviceId = deviceId;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder forTable(int tableId) {
+            this.tableId = tableId;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder withSelector(TrafficSelector selector) {
+            this.selector = selector;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder withTreatment(TrafficTreatment treatment) {
+            this.treatment = treatment;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder makePermanent() {
+            this.timeout = 0;
+            this.permanent = true;
+            return this;
+        }
+
+        @Override
+        public FlowRule.Builder makeTemporary(int timeout) {
+            this.permanent = false;
+            this.timeout = timeout;
+            return this;
+        }
+
+        @Override
+        public FlowRule build() {
+            checkNotNull(flowId != null, "Either an application" +
+                    " id or a cookie must be supplied");
+            checkNotNull(selector != null, "Traffic selector cannot be null");
+            checkNotNull(timeout != null || permanent != null, "Must either have " +
+                    "a timeout or be permanent");
+            checkNotNull(deviceId != null, "Must refer to a device");
+            checkNotNull(priority != null, "Priority cannot be null");
+            checkArgument(priority < MIN_PRIORITY, "Priority cannot be less than " +
+                    MIN_PRIORITY);
+
+            return new DefaultFlowRule(deviceId, selector, treatment, priority,
+                                       flowId, permanent, timeout, tableId);
+        }
+
+        private FlowId computeFlowId(ApplicationId appId) {
+            return FlowId.valueOf((((long) appId.id()) << 48)
+                                   | (hash() & 0xffffffffL));
+        }
+
+        private int hash() {
+            return Objects.hash(deviceId, selector, treatment, tableId);
+        }
+
     }
 
 }

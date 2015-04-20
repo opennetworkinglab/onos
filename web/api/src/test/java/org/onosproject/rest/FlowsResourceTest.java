@@ -190,6 +190,11 @@ public class FlowsResourceTest extends ResourceTest {
         public Type type() {
             return Type.DEFAULT;
         }
+
+        @Override
+        public int tableId() {
+            return 0;
+        }
     }
 
     /**

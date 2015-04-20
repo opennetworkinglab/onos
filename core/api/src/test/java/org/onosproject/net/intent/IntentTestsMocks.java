@@ -411,6 +411,11 @@ public class IntentTestsMocks {
         public Type type() {
             return type;
         }
+
+        @Override
+        public int tableId() {
+            return 0;
+        }
     }
 
     public static class MockIntent extends Intent {
