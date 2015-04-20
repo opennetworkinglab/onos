@@ -35,14 +35,7 @@
     <dependency>
       <groupId>com.googlecode.concurrent-trees</groupId>
       <artifactId>concurrent-trees</artifactId>
-      <version>2.4.0</version>
     </dependency>
-
-        <dependency>
-          <groupId>net.jodah</groupId>
-          <artifactId>expiringmap</artifactId>
-          <version>0.3.1</version>
-        </dependency>
 
         <dependency>
           <!-- FIXME once fixes get merged to upstream -->
@@ -72,28 +65,26 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
         <configuration>
+          <createSourcesJar>true</createSourcesJar>
+
+          <artifactSet>
+            <excludes>
+              <!-- exclude OSGi-ready transitive dependencies -->
+              <exclude>com.google.guava:guava</exclude>
+              <exclude>com.esotericsoftware:*</exclude>
+              <exclude>org.ow2.asm:asm</exclude>
+              <exclude>org.objenesis:objenesis</exclude>
+              <exclude>io.netty:*</exclude>
+            </excludes>
+          </artifactSet>
+
           <filters>
 
             <filter>
               <artifact>com.googlecode.concurrent-trees:concurrent-trees</artifact>
               <includes>
                 <include>com/googlecode/**</include>
-              </includes>
-            </filter>
-
-            <filter>
-              <artifact>com.google.guava:guava</artifact>
-              <excludes>
-                <exclude>**</exclude>
-              </excludes>
-            </filter>
-
-            <filter>
-              <artifact>net.jodah.expiringmap:*</artifact>
-              <includes>
-                <include>net/jodah/expiringmap/**</include>
               </includes>
             </filter>
 
@@ -121,7 +112,7 @@
         <configuration>
           <instructions>
             <Export-Package>
-              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*;net.jodah.expiringmap.*
+              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*
             </Export-Package>
           </instructions>
         </configuration>
