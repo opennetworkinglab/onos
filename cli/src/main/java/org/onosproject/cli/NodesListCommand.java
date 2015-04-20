@@ -15,19 +15,21 @@
  */
 package org.onosproject.cli;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collections;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
+import org.joda.time.DateTime;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+
 
 /**
  * Lists all controller cluster nodes.
@@ -49,9 +51,14 @@ public class NodesListCommand extends AbstractShellCommand {
         } else {
             ControllerNode self = service.getLocalNode();
             for (ControllerNode node : nodes) {
+                DateTime lastUpdated = service.getLastUpdated(node.id());
+                String timeAgo = "Never";
+                if (lastUpdated != null) {
+                    timeAgo = Tools.timeAgo(lastUpdated.getMillis());
+                }
                 print(FMT, node.id(), node.ip(), node.tcpPort(),
                       service.getState(node.id()),
-                      Tools.timeAgo(service.getLastUpdated(node.id()).getMillis()),
+                      timeAgo,
                       node.equals(self) ? "*" : "");
             }
         }
@@ -63,12 +70,17 @@ public class NodesListCommand extends AbstractShellCommand {
         ArrayNode result = mapper.createArrayNode();
         ControllerNode self = service.getLocalNode();
         for (ControllerNode node : nodes) {
-            result.add(mapper.createObjectNode()
+            ControllerNode.State nodeState = service.getState(node.id());
+            ObjectNode newNode = mapper.createObjectNode()
                                .put("id", node.id().toString())
                                .put("ip", node.ip().toString())
                                .put("tcpPort", node.tcpPort())
-                               .put("state", service.getState(node.id()).toString())
-                               .put("self", node.equals(self)));
+                               .put("self", node.equals(self));
+
+            if (nodeState != null) {
+                newNode.put("state", nodeState.toString());
+            }
+            result.add(newNode);
         }
         return result;
     }
