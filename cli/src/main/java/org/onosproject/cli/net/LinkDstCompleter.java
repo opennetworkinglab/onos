@@ -31,7 +31,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * Link end-point completer.
+ * Link destination end-point completer.
  */
 public class LinkDstCompleter extends AbstractCompleter {
     @Override

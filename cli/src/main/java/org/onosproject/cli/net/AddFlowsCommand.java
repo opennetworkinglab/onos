@@ -45,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Installs many many flows.
+ * Installs bulk flows.
  */
 @Command(scope = "onos", name = "add-flows",
          description = "Installs a number of test flow rules - for testing only")

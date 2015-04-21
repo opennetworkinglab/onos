@@ -35,10 +35,10 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * Installs point-to-point connectivity intents.
+ * Installs connectivity intent between multiple ingress devices and a single egress device.
  */
 @Command(scope = "onos", name = "add-multi-to-single-intent",
-         description = "Installs point-to-point connectivity intent")
+         description = "Installs connectivity intent between multiple ingress devices and a single egress device")
 public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentCommand {
 
     @Argument(index = 0, name = "ingressDevices egressDevice",

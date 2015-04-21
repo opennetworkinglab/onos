@@ -25,6 +25,9 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;
 
+/**
+ * Host ID completer.
+ */
 public class HostIdCompleter implements Completer {
 
     @Override

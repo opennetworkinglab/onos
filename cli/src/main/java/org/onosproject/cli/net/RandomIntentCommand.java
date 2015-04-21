@@ -33,7 +33,7 @@ import org.onosproject.net.intent.IntentService;
 import com.google.common.collect.Lists;
 
 /**
- * Installs point-to-point connectivity intents.
+ * Installs bulk point-to-point connectivity intents between random ingress/egress devices.
  */
 @Command(scope = "onos", name = "push-random-intents",
          description = "Installs random intents to test throughput")

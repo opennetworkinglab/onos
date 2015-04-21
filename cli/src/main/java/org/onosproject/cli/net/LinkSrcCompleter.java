@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.SortedSet;
 
 /**
- * Link end-point completer.
+ * Link source end-point completer.
  */
 public class LinkSrcCompleter extends AbstractCompleter {
     @Override

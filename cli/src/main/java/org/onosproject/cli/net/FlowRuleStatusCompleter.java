@@ -23,7 +23,7 @@ import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 
 /**
- * Device ID completer.
+ * Flow rule status completer.
  */
 public class FlowRuleStatusCompleter implements Completer {
     @Override

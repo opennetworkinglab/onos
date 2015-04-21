@@ -47,7 +47,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * Installs point-to-point connectivity intents.
+ * Installs bulk point-to-point connectivity intents between given ingress/egress devices.
  */
 @Command(scope = "onos", name = "push-test-intents",
          description = "Installs random intents to test throughput")

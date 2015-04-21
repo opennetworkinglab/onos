@@ -38,7 +38,7 @@ public class CountersListCommand extends AbstractShellCommand {
     /**
      * Displays counters as text.
      *
-     * @param mapInfo map descriptions
+     * @param counters counter info
      */
     private void displayCounters(Map<String, Long> counters) {
         counters.forEach((name, value) -> print(FMT, name, value));

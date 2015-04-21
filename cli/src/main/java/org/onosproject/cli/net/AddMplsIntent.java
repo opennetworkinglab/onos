@@ -19,6 +19,9 @@ import org.onosproject.net.intent.MplsIntent;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
+/**
+ * Installs MPLS intents.
+ */
 @Command(scope = "onos", name = "add-mpls-intent", description = "Installs mpls connectivity intent")
 public class AddMplsIntent extends ConnectivityIntentCommand {
 
