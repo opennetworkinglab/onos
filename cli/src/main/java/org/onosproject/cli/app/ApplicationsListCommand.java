@@ -43,7 +43,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                     "features=%s, featuresRepo=%s, permissions=%s";
 
     private static final String SHORT_FMT =
-            "%s %3d  %-28s  %-8s  %-16s  %s";
+            "%s %3d %-32s %-8s %s";
 
     @Option(name = "-s", aliases = "--short", description = "Show short output only",
             required = false, multiValued = false)
@@ -69,7 +69,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                     if (shortOnly) {
                         print(SHORT_FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(),
-                              app.origin(), app.description());
+                              app.description());
                     } else {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),
