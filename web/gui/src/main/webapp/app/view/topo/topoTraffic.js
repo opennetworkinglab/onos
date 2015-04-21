@@ -132,14 +132,14 @@
     function showNextIntentAction() {
         hoverMode = hoverModeNone;
         wss.sendEvent('requestNextRelatedIntent');
-        flash.flash('>');
+        flash.flash('Next related intent');
     }
 
     // keystroke-left-arrow (see topo.js)
     function showPrevIntentAction() {
         hoverMode = hoverModeNone;
         wss.sendEvent('requestPrevRelatedIntent');
-        flash.flash('<');
+        flash.flash('Previous related intent');
     }
 
     // keystroke-W (see topo.js)

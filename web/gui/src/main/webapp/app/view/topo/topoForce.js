@@ -413,7 +413,7 @@
     }
 
     function cycleDeviceLabels() {
-        td3.incDevLabIndex();
+        flash.flash(td3.incDevLabIndex());
         tms.findDevices().forEach(function (d) {
             td3.updateDeviceLabel(d);
         });

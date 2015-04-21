@@ -18,14 +18,16 @@
  ONOS GUI -- Topo View -- Topo Oblique View Service - Unit Tests
  */
 describe('factory: view/topo/topoOblique.js', function() {
-    var $log, fs, tos;
+    var $log, fs, tos, flash;
 
-    beforeEach(module('ovTopo', 'onosUtil'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoObliqueService) {
+    beforeEach(inject(function (_$log_, FnService,
+                                TopoObliqueService, FlashService) {
         $log = _$log_;
         fs = FnService;
         tos = TopoObliqueService;
+        flash = FlashService;
     }));
 
     it('should define TopoTrafficService', function () {

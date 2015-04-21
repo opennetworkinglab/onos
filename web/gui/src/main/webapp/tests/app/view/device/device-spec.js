@@ -20,23 +20,6 @@
 describe('Controller: OvDeviceCtrl', function () {
     var $log, $scope, $controller, ctrl, $mockHttp;
 
-    var fakeData = {
-        "devices": [{
-            "id": "of:0000000000000001",
-            "available": true,
-            "mfr": "Nicira, Inc.",
-            "hw": "Open vSwitch",
-            "sw": "2.0.1"
-        },
-        {
-            "id": "of:0000000000000004",
-            "available": true,
-            "mfr": "Nicira, Inc.",
-            "hw": "Open vSwitch",
-            "sw": "2.0.1"
-        }]
-    };
-
     // instantiate the Device module
     beforeEach(module('ovDevice', 'onosRemote', 'onosLayer', 'onosSvg',
                       'onosNav', 'ngRoute'));
@@ -50,16 +33,6 @@ describe('Controller: OvDeviceCtrl', function () {
 
     beforeEach(function() {
         ctrl = $controller('OvDeviceCtrl', { $scope: $scope });
-        $mockHttp.whenGET(/\/device$/).respond(fakeData);
-    });
-
-
-    // TODO: rewrite test to account for websocket
-    xit('should be an empty array and then have device data', function () {
-        expect(ctrl.deviceData).toEqual([]);
-        $scope.sortCallback();
-        $mockHttp.flush();
-        expect(ctrl.deviceData).toEqual(fakeData.devices);
     });
 
 });

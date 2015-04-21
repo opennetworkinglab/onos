@@ -54,6 +54,7 @@ describe('factory: fw/widget/tooltip.js', function () {
         expect(tts.cancelTooltip()).toBeFalsy();
     });
 
+    // TODO: figure out how to test this
     // testing mouse events is tough
     // showTooltip needs a d3 event, which currently has no test backend
     // .each is a workaround, which provides this, d, and i

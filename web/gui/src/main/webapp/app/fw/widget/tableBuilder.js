@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $window, fs, wss;
+    var $log, fs, wss;
 
     // example params to buildTable:
     // {
@@ -72,11 +72,10 @@
 
     angular.module('onosWidget')
         .factory('TableBuilderService',
-        ['$log', '$window', 'FnService', 'WebSocketService',
+        ['$log', 'FnService', 'WebSocketService',
 
-            function (_$log_, _$window_, _fs_, _wss_) {
+            function (_$log_, _fs_, _wss_) {
                 $log = _$log_;
-                $window = _$window_;
                 fs = _fs_;
                 wss = _wss_;
 

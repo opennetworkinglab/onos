@@ -24,7 +24,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus;
+    var $log, fs, sus, flash;
 
     // api to topoForce
     var api;
@@ -217,12 +217,13 @@
 
 angular.module('ovTopo')
     .factory('TopoObliqueService',
-    ['$log', 'FnService', 'SvgUtilService',
+    ['$log', 'FnService', 'SvgUtilService', 'FlashService',
 
-    function (_$log_, _fs_, _sus_) {
+    function (_$log_, _fs_, _sus_, _flash_) {
         $log = _$log_;
         fs = _fs_;
         sus = _sus_;
+        flash = _flash_;
 
         function initOblique(_api_) {
             api = _api_;
@@ -234,8 +235,10 @@ angular.module('ovTopo')
             oblique = !oblique;
             if (oblique) {
                 api.force().stop();
+                flash.flash('Oblique view');
                 toObliqueView();
             } else {
+                flash.flash('Normal view');
                 toNormalView();
             }
         }

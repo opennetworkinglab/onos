@@ -134,6 +134,11 @@
 
     function incDevLabIndex() {
         deviceLabelIndex = (deviceLabelIndex+1) % 3;
+        switch(deviceLabelIndex) {
+            case 0: return 'Hide device labels';
+            case 1: return 'Show friendly device labels';
+            case 2: return 'Show device ID labels';
+        }
     }
 
     // Returns the newly computed bounding box of the rectangle

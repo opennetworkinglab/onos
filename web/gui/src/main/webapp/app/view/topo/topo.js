@@ -139,6 +139,7 @@
 
     function resetZoom() {
         zoomer.reset();
+        flash.flash('Pan and zoom reset');
     }
 
     function equalizeMasters() {

@@ -34,7 +34,7 @@
     // constants
     var topPdg = 13,
         ctnrPdg = 24,
-        scrollSize = 10,
+        scrollSize = 17,
         portsTblPdg = 50,
 
         pName = 'device-details-panel',
