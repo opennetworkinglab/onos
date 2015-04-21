@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 
 /**
- * Represents a generalized match &amp; action pair to be applied to
- * an infrastructure device.
+ * Represents a generalized match &amp; action pair to be applied to an
+ * infrastructure device.
  */
 public interface FlowRule {
 
@@ -29,14 +29,16 @@ public interface FlowRule {
     static final int MIN_PRIORITY = 0;
 
     /**
-     * The FlowRule type is used to determine in which table the flow rule
-     * needs to be put for multi-table support switch.
-     * For single table switch, Default is used.
+     * The FlowRule type is used to determine in which table the flow rule needs
+     * to be put for multi-table support switch. For single table switch,
+     * Default is used.
      */
     @Deprecated
     public static enum Type {
-        /* Default type - used in flow rule for single table switch
-         * NOTE: this setting should not be used as Table 0 in a multi-table pipeline*/
+        /*
+         * Default type - used in flow rule for single table switch NOTE: this
+         * setting should not be used as Table 0 in a multi-table pipeline
+         */
         DEFAULT,
         /* Used in flow entry for IP table */
         IP,
@@ -98,8 +100,8 @@ public interface FlowRule {
     DeviceId deviceId();
 
     /**
-     * Returns the traffic selector that identifies what traffic this
-     * rule should apply to.
+     * Returns the traffic selector that identifies what traffic this rule
+     * should apply to.
      *
      * @return traffic selector
      */
@@ -224,4 +226,10 @@ public interface FlowRule {
 
     }
 
+    /**
+     * Returns the third party original flow rule.
+     *
+     * @return FlowRuleExtPayLoad
+     */
+    FlowRuleExtPayLoad payLoad();
 }

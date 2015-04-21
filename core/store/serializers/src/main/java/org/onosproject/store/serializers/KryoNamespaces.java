@@ -18,6 +18,7 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -70,6 +71,7 @@ import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchEvent;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleBatchRequest;
+import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -322,7 +324,8 @@ public final class KryoNamespaces {
                     ObstacleConstraint.class,
                     AnnotationConstraint.class,
                     BooleanConstraint.class,
-                    IntentOperation.class
+                    IntentOperation.class,
+                    FlowRuleExtPayLoad.class
                     )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)

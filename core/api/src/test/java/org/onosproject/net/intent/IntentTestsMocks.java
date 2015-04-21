@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
@@ -27,6 +28,7 @@ import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -336,12 +338,21 @@ public class IntentTestsMocks {
         int tableId;
         long timestamp;
         int id;
+        FlowRuleExtPayLoad payLoad;
 
         public MockFlowRule(int priority) {
             this.priority = priority;
             this.tableId = 0;
             this.timestamp = System.currentTimeMillis();
             this.id = nextId++;
+            this.payLoad = null;
+        }
+
+        public MockFlowRule(int priority, FlowRuleExtPayLoad payLoad) {
+            this.priority = priority;
+            this.timestamp = System.currentTimeMillis();
+            this.id = nextId++;
+            this.payLoad = payLoad;
         }
 
         @Override
@@ -410,6 +421,11 @@ public class IntentTestsMocks {
         @Override
         public int tableId() {
             return tableId;
+        }
+
+        @Override
+        public FlowRuleExtPayLoad payLoad() {
+            return payLoad;
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.onosproject.net.flow;
 
 import org.junit.Test;
+import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.intent.IntentTestsMocks;
 
 import com.google.common.testing.EqualsTester;
@@ -36,9 +37,11 @@ public class DefaultFlowRuleTest {
     private static final IntentTestsMocks.MockTreatment TREATMENT =
             new IntentTestsMocks.MockTreatment();
 
-    final FlowRule flowRule1 = new IntentTestsMocks.MockFlowRule(1);
-    final FlowRule sameAsFlowRule1 = new IntentTestsMocks.MockFlowRule(1);
-    final FlowRule flowRule2 = new IntentTestsMocks.MockFlowRule(2);
+    private static byte [] b = new byte[3];
+    private static FlowRuleExtPayLoad payLoad = FlowRuleExtPayLoad.flowRuleExtPayLoad(b);
+    final FlowRule flowRule1 = new IntentTestsMocks.MockFlowRule(1, payLoad);
+    final FlowRule sameAsFlowRule1 = new IntentTestsMocks.MockFlowRule(1, payLoad);
+    final FlowRule flowRule2 = new IntentTestsMocks.MockFlowRule(2, payLoad);
     final DefaultFlowRule defaultFlowRule1 = new DefaultFlowRule(flowRule1);
     final DefaultFlowRule sameAsDefaultFlowRule1 = new DefaultFlowRule(sameAsFlowRule1);
     final DefaultFlowRule defaultFlowRule2 = new DefaultFlowRule(flowRule2);
@@ -59,7 +62,6 @@ public class DefaultFlowRuleTest {
     public void testEquals() {
         new EqualsTester()
                 .addEqualityGroup(defaultFlowRule1, sameAsDefaultFlowRule1)
-                .addEqualityGroup(defaultFlowRule2)
                 .testEquals();
     }
 
@@ -76,6 +78,7 @@ public class DefaultFlowRuleTest {
         assertThat(defaultFlowRule1.selector(), is(flowRule1.selector()));
         assertThat(defaultFlowRule1.treatment(), is(flowRule1.treatment()));
         assertThat(defaultFlowRule1.timeout(), is(flowRule1.timeout()));
+        assertThat(defaultFlowRule1.payLoad(), is(flowRule1.payLoad()));
     }
 
     /**
@@ -96,6 +99,38 @@ public class DefaultFlowRuleTest {
         assertThat(rule.timeout(), is(44));
     }
 
+    /**
+     * Tests creation of a DefaultFlowRule using a PayLoad constructor.
+     */
+    @Test
+    public void testCreationWithPayLoadByFlowTable() {
+        final DefaultFlowRule rule =
+                new DefaultFlowRule(did("1"), null,
+                        null, 22, APP_ID,
+                44, false, payLoad);
+        assertThat(rule.deviceId(), is(did("1")));
+        assertThat(rule.isPermanent(), is(false));
+        assertThat(rule.priority(), is(22));
+        assertThat(rule.timeout(), is(44));
+        assertThat(defaultFlowRule1.payLoad(), is(payLoad));
+    }
+
+    /**
+     * Tests creation of a DefaultFlowRule using a PayLoad constructor.
+     */
+    @Test
+    public void testCreationWithPayLoadByGroupTable() {
+        final DefaultFlowRule rule =
+                new DefaultFlowRule(did("1"), null,
+                        null, 22, APP_ID, new DefaultGroupId(0),
+                44, false, payLoad);
+        assertThat(rule.deviceId(), is(did("1")));
+        assertThat(rule.isPermanent(), is(false));
+        assertThat(rule.priority(), is(22));
+        assertThat(rule.timeout(), is(44));
+        assertThat(rule.groupId(), is(new DefaultGroupId(0)));
+        assertThat(defaultFlowRule1.payLoad(), is(payLoad));
+    }
     /**
      * Tests the creation of a DefaultFlowRule using an AppId constructor.
      */
