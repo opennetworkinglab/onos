@@ -26,7 +26,8 @@ public class DefaultLabel extends AbstractModel implements Label {
      * Creates a label attributed to the specified provider (may be null).
      * if provider is null, which means the label is not managed by the SB.
      *
-     * @param elementId     parent network element
+     * @param providerId  tunnelProvider Id
+     * @param elementId   parent network element
      * @param number      port number
      * @param parentLabel parent port or parent label
      * @param type        port type

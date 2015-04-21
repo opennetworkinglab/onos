@@ -57,14 +57,16 @@ public interface TunnelService {
     /**
      * Returns a collection of all known tunnel based on the type.
      *
+     *@param type  tunnelType
      * @return all tunnels for a specific type
      */
     Collection<Tunnel> getTunnels(Tunnel.Type type);
 
     /**
-     * Returns set of all tunnels from the
-     * specified connectpoint.
+     * Returns set of all tunnels from the specified connectpoint.
      *
+     * @param connectPoint device/portnumber
+     * @param type  tunnelType
      * @return set of tunnels
      */
     Collection<Tunnel> getTunnels(ConnectPoint connectPoint, Tunnel.Type type);
