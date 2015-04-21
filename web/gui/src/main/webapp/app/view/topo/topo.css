@@ -85,6 +85,17 @@
     top: 320px;
 }
 
+#topo-p-detail .actionBtns {
+    text-align: center;
+}
+#topo-p-detail .actionBtns .actionBtn {
+    display: inline-block;
+}
+#topo-p-detail .actionBtns .actionBtn svg {
+    width: 30px;
+    height: 30px;
+}
+
 /* --- general topo-panel styling --- */
 
 .topo-p svg {
@@ -160,38 +171,6 @@
     background-color: #888;
     color: #888;
 }
-
-
-.topo-p .actionBtn {
-    margin: 6px 12px;
-    padding: 2px 6px;
-    font-size: 9pt;
-    cursor: pointer;
-    width: 200px;
-    text-align: center;
-    border-radius: 4px;
-}
-.light .topo-p .actionBtn {
-    border: 2px solid #ddd;
-    color: #eee;
-    background: #888;
-}
-.dark .topo-p .actionBtn {
-    border: 2px solid #222;
-    color: #888;
-    background: #444;
-}
-
-.light .topo-p .actionBtn:hover {
-    color: #eee;
-    background: #444;
-}
-.dark .topo-p .actionBtn:hover {
-    color: #eee;
-    background: #666;
-}
-
-
 
 /* --- Topo Instance Panel --- */
 

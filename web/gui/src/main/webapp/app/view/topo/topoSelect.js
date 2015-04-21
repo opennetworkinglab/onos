@@ -186,13 +186,28 @@
         tps.displayMulti(selectOrder);
 
         // always add the 'show traffic' action
-        tps.addAction('Show Related Traffic', tts.showRelatedIntentsAction);
+        tps.addAction({
+            id: '-mult-rel-traf-btn',
+            gid: 'allTraffic',
+            cb:  tts.showRelatedIntentsAction,
+            tt: 'Show Related Traffic'
+        });
 
         // add other actions, based on what is selected...
         if (nSel() === 2 && allSelectionsClass('host')) {
-            tps.addAction('Create Host-to-Host Flow', tts.addHostIntentAction);
+            tps.addAction({
+                id: 'host-flow-btn',
+                gid: 'endstation',
+                cb: tts.addHostIntentAction,
+                tt: 'Create Host-to-Host Flow'
+            });
         } else if (nSel() >= 2 && allSelectionsClass('host')) {
-            tps.addAction('Create Multi-Source Flow', tts.addMultiSourceIntentAction);
+            tps.addAction({
+                id: 'mult-src-flow-btn',
+                gid: 'flows',
+                cb: tts.addMultiSourceIntentAction,
+                tt: 'Create Multi-Source Flow'
+            });
         }
 
         tts.cancelTraffic();
@@ -209,11 +224,21 @@
         tps.displaySingle(data);
 
         // always add the 'show traffic' action
-        tps.addAction('Show Related Traffic', tts.showRelatedIntentsAction);
+        tps.addAction({
+            id: '-sin-rel-traf-btn',
+            gid: 'intentTraffic',
+            cb: tts.showRelatedIntentsAction,
+            tt: 'Show Related Traffic'
+        });
 
         // add other actions, based on what is selected...
         if (data.type === 'switch') {
-            tps.addAction('Show Device Flows', tts.showDeviceLinkFlowsAction);
+            tps.addAction({
+                id: 'sin-dev-flows-btn',
+                gid: 'flows',
+                cb: tts.showDeviceLinkFlowsAction,
+                tt: 'Show Device Flows'
+            });
         }
 
         tps.displaySomething();

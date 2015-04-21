@@ -18,14 +18,17 @@
  ONOS GUI -- Topo View -- Topo Selection Service - Unit Tests
  */
 describe('factory: view/topo/topoSelect.js', function() {
-    var $log, fs, tss;
+    var $log, fs, tss, bns;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
+        'onosWidget'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoSelectService) {
+    beforeEach(inject(function (_$log_, FnService,
+                                TopoSelectService, ButtonService) {
         $log = _$log_;
         fs = FnService;
         tss = TopoSelectService;
+        bns = ButtonService;
     }));
 
     it('should define TopoSelectService', function () {

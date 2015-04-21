@@ -43,7 +43,9 @@
         var winWidth = fs.windowSize().width,
             winHeight = fs.windowSize().height,
             style = {
-                display: 'inline-block'
+                display: 'inline-block',
+                left: 'auto',
+                right: 'auto'
             };
 
         if (mouseX <= (winWidth / 2)) {

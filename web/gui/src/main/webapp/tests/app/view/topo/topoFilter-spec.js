@@ -18,7 +18,7 @@
  ONOS GUI -- Topo View -- Topo Filter Service - Unit Tests
  */
 describe('factory: view/topo/topoFilter.js', function() {
-    var $log, fs, fltr, api;
+    var $log, fs, fltr, bns, api;
 
     var mockNodes = {
             each: function () {},
@@ -29,12 +29,15 @@ describe('factory: view/topo/topoFilter.js', function() {
             classed: function () {}
         };
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
+        'onosWidget'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoFilterService) {
+    beforeEach(inject(function (_$log_, FnService,
+                                TopoFilterService, ButtonService) {
         $log = _$log_;
         fs = FnService;
         fltr = TopoFilterService;
+        bns = ButtonService;
 
         api = {
             node: function () { return mockNodes; },

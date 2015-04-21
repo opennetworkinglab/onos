@@ -18,14 +18,17 @@
  ONOS GUI -- Topo View -- Topo Force Service - Unit Tests
  */
 describe('factory: view/topo/topoForce.js', function() {
-    var $log, fs, tfs;
+    var $log, fs, tfs, bns;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
+        'onosWidget'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoForceService) {
+    beforeEach(inject(function (_$log_, FnService,
+                                TopoForceService, ButtonService) {
         $log = _$log_;
         fs = FnService;
         tfs = TopoForceService;
+        bns = ButtonService;
     }));
 
     it('should define TopoForceService', function () {

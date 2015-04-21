@@ -18,14 +18,17 @@
  ONOS GUI -- Topo View -- Topo Panel Service - Unit Tests
  */
 describe('factory: view/topo/topoPanel.js', function() {
-    var $log, fs, tps;
+    var $log, fs, tps, bns;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
+        'onosWidget'));
 
-    beforeEach(inject(function (_$log_, FnService, TopoPanelService) {
+    beforeEach(inject(function (_$log_, FnService,
+                                TopoPanelService, ButtonService) {
         $log = _$log_;
         fs = FnService;
         tps = TopoPanelService;
+        bns = ButtonService;
     }));
 
     it('should define TopoPanelService', function () {

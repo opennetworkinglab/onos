@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, ps, gs, flash, wss;
+    var $log, fs, ps, gs, flash, wss, bns;
 
     // constants
     var pCls = 'topo-p',
@@ -50,7 +50,12 @@
 
     function addProp(tbody, label, value) {
         var tr = tbody.append('tr'),
+            lab;
+        if (typeof label === 'string') {
             lab = label.replace(/_/g, ' ');
+        } else {
+            lab = label;
+        }
 
         function addCell(cls, txt) {
             tr.append('td').attr('class', cls).html(txt);
@@ -110,6 +115,7 @@
         title.text(data.id);
         listProps(tbody, data);
         dpa('hr');
+        dpa('div').classed('actionBtns', true);
     }
 
     function displayMulti(ids) {
@@ -124,13 +130,15 @@
             addProp(tbody, i+1, d);
         });
         dpa('hr');
+        dpa('div').classed('actionBtns', true);
     }
 
-    function addAction(text, cb) {
-        dpa('div')
-            .classed('actionBtn', true)
-            .text(text)
-            .on('click', cb);
+    function addAction(o) {
+        var btnDiv = d3.select('#' + idDet)
+            .select('.actionBtns')
+            .append('div')
+            .classed('actionBtn', true);
+        bns.button(btnDiv, idDet + o.id, o.gid, o.cb, o.tt);
     }
 
     var friendlyIndex = {
@@ -336,15 +344,16 @@
     angular.module('ovTopo')
     .factory('TopoPanelService',
         ['$log', 'FnService', 'PanelService', 'GlyphService',
-            'FlashService', 'WebSocketService',
+            'FlashService', 'WebSocketService', 'ButtonService',
 
-        function (_$log_, _fs_, _ps_, _gs_, _flash_, _wss_) {
+        function (_$log_, _fs_, _ps_, _gs_, _flash_, _wss_, _bns_) {
             $log = _$log_;
             fs = _fs_;
             ps = _ps_;
             gs = _gs_;
             flash = _flash_;
             wss = _wss_;
+            bns = _bns_;
 
             return {
                 initPanels: initPanels,
