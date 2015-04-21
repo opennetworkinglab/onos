@@ -63,27 +63,24 @@ public class OnosAppMojo extends AbstractMojo {
     private static final String ONOS_APP_NAME = "onos.app.name";
     private static final String ONOS_APP_ORIGIN = "onos.app.origin";
 
-    private static final String SNAPSHOT = "-SNAPSHOT";
-
     private static final String JAR = "jar";
     private static final String XML = "xml";
     private static final String APP_ZIP = "oar";
     private static final String PACKAGE_DIR = "oar";
 
     private static final String DEFAULT_ORIGIN = "ON.Lab";
-    private static final String DEFAULT_VERSION = "${short.version}";
+    private static final String DEFAULT_VERSION = "${project.version}";
 
     private static final String DEFAULT_FEATURES_REPO =
             "mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features";
     private static final String DEFAULT_ARTIFACT =
             "mvn:${project.groupId}/${project.artifactId}/${project.version}";
 
-    private static final int BUFFER_ZIZE = 8192;
+    private static final int BUFFER_SIZE = 8192;
 
     private String name;
     private String origin;
     private String version = DEFAULT_VERSION;
-    private String shortVersion;
     private String featuresRepo = DEFAULT_FEATURES_REPO;
     private List<String> artifacts;
 
@@ -158,7 +155,6 @@ public class OnosAppMojo extends AbstractMojo {
 
         m2Directory = new File(localRepository.getBasedir());
         stageDirectory = new File(dstDirectory, PACKAGE_DIR);
-        shortVersion = projectVersion.replace(SNAPSHOT, "");
         projectPath = M2_PREFIX + "/" + artifactDir(projectGroupId, projectArtifactId, projectVersion);
 
         origin = (String) project.getProperties().get(ONOS_APP_ORIGIN);
@@ -345,14 +341,13 @@ public class OnosAppMojo extends AbstractMojo {
                         .replaceAll("\\$\\{project.groupId\\}", projectGroupId)
                         .replaceAll("\\$\\{project.artifactId\\}", projectArtifactId)
                         .replaceAll("\\$\\{project.version\\}", projectVersion)
-                        .replaceAll("\\$\\{short.version\\}", shortVersion)
                         .replaceAll("\\$\\{project.description\\}", projectDescription);
     }
 
     // Recursively archives the specified directory into a given ZIP stream.
     private void zipDirectory(String root, File dir, ZipOutputStream zos)
             throws IOException {
-        byte[] buffer = new byte[BUFFER_ZIZE];
+        byte[] buffer = new byte[BUFFER_SIZE];
         File[] files = dir.listFiles();
         if (files != null && files.length > 0) {
             for (File file : files) {
