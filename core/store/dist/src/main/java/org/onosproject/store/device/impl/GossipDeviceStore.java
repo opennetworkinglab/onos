@@ -383,7 +383,8 @@ public class GossipDeviceStore
         // We allow only certain attributes to trigger update
         boolean propertiesChanged =
                 !Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
-                        !Objects.equals(oldDevice.swVersion(), newDevice.swVersion());
+                        !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
+                        !Objects.equals(oldDevice.providerId(), newDevice.providerId());
         boolean annotationsChanged =
                 !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations());
 
@@ -399,16 +400,14 @@ public class GossipDeviceStore
                         , newDevice);
             }
             if (!providerId.isAncillary()) {
+                boolean wasOnline = availableDevices.contains(newDevice.id());
                 markOnline(newDevice.id(), newTimestamp);
+                if (!wasOnline) {
+                    notifyDelegateIfNotNull(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, newDevice, null));
+                }
             }
-            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, newDevice, null);
-        }
 
-        // Otherwise merely attempt to change availability if primary provider
-        if (!providerId.isAncillary()) {
-            boolean added = markOnline(newDevice.id(), newTimestamp);
-            return !added ? null :
-                    new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, newDevice, null);
+            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, newDevice, null);
         }
         return null;
     }
