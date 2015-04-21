@@ -68,7 +68,6 @@ public class ElectionTest {
         localControllerNode = clusterService.getLocalNode();
 
         leadershipService.addListener(leadershipEventListener);
-        leadershipService.runForLeadership(appId.name());
     }
 
     @Deactivate
@@ -90,6 +89,9 @@ public class ElectionTest {
         public void event(LeadershipEvent event) {
 
 
+            if (event.type().equals(LeadershipEvent.Type.CANDIDATES_CHANGED)) {
+                return;
+            }
             if (!event.subject().topic().equals(appId.name())) {
                 return;         // Not our topic: ignore
             }
