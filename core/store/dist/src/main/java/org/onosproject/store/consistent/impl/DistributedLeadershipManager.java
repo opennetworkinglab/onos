@@ -255,17 +255,7 @@ public class DistributedLeadershipManager implements LeadershipService {
             if (!candidateList.remove(localNodeId)) {
                 return;
             }
-            boolean success = false;
-            if (candidateList.isEmpty()) {
-                if (candidateMap.remove(path, candidates.version())) {
-                    success = true;
-                }
-            } else {
-                if (candidateMap.replace(path, candidates.version(), candidateList)) {
-                    success = true;
-                }
-            }
-            if (success) {
+            if (candidateMap.replace(path, candidates.version(), candidateList)) {
                 Versioned<List<NodeId>> newCandidates = candidateMap.get(path);
                 notifyCandidateRemoved(path, candidates.version(), candidates.creationTime(), newCandidates);
             } else {
@@ -366,20 +356,9 @@ public class DistributedLeadershipManager implements LeadershipService {
         final MutableBoolean updated = new MutableBoolean(false);
 
         candidateBoard.compute(path, (k, current) -> {
-            if (candidates != null) {
-                if (current != null && current.epoch() < newInfo.epoch()) {
-                    updated.setTrue();
-                    if (candidates.value().isEmpty()) {
-                        return null;
-                    } else {
-                        return newInfo;
-                    }
-                }
-            } else {
-                if (current != null && current.epoch() == oldEpoch) {
-                    updated.setTrue();
-                    return null;
-                }
+            if (current != null && current.epoch() < newInfo.epoch()) {
+                updated.setTrue();
+                return newInfo;
             }
             return current;
         });
@@ -471,11 +450,8 @@ public class DistributedLeadershipManager implements LeadershipService {
                 });
             } else if (eventType.equals(LeadershipEvent.Type.CANDIDATES_CHANGED)) {
                 candidateBoard.compute(topic, (k, currentInfo) -> {
-                    if (currentInfo == null || currentInfo.epoch() <= leadershipUpdate.epoch()) {
+                    if (currentInfo == null || currentInfo.epoch() < leadershipUpdate.epoch()) {
                         updateAccepted.setTrue();
-                        if (leadershipUpdate.candidates().isEmpty()) {
-                            return null;
-                        }
                         return leadershipUpdate;
                     }
                     return currentInfo;
