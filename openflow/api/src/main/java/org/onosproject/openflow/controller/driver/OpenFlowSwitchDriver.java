@@ -137,6 +137,12 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
     public void setPortDescReply(OFPortDescStatsReply portDescReply);
 
     /**
+     * Sets the ports on this switch.
+     * @param portDescReplies list of port set and descriptions
+     */
+    public void setPortDescReplies(List<OFPortDescStatsReply> portDescReplies);
+
+    /**
      * Sets the features reply for this switch.
      * @param featuresReply the features to set.
      */

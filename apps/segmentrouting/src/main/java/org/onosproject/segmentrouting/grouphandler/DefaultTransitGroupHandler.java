@@ -15,7 +15,6 @@
  */
 package org.onosproject.segmentrouting.grouphandler;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,10 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.group.DefaultGroupBucket;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupService;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
 
 /**
@@ -49,8 +45,8 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                                   ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
-                                  GroupService groupService) {
-        super(deviceId, appId, config, linkService, groupService);
+                                  FlowObjectiveService flowObjService) {
+        super(deviceId, appId, config, linkService, flowObjService);
     }
 
     @Override
@@ -118,7 +114,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                         .setMpls(MplsLabel.
                                  mplsLabel(ns.getEdgeLabel()));
             }
-            GroupBucket updatedBucket = DefaultGroupBucket.
+            /*GroupBucket updatedBucket = DefaultGroupBucket.
                     createSelectGroupBucket(tBuilder.build());
             GroupBuckets updatedBuckets = new GroupBuckets(
                                         Arrays.asList(updatedBucket));
@@ -128,7 +124,8 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                                            getGroupKey(ns),
                                            updatedBuckets,
                                            getGroupKey(ns),
-                                           appId);
+                                           appId);*/
+            //TODO: Use nextObjective APIs to update the next objective
         }
     }
 

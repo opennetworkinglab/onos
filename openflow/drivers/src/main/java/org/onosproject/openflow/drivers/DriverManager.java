@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A simple implementation of a driver manager that differentiates between
@@ -71,6 +72,14 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
                 &&
                 hw.startsWith("OpenFlow 1.3 Reference Userspace Switch")) {
             return new OFSwitchImplSpringOpenTTP(dpid, desc);
+        }
+
+        //TODO: Temporary work around until the configuration based
+        // driver manager framework is ready
+        if (vendor.contains("Dell")
+                &&
+                hw.contains("OpenFlow switch HW ver. 1.0")) {
+            return new OFSwitchImplSpringOpenTTPDellOSR(dpid, desc);
         }
 
         if (hw.startsWith("Open vSwitch")) {
@@ -140,7 +149,9 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
                 if (this.factory().getVersion() == OFVersion.OF_10) {
                     return Collections.unmodifiableList(features.getPorts());
                 } else {
-                    return Collections.unmodifiableList(ports.getEntries());
+                    return Collections.unmodifiableList(this.ports.stream()
+                                                        .flatMap((portReply) -> (portReply.getEntries().stream()))
+                                                        .collect(Collectors.toList()));
                 }
             }
 

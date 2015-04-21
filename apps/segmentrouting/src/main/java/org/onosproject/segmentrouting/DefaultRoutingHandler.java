@@ -24,7 +24,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.flow.FlowRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultRoutingHandler {
 
-    private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
+    private static Logger log = LoggerFactory
+            .getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
     private RoutingRulePopulator rulePopulator;
@@ -56,7 +56,8 @@ public class DefaultRoutingHandler {
         // population process started.
         STARTED,
 
-        // population process was aborted due to errors, mostly for groups not found.
+        // population process was aborted due to errors, mostly for groups not
+        // found.
         ABORTED,
 
         // population process was finished successfully.
@@ -89,8 +90,7 @@ public class DefaultRoutingHandler {
         log.info("Starts to populate routing rules");
 
         for (Device sw : srManager.deviceService.getDevices()) {
-            if (srManager.mastershipService.
-                    getLocalRole(sw.id()) != MastershipRole.MASTER) {
+            if (srManager.mastershipService.getLocalRole(sw.id()) != MastershipRole.MASTER) {
                 continue;
             }
 
@@ -323,11 +323,11 @@ public class DefaultRoutingHandler {
     private boolean populateEcmpRoutingRules(DeviceId destSw,
                                              ECMPShortestPathGraph ecmpSPG) {
 
-        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
-                ecmpSPG.getAllLearnedSwitchesAndVia();
+        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia = ecmpSPG
+                .getAllLearnedSwitchesAndVia();
         for (Integer itrIdx : switchVia.keySet()) {
-            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
-                    switchVia.get(itrIdx);
+            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap = switchVia
+                    .get(itrIdx);
             for (DeviceId targetSw : swViaMap.keySet()) {
                 Set<DeviceId> nextHops = new HashSet<>();
 
@@ -347,15 +347,17 @@ public class DefaultRoutingHandler {
         return true;
     }
 
-    private boolean populateEcmpRoutingRulePartial(DeviceId targetSw, DeviceId destSw,
-                                Set<DeviceId> nextHops) {
+    private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
+                                                   DeviceId destSw,
+                                                   Set<DeviceId> nextHops) {
         boolean result;
 
         if (nextHops.isEmpty()) {
             nextHops.add(destSw);
         }
 
-        // If both target switch and dest switch are edge routers, then set IP rule
+        // If both target switch and dest switch are edge routers, then set IP
+        // rule
         // for both subnet and router IP.
         if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
             List<Ip4Prefix> subnets = config.getSubnets(destSw);
@@ -374,7 +376,7 @@ public class DefaultRoutingHandler {
                 return false;
             }
 
-        // If the target switch is an edge router, then set IP rules for the router IP.
+        // TODO: If the target switch is an edge router, then set IP rules for the router IP.
         } else if (config.isEdgeDevice(targetSw)) {
             Ip4Address routerIp = config.getRouterIp(destSw);
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
@@ -383,7 +385,7 @@ public class DefaultRoutingHandler {
                 return false;
             }
 
-        // If the target switch is an transit router, then set MPLS rules only.
+        // TODO: If the target switch is an transit router, then set MPLS rules only.
         } else if (!config.isEdgeDevice(targetSw)) {
             result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
             if (!result) {
@@ -395,38 +397,25 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Populates table miss entries for all tables, and pipeline rules for
-     * VLAN and TACM tables.
+     * Populates table miss entries for all tables, and pipeline rules for VLAN
+     * and TACM tables.
      *
      * @param deviceId Switch ID to set the rules
      */
     public void populateTtpRules(DeviceId deviceId) {
-
-        rulePopulator.populateTableMissEntry(deviceId, FlowRule.Type.VLAN,
-                true, false, false, FlowRule.Type.DEFAULT);
-        rulePopulator.populateTableMissEntry(deviceId, FlowRule.Type.ETHER,
-                true, false, false, FlowRule.Type.DEFAULT);
-        rulePopulator.populateTableMissEntry(deviceId, FlowRule.Type.IP,
-                false, true, true, FlowRule.Type.ACL);
-        rulePopulator.populateTableMissEntry(deviceId, FlowRule.Type.MPLS,
-                false, true, true, FlowRule.Type.ACL);
-        rulePopulator.populateTableMissEntry(deviceId, FlowRule.Type.ACL,
-                false, false, false, FlowRule.Type.DEFAULT);
-
         rulePopulator.populateTableVlan(deviceId);
         rulePopulator.populateTableTMac(deviceId);
     }
 
     /**
-     * Start the flow rule population process if it was never started.
-     * The process finishes successfully when all flow rules are set and
-     * stops with ABORTED status when any groups required for flows is not
-     * set yet.
+     * Start the flow rule population process if it was never started. The
+     * process finishes successfully when all flow rules are set and stops with
+     * ABORTED status when any groups required for flows is not set yet.
      */
     public void startPopulationProcess() {
         synchronized (populationStatus) {
-            if (populationStatus == Status.IDLE ||
-                    populationStatus == Status.SUCCEEDED) {
+            if (populationStatus == Status.IDLE
+                    || populationStatus == Status.SUCCEEDED) {
                 populationStatus = Status.STARTED;
                 populateAllRoutingRules();
             }
@@ -441,7 +430,8 @@ public class DefaultRoutingHandler {
         synchronized (populationStatus) {
             if (populationStatus == Status.ABORTED) {
                 populationStatus = Status.STARTED;
-                // TODO: we need to restart from the point aborted instead of restarting.
+                // TODO: we need to restart from the point aborted instead of
+                // restarting.
                 populateAllRoutingRules();
             }
         }

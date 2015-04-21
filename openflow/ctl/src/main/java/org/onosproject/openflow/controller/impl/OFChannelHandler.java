@@ -97,7 +97,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
     // Temporary storage for switch-features and port-description
     private OFFeaturesReply featuresReply;
-    private OFPortDescStatsReply portDescReply;
+    private List<OFPortDescStatsReply> portDescReplies;
+    //private OFPortDescStatsReply portDescReply;
     // a concurrent ArrayList to temporarily store port status messages
     // before we are ready to deal with them
     private final CopyOnWriteArrayList<OFPortStatus> pendingPortStatusMsg;
@@ -121,6 +122,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         this.controller = controller;
         this.state = ChannelState.INIT;
         this.pendingPortStatusMsg = new CopyOnWriteArrayList<OFPortStatus>();
+        this.portDescReplies = new ArrayList<OFPortDescStatsReply>();
         factory13 = controller.getOFMessageFactory13();
         factory10 = controller.getOFMessageFactory10();
         duplicateDpidFound = Boolean.FALSE;
@@ -294,10 +296,15 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 }
                 if (m.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
                     log.warn("Stats reply indicates more stats from sw {} for "
-                            + "port description - not currently handled",
+                            + "port description",
                             h.getSwitchInfoString());
+                    h.portDescReplies.add((OFPortDescStatsReply)m);
+                    return;
                 }
-                h.portDescReply = (OFPortDescStatsReply) m; // temp store
+                else {
+                    h.portDescReplies.add((OFPortDescStatsReply)m);
+                }
+                //h.portDescReply = (OFPortDescStatsReply) m; // temp store
                 log.info("Received port desc reply for switch at {}",
                         h.getSwitchInfoString());
                 try {
@@ -418,7 +425,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
                 h.sw.setOFVersion(h.ofVersion);
                 h.sw.setFeaturesReply(h.featuresReply);
-                h.sw.setPortDescReply(h.portDescReply);
+                //h.sw.setPortDescReply(h.portDescReply);
+                h.sw.setPortDescReplies(h.portDescReplies);
                 h.sw.setConnected(true);
                 h.sw.setChannel(h.channel);
 //                boolean success = h.sw.connectSwitch();

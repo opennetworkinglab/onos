@@ -36,12 +36,10 @@ import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
-import org.onosproject.net.group.GroupListener;
-import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
@@ -68,7 +66,8 @@ import java.util.concurrent.TimeUnit;
 @Component(immediate = true)
 public class SegmentRoutingManager {
 
-    private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
+    private static Logger log = LoggerFactory
+            .getLogger(SegmentRoutingManager.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -89,13 +88,10 @@ public class SegmentRoutingManager {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowRuleService;
+    protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected GroupService groupService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
@@ -110,12 +106,12 @@ public class SegmentRoutingManager {
     private InternalPacketProcessor processor = new InternalPacketProcessor();
     private InternalEventHandler eventHandler = new InternalEventHandler();
 
-    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService executorService = Executors
+            .newScheduledThreadPool(1);
 
     private static ScheduledFuture<?> eventHandlerFuture = null;
     private ConcurrentLinkedQueue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
-    private Map<DeviceId, DefaultGroupHandler> groupHandlerMap
-            = new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
+    private Map<DeviceId, DefaultGroupHandler> groupHandlerMap = new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
 
     private NetworkConfigManager networkConfigService = new NetworkConfigManager();;
 
@@ -125,7 +121,8 @@ public class SegmentRoutingManager {
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication("org.onosproject.segmentrouting");
+        appId = coreService
+                .registerApplication("org.onosproject.segmentrouting");
         networkConfigService.init();
         deviceConfiguration = new DeviceConfiguration(networkConfigService);
         arpHandler = new ArpHandler(this);
@@ -136,25 +133,22 @@ public class SegmentRoutingManager {
 
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         linkService.addListener(new InternalLinkListener());
-        groupService.addListener(new InternalGroupListener());
         deviceService.addListener(new InternalDeviceListener());
 
-        for (Device device: deviceService.getDevices()) {
-            if (mastershipService.
-                    getLocalRole(device.id()) == MastershipRole.MASTER) {
-                DefaultGroupHandler groupHandler =
-                    DefaultGroupHandler.createGroupHandler(device.id(),
-                            appId, deviceConfiguration, linkService, groupService);
-                groupHandler.createGroups();
+        for (Device device : deviceService.getDevices()) {
+            if (mastershipService.getLocalRole(device.id()) == MastershipRole.MASTER) {
+                DefaultGroupHandler groupHandler = DefaultGroupHandler
+                        .createGroupHandler(device.id(), appId,
+                                            deviceConfiguration, linkService,
+                                            flowObjectiveService);
                 groupHandlerMap.put(device.id(), groupHandler);
                 defaultRoutingHandler.populateTtpRules(device.id());
                 log.debug("Initiating default group handling for {}", device.id());
             } else {
                 log.debug("Activate: Local role {} "
-                                + "is not MASTER for device {}",
-                        mastershipService.
-                                getLocalRole(device.id()),
-                        device.id());
+                                  + "is not MASTER for device {}",
+                          mastershipService.getLocalRole(device.id()),
+                          device.id());
             }
         }
 
@@ -177,11 +171,17 @@ public class SegmentRoutingManager {
      */
     public GroupKey getGroupKey(NeighborSet ns) {
 
-        for (DefaultGroupHandler groupHandler: groupHandlerMap.values()) {
+        for (DefaultGroupHandler groupHandler : groupHandlerMap.values()) {
             return groupHandler.getGroupKey(ns);
         }
 
         return null;
+    }
+
+    public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
+
+        return (groupHandlerMap.get(deviceId) != null) ? groupHandlerMap
+                .get(deviceId).getNextObjectiveId(ns) : -1;
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
@@ -213,8 +213,8 @@ public class SegmentRoutingManager {
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            if (event.type() == LinkEvent.Type.LINK_ADDED ||
-                    event.type() == LinkEvent.Type.LINK_REMOVED) {
+            if (event.type() == LinkEvent.Type.LINK_ADDED
+                    || event.type() == LinkEvent.Type.LINK_REMOVED) {
                 scheduleEventHandlerIfNotScheduled(event);
             }
         }
@@ -224,12 +224,10 @@ public class SegmentRoutingManager {
 
         @Override
         public void event(DeviceEvent event) {
-            if (mastershipService.
-                    getLocalRole(event.subject().id()) != MastershipRole.MASTER) {
+            if (mastershipService.getLocalRole(event.subject().id()) != MastershipRole.MASTER) {
                 log.debug("Local role {} is not MASTER for device {}",
-                        mastershipService.
-                                getLocalRole(event.subject().id()),
-                        event.subject().id());
+                          mastershipService.getLocalRole(event.subject().id()),
+                          event.subject().id());
                 return;
             }
 
@@ -245,38 +243,18 @@ public class SegmentRoutingManager {
         }
     }
 
-    private class InternalGroupListener implements GroupListener {
-
-        @Override
-        public void event(GroupEvent event) {
-            switch (event.type()) {
-                case GROUP_ADDED:
-                    scheduleEventHandlerIfNotScheduled(event);
-                    break;
-                case GROUP_ADD_REQUESTED:
-                    log.info("Group add requested");
-                    break;
-                case GROUP_UPDATED:
-                    break;
-                default:
-                    log.warn("Unhandled group event type: {}", event.type());
-            }
-        }
-    }
-
     private void scheduleEventHandlerIfNotScheduled(Event event) {
 
         eventQueue.add(event);
         numOfEvents++;
-        if (eventHandlerFuture == null ||
-                eventHandlerFuture.isDone()) {
-            eventHandlerFuture = executorService.schedule(eventHandler,
-                    100, TimeUnit.MILLISECONDS);
+        if (eventHandlerFuture == null || eventHandlerFuture.isDone()) {
+            eventHandlerFuture = executorService
+                    .schedule(eventHandler, 100, TimeUnit.MILLISECONDS);
             numOfHandlerScheduled++;
         }
 
         log.trace("numOfEvents {}, numOfEventHanlderScheduled {}", numOfEvents,
-                numOfHandlerScheduled);
+                  numOfHandlerScheduled);
 
     }
 
@@ -301,25 +279,22 @@ public class SegmentRoutingManager {
                     }
                 } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
                     processPortRemoved((Device) event.subject(),
-                            ((DeviceEvent) event).port());
+                                       ((DeviceEvent) event).port());
                 } else {
                     log.warn("Unhandled event type: {}", event.type());
                 }
             }
             log.debug("numOfHandlerExecution {} numOfEventHanlderScheduled {} numOfEvents {}",
-                    numOfHandlerExecution, numOfHandlerScheduled, numOfEvents);
+                      numOfHandlerExecution, numOfHandlerScheduled, numOfEvents);
         }
     }
-
-
 
     private void processLinkAdded(Link link) {
         log.debug("A new link {} was added", link.toString());
 
-        if (mastershipService.
-                getLocalRole(link.src().deviceId()) == MastershipRole.MASTER) {
-            DefaultGroupHandler groupHandler =
-                    groupHandlerMap.get(link.src().deviceId());
+        if (mastershipService.getLocalRole(link.src().deviceId()) == MastershipRole.MASTER) {
+            DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src()
+                    .deviceId());
             if (groupHandler != null) {
                 groupHandler.linkUp(link);
             }
@@ -332,7 +307,6 @@ public class SegmentRoutingManager {
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
     }
 
-
     private void processGroupAdded(Group group) {
         log.debug("A new group with ID {} was added", group.id());
         defaultRoutingHandler.resumePopulationProcess();
@@ -341,20 +315,14 @@ public class SegmentRoutingManager {
     private void processDeviceAdded(Device device) {
         log.debug("A new device with ID {} was added", device.id());
         defaultRoutingHandler.populateTtpRules(device.id());
-        DefaultGroupHandler dgh = DefaultGroupHandler.createGroupHandler(
-                device.id(),
-                appId,
-                deviceConfiguration,
-                linkService,
-                groupService);
-        dgh.createGroups();
+        DefaultGroupHandler dgh = DefaultGroupHandler.createGroupHandler(device
+                .id(), appId, deviceConfiguration, linkService, flowObjectiveService);
         groupHandlerMap.put(device.id(), dgh);
     }
 
     private void processPortRemoved(Device device, Port port) {
         log.debug("Port {} was removed", port.toString());
-        DefaultGroupHandler groupHandler =
-                groupHandlerMap.get(device.id());
+        DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
             groupHandler.portDown(port.number());
         }

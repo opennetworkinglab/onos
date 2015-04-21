@@ -25,19 +25,13 @@ import java.util.List;
 
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.GroupId;
 import org.onosproject.segmentrouting.grouphandler.GroupBucketIdentifier.BucketOutputType;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.group.DefaultGroupBucket;
-import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.group.GroupEvent;
-import org.onosproject.net.group.GroupService;
 import org.onosproject.net.link.LinkService;
 import org.slf4j.Logger;
 
@@ -58,14 +52,14 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
      * @param appId application identifier
      * @param config interface to retrieve the device properties
      * @param linkService link service object
-     * @param groupService group service object
+     * @param flowObjService flow objective service object
      */
     public PolicyGroupHandler(DeviceId deviceId,
                               ApplicationId appId,
                               DeviceProperties config,
                               LinkService linkService,
-                              GroupService groupService) {
-        super(deviceId, appId, config, linkService, groupService);
+                              FlowObjectiveService flowObjService) {
+        super(deviceId, appId, config, linkService, flowObjService);
     }
 
     public PolicyGroupIdentifier createPolicyGroupChain(String id,
@@ -111,15 +105,16 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                     .setEthSrc(nodeMacAddr)
                                     .pushMpls()
                                     .setMpls(MplsLabel.mplsLabel(label));
-                            outBuckets.add(DefaultGroupBucket.
+                            /*outBuckets.add(DefaultGroupBucket.
                                            createSelectGroupBucket(tBuilder.build()));
                             GroupDescription desc = new
                                     DefaultGroupDescription(deviceId,
                                                             GroupDescription.Type.INDIRECT,
                                                             new GroupBuckets(outBuckets));
-                            //TODO: BoS
+                            //TODO: BoS*/
                             previousGroupkey = key;
-                            groupService.addGroup(desc);
+                            //groupService.addGroup(desc);
+                            //TODO: Use nextObjective APIs here
                         } else {
                             // Intermediate Groups
                             GroupBucketIdentifier bucketId =
@@ -179,20 +174,22 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                             .setMpls(MplsLabel.mplsLabel(bucketId.label()));
                     }
                     //TODO: BoS
-                    outBuckets.add(DefaultGroupBucket.
-                                   createSelectGroupBucket(tBuilder.build()));
+                    /*outBuckets.add(DefaultGroupBucket.
+                                   createSelectGroupBucket(tBuilder.build()));*/
                 }
-                GroupDescription desc = new
+                /*GroupDescription desc = new
                         DefaultGroupDescription(deviceId,
                                                 GroupDescription.Type.SELECT,
                                                 new GroupBuckets(outBuckets));
-                groupService.addGroup(desc);
+                groupService.addGroup(desc);*/
+                //TODO: Use nextObjective APIs here
             }
         }
         return innermostGroupkey;
     }
 
-    @Override
+    //TODO: Use nextObjective APIs to handle the group chains
+    /*@Override
     protected void handleGroupEvent(GroupEvent event) {
         if (event.type() == GroupEvent.Type.GROUP_ADDED) {
             if (dependentGroups.get(event.subject().appCookie()) != null) {
@@ -253,7 +250,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                 }
             }
         }
-    }
+    }*/
 
     public PolicyGroupIdentifier generatePolicyGroupKey(String id,
                                    List<PolicyGroupParams> params) {
@@ -343,9 +340,10 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                     groupsToBeDeleted.add(bucketId.outGroup());
                 }
             }
-            groupService.removeGroup(deviceId,
+            /*groupService.removeGroup(deviceId,
                                      getGroupKey(innerMostGroupKey),
-                                     appId);
+                                     appId);*/
+            //TODO: Use nextObjective APIs here
             it.remove();
         }
     }

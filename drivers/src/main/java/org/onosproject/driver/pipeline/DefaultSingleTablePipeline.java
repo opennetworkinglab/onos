@@ -16,6 +16,7 @@
 package org.onosproject.driver.pipeline;
 
 import com.google.common.util.concurrent.SettableFuture;
+
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
@@ -23,11 +24,14 @@ import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
@@ -70,9 +74,18 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
         }
 
         TrafficSelector selector = fwd.selector();
+        TrafficTreatment treatment = fwd.treatment();
+        if ((fwd.treatment().deferred().size() == 0) &&
+                (fwd.treatment().immediate().size() == 0) &&
+                (fwd.treatment().tableTransition() == null) &&
+                (!fwd.treatment().clearedDeferred())) {
+            TrafficTreatment.Builder flowTreatment = DefaultTrafficTreatment.builder();
+            flowTreatment.add(Instructions.createDrop());
+            treatment = flowTreatment.build();
+        }
 
         FlowRule rule = new DefaultFlowRule(deviceId, selector,
-                                            fwd.treatment(),
+                                            treatment,
                                             fwd.priority(), fwd.appId(),
                                             new DefaultGroupId(fwd.id()),
                                             fwd.timeout(), fwd.permanent());

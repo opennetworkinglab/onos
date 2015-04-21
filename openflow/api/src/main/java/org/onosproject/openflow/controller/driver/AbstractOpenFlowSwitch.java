@@ -19,10 +19,11 @@ package org.onosproject.openflow.controller.driver;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
@@ -64,7 +65,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
     private OFVersion ofVersion;
 
-    protected OFPortDescStatsReply ports;
+    protected List<OFPortDescStatsReply> ports = new ArrayList<>();
 
     protected boolean tableFull;
 
@@ -251,7 +252,12 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
     @Override
     public void setPortDescReply(OFPortDescStatsReply portDescReply) {
-        this.ports = portDescReply;
+        this.ports.add(portDescReply);
+    }
+
+    @Override
+    public void setPortDescReplies(List<OFPortDescStatsReply> portDescReplies) {
+        this.ports.addAll(portDescReplies);
     }
 
     @Override
@@ -379,7 +385,10 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
 
     @Override
     public List<OFPortDesc> getPorts() {
-        return Collections.unmodifiableList(ports.getEntries());
+        return this.ports.stream()
+                  .flatMap((portReply) -> (portReply.getEntries().stream()))
+                  .collect(Collectors.toList());
+        //return Collections.unmodifiableList(ports.getEntries());
     }
 
     @Override

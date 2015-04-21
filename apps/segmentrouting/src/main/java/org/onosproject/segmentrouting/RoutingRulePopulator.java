@@ -21,23 +21,25 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.group.DefaultGroupKey;
-import org.onosproject.net.group.Group;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,7 +48,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RoutingRulePopulator {
 
-    private static final Logger log = LoggerFactory.getLogger(RoutingRulePopulator.class);
+    private static final Logger log = LoggerFactory
+            .getLogger(RoutingRulePopulator.class);
 
     private AtomicLong rulePopulationCounter;
     private SegmentRoutingManager srManager;
@@ -77,7 +80,8 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates IP flow rules for specific hosts directly connected to the switch.
+     * Populates IP flow rules for specific hosts directly connected to the
+     * switch.
      *
      * @param deviceId switch ID to set the rules
      * @param hostIp host IP address
@@ -99,12 +103,15 @@ public class RoutingRulePopulator {
         TrafficTreatment treatment = tbuilder.build();
         TrafficSelector selector = sbuilder.build();
 
-        FlowRule f = new DefaultFlowRule(deviceId, selector, treatment, 100,
-                srManager.appId, 600, false, FlowRule.Type.IP);
+        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
+                .builder().fromApp(srManager.appId).makePermanent()
+                .withSelector(selector).withTreatment(treatment)
+                .withPriority(100).withFlag(ForwardingObjective.Flag.SPECIFIC);
 
-        srManager.flowRuleService.applyFlowRules(f);
+        log.debug("Installing IPv4 forwarding objective "
+                + "for host {} in switch {}", hostIp, deviceId);
+        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add());
         rulePopulationCounter.incrementAndGet();
-        log.debug("Flow rule {} is set to switch {}", f, deviceId);
     }
 
     /**
@@ -116,11 +123,12 @@ public class RoutingRulePopulator {
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId deviceId, List<Ip4Prefix> subnets,
-                                           DeviceId destSw, Set<DeviceId> nextHops) {
+    public boolean populateIpRuleForSubnet(DeviceId deviceId,
+                                           List<Ip4Prefix> subnets,
+                                           DeviceId destSw,
+                                           Set<DeviceId> nextHops) {
 
-        //List<IpPrefix> subnets = extractSubnet(subnetInfo);
-        for (IpPrefix subnet: subnets) {
+        for (IpPrefix subnet : subnets) {
             if (!populateIpRuleForRouter(deviceId, subnet, destSw, nextHops)) {
                 return false;
             }
@@ -138,8 +146,9 @@ public class RoutingRulePopulator {
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForRouter(DeviceId deviceId, IpPrefix ipPrefix,
-                                           DeviceId destSw, Set<DeviceId> nextHops) {
+    public boolean populateIpRuleForRouter(DeviceId deviceId,
+                                           IpPrefix ipPrefix, DeviceId destSw,
+                                           Set<DeviceId> nextHops) {
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
@@ -149,7 +158,8 @@ public class RoutingRulePopulator {
 
         NeighborSet ns = null;
 
-        //If the next hop is the same as the final destination, then MPLS label is not set.
+        // If the next hop is the same as the final destination, then MPLS label
+        // is not set.
         if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
             tbuilder.decNwTtl();
             ns = new NeighborSet(nextHops);
@@ -158,33 +168,27 @@ public class RoutingRulePopulator {
             ns = new NeighborSet(nextHops, config.getSegmentId(destSw));
         }
 
-        DefaultGroupKey groupKey = (DefaultGroupKey) srManager.getGroupKey(ns);
-        if (groupKey == null) {
-            log.warn("Group key is not found for ns {}", ns);
-            return false;
-        }
-        Group group = srManager.groupService.getGroup(deviceId, groupKey);
-        if (group != null) {
-            tbuilder.group(group.id());
-        } else {
-            log.warn("No group found for NeighborSet {} from {} to {}",
-                    ns, deviceId, destSw);
-            return false;
-        }
-
         TrafficTreatment treatment = tbuilder.build();
         TrafficSelector selector = sbuilder.build();
 
-        FlowRule f = new DefaultFlowRule(deviceId, selector, treatment, 100,
-                srManager.appId, 600, false, FlowRule.Type.IP);
-
-        srManager.flowRuleService.applyFlowRules(f);
+        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
+                .builder()
+                .fromApp(srManager.appId)
+                .makePermanent()
+                .nextStep(srManager.getNextObjectiveId(deviceId, ns))
+                .withTreatment(treatment)
+                .withSelector(selector)
+                .withPriority(100)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
+        log.debug("Installing IPv4 forwarding objective "
+                + "for router IP/subnet {} in switch {}",
+                ipPrefix,
+                deviceId);
+        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add());
         rulePopulationCounter.incrementAndGet();
-        log.debug("IP flow rule {} is set to switch {}", f, deviceId);
 
         return true;
     }
-
 
     /**
      * Populates MPLS flow rules to all transit routers.
@@ -194,35 +198,53 @@ public class RoutingRulePopulator {
      * @param nextHops next hops switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateMplsRule(DeviceId deviceId, DeviceId destSwId, Set<DeviceId> nextHops) {
+    public boolean populateMplsRule(DeviceId deviceId, DeviceId destSwId,
+                                    Set<DeviceId> nextHops) {
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        Collection<TrafficTreatment> treatments = new ArrayList<>();
+        List<ForwardingObjective.Builder> fwdObjBuilders = new ArrayList<ForwardingObjective.Builder>();
 
         // TODO Handle the case of Bos == false
         sbuilder.matchMplsLabel(MplsLabel.mplsLabel(config.getSegmentId(destSwId)));
         sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
 
-        //If the next hop is the destination router, do PHP
+        // If the next hop is the destination router, do PHP
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
-            TrafficTreatment treatmentBos =
-                    getMplsTreatment(deviceId, destSwId, nextHops, true, true);
-            TrafficTreatment treatment =
-                    getMplsTreatment(deviceId, destSwId, nextHops, true, false);
-            if (treatmentBos != null) {
-                treatments.add(treatmentBos);
+            ForwardingObjective.Builder fwdObjBosBuilder =
+                    getMplsForwardingObjective(deviceId,
+                                               destSwId,
+                                               nextHops,
+                                               true,
+                                               true);
+            // TODO: Check with Sangho on why we need this
+            ForwardingObjective.Builder fwdObjNoBosBuilder =
+                    getMplsForwardingObjective(deviceId,
+                                               destSwId,
+                                               nextHops,
+                                               true,
+                                               false);
+            if (fwdObjBosBuilder != null) {
+                fwdObjBuilders.add(fwdObjBosBuilder);
             } else {
                 log.warn("Failed to set MPLS rules.");
                 return false;
             }
         } else {
-            TrafficTreatment treatmentBos =
-                    getMplsTreatment(deviceId, destSwId, nextHops, false, true);
-            TrafficTreatment treatment =
-                    getMplsTreatment(deviceId, destSwId, nextHops, false, false);
-
-            if (treatmentBos != null) {
-                treatments.add(treatmentBos);
+            ForwardingObjective.Builder fwdObjBosBuilder =
+                    getMplsForwardingObjective(deviceId,
+                                               destSwId,
+                                               nextHops,
+                                               false,
+                                               true);
+            // TODO: Check with Sangho on why we need this
+            ForwardingObjective.Builder fwdObjNoBosBuilder =
+                    getMplsForwardingObjective(deviceId,
+                                               destSwId,
+                                               nextHops,
+                                               false,
+                                               false);
+            if (fwdObjBosBuilder != null) {
+                fwdObjBuilders.add(fwdObjBosBuilder);
             } else {
                 log.warn("Failed to set MPLS rules.");
                 return false;
@@ -230,34 +252,42 @@ public class RoutingRulePopulator {
         }
 
         TrafficSelector selector = sbuilder.build();
-        for (TrafficTreatment treatment: treatments) {
-            FlowRule f = new DefaultFlowRule(deviceId, selector, treatment, 100,
-                    srManager.appId, 600, false, FlowRule.Type.MPLS);
-            srManager.flowRuleService.applyFlowRules(f);
+        for (ForwardingObjective.Builder fwdObjBuilder : fwdObjBuilders) {
+            ((Builder) ((Builder) fwdObjBuilder.fromApp(srManager.appId)
+                    .makePermanent()).withSelector(selector)
+                    .withPriority(100))
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC);
+            log.debug("Installing MPLS forwarding objective in switch {}",
+                      deviceId);
+            srManager.flowObjectiveService.forward(deviceId,
+                                                   fwdObjBuilder.add());
             rulePopulationCounter.incrementAndGet();
-            log.debug("MPLS rule {} is set to {}", f, deviceId);
         }
 
         return true;
     }
 
+    private ForwardingObjective.Builder getMplsForwardingObjective(DeviceId deviceId,
+                                                                   DeviceId destSw,
+                                                                   Set<DeviceId> nextHops,
+                                                                   boolean phpRequired,
+                                                                   boolean isBos) {
 
-    private TrafficTreatment getMplsTreatment(DeviceId deviceId, DeviceId destSw,
-                                             Set<DeviceId> nextHops,
-                                             boolean phpRequired, boolean isBos) {
+        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
+                .builder().withFlag(ForwardingObjective.Flag.SPECIFIC);
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
 
         if (phpRequired) {
+            log.debug("getMplsForwardingObjective: php required");
             tbuilder.copyTtlIn();
             if (isBos) {
-                tbuilder.popMpls(Ethernet.TYPE_IPV4)
-                        .decNwTtl();
+                tbuilder.popMpls(Ethernet.TYPE_IPV4).decNwTtl();
             } else {
-                tbuilder.popMpls(Ethernet.MPLS_UNICAST)
-                .decMplsTtl();
+                tbuilder.popMpls(Ethernet.MPLS_UNICAST).decMplsTtl();
             }
         } else {
+            log.debug("getMplsForwardingObjective: php not required");
             tbuilder.decMplsTtl();
         }
 
@@ -271,24 +301,14 @@ public class RoutingRulePopulator {
             tbuilder.setEthSrc(config.getDeviceMac(deviceId))
                     .setEthDst(config.getDeviceMac(nextHop))
                     .setOutput(link.src().port());
+            fwdBuilder.withTreatment(tbuilder.build());
         } else {
             NeighborSet ns = new NeighborSet(nextHops);
-            DefaultGroupKey groupKey = (DefaultGroupKey) srManager.getGroupKey(ns);
-            if (groupKey == null) {
-                log.warn("Group key is not found for ns {}", ns);
-                return null;
-            }
-            Group group = srManager.groupService.getGroup(deviceId, groupKey);
-            if (group != null) {
-                tbuilder.group(group.id());
-            } else {
-                log.warn("No group found for ns {} key {} in {}", ns,
-                        srManager.getGroupKey(ns), deviceId);
-                return null;
-            }
+            fwdBuilder.nextStep(srManager
+                    .getNextObjectiveId(deviceId, ns));
         }
 
-        return tbuilder.build();
+        return fwdBuilder;
     }
 
     private boolean isECMPSupportedInTransitRouter() {
@@ -298,109 +318,41 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates VLAN flows rules.
-     * All packets are forwarded to TMAC table.
+     * Populates VLAN flows rules. All packets are forwarded to TMAC table.
      *
      * @param deviceId switch ID to set the rules
      */
     public void populateTableVlan(DeviceId deviceId) {
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-
-        tbuilder.transition(FlowRule.Type.ETHER);
-
-        TrafficTreatment treatment = tbuilder.build();
-        TrafficSelector selector = sbuilder.build();
-
-        FlowRule f = new DefaultFlowRule(deviceId, selector, treatment, 100,
-                srManager.appId, 600, false, FlowRule.Type.VLAN);
-
-        srManager.flowRuleService.applyFlowRules(f);
-
-        log.debug("Vlan flow rule {} is set to switch {}", f, deviceId);
+        FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+        fob.withKey(Criteria.matchInPort(PortNumber.ALL))
+                .addCondition(Criteria.matchVlanId(VlanId.NONE));
+        fob.permit().fromApp(srManager.appId);
+        log.debug("populateTableVlan: Installing filtering objective for untagged packets");
+        srManager.flowObjectiveService.filter(deviceId, fob.add());
     }
 
     /**
-     * Populates TMAC table rules.
-     * IP packets are forwarded to IP table.
-     * MPLS packets are forwarded to MPLS table.
+     * Populates TMAC table rules. IP packets are forwarded to IP table. MPLS
+     * packets are forwarded to MPLS table.
      *
      * @param deviceId switch ID to set the rules
      */
     public void populateTableTMac(DeviceId deviceId) {
 
-        // flow rule for IP packets
-        TrafficSelector selectorIp = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchEthDst(config.getDeviceMac(deviceId))
-                .build();
-        TrafficTreatment treatmentIp = DefaultTrafficTreatment.builder()
-                .transition(FlowRule.Type.IP)
-                .build();
-
-        FlowRule flowIp = new DefaultFlowRule(deviceId, selectorIp, treatmentIp, 100,
-                srManager.appId, 600, false, FlowRule.Type.ETHER);
-
-        srManager.flowRuleService.applyFlowRules(flowIp);
-
-        // flow rule for MPLS packets
-        TrafficSelector selectorMpls = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.MPLS_UNICAST)
-                .matchEthDst(config.getDeviceMac(deviceId))
-                .build();
-        TrafficTreatment treatmentMpls = DefaultTrafficTreatment.builder()
-                .transition(FlowRule.Type.MPLS)
-                .build();
-
-        FlowRule flowMpls = new DefaultFlowRule(deviceId, selectorMpls, treatmentMpls, 100,
-                srManager.appId, 600, false, FlowRule.Type.ETHER);
-
-        srManager.flowRuleService.applyFlowRules(flowMpls);
-
-    }
-
-    /**
-     * Populates a table miss entry.
-     *
-     * @param deviceId switch ID to set rules
-     * @param tableToAdd table to set the rules
-     * @param toControllerNow flag to send packets to controller immediately
-     * @param toControllerWrite flag to send packets to controller at the end of pipeline
-     * @param toTable flag to send packets to a specific table
-     * @param tableToSend table type to send packets when the toTable flag is set
-     */
-    public void populateTableMissEntry(DeviceId deviceId, FlowRule.Type tableToAdd, boolean toControllerNow,
-                                       boolean toControllerWrite,
-                                       boolean toTable, FlowRule.Type tableToSend) {
-        // TODO: Change arguments to EnumSet
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .build();
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-
-        if (toControllerNow) {
-            tBuilder.setOutput(PortNumber.CONTROLLER);
-        }
-
-        if (toControllerWrite) {
-            tBuilder.deferred().setOutput(PortNumber.CONTROLLER);
-        }
-
-        if (toTable) {
-            tBuilder.transition(tableToSend);
-        }
-
-        FlowRule flow = new DefaultFlowRule(deviceId, selector, tBuilder.build(), 0,
-                srManager.appId, 600, false, tableToAdd);
-
-        srManager.flowRuleService.applyFlowRules(flow);
-
+        FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+        fob.withKey(Criteria.matchInPort(PortNumber.ALL))
+                .addCondition(Criteria.matchEthDst(config
+                                      .getDeviceMac(deviceId)));
+        fob.permit().fromApp(srManager.appId);
+        log.debug("populateTableVlan: Installing filtering objective for router mac");
+        srManager.flowObjectiveService.filter(deviceId, fob.add());
     }
 
     private Link selectOneLink(DeviceId srcId, Set<DeviceId> destIds) {
 
         Set<Link> links = srManager.linkService.getDeviceEgressLinks(srcId);
         DeviceId destId = (DeviceId) destIds.toArray()[0];
-        for (Link link: links) {
+        for (Link link : links) {
             if (link.dst().deviceId().equals(destId)) {
                 return link;
             }

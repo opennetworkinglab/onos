@@ -356,10 +356,14 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public TrafficTreatment build() {
-            if (deferred.size() == 0 && immediate.size() == 0
-                    && table == null && !clear) {
-                drop();
-            }
+            //Don't add DROP instruction by default when instruction
+            //set is empty. This will be handled in DefaultSingleTablePipeline
+            //driver.
+
+            //if (deferred.size() == 0 && immediate.size() == 0
+            //        && table == null && !clear) {
+            //    drop();
+            //}
             return new DefaultTrafficTreatment(deferred, immediate, table, clear);
         }
 

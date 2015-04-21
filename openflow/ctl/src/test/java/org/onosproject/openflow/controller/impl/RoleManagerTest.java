@@ -255,6 +255,10 @@ public class RoleManagerTest {
         }
 
         @Override
+        public void setPortDescReplies(List<OFPortDescStatsReply> portDescReplies) {
+        }
+
+        @Override
         public void setFeaturesReply(OFFeaturesReply featuresReply) {
         }
 

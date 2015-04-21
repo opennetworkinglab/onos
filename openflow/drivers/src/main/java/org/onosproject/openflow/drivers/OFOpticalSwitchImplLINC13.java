@@ -183,7 +183,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     @Override
     public List<OFPortDesc> getPorts() {
         List<OFPortDesc> portEntries = new ArrayList<>();
-        portEntries.addAll(ports.getEntries());
+        portEntries.addAll(super.getPorts());
         if (wPorts != null) {
             portEntries.addAll(wPorts.getEntries());
         }

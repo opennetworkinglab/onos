@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+//TODO: Knock-off this class as we don't need any switch/app specific
+//drivers in the south bound layers.
 public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
 
     private OFFactory factory;
@@ -48,8 +50,9 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
     private static final int TABLE_MPLS = 3;
     private static final int TABLE_ACL = 5;
 
-    /* Set the default values. These variables will get
-     * overwritten based on the switch vendor type
+    /*
+     * Set the default values. These variables will get overwritten based on the
+     * switch vendor type
      */
     protected int vlanTableId = TABLE_VLAN;
     protected int tmacTableId = TABLE_TMAC;
@@ -64,20 +67,19 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
         setSwitchDescription(desc);
     }
 
-
     @Override
     public String toString() {
-        return "OFSwitchImplSpringOpenTTP [" + ((channel != null)
-                ? channel.getRemoteAddress() : "?")
-                + " DPID[" + ((this.getStringId() != null) ?
-                this.getStringId() : "?") + "]]";
+        return "OFSwitchImplSpringOpenTTP ["
+                + ((channel != null) ? channel.getRemoteAddress() : "?")
+                + " DPID["
+                + ((this.getStringId() != null) ? this.getStringId() : "?")
+                + "]]";
     }
 
     @Override
     public Boolean supportNxRole() {
         return null;
     }
-
 
     @Override
     public void startDriverHandshake() {
@@ -101,8 +103,6 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
         return driverHandshakeComplete.get();
     }
 
-
-
     @Override
     public void processDriverHandshakeMessage(OFMessage m) {
         if (!startDriverHandshakeCalled) {
@@ -113,15 +113,14 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
         }
     }
 
-
     @Override
     public void write(OFMessage msg) {
-        this.channel.write(Collections.singletonList(msg));
+        channel.write(Collections.singletonList(msg));
     }
 
     @Override
     public void write(List<OFMessage> msgs) {
-        this.channel.write(msgs);
+        channel.write(msgs);
     }
 
     @Override
@@ -134,10 +133,10 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
             for (OFInstruction i : instructions) {
                 if (i instanceof OFInstructionGotoTable) {
                     OFInstructionGotoTable gotoTable = (OFInstructionGotoTable) i;
-                    TableType tid = TableType.values()[gotoTable.getTableId().getValue()];
-                    newInstructions.add(
-                            gotoTable.createBuilder()
-                                    .setTableId(getTableId(tid)).build());
+                    TableType tid = TableType.values()[gotoTable.getTableId()
+                            .getValue()];
+                    newInstructions.add(gotoTable.createBuilder()
+                            .setTableId(getTableId(tid)).build());
                 } else {
                     newInstructions.add(i);
                 }
@@ -156,38 +155,39 @@ public class OFSwitchImplSpringOpenTTP extends AbstractOpenFlowSwitch {
     @Override
     public TableType getTableType(TableId tid) {
         switch (tid.getValue()) {
-            case TABLE_IPV4_UNICAST:
-                return TableType.IP;
-            case TABLE_MPLS:
-                return TableType.MPLS;
-            case TABLE_ACL:
-                return TableType.ACL;
-            case TABLE_VLAN:
-                return TableType.VLAN;
-            case TABLE_TMAC:
-                return TableType.ETHER;
-            default:
-                log.error("Table type for Table id {} is not supported in the driver", tid);
-                return TableType.NONE;
+        case TABLE_IPV4_UNICAST:
+            return TableType.IP;
+        case TABLE_MPLS:
+            return TableType.MPLS;
+        case TABLE_ACL:
+            return TableType.ACL;
+        case TABLE_VLAN:
+            return TableType.VLAN;
+        case TABLE_TMAC:
+            return TableType.ETHER;
+        default:
+            log.error("Table type for Table id {} is not supported in the driver",
+                      tid);
+            return TableType.NONE;
         }
     }
 
     private TableId getTableId(TableType tableType) {
         switch (tableType) {
-            case IP:
-                return TableId.of(ipv4UnicastTableId);
-            case MPLS:
-                return TableId.of(mplsTableId);
-            case ACL:
-                return TableId.of(aclTableId);
-            case VLAN:
-                return TableId.of(vlanTableId);
-            case ETHER:
-                return TableId.of(tmacTableId);
-            default: {
-                log.error("Table type {} is not supported in the driver", tableType);
-                return TableId.NONE;
-            }
+        case IP:
+            return TableId.of(ipv4UnicastTableId);
+        case MPLS:
+            return TableId.of(mplsTableId);
+        case ACL:
+            return TableId.of(aclTableId);
+        case VLAN:
+            return TableId.of(vlanTableId);
+        case ETHER:
+            return TableId.of(tmacTableId);
+        default: {
+            log.error("Table type {} is not supported in the driver", tableType);
+            return TableId.NONE;
+        }
         }
     }
 
