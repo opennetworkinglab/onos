@@ -42,7 +42,6 @@ public class DefaultFlowRule implements FlowRule {
     private final boolean permanent;
     private final GroupId groupId;
 
-    private final Type type;
     private final Integer tableId;
 
 
@@ -61,7 +60,6 @@ public class DefaultFlowRule implements FlowRule {
         this.appId = (short) (flowId >>> 48);
         this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
-        this.type = Type.DEFAULT;
         this.tableId = 0;
     }
 
@@ -80,8 +78,7 @@ public class DefaultFlowRule implements FlowRule {
         this.appId = (short) (flowId >>> 48);
         this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
         this.id = FlowId.valueOf(flowId);
-        this.type = tableType;
-        this.tableId = 0;
+        this.tableId = tableType.ordinal();
 
     }
 
@@ -111,8 +108,7 @@ public class DefaultFlowRule implements FlowRule {
         this.timeout = timeout;
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
-        this.type = type;
-        this.tableId = 0;
+        this.tableId = type.ordinal();
 
         /*
          * id consists of the following.
@@ -141,7 +137,6 @@ public class DefaultFlowRule implements FlowRule {
         this.timeout = timeout;
         this.permanent = permanent;
         this.created = System.currentTimeMillis();
-        this.type = Type.DEFAULT;
         this.tableId = 0;
 
         /*
@@ -163,7 +158,6 @@ public class DefaultFlowRule implements FlowRule {
         this.timeout = rule.timeout();
         this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
-        this.type = rule.type();
         this.tableId = rule.tableId();
 
     }
@@ -187,7 +181,6 @@ public class DefaultFlowRule implements FlowRule {
 
         //FIXME: fields below will be removed.
         this.groupId = null;
-        this.type = null;
 
 
     }
@@ -235,11 +228,11 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public int hashCode() {
-        return Objects.hash(deviceId, selector, priority, type, tableId);
+        return Objects.hash(deviceId, selector, priority, tableId);
     }
 
     public int hash() {
-        return Objects.hash(deviceId, selector, treatment, type);
+        return Objects.hash(deviceId, selector, treatment, tableId);
     }
 
     @Override
@@ -258,8 +251,7 @@ public class DefaultFlowRule implements FlowRule {
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(priority, that.priority) &&
                     Objects.equals(selector, that.selector) &&
-                    Objects.equals(tableId, that.tableId) &&
-                    Objects.equals(type, that.type);
+                    Objects.equals(tableId, that.tableId);
 
         }
         return false;
@@ -273,7 +265,7 @@ public class DefaultFlowRule implements FlowRule {
                 .add("priority", priority)
                 .add("selector", selector.criteria())
                 .add("treatment", treatment == null ? "N/A" : treatment.allInstructions())
-                .add("table type", type)
+                .add("tableId", tableId)
                 .add("created", created)
                 .toString();
     }
@@ -286,11 +278,6 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public boolean isPermanent() {
         return permanent;
-    }
-
-    @Override
-    public Type type() {
-        return type;
     }
 
     @Override

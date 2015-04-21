@@ -144,11 +144,11 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void applyRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        if (flowRule.type() == FlowRule.Type.DEFAULT) {
+        if (flowRule.tableId() == 0) {
             sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowAdd());
         } else {
-            OpenFlowSwitch.TableType type = getTableType(flowRule.type());
+            OpenFlowSwitch.TableType type = getTableType(flowRule.tableId());
             sw.transformAndSendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                                               Optional.empty()).buildFlowAdd(),
                                               type);
@@ -166,12 +166,12 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        if (flowRule.type() == FlowRule.Type.DEFAULT) {
+        if (flowRule.tableId() == 0) {
             sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowDel());
         } else {
             sw.transformAndSendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                    Optional.empty()).buildFlowDel(), getTableType(flowRule.type()));
+                    Optional.empty()).buildFlowDel(), getTableType(flowRule.tableId()));
         }
     }
 
@@ -211,10 +211,10 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                               fbe.operator(), fbe);
                     continue;
                 }
-            if (fbe.target().type() == FlowRule.Type.DEFAULT) {
+            if (fbe.target().tableId() == 0) {
                 sw.sendMsg(mod);
             } else {
-                sw.transformAndSendMsg(mod, getTableType(fbe.target().type()));
+                sw.transformAndSendMsg(mod, getTableType(fbe.target().tableId()));
             }
         }
         OFBarrierRequest.Builder builder = sw.factory()
@@ -223,8 +223,8 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
         sw.sendMsg(builder.build());
     }
 
-    private OpenFlowSwitch.TableType getTableType(FlowRule.Type type) {
-        switch (type) {
+    private OpenFlowSwitch.TableType getTableType(int type) {
+        switch (FlowRule.Type.values()[type]) {
 
             case DEFAULT:
                 return OpenFlowSwitch.TableType.NONE;

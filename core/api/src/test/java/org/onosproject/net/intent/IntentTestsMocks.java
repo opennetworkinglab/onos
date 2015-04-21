@@ -333,13 +333,13 @@ public class IntentTestsMocks {
         static int nextId = 0;
 
         int priority;
-        Type type;
+        int tableId;
         long timestamp;
         int id;
 
         public MockFlowRule(int priority) {
             this.priority = priority;
-            this.type = Type.DEFAULT;
+            this.tableId = 0;
             this.timestamp = System.currentTimeMillis();
             this.id = nextId++;
         }
@@ -408,13 +408,8 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public Type type() {
-            return type;
-        }
-
-        @Override
         public int tableId() {
-            return 0;
+            return tableId;
         }
     }
 

@@ -137,7 +137,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                 .put("bytes", flow.bytes())
                 .put("packets", flow.packets())
                 .put("life", flow.life())
-                .put("tableId", flow.type().toString())
+                .put("tableId", flow.tableId())
                 .put("appId", appName);
         result.set("selector", crit);
         result.set("treatment", instr);
@@ -192,7 +192,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         if (!empty) {
             for (FlowEntry f : flows) {
                 print(FMT, Long.toHexString(f.id().value()), f.state(),
-                      f.bytes(), f.packets(), f.life(), f.priority(), f.type(),
+                      f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
                       coreService.getAppId(f.appId()).name());
                 print(SFMT, f.selector().criteria());
                 print(TFMT, f.treatment());

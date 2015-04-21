@@ -147,13 +147,13 @@ public class FlowsResourceTest extends ResourceTest {
         }
 
         @Override
-        public short appId() {
-            return 2;
+        public GroupId groupId() {
+            return new DefaultGroupId(3);
         }
 
         @Override
-        public GroupId groupId() {
-            return new DefaultGroupId(3);
+        public short appId() {
+            return 2;
         }
 
         @Override
@@ -184,11 +184,6 @@ public class FlowsResourceTest extends ResourceTest {
         @Override
         public boolean isPermanent() {
             return false;
-        }
-
-        @Override
-        public Type type() {
-            return Type.DEFAULT;
         }
 
         @Override

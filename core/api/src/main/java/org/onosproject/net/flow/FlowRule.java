@@ -127,14 +127,6 @@ public interface FlowRule {
     boolean isPermanent();
 
     /**
-     * Returns the flow rule type.
-     *
-     * @return flow rule type
-     */
-    @Deprecated
-    Type type();
-
-    /**
      * Returns the table id for this rule.
      *
      * @return an integer.
