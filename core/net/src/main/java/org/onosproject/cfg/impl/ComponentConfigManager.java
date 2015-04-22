@@ -196,9 +196,9 @@ public class ComponentConfigManager implements ComponentConfigService {
                 triggerUpdate(componentName);
                 return;
             }
+            log.warn("Unable to reset non-existent property {} for component {}",
+                     name, componentName);
         }
-        log.warn("Unable to reset non-existent property {} for component {}",
-                 name, componentName);
     }
 
     // Loads existing property values that may have been set.
