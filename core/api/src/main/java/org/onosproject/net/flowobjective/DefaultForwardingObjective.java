@@ -36,7 +36,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     private final int timeout;
     private final ApplicationId appId;
     private final int priority;
-    private final int nextId;
+    private final Integer nextId;
     private final TrafficTreatment treatment;
     private final Operation op;
     private final Optional<ObjectiveContext> context;
@@ -46,7 +46,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     private DefaultForwardingObjective(TrafficSelector selector,
                                       Flag flag, boolean permanent,
                                       int timeout, ApplicationId appId,
-                                      int priority, int nextId,
+                                      int priority, Integer nextId,
                                       TrafficTreatment treatment, Operation op) {
         this.selector = selector;
         this.flag = flag;
@@ -67,7 +67,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     private DefaultForwardingObjective(TrafficSelector selector,
                                        Flag flag, boolean permanent,
                                        int timeout, ApplicationId appId,
-                                       int priority, int nextId,
+                                       int priority, Integer nextId,
                                        TrafficTreatment treatment,
                                        ObjectiveContext context, Operation op) {
         this.selector = selector;

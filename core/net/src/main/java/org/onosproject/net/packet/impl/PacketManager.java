@@ -27,12 +27,17 @@ import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -71,6 +76,9 @@ public class PacketManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private FlowObjectiveService objectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DeviceService deviceService;
@@ -169,12 +177,28 @@ public class PacketManager
             return;
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().punt().build();
-        FlowRule flow = new DefaultFlowRule(device.id(), request.selector(), treatment,
-                                            request.priority().priorityValue(),
-                                            appId, 0, true, request.tableType());
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                                                            .punt()
+                                                            .build();
 
-        flowService.applyFlowRules(flow);
+        ForwardingObjective forwarding = DefaultForwardingObjective.builder()
+                .withPriority(request.priority().priorityValue())
+                .withSelector(request.selector())
+                .fromApp(appId)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withTreatment(treatment)
+                .makePermanent()
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) { }
+
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.warn("Failed to install packet request flow: {}", error);
+                    }
+                });
+
+        objectiveService.forward(device.id(), forwarding);
     }
 
     @Override

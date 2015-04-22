@@ -41,6 +41,11 @@ public enum ObjectiveError {
     GROUPMISSING,
 
     /**
+     * The device was not available to install objectives to.
+     */
+    DEVICEMISSING,
+
+    /**
      * An unknown error occurred.
      */
     UNKNOWN

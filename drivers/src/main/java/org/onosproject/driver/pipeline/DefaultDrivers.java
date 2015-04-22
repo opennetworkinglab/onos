@@ -16,31 +16,30 @@
 package org.onosproject.driver.pipeline;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.net.driver.DriverAdminService;
+import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.driver.DefaultDriverProviderService;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.driver.XmlDriverLoader;
-import org.apache.felix.scr.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 /**
  * Bootstrap for built in drivers.
  */
-@Component(immediate = true)
-public class DefaultDrivers {
+@Service
+@Component(immediate = false)
+public class DefaultDrivers implements DefaultDriverProviderService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String DRIVERS_XML = "/onos-drivers.xml";
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverAdminService driverService;
 
     private DriverProvider provider;
 
@@ -50,7 +49,6 @@ public class DefaultDrivers {
         try {
             InputStream stream = classLoader.getResourceAsStream(DRIVERS_XML);
             provider = new XmlDriverLoader(classLoader).loadDrivers(stream);
-            driverService.registerProvider(provider);
         } catch (IOException e) {
             log.error("Unable to load default drivers", e);
         }
@@ -59,10 +57,11 @@ public class DefaultDrivers {
 
     @Deactivate
     protected void deactivate() {
-        if (provider != null) {
-            driverService.unregisterProvider(provider);
-        }
         log.info("Stopped");
     }
 
+    @Override
+    public Set<Driver> getDrivers() {
+        return provider.getDrivers();
+    }
 }
