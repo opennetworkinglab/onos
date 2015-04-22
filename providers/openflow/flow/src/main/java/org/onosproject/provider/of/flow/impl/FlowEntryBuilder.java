@@ -33,7 +33,6 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRule.Type;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openflow.controller.Dpid;
@@ -55,6 +54,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionGotoTable;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteActions;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
@@ -92,9 +92,8 @@ public class FlowEntryBuilder {
     public enum FlowType { STAT, REMOVED, MOD }
 
     private final FlowType type;
-    private Type tableType = FlowRule.Type.DEFAULT;
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry, Type tableType) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
         this.stat = entry;
         this.match = entry.getMatch();
         this.instructions = getInstructions(entry);
@@ -102,10 +101,9 @@ public class FlowEntryBuilder {
         this.removed = null;
         this.flowMod = null;
         this.type = FlowType.STAT;
-        this.tableType = tableType;
     }
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed, Type tableType) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed) {
         this.match = removed.getMatch();
         this.removed = removed;
 
@@ -114,11 +112,10 @@ public class FlowEntryBuilder {
         this.stat = null;
         this.flowMod = null;
         this.type = FlowType.REMOVED;
-        this.tableType = tableType;
 
     }
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm, Type tableType) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm) {
         this.match = fm.getMatch();
         this.dpid = dpid;
         this.instructions = getInstructions(fm);
@@ -126,33 +123,49 @@ public class FlowEntryBuilder {
         this.flowMod = fm;
         this.stat = null;
         this.removed = null;
-        this.tableType = tableType;
     }
 
     public FlowEntry build(FlowEntryState... state) {
         FlowRule rule;
         switch (this.type) {
             case STAT:
-                rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
-                                      buildSelector(), buildTreatment(), stat.getPriority(),
-                                      stat.getCookie().getValue(), stat.getIdleTimeout(), false,
-                                      tableType);
+                rule = DefaultFlowRule.builder()
+                        .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
+                        .withSelector(buildSelector())
+                        .withTreatment(buildTreatment())
+                        .withPriority(stat.getPriority())
+                        .makeTemporary(stat.getIdleTimeout())
+                        .withCookie(stat.getCookie().getValue())
+                        .forTable(stat.getTableId().getValue())
+                        .build();
+
                 return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
                                       stat.getDurationSec(), stat.getPacketCount().getValue(),
                                       stat.getByteCount().getValue());
             case REMOVED:
-                rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
-                                      buildSelector(), null, removed.getPriority(),
-                                      removed.getCookie().getValue(), removed.getIdleTimeout(), false,
-                                      tableType);
+                rule = DefaultFlowRule.builder()
+                        .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
+                        .withSelector(buildSelector())
+                        .withPriority(removed.getPriority())
+                        .makeTemporary(removed.getIdleTimeout())
+                        .withCookie(removed.getCookie().getValue())
+                        .forTable(removed.getTableId().getValue())
+                        .build();
+
                 return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
                                       removed.getPacketCount().getValue(), removed.getByteCount().getValue());
             case MOD:
                 FlowEntryState flowState = state.length > 0 ? state[0] : FlowEntryState.FAILED;
-                rule = new DefaultFlowRule(DeviceId.deviceId(Dpid.uri(dpid)),
-                                      buildSelector(), buildTreatment(), flowMod.getPriority(),
-                                      flowMod.getCookie().getValue(), flowMod.getIdleTimeout(), false,
-                                      tableType);
+                rule = DefaultFlowRule.builder()
+                        .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
+                        .withSelector(buildSelector())
+                        .withTreatment(buildTreatment())
+                        .withPriority(flowMod.getPriority())
+                        .makeTemporary(flowMod.getIdleTimeout())
+                        .withCookie(flowMod.getCookie().getValue())
+                        .forTable(flowMod.getTableId().getValue())
+                        .build();
+
                 return new DefaultFlowEntry(rule, flowState, 0, 0, 0);
             default:
                 log.error("Unknown flow type : {}", this.type);
@@ -202,7 +215,8 @@ public class FlowEntryBuilder {
         for (OFInstruction in : instructions) {
             switch (in.getType()) {
                 case GOTO_TABLE:
-                    builder.transition(tableType);
+                    builder.transition(((int) ((OFInstructionGotoTable) in)
+                            .getTableId().getValue()));
                     break;
                 case WRITE_METADATA:
                     break;

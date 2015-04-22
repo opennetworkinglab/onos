@@ -144,15 +144,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void applyRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        if (flowRule.tableId() == 0) {
-            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowAdd());
-        } else {
-            OpenFlowSwitch.TableType type = getTableType(flowRule.tableId());
-            sw.transformAndSendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                                              Optional.empty()).buildFlowAdd(),
-                                              type);
-        }
+
     }
 
 
@@ -166,13 +160,9 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
 
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId().uri()));
-        if (flowRule.tableId() == 0) {
-            sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
+
+        sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                     Optional.empty()).buildFlowDel());
-        } else {
-            sw.transformAndSendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                    Optional.empty()).buildFlowDel(), getTableType(flowRule.tableId()));
-        }
     }
 
     @Override
@@ -211,69 +201,12 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                               fbe.operator(), fbe);
                     continue;
                 }
-            /*if (fbe.target().tableId() == 0) {
-                sw.sendMsg(mod);
-            } else {
-                sw.transformAndSendMsg(mod, getTableType(fbe.target().tableId()));
-            }*/
             sw.sendMsg(mod);
         }
         OFBarrierRequest.Builder builder = sw.factory()
                 .buildBarrierRequest()
                 .setXid(batch.id());
         sw.sendMsg(builder.build());
-    }
-
-    private OpenFlowSwitch.TableType getTableType(int type) {
-        switch (FlowRule.Type.values()[type]) {
-
-            case DEFAULT:
-                return OpenFlowSwitch.TableType.NONE;
-            case IP:
-                return OpenFlowSwitch.TableType.IP;
-            case MPLS:
-                return OpenFlowSwitch.TableType.MPLS;
-            case ACL:
-                return OpenFlowSwitch.TableType.ACL;
-            case VLAN_MPLS:
-                return OpenFlowSwitch.TableType.VLAN_MPLS;
-            case VLAN:
-                return OpenFlowSwitch.TableType.VLAN;
-            case ETHER:
-                return OpenFlowSwitch.TableType.ETHER;
-            case COS:
-                return OpenFlowSwitch.TableType.COS;
-            case FIRST:
-                return OpenFlowSwitch.TableType.FIRST;
-            default:
-                return OpenFlowSwitch.TableType.NONE;
-        }
-    }
-
-    private FlowRule.Type getType(OpenFlowSwitch.TableType tableType) {
-        switch (tableType) {
-
-        case NONE:
-            return FlowRule.Type.DEFAULT;
-        case IP:
-            return FlowRule.Type.IP;
-        case MPLS:
-            return FlowRule.Type.MPLS;
-        case ACL:
-            return FlowRule.Type.ACL;
-        case VLAN_MPLS:
-            return FlowRule.Type.VLAN_MPLS;
-        case VLAN:
-            return FlowRule.Type.VLAN;
-        case ETHER:
-            return FlowRule.Type.ETHER;
-        case COS:
-            return FlowRule.Type.COS;
-        case FIRST:
-            return FlowRule.Type.FIRST;
-        default:
-            return FlowRule.Type.DEFAULT;
-        }
     }
 
 
@@ -311,8 +244,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                 case FLOW_REMOVED:
                     OFFlowRemoved removed = (OFFlowRemoved) msg;
 
-                    FlowEntry fr = new FlowEntryBuilder(dpid, removed,
-                                                        getType(sw.getTableType(removed.getTableId()))).build();
+                    FlowEntry fr = new FlowEntryBuilder(dpid, removed).build();
                     providerService.flowRemoved(fr);
                     break;
                 case STATS_REPLY:
@@ -343,8 +275,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                             OFFlowMod fm = (OFFlowMod) m;
                             InternalCacheEntry entry = pendingBatches.getIfPresent(msg.getXid());
                             if (entry != null) {
-                                entry.appendFailure(new FlowEntryBuilder(dpid, fm,
-                                                                         getType(sw.getTableType(fm.getTableId())))
+                                entry.appendFailure(new FlowEntryBuilder(dpid, fm)
                                                                          .build());
                             } else {
                                 log.error("No matching batch for this error: {}", error);
@@ -377,9 +308,7 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
             OpenFlowSwitch sw = controller.getSwitch(dpid);
 
             List<FlowEntry> flowEntries = replies.getEntries().stream()
-                    .map(entry -> new FlowEntryBuilder(dpid, entry,
-                                        getType(sw.getTableType(entry.getTableId())))
-                                        .build())
+                    .map(entry -> new FlowEntryBuilder(dpid, entry).build())
                     .collect(Collectors.toList());
 
             providerService.pushFlowMetrics(did, flowEntries);
