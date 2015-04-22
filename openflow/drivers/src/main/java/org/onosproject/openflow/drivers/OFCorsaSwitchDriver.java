@@ -38,7 +38,7 @@ import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TableId;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -79,7 +79,7 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
      */
     @Override
     public void write(OFMessage msg) {
-        if (msg.getType() == OFType.FLOW_MOD) {
+/*        if (msg.getType() == OFType.FLOW_MOD) {
             OFFlowMod flowMod = (OFFlowMod) msg;
             OFFlowMod.Builder builder = flowMod.createBuilder();
             builder.setTableId(TableId.of(LOCAL_TABLE));
@@ -87,11 +87,13 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
         } else {
             channel.write(Collections.singletonList(msg));
         }
+*/
+        channel.write(Collections.singletonList(msg));
     }
 
     @Override
     public void write(List<OFMessage> msgs) {
-        List<OFMessage> newMsgs = new ArrayList<OFMessage>();
+/*        List<OFMessage> newMsgs = new ArrayList<OFMessage>();
         for (OFMessage msg : msgs) {
             if (msg.getType() == OFType.FLOW_MOD) {
                 OFFlowMod flowMod = (OFFlowMod) msg;
@@ -103,6 +105,8 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
             }
         }
         channel.write(newMsgs);
+*/
+        channel.write(msgs);
     }
 
     @Override

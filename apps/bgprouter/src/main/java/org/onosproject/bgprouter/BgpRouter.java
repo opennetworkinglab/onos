@@ -252,10 +252,8 @@ public class BgpRouter {
 
             flowObjectiveService.forward(deviceId,
                                          generateRibFlowRule(fibEntry.prefix(), nextId).add());
-
-
+            log.trace("Sending flow forwarding objective {}->{}", fibEntry, nextId);
         }
-        log.info("Sending flow forwarding objective");
 
     }
 
@@ -325,8 +323,10 @@ public class BgpRouter {
                     .setOutput(egressIntf.connectPoint().port())
                     .build();
 
+            int nextId = flowObjectiveService.allocateNextId();
+
             NextObjective nextObjective = DefaultNextObjective.builder()
-                    .withId(entry.hashCode())
+                    .withId(nextId)
                     .addTreatment(treatment)
                     .withType(NextObjective.Type.SIMPLE)
                     .fromApp(appId)
@@ -348,7 +348,7 @@ public class BgpRouter {
             groupService.addGroup(groupDescription);
             */
 
-            nextHops.put(nextHop.ip(), flowObjectiveService.allocateNextId());
+            nextHops.put(nextHop.ip(), nextId);
 
         }
 

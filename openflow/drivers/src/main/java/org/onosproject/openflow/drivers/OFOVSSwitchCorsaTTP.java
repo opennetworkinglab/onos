@@ -15,18 +15,18 @@
  */
 package org.onosproject.openflow.drivers;
 
-import com.google.common.collect.Lists;
 import org.onosproject.openflow.controller.Dpid;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+/*import com.google.common.collect.Lists;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionGotoTable;
 import org.projectfloodlight.openflow.types.TableId;
-
-import java.util.Collections;
 import java.util.List;
+*/
+import java.util.Collections;
 
 public class OFOVSSwitchCorsaTTP extends OFCorsaSwitchDriver {
 
@@ -36,7 +36,7 @@ public class OFOVSSwitchCorsaTTP extends OFCorsaSwitchDriver {
 
     @Override
     public void transformAndSendMsg(OFMessage msg, TableType type) {
-        log.trace("Trying to send {} of TableType {}", msg, type);
+        /*log.trace("Trying to send {} of TableType {}", msg, type);
         if (msg.getType() == OFType.FLOW_MOD) {
             OFFlowMod flowMod = (OFFlowMod) msg;
             OFFlowMod.Builder builder = flowMod.createBuilder();
@@ -84,10 +84,10 @@ public class OFOVSSwitchCorsaTTP extends OFCorsaSwitchDriver {
                             break;
                         case NONE:
                             log.error("Should never have to go to Table 0");
-                            /*newInstructions.add(
+                            newInstructions.add(
                                     gotoTable.createBuilder()
                                             .setTableId(TableId.of(0)).build());
-                            */
+
                             break;
                         default:
                             log.warn("Unknown table type: {}", tid);
@@ -134,6 +134,7 @@ public class OFOVSSwitchCorsaTTP extends OFCorsaSwitchDriver {
 
         } else {
             channel.write(Collections.singletonList(msg));
-        }
+        }*/
+        channel.write(Collections.singletonList(msg));
     }
 }

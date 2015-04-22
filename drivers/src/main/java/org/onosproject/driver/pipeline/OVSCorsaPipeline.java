@@ -79,7 +79,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
 
 
-    protected static final int FIRST_TABLE = 0;
+    protected static final int MAC_TABLE = 0;
     protected static final int VLAN_MPLS_TABLE = 1;
     protected static final int VLAN_TABLE = 2;
     //protected static final int MPLS_TABLE = 3;
@@ -329,7 +329,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                         .withPriority(CONTROLLER_PRIORITY)
                         .fromApp(applicationId)
                         .makePermanent()
-                        .forTable(FIRST_TABLE).build();
+                        .forTable(MAC_TABLE).build();
                 ops =  install ? ops.add(rule) : ops.remove(rule);
             } else if (c.type() == Criterion.Type.VLAN_VID) {
                 Criteria.VlanIdCriterion v = (Criteria.VlanIdCriterion) c;
@@ -378,13 +378,13 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
             @Override
             public void onSuccess(FlowRuleOperations ops) {
                 pass(filt);
-                log.info("Provisioned default table for bgp router");
+                log.info("Applied filtering rules");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
                 fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
-                log.info("Failed to provision default table for bgp router");
+                log.info("Failed to apply filtering rules");
             }
         }));
     }
@@ -402,16 +402,16 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     }
 
     private void pushDefaultRules() {
-        processTableZero(true);
-        processTableOne(true);
-        processTableTwo(true);
-        processTableFour(true);
-        processTableFive(true);
-        processTableSix(true);
-        processTableNine(true);
+        processMacTable(true);
+        processVlanMplsTable(true);
+        processVlanTable(true);
+        processEtherTable(true);
+        processCosTable(true);
+        processFibTable(true);
+        processLocalTable(true);
     }
 
-    private void processTableZero(boolean install) {
+    private void processMacTable(boolean install) {
         TrafficSelector.Builder selector;
         TrafficTreatment.Builder treatment;
 
@@ -429,7 +429,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withPriority(CONTROLLER_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(FIRST_TABLE).build();
+                .forTable(MAC_TABLE).build();
 
 
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -450,7 +450,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withPriority(DROP_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(FIRST_TABLE).build();
+                .forTable(MAC_TABLE).build();
 
 
         ops = install ? ops.add(rule) : ops.remove(rule);
@@ -458,18 +458,18 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned default table for bgp router");
+                log.info("Provisioned mac table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision default table for bgp router");
+                log.info("Failed to provision mac table");
             }
         }));
 
     }
 
-    private void processTableOne(boolean install) {
+    private void processVlanMplsTable(boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                 .builder();
@@ -494,19 +494,19 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned vlan/mpls table for bgp router");
+                log.info("Provisioned vlan/mpls table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
                 log.info(
-                        "Failed to provision vlan/mpls table for bgp router");
+                        "Failed to provision vlan/mpls table");
             }
         }));
 
     }
 
-    private void processTableTwo(boolean install) {
+    private void processVlanTable(boolean install) {
         TrafficSelector.Builder selector;
         TrafficTreatment.Builder treatment;
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -533,17 +533,17 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned vlan table for bgp router");
+                log.info("Provisioned vlan table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision vlan table for bgp router");
+                log.info("Failed to provision vlan table");
             }
         }));
     }
 
-    private void processTableFour(boolean install) {
+    private void processEtherTable(boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                 .builder();
@@ -602,18 +602,18 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned ether table for bgp router");
+                log.info("Provisioned ether table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision ether table for bgp router");
+                log.info("Failed to provision ether table");
             }
         }));
 
     }
 
-    private void processTableFive(boolean install) {
+    private void processCosTable(boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                 .builder();
@@ -636,18 +636,18 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned cos table for bgp router");
+                log.info("Provisioned cos table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision cos table for bgp router");
+                log.info("Failed to provision cos table");
             }
         }));
 
     }
 
-    private void processTableSix(boolean install) {
+    private void processFibTable(boolean install) {
         TrafficSelector.Builder selector;
         TrafficTreatment.Builder treatment;
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -673,17 +673,17 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned FIB table for bgp router");
+                log.info("Provisioned FIB table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision FIB table for bgp router");
+                log.info("Failed to provision FIB table");
             }
         }));
     }
 
-    private void processTableNine(boolean install) {
+    private void processLocalTable(boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                 .builder();
@@ -706,12 +706,12 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned Local table for bgp router");
+                log.info("Provisioned Local table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision Local table for bgp router");
+                log.info("Failed to provision Local table");
             }
         }));
     }
@@ -748,6 +748,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 }
                 pass(obj);
                 pendingGroups.invalidate(key);
+                log.info("Heard back from group service for group {}", obj.id());
                 flowObjectiveStore.putNextGroup(obj.id(), new CorsaGroup(key));
             });
         }

@@ -178,7 +178,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
         if (fwd.nextId() != null &&
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {
-            log.warn("Queuing forwarding objective.");
+            log.trace("Queuing forwarding objective for nextId {}", fwd.nextId());
             if (pendingForwards.putIfAbsent(fwd.nextId(),
                                 Sets.newHashSet(new PendingNext(deviceId, fwd))) != null) {
                 Set<PendingNext> pending = pendingForwards.get(fwd.nextId());
@@ -226,10 +226,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             // Always (re)initialize the pipeline behaviour
+            log.info("Driver {} bound to device {} ... initializing driver",
+                     handler.driver().name(), deviceId);
             Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
             pipeliner.init(deviceId, context);
             pipeliners.putIfAbsent(deviceId, pipeliner);
-            log.info("Driver {} bound to device {}", handler.driver().name(), deviceId);
         }
     }
 
@@ -241,6 +242,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 case MASTER_CHANGED:
                     if (event.roleInfo().master() != null) {
                         setupPipelineHandler(event.subject());
+                        log.info("mastership changed on device {}", event.subject());
                     }
                     break;
                 case BACKUPS_CHANGED:
@@ -258,7 +260,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
+                    log.info("Device either added or availability changed {}",
+                             event.subject().id());
                     if (deviceService.isAvailable(event.subject().id())) {
+                        log.info("Device is now available {}", event.subject().id());
                         setupPipelineHandler(event.subject().id());
                         processPendingObjectives(event.subject().id());
                     }
@@ -281,6 +286,8 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
 
         private void processPendingObjectives(DeviceId deviceId) {
+            log.debug("Processing pending objectives for device {}", deviceId);
+
             pendingObjectives.getOrDefault(deviceId,
                                            Collections.emptySet()).forEach(obj -> {
                 if (obj instanceof NextObjective) {
@@ -313,13 +320,15 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private class InternalStoreDelegate implements FlowObjectiveStoreDelegate {
         @Override
         public void notify(ObjectiveEvent event) {
+            log.debug("Received notification of obj event {}", event);
             Set<PendingNext> pending = pendingForwards.remove(event.subject());
 
             if (pending == null) {
+                log.debug("Nothing pending for this obj event");
                 return;
             }
 
-            log.info("Processing pending objectives {}", pending.size());
+            log.debug("Processing pending forwarding objectives {}", pending.size());
 
             pending.forEach(p -> getDevicePipeliner(p.deviceId())
                     .forward(p.forwardingObjective()));

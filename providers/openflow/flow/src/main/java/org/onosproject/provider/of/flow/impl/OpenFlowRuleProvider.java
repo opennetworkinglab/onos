@@ -211,11 +211,12 @@ public class OpenFlowRuleProvider extends AbstractProvider implements FlowRulePr
                               fbe.operator(), fbe);
                     continue;
                 }
-            if (fbe.target().tableId() == 0) {
+            /*if (fbe.target().tableId() == 0) {
                 sw.sendMsg(mod);
             } else {
                 sw.transformAndSendMsg(mod, getTableType(fbe.target().tableId()));
-            }
+            }*/
+            sw.sendMsg(mod);
         }
         OFBarrierRequest.Builder builder = sw.factory()
                 .buildBarrierRequest()

@@ -365,7 +365,7 @@ public class DefaultFlowRule implements FlowRule {
                     "a timeout or be permanent");
             checkNotNull(deviceId != null, "Must refer to a device");
             checkNotNull(priority != null, "Priority cannot be null");
-            checkArgument(priority < MIN_PRIORITY, "Priority cannot be less than " +
+            checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
                     MIN_PRIORITY);
 
             return new DefaultFlowRule(deviceId, selector, treatment, priority,
