@@ -70,6 +70,7 @@ public class CoreManager implements CoreService {
 
     @Activate
     public void activate() {
+        registerApplication(CORE_APP_NAME);
         cfgService.registerProperties(getClass());
         List<String> versionLines = Tools.slurp(VERSION_FILE);
         if (versionLines != null && !versionLines.isEmpty()) {

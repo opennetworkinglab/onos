@@ -24,8 +24,15 @@ import java.util.Set;
  */
 public interface CoreService {
 
-    public static final ProviderId CORE_PROVIDER_ID =
-            new ProviderId("core", "org.onosproject.core");
+    /**
+     * Name of the core "application".
+     */
+    public static final String CORE_APP_NAME = "org.onosproject.core";
+
+    /**
+     * Identifier of the core "provider".
+     */
+    public static final ProviderId CORE_PROVIDER_ID = new ProviderId("core", CORE_APP_NAME);
 
     /**
      * Returns the product version.

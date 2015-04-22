@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -61,12 +62,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class PacketManager
-extends AbstractProviderRegistry<PacketProvider, PacketProviderService>
-implements PacketService, PacketProviderRegistry {
+        extends AbstractProviderRegistry<PacketProvider, PacketProviderService>
+        implements PacketService, PacketProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
     private final PacketStoreDelegate delegate = new InternalStoreDelegate();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DeviceService deviceService;
@@ -81,8 +85,11 @@ implements PacketService, PacketProviderRegistry {
 
     private final Map<Integer, PacketProcessor> processors = new ConcurrentHashMap<>();
 
+    private ApplicationId appId;
+
     @Activate
     public void activate() {
+        appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
         log.info("Started");
@@ -153,7 +160,7 @@ implements PacketService, PacketProviderRegistry {
      * Pushes flow rules to the device to request packets be sent to the
      * controller.
      *
-     * @param device the device to push the rules to
+     * @param device  the device to push the rules to
      * @param request the packet request
      */
     private void pushRule(Device device, PacketRequest request) {
@@ -162,16 +169,10 @@ implements PacketService, PacketProviderRegistry {
             return;
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                                                            .punt()
-                                                            .build();
-
-        FlowRule flow = new DefaultFlowRule(device.id(),
-                                request.selector(),
-                                treatment,
-                                request.priority().priorityValue(),
-                                request.appId(),
-                                0, true, request.tableType());
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().punt().build();
+        FlowRule flow = new DefaultFlowRule(device.id(), request.selector(), treatment,
+                                            request.priority().priorityValue(),
+                                            appId, 0, true, request.tableType());
 
         flowService.applyFlowRules(flow);
     }
@@ -204,8 +205,8 @@ implements PacketService, PacketProviderRegistry {
 
     // Personalized link provider service issued to the supplied provider.
     private class InternalPacketProviderService
-    extends AbstractProviderService<PacketProvider>
-    implements PacketProviderService {
+            extends AbstractProviderService<PacketProvider>
+            implements PacketProviderService {
 
         protected InternalPacketProviderService(PacketProvider provider) {
             super(provider);
@@ -225,7 +226,7 @@ implements PacketService, PacketProviderRegistry {
      * Internal callback from the packet store.
      */
     private class InternalStoreDelegate
-    implements PacketStoreDelegate {
+            implements PacketStoreDelegate {
         @Override
         public void notify(PacketEvent event) {
             localEmit(event.subject());
