@@ -15,10 +15,11 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collections;
-
+import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+
+import java.util.Collections;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -146,5 +147,18 @@ public final class OpticalConnectivityIntent extends Intent {
      */
     public ConnectPoint getDst() {
         return dst;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id())
+                .add("key", key())
+                .add("appId", appId())
+                .add("priority", priority())
+                .add("resources", resources())
+                .add("src", src)
+                .add("dst", dst)
+                .toString();
     }
 }
