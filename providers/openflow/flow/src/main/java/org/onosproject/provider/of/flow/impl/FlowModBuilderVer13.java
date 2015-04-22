@@ -36,7 +36,6 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeade
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
-import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -238,37 +237,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
     private OFInstruction buildTableGoto(Instructions.TableTypeTransition i) {
         OFInstruction instruction = factory().instructions().gotoTable(
-                TableId.of(getTableType(i.tableType()).ordinal()));
+                TableId.of(i.tableId()));
         return instruction;
     }
-
-    // FIXME: this has to go as well perhaps when we implement the SelectorService.
-    private OpenFlowSwitch.TableType getTableType(FlowRule.Type type) {
-        switch (type) {
-
-            case DEFAULT:
-                return OpenFlowSwitch.TableType.NONE;
-            case IP:
-                return OpenFlowSwitch.TableType.IP;
-            case MPLS:
-                return OpenFlowSwitch.TableType.MPLS;
-            case ACL:
-                return OpenFlowSwitch.TableType.ACL;
-            case VLAN_MPLS:
-                return OpenFlowSwitch.TableType.VLAN_MPLS;
-            case VLAN:
-                return OpenFlowSwitch.TableType.VLAN;
-            case ETHER:
-                return OpenFlowSwitch.TableType.ETHER;
-            case COS:
-                return OpenFlowSwitch.TableType.COS;
-            case FIRST:
-                return OpenFlowSwitch.TableType.FIRST;
-            default:
-                return OpenFlowSwitch.TableType.NONE;
-        }
-    }
-
 
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;

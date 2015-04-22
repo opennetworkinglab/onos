@@ -289,7 +289,7 @@ public class DefaultFlowRule implements FlowRule {
         return new Builder();
     }
 
-    private static final class Builder implements FlowRule.Builder {
+    public static final class Builder implements FlowRule.Builder {
 
         private FlowId flowId;
         private Integer priority;

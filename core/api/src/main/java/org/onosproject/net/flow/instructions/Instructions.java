@@ -22,11 +22,8 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
@@ -36,12 +33,6 @@ import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsTtlInstruction;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.PopVlanInstruction;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 
 /**
  * Factory class for creating various traffic treatment instructions.
@@ -103,7 +94,8 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Src(MacAddress addr) {
         checkNotNull(addr, "Src l2 address cannot be null");
-        return new ModEtherInstruction(L2SubType.ETH_SRC, addr);
+        return new L2ModificationInstruction.ModEtherInstruction(
+                L2ModificationInstruction.L2SubType.ETH_SRC, addr);
     }
 
     /**
@@ -114,7 +106,8 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modL2Dst(MacAddress addr) {
         checkNotNull(addr, "Dst l2 address cannot be null");
-        return new ModEtherInstruction(L2SubType.ETH_DST, addr);
+        return new L2ModificationInstruction.ModEtherInstruction(
+                L2ModificationInstruction.L2SubType.ETH_DST, addr);
     }
 
     /**
@@ -125,7 +118,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modVlanId(VlanId vlanId) {
         checkNotNull(vlanId, "VLAN id cannot be null");
-        return new ModVlanIdInstruction(vlanId);
+        return new L2ModificationInstruction.ModVlanIdInstruction(vlanId);
     }
 
     /**
@@ -136,7 +129,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modVlanPcp(Byte vlanPcp) {
         checkNotNull(vlanPcp, "VLAN Pcp cannot be null");
-        return new ModVlanPcpInstruction(vlanPcp);
+        return new L2ModificationInstruction.ModVlanPcpInstruction(vlanPcp);
     }
 
     /**
@@ -147,7 +140,7 @@ public final class Instructions {
      */
     public static L2ModificationInstruction modMplsLabel(MplsLabel mplsLabel) {
         checkNotNull(mplsLabel, "MPLS label cannot be null");
-        return new ModMplsLabelInstruction(mplsLabel);
+        return new L2ModificationInstruction.ModMplsLabelInstruction(mplsLabel);
     }
 
     /**
@@ -156,7 +149,7 @@ public final class Instructions {
      * @return a L2 Modification
      */
     public static L2ModificationInstruction decMplsTtl() {
-        return new ModMplsTtlInstruction();
+        return new L2ModificationInstruction.ModMplsTtlInstruction();
     }
 
     /**
@@ -246,7 +239,8 @@ public final class Instructions {
      * @return a L2 modification.
      */
     public static Instruction pushMpls() {
-        return new PushHeaderInstructions(L2SubType.MPLS_PUSH,
+        return new L2ModificationInstruction.PushHeaderInstructions(
+                L2ModificationInstruction.L2SubType.MPLS_PUSH,
                                           Ethernet.MPLS_UNICAST);
     }
 
@@ -256,7 +250,8 @@ public final class Instructions {
      * @return a L2 modification.
      */
     public static Instruction popMpls() {
-        return new PushHeaderInstructions(L2SubType.MPLS_POP,
+        return new L2ModificationInstruction.PushHeaderInstructions(
+                L2ModificationInstruction.L2SubType.MPLS_POP,
                                           Ethernet.MPLS_UNICAST);
     }
 
@@ -268,7 +263,8 @@ public final class Instructions {
      */
     public static Instruction popMpls(Short etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
-        return new PushHeaderInstructions(L2SubType.MPLS_POP, etherType);
+        return new L2ModificationInstruction.PushHeaderInstructions(
+                L2ModificationInstruction.L2SubType.MPLS_POP, etherType);
     }
 
     /**
@@ -277,7 +273,8 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static Instruction popVlan() {
-        return new PopVlanInstruction(L2SubType.VLAN_POP);
+        return new L2ModificationInstruction.PopVlanInstruction(
+                L2ModificationInstruction.L2SubType.VLAN_POP);
     }
 
     /**
@@ -286,18 +283,19 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static Instruction pushVlan() {
-        return new PushHeaderInstructions(L2SubType.VLAN_PUSH, Ethernet.TYPE_VLAN);
+        return new L2ModificationInstruction.PushHeaderInstructions(
+                L2ModificationInstruction.L2SubType.VLAN_PUSH, Ethernet.TYPE_VLAN);
     }
 
     /**
-     * Sends the packet to the table described in 'type'.
+     * Sends the packet to the table id.
      *
-     * @param type flow rule table type
+     * @param tableId flow rule table id
      * @return table type transition instruction
      */
-    public static Instruction transition(FlowRule.Type type) {
-        checkNotNull(type, "Table type cannot be null");
-        return new TableTypeTransition(type);
+    public static Instruction transition(Integer tableId) {
+        checkNotNull(tableId, "Table id cannot be null");
+        return new TableTypeTransition(tableId);
     }
 
     /**
@@ -421,13 +419,12 @@ public final class Instructions {
         }
     }
 
-    // FIXME: Temporary support for this. This should probably become it's own
-    // type like other instructions.
-    public static class TableTypeTransition implements Instruction {
-        private final FlowRule.Type tableType;
 
-        TableTypeTransition(FlowRule.Type type) {
-            this.tableType = type;
+    public static class TableTypeTransition implements Instruction {
+        private final Integer tableId;
+
+        TableTypeTransition(Integer tableId) {
+            this.tableId = tableId;
         }
 
         @Override
@@ -435,19 +432,19 @@ public final class Instructions {
             return Type.TABLE;
         }
 
-        public FlowRule.Type tableType() {
-            return this.tableType;
+        public Integer tableId() {
+            return this.tableId;
         }
 
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("tableType", this.tableType).toString();
+                    .add("tableId", this.tableId).toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), tableType);
+            return Objects.hash(type(), tableId);
         }
 
         @Override
@@ -457,7 +454,7 @@ public final class Instructions {
             }
             if (obj instanceof TableTypeTransition) {
                 TableTypeTransition that = (TableTypeTransition) obj;
-                return Objects.equals(tableType, that.tableType);
+                return Objects.equals(tableId, that.tableId);
 
             }
             return false;

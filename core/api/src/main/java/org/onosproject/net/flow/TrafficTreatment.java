@@ -230,7 +230,17 @@ public interface TrafficTreatment {
          * @param type the table type
          * @return a treatement builder
          */
+        @Deprecated
         public Builder transition(FlowRule.Type type);
+
+        /**
+         * Sets the next table id to transition to.
+         *
+         * @param tableId the table table
+         * @return a treatement builder
+         */
+        public Builder transition(Integer tableId);
+
 
         /**
          * Pops outermost VLAN tag.
