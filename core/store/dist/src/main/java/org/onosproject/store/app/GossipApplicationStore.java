@@ -85,6 +85,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class GossipApplicationStore extends ApplicationArchive
         implements ApplicationStore {
 
+    private static final int MAX_LOAD_RETRIES = 3;
+
     private final Logger log = getLogger(getClass());
 
     private static final MessageSubject APP_BITS_REQUEST = new MessageSubject("app-bits-request");
@@ -163,10 +165,16 @@ public class GossipApplicationStore extends ApplicationArchive
      */
     private void loadFromDisk() {
         for (String name : getApplicationNames()) {
-            Application app = create(getApplicationDescription(name), false);
-            if (app != null && isActive(app.id().name())) {
-                activate(app.id(), false);
-                // load app permissions
+            for (int i = 0; i < MAX_LOAD_RETRIES; i++) {
+                try {
+                    Application app = create(getApplicationDescription(name), false);
+                    if (app != null && isActive(app.id().name())) {
+                        activate(app.id(), false);
+                        // load app permissions
+                    }
+                } catch (Exception e) {
+                    log.warn("Unable to load application {} from disk; retrying", name);
+                }
             }
         }
     }

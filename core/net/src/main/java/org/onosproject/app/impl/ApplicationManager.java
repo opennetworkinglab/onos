@@ -69,10 +69,16 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
+    private boolean initializing;
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(ApplicationEvent.class, listenerRegistry);
+
+        initializing = true;
         store.setDelegate(delegate);
+        initializing = false;
+
         log.info("Started");
     }
 
@@ -207,8 +213,12 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     private synchronized void installAppFeatures(Application app) throws Exception {
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
-            if (!featuresService.isInstalled(feature)) {
+            if (feature != null && !featuresService.isInstalled(feature)) {
                 featuresService.installFeature(name);
+            } else if (feature == null && !initializing) {
+                // Suppress feature-not-found reporting during startup since these
+                // can arise naturally from the staggered cluster install.
+                log.warn("Feature {} not found", name);
             }
         }
     }
@@ -216,8 +226,10 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     private synchronized void uninstallAppFeatures(Application app) throws Exception {
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
-            if (featuresService.isInstalled(feature)) {
+            if (feature != null && featuresService.isInstalled(feature)) {
                 featuresService.uninstallFeature(name);
+            } else if (feature == null) {
+                log.warn("Feature {} not found", name);
             }
         }
     }
