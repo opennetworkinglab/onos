@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -30,6 +31,7 @@ import org.onosproject.net.link.LinkService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -56,6 +58,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
     private static final String PORTS = "ports";
     private static final String ENABLED = "enabled";
     private static final String SPEED = "speed";
+    private static final String NAME = "name";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -118,7 +121,14 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         data.put(PROTOCOL, device.annotations().value(PROTOCOL));
 
         ArrayNode ports = MAPPER.createArrayNode();
-        for (Port p : service.getPorts(deviceId)) {
+
+        List<Port> portList = new ArrayList<>(service.getPorts(deviceId));
+        Collections.sort(portList, (p1, p2) -> {
+            long delta = p1.number().toLong() - p2.number().toLong();
+            return delta == 0 ? 0 : (delta < 0 ? -1 : +1);
+        });
+
+        for (Port p : portList) {
             ports.add(portData(p, deviceId));
         }
         data.set(PORTS, ports);
@@ -142,11 +152,13 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
     private ObjectNode portData(Port p, DeviceId id) {
         ObjectNode port = MAPPER.createObjectNode();
         LinkService ls = get(LinkService.class);
+        String name = p.annotations().value(AnnotationKeys.PORT_NAME);
 
         port.put(ID, p.number().toString());
         port.put(TYPE, p.type().toString());
         port.put(SPEED, p.portSpeed());
         port.put(ENABLED, p.isEnabled());
+        port.put(NAME, name != null ? name : "");
 
         Set<Link> links = ls.getEgressLinks(new ConnectPoint(id, p.number()));
         if (!links.isEmpty()) {

@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -352,7 +353,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             String portName = Strings.emptyToNull(port.getName());
             if (portName != null) {
                 annotations = DefaultAnnotations.builder()
-                        .set("portName", portName).build();
+                        .set(AnnotationKeys.PORT_NAME, portName).build();
             }
             return annotations;
         }

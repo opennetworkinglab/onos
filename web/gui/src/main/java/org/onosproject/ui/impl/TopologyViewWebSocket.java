@@ -184,7 +184,7 @@ public class TopologyViewWebSocket
 
     @Override
     public void onOpen(Connection connection) {
-        log.info("GUI client connected");
+        log.info("Legacy GUI client connected");
         this.connection = connection;
         this.control = (FrameConnection) connection;
         addListeners();
@@ -199,7 +199,7 @@ public class TopologyViewWebSocket
     public synchronized void onClose(int closeCode, String message) {
         removeListeners();
         timer.cancel();
-        log.info("GUI client disconnected");
+        log.info("Legacy GUI client disconnected");
     }
 
     @Override

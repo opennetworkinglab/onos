@@ -50,10 +50,10 @@
             'Vendor', 'H/W Version', 'S/W Version', 'Protocol', 'Serial #'
         ],
         portCols = [
-            'enabled', 'id', 'speed', 'type', 'elinks_dest'
+            'enabled', 'id', 'speed', 'type', 'elinks_dest', 'name'
         ],
         friendlyPortCols = [
-            'Enabled', 'ID', 'Speed', 'Type', 'Egress Links'
+            'Enabled', 'ID', 'Speed', 'Type', 'Egress Links', 'Name'
         ];
 
     function addCloseBtn(div) {

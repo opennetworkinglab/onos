@@ -76,6 +76,12 @@ public final class AnnotationKeys {
     public static final String OPTICAL_WAVES = "optical.waves";
 
     /**
+     * Annotation key for the port name.
+     */
+    public static final String PORT_NAME = "portName";
+
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.
