@@ -15,13 +15,17 @@ remote=$(find_node $1)
 remote=$ONOS_USER@${remote:-$OCI}
 instance=$2
 
-[ -n "$instance" ] && \
+pattern=$3
+
+[ -n "$instance" -a "$instance" != "-" ] && \
     LOG=$ONOS_INSTALL_DIR/$KARAF_DIST/instances/$instance/data/log/karaf.log || \
     LOG=$ONOS_INSTALL_DIR/log/karaf.log
 
 
 if [ $less -eq 1 ]; then
     ssh -t $remote "less $LOG"
+elif [ -n "$pattern" ]; then
+    ssh $remote "grep $LOG -Ee \"$pattern\""
 else
     ssh -t $remote "
     while true; do
