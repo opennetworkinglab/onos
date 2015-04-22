@@ -348,7 +348,7 @@ public class BgpRouter {
             groupService.addGroup(groupDescription);
             */
 
-            nextHops.put(nextHop.ip(), entry.hashCode());
+            nextHops.put(nextHop.ip(), flowObjectiveService.allocateNextId());
 
         }
 

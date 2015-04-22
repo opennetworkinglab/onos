@@ -170,6 +170,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
     }
 
+    @Override
+    public int allocateNextId() {
+        return flowObjectiveStore.allocateNextId();
+    }
+
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
         if (fwd.nextId() != null &&
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {

@@ -28,6 +28,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.FlowObjectiveStoreDelegate;
 import org.onosproject.net.flowobjective.ObjectiveEvent;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
@@ -52,6 +53,8 @@ public class DistributedFlowObjectiveStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+    private AtomicCounter nextIds;
+
     @Activate
     public void activate() {
         nextGroups = storageService.<Integer, byte[]>consistentMapBuilder()
@@ -60,6 +63,10 @@ public class DistributedFlowObjectiveStore
                         new KryoNamespace.Builder()
                                 .register(byte[].class)
                                 .build()))
+                .build();
+
+        nextIds = storageService.atomicCounterBuilder()
+                .withName("next-objective-counter")
                 .build();
 
         log.info("Started");
@@ -85,5 +92,10 @@ public class DistributedFlowObjectiveStore
             return new DefaultNextGroup(versionGroup.value());
         }
         return null;
+    }
+
+    @Override
+    public int allocateNextId() {
+        return (int) nextIds.incrementAndGet();
     }
 }

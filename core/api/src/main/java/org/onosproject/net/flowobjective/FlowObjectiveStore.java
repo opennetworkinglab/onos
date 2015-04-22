@@ -38,4 +38,11 @@ public interface FlowObjectiveStore
      * @return a next group
      */
     NextGroup getNextGroup(Integer nextId);
+
+    /**
+     * Allocates a next objective id. This id is globally unique
+     *
+     * @return an integer
+     */
+    int allocateNextId();
 }
