@@ -303,7 +303,10 @@
         flash.enable(false);
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
-        toggleDetails(prefsState.detail);
+        // NOTE: the detail flag means "use data if you have it"; it does not
+        //       mean the panel is on-screen. So, assume that it always starts
+        //       off-screen since nothing is selected initially...
+        toggleDetails(false);
         toggleSprites(prefsState.spr);
         flash.enable(true);
     }
