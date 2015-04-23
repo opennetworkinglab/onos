@@ -14,6 +14,14 @@
 export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
 export STAGE=$(dirname $KARAF_ROOT)
 
+# Validates the specified IP regular expression against existing adapters.
+# Excludes local-loopback.
+function validateIp {
+    [ $(uname) = "Darwin" ] && \
+        ifconfig | grep 'inet ' | cut -d\  -f2 | grep -v "127\.0\.0\.1" | grep $1 || \
+        ifconfig | grep 'inet addr:' | cut -d: -f2 | cut -d\  -f1 | grep -v "127\.0\.0\.1" | grep $1
+}
+
 # Clean the previous Karaf directory if requested and if it exists.
 if [ "$1" = "clean" ]; then
     shift
@@ -24,12 +32,12 @@ IP="${1:-$ONOS_IP}"
 
 # If IP was not given, nor configured attempt to use ONOS_NIC env. variable
 if [ -z "$IP" -a -n "$ONOS_NIC" ]; then
-    IP=$(ifconfig | grep 'inet ' | cut -d\  -f2 | grep $ONOS_NIC)
+    IP=$(validateIp $ONOS_NIC)
     [ -z "$IP" ] && echo "No adapter with IP matching $ONOS_NIC found!"
 else
     # Otherwise, verify that the IP address given exists among the adapters.
     saveIp=$IP
-    IP=$(ifconfig | grep 'inet ' | cut -d\  -f2 | grep $IP)
+    IP=$(validateIp $IP)
     [ -z "$IP" ] && echo "No adapter with IP $saveIp found!"
 fi
 
@@ -37,7 +45,7 @@ fi
 if [ -z "$IP" -o "$1" = "-?" -o "$1" = "-h" -o "$1" = "--help" ]; then
     echo "usage: $(basename $0) [clean] <ip-address>"
     echo "Available IP addresses are:"
-    ifconfig | grep 'inet ' | cut -d\  -f2 | grep -v "127.0.0.1"
+    validateIp .
     exit 1
 fi
 
