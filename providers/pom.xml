@@ -35,6 +35,7 @@
         <module>openflow</module>
         <module>lldp</module>
         <module>host</module>
+        <module>netconf</module>
         <module>null</module>
     </modules>
 
