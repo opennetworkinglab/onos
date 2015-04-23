@@ -303,7 +303,7 @@
         dp.up = function (cb) { dp._move(dp.ypos.up, cb); };
     }
 
-    function toggleDetails(x) {
+    function toggleUseDetailsFlag(x) {
         var kev = (x === 'keyev'),
             verb;
 
@@ -337,6 +337,7 @@
         ps.destroyPanel(idSum);
         ps.destroyPanel(idDet);
         summaryPanel = detailPanel = null;
+        haveDetails = false;
     }
 
     // ==========================
@@ -362,7 +363,7 @@
                 showSummary: showSummary,
                 toggleSummary: toggleSummary,
 
-                toggleDetails: toggleDetails,
+                toggleUseDetailsFlag: toggleUseDetailsFlag,
                 displaySingle: displaySingle,
                 displayMulti: displayMulti,
                 addAction: addAction,

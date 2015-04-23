@@ -46,7 +46,7 @@
         actionMap = {
             I: [toggleInstances, 'Toggle ONOS instances panel'],
             O: [toggleSummary, 'Toggle ONOS summary panel'],
-            D: [toggleDetails, 'Disable / enable details panel'],
+            D: [toggleUseDetailsFlag, 'Disable / enable details panel'],
 
             H: [toggleHosts, 'Toggle host visibility'],
             M: [toggleOffline, 'Toggle offline visibility'],
@@ -105,8 +105,8 @@
         updatePrefsState('summary', tps.toggleSummary(x));
     }
 
-    function toggleDetails(x) {
-        updatePrefsState('detail', tps.toggleDetails(x));
+    function toggleUseDetailsFlag(x) {
+        updatePrefsState('detail', tps.toggleUseDetailsFlag(x));
     }
 
     function toggleHosts(x) {
@@ -303,10 +303,7 @@
         flash.enable(false);
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
-        // NOTE: the detail flag means "use data if you have it"; it does not
-        //       mean the panel is on-screen. So, assume that it always starts
-        //       off-screen since nothing is selected initially...
-        toggleDetails(false);
+        toggleUseDetailsFlag(prefsState.detail);
         toggleSprites(prefsState.spr);
         flash.enable(true);
     }
