@@ -270,7 +270,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
             Criteria.IPProtocolCriterion ipProto = (Criteria.IPProtocolCriterion) selector
                     .getCriterion(Criterion.Type.IP_PROTO);
             if (ipSrc != null) {
-                log.warn("Driver currently does not currently handle matching Src IP");
+                log.warn("Driver does not currently handle matching Src IP");
                 fail(fwd, ObjectiveError.UNSUPPORTED);
                 return Collections.emptySet();
             }
@@ -797,7 +797,8 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 }
                 pass(obj);
                 pendingGroups.invalidate(key);
-                log.info("Heard back from group service for group {}", obj.id());
+                log.info("Heard back from group service for group {}. "
+                        + "Applying pending forwarding objectives", obj.id());
                 flowObjectiveStore.putNextGroup(obj.id(), new CorsaGroup(key));
             });
         }

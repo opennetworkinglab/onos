@@ -67,7 +67,7 @@ import static org.onlab.util.Tools.groupedThreads;
 @Service
 public class FlowObjectiveManager implements FlowObjectiveService {
 
-    public static final int INSTALL_RETRY_ATTEMPTS = 10;
+    public static final int INSTALL_RETRY_ATTEMPTS = 5;
     public static final long INSTALL_RETRY_INTERVAL = 1000; // ms
 
     private final Logger log = LoggerFactory.getLogger(getClass());
