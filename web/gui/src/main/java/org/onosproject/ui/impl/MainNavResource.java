@@ -18,6 +18,7 @@ package org.onosproject.ui.impl;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiView;
+import org.onosproject.ui.UiViewHidden;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -71,7 +72,9 @@ public class MainNavResource extends AbstractInjectionResource {
         StringBuilder sb = new StringBuilder("\n");
         for (UiExtension extension : service.getExtensions()) {
             for (UiView view : extension.views()) {
-                sb.append(String.format(NAV_FORMAT, view.id(), view.label()));
+                if (!(view instanceof UiViewHidden)) {
+                    sb.append(String.format(NAV_FORMAT, view.id(), view.label()));
+                }
             }
         }
         return new ByteArrayInputStream(sb.toString().getBytes());

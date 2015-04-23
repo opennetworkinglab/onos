@@ -38,6 +38,7 @@
         // {INJECTED-VIEW-IDS-START}
         'topo',
         'device',
+        'flow',
         'host',
         'app',
         'intent',

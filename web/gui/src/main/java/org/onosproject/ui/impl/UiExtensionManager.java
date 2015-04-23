@@ -28,6 +28,7 @@ import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiView;
+import org.onosproject.ui.UiViewHidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +60,15 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     // Creates core UI extension
     private static UiExtension createCoreExtension() {
-        List<UiView> coreViews = of(new UiView("topo", "Topology View"),
+        List<UiView> coreViews = of(new UiView("topo", "Topology"),
                                     new UiView("device", "Devices"),
+                                    new UiViewHidden("flow"),
                                     new UiView("link", "Links"),
                                     new UiView("host", "Hosts"),
                                     new UiView("intent", "Intents"),
                                     new UiView("app", "Applications"),
                                     new UiView("cluster", "Cluster Nodes"));
+
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
@@ -76,6 +79,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                         new ApplicationViewMessageHandler(),
                         new ClusterViewMessageHandler()
                 );
+
         return new UiExtension(coreViews, messageHandlerFactory, "core",
                                UiExtensionManager.class.getClassLoader());
     }
