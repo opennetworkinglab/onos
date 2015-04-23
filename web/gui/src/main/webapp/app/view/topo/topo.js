@@ -30,7 +30,7 @@
 
     // references to injected services etc.
     var $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps,
-        tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs;
+        tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -319,11 +319,12 @@
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
-            'TopoToolbarService', 'TopoSpriteService',
+            'TopoToolbarService', 'TopoSpriteService', 'TooltipService',
 
         function ($scope, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tes_, _tfs_,
-                  _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr) {
+                  _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr,
+                  _ttip_) {
             var self = this,
                 projection,
                 dim,
@@ -360,6 +361,7 @@
             tos = _tos_;
             fltr = _fltr_;
             ttbs = _ttbs_;
+            ttip = _ttip_;
 
             self.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -373,6 +375,7 @@
                 tis.destroyInst();
                 tfs.destroyForce();
                 ttbs.destroyToolbar();
+                ttip.resetTooltip();
             });
 
             // svg layer and initialization of components

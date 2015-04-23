@@ -18,14 +18,29 @@
  ONOS GUI -- Util -- Theme Service - Unit Tests
  */
 describe('factory: fw/nav/nav.js', function() {
-    var ns, $log, fs;
+    var $log, $location, $window, ns, fs;
     var d3Elem;
 
     beforeEach(module('onosNav', 'onosUtil'));
 
-    beforeEach(inject(function (NavService, _$log_, FnService) {
-        ns = NavService;
+    var mockWindow = {
+        location: {
+            href: 'http://server/#/mock/url'
+        }
+    };
+
+    beforeEach(function () {
+        module(function ($provide) {
+            $provide.value('$window', mockWindow);
+        });
+    });
+
+    beforeEach(inject(function (_$log_, _$location_, _$window_,
+                                NavService, FnService) {
         $log = _$log_;
+        $location = _$location_;
+        $window = _$window_;
+        ns = NavService;
         fs = FnService;
         d3Elem = d3.select('body').append('div').attr('id', 'nav');
         ns.hideNav();
@@ -41,7 +56,7 @@ describe('factory: fw/nav/nav.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ns, [
-            'showNav', 'hideNav', 'toggleNav', 'hideIfShown'
+            'showNav', 'hideNav', 'toggleNav', 'hideIfShown', 'navTo'
         ])).toBeTruthy();
     });
 
@@ -93,6 +108,58 @@ describe('factory: fw/nav/nav.js', function() {
         checkHidden(false);
         expect(ns.hideIfShown()).toBe(true);
         checkHidden(true);
+    });
+
+    it('should take correct navTo parameters', function () {
+        spyOn($log, 'warn');
+
+        ns.navTo('foo');
+        expect($log.warn).not.toHaveBeenCalled();
+
+        ns.navTo('bar', { q1: 'thing', q2: 'thing2' });
+        expect($log.warn).not.toHaveBeenCalled();
+
+    });
+
+    it('should check navTo parameter warnings', function () {
+        spyOn($log, 'warn');
+
+        expect(ns.navTo()).toBeNull();
+        expect($log.warn).toHaveBeenCalledWith('Not a valid navigation path');
+
+        ns.navTo('baz', [1, 2, 3]);
+        expect($log.warn).toHaveBeenCalledWith(
+            'Query params not an object', [1, 2, 3]
+        );
+
+        ns.navTo('zoom', 'not a query param');
+        expect($log.warn).toHaveBeenCalledWith(
+            'Query params not an object', 'not a query param'
+        );
+    });
+
+    it('should verify where the window is navigating', function () {
+        ns.navTo('foo');
+        expect($window.location.href).toBe('http://server/#/foo');
+
+        ns.navTo('bar');
+        expect($window.location.href).toBe('http://server/#/bar');
+
+        ns.navTo('baz', { q1: 'thing1', q2: 'thing2' });
+        expect($window.location.href).toBe(
+            'http://server/#/baz?q1=thing1&q2=thing2'
+        );
+
+        ns.navTo('zip', { q3: 'thing3' });
+        expect($window.location.href).toBe(
+            'http://server/#/zip?q3=thing3'
+        );
+
+        ns.navTo('zoom', {});
+        expect($window.location.href).toBe('http://server/#/zoom');
+
+        ns.navTo('roof', [1, 2, 3]);
+        expect($window.location.href).toBe('http://server/#/roof');
     });
 
 });

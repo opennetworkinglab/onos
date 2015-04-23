@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss, tps, tts;
+    var $log, fs, wss, tps, tts, ns;
 
     // api to topoForce
     var api;
@@ -39,6 +39,9 @@
         selections = {},        // currently selected nodes (by id)
         selectOrder = [],       // the order in which we made selections
         consumeClick = false;   // used to coordinate with SVG click handler
+
+    // constants
+    var flowPath = 'flow';
 
     // ==========================
 
@@ -240,6 +243,18 @@
                 tt: 'Show Device Flows'
             });
         }
+        // TODO: have the server return explicit class and ID of each node
+        // for now, we assume the node is a device if it has a URI
+        if ((data.props).hasOwnProperty('URI')) {
+            tps.addAction({
+                id: 'flows-table-btn',
+                gid: 'flowsTable',
+                cb: function () {
+                    ns.navTo(flowPath, { devId: data.id });
+                },
+                tt: 'Show flows for this device'
+            });
+        }
 
         tps.displaySomething();
     }
@@ -264,14 +279,15 @@
     angular.module('ovTopo')
     .factory('TopoSelectService',
         ['$log', 'FnService', 'WebSocketService',
-            'TopoPanelService', 'TopoTrafficService',
+            'TopoPanelService', 'TopoTrafficService', 'NavService',
 
-        function (_$log_, _fs_, _wss_, _tps_, _tts_) {
+        function (_$log_, _fs_, _wss_, _tps_, _tts_, _ns_) {
             $log = _$log_;
             fs = _fs_;
             wss = _wss_;
             tps = _tps_;
             tts = _tts_;
+            ns = _ns_;
 
             function initSelect(_api_) {
                 api = _api_;

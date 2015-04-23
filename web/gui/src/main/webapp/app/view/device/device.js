@@ -22,7 +22,7 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, fs, mast, ps, wss, is;
+    var $log, $scope, fs, mast, ps, wss, is, bns, ns, ttip;
 
     // internal state
     var self,
@@ -36,6 +36,7 @@
         ctnrPdg = 24,
         scrollSize = 17,
         portsTblPdg = 50,
+        flowPath = 'flow',
 
         pName = 'device-details-panel',
         detailsReq = 'deviceDetailsRequest',
@@ -67,7 +68,7 @@
     }
 
     function setUpPanel() {
-        var container, closeBtn;
+        var container, closeBtn, tblDiv;
         detailsPanel.empty();
 
         container = detailsPanel.append('div').classed('container', true);
@@ -77,7 +78,12 @@
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
-        top.append('table');
+
+        tblDiv = top.append('div').classed('top-tables', true);
+        tblDiv.append('div').classed('left', true).append('table');
+        tblDiv.append('div').classed('right', true).append('table');
+
+        top.append('div').classed('actionBtns', true);
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
@@ -95,13 +101,29 @@
         addCell('value', value);
     }
 
-    function populateTop(tbody, details) {
+    function populateTop(tblDiv, btnsDiv, details) {
+        var leftTbl = tblDiv.select('.left')
+                        .select('table')
+                        .append('tbody'),
+            rightTbl = tblDiv.select('.right')
+                        .select('table')
+                        .append('tbody');
+
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
         top.select('h2').html(details.id);
 
         propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, details[prop]);
+            // properties are split into two tables
+            addProp(i < 3 ? leftTbl : rightTbl, i, details[prop]);
         });
+
+        bns.button(btnsDiv,
+            'dev-dets-p-flows',
+            'flowsTable',
+            function () {
+                ns.navTo(flowPath, { devId: details.id });
+            },
+            'Show flows for this device');
     }
 
     function addPortRow(tbody, port) {
@@ -146,14 +168,15 @@
     }
 
     function populateDetails(details) {
-        var topTb, btmTbl, ports;
+        var topTbs, btnsDiv, btmTbl, ports;
         setUpPanel();
 
-        topTb = top.select('table').append('tbody');
+        topTbs = top.select('.top-tables');
+        btnsDiv = top.select('.actionBtns');
         btmTbl = bottom.select('table');
         ports = details.ports;
 
-        populateTop(topTb, details);
+        populateTop(topTbs, btnsDiv, details);
         populateBottom(btmTbl, ports);
 
         detailsPanel.height(pHeight);
@@ -182,8 +205,10 @@
     .controller('OvDeviceCtrl',
         ['$log', '$scope', 'TableBuilderService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
+            'ButtonService', 'NavService', 'TooltipService',
 
-        function (_$log_, _$scope_, tbs, _fs_, _mast_, _ps_, _wss_, _is_) {
+        function (_$log_, _$scope_,
+                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _bns_, _ns_, _ttip_) {
             $log = _$log_;
             $scope = _$scope_;
             fs = _fs_;
@@ -191,6 +216,9 @@
             ps = _ps_;
             wss = _wss_;
             is = _is_;
+            bns = _bns_;
+            ns = _ns_;
+            ttip = _ttip_;
             self = this;
             var handlers = {};
             self.panelData = [];
@@ -217,12 +245,14 @@
             });
             createDetailsPane();
 
+            // details panel handlers
             handlers[detailsResp] = respDetailsCb;
             wss.bindHandlers(handlers);
 
             $scope.$on('$destroy', function () {
                 ps.destroyPanel(pName);
                 wss.unbindHandlers(handlers);
+                ttip.resetTooltip();
             });
 
             $log.log('OvDeviceCtrl has been created');

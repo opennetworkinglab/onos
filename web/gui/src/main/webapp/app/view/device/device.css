@@ -66,6 +66,14 @@
     margin: 8px 0;
 }
 
+#device-details-panel .top div.left {
+    float: left;
+    padding: 0 18px 0 0;
+}
+#device-details-panel .top div.right {
+    display: inline-block;
+}
+
 #device-details-panel td.label {
     font-style: italic;
     padding-right: 12px;
@@ -73,8 +81,12 @@
     color: #777;
 }
 
-#device-details-panel hr {
-    margin: 12px 0;
+#device-details-panel .actionBtns div {
+    padding: 12px 0;
+}
+#device-details-panel .top hr {
+    width: 95%;
+    margin: 0 auto;
 }
 
 .light #device-details-panel hr {

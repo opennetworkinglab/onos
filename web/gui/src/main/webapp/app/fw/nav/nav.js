@@ -21,7 +21,7 @@
     'use strict';
 
     // injected dependencies
-    var $log;
+    var $log, $location, $window, fs;
 
     // internal state
     var navShown = false;
@@ -52,9 +52,29 @@
         return false;
     }
 
+    function navTo(path, params) {
+        var url;
+        if (!path) {
+            $log.warn('Not a valid navigation path');
+            return null;
+        }
+        $location.url('/' + path);
+
+        if (fs.isO(params)) {
+            $location.search(params);
+        } else if (params !== undefined) {
+            $log.warn('Query params not an object', params);
+        }
+
+        url = $location.absUrl();
+        $log.log('Navigating to ', url);
+        $window.location.href = url;
+    }
+
     angular.module('onosNav', [])
-        .controller('NavCtrl', [
-            '$log', function (_$log_) {
+        .controller('NavCtrl', ['$log',
+
+            function (_$log_) {
                 var self = this;
                 $log = _$log_;
 
@@ -62,15 +82,22 @@
                 $log.log('NavCtrl has been created');
             }
         ])
-        .factory('NavService', ['$log', function (_$log_) {
-            $log = _$log_;
+        .factory('NavService',
+            ['$log', '$location', '$window', 'FnService',
 
-            return {
-                showNav: showNav,
-                hideNav: hideNav,
-                toggleNav: toggleNav,
-                hideIfShown: hideIfShown
-            };
+            function (_$log_, _$location_, _$window_, _fs_) {
+                $log = _$log_;
+                $location = _$location_;
+                $window = _$window_;
+                fs = _fs_;
+
+                return {
+                    showNav: showNav,
+                    hideNav: hideNav,
+                    toggleNav: toggleNav,
+                    hideIfShown: hideIfShown,
+                    navTo: navTo
+                };
         }]);
 
 }());

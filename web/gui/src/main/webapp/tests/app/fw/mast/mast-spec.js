@@ -19,20 +19,17 @@
  */
 describe('Controller: MastCtrl', function () {
     // instantiate the masthead module
-    beforeEach(module('onosMast'));
+    beforeEach(module('onosMast', 'onosUtil'));
 
-    var $log, ctrl, ms;
+    var $log, ctrl, ms, fs;
 
     // we need an instance of the controller
-    beforeEach(inject(function(_$log_, $controller, MastService) {
+    beforeEach(inject(function(_$log_, $controller, MastService, FnService) {
         $log = _$log_;
         ctrl = $controller('MastCtrl');
         ms = MastService;
+        fs = FnService;
     }));
-
-    it('should start with no radio buttons', function () {
-        expect(ctrl.radio).toBeNull();
-    });
 
     it('should declare height to be 36', function () {
         expect(ms.mastHeight()).toBe(36);

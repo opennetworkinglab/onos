@@ -22,11 +22,11 @@
     'use strict';
 
     // injected references
-    var $log, $timeout, fs;
+    var $log, fs;
 
     // constants
     var hoverHeight = 35,
-        hoverDelay = 500,
+        hoverDelay = 100,
         exitDelay = 100;
 
     // internal state
@@ -104,19 +104,23 @@
         }
     }
 
-    angular.module('onosWidget')
-        .factory('TooltipService', ['$log', '$timeout', 'FnService',
+    function resetTooltip() {
+        tooltip.style('display', 'none').text('');
+    }
 
-        function (_$log_, _$timeout_, _fs_) {
+    angular.module('onosWidget')
+        .factory('TooltipService', ['$log', 'FnService',
+
+        function (_$log_, _fs_) {
             $log = _$log_;
-            $timeout = _$timeout_;
             fs = _fs_;
 
             init();
 
             return {
                 showTooltip: showTooltip,
-                cancelTooltip: cancelTooltip
+                cancelTooltip: cancelTooltip,
+                resetTooltip: resetTooltip
             };
         }]);
 }());
