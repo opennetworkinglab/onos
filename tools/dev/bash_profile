@@ -58,10 +58,15 @@ alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
 alias ll='less $KARAF_LOG'
 alias gl='grep $KARAF_LOG --colour=auto -E -e '
 
-function filterLog {
+function filterLocalLog {
     tl | grep --colour=always -E -e "${1-org.onlab|org.onosproject}"
 }
-alias tlo='filterLog'
+alias tlo='filterLocalLog'
+
+function filterLog {
+    ol | grep --colour=always -E -e "${1-org.onlab|org.onosproject}"
+}
+alias olo='filterLog'
 
 # Pretty-print JSON output
 alias pp='python -m json.tool'
