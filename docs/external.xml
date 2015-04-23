@@ -65,6 +65,12 @@
                                 org.onlab.*
                             </packages>
                         </group>
+                        <group>
+                            <title>Incubator for Network Model &amp; Services</title>
+                            <packages>
+                                org.onosproject.incubator:org.onosproject.exp.*
+                            </packages>
+                        </group>
                     </groups>
                 </configuration>
             </plugin>

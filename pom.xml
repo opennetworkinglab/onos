@@ -48,6 +48,7 @@
         <module>drivers</module>
         <module>openflow</module>
         <module>apps</module>
+        <module>exp</module>
         <module>features</module>
         <module>tools/package/branding</module>
     </modules>

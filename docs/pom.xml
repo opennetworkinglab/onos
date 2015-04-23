@@ -59,6 +59,12 @@
                             </packages>
                         </group>
                         <group>
+                            <title>Incubator for Network Model &amp; Services</title>
+                            <packages>
+                                org.onosproject.incubator:org.onosproject.exp.*
+                            </packages>
+                        </group>
+                        <group>
                             <title>Core Subsystems</title>
                             <packages>
                                 org.onosproject.impl:org.onosproject.core.impl:org.onosproject.cluster.impl:org.onosproject.net.device.impl:org.onosproject.net.link.impl:org.onosproject.net.host.impl:org.onosproject.net.topology.impl:org.onosproject.net.packet.impl:org.onosproject.net.flow.impl:org.onosproject.net.*.impl:org.onosproject.event.impl:org.onosproject.net.intent.impl*:org.onosproject.net.proxyarp.impl:org.onosproject.mastership.impl:org.onosproject.net.resource.impl:org.onosproject.json:org.onosproject.json.*:org.onosproject.provider.host.impl:org.onosproject.provider.lldp.impl:org.onosproject.net.statistic.impl:org.onosproject.app.impl:org.onosproject.common.*:org.onosproject.net.group.impl:org.onosproject.cfg.impl:org.onosproject.net.driver.impl:org.onosproject.net.flowobjective.impl:org.onosproject.net.flowext.impl:org.onosproject.net.tunnel.impl
@@ -68,6 +74,12 @@
                             <title>Distributed Stores</title>
                             <packages>
                                 org.onosproject.store.*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Incubator for Core Subsystems &amp; Distributed Stores</title>
+                            <packages>
+                                org.onosproject.exp.net.impl:org.onosproject.exp.store.impl
                             </packages>
                         </group>
                         <group>
