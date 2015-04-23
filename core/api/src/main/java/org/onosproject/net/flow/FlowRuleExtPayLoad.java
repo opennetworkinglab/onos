@@ -23,7 +23,7 @@ public final class FlowRuleExtPayLoad {
     /**
      * Creates a FlowRuleExtPayLoad.
      *
-     * @param payLoad
+     * @param payLoad payload byte data
      * @return FlowRuleExtPayLoad payLoad
      */
     public static FlowRuleExtPayLoad flowRuleExtPayLoad(byte[] payLoad) {
