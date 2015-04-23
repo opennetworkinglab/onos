@@ -193,9 +193,15 @@ public class TopologyMetrics implements TopologyMetricsService {
     private class InnerDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            recordEvent(event, topologyDeviceEventMetric);
-            log.debug("Device Event: time = {} type = {} event = {}",
+            // Ignore PORT_STATS_UPDATED probe event from interfering with
+            // other device event timestamps
+            if (event.type() == DeviceEvent.Type.PORT_STATS_UPDATED) {
+                log.info("PORT_STATS_UPDATED event ignored from metrics");
+            } else {
+                recordEvent(event, topologyDeviceEventMetric);
+                log.info("Device Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
+            }
         }
     }
 
