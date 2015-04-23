@@ -46,6 +46,17 @@ public class FlowRuleIntent extends Intent {
     }
 
     /**
+     * Creates a flow rule intent with the specified flow rules and resources.
+     *
+     * @param appId application id
+     * @param flowRules flow rules to be set
+     * @param resources network resource to be set
+     */
+    public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules, Collection<NetworkResource> resources) {
+        this(appId, null, flowRules, resources);
+    }
+
+    /**
      * Creates an flow rule intent with the specified key, flow rules to be set, and
      * required network resources.
      *

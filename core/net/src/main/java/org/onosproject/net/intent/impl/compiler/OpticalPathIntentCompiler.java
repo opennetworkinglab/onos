@@ -88,7 +88,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                                 Set<LinkResourceAllocations> resources) {
         LinkResourceAllocations allocations = assignWavelength(intent);
 
-        return Arrays.asList(new FlowRuleIntent(appId, createRules(intent, allocations)));
+        return Arrays.asList(new FlowRuleIntent(appId, createRules(intent, allocations), intent.resources()));
     }
 
     private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
