@@ -36,11 +36,6 @@
             <artifactId>onos-of-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-drivers</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
         </dependency>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openflow.drivers;
+package org.onosproject.driver.handshaker;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
-import org.onosproject.openflow.controller.OpenFlowSwitch.TableType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
@@ -33,7 +23,6 @@ import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotSta
 import org.projectfloodlight.openflow.protocol.OFAsyncGetReply;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFBucket;
-import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupFeaturesStatsReply;
@@ -66,6 +55,14 @@ import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.util.HexString;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * OFDescriptionStatistics Vendor (Manufacturer Desc.): Stanford University,
  * Ericsson Research and CPqD Research. Make (Hardware Desc.) : OpenFlow 1.3
@@ -75,7 +72,7 @@ import org.projectfloodlight.openflow.util.HexString;
 public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
 
     private static final int VLAN_ID_OFFSET = 16;
-    private final AtomicBoolean driverHandshakeComplete;
+    private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private OFFactory factory;
     private static final int OFPCML_NO_BUFFER = 0xffff;
     // Configuration of asynch messages to controller. We need different
@@ -106,24 +103,8 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
     private static final short MIN_PRIORITY = 0x0;
     private static final U64 METADATA_MASK = U64.of(Long.MAX_VALUE << 1 | 0x1);
 
-    private final Map<Integer, OFGroup> l2groups;
+    private final Map<Integer, OFGroup> l2groups = new ConcurrentHashMap<>();
 
-    public OFSwitchImplCPqD13(Dpid dpid, OFDescStatsReply desc) {
-        super(dpid);
-        driverHandshakeComplete = new AtomicBoolean(false);
-        l2groups = new ConcurrentHashMap<Integer, OFGroup>();
-        setSwitchDescription(desc);
-    }
-
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "OFSwitchImplCPqD13 [" + ((channel != null)
-                ? channel.getRemoteAddress() : "?")
-                + " DPID[" + ((this.getStringId() != null) ? this.getStringId() : "?") + "]]";
-    }
 
     @Override
     public void startDriverHandshake() {
@@ -1185,7 +1166,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setXid(getNextTransactionId())
                 .build();
 
-        write(tableMissEntry);
+        sendMsg(tableMissEntry);
     }
 
     private void sendBarrier(boolean finalBarrier) {
@@ -1198,34 +1179,11 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setXid(xid)
                 .build();
 
-        write(br);
+        sendMsg(br);
     }
 
     @Override
     public Boolean supportNxRole() {
         return false;
-    }
-
-    @Override
-    public void write(OFMessage msg) {
-        this.channel.write(Collections.singletonList(msg));
-
-    }
-
-    @Override
-    public void write(List<OFMessage> msgs) {
-        this.channel.write(msgs);
-    }
-
-
-    @Override
-    public TableType getTableType(TableId tid) {
-        return TableType.NONE; // XXX this needs to be fixed
-    }
-
-    @Override
-    public void transformAndSendMsg(OFMessage msg, TableType tableType) {
-        // TODO Auto-generated method stub
-
     }
 }

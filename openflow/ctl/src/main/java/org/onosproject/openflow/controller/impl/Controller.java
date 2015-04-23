@@ -21,10 +21,13 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
-import org.onosproject.openflow.drivers.DriverManager;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
@@ -70,6 +73,7 @@ public class Controller {
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
+    private DriverService driverService;
 
     // ***************
     // Getters/Setters
@@ -152,15 +156,7 @@ public class Controller {
         if (ofPort != null) {
             this.openFlowPort = Integer.parseInt(ofPort);
         }
-        String corsaDpid = configParams.get("corsaDpid");
-        if (corsaDpid != null) {
-            try {
-                DriverManager.setCorsaDpid(new Dpid(corsaDpid));
-                log.info("Corsa DPID set to {}", corsaDpid);
-            } catch (NumberFormatException e) {
-                log.warn("Malformed Corsa DPID string", e);
-            }
-        }
+
         log.debug("OpenFlow port set to {}", this.openFlowPort);
         String threads = configParams.get("workerthreads");
         this.workerThreads = threads != null ? Integer.parseInt(threads) : 16;
@@ -206,17 +202,28 @@ public class Controller {
      * @return switch instance
      */
     protected OpenFlowSwitchDriver getOFSwitchInstance(long dpid,
-                                                       OFDescStatsReply desc, OFVersion ofv) {
-        OpenFlowSwitchDriver sw = DriverManager.getSwitch(new Dpid(dpid),
-                                                          desc, ofv);
-        sw.setAgent(agent);
-        sw.setRoleHandler(new RoleManager(sw));
-        return sw;
+                                                       OFDescStatsReply desc,
+                                                       OFVersion ofv) {
+        Driver driver = driverService
+                .getDriver(desc.getMfrDesc(), desc.getHwDesc(), desc.getSwDesc());
+
+        if (driver.hasBehaviour(OpenFlowSwitchDriver.class)) {
+            OpenFlowSwitchDriver ofSwitchDriver = driver.createBehaviour(new DefaultDriverHandler(
+                    new DefaultDriverData(driver)), OpenFlowSwitchDriver.class);
+            ofSwitchDriver.init(new Dpid(dpid), desc, ofv);
+            ofSwitchDriver.setAgent(agent);
+            ofSwitchDriver.setRoleHandler(new RoleManager(ofSwitchDriver));
+            return ofSwitchDriver;
+        }
+        log.error("No OpenFlow driver for {} : {}", dpid, desc);
+        return null;
+
     }
 
-    public void start(OpenFlowAgent ag) {
+    public void start(OpenFlowAgent ag, DriverService driverService) {
         log.info("Starting OpenFlow IO");
         this.agent = ag;
+        this.driverService = driverService;
         this.init();
         this.run();
     }

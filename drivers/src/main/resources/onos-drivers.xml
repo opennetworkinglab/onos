@@ -18,10 +18,14 @@
     <driver name="default" manufacturer="ON.Lab" hwVersion="0.0.1" swVersion="0.0.1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.DefaultSwitchHandShaker"/>
     </driver>
     <driver name="ovs-corsa" manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.OFOVSSwitchCorsaTTP"/>
     </driver>
     <driver name="spring-open-cpqd" manufacturer="Stanford University, Ericsson Research and CPqD Research" hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
@@ -31,4 +35,25 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTPDell"/>
     </driver>
+    <driver name="cpqd" manufacturer="Stanford University, Ericsson Research and CPqD Research"
+            hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.OFSwitchImplSpringOpenTTP"/>
+    </driver>
+    <driver name="linc-oe" manufacturer="FlowForwarding.org" hwVersion="Unknown"
+            swVersion="LINC-OE OpenFlow Software Switch 1.1">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.OFOpticalSwitchImplLINC13"/>
+    </driver>
+    <driver name="corsa" manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.OFCorsaSwitchDriver"/>
+    </driver>
 </drivers>
+

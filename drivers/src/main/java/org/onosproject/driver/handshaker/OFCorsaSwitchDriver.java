@@ -1,0 +1,93 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.driver.handshaker;
+
+import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
+import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
+import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
+import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.types.OFGroup;
+import org.projectfloodlight.openflow.types.TableId;
+
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+//import java.util.ArrayList;
+
+/**
+ * Corsa switch driver for BGP Router deployment.
+ */
+public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
+
+    private AtomicBoolean handShakeComplete = new AtomicBoolean(false);
+
+    private int barrierXid;
+
+
+    @Override
+    public Boolean supportNxRole() {
+        return false;
+    }
+
+    @Override
+    public void startDriverHandshake() {
+        if (startDriverHandshakeCalled) {
+            throw new SwitchDriverSubHandshakeAlreadyStarted();
+        }
+        startDriverHandshakeCalled = true;
+        OFFlowMod fm = factory().buildFlowDelete()
+                .setTableId(TableId.ALL)
+                .setOutGroup(OFGroup.ANY)
+                .build();
+
+        sendMsg(Collections.singletonList(fm));
+
+        barrierXid = getNextTransactionId();
+        OFBarrierRequest barrier = factory().buildBarrierRequest()
+                .setXid(barrierXid).build();
+
+
+        sendMsg(Collections.singletonList(barrier));
+
+    }
+
+    @Override
+    public boolean isDriverHandshakeComplete() {
+        if (!startDriverHandshakeCalled) {
+            throw new SwitchDriverSubHandshakeAlreadyStarted();
+        }
+        return handShakeComplete.get();
+    }
+
+    @Override
+    public void processDriverHandshakeMessage(OFMessage m) {
+        if (!startDriverHandshakeCalled) {
+            throw new SwitchDriverSubHandshakeNotStarted();
+        }
+        if (handShakeComplete.get()) {
+            throw new SwitchDriverSubHandshakeCompleted(m);
+        }
+        if (m.getType() == OFType.BARRIER_REPLY &&
+                m.getXid() == barrierXid) {
+            handShakeComplete.set(true);
+        }
+    }
+
+}

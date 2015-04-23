@@ -15,49 +15,16 @@
  */
 package org.onosproject.openflow.controller;
 
-import java.util.List;
-
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.types.TableId;
+
+import java.util.List;
 
 /**
  * Represents to provider facing side of a switch.
  */
 public interface OpenFlowSwitch {
-
-    /**
-     * The TableType is used to determine in which table (TableID) each flow rule
-     * needs to be put for multi-table support switch.
-     * It is used only for multi-table support switch.
-     */
-    public static enum TableType {
-        /* VLAN-to-MPLS table */
-        VLAN_MPLS,
-
-        /* VLAN table */
-        VLAN,
-
-        /* Ethertype table */
-        ETHER,
-
-        /* Class of Service table */
-        COS,
-
-        /* IP table */
-        IP,
-        /* MPLS table */
-        MPLS,
-        /* ACL table */
-        ACL,
-        /* Single table */
-        NONE,
-        /* First table in multi-table */
-        FIRST,
-
-
-    }
 
     /**
      * Writes the message to the driver.
@@ -72,17 +39,6 @@ public interface OpenFlowSwitch {
      * @param msgs the messages to be written
      */
     public void sendMsg(List<OFMessage> msgs);
-
-    /**
-     * Transforms FlowMod messages by setting the correct table-ids and sending
-     * them to the switch. TableType is used to determine the table ID for the OFMessage.
-     * Switch drivers that supports multi-table pipelines should implement this
-     * method.
-     *
-     * @param msg the message to be written
-     * @param tableType the type of table in which the FlowMods need to be inserted
-     */
-    public void transformAndSendMsg(OFMessage msg, TableType tableType);
 
     /**
      * Handle a message from the switch.
@@ -192,12 +148,4 @@ public interface OpenFlowSwitch {
      * @return string representation of the connection to the device
      */
     public String channelId();
-
-    /**
-     * Returns the TableType corresponding to the TableId used to identify
-     * a table in an OpenFlow switch.
-     * @param tid identifies a table in an OpenFlow switch using TableId
-     * @return TableType corresponding to 'tid' identifying the type of table
-     */
-    public TableType getTableType(TableId tid);
 }

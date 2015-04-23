@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openflow.drivers;
+package org.onosproject.driver.handshaker;
 
-import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
@@ -23,14 +22,12 @@ import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotSta
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
-import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
-import org.projectfloodlight.openflow.types.TableId;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,23 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
-    private final AtomicBoolean driverHandshakeComplete;
+    private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private long barrierXidToWaitFor = -1;
 
     private OFPortDescStatsReply wPorts;
-
-    OFOpticalSwitchImplLINC13(Dpid dpid, OFDescStatsReply desc) {
-        super(dpid);
-        driverHandshakeComplete = new AtomicBoolean(false);
-        setSwitchDescription(desc);
-    }
-
-    @Override
-    public String toString() {
-        return "OFOpticalSwitchImplLINC13 [" + ((channel != null)
-                ? channel.getRemoteAddress() : "?")
-                + " DPID[" + ((getStringId() != null) ? getStringId() : "?") + "]]";
-    }
 
     @Override
     public void startDriverHandshake() {
@@ -177,7 +161,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                          "message " +
                          "{}",
                  circuitPortsRequest.toString());
-        this.write(Collections.<OFMessage>singletonList(circuitPortsRequest));
+        this.sendMsg(Collections.<OFMessage>singletonList(circuitPortsRequest));
     }
 
     @Override
@@ -190,15 +174,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
         return Collections.unmodifiableList(portEntries);
     }
 
-    @Override
-    public void write(OFMessage msg) {
-        this.channel.write(Collections.singletonList(msg));
-    }
-
-    @Override
-    public void write(List<OFMessage> msgs) {
-        this.channel.write(msgs);
-    }
 
     @Override
     public Boolean supportNxRole() {
@@ -208,17 +183,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     @Override
     public boolean isOptical() {
         return true;
-    }
-
-    @Override
-    public TableType getTableType(TableId tid) {
-        return TableType.NONE;
-    }
-
-    @Override
-    public void transformAndSendMsg(OFMessage msg, TableType tableType) {
-        // TODO Auto-generated method stub
-
     }
 
 }

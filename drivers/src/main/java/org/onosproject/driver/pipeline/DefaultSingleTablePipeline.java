@@ -15,10 +15,7 @@
  */
 package org.onosproject.driver.pipeline;
 
-import com.google.common.util.concurrent.SettableFuture;
-
 import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
@@ -84,26 +81,31 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
             treatment = flowTreatment.build();
         }
 
-        FlowRule rule = new DefaultFlowRule(deviceId, selector,
-                                            treatment,
-                                            fwd.priority(), fwd.appId(),
-                                            new DefaultGroupId(fwd.id()),
-                                            fwd.timeout(), fwd.permanent());
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector)
+                .withTreatment(fwd.treatment())
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority());
+
+        if (fwd.permanent()) {
+            ruleBuilder.makePermanent();
+        } else {
+            ruleBuilder.makeTemporary(fwd.timeout());
+        }
+
 
         switch (fwd.op()) {
 
             case ADD:
-                flowBuilder.add(rule);
+                flowBuilder.add(ruleBuilder.build());
                 break;
             case REMOVE:
-                flowBuilder.remove(rule);
+                flowBuilder.remove(ruleBuilder.build());
                 break;
             default:
                 log.warn("Unknown operation {}", fwd.op());
         }
-
-
-        SettableFuture<Boolean> future = SettableFuture.create();
 
         flowRuleService.apply(flowBuilder.build(new FlowRuleOperationsContext() {
             @Override

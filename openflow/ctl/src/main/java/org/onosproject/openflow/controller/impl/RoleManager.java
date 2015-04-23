@@ -15,10 +15,8 @@
  */
 package org.onosproject.openflow.controller.impl;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.RoleHandler;
@@ -30,7 +28,6 @@ import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFNiciraControllerRole;
 import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleReply;
 import org.projectfloodlight.openflow.protocol.OFRoleReply;
@@ -42,8 +39,8 @@ import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -103,7 +100,7 @@ class RoleManager implements RoleHandler {
                 .setXid(xid)
                 .setRole(roleToSend)
                 .build();
-        sw.write(Collections.<OFMessage>singletonList(roleRequest));
+        sw.sendRoleRequest(roleRequest);
         return xid;
     }
 
@@ -133,7 +130,8 @@ class RoleManager implements RoleHandler {
                 //FIXME fix below when we actually use generation ids
                 .setGenerationId(U64.ZERO)
                 .build();
-        sw.write(rrm);
+
+        sw.sendRoleRequest(rrm);
         return xid;
     }
 

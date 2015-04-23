@@ -15,9 +15,9 @@
  */
 package org.onosproject.openflow.controller.driver;
 
-import java.util.List;
-
 import org.jboss.netty.channel.Channel;
+import org.onosproject.net.driver.HandlerBehaviour;
+import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
@@ -26,12 +26,14 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 
+import java.util.List;
+
 /**
  * Represents the driver side of an OpenFlow switch.
  * This interface should never be exposed to consumers.
  *
  */
-public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
+public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
 
     /**
      * Sets the OpenFlow agent to be used. This method
@@ -77,23 +79,6 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
      *  not a nicira role or was malformed.
      */
     public void handleRole(OFMessage m) throws SwitchStateException;
-
-    /**
-     * Starts the driver specific handshake process.
-     */
-    public void startDriverHandshake();
-
-    /**
-     * Checks whether the driver specific handshake is complete.
-     * @return true is finished, false if not.
-     */
-    public boolean isDriverHandshakeComplete();
-
-    /**
-     * Process a message during the driver specific handshake.
-     * @param m the message to process.
-     */
-    public void processDriverHandshakeMessage(OFMessage m);
 
     /**
      * Announce to the OpenFlow agent that this switch has connected.
@@ -162,12 +147,6 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
 
 
     /**
-     * Does this switch support Nicira Role messages.
-     * @return true if supports, false otherwise.
-     */
-    public Boolean supportNxRole();
-
-    /**
      * Sets the OF version for this switch.
      * @param ofV the version to set.
      */
@@ -193,19 +172,42 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch {
     public void setConnected(boolean connected);
 
     /**
-     * Writes the message to the output stream
-     * in a driver specific manner.
-     *
-     * @param msg the message to write
+     * Initialises the behaviour.
+     * @param dpid a dpid
+     * @param desc a switch description
+     * @param ofv OpenFlow version
      */
-    public void write(OFMessage msg);
+    void init(Dpid dpid, OFDescStatsReply desc, OFVersion ofv);
 
     /**
-     * Writes to the OFMessage list to the output stream
-     * in a driver specific manner.
-     *
-     * @param msgs the messages to be written
+     * Does this switch support Nicira Role messages.
+     * @return true if supports, false otherwise.
      */
-    public void write(List<OFMessage> msgs);
+    Boolean supportNxRole();
+
+
+    /**
+     * Starts the driver specific handshake process.
+     */
+    void startDriverHandshake();
+
+    /**
+     * Checks whether the driver specific handshake is complete.
+     * @return true is finished, false if not.
+     */
+    boolean isDriverHandshakeComplete();
+
+    /**
+     * Process a message during the driver specific handshake.
+     * @param m the message to process.
+     */
+    void processDriverHandshakeMessage(OFMessage m);
+
+    /**
+     * Sends only role request messages.
+     *
+     * @param message a role request message.
+     */
+    void sendRoleRequest(OFMessage message);
 
 }

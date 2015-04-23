@@ -23,7 +23,10 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
@@ -76,6 +79,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
     private final ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d"));
 
@@ -115,7 +121,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     public void activate(ComponentContext context) {
         Map<String, String> properties = readComponentConfiguration(context);
         ctrl.setConfigParams(properties);
-        ctrl.start(agent);
+        ctrl.start(agent, driverService);
     }
 
     @Deactivate

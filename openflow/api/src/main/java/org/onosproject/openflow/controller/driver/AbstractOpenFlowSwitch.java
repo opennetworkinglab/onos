@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
@@ -36,10 +38,12 @@ import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFRoleReply;
+import org.projectfloodlight.openflow.protocol.OFRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +52,19 @@ import org.slf4j.LoggerFactory;
  * An abstract representation of an OpenFlow switch. Can be extended by others
  * to serve as a base for their vendor specific representation of a switch.
  */
-public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
+public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
+        implements OpenFlowSwitchDriver {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String SHUTDOWN_MSG = "Worker has already been shutdown";
 
-    protected Channel channel;
+    private Channel channel;
     protected String channelId;
 
     private boolean connected;
     protected boolean startDriverHandshakeCalled = false;
-    private final Dpid dpid;
+    private Dpid dpid;
     private OpenFlowAgent agent;
     private final AtomicInteger xidCounter = new AtomicInteger(0);
 
@@ -76,17 +81,11 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     protected OFFeaturesReply features;
     protected OFDescStatsReply desc;
 
-    /**
-     * Given a dpid build this switch.
-     * @param dp the dpid
-     */
-    protected AbstractOpenFlowSwitch(Dpid dp) {
-        this.dpid = dp;
-    }
-
-    public AbstractOpenFlowSwitch(Dpid dpid, OFDescStatsReply desc) {
+    @Override
+    public void init(Dpid dpid, OFDescStatsReply desc, OFVersion ofv) {
         this.dpid = dpid;
         this.desc = desc;
+        this.ofVersion = ofv;
     }
 
     //************************
@@ -102,7 +101,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     public final void sendMsg(OFMessage m) {
         if (role == RoleState.MASTER) {
             try {
-                this.write(m);
+                channel.write(Collections.singletonList(m));
             } catch (RejectedExecutionException e) {
                 log.warn(e.getMessage());
                 if (!e.getMessage().contains(SHUTDOWN_MSG)) {
@@ -116,7 +115,7 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     public final void sendMsg(List<OFMessage> msgs) {
         if (role == RoleState.MASTER) {
             try {
-                this.write(msgs);
+                channel.write(msgs);
             } catch (RejectedExecutionException e) {
                 log.warn(e.getMessage());
                 if (!e.getMessage().contains(SHUTDOWN_MSG)) {
@@ -127,10 +126,15 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
     }
 
     @Override
-    public abstract void write(OFMessage msg);
-
-    @Override
-    public abstract void write(List<OFMessage> msgs);
+    public final void sendRoleRequest(OFMessage msg) {
+        if (msg instanceof OFRoleRequest ||
+                msg instanceof OFNiciraControllerRoleRequest) {
+            channel.write(Collections.singletonList(msg));
+            return;
+        }
+        throw new IllegalArgumentException("Someone is trying to send " +
+                                                   "a non role request message");
+    }
 
     @Override
     public final boolean isConnected() {
@@ -418,9 +422,18 @@ public abstract class AbstractOpenFlowSwitch implements OpenFlowSwitchDriver {
         return this.desc.getSerialNum();
     }
 
+
     @Override
     public boolean isOptical() {
         return false;
+    }
+
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + " [" + ((channel != null)
+                ? channel.getRemoteAddress() : "?")
+                + " DPID[" + ((getStringId() != null) ? getStringId() : "?") + "]]";
     }
 
 

@@ -15,15 +15,14 @@
  */
 package org.onosproject.openflow.controller.impl;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.jboss.netty.channel.Channel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
-import org.onosproject.openflow.controller.OpenFlowSwitch.TableType;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.RoleHandler;
@@ -39,12 +38,16 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U64;
 
+import java.io.IOException;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
-import static org.onosproject.openflow.controller.RoleState.*;
-import static org.onosproject.openflow.controller.driver.RoleRecvStatus.*;
+import static org.onosproject.openflow.controller.RoleState.MASTER;
+import static org.onosproject.openflow.controller.RoleState.SLAVE;
+import static org.onosproject.openflow.controller.driver.RoleRecvStatus.MATCHED_CURRENT_ROLE;
+import static org.onosproject.openflow.controller.driver.RoleRecvStatus.OTHER_EXPECTATION;
 
 public class RoleManagerTest {
 
@@ -112,9 +115,6 @@ public class RoleManagerTest {
         public void sendMsg(List<OFMessage> msgs) {
         }
 
-        @Override
-        public void transformAndSendMsg(OFMessage msg, TableType tableType) {
-        }
 
         @Override
         public void handleMessage(OFMessage fromSwitch) {
@@ -224,6 +224,11 @@ public class RoleManagerTest {
         }
 
         @Override
+        public void sendRoleRequest(OFMessage message) {
+
+        }
+
+        @Override
         public boolean connectSwitch() {
             return false;
         }
@@ -293,16 +298,13 @@ public class RoleManagerTest {
         }
 
         @Override
+        public void init(Dpid dpid, OFDescStatsReply desc, OFVersion ofv) {
+
+        }
+
+        @Override
         public boolean isConnected() {
             return false;
-        }
-
-        @Override
-        public void write(OFMessage msg) {
-        }
-
-        @Override
-        public void write(List<OFMessage> msgs) {
         }
 
         @Override
@@ -316,9 +318,23 @@ public class RoleManagerTest {
         }
 
         @Override
-        public TableType getTableType(TableId tid) {
-            return TableType.NONE;
+        public DriverHandler handler() {
+            return null;
         }
 
+        @Override
+        public void setHandler(DriverHandler handler) {
+
+        }
+
+        @Override
+        public DriverData data() {
+            return null;
+        }
+
+        @Override
+        public void setData(DriverData data) {
+
+        }
     }
 }
