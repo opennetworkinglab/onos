@@ -31,7 +31,8 @@ else
     while true; do
         echo ==================================================================
         [ ! -f $LOG ] && sleep 2 && continue
-        tail -n 512 -f -F $LOG
+        [ \$(uname) = "Darwin" ] && tail -n 512 -f -F $LOG ||
+            tail -n 512 --follow=name $LOG --pid \$$ --sleep-interval 2
     done
     "
 fi
