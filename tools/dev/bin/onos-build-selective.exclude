@@ -1,0 +1,3 @@
+.*/archetypes/.*
+.*/maven-plugin/.*
+.*/build/conf/.*

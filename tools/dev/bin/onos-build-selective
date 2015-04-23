@@ -3,11 +3,36 @@
 # Selectively builds only those projects that contained modified Java files.
 # ----------------------------------------------------------------------------
 
-# TODO: figure out a more elegant way of ignoring disconnected projects
-projects=$(find $ONOS_ROOT -name '*.java' \
-    -not -path '.git/*' -and -not -path '*/archetypes/*' -and -not -path '*/grouphandler/*' -and -not -path '*/maven-plugin/*' \
+projects=$(find $ONOS_ROOT -type f -path '*/src/*' \
     -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
-    sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
-    sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
+        grep -v -f $ONOS_ROOT/tools/dev/bin/onos-build-selective.exclude | \
+        sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
+        sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
 
-[ -n "$projects" ] && cd $ONOS_ROOT && mvn --projects $projects ${@:-clean install}
+if [ -n "$projects" ]; then
+    # Ascertain artifact IDs of the projects to be rebuilt
+    modulesERE=""
+    for pd in ${projects//,/ }; do
+        artifactId=$(grep -E "^    <artifactId>.*</artifactId>$" ${pd}/pom.xml | \
+                        sed 's/.[^>]*>//;s/<.*//')
+        modulesERE="$modulesERE|$artifactId"
+    done
+    modulesERE=${modulesERE#|*}
+
+    # Search through staged app.xml files for any apps that require one or
+    # more of the modified artifacts.
+    appProjects=$(find $ONOS_ROOT -type f -path '*/target/oar/app.xml' | \
+            xargs grep '<artifact>' | grep -E "/($modulesERE)/" | \
+            cut -d: -f1 | sed 's:/target/oar/.*::g' | \
+            sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
+            sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
+
+    # If we found any, append those app projects to the list of projects to
+    # be built.
+    [ -n "$appProjects" ] && projects=$projects,$appProjects
+
+    echo Building projects $projects
+    cd $ONOS_ROOT && mvn --projects $projects ${@:-clean install}
+
+    [ -n "$appProjects" ] && echo "App staging required for projects $appProjects"
+fi

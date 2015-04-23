@@ -1,16 +1,10 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
-# Echoes project-level directory if a Java file within is newer than the
+# Echoes project-level directory if a source file within is newer than the
 # target directory.
 # ----------------------------------------------------------------------------
 
-javaFile=${1#*\/src\/*\/java/}
-basename=${1/*\//}
+[ ${1/*\//} = "package-info.java" ] && exit 0
 
-[ $basename = "package-info.java" ] && exit 0
-
-src=${1/$javaFile/}
-project=${src/src*/}
-target=$project/target
-
-[ $target -nt ${src}$javaFile ] || echo ${src/src*/}
+project=${1/src*/}
+[ ${project}target -nt $1 ] || echo ${project}
