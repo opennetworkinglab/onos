@@ -22,12 +22,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
@@ -70,6 +71,30 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private String dstIpString = null;
 
+    @Option(name = "--fLabel", description = "IPv6 Flow Label",
+            required = false, multiValued = false)
+    private String fLabelString = null;
+
+    @Option(name = "--icmp6Type", description = "ICMPv6 Type",
+            required = false, multiValued = false)
+    private String icmp6TypeString = null;
+
+    @Option(name = "--icmp6Code", description = "ICMPv6 Code",
+            required = false, multiValued = false)
+    private String icmp6CodeString = null;
+
+    @Option(name = "--ndTarget", description = "IPv6 Neighbor Discovery Target Address",
+            required = false, multiValued = false)
+    private String ndTargetString = null;
+
+    @Option(name = "--ndSLL", description = "IPv6 Neighbor Discovery Source Link-Layer",
+            required = false, multiValued = false)
+    private String ndSLLString = null;
+
+    @Option(name = "--ndTLL", description = "IPv6 Neighbor Discovery Target Link-Layer",
+            required = false, multiValued = false)
+    private String ndTLLString = null;
+
     @Option(name = "--tcpSrc", description = "Source TCP Port",
             required = false, multiValued = false)
     private String srcTcpString = null;
@@ -77,6 +102,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "--tcpDst", description = "Destination TCP Port",
             required = false, multiValued = false)
     private String dstTcpString = null;
+
+    @Option(name = "--extHdr", description = "IPv6 Extension Header Pseudo-field",
+            required = false, multiValued = false)
+    private String extHdrString = null;
 
     @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
             required = false, multiValued = false)
@@ -103,6 +132,15 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "--setEthDst", description = "Rewrite Destination MAC Address",
             required = false, multiValued = false)
     private String setEthDstString = null;
+
+    @Option(name = "--setIpSrc", description = "Rewrite Source IP Address",
+            required = false, multiValued = false)
+    private String setIpSrcString = null;
+
+    @Option(name = "--setIpDst", description = "Rewrite Destination IP Address",
+            required = false, multiValued = false)
+    private String setIpDstString = null;
+
 
     // Priorities
     @Option(name = "-p", aliases = "--priority", description = "Priority",
@@ -174,12 +212,40 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             selectorBuilder.matchIPProtocol((byte) ipProtoShort);
         }
 
+        if (!isNullOrEmpty(fLabelString)) {
+            selectorBuilder.matchIPv6FlowLabel(Integer.parseInt(fLabelString));
+        }
+
+        if (!isNullOrEmpty(icmp6TypeString)) {
+            selectorBuilder.matchIcmpv6Type((byte) Integer.parseInt(icmp6TypeString));
+        }
+
+        if (!isNullOrEmpty(icmp6CodeString)) {
+            selectorBuilder.matchIcmpv6Code((byte) Integer.parseInt(icmp6CodeString));
+        }
+
+        if (!isNullOrEmpty(ndTargetString)) {
+            selectorBuilder.matchIPv6NDTargetAddress(Ip6Address.valueOf(ndTargetString));
+        }
+
+        if (!isNullOrEmpty(ndSLLString)) {
+            selectorBuilder.matchIPv6NDSourceLinkLayerAddress(MacAddress.valueOf(ndSLLString));
+        }
+
+        if (!isNullOrEmpty(ndTLLString)) {
+            selectorBuilder.matchIPv6NDTargetLinkLayerAddress(MacAddress.valueOf(ndTLLString));
+        }
+
         if (!isNullOrEmpty(srcTcpString)) {
             selectorBuilder.matchTcpSrc((short) Integer.parseInt(srcTcpString));
         }
 
         if (!isNullOrEmpty(dstTcpString)) {
             selectorBuilder.matchTcpDst((short) Integer.parseInt(dstTcpString));
+        }
+
+        if (!isNullOrEmpty(extHdrString)) {
+            selectorBuilder.matchIPv6ExthdrFlags(Integer.parseInt(extHdrString));
         }
 
         return selectorBuilder.build();
@@ -192,23 +258,25 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      * @return traffic treatment
      */
     protected TrafficTreatment buildTrafficTreatment() {
-        boolean hasEthSrc = !isNullOrEmpty(setEthSrcString);
-        boolean hasEthDst = !isNullOrEmpty(setEthDstString);
+        final TrafficTreatment.Builder treatmentBuilder = builder();
 
-        if (!hasEthSrc && !hasEthDst) {
-            return DefaultTrafficTreatment.emptyTreatment();
+        if (!isNullOrEmpty(setEthSrcString)) {
+            treatmentBuilder.setEthSrc(MacAddress.valueOf(setEthSrcString));
         }
 
-        final TrafficTreatment.Builder builder = builder();
-        if (hasEthSrc) {
-            final MacAddress setEthSrc = MacAddress.valueOf(setEthSrcString);
-            builder.setEthSrc(setEthSrc);
+        if (!isNullOrEmpty(setEthDstString)) {
+            treatmentBuilder.setEthDst(MacAddress.valueOf(setEthDstString));
         }
-        if (hasEthDst) {
-            final MacAddress setEthDst = MacAddress.valueOf(setEthDstString);
-            builder.setEthDst(setEthDst);
+
+        if (!isNullOrEmpty(setIpSrcString)) {
+            treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpSrcString));
         }
-        return builder.build();
+
+        if (!isNullOrEmpty(setIpDstString)) {
+            treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpDstString));
+        }
+
+        return treatmentBuilder.build();
     }
 
     /**

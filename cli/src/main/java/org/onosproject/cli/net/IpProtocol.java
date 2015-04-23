@@ -16,6 +16,7 @@
 package org.onosproject.cli.net;
 
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 
 /**
  * Known protocol values for IP protocol field that can be supplied to the CLI.
@@ -26,7 +27,9 @@ public enum IpProtocol {
     /** TCP. **/
     TCP(IPv4.PROTOCOL_TCP),
     /** UDP. **/
-    UDP(IPv4.PROTOCOL_UDP);
+    UDP(IPv4.PROTOCOL_UDP),
+    /** ICMP6. **/
+    ICMP6(IPv6.PROTOCOL_ICMP6);
 
     private short value;
 
