@@ -2,6 +2,9 @@
 # -----------------------------------------------------------------------------
 # Downloads and sets-up Apache Karaf as a basis for running ONOS locally
 # as a single-instance.
+#
+# Note that this in no way impacts the method for running ONOS remotely.
+# For that, one should use onos-package and onos-install tools.
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
@@ -17,14 +20,27 @@ if [ "$1" = "clean" ]; then
     [ -d $KARAF_ROOT ] && rm -fr $KARAF_ROOT $STAGE/apps $STAGE/config
 fi
 
-if [ -z $1 ]; then
+IP="${1:-$ONOS_IP}"
+
+# If IP was not given, nor configured attempt to use ONOS_NIC env. variable
+if [ -z "$IP" -a -n "$ONOS_NIC" ]; then
+    IP=$(ifconfig | grep 'inet ' | cut -d\  -f2 | grep $ONOS_NIC)
+    [ -z "$IP" ] && echo "No adapter with IP matching $ONOS_NIC found!"
+else
+    # Otherwise, verify that the IP address given exists among the adapters.
+    saveIp=$IP
+    IP=$(ifconfig | grep 'inet ' | cut -d\  -f2 | grep $IP)
+    [ -z "$IP" ] && echo "No adapter with IP $saveIp found!"
+fi
+
+# If IP is still not surmised or if usage was requested, show usage and IPs.
+if [ -z "$IP" -o "$1" = "-?" -o "$1" = "-h" -o "$1" = "--help" ]; then
     echo "usage: $(basename $0) [clean] <ip-address>"
     echo "Available IP addresses are:"
     ifconfig | grep 'inet ' | cut -d\  -f2 | grep -v "127.0.0.1"
     exit 1
 fi
 
-IP="$1"
 SUBNET="$(echo $IP | cut -d. -f1-3)"
 
 # Bail on any errors
@@ -84,7 +100,7 @@ EOF
 EOF
 fi
 
-echo "Setting up hazelcast.xml for subnet $SUBNET..."
+echo "Setting up hazelcast.xml for subnet $SUBNET.*..."
 cp $ONOS_ROOT/tools/package/etc/hazelcast.xml $KARAF_ROOT/etc/hazelcast.xml
 perl -pi.old -e "s/192.168.56/$SUBNET/" $KARAF_ROOT/etc/hazelcast.xml
 perl -pi.old -e "s/        <name>onos</        <name>$IP</" $KARAF_ROOT/etc/hazelcast.xml
@@ -93,7 +109,8 @@ echo "Staging builtin apps..."
 rm -fr $STAGE/apps
 onos-stage-apps $STAGE/apps $KARAF_ROOT/system
 
-echo "Customizing apps to be auto-activated..."
-for app in $(echo ${ONOS_APPS:-drivers,openflow} | tr ',' ' '); do
+ACTIVE_APPS=${ONOS_APPS:-drivers,openflow}
+echo "Customizing apps to be auto-activated: $ACTIVE_APPS..."
+for app in ${ACTIVE_APPS//,/ }; do
     touch $STAGE/apps/org.onosproject.$app/active
 done

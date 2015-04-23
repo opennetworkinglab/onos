@@ -1,0 +1,7 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Makes sure local ONOS karaf instance is primed & staged and then launches
+# karaf using the supplied arguments.
+# -----------------------------------------------------------------------------
+
+onos-setup-karaf && karaf "$@"

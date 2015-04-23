@@ -33,6 +33,10 @@ if [ -n "$projects" ]; then
 
     echo Building projects $projects
     cd $ONOS_ROOT && mvn --projects $projects ${@:-clean install}
+    status=$?
 
     [ -n "$appProjects" ] && echo "App staging required for projects $appProjects"
+    exit $status
+else
+    exit 0
 fi
