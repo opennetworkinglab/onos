@@ -37,6 +37,7 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
@@ -147,8 +148,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private void applyRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId()
                 .uri()));
-        if (flowRule.payLoad().payLoad().length > 0) {
-            OFMessage msg = new ThirdPartyMessage(flowRule.payLoad().payLoad());
+        FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
+        if (hasPayload(flowRuleExtPayLoad)) {
+            OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
             sw.sendMsg(msg);
             return;
         }
@@ -161,14 +163,14 @@ public class OpenFlowRuleProvider extends AbstractProvider
         for (FlowRule flowRule : flowRules) {
             removeRule(flowRule);
         }
-
     }
 
     private void removeRule(FlowRule flowRule) {
         OpenFlowSwitch sw = controller.getSwitch(Dpid.dpid(flowRule.deviceId()
                 .uri()));
-        if (flowRule.payLoad().payLoad().length > 0) {
-            OFMessage msg = new ThirdPartyMessage(flowRule.payLoad().payLoad());
+        FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
+        if (hasPayload(flowRuleExtPayLoad)) {
+            OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
             sw.sendMsg(msg);
             return;
         }
@@ -192,9 +194,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
         OFFlowMod mod;
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             // flow is the third party privacy flow
-            if (fbe.target().payLoad().payLoad().length > 0) {
-                OFMessage msg = new ThirdPartyMessage(fbe.target().payLoad()
-                        .payLoad());
+
+            FlowRuleExtPayLoad flowRuleExtPayLoad = fbe.target().payLoad();
+            if (hasPayload(flowRuleExtPayLoad)) {
+                OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
                 sw.sendMsg(msg);
                 continue;
             }
@@ -220,6 +223,12 @@ public class OpenFlowRuleProvider extends AbstractProvider
         OFBarrierRequest.Builder builder = sw.factory().buildBarrierRequest()
                 .setXid(batch.id());
         sw.sendMsg(builder.build());
+    }
+
+    private boolean hasPayload(FlowRuleExtPayLoad flowRuleExtPayLoad) {
+        return flowRuleExtPayLoad != null &&
+                flowRuleExtPayLoad.payLoad() != null &&
+                flowRuleExtPayLoad.payLoad().length > 0;
     }
 
     private class InternalFlowProvider
