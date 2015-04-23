@@ -32,9 +32,9 @@
 
   "load": {
     "sprites": [
-      { "id": "subnetA", "pos":[250,40], "label":"192.168.2/24", "class":"blue1" },
-      { "id": "subnetA", "pos":[-200,400], "label":"192.168.1/24", "class":"gold1" },
-      { "id": "subnetA", "pos":[700,400], "label":"192.168.3/24", "class":"gold1" }
+      { "id": "subnetA", "pos":[250,40], "label":"192.168.2.0/24", "class":"blue1" },
+      { "id": "subnetA", "pos":[-200,400], "label":"192.168.1.0/24", "class":"gold1" },
+      { "id": "subnetA", "pos":[700,400], "label":"192.168.3.0/24", "class":"gold1" }
     ],
     "labels": [
       { "pos":[450,700], "text":"Demo Subnets", "size":1.6 }
@@ -42,3 +42,4 @@
   }
 
 }
+
