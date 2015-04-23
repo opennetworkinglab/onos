@@ -67,7 +67,7 @@ import static org.onlab.util.Tools.groupedThreads;
 @Service
 public class FlowObjectiveManager implements FlowObjectiveService {
 
-    public static final int INSTALL_RETRY_ATTEMPTS = 5;
+    public static final int INSTALL_RETRY_ATTEMPTS = 10;
     public static final long INSTALL_RETRY_INTERVAL = 1000; // ms
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -167,7 +167,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                         pipeliner.filter((FilteringObjective) objective);
                     }
                 } else if (numAttempts < INSTALL_RETRY_ATTEMPTS) {
-                    Thread.currentThread().sleep(INSTALL_RETRY_INTERVAL);
+                    Thread.sleep(INSTALL_RETRY_INTERVAL);
                     executorService.submit(this);
                 } else {
                     // Otherwise we've tried a few times and failed, report an
@@ -262,7 +262,9 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case MASTER_CHANGED:
                     log.info("mastership changed on device {}", event.subject());
-                    setupPipelineHandler(event.subject());
+                    if (deviceService.isAvailable(event.subject())) {
+                        setupPipelineHandler(event.subject());
+                    }
                     break;
                 case BACKUPS_CHANGED:
                     break;
@@ -278,8 +280,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         public void event(DeviceEvent event) {
             switch (event.type()) {
                 case DEVICE_ADDED:
-                    setupPipelineHandler(event.subject().id());
-                    break;
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.info("Device either added or availability changed {}",
                              event.subject().id());

@@ -194,7 +194,8 @@ public class PacketManager
 
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install packet request flow: {}", error);
+                        log.warn("Failed to install packet request {}: {}",
+                                 request, error);
                     }
                 });
 

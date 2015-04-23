@@ -19,8 +19,10 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
+
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -240,12 +242,59 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     }
 
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
+        log.debug("Processing versatile forwarding objective");
+        TrafficSelector selector = fwd.selector();
+
+        Criteria.EthTypeCriterion ethType =
+                (Criteria.EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
+        if (ethType == null) {
+            log.error("Versatile forwarding objective must include ethType");
+            fail(fwd, ObjectiveError.UNKNOWN);
+            return Collections.emptySet();
+        }
+        if (ethType.ethType() == Ethernet.TYPE_ARP) {
+            log.warn("Driver automatically handles ARP packets by punting to controller "
+                    + " from ETHER table");
+            pass(fwd);
+            return Collections.emptySet();
+        } else if (ethType.ethType() == Ethernet.TYPE_LLDP ||
+                ethType.ethType() == Ethernet.TYPE_BSN) {
+            log.warn("Driver currently does not currently handle LLDP packets");
+            fail(fwd, ObjectiveError.UNSUPPORTED);
+            return Collections.emptySet();
+        } else if (ethType.ethType() == Ethernet.TYPE_IPV4) {
+            Criteria.IPCriterion ipSrc = (Criteria.IPCriterion) selector
+                    .getCriterion(Criterion.Type.IPV4_SRC);
+            Criteria.IPCriterion ipDst = (Criteria.IPCriterion) selector
+                    .getCriterion(Criterion.Type.IPV4_DST);
+            Criteria.IPProtocolCriterion ipProto = (Criteria.IPProtocolCriterion) selector
+                    .getCriterion(Criterion.Type.IP_PROTO);
+            if (ipSrc != null) {
+                log.warn("Driver currently does not currently handle matching Src IP");
+                fail(fwd, ObjectiveError.UNSUPPORTED);
+                return Collections.emptySet();
+            }
+            if (ipDst != null) {
+                log.error("Driver handles Dst IP matching as specific forwarding "
+                        + "objective, not versatile");
+                fail(fwd, ObjectiveError.UNSUPPORTED);
+                return Collections.emptySet();
+            }
+            if (ipProto != null && ipProto.protocol() == IPv4.PROTOCOL_TCP) {
+                log.warn("Driver automatically punts all packets reaching the "
+                        + "LOCAL table to the controller");
+                pass(fwd);
+                return Collections.emptySet();
+            }
+        }
+
+        log.warn("Driver does not support given versatile forwarding objective");
         fail(fwd, ObjectiveError.UNSUPPORTED);
         return Collections.emptySet();
     }
 
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
-        log.warn("Processing specific");
+        log.debug("Processing specific forwarding objective");
         TrafficSelector selector = fwd.selector();
         Criteria.EthTypeCriterion ethType =
                 (Criteria.EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);

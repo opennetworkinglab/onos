@@ -15,19 +15,21 @@
  */
 package org.onosproject.bgprouter;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TCP;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -37,6 +39,7 @@ import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
 import org.onosproject.routing.config.InterfaceAddress;
 import org.onosproject.routing.config.RoutingConfigurationService;
+import org.slf4j.Logger;
 
 
 /**
@@ -46,23 +49,25 @@ import org.onosproject.routing.config.RoutingConfigurationService;
 public class TunnellingConnectivityManager {
 
     private static final short BGP_PORT = 179;
-
+    private final Logger log = getLogger(getClass());
     private final ApplicationId appId;
 
     private final BgpSpeaker bgpSpeaker;
 
     private final PacketService packetService;
     private final RoutingConfigurationService configService;
+    private final FlowObjectiveService flowObjectiveService;
 
     private final BgpProcessor processor = new BgpProcessor();
 
     public TunnellingConnectivityManager(ApplicationId appId,
                                          RoutingConfigurationService configService,
                                          PacketService packetService,
-                                         FlowRuleService flowService) {
+                                         FlowObjectiveService flowObjectiveService) {
         this.appId = appId;
         this.configService = configService;
         this.packetService = packetService;
+        this.flowObjectiveService = flowObjectiveService;
 
         BgpSpeaker bgpSpeaker = null;
         for (BgpSpeaker speaker : configService.getBgpSpeakers().values()) {
@@ -92,12 +97,27 @@ public class TunnellingConnectivityManager {
                 .punt()
                 .build();
 
-        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        builder.add(new DefaultFlowRule(bgpSpeaker.connectPoint().deviceId(),
-                                        selectorSrc, treatment, 0, appId, 0, true));
-        builder.add(new DefaultFlowRule(bgpSpeaker.connectPoint().deviceId(),
-                                        selectorDst, treatment, 0, appId, 0, true));
-        flowService.apply(builder.build());
+        ForwardingObjective puntSrc = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withSelector(selectorSrc)
+                .withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .add();
+        flowObjectiveService.forward(bgpSpeaker.connectPoint().deviceId(),
+                                     puntSrc);
+
+        ForwardingObjective puntDst = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withSelector(selectorDst)
+                .withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .add();
+        flowObjectiveService.forward(bgpSpeaker.connectPoint().deviceId(),
+                                     puntDst);
+        log.info("Sent punt forwarding objective to {}", bgpSpeaker.connectPoint().deviceId());
+
     }
 
     public void start() {

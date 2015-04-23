@@ -161,7 +161,7 @@ public class BgpRouter {
         connectivityManager = new TunnellingConnectivityManager(appId,
                                                                 configService,
                                                                 packetService,
-                                                                flowService);
+                                                                flowObjectiveService);
 
         icmpHandler = new IcmpHandler(configService, packetService);
 
@@ -252,7 +252,7 @@ public class BgpRouter {
 
             flowObjectiveService.forward(deviceId,
                                          generateRibFlowRule(fibEntry.prefix(), nextId).add());
-            log.trace("Sending flow forwarding objective {}->{}", fibEntry, nextId);
+            log.trace("Sending forwarding objective {} -> nextId:{}", fibEntry, nextId);
         }
 
     }
@@ -281,8 +281,6 @@ public class BgpRouter {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(prefix)
                 .build();
-
-
 
         int priority = prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
 
