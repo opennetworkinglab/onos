@@ -264,7 +264,7 @@ public class DistributedClusterStore
         ControllerNode node = new DefaultControllerNode(nodeId, ip, tcpPort);
         allNodes.put(node.id(), node);
         updateState(nodeId, State.INACTIVE);
-        delegate.notify(new ClusterEvent(ClusterEvent.Type.INSTANCE_ADDED, node));
+        notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_ADDED, node));
         return node;
     }
 
@@ -274,7 +274,7 @@ public class DistributedClusterStore
         ControllerNode node = allNodes.remove(nodeId);
         if (node != null) {
             nodeStates.remove(nodeId);
-            delegate.notify(new ClusterEvent(ClusterEvent.Type.INSTANCE_REMOVED, node));
+            notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_REMOVED, node));
         }
     }
 
@@ -344,9 +344,9 @@ public class DistributedClusterStore
     private void notifyStateChange(NodeId nodeId, State oldState, State newState) {
         ControllerNode node = allNodes.get(nodeId);
         if (newState == State.ACTIVE) {
-            delegate.notify(new ClusterEvent(ClusterEvent.Type.INSTANCE_ACTIVATED, node));
+            notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_ACTIVATED, node));
         } else {
-            delegate.notify(new ClusterEvent(ClusterEvent.Type.INSTANCE_DEACTIVATED, node));
+            notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_DEACTIVATED, node));
         }
     }
 
