@@ -283,19 +283,23 @@ public class DistributedLeadershipManager implements LeadershipService {
         if (!activeTopics.contains(path)) {
             return;
         }
-
-        Versioned<List<NodeId>> candidates = candidateMap.get(path);
-        if (candidates != null) {
-            List<NodeId> activeNodes = candidates.value().stream()
-                              .filter(n -> clusterService.getState(n) == ACTIVE)
-                              .collect(Collectors.toList());
-            if (localNodeId.equals(activeNodes.get(LEADER_CANDIDATE_POS))) {
-                leaderLockAttempt(path, candidates.value());
+        try {
+            Versioned<List<NodeId>> candidates = candidateMap.get(path);
+            if (candidates != null) {
+                List<NodeId> activeNodes = candidates.value().stream()
+                                  .filter(n -> clusterService.getState(n) == ACTIVE)
+                                  .collect(Collectors.toList());
+                if (localNodeId.equals(activeNodes.get(LEADER_CANDIDATE_POS))) {
+                    leaderLockAttempt(path, candidates.value());
+                } else {
+                    retryLock(path);
+                }
             } else {
-                retryLock(path);
+                throw new IllegalStateException("should not be here");
             }
-        } else {
-            throw new IllegalStateException("should not be here");
+        } catch (Exception e) {
+            log.debug("Failed to fetch candidate information for {}", path, e);
+            retryLock(path);
         }
     }
 
@@ -336,7 +340,7 @@ public class DistributedLeadershipManager implements LeadershipService {
         final MutableBoolean updated = new MutableBoolean(false);
         candidateBoard.compute(path, (k, current) -> {
             if (current == null || current.epoch() < newInfo.epoch()) {
-                log.info("updating candidateboard with {}", newInfo);
+                log.debug("updating candidateboard with {}", newInfo);
                 updated.setTrue();
                 return newInfo;
             }

@@ -98,18 +98,21 @@ public class LeaderCommand extends AbstractShellCommand {
         print("--------------------------------------------------------------");
         print(FMT_C, "Topic", "Leader", "Candidates");
         print("--------------------------------------------------------------");
-        leaderBoard
-                .values()
+         candidates
+                .entrySet()
                 .stream()
-                .filter(l -> allTopics || pattern.matcher(l.topic()).matches())
-                .sorted(leadershipComparator)
-                .forEach(l -> {
-                        List<NodeId> list = candidates.get(l.topic());
+                .filter(es -> allTopics || pattern.matcher(es.getKey()).matches())
+                .forEach(es -> {
+                        List<NodeId> list = es.getValue();
+                        if (list == null || list.isEmpty()) {
+                            return;
+                        }
+                        Leadership l = leaderBoard.get(es.getKey());
                         print(FMT_C,
-                            l.topic(),
-                            l.leader(),
-                            list.get(0).toString());
+                            es.getKey(),
+                            l == null ? "null" : l.leader(),
                             // formatting hacks to get it into a table
+                            list.get(0).toString());
                             list.subList(1, list.size()).forEach(n -> print(FMT_C, " ", " ", n));
                             print(FMT_C, " ", " ", " ");
                         });
@@ -139,12 +142,32 @@ public class LeaderCommand extends AbstractShellCommand {
         return result;
     }
 
+    /**
+     * Returns JSON node representing the leaders.
+     *
+     * @param leaderBoard map of leaders
+     */
+    private JsonNode json(Map<String, Leadership> leaderBoard,
+            Map<String, List<NodeId>> candidateBoard) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        candidateBoard.entrySet()
+                .stream()
+                .forEach(es -> {
+                        Leadership l = leaderBoard.get(es.getKey());
+                        result.add(
+                            mapper.createObjectNode()
+                                .put("topic", es.getKey())
+                                .put("leader", l == null ? "none" : l.leader().toString())
+                                .put("candidates", es.getValue().toString()));
+                });
+        return result;
+    }
 
     @Override
     protected void execute() {
         LeadershipService leaderService = get(LeadershipService.class);
         Map<String, Leadership> leaderBoard = leaderService.getLeaderBoard();
-
         if (topicPattern == null) {
             allTopics = true;
         } else {
@@ -152,12 +175,17 @@ public class LeaderCommand extends AbstractShellCommand {
             pattern = Pattern.compile(topicPattern);
         }
 
-        if (outputJson()) {
-            print("%s", json(leaderBoard));
-        } else {
-            if (showCandidates) {
-                Map<String, List<NodeId>> candidates = leaderService.getCandidates();
+        if (showCandidates) {
+            Map<String, List<NodeId>> candidates = leaderService
+                    .getCandidates();
+            if (outputJson()) {
+                print("%s", json(leaderBoard, candidates));
+            } else {
                 displayCandidates(leaderBoard, candidates);
+            }
+        } else {
+            if (outputJson()) {
+                print("%s", json(leaderBoard));
             } else {
                 displayLeaders(leaderBoard);
             }
