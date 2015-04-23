@@ -15,12 +15,6 @@
  */
 package org.onosproject.fwd;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Dictionary;
-import java.util.Set;
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,14 +23,14 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.IPv6;
-import org.onlab.packet.TCP;
-import org.onlab.packet.UDP;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
+import org.onlab.packet.TCP;
+import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -61,6 +55,12 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.util.Dictionary;
+import java.util.Set;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive forwarding application.
@@ -485,8 +485,7 @@ public class ReactiveForwarding {
         } else {
             builder.matchInPort(context.inPacket().receivedFrom().port())
                     .matchEthSrc(inPkt.getSourceMAC())
-                    .matchEthDst(inPkt.getDestinationMAC())
-                    .matchEthType(inPkt.getEtherType());
+                    .matchEthDst(inPkt.getDestinationMAC());
 
             // If configured Match Vlan ID
             if (matchVlanId && inPkt.getVlanID() != Ethernet.VLAN_UNTAGGED) {
@@ -506,9 +505,9 @@ public class ReactiveForwarding {
                 Ip4Prefix matchIp4DstPrefix =
                     Ip4Prefix.valueOf(ipv4Packet.getDestinationAddress(),
                                       Ip4Prefix.MAX_MASK_LENGTH);
-                builder.matchIPSrc(matchIp4SrcPrefix)
-                        .matchIPDst(matchIp4DstPrefix)
-                        .matchIPProtocol(ipv4Protocol);
+                builder.matchEthType(inPkt.getEtherType())
+                        .matchIPSrc(matchIp4SrcPrefix)
+                        .matchIPDst(matchIp4DstPrefix);
 
                 if (matchIpv4Dscp) {
                     byte dscp = ipv4Packet.getDscp();
@@ -518,17 +517,20 @@ public class ReactiveForwarding {
 
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv4Packet.getPayload();
-                    builder.matchTcpSrc(tcpPacket.getSourcePort())
+                    builder.matchIPProtocol(ipv4Protocol)
+                            .matchTcpSrc(tcpPacket.getSourcePort())
                             .matchTcpDst(tcpPacket.getDestinationPort());
                 }
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv4Packet.getPayload();
-                    builder.matchUdpSrc(udpPacket.getSourcePort())
+                    builder.matchIPProtocol(ipv4Protocol)
+                            .matchUdpSrc(udpPacket.getSourcePort())
                             .matchUdpDst(udpPacket.getDestinationPort());
                 }
                 if (matchIcmpFields && ipv4Protocol == IPv4.PROTOCOL_ICMP) {
                     ICMP icmpPacket = (ICMP) ipv4Packet.getPayload();
-                    builder.matchIcmpType(icmpPacket.getIcmpType())
+                    builder.matchIPProtocol(ipv4Protocol)
+                            .matchIcmpType(icmpPacket.getIcmpType())
                             .matchIcmpCode(icmpPacket.getIcmpCode());
                 }
             }
@@ -547,8 +549,7 @@ public class ReactiveForwarding {
                     Ip6Prefix.valueOf(ipv6Packet.getDestinationAddress(),
                                       Ip6Prefix.MAX_MASK_LENGTH);
                 builder.matchIPv6Src(matchIp6SrcPrefix)
-                        .matchIPv6Dst(matchIp6DstPrefix)
-                        .matchIPProtocol(ipv6NextHeader);
+                        .matchIPv6Dst(matchIp6DstPrefix);
 
                 if (matchIpv6FlowLabel) {
                     builder.matchIPv6FlowLabel(ipv6Packet.getFlowLabel());
@@ -556,17 +557,20 @@ public class ReactiveForwarding {
 
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv6Packet.getPayload();
-                    builder.matchTcpSrc(tcpPacket.getSourcePort())
+                    builder.matchIPProtocol(ipv6NextHeader)
+                            .matchTcpSrc(tcpPacket.getSourcePort())
                             .matchTcpDst(tcpPacket.getDestinationPort());
                 }
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv6Packet.getPayload();
-                    builder.matchUdpSrc(udpPacket.getSourcePort())
+                    builder.matchIPProtocol(ipv6NextHeader)
+                            .matchUdpSrc(udpPacket.getSourcePort())
                             .matchUdpDst(udpPacket.getDestinationPort());
                 }
                 if (matchIcmpFields && ipv6NextHeader == IPv6.PROTOCOL_ICMP6) {
                     ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
-                    builder.matchIcmpv6Type(icmp6Packet.getIcmpType())
+                    builder.matchIPProtocol(ipv6NextHeader)
+                            .matchIcmpv6Type(icmp6Packet.getIcmpType())
                             .matchIcmpv6Code(icmp6Packet.getIcmpCode());
                 }
             }
