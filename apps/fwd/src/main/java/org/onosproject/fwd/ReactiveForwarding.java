@@ -39,13 +39,14 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -84,6 +85,9 @@ public class ReactiveForwarding {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -466,7 +470,7 @@ public class ReactiveForwarding {
         // packet out first.
         //
         Ethernet inPkt = context.inPacket().parsed();
-        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
 
         // If PacketOutOnly or ARP packet than forward directly to output port
         if (packetOutOnly || inPkt.getEtherType() == Ethernet.TYPE_ARP) {
@@ -481,15 +485,15 @@ public class ReactiveForwarding {
         //    Create flows with default matching and include configured fields
         //
         if (matchDstMacOnly) {
-            builder.matchEthDst(inPkt.getDestinationMAC());
+            selectorBuilder.matchEthDst(inPkt.getDestinationMAC());
         } else {
-            builder.matchInPort(context.inPacket().receivedFrom().port())
+            selectorBuilder.matchInPort(context.inPacket().receivedFrom().port())
                     .matchEthSrc(inPkt.getSourceMAC())
                     .matchEthDst(inPkt.getDestinationMAC());
 
             // If configured Match Vlan ID
             if (matchVlanId && inPkt.getVlanID() != Ethernet.VLAN_UNTAGGED) {
-                builder.matchVlanId(VlanId.vlanId(inPkt.getVlanID()));
+                selectorBuilder.matchVlanId(VlanId.vlanId(inPkt.getVlanID()));
             }
 
             //
@@ -505,31 +509,31 @@ public class ReactiveForwarding {
                 Ip4Prefix matchIp4DstPrefix =
                     Ip4Prefix.valueOf(ipv4Packet.getDestinationAddress(),
                                       Ip4Prefix.MAX_MASK_LENGTH);
-                builder.matchEthType(inPkt.getEtherType())
+                selectorBuilder.matchEthType(inPkt.getEtherType())
                         .matchIPSrc(matchIp4SrcPrefix)
                         .matchIPDst(matchIp4DstPrefix);
 
                 if (matchIpv4Dscp) {
                     byte dscp = ipv4Packet.getDscp();
                     byte ecn = ipv4Packet.getEcn();
-                    builder.matchIPDscp(dscp).matchIPEcn(ecn);
+                    selectorBuilder.matchIPDscp(dscp).matchIPEcn(ecn);
                 }
 
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv4Packet.getPayload();
-                    builder.matchIPProtocol(ipv4Protocol)
+                    selectorBuilder.matchIPProtocol(ipv4Protocol)
                             .matchTcpSrc(tcpPacket.getSourcePort())
                             .matchTcpDst(tcpPacket.getDestinationPort());
                 }
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv4Packet.getPayload();
-                    builder.matchIPProtocol(ipv4Protocol)
+                    selectorBuilder.matchIPProtocol(ipv4Protocol)
                             .matchUdpSrc(udpPacket.getSourcePort())
                             .matchUdpDst(udpPacket.getDestinationPort());
                 }
                 if (matchIcmpFields && ipv4Protocol == IPv4.PROTOCOL_ICMP) {
                     ICMP icmpPacket = (ICMP) ipv4Packet.getPayload();
-                    builder.matchIPProtocol(ipv4Protocol)
+                    selectorBuilder.matchIPProtocol(ipv4Protocol)
                             .matchIcmpType(icmpPacket.getIcmpType())
                             .matchIcmpCode(icmpPacket.getIcmpCode());
                 }
@@ -548,42 +552,48 @@ public class ReactiveForwarding {
                 Ip6Prefix matchIp6DstPrefix =
                     Ip6Prefix.valueOf(ipv6Packet.getDestinationAddress(),
                                       Ip6Prefix.MAX_MASK_LENGTH);
-                builder.matchIPv6Src(matchIp6SrcPrefix)
+                selectorBuilder.matchIPv6Src(matchIp6SrcPrefix)
                         .matchIPv6Dst(matchIp6DstPrefix);
 
                 if (matchIpv6FlowLabel) {
-                    builder.matchIPv6FlowLabel(ipv6Packet.getFlowLabel());
+                    selectorBuilder.matchIPv6FlowLabel(ipv6Packet.getFlowLabel());
                 }
 
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv6Packet.getPayload();
-                    builder.matchIPProtocol(ipv6NextHeader)
+                    selectorBuilder.matchIPProtocol(ipv6NextHeader)
                             .matchTcpSrc(tcpPacket.getSourcePort())
                             .matchTcpDst(tcpPacket.getDestinationPort());
                 }
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv6Packet.getPayload();
-                    builder.matchIPProtocol(ipv6NextHeader)
+                    selectorBuilder.matchIPProtocol(ipv6NextHeader)
                             .matchUdpSrc(udpPacket.getSourcePort())
                             .matchUdpDst(udpPacket.getDestinationPort());
                 }
                 if (matchIcmpFields && ipv6NextHeader == IPv6.PROTOCOL_ICMP6) {
                     ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
-                    builder.matchIPProtocol(ipv6NextHeader)
+                    selectorBuilder.matchIPProtocol(ipv6NextHeader)
                             .matchIcmpv6Type(icmp6Packet.getIcmpType())
                             .matchIcmpv6Code(icmp6Packet.getIcmpCode());
                 }
             }
         }
-        TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
-        treat.setOutput(portNumber);
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(portNumber)
+                .build();
 
-        FlowRule f =
-            new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                                builder.build(), treat.build(), flowPriority,
-                                appId, flowTimeout, false);
+        ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatment)
+                .withPriority(flowPriority)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .fromApp(appId)
+                .makeTemporary(flowTimeout)
+                .add();
 
-        flowRuleService.applyFlowRules(f);
+        flowObjectiveService.forward(context.inPacket().receivedFrom().deviceId(),
+                                     forwardingObjective);
 
         //
         // If packetOutOfppTable
