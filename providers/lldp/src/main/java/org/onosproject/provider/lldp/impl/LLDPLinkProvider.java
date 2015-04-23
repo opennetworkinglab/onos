@@ -379,6 +379,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                         ld.stop();
                     }
                     break;
+                case PORT_STATS_UPDATED:
+                    break;
                 default:
                     log.debug("Unknown event {}", event);
             }
