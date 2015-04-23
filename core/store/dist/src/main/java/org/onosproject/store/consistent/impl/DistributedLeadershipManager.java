@@ -15,8 +15,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
@@ -50,6 +48,9 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+
+import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
+import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
 
 /**
  * Distributed Lock Manager implemented on top of ConsistentMap.
@@ -286,7 +287,7 @@ public class DistributedLeadershipManager implements LeadershipService {
         Versioned<List<NodeId>> candidates = candidateMap.get(path);
         if (candidates != null) {
             List<NodeId> activeNodes = candidates.value().stream()
-                              .filter(n -> clusterService.getState(n) == State.ACTIVE)
+                              .filter(n -> clusterService.getState(n) == ACTIVE)
                               .collect(Collectors.toList());
             if (localNodeId.equals(activeNodes.get(LEADER_CANDIDATE_POS))) {
                 leaderLockAttempt(path, candidates.value());
@@ -491,8 +492,8 @@ public class DistributedLeadershipManager implements LeadershipService {
         try {
             leaderMap.entrySet()
                 .stream()
-                .filter(e -> clusterService.getState(e.getValue().value()) == ControllerNode.State.INACTIVE)
-                .filter(e -> localNodeId.equals(e.getValue().value()) && !activeTopics.contains(e.getKey()))
+                .filter(e -> clusterService.getState(e.getValue().value()) == INACTIVE)
+                .filter(e -> activeTopics.contains(e.getKey()))
                 .forEach(entry -> {
                     String path = entry.getKey();
                     NodeId nodeId = entry.getValue().value();
