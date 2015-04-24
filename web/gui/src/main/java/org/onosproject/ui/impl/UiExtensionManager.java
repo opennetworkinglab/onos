@@ -79,6 +79,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
                         new HostViewMessageHandler(),
+                        new FlowViewMessageHandler(),
                         new IntentViewMessageHandler(),
                         new ApplicationViewMessageHandler(),
                         new ClusterViewMessageHandler()

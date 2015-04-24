@@ -78,7 +78,7 @@
                 self.$route = $route;
                 self.$routeParams = $routeParams;
                 self.$location = $location;
-                self.version = '1.1.0';
+                self.version = '1.3.0';
 
                 // initialize services...
                 ts.init();

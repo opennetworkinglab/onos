@@ -21,16 +21,33 @@
 (function () {
     'use strict';
 
+    // injected references
+    var $log, $scope, $location, fs, tbs;
+
     angular.module('ovFlow', [])
     .controller('OvFlowCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', '$location', 'FnService', 'TableBuilderService',
 
-        function ($log, $scope, tbs) {
-            //tbs.buildTable({
-            //    self: this,
-            //    scope: $scope,
-            //    tag: 'flow'
-            //});
+        function (_$log_, _$scope_, _$location_, _fs_, _tbs_) {
+            var self = this,
+                params;
+            $log = _$log_;
+            $scope = _$scope_;
+            $location = _$location_;
+            fs = _fs_;
+            tbs = _tbs_;
+
+            params = $location.search();
+            if (params.hasOwnProperty('devId')) {
+                self.devId = params['devId'];
+            }
+
+            tbs.buildTable({
+                self: self,
+                scope: $scope,
+                tag: 'flow',
+                query: params
+            });
             
             $log.log('OvFlowCtrl has been created');
         }]);

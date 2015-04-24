@@ -25,13 +25,16 @@
 
     // example params to buildTable:
     // {
-    //    self: this,               <- controller object
-    //    scope: $scope,            <- controller scope
-    //    tag: 'device',            <- table identifier
-    //    selCb: selCb              <- row selection callback (optional)
+    //    self: this,        <- controller object
+    //    scope: $scope,     <- controller scope
+    //    tag: 'device',     <- table identifier
+    //    selCb: selCb       <- row selection callback (optional)
+    //    query: params      <- query parameters in URL (optional)
     // }
     //          Note: selCb() is passed the row data model of the selected row,
     //                 or null when no row is selected.
+    //          Note: query is always an object (empty or containing properties)
+    //                 it comes from $location.search()
 
     function buildTable(o) {
         var handlers = {},
@@ -48,7 +51,8 @@
         }
 
         function sortCb(params) {
-            wss.sendEvent(req, params);
+            var p = angular.extend({}, params, o.query);
+            wss.sendEvent(req, p);
         }
         o.scope.sortCallback = sortCb;
 

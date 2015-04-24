@@ -92,7 +92,8 @@
                             org.onlab.packet.*,
                             org.onlab.rest.*,
                             org.onosproject.*,
-                            org.joda.time.*
+                            org.joda.time.*,
+                            org.apache.commons.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

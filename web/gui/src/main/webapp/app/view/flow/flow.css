@@ -18,5 +18,28 @@
  ONOS GUI -- Flow View -- CSS file
  */
 
-#ov-flow td {
+.light #ov-flow tr:nth-child(6n + 2),
+.light #ov-flow tr:nth-child(6n + 3),
+.light #ov-flow tr:nth-child(6n + 4) {
+    background-color: #eee;
+}
+.light #ov-flow tr:nth-child(6n + 5),
+.light #ov-flow tr:nth-child(6n + 6),
+.light #ov-flow tr:nth-child(6n + 1) {
+    background-color: #ddd;
+}
+.dark #ov-flow tr:nth-child(6n + 2),
+.dark #ov-flow tr:nth-child(6n + 3),
+.dark #ov-flow tr:nth-child(6n + 4) {
+    background-color: #444;
+}
+.dark #ov-flow tr:nth-child(6n + 5),
+.dark #ov-flow tr:nth-child(6n + 6),
+.dark #ov-flow tr:nth-child(6n + 1) {
+    background-color: #333;
+}
+
+#ov-flow td.selector,
+#ov-flow td.treatment {
+    padding-left: 36px;
 }

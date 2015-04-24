@@ -1,4 +1,52 @@
-<!-- Host partial HTML -->
+<!-- Flow partial HTML -->
 <div id="ov-flow">
- <h1> Flows are here </h1>
+    <div class="tabular-header">
+        <h2>
+            Flows for Device {{ctrl.devId || "none"}}
+            ({{ctrl.tableData.length}} total)
+        </h2>
+    </div>
+
+    <table class="summary-list"
+           onos-fixed-header
+           onos-sortable-header
+           sort-callback="sortCallback(requestParams)">
+        <thead>
+        <tr>
+            <th colId="id" sortable>Flow ID </th>
+            <th colId="appId" sortable>App ID </th>
+            <th colId="groupId" sortable>Group ID </th>
+            <th colId="tableId" sortable>Table ID </th>
+            <th colId="priority" sortable>Priority </th>
+            <th colId="timeout" sortable>Timeout </th>
+            <th colId="permanent" sortable>Permanent </th>
+            <th colId="state" sortable>State </th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr ng-hide="ctrl.tableData.length">
+            <td class="nodata" colspan="8">
+                No Flows found
+            </td>
+        </tr>
+
+        <tr ng-repeat-start="flow in ctrl.tableData">
+            <td>{{flow.id}}</td>
+            <td>{{flow.appId}}</td>
+            <td>{{flow.groupId}}</td>
+            <td>{{flow.tableId}}</td>
+            <td>{{flow.priority}}</td>
+            <td>{{flow.timeout}}</td>
+            <td>{{flow.permanent}}</td>
+            <td>{{flow.state}}</td>
+        </tr>
+        <tr>
+            <td class="selector" colspan="8">{{flow.selector}}</td>
+        </tr>
+        <tr ng-repeat-end ng-repeat-done>
+            <td class="treatment" colspan="8">{{flow.treatment}}</td>
+        </tr>
+        </tbody>
+    </table>
 </div>

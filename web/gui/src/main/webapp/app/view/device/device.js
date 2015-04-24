@@ -119,11 +119,11 @@
 
         bns.button(btnsDiv,
             'dev-dets-p-flows',
-            'flowsTable',
+            'flowTable',
             function () {
                 ns.navTo(flowPath, { devId: details.id });
             },
-            'Show flows for this device');
+            'Show flows table for this device');
     }
 
     function addPortRow(tbody, port) {

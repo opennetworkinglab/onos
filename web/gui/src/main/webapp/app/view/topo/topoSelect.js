@@ -248,9 +248,9 @@
         if ((data.props).hasOwnProperty('URI')) {
             tps.addAction({
                 id: 'flows-table-btn',
-                gid: 'flowsTable',
+                gid: 'flowTable',
                 cb: function () {
-                    ns.navTo(flowPath, { devId: data.id });
+                    ns.navTo(flowPath, { devId: data.props['URI'] });
                 },
                 tt: 'Show flows for this device'
             });
