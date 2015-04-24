@@ -32,7 +32,7 @@
     <description>ONOS Netconf protocol adapters</description>
 
     <modules>
-        <module>device</module>        
+        <module>device</module>
     </modules>
 
     <dependencies>

@@ -129,7 +129,7 @@
         <bundle>mvn:org.onosproject/onos-core-common/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-trivial/@ONOS-VERSION</bundle>
     </feature>
-	
+    
     <feature name="onos-netconf" version="@FEATURE-VERSION"
              description="ONOS Netconf providers">
         <feature>onos-api</feature>        

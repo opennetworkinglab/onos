@@ -63,7 +63,7 @@ import org.slf4j.Logger;
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
 
-    private static final Logger log = getLogger(NetconfDeviceProvider.class);
+    private final Logger log = getLogger(NetconfDeviceProvider.class);
 
     private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<DeviceId, NetconfDevice>();
 
@@ -102,7 +102,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Activate
     public void activate(ComponentContext context) {
-        NetconfDeviceProvider.log.info("Netconf Device Provider Started");
+        log.info("Netconf Device Provider Started");
         providerService = providerRegistry.register(this);
         modified(context);
     }
@@ -117,32 +117,30 @@ public class NetconfDeviceProvider extends AbstractProvider
             }
             deviceBuilder.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            NetconfDeviceProvider.log.error("Device builder did not terminate");
+            log.error("Device builder did not terminate");
         }
         deviceBuilder.shutdownNow();
         netconfDeviceMap.clear();
         providerRegistry.unregister(this);
         providerService = null;
-        NetconfDeviceProvider.log.info("Stopped");
+        log.info("Stopped");
     }
 
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            NetconfDeviceProvider.log.info("No configuration file");
+            log.info("No configuration file");
             return;
         }
         Dictionary<?, ?> properties = context.getProperties();
         String deviceCfgValue = get(properties, "devConfigs");
-        NetconfDeviceProvider.log
-                .info("Getting Device configuration from cfg file: "
-                        + deviceCfgValue);
+        log.info("Getting Device configuration from cfg file: "
+                + deviceCfgValue);
         if (!isNullOrEmpty(deviceCfgValue)) {
             addOrRemoveDevicesConfig(deviceCfgValue);
         } else {
-            NetconfDeviceProvider.log
-                    .info("Device Configuration value receiviced from the property 'devConfigs': "
-                            + deviceCfgValue + ", is not valid");
+            log.info("Device Configuration value receiviced from the property 'devConfigs': "
+                    + deviceCfgValue + ", is not valid");
         }
     }
 
@@ -150,10 +148,11 @@ public class NetconfDeviceProvider extends AbstractProvider
         for (String deviceEntry : deviceConfig.split(",")) {
             NetconfDevice device = processDeviceEntry(deviceEntry);
             if (device != null) {
-                NetconfDeviceProvider.log.info("Device Detail: " + "username: "
+                log.info("Device Detail: " + "username: "
                         + device.getUsername() + ", host: "
                         + device.getSshHost() + ", port: "
-                        + device.getSshPort());
+                        + device.getSshPort() + " device state: "
+                        + device.getDeviceState().name());
                 if (device.isActive()) {
                     deviceBuilder.submit(new DeviceCreator(device, true));
                 } else {
@@ -165,13 +164,11 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     private NetconfDevice processDeviceEntry(String deviceEntry) {
         if (deviceEntry == null) {
-            NetconfDeviceProvider.log
-                    .info("No content for Device Entry, so cannot proceed further.");
+            log.info("No content for Device Entry, so cannot proceed further.");
             return null;
         }
-        NetconfDeviceProvider.log
-                .info("Trying to convert Device Entry String: " + deviceEntry
-                        + " to a Netconf Device Object");
+        log.info("Trying to convert Device Entry String: " + deviceEntry
+                + " to a Netconf Device Object");
         NetconfDevice device = null;
         try {
             String userInfo = deviceEntry.substring(0, deviceEntry
@@ -187,17 +184,15 @@ public class NetconfDeviceProvider extends AbstractProvider
             try {
                 hostPort = Integer.parseInt(infoSplit[1]);
             } catch (NumberFormatException nfe) {
-                NetconfDeviceProvider.log
-                        .error("Bad Configuration Data: Failed to parse host port number string: "
-                                + infoSplit[1]);
+                log.error("Bad Configuration Data: Failed to parse host port number string: "
+                        + infoSplit[1]);
                 throw nfe;
             }
             String deviceState = infoSplit[2];
             if (isNullOrEmpty(username) || isNullOrEmpty(password)
                     || isNullOrEmpty(hostIp) || hostPort == 0) {
-                NetconfDeviceProvider.log
-                        .warn("Bad Configuration Data: both user and device information parts of Configuration "
-                                + deviceEntry + " should be non-nullable");
+                log.warn("Bad Configuration Data: both user and device information parts of Configuration "
+                        + deviceEntry + " should be non-nullable");
             } else {
                 device = new NetconfDevice(hostIp, hostPort, username, password);
                 if (!isNullOrEmpty(deviceState)) {
@@ -206,28 +201,24 @@ public class NetconfDeviceProvider extends AbstractProvider
                         device.setDeviceState(DeviceState.ACTIVE);
                     } else if (deviceState.toUpperCase()
                             .equals(DeviceState.INACTIVE.name())) {
-                        device.setDeviceState(DeviceState.ACTIVE);
+                        device.setDeviceState(DeviceState.INACTIVE);
                     } else {
-                        NetconfDeviceProvider.log
-                                .warn("Device State Information can not be empty, so marking the state as INVALID");
+                        log.warn("Device State Information can not be empty, so marking the state as INVALID");
                         device.setDeviceState(DeviceState.INVALID);
                     }
                 } else {
-                    NetconfDeviceProvider.log
-                            .warn("The device entry do not specify state information, so marking the state as INVALID");
+                    log.warn("The device entry do not specify state information, so marking the state as INVALID");
                     device.setDeviceState(DeviceState.INVALID);
                 }
             }
         } catch (ArrayIndexOutOfBoundsException aie) {
-            NetconfDeviceProvider.log
-                    .error("Error while reading config infromation from the config file: "
-                                   + "The user, host and device state infomation should be "
-                                   + "in the order 'userInfo@hostInfo:deviceState'"
-                                   + deviceEntry, aie);
+            log.error("Error while reading config infromation from the config file: "
+                              + "The user, host and device state infomation should be "
+                              + "in the order 'userInfo@hostInfo:deviceState'"
+                              + deviceEntry, aie);
         } catch (Exception e) {
-            NetconfDeviceProvider.log
-                    .error("Error while parsing config information for the device entry: "
-                                   + deviceEntry, e);
+            log.error("Error while parsing config information for the device entry: "
+                              + deviceEntry, e);
         }
         return device;
     }
@@ -246,10 +237,9 @@ public class NetconfDeviceProvider extends AbstractProvider
     public boolean isReachable(DeviceId deviceId) {
         NetconfDevice netconfDevice = netconfDeviceMap.get(deviceId);
         if (netconfDevice == null) {
-            NetconfDeviceProvider.log
-                    .warn("BAD REQUEST: the requested device id: "
-                            + deviceId.toString()
-                            + "  is not associated to any NETCONF Device");
+            log.warn("BAD REQUEST: the requested device id: "
+                    + deviceId.toString()
+                    + "  is not associated to any NETCONF Device");
             return false;
         }
         return netconfDevice.isReachable();
@@ -273,13 +263,11 @@ public class NetconfDeviceProvider extends AbstractProvider
 
         @Override
         public void run() {
-            if (createFlag && (device.getDeviceState() == DeviceState.ACTIVE)) {
-                NetconfDeviceProvider.log
-                        .info("Trying to create Device Info on ONOS core");
+            if (createFlag) {
+                log.info("Trying to create Device Info on ONOS core");
                 advertiseDevices();
             } else {
-                NetconfDeviceProvider.log
-                        .info("Trying to remove Device Info on ONOS core");
+                log.info("Trying to remove Device Info on ONOS core");
                 removeDevices();
             }
         }
@@ -288,22 +276,27 @@ public class NetconfDeviceProvider extends AbstractProvider
          * For each Netconf Device, remove the entry from the device store.
          */
         private void removeDevices() {
-            if (!device.isReachable()) {
-                log.error("BAD Request: 'Currently device is not discovered, so cannot remove/disconnect the device: "
-                        + device.deviceInfo() + "'");
+            if (device == null) {
+                log.warn("The Request Netconf Device is null, cannot proceed further");
                 return;
             }
             try {
                 DeviceId did = getDeviceId();
+                if (!netconfDeviceMap.containsKey(did)) {
+                    log.error("BAD Request: 'Currently device is not discovered, "
+                            + "so cannot remove/disconnect the device: "
+                            + device.deviceInfo() + "'");
+                    return;
+                }
                 providerService.deviceDisconnected(did);
                 device.disconnect();
+                netconfDeviceMap.remove(did);
                 delay(EVENTINTERVAL);
             } catch (URISyntaxException uriSyntaxExcpetion) {
-                NetconfDeviceProvider.log
-                        .error("Syntax Error while creating URI for the device: "
-                                       + device.deviceInfo()
-                                       + " couldn't remove the device from the store",
-                               uriSyntaxExcpetion);
+                log.error("Syntax Error while creating URI for the device: "
+                                  + device.deviceInfo()
+                                  + " couldn't remove the device from the store",
+                          uriSyntaxExcpetion);
             }
         }
 
@@ -314,8 +307,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         private void advertiseDevices() {
             try {
                 if (device == null) {
-                    NetconfDeviceProvider.log
-                            .warn("The Request Netconf Device is null, cannot proceed further");
+                    log.warn("The Request Netconf Device is null, cannot proceed further");
                     return;
                 }
                 device.init();
@@ -327,31 +319,20 @@ public class NetconfDeviceProvider extends AbstractProvider
                                                                       "", "",
                                                                       "", "",
                                                                       cid);
-                if (NetconfDeviceProvider.log.isDebugEnabled()) {
-                    NetconfDeviceProvider.log.debug("Persisting Device"
-                            + did.uri().toString());
-                }
+                log.info("Persisting Device" + did.uri().toString());
 
                 netconfDeviceMap.put(did, device);
                 providerService.deviceConnected(did, desc);
-                if (NetconfDeviceProvider.log.isDebugEnabled()) {
-                    NetconfDeviceProvider.log
-                            .debug("Done with Device Info Creation on ONOS core. Device Info: "
-                                    + device.deviceInfo()
-                                    + " "
-                                    + did.uri().toString());
-                }
+                log.info("Done with Device Info Creation on ONOS core. Device Info: "
+                        + device.deviceInfo() + " " + did.uri().toString());
                 delay(EVENTINTERVAL);
             } catch (URISyntaxException e) {
-                NetconfDeviceProvider.log
-                        .error("Syntax Error while creating URI for the device: "
-                                       + device.deviceInfo()
-                                       + " couldn't persist the device onto the store",
-                               e);
+                log.error("Syntax Error while creating URI for the device: "
+                        + device.deviceInfo()
+                        + " couldn't persist the device onto the store", e);
             } catch (Exception e) {
-                NetconfDeviceProvider.log
-                        .error("Error while initializing session for the device: "
-                                       + device.deviceInfo(), e);
+                log.error("Error while initializing session for the device: "
+                        + device.deviceInfo(), e);
             }
         }
 

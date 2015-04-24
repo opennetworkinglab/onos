@@ -41,7 +41,7 @@ import com.tailf.jnc.SSHSession;
  * necessary information to connect and execute NETCONF operations.
  */
 public class NetconfDevice {
-    private static final Logger log = getLogger(NetconfDevice.class);
+    private final Logger log = getLogger(NetconfDevice.class);
 
     /**
      * The Device State is used to determine whether the device is active or
@@ -51,9 +51,9 @@ public class NetconfDevice {
     public static enum DeviceState {
         /* Used to specify Active state of the device */
         ACTIVE,
-        /* Used to specify In Active state of the device */
+        /* Used to specify inactive state of the device */
         INACTIVE,
-        /* Used to specify In Valid state of the device */
+        /* Used to specify invalid state of the device */
         INVALID
     }
 
@@ -99,13 +99,11 @@ public class NetconfDevice {
             }
             // Send hello message to retrieve capabilities.
         } catch (IOException e) {
-            NetconfDevice.log
-                    .error("Fatal Error while creating connection to the device: "
-                                   + deviceInfo(), e);
+            log.error("Fatal Error while creating connection to the device: "
+                    + deviceInfo(), e);
             throw e;
         } catch (JNCException e) {
-            NetconfDevice.log.error("Failed to connect to the device: "
-                    + deviceInfo(), e);
+            log.error("Failed to connect to the device: " + deviceInfo(), e);
             throw e;
         }
 
@@ -118,14 +116,10 @@ public class NetconfDevice {
             ssh = new SSHSession(sshConnection);
             String helloRequestXML = INPUT_HELLO_XML_MSG.trim();
 
-            if (NetconfDevice.log.isDebugEnabled()) {
-                NetconfDevice.log
-                        .debug("++++++++++++++++++++++++++++++++++Sending Hello: "
-                                + sshConnection.getGanymedConnection()
-                                        .getHostname()
-                                + "++++++++++++++++++++++++++++++++++");
-                printPrettyXML(helloRequestXML);
-            }
+            log.debug("++++++++++++++++++++++++++++++++++Sending Hello: "
+                    + sshConnection.getGanymedConnection().getHostname()
+                    + "++++++++++++++++++++++++++++++++++");
+            printPrettyXML(helloRequestXML);
             ssh.print(helloRequestXML);
             // ssh.print(endCharSeq);
             ssh.flush();
@@ -139,8 +133,7 @@ public class NetconfDevice {
             if (ssh.ready()) {
                 StringBuffer readOne = ssh.readOne();
                 if (readOne == null) {
-                    NetconfDevice.log
-                            .error("The Hello Contains No Capabilites");
+                    log.error("The Hello Contains No Capabilites");
                     throw new JNCException(
                                            JNCException.SESSION_ERROR,
                                            "server does not support NETCONF base capability: "
@@ -148,39 +141,31 @@ public class NetconfDevice {
                 } else {
                     xmlResponse = readOne.toString().trim();
 
-                    if (NetconfDevice.log.isDebugEnabled()) {
-                        NetconfDevice.log
-                                .debug("++++++++++++++++++++++++++++++++++Reading Capabilities: "
-                                        + sshConnection.getGanymedConnection()
-                                                .getHostname()
-                                        + "++++++++++++++++++++++++++++++++++");
+                    log.debug("++++++++++++++++++++++++++++++++++Reading Capabilities: "
+                            + sshConnection.getGanymedConnection()
+                                    .getHostname()
+                            + "++++++++++++++++++++++++++++++++++");
 
-                        printPrettyXML(xmlResponse);
-                    }
+                    printPrettyXML(xmlResponse);
                     processCapabilities(xmlResponse);
                 }
             }
             reachable = true;
         } catch (IOException e) {
-            NetconfDevice.log
-                    .error("Fatal Error while sending Hello Message to the device: "
-                                   + deviceInfo(), e);
+            log.error("Fatal Error while sending Hello Message to the device: "
+                    + deviceInfo(), e);
         } catch (JNCException e) {
-            NetconfDevice.log
-                    .error("Fatal Error while sending Hello Message to the device: "
-                                   + deviceInfo(), e);
+            log.error("Fatal Error while sending Hello Message to the device: "
+                    + deviceInfo(), e);
         } finally {
-            if (NetconfDevice.log.isDebugEnabled()) {
-                NetconfDevice.log
-                        .debug("Closing the session after successful execution");
-            }
+            log.debug("Closing the session after successful execution");
             ssh.close();
         }
     }
 
     private void processCapabilities(String xmlResponse) throws JNCException {
         if (xmlResponse.isEmpty()) {
-            NetconfDevice.log.error("The capability response cannot be empty");
+            log.error("The capability response cannot be empty");
             throw new JNCException(
                                    JNCException.SESSION_ERROR,
                                    "server does not support NETCONF base capability: "
@@ -192,8 +177,7 @@ public class NetconfDevice {
             Element rootElement = doc.getRootElement();
             processCapabilities(rootElement);
         } catch (Exception e) {
-            NetconfDevice.log.error("ERROR while parsing the XML "
-                    + xmlResponse);
+            log.error("ERROR while parsing the XML " + xmlResponse);
         }
     }
 
@@ -218,12 +202,9 @@ public class NetconfDevice {
             Document doc = new SAXBuilder().build(new StringReader(xmlstring));
             XMLOutputter xmOut = new XMLOutputter(Format.getPrettyFormat());
             String outputString = xmOut.outputString(doc);
-            if (NetconfDevice.log.isDebugEnabled()) {
-                NetconfDevice.log.debug(outputString);
-            }
+            log.debug(outputString);
         } catch (Exception e) {
-            NetconfDevice.log.error("ERROR while parsing the XML " + xmlstring,
-                                    e);
+            log.error("ERROR while parsing the XML " + xmlstring, e);
 
         }
     }
