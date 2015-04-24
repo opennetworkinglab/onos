@@ -48,6 +48,7 @@
         <module>test</module>
         <module>segmentrouting</module>
         <module>cordfabric</module>
+        <module>xos-integration</module>
     </modules>
 
     <properties>
