@@ -104,7 +104,7 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
         for (DeviceId deviceId: outputPorts.keys()) {
             rules.addAll(createRules(intent, deviceId, inputPorts.get(deviceId), outputPorts.get(deviceId)));
         }
-        return Arrays.asList(new FlowRuleIntent(appId, rules));
+        return Arrays.asList(new FlowRuleIntent(appId, rules, intent.resources()));
     }
 
     private List<FlowRule> createRules(LinkCollectionIntent intent, DeviceId deviceId,

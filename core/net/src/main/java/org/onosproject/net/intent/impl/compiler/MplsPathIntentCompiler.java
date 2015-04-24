@@ -86,7 +86,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         LinkResourceAllocations allocations = assignMplsLabel(intent);
         List<FlowRule> rules = generateRules(intent, allocations);
 
-        return Arrays.asList(new FlowRuleIntent(appId, rules));
+        return Arrays.asList(new FlowRuleIntent(appId, rules, intent.resources()));
     }
 
     @Activate

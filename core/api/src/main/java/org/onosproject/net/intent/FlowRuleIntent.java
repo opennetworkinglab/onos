@@ -41,6 +41,7 @@ public class FlowRuleIntent extends Intent {
      * @param appId     application id
      * @param flowRules flow rules to be set.
      */
+    @Deprecated
     public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules) {
         this(appId, null, flowRules, Collections.emptyList());
     }
