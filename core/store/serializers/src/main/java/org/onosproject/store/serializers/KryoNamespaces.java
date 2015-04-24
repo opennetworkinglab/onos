@@ -28,6 +28,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Frequency;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.cluster.ControllerNode;
@@ -41,6 +42,7 @@ import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.Version;
 import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -55,6 +57,9 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -348,8 +353,10 @@ public final class KryoNamespaces {
                     AnnotationConstraint.class,
                     BooleanConstraint.class,
                     IntentOperation.class,
-                    FlowRuleExtPayLoad.class
-                    )
+                    FlowRuleExtPayLoad.class,
+                    Frequency.class,
+                    DefaultAnnotations.class
+            )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)
             .register(new NodeIdSerializer(), NodeId.class)
@@ -365,6 +372,14 @@ public final class KryoNamespaces {
             .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
             .register(Versioned.class)
             .register(DefaultGroupId.class)
+            .register(Annotations.class)
+            .register(OmsPort.class)
+            .register(OchPort.class)
+            .register(OchPort.SignalType.class)
+            .register(OchPort.GridType.class)
+            .register(OchPort.ChannelSpacing.class)
+            .register(OduCltPort.class)
+            .register(OduCltPort.SignalType.class)
             .register(
                     MplsIntent.class,
                     MplsPathIntent.class,
@@ -373,7 +388,7 @@ public final class KryoNamespaces {
                     MplsLabel.class,
                     org.onlab.packet.MplsLabel.class,
                     org.onlab.packet.MPLS.class
-                    )
+            )
 
             .build();
 

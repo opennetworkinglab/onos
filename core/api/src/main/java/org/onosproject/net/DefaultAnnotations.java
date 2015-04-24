@@ -38,6 +38,26 @@ public final class DefaultAnnotations implements SparseAnnotations {
         this.map = null;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultAnnotations that = (DefaultAnnotations) o;
+
+        return Objects.equals(this.map, that.map);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.map);
+    }
+
     /**
      * Creates a new set of annotations using clone of the specified hash map.
      *

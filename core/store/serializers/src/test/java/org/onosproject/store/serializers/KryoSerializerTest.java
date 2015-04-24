@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.util.Frequency;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.DefaultGroupId;
@@ -40,6 +41,9 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OmsPort;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -174,6 +178,28 @@ public class KryoSerializerTest {
     public void testDefaultPort() {
         testSerializedEquals(new DefaultPort(DEV1, P1, true));
         testSerializedEquals(new DefaultPort(DEV1, P1, true, A1_2));
+    }
+
+    @Test
+    public void testOmsPort() {
+        testSerializedEquals(new OmsPort(DEV1, P1, true, Frequency.ofGHz(190_100), Frequency.ofGHz(197_300),
+                Frequency.ofGHz(100)));
+        testSerializedEquals(new OmsPort(DEV1, P1, true, Frequency.ofGHz(190_100), Frequency.ofGHz(197_300),
+                Frequency.ofGHz(100), A1_2));
+    }
+
+    @Test
+    public void testOchPort() {
+        testSerializedEquals(new OchPort(DEV1, P1, true, OchPort.SignalType.ODU0, false, OchPort.GridType.DWDM,
+                OchPort.ChannelSpacing.CHL_100GHZ, -8, 4));
+        testSerializedEquals(new OchPort(DEV1, P1, true, OchPort.SignalType.ODU0, false, OchPort.GridType.DWDM,
+                OchPort.ChannelSpacing.CHL_100GHZ, -8, 4, A1_2));
+    }
+
+    @Test
+    public void testOduCltPort() {
+        testSerializedEquals(new OduCltPort(DEV1, P1, true, OduCltPort.SignalType.CLT_10GBE));
+        testSerializedEquals(new OduCltPort(DEV1, P1, true, OduCltPort.SignalType.CLT_10GBE, A1_2));
     }
 
     @Test

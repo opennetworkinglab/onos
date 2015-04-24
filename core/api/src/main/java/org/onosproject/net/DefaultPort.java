@@ -64,7 +64,6 @@ public class DefaultPort extends AbstractAnnotated implements Port {
         this.isEnabled = isEnabled;
         this.type = type;
         this.portSpeed = portSpeed;
-
     }
 
     @Override
@@ -94,7 +93,7 @@ public class DefaultPort extends AbstractAnnotated implements Port {
 
     @Override
     public int hashCode() {
-        return Objects.hash(number, isEnabled, type, portSpeed);
+        return Objects.hash(number, isEnabled, type, portSpeed, annotations());
     }
 
     @Override
@@ -108,7 +107,8 @@ public class DefaultPort extends AbstractAnnotated implements Port {
                     Objects.equals(this.number, other.number) &&
                     Objects.equals(this.isEnabled, other.isEnabled) &&
                     Objects.equals(this.type, other.type) &&
-                    Objects.equals(this.portSpeed, other.portSpeed);
+                    Objects.equals(this.portSpeed, other.portSpeed) &&
+                    Objects.equals(this.annotations(), other.annotations());
         }
         return false;
     }

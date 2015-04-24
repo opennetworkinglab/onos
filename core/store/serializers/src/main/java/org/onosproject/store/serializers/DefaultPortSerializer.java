@@ -15,8 +15,10 @@
  */
 package org.onosproject.store.serializers;
 
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Element;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -43,15 +45,21 @@ public final class DefaultPortSerializer extends
         kryo.writeClassAndObject(output, object.element());
         kryo.writeObject(output, object.number());
         output.writeBoolean(object.isEnabled());
+        kryo.writeObject(output, object.type());
+        output.writeLong(object.portSpeed());
+        kryo.writeClassAndObject(output, object.annotations());
     }
 
     @Override
-    public DefaultPort read(Kryo kryo, Input input,
-            Class<DefaultPort> type) {
+    public DefaultPort read(Kryo kryo, Input input, Class<DefaultPort> aClass) {
         Element element = (Element) kryo.readClassAndObject(input);
         PortNumber number = kryo.readObject(input, PortNumber.class);
         boolean isEnabled = input.readBoolean();
+        Port.Type type = kryo.readObject(input, Port.Type.class);
+        long portSpeed = input.readLong();
+        Annotations annotations = (Annotations) kryo.readClassAndObject(input);
 
-        return new DefaultPort(element, number, isEnabled);
+        return new DefaultPort(element, number, isEnabled, type, portSpeed, annotations);
     }
+
 }

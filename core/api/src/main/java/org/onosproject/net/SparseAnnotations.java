@@ -34,7 +34,7 @@ public interface SparseAnnotations extends Annotations {
 
     /**
      * Indicates whether the specified key has been tagged as removed. This is
-     * used to for merging sparse annotation sets.
+     * used for merging sparse annotation sets.
      *
      * @param key annotation key
      * @return true if the previous annotation has been tagged for removal

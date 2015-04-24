@@ -54,7 +54,6 @@ public interface Port extends Annotated {
          * Optical Multiplexing Section (See ITU G.709).
          */
         OMS
-
     }
 
     /**
