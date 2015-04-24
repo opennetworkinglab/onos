@@ -26,10 +26,10 @@ public class UiViewHidden extends UiView {
     /**
      * Creates a new user interface hidden view descriptor.
      *
-     * @param id    view identifier
+     * @param id view identifier
      */
     public UiViewHidden(String id) {
-        super(id, null);
+        super(Category.OTHER, id, null);
     }
 
     @Override

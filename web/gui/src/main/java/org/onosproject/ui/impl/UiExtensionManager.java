@@ -38,6 +38,8 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toSet;
+import static org.onosproject.ui.UiView.Category.NETWORK;
+import static org.onosproject.ui.UiView.Category.PLATFORM;
 
 /**
  * Manages the user interface extensions.
@@ -60,14 +62,14 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     // Creates core UI extension
     private static UiExtension createCoreExtension() {
-        List<UiView> coreViews = of(new UiView("topo", "Topology"),
-                                    new UiView("device", "Devices"),
+        List<UiView> coreViews = of(new UiView(PLATFORM, "app", "Applications"),
+                                    new UiView(PLATFORM, "cluster", "Cluster Nodes"),
+                                    new UiView(NETWORK, "topo", "Topology"),
+                                    new UiView(NETWORK, "device", "Devices"),
                                     new UiViewHidden("flow"),
-                                    new UiView("link", "Links"),
-                                    new UiView("host", "Hosts"),
-                                    new UiView("intent", "Intents"),
-                                    new UiView("app", "Applications"),
-                                    new UiView("cluster", "Cluster Nodes"));
+                                    new UiView(NETWORK, "link", "Links"),
+                                    new UiView(NETWORK, "host", "Hosts"),
+                                    new UiView(NETWORK, "intent", "Intents"));
 
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(

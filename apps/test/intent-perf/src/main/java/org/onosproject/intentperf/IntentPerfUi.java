@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.synchronizedSet;
+import static org.onosproject.ui.UiView.Category.OTHER;
 
 /**
  * Mechanism to stream data to the GUI.
@@ -52,7 +53,7 @@ public class IntentPerfUi {
 
     private final Set<StreamingControl> handlers = synchronizedSet(new HashSet<>());
 
-    private List<UiView> views = ImmutableList.of(new UiView("intentPerf", "Intent Performance"));
+    private List<UiView> views = ImmutableList.of(new UiView(OTHER, "intentPerf", "Intent Performance"));
     private UiExtension uiExtension = new UiExtension(views, this::newHandlers,
                                                       getClass().getClassLoader());
 

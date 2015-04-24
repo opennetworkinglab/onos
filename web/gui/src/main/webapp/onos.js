@@ -106,7 +106,7 @@
             // If view ID not provided, route to the first view in the list.
             $routeProvider
                 .otherwise({
-                    redirectTo: '/' + viewIds[0]
+                    redirectTo: '/topo'
                 });
 
             function viewCtrlName(vid) {

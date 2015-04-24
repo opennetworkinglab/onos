@@ -24,18 +24,65 @@ import java.util.Objects;
  */
 public class UiView {
 
+    /**
+     * Designates navigation menu category.
+     */
+    public enum Category {
+        /**
+         * Represents platform related views.
+         */
+        PLATFORM("Platform"),
+
+        /**
+         * Represents network-control related views.
+         */
+        NETWORK("Network"),
+
+        /**
+         * Represents miscellaneous views.
+         */
+        OTHER("Other");
+
+        private final String label;
+
+        Category(String label) {
+            this.label = label;
+        }
+
+        /**
+         * Returns display label for the category.
+         *
+         * @return display label
+         */
+        public String label() {
+            return label;
+        }
+    }
+
     private final String id;
     private final String label;
+    private final Category category;
 
     /**
      * Creates a new user interface view descriptor.
      *
-     * @param id    view identifier
-     * @param label view label
+     * @param category view category
+     * @param id       view identifier
+     * @param label    view label
      */
-    public UiView(String id, String label) {
+    public UiView(Category category, String id, String label) {
+        this.category = category;
         this.id = id;
         this.label = label;
+    }
+
+    /**
+     * Returns the navigation category.
+     *
+     * @return navigation category
+     */
+    public Category category() {
+        return category;
     }
 
     /**
@@ -76,6 +123,7 @@ public class UiView {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("category", category)
                 .add("id", id)
                 .add("label", label)
                 .toString();

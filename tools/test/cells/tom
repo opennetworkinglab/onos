@@ -4,4 +4,4 @@ export ONOS_NIC=192.168.56.*
 export OC1="192.168.56.11"
 export OC2="192.168.56.12"
 export OC3="192.168.56.13"
-export OCN="192.168.56.14"
+export OCN="192.168.56.7"

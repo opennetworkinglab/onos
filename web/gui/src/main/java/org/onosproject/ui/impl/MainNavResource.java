@@ -44,7 +44,6 @@ public class MainNavResource extends AbstractInjectionResource {
     private static final String INJECT_VIEW_ITEMS_START = "<!-- {INJECTED-VIEW-NAV-START} -->";
     private static final String INJECT_VIEW_ITEMS_END = "<!-- {INJECTED-VIEW-NAV-END} -->";
 
-
     private static final String NAV_FORMAT =
             "<a ng-click=\"navCtrl.hideNav()\" href=\"#/%s\">%s</a>\n";
 
