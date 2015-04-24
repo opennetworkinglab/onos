@@ -47,6 +47,7 @@
         <module>bgprouter</module>
         <module>test</module>
         <module>segmentrouting</module>
+        <module>cordfabric</module>
     </modules>
 
     <properties>
