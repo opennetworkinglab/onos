@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
@@ -115,10 +116,11 @@ public class FlowRuleManagerTest {
         mgr.coreService = new TestCoreService();
         mgr.operationsService = MoreExecutors.newDirectExecutorService();
         mgr.deviceInstallers = MoreExecutors.newDirectExecutorService();
+        mgr.cfgService = new ComponentConfigAdapter();
         service = mgr;
         registry = mgr;
 
-        mgr.activate();
+        mgr.activate(null);
         mgr.addListener(listener);
         provider = new TestProvider(PID);
         providerService = registry.register(provider);

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -24,9 +25,13 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -55,9 +60,11 @@ import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,6 +89,12 @@ public class FlowRuleManager
     enum BatchState { STARTED, FINISHED, CANCELLED }
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
+    private static final boolean ALLOW_EXTRANEOUS_RULES = false;
+
+    @Property(name = "allowExtraneousRules", boolValue = ALLOW_EXTRANEOUS_RULES,
+            label = "Allow flow rules in switch not installed by ONOS")
+    private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES;
+
     private final Logger log = getLogger(getClass());
 
     private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
@@ -112,11 +125,15 @@ public class FlowRuleManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    @Activate
-    public void activate() {
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
 
+    @Activate
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         idGenerator = coreService.getIdGenerator(FLOW_OP_TOPIC);
 
+        modified(context);
 
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
@@ -125,11 +142,28 @@ public class FlowRuleManager
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         deviceInstallers.shutdownNow();
         operationsService.shutdownNow();
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(FlowRuleEvent.class);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            return;
+        }
+
+        Dictionary<?, ?> properties = context.getProperties();
+
+        String s = Tools.get(properties, "allowExtraneousRules");
+        allowExtraneousRules = Strings.isNullOrEmpty(s) ? ALLOW_EXTRANEOUS_RULES : Boolean.valueOf(s);
+
+        if (allowExtraneousRules) {
+            log.info("Allowing flow rules not installed by ONOS");
+        }
     }
 
     @Override
@@ -362,7 +396,9 @@ public class FlowRuleManager
                         flowAdded(rule);
                     } else {
                         // the device has a rule the store does not have
-                        extraneousFlow(rule);
+                        if (!allowExtraneousRules) {
+                            extraneousFlow(rule);
+                        }
                     }
                 } catch (Throwable e) {
                     log.debug("Can't process added or extra rule {}", e.getMessage());
