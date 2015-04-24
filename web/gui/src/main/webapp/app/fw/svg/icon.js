@@ -47,7 +47,15 @@
 
         hostIcon_endstation: 'endstation',
         hostIcon_router: 'router',
-        hostIcon_bgpSpeaker: 'bgpSpeaker'
+        hostIcon_bgpSpeaker: 'bgpSpeaker',
+
+        nav_apps: 'bird',
+        nav_cluster: 'node',
+        nav_topo: 'unknown', // TODO: need a topology glyph
+        nav_devs: 'switch',
+        nav_links: 'ports',
+        nav_hosts: 'endstation',
+        nav_intents: 'relatedIntents'
     };
 
     function ensureIconLibDefs() {

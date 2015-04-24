@@ -66,9 +66,10 @@ public class UiView {
         }
     }
 
+    private final Category category;
     private final String id;
     private final String label;
-    private final Category category;
+    private final String iconId;
 
     /**
      * Creates a new user interface view descriptor. The navigation item
@@ -79,9 +80,24 @@ public class UiView {
      * @param label    view label
      */
     public UiView(Category category, String id, String label) {
+        this(category, id, label, null);
+    }
+
+    /**
+     * Creates a new user interface view descriptor. The navigation item
+     * will appear in the navigation menu under the specified category,
+     * with the specified icon adornment.
+     *
+     * @param category view category
+     * @param id       view identifier
+     * @param label    view label
+     * @param iconId   icon id
+     */
+    public UiView(Category category, String id, String label, String iconId) {
         this.category = category;
         this.id = id;
         this.label = label;
+        this.iconId = iconId;
     }
 
     /**
@@ -111,6 +127,15 @@ public class UiView {
         return label;
     }
 
+    /**
+     * Returns the icon ID.
+     *
+     * @return icon ID
+     */
+    public String iconId() {
+        return iconId;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -134,6 +159,7 @@ public class UiView {
                 .add("category", category)
                 .add("id", id)
                 .add("label", label)
+                .add("iconId", iconId)
                 .toString();
     }
 }

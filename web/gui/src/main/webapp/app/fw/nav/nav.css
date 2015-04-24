@@ -56,7 +56,7 @@
     text-decoration: none;
     font-size: 14pt;
     display: block;
-    padding: 8px 16px 6px 16px;
+    padding: 8px 16px 6px 12px;
 }
 
 .light #nav a {
@@ -75,3 +75,12 @@
     background-color: #777;
 }
 
+#nav a div {
+    display: inline-block;
+    vertical-align: middle;
+    padding-right: 4px;
+}
+
+#nav a div svg.embeddedIcon g.icon .glyph {
+    fill: #c66;
+}

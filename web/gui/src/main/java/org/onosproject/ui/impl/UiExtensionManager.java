@@ -62,14 +62,16 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     // Creates core UI extension
     private static UiExtension createCoreExtension() {
-        List<UiView> coreViews = of(new UiView(PLATFORM, "app", "Applications"),
-                                    new UiView(PLATFORM, "cluster", "Cluster Nodes"),
-                                    new UiView(NETWORK, "topo", "Topology"),
-                                    new UiView(NETWORK, "device", "Devices"),
-                                    new UiViewHidden("flow"),
-                                    new UiView(NETWORK, "link", "Links"),
-                                    new UiView(NETWORK, "host", "Hosts"),
-                                    new UiView(NETWORK, "intent", "Intents"));
+        List<UiView> coreViews = of(
+                new UiView(PLATFORM, "app", "Applications", "nav_apps"),
+                new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
+                new UiView(NETWORK, "topo", "Topology", "nav_topo"),
+                new UiView(NETWORK, "device", "Devices", "nav_devs"),
+                new UiViewHidden("flow"),
+                new UiView(NETWORK, "link", "Links", "nav_links"),
+                new UiView(NETWORK, "host", "Hosts", "nav_hosts"),
+                new UiView(NETWORK, "intent", "Intents", "nav_intents")
+        );
 
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
