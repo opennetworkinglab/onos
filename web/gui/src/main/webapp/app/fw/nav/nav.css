@@ -22,8 +22,7 @@
     position: absolute;
     top: 45px;
     left: 1px;
-    Xwidth: 200px;
-    padding: 0px;
+    padding: 0;
     z-index: 3000;
     visibility: hidden;
 }
@@ -37,6 +36,22 @@
     box-shadow: 0 2px 8px #111;
 }
 
+#nav .nav-hdr {
+    font-style: italic;
+    padding: 6px 8px 6px 8px;
+}
+
+.light #nav .nav-hdr {
+    color: #ddd;
+    border-bottom: solid 1px #999;
+    background-color: #aaa;
+}
+.dark #nav .nav-hdr {
+    color: #888;
+    border-bottom: solid 1px #444;
+    background-color: #555;
+}
+
 #nav a {
     text-decoration: none;
     font-size: 14pt;
@@ -48,7 +63,6 @@
     color: #369;
     border-bottom: solid #ccc 1px;
 }
-
 .dark #nav a {
     color: #eee;
     border-bottom: solid #333 1px;
@@ -57,7 +71,6 @@
 .light #nav a:hover {
     background-color: #ddd;
 }
-
 .dark #nav a:hover {
     background-color: #777;
 }

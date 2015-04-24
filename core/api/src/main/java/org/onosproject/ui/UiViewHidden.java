@@ -29,7 +29,7 @@ public class UiViewHidden extends UiView {
      * @param id view identifier
      */
     public UiViewHidden(String id) {
-        super(Category.OTHER, id, null);
+        super(Category.HIDDEN, id, null);
     }
 
     @Override

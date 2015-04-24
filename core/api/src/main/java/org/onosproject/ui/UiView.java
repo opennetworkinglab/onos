@@ -41,7 +41,14 @@ public class UiView {
         /**
          * Represents miscellaneous views.
          */
-        OTHER("Other");
+        OTHER("Other"),
+
+        /**
+         * Represents views that do not show in the navigation menu.
+         * This category should not be specified directly; rather, use
+         * the {@link UiViewHidden} constructor instead of {@link UiView}.
+         */
+        HIDDEN("(hidden)");
 
         private final String label;
 
@@ -64,7 +71,8 @@ public class UiView {
     private final Category category;
 
     /**
-     * Creates a new user interface view descriptor.
+     * Creates a new user interface view descriptor. The navigation item
+     * will appear in the navigation menu under the specified category.
      *
      * @param category view category
      * @param id       view identifier
