@@ -104,8 +104,8 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     private String dstTcpString = null;
 
     @Option(name = "--extHdr", description = "IPv6 Extension Header Pseudo-field",
-            required = false, multiValued = false)
-    private String extHdrString = null;
+            required = false, multiValued = true)
+    private List<String> extHdrStringList = null;
 
     @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
             required = false, multiValued = false)
@@ -217,11 +217,13 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(icmp6TypeString)) {
-            selectorBuilder.matchIcmpv6Type((byte) Integer.parseInt(icmp6TypeString));
+            byte icmp6Type = Icmp6Type.parseFromString(icmp6TypeString);
+            selectorBuilder.matchIcmpv6Type(icmp6Type);
         }
 
         if (!isNullOrEmpty(icmp6CodeString)) {
-            selectorBuilder.matchIcmpv6Code((byte) Integer.parseInt(icmp6CodeString));
+            byte icmp6Code = Icmp6Code.parseFromString(icmp6CodeString);
+            selectorBuilder.matchIcmpv6Code(icmp6Code);
         }
 
         if (!isNullOrEmpty(ndTargetString)) {
@@ -244,8 +246,12 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             selectorBuilder.matchTcpDst((short) Integer.parseInt(dstTcpString));
         }
 
-        if (!isNullOrEmpty(extHdrString)) {
-            selectorBuilder.matchIPv6ExthdrFlags(Integer.parseInt(extHdrString));
+        if (extHdrStringList != null) {
+            short extHdr = 0;
+            for (String extHdrString : extHdrStringList) {
+                extHdr = (short) (extHdr | ExtHeader.parseFromString(extHdrString));
+            }
+            selectorBuilder.matchIPv6ExthdrFlags(extHdr);
         }
 
         return selectorBuilder.build();

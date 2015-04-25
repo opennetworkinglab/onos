@@ -49,14 +49,6 @@
         <command>
             <action class="org.onosproject.cli.NodesListCommand"/>
         </command>
-        <!--
-        <command>
-            <action class="org.onosproject.cli.NodeAddCommand"/>
-        </command>
-        <command>
-            <action class="org.onosproject.cli.NodeRemoveCommand"/>
-        </command>
-        -->
 
         <command>
             <action class="org.onosproject.cli.RolesCommand"/>
@@ -165,6 +157,9 @@
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
                 <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="--icmp6Type" value-ref="Icmp6TypeCompleter"/>
+                <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
+                <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
@@ -193,6 +188,9 @@
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
                 <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="--icmp6Type" value-ref="Icmp6TypeCompleter"/>
+                <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
+                <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
@@ -204,6 +202,9 @@
             <optional-completers>
                 <entry key="-t" value-ref="ethTypeCompleter"/>
                 <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="--icmp6Type" value-ref="Icmp6TypeCompleter"/>
+                <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
+                <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
@@ -327,6 +328,11 @@
                 <null/>
             </completers>
             <optional-completers>
+                <entry key="-t" value-ref="ethTypeCompleter"/>
+                <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="--icmp6Type" value-ref="Icmp6TypeCompleter"/>
+                <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
+                <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
@@ -351,6 +357,9 @@
     <bean id="ethTypeCompleter" class="org.onosproject.cli.net.EthTypeCompleter"/>
     <bean id="ipProtocolCompleter" class="org.onosproject.cli.net.IpProtocolCompleter"/>
     <bean id="driverNameCompleter" class="org.onosproject.cli.net.DriverNameCompleter"/>
+    <bean id="Icmp6TypeCompleter" class="org.onosproject.cli.net.Icmp6TypeCompleter"/>
+    <bean id="Icmp6CodeCompleter" class="org.onosproject.cli.net.Icmp6CodeCompleter"/>
+    <bean id="ExtHeaderCompleter" class="org.onosproject.cli.net.ExtHeaderCompleter"/>
 
     <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>
     <bean id="upDownCompleter" class="org.onosproject.cli.UpDownCompleter"/>

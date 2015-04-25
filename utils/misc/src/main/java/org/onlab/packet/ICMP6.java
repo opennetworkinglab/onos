@@ -34,13 +34,68 @@ import java.util.Map;
 public class ICMP6 extends BasePacket {
     public static final byte HEADER_LENGTH = 4; // bytes
 
+    // Type
+    /** Destination Unreachable. */
+    public static final byte DEST_UNREACH = (byte) 0x01;
+    /** Packet Too Big. */
+    public static final byte PKT_TOO_BIG = (byte) 0x02;
+    /** Time Exceeded. */
+    public static final byte TIME_EXCEED = (byte) 0x03;
+    /** Parameter Problem. */
+    public static final byte PARAM_ERR = (byte) 0x04;
+    /** Echo Request. */
     public static final byte ECHO_REQUEST = (byte) 0x80;
+    /** Echo Reply. */
     public static final byte ECHO_REPLY = (byte) 0x81;
+    /** Multicast Listener Query. */
+    public static final byte MCAST_QUERY = (byte) 0x82;
+    /** Multicast Listener Report. */
+    public static final byte MCAST_REPORT = (byte) 0x83;
+    /** Multicast Listener Done. */
+    public static final byte MCAST_DONE = (byte) 0x84;
+    /** Router Solicitation. */
     public static final byte ROUTER_SOLICITATION = (byte) 0x85;
+    /** Router Advertisement. */
     public static final byte ROUTER_ADVERTISEMENT = (byte) 0x86;
+    /** Neighbor Solicitation. */
     public static final byte NEIGHBOR_SOLICITATION = (byte) 0x87;
+    /** Neighbor Advertisement. */
     public static final byte NEIGHBOR_ADVERTISEMENT = (byte) 0x88;
+    /** Redirect Message. */
     public static final byte REDIRECT = (byte) 0x89;
+
+    // Code for DEST_UNREACH
+    /** No route to destination. */
+    public static final byte NO_ROUTE = (byte) 0x00;
+    /** Communication with destination administratively prohibited. */
+    public static final byte COMM_PROHIBIT = (byte) 0x01;
+    /** Beyond scope of source address. */
+    public static final byte BEYOND_SCOPE = (byte) 0x02;
+    /** Address unreachable. */
+    public static final byte ADDR_UNREACH = (byte) 0x03;
+    /** Port unreachable. */
+    public static final byte PORT_UNREACH = (byte) 0x04;
+    /** Source address failed ingress/egress policy. */
+    public static final byte FAIL_POLICY = (byte) 0x05;
+    /** Reject route to destination. */
+    public static final byte REJECT_ROUTE = (byte) 0x06;
+    /** Error in Source Routing Header. */
+    public static final byte SRC_ROUTING_HEADER_ERR = (byte) 0x07;
+
+    // Code for TIME_EXCEED
+    /** Hop limit exceeded in transit. */
+    public static final byte HOP_LIMIT_EXCEED = (byte) 0x00;
+    /** Fragment reassembly time exceeded. */
+    public static final byte DEFRAG_TIME_EXCEED = (byte) 0x01;
+
+    // Code for PARAM_ERR
+    /** Erroneous header field encountered. */
+    public static final byte HDR_FIELD_ERR = (byte) 0x00;
+    /** Unrecognized Next Header type encountered. */
+    public static final byte NEXT_HEADER_ERR = (byte) 0x01;
+    /** Unrecognized IPv6 option encountered. */
+    public static final byte IPV6_OPT_ERR = (byte) 0x01;
+
     public static final Map<Byte, Class<? extends IPacket>> PROTOCOL_CLASS_MAP =
             new HashMap<>();
 

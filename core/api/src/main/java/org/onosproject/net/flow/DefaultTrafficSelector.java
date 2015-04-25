@@ -293,7 +293,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
-        public Builder matchIPv6ExthdrFlags(int exthdrFlags) {
+        public Builder matchIPv6ExthdrFlags(short exthdrFlags) {
             return add(Criteria.matchIPv6ExthdrFlags(exthdrFlags));
         }
 

@@ -145,27 +145,27 @@ public interface Criterion {
      */
     public enum IPv6ExthdrFlags {
         /** "No next header" encountered. */
-        NONEXT(1 << 0),
+        NONEXT((short) (1 << 0)),
         /** Encrypted Sec Payload header present. */
-        ESP(1 << 1),
+        ESP((short) (1 << 1)),
         /** Authentication header present. */
-        AUTH(1 << 2),
+        AUTH((short) (1 << 2)),
         /** 1 or 2 dest headers present. */
-        DEST(1 << 3),
+        DEST((short) (1 << 3)),
         /** Fragment header present. */
-        FRAG(1 << 4),
+        FRAG((short) (1 << 4)),
         /** Router header present. */
-        ROUTER(1 << 5),
+        ROUTER((short) (1 << 5)),
         /** Hop-by-hop header present. */
-        HOP(1 << 6),
+        HOP((short) (1 << 6)),
         /** Unexpected repeats encountered. */
-        UNREP(1 << 7),
+        UNREP((short) (1 << 7)),
         /** Unexpected sequencing encountered. */
-        UNSEQ(1 << 8);
+        UNSEQ((short) (1 << 8));
 
-        private int value;
+        private short value;
 
-        IPv6ExthdrFlags(int value) {
+        IPv6ExthdrFlags(short value) {
             this.value = value;
         }
 
@@ -174,7 +174,7 @@ public interface Criterion {
          *
          * @return the value as an integer
          */
-        public int getValue() {
+        public short getValue() {
             return this.value;
         }
     }

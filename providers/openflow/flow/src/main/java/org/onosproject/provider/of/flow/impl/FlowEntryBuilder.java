@@ -622,7 +622,7 @@ public class FlowEntryBuilder {
                 builder.matchIPv6NDTargetLinkLayerAddress(mac);
                 break;
             case IPV6_EXTHDR:
-                builder.matchIPv6ExthdrFlags((int) match.get(MatchField.IPV6_EXTHDR)
+                builder.matchIPv6ExthdrFlags((short) match.get(MatchField.IPV6_EXTHDR)
                                             .getValue());
                 break;
             case OCH_SIGID:

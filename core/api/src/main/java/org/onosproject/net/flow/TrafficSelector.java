@@ -306,7 +306,7 @@ public interface TrafficSelector {
          * @param exthdrFlags the IPv6 Extension Header pseudo-field fiags
          * @return a selection builder
          */
-        public Builder matchIPv6ExthdrFlags(int exthdrFlags);
+        public Builder matchIPv6ExthdrFlags(short exthdrFlags);
 
         /**
          * Matches an optical signal ID or lambda.
