@@ -509,7 +509,7 @@ public class ReactiveForwarding {
                 Ip4Prefix matchIp4DstPrefix =
                     Ip4Prefix.valueOf(ipv4Packet.getDestinationAddress(),
                                       Ip4Prefix.MAX_MASK_LENGTH);
-                selectorBuilder.matchEthType(inPkt.getEtherType())
+                selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPSrc(matchIp4SrcPrefix)
                         .matchIPDst(matchIp4DstPrefix);
 
@@ -552,7 +552,8 @@ public class ReactiveForwarding {
                 Ip6Prefix matchIp6DstPrefix =
                     Ip6Prefix.valueOf(ipv6Packet.getDestinationAddress(),
                                       Ip6Prefix.MAX_MASK_LENGTH);
-                selectorBuilder.matchIPv6Src(matchIp6SrcPrefix)
+                selectorBuilder.matchEthType(Ethernet.TYPE_IPV6)
+                        .matchIPv6Src(matchIp6SrcPrefix)
                         .matchIPv6Dst(matchIp6DstPrefix);
 
                 if (matchIpv6FlowLabel) {
