@@ -321,15 +321,16 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 }
 
                 // Neighbor Discovery Protocol
-                if (pkt instanceof ICMP6) {
+                pkt = pkt.getPayload();
+                if (pkt != null && pkt instanceof ICMP6) {
                     pkt = pkt.getPayload();
                     // RouterSolicitation, RouterAdvertisement
-                    if (pkt instanceof RouterAdvertisement ||
-                        pkt instanceof RouterSolicitation) {
+                    if (pkt != null && (pkt instanceof RouterAdvertisement ||
+                        pkt instanceof RouterSolicitation)) {
                         return;
                     }
-                    if (pkt instanceof NeighborSolicitation ||
-                        pkt instanceof NeighborAdvertisement) {
+                    if (pkt != null && (pkt instanceof NeighborSolicitation ||
+                        pkt instanceof NeighborAdvertisement)) {
                         // Duplicate Address Detection
                         if (ip.isZero()) {
                             return;
