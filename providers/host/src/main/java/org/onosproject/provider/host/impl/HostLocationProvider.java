@@ -28,7 +28,9 @@ import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.ipv6.IExtensionHeader;
 import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.RouterAdvertisement;
@@ -230,6 +232,34 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     }
 
     private class InternalHostProvider implements PacketProcessor {
+        /**
+         * Update host location only.
+         *
+         * @param hid host ID
+         * @param mac source Mac address
+         * @param vlan VLAN ID
+         * @param hloc host location
+         */
+        private void updateLocation(HostId hid, MacAddress mac,
+                               VlanId vlan, HostLocation hloc) {
+            HostDescription desc = new DefaultHostDescription(mac, vlan, hloc);
+            providerService.hostDetected(hid, desc);
+        }
+        /**
+         * Update host location and IP address.
+         *
+         * @param hid host ID
+         * @param mac source Mac address
+         * @param vlan VLAN ID
+         * @param hloc host location
+         * @param ip source IP address
+         */
+        private void updateLocationIP(HostId hid, MacAddress mac,
+                                      VlanId vlan, HostLocation hloc,
+                                      IpAddress ip) {
+            HostDescription desc = new DefaultHostDescription(mac, vlan, hloc, ip);
+            providerService.hostDetected(hid, desc);
+        }
 
         @Override
         public void process(PacketContext context) {
@@ -241,6 +271,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             if (eth == null) {
                 return;
             }
+            MacAddress srcMac = eth.getSourceMAC();
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
             ConnectPoint heardOn = context.inPacket().receivedFrom();
@@ -266,16 +297,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 ARP arp = (ARP) eth.getPayload();
                 IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET,
                                                  arp.getSenderProtocolAddress());
-                HostDescription hdescr =
-                    new DefaultHostDescription(eth.getSourceMAC(), vlan,
-                                               hloc, ip);
-                providerService.hostDetected(hid, hdescr);
+                updateLocationIP(hid, srcMac, vlan, hloc, ip);
 
             // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                HostDescription hdescr =
-                    new DefaultHostDescription(eth.getSourceMAC(), vlan, hloc);
-                providerService.hostDetected(hid, hdescr);
+                updateLocation(hid, srcMac, vlan, hloc);
 
             //
             // NeighborAdvertisement and NeighborSolicitation: possible
@@ -283,36 +309,44 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             //
             // IPv6: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV6) {
-                IpAddress ip = null;
                 IPv6 ipv6 = (IPv6) eth.getPayload();
+                IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET6,
+                        ipv6.getSourceAddress());
 
-                IPacket iPkt = ipv6;
-                while (iPkt != null) {
-                    // Ignore Router Solicitation and Advertisement
-                    if (iPkt instanceof RouterAdvertisement ||
-                        iPkt instanceof RouterSolicitation) {
+                // skip extension headers
+                IPacket pkt = ipv6;
+                while (pkt.getPayload() != null &&
+                        pkt.getPayload() instanceof IExtensionHeader) {
+                    pkt = pkt.getPayload();
+                }
+
+                // Neighbor Discovery Protocol
+                if (pkt instanceof ICMP6) {
+                    pkt = pkt.getPayload();
+                    // RouterSolicitation, RouterAdvertisement
+                    if (pkt instanceof RouterAdvertisement ||
+                        pkt instanceof RouterSolicitation) {
                         return;
                     }
-                    if (iPkt instanceof NeighborAdvertisement ||
-                        iPkt instanceof NeighborSolicitation) {
-                        IpAddress sourceAddress =
-                            IpAddress.valueOf(IpAddress.Version.INET6,
-                                              ipv6.getSourceAddress());
-                        // Ignore DAD packets, in which source address is zero
-                        if (sourceAddress.isZero()) {
+                    if (pkt instanceof NeighborSolicitation ||
+                        pkt instanceof NeighborAdvertisement) {
+                        // Duplicate Address Detection
+                        if (ip.isZero()) {
                             return;
                         }
-                        ip = sourceAddress;
-                        break;
+                        // NeighborSolicitation, NeighborAdvertisement
+                        updateLocationIP(hid, srcMac, vlan, hloc, ip);
+                        return;
                     }
-                    iPkt = iPkt.getPayload();
                 }
-                HostDescription hdescr = (ip == null) ?
-                    new DefaultHostDescription(eth.getSourceMAC(), vlan,
-                                               hloc) :
-                    new DefaultHostDescription(eth.getSourceMAC(), vlan,
-                                               hloc, ip);
-                providerService.hostDetected(hid, hdescr);
+
+                // multicast
+                if (eth.isMulticast()) {
+                    return;
+                }
+
+                // normal IPv6 packets
+                updateLocation(hid, srcMac, vlan, hloc);
             }
         }
     }
