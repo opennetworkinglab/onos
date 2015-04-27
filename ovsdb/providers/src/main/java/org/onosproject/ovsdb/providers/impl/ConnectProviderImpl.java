@@ -1,6 +1,5 @@
 package org.onosproject.ovsdb.providers.impl;
 
-import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -46,12 +45,11 @@ public class ConnectProviderImpl implements ConnectProvider {
     }
 
     @Override
-    public void disconnect() {
+    public Connection getConnection(Node node) {
         // TODO Auto-generated method stub
-
+        return null;
     }
 
-    @Override
     public void start() {
         /* Start ovsdb server before getting connection clients */
         int ovsdbListenPort = DEFAULT_OVSDB_PORT;
@@ -60,24 +58,6 @@ public class ConnectProviderImpl implements ConnectProvider {
             log.warn("Start OVSDB manager call from ConnectionService was not necessary");
         }
 
-    }
-
-    @Override
-    public void stop() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public Connection getConnection(Node node) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<Node> getNodes() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }

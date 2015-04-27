@@ -1,13 +1,11 @@
 package org.onosproject.ovsdb.providers;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 import org.onosproject.ovsdb.lib.notation.Row;
 import org.onosproject.ovsdb.lib.notation.UUID;
 import org.onosproject.ovsdb.lib.schema.GenericTableSchema;
-import org.onosproject.ovsdb.lib.schema.typed.TypedBaseTable;
 
 /**
  * Onos Configuration Provider for ovsdb.
@@ -170,53 +168,6 @@ public interface ConfigurationProvider {
                           String parentColumn, UUID rowUuid);
 
     /**
-     * Returns a Row from a table for the specified uuid.
-     *
-     * @param node OVSDB Node
-     * @param databaseName Database Name that represents the Schema supported by
-     *            the node.
-     * @param tableName Table Name
-     * @param uuid UUID of the row being queried @ Any failure during the get
-     *            operation will result in a specific exception.
-     * @return a row with a list of Column data that corresponds to an unique
-     *         Row-identifier called uuid in a given table.
-     */
-    public Row<GenericTableSchema> getRow(Node node, String databaseName,
-                                          String tableName, UUID uuid);
-
-    /**
-     * Returns all rows of a table.
-     *
-     * @param node OVSDB Node
-     * @param databaseName Database Name that represents the Schema supported by
-     *            the node.
-     * @param tableName Table Name @ Any failure during the get operation will
-     *            result in a specific exception.
-     * @return Map of rows to its UUID that makes the entire Table.
-     */
-    public ConcurrentMap<UUID, Row<GenericTableSchema>> getRows(Node node,
-                                                                String databaseName,
-                                                                String tableName);
-
-    /**
-     * Returns all rows of a table filtered by query string.
-     *
-     * @param node OVSDB Node
-     * @param databaseName Database Name that represents the Schema supported by
-     *            the node.
-     * @param tableName Table Name
-     * @param fiqlQuery FIQL style String Query {@link http
-     *            ://tools.ietf.org/html/draft-nottingham-atompub-fiql-00} to
-     *            filter rows @ Any failure during the get operation will result
-     *            in a specific exception.
-     * @return Map of rows to its UUID that makes the entire Table.
-     */
-    public ConcurrentMap<UUID, Row<GenericTableSchema>> getRows(Node node,
-                                                                String databaseName,
-                                                                String tableName,
-                                                                String fiqlQuery);
-
-    /**
      * Returns all the Tables in a given Node.
      *
      * @param node OVSDB node
@@ -244,13 +195,4 @@ public interface ConfigurationProvider {
     public Boolean setOFController(Node node, String bridgeUUID)
             throws InterruptedException, ExecutionException;
 
-    public <T extends TypedBaseTable<?>> String getTableName(Node node,
-                                                             Class<T> typedClass);
-
-    public <T extends TypedBaseTable<?>> T getTypedRow(Node node,
-                                                       Class<T> typedClass,
-                                                       Row row);
-
-    public <T extends TypedBaseTable<?>> T createTypedRow(Node node,
-                                                          Class<T> typedClass);
 }

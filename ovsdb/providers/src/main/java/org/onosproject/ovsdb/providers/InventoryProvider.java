@@ -12,28 +12,96 @@ import org.onosproject.ovsdb.lib.notation.Row;
  * Inventory Provider Api.
  */
 public interface InventoryProvider {
-    public ConcurrentMap<String, ConcurrentMap<String, Row>> getCache(Node n,
-                                                                      String databaseName);
 
-    public ConcurrentMap<String, Row> getTableCache(Node n,
+    /**
+     * Get Row information.
+     *
+     * @param node
+     * @param databaseName
+     * @param tableName
+     * @param uuid
+     * @return Row
+     */
+    public Row getRow(Node node, String databaseName, String tableName,
+                      String uuid);
+
+    /**
+     * Update Row information.
+     *
+     * @param node
+     * @param databaseName
+     * @param tableName
+     * @param uuid
+     * @param row
+     */
+    public void updateRow(Node node, String databaseName, String tableName,
+                          String uuid, Row row);
+
+    /**
+     * Remove Row information.
+     *
+     * @param node
+     * @param databaseName
+     * @param tableName
+     * @param uuid
+     */
+    public void removeRow(Node node, String databaseName, String tableName,
+                          String uuid);
+
+    /**
+     * Process Table Updates when Table information changed.
+     *
+     * @param node
+     * @param databaseName
+     * @param tableUpdates
+     */
+    public void processTableUpdates(Node node, String databaseName,
+                                    TableUpdates tableUpdates);
+
+    /**
+     * Get Table cache.
+     *
+     * @param n
+     * @param databaseName
+     * @param tableName
+     * @return
+     */
+    public ConcurrentMap<String, Row> getTableCache(Node node,
                                                     String databaseName,
                                                     String tableName);
 
-    public Row getRow(Node n, String databaseName, String tableName, String uuid);
+    /**
+     * Get database cache.
+     *
+     * @param node
+     * @param databaseName
+     * @return
+     */
+    public ConcurrentMap<String, ConcurrentMap<String, Row>> getCache(Node node,
+                                                                      String databaseName);
 
-    public void updateRow(Node n, String databaseName, String tableName,
-                          String uuid, Row row);
+    /**
+     * Add Node into cache.
+     *
+     * @param node
+     * @param props
+     */
+    public void addNode(Node node, Set<Property> props);
 
-    public void removeRow(Node n, String databaseName, String tableName,
-                          String uuid);
+    /**
+     * Remove Node from cache.
+     *
+     * @param node
+     */
+    public void removeNode(Node node);
 
-    public void processTableUpdates(Node n, String databaseName,
-                                    TableUpdates tableUpdates);
-
-    public void addNode(Node n, Set<Property> props);
-
-    public void notifyNodeAdded(Node n, InetAddress address, int port);
-
-    public void removeNode(Node n);
+    /**
+     * Notify Node added to the Onos Core.
+     *
+     * @param node
+     * @param address
+     * @param port
+     */
+    public void notifyNodeAdded(Node node, InetAddress address, int port);
 
 }

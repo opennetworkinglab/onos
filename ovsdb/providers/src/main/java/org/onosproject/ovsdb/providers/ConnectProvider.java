@@ -1,6 +1,5 @@
 package org.onosproject.ovsdb.providers;
 
-import java.util.List;
 import java.util.Map;
 
 import org.onosproject.ovsdb.providers.constant.ConnectionConstants;
@@ -14,7 +13,15 @@ import org.onosproject.ovsdb.providers.constant.ConnectionConstants;
 public interface ConnectProvider {
 
     /**
-     * Connect service for ovsdb.
+     * Get Connection Information.
+     *
+     * @param node
+     * @return Connection
+     */
+    public Connection getConnection(Node node);
+
+    /**
+     * Connect with the node by identifier and params.
      *
      * @param identifier
      * @param params
@@ -23,22 +30,4 @@ public interface ConnectProvider {
     public Node connect(String identifier,
                         Map<ConnectionConstants, String> params);
 
-    /**
-     * Disconnect with ovsdb.
-     */
-    public void disconnect();
-
-    /**
-     * start the ovsdb server.
-     */
-    void start();
-
-    /**
-     * stop the ovsdb server.
-     */
-    void stop();
-
-    public Connection getConnection(Node node);
-
-    public List<Node> getNodes();
 }
