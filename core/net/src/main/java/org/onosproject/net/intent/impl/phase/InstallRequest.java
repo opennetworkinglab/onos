@@ -47,10 +47,6 @@ final class InstallRequest implements IntentProcessPhase {
 
     @Override
     public Optional<IntentProcessPhase> execute() {
-        if (!stored.isPresent() || stored.get().installables() == null || stored.get().installables().isEmpty()) {
-            return Optional.of(new Compiling(processor, data));
-        } else {
-            return Optional.of(new Recompiling(processor, data, stored.get()));
-        }
+        return Optional.of(new Compiling(processor, data, stored));
     }
 }

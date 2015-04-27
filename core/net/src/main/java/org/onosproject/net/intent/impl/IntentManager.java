@@ -15,15 +15,7 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -56,17 +48,21 @@ import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentWorker;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
-import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
-import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -360,7 +356,7 @@ public class IntentManager
         }
 
         @Override
-        public void apply(IntentData toUninstall, IntentData toInstall) {
+        public void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
             IntentManager.this.apply(toUninstall, toInstall);
         }
     }
@@ -370,12 +366,13 @@ public class IntentManager
         REMOVE
     }
 
-    private void applyIntentData(IntentData data,
+    private void applyIntentData(Optional<IntentData> intentData,
                                  FlowRuleOperations.Builder builder,
                                  Direction direction) {
-        if (data == null) {
+        if (!intentData.isPresent()) {
             return;
         }
+        IntentData data = intentData.get();
 
         List<Intent> intentsToApply = data.installables();
         if (!intentsToApply.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
@@ -411,7 +408,7 @@ public class IntentManager
 
     }
 
-    private void apply(IntentData toUninstall, IntentData toInstall) {
+    private void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
         // need to consider if FlowRuleIntent is only one as installable intent or not
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
@@ -421,29 +418,45 @@ public class IntentManager
         FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                if (toInstall != null) {
-                    log.debug("Completed installing: {}", toInstall.key());
-                    //FIXME state depends on install.... we might want to pass this in.
-                    toInstall.setState(INSTALLED);
-                    store.write(toInstall);
-                } else if (toUninstall != null) {
-                    log.debug("Completed withdrawing: {}", toUninstall.key());
-                    //FIXME state depends on install.... we might want to pass this in.
-                    toUninstall.setState(WITHDRAWN);
-                    store.write(toUninstall);
+                if (toInstall.isPresent()) {
+                    IntentData installData = toInstall.get();
+                    log.debug("Completed installing: {}", installData.key());
+                    installData.setState(INSTALLED);
+                    store.write(installData);
+                } else if (toUninstall.isPresent()) {
+                    IntentData uninstallData = toUninstall.get();
+                    log.debug("Completed withdrawing: {}", uninstallData.key());
+                    switch (uninstallData.request()) {
+                        case INSTALL_REQ:
+                            uninstallData.setState(FAILED);
+                            break;
+                        case WITHDRAW_REQ:
+                        default: //TODO "default" case should not happen
+                            uninstallData.setState(WITHDRAWN);
+                            break;
+                    }
+                    store.write(uninstallData);
                 }
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                if (toInstall != null) {
-                    log.warn("Failed installation: {} {} on {}", toInstall.key(), toInstall.intent(), ops);
-                    //FIXME
-                    toInstall.setState(FAILED);
-                    store.write(toInstall);
-                }
                 // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
+                if (toInstall.isPresent()) {
+                    IntentData installData = toInstall.get();
+                    log.warn("Failed installation: {} {} on {}",
+                             installData.key(), installData.intent(), ops);
+                    installData.setState(CORRUPT);
+                    store.write(installData);
+                }
                 // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
+                if (toUninstall.isPresent()) {
+                    IntentData uninstallData = toUninstall.get();
+                    log.warn("Failed withdrawal: {} {} on {}",
+                             uninstallData.key(), uninstallData.intent(), ops);
+                    uninstallData.setState(CORRUPT);
+                    store.write(uninstallData);
+                }
             }
         });
 

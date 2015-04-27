@@ -89,10 +89,19 @@ public enum IntentState {
     WITHDRAWN,
 
     /**
-     * Signifies that the intent has failed compiling, installing or
-     * recompiling states.
+     * Signifies that the intent has failed to be installed and cannot be
+     * satisfied given current network conditions. But, the framework will
+     * reattempt to install it when network conditions change until it is
+     * withdrawn by an application.
      */
-    FAILED, //TODO consider renaming to UNSAT.
+    FAILED, //TODO consider renaming to UNSATISFIABLE
+
+    /**
+     * Signifies that an intent has failed either installation or withdrawal,
+     * and still hold some or all of its resources.
+     * (e.g. link reservations, flow rules on the data plane, etc.)
+     */
+    CORRUPT, //TODO consider renaming to ERROR
 
     /**
      * Indicates that the intent should be purged from the database.

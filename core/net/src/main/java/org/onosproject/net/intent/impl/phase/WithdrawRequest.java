@@ -29,7 +29,7 @@ final class WithdrawRequest implements IntentProcessPhase {
 
     private final IntentProcessor processor;
     private final IntentData data;
-    private final IntentData stored;
+    private final Optional<IntentData> stored;
 
     /**
      * Creates a withdraw request phase.
@@ -39,7 +39,7 @@ final class WithdrawRequest implements IntentProcessPhase {
      * @param intentData intent data to be processed
      * @param stored     intent data stored in the store
      */
-    WithdrawRequest(IntentProcessor processor, IntentData intentData, IntentData stored) {
+    WithdrawRequest(IntentProcessor processor, IntentData intentData, Optional<IntentData> stored) {
         this.processor = checkNotNull(processor);
         this.data = checkNotNull(intentData);
         this.stored = checkNotNull(stored);
@@ -50,7 +50,18 @@ final class WithdrawRequest implements IntentProcessPhase {
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
         // Note: this call is not just the symmetric version of submit
-        data.setInstallables(stored.installables());
+
+        if (!stored.isPresent() || stored.get().installables().isEmpty()) {
+            switch (data.request()) {
+                case INSTALL_REQ:
+                    return Optional.of(new Failed(data));
+                case WITHDRAW_REQ:
+                default: //TODO "default" case should not happen
+                    return Optional.of(new Withdrawn(data));
+            }
+        }
+
+        data.setInstallables(stored.get().installables());
         return Optional.of(new Withdrawing(processor, data));
     }
 }

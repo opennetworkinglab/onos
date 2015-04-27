@@ -22,16 +22,12 @@ import org.onosproject.store.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
-import static org.onosproject.net.intent.IntentState.INSTALLING;
-import static org.onosproject.net.intent.IntentState.PURGE_REQ;
-import static org.onosproject.net.intent.IntentState.WITHDRAWING;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.*;
 
 /**
  * A wrapper class that contains an intents, its state, and other metadata for
@@ -44,6 +40,7 @@ public class IntentData { //FIXME need to make this "immutable"
 
     private final Intent intent;
 
+    private final IntentState request; //TODO perhaps we want a full fledged object for requests
     private IntentState state;
     private Timestamp version;
     private NodeId origin;
@@ -60,6 +57,7 @@ public class IntentData { //FIXME need to make this "immutable"
     public IntentData(Intent intent, IntentState state, Timestamp version) {
         this.intent = intent;
         this.state = state;
+        this.request = state;
         this.version = version;
     }
 
@@ -73,6 +71,7 @@ public class IntentData { //FIXME need to make this "immutable"
 
         intent = intentData.intent;
         state = intentData.state;
+        request = intentData.request;
         version = intentData.version;
         origin = intentData.origin;
         installables = intentData.installables;
@@ -81,6 +80,7 @@ public class IntentData { //FIXME need to make this "immutable"
     // kryo constructor
     protected IntentData() {
         intent = null;
+        request = null;
     }
 
     /**
@@ -99,6 +99,10 @@ public class IntentData { //FIXME need to make this "immutable"
      */
     public IntentState state() {
         return state;
+    }
+
+    public IntentState request() {
+        return request;
     }
 
     /**
@@ -175,7 +179,7 @@ public class IntentData { //FIXME need to make this "immutable"
      * @return list of installable intents
      */
     public List<Intent> installables() {
-        return installables;
+        return installables != null ? installables : Collections.emptyList();
     }
 
     /**
@@ -236,6 +240,12 @@ public class IntentData { //FIXME need to make this "immutable"
 
         case FAILED:
             if (currentState == FAILED) {
+                return false;
+            }
+            return true;
+
+        case CORRUPT:
+            if (currentState == CORRUPT) {
                 return false;
             }
             return true;

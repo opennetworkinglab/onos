@@ -121,7 +121,7 @@ public class CompilingTest {
         expect(processor.compile(input, null)).andReturn(Arrays.asList(compiled));
         replay(processor);
 
-        Compiling sut = new Compiling(processor, pending);
+        Compiling sut = new Compiling(processor, pending, Optional.empty());
 
         Optional<IntentProcessPhase> output = sut.execute();
 
@@ -139,11 +139,11 @@ public class CompilingTest {
         expect(processor.compile(input, null)).andThrow(new IntentCompilationException());
         replay(processor);
 
-        Compiling sut = new Compiling(processor, pending);
+        Compiling sut = new Compiling(processor, pending, Optional.empty());
 
         Optional<IntentProcessPhase> output = sut.execute();
 
         verify(processor);
-        assertThat(output.get(), is(instanceOf(CompileFailed.class)));
+        assertThat(output.get(), is(instanceOf(Failed.class)));
     }
 }

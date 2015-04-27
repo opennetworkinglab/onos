@@ -17,17 +17,28 @@ package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.CORRUPT;
+
 /**
- * Represents a phase where the compile has failed.
+ * A class representing errors removing or installing intents.
  */
-public class CompileFailed extends AbstractFailed {
+public class Corrupt extends FinalIntentProcessPhase {
+
+    private final IntentData intentData;
 
     /**
      * Create an instance with the specified data.
      *
      * @param intentData intentData
      */
-    public CompileFailed(IntentData intentData) {
-        super(intentData);
+    Corrupt(IntentData intentData) {
+        this.intentData = checkNotNull(intentData);
+        this.intentData.setState(CORRUPT);
+    }
+
+    @Override
+    public IntentData data() {
+        return intentData;
     }
 }

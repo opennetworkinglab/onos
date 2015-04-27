@@ -34,7 +34,8 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
         INSTALLED,
 
         /**
-         * Signifies that an intent has failed compilation or installation.
+         * Signifies that an intent has failed compilation and that it cannot
+         * be satisfied by the network at this time.
          */
         FAILED,
 
@@ -47,6 +48,13 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
          * Signifies that an intent has been withdrawn from the system.
          */
         WITHDRAWN,
+
+        /**
+         * Signifies that an intent has failed installation or withdrawal, but
+         * still hold some or all of its resources.
+         * (e.g. link reservations, flow rules on the data plane, etc.)
+         */
+        CORRUPT,
 
         /**
          * Signifies that an intent has been purged from the system.
@@ -114,6 +122,9 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
                 break;
             case FAILED:
                 type = Type.FAILED;
+                break;
+            case CORRUPT:
+                type = Type.CORRUPT;
                 break;
             case PURGE_REQ:
                 type = Type.PURGED;

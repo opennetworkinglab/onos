@@ -20,8 +20,6 @@ import org.onosproject.net.intent.impl.IntentProcessor;
 
 import java.util.Optional;
 
-import static org.onlab.util.Tools.isNullOrEmpty;
-
 /**
  * Represents a phase of processing an intent.
  */
@@ -46,20 +44,16 @@ public interface IntentProcessPhase {
      */
     static IntentProcessPhase newInitialPhase(IntentProcessor processor,
                                               IntentData data, IntentData current) {
-        switch (data.state()) {
+        switch (data.request()) {
             case INSTALL_REQ:
                 return new InstallRequest(processor, data, Optional.ofNullable(current));
             case WITHDRAW_REQ:
-                if (current == null || isNullOrEmpty(current.installables())) {
-                    return new Withdrawn(data);
-                } else {
-                    return new WithdrawRequest(processor, data, current);
-                }
+                return new WithdrawRequest(processor, data, Optional.ofNullable(current));
             case PURGE_REQ:
                 return new PurgeRequest(data, current);
             default:
                 // illegal state
-                return new CompileFailed(data);
+                return new Failed(data);
         }
     }
 

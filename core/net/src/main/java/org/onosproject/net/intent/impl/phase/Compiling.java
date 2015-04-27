@@ -15,46 +15,59 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.impl.IntentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Represents a phase where an intent is being compiled.
+ * Represents a phase where an intent is being compiled or recompiled.
  */
-final class Compiling implements IntentProcessPhase {
+class Compiling implements IntentProcessPhase {
 
     private static final Logger log = LoggerFactory.getLogger(Compiling.class);
 
     private final IntentProcessor processor;
     private final IntentData data;
+    private final Optional<IntentData> stored;
 
     /**
-     * Creates an compiling phase.
+     * Creates a intent recompiling phase.
      *
-     * @param processor intent processor that does work for compiling
-     * @param data      intent data containing an intent to be compiled
+     * @param processor intent processor that does work for recompiling
+     * @param data      intent data containing an intent to be recompiled
+     * @param stored    intent data stored in the store
      */
-    Compiling(IntentProcessor processor, IntentData data) {
+    Compiling(IntentProcessor processor, IntentData data, Optional<IntentData> stored) {
         this.processor = checkNotNull(processor);
         this.data = checkNotNull(data);
+        this.stored = checkNotNull(stored);
     }
 
     @Override
     public Optional<IntentProcessPhase> execute() {
         try {
-            data.setInstallables(processor.compile(data.intent(), null));
-            return Optional.of(new Installing(processor, data, null));
+            List<Intent> compiled = processor.compile(data.intent(),
+                    //TODO consider passing an optional here in the future
+                    stored.isPresent() ? stored.get().installables() : null);
+            data.setInstallables(compiled);
+            return Optional.of(new Installing(processor, data, stored));
         } catch (IntentException e) {
             log.debug("Unable to compile intent {} due to: {}", data.intent(), e);
-            return Optional.of(new CompileFailed(data));
+            if (stored.isPresent() && !stored.get().installables().isEmpty()) {
+                // removing orphaned flows and deallocating resources
+                data.setInstallables(stored.get().installables());
+                return Optional.of(new Withdrawing(processor, data));
+            } else {
+                return Optional.of(new Failed(data));
+            }
         }
     }
-
 }

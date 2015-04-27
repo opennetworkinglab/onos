@@ -18,6 +18,8 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.impl.IntentProcessor;
 
+import java.util.Optional;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.WITHDRAWING;
 
@@ -38,13 +40,12 @@ class Withdrawing extends FinalIntentProcessPhase {
     Withdrawing(IntentProcessor processor, IntentData data) {
         this.processor = checkNotNull(processor);
         this.data = checkNotNull(data);
-
         this.data.setState(WITHDRAWING);
     }
 
     @Override
     protected void preExecute() {
-        processor.apply(data, null);
+        processor.apply(Optional.of(data), Optional.empty());
     }
 
     @Override

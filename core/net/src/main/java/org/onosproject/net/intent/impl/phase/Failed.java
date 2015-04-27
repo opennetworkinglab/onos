@@ -17,17 +17,28 @@ package org.onosproject.net.intent.impl.phase;
 
 import org.onosproject.net.intent.IntentData;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.IntentState.FAILED;
+
 /**
- * Represent a phase where the install has failed.
+ * Represents a phase where the compile has failed.
  */
-class ReplaceFailed extends AbstractFailed {
+public class Failed extends FinalIntentProcessPhase {
+
+    private final IntentData intentData;
 
     /**
      * Create an instance with the specified data.
      *
      * @param intentData intentData
      */
-    ReplaceFailed(IntentData intentData) {
-        super(intentData);
+    Failed(IntentData intentData) {
+        this.intentData = checkNotNull(intentData);
+        this.intentData.setState(FAILED);
+    }
+
+    @Override
+    public IntentData data() {
+        return intentData;
     }
 }

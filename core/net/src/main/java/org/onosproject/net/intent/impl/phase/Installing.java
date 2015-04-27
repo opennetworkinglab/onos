@@ -18,6 +18,8 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.impl.IntentProcessor;
 
+import java.util.Optional;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.intent.IntentState.INSTALLING;
 
@@ -28,7 +30,7 @@ class Installing extends FinalIntentProcessPhase {
 
     private final IntentProcessor processor;
     private final IntentData data;
-    private final IntentData stored;
+    private final Optional<IntentData> stored;
 
     /**
      * Create an installing phase.
@@ -37,16 +39,16 @@ class Installing extends FinalIntentProcessPhase {
      * @param data      intent data containing an intent to be installed
      * @param stored    intent data already stored
      */
-    Installing(IntentProcessor processor, IntentData data, IntentData stored) {
+    Installing(IntentProcessor processor, IntentData data, Optional<IntentData> stored) {
         this.processor = checkNotNull(processor);
         this.data = checkNotNull(data);
+        this.stored = checkNotNull(stored);
         this.data.setState(INSTALLING);
-        this.stored = stored;
     }
 
     @Override
     public void preExecute() {
-        processor.apply(stored, data);
+        processor.apply(stored, Optional.of(data));
     }
 
     @Override

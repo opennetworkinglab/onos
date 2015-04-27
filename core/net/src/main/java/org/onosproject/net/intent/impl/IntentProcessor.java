@@ -19,6 +19,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A collection of methods to process an intent.
@@ -38,8 +39,8 @@ public interface IntentProcessor {
     List<Intent> compile(Intent intent, List<Intent> previousInstallables);
 
     /**
-     * @param toUninstall Intent data describing flows to uninstall. May be null.
-     * @param toInstall Intent data describing flows to install. May be null.
+     * @param toUninstall Intent data describing flows to uninstall.
+     * @param toInstall Intent data describing flows to install.
      */
-    void apply(IntentData toUninstall, IntentData toInstall);
+    void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall);
 }
