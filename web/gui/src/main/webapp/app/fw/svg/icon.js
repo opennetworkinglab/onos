@@ -51,7 +51,7 @@
 
         nav_apps: 'bird',
         nav_cluster: 'node',
-        nav_topo: 'unknown', // TODO: need a topology glyph
+        nav_topo: 'topo',
         nav_devs: 'switch',
         nav_links: 'ports',
         nav_hosts: 'endstation',

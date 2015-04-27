@@ -29,7 +29,7 @@ describe('Controller: OnosCtrl', function () {
         ctrl = $controller('OnosCtrl');
     }));
 
-    it('should report version 1.3.0', function () {
-        expect(ctrl.version).toEqual('1.3.0');
+    it('should report version 1.2.0', function () {
+        expect(ctrl.version).toEqual('1.2.0');
     });
 });

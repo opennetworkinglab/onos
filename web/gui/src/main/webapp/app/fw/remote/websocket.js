@@ -80,7 +80,7 @@
             ev = JSON.parse(msgEvent.data);
         } catch (e) {
             $log.error('Message.data is not valid JSON', msgEvent.data, e);
-            return;
+            return null;
         }
         $log.debug(' << *Rx* ', ev.event, ev.payload);
 
@@ -89,6 +89,7 @@
                 h(ev.payload);
             } catch (e) {
                 $log.error('Problem handling event:', ev, e);
+                return null;
             }
         } else {
             $log.warn('Unhandled event:', ev);
@@ -120,8 +121,7 @@
 
     function findGuiSuccessor() {
         var ncn = clusterNodes.length,
-            ip = undefined,
-            node;
+            ip, node;
 
         while (connectRetries < ncn && !ip) {
             connectRetries++;
@@ -134,7 +134,7 @@
     }
 
     function informListeners(host, url) {
-        angular.forEach(openListeners, function(lsnr) {
+        angular.forEach(openListeners, function (lsnr) {
             lsnr.cb(host, url);
         });
     }
@@ -144,12 +144,35 @@
         ws.send(JSON.stringify(ev));
     }
 
+    function noHandlersWarn(handlers, caller) {
+        if (!handlers || fs.isEmptyObject(handlers)) {
+            $log.warn('WSS.' + caller + '(): no event handlers');
+            return true;
+        }
+        return false;
+    }
+
     // ===================
     // === API Functions
 
     // Required for unit tests to set to known state
     function resetSid() {
         sid = 0;
+    }
+    function resetState() {
+        webSockOpts = undefined;
+        ws = null;
+        wsUp = false;
+        host = undefined;
+        url = undefined;
+        pendingEvents = [];
+        handlers = {};
+        sid = 0;
+        clusterNodes = [];
+        clusterIndex = -1;
+        connectRetries = 0;
+        openListeners = {};
+        nextListenerId = 1;
     }
 
     // Currently supported opts:
@@ -181,8 +204,13 @@
     //     * an API object which has an event handler for the key
     //
     function bindHandlers(handlerMap) {
-        var m = d3.map(handlerMap),
+        var m,
             dups = [];
+
+        if (noHandlersWarn(handlerMap, 'bindHandlers')) {
+            return null;
+        }
+        m = d3.map(handlerMap);
 
         m.forEach(function (eventId, api) {
             var fn = fs.isF(api) || fs.isF(api[eventId]);
@@ -205,7 +233,12 @@
     // Unbinds the specified message handlers.
     //   Expected that the same map will be used, but we only care about keys
     function unbindHandlers(handlerMap) {
-        var m = d3.map(handlerMap);
+        var m;
+
+        if (noHandlersWarn(handlerMap, 'unbindHandlers')) {
+            return null;
+        }
+        m = d3.map(handlerMap);
 
         m.forEach(function (eventId) {
             delete handlers[eventId];
@@ -227,8 +260,14 @@
     }
 
     function removeOpenListener(lsnr) {
-        var id = lsnr && lsnr.id,
-            o = openListeners[id];
+        var id = fs.isO(lsnr) && lsnr.id,
+            o;
+        if (!id) {
+            $log.warn('WSS.removeOpenListener(): invalid listener', lsnr);
+            return null;
+        }
+        o = openListeners[id];
+
         if (o) {
             delete openListeners[id];
         }
@@ -270,6 +309,7 @@
 
             return {
                 resetSid: resetSid,
+                resetState: resetState,
                 createWebSocket: createWebSocket,
                 bindHandlers: bindHandlers,
                 unbindHandlers: unbindHandlers,

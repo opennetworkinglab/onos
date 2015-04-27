@@ -30,7 +30,6 @@ describe('factory: fw/widget/tableBuilder.js', function () {
 
     beforeEach(module('onosWidget', 'onosUtil', 'onosRemote'));
 
-    // TODO: actual websocket calls should be tested in the websocket service
     beforeEach(function () {
         module(function ($provide) {
             $provide.value('WebSocketService', mockWss);
@@ -92,9 +91,5 @@ describe('factory: fw/widget/tableBuilder.js', function () {
         mockObj.scope.$destroy();
         expect(mockWss.unbindHandlers).toHaveBeenCalled();
     });
-
-    // TODO: figure out how to test respCb.
-    // should it just be verified by the fact that the callback function
-    // is called by the wss?
 
 });

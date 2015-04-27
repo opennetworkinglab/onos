@@ -252,7 +252,7 @@
                 cb: function () {
                     ns.navTo(flowPath, { devId: data.props['URI'] });
                 },
-                tt: 'Show flows for this device'
+                tt: 'Show flows table for this device'
             });
         }
 

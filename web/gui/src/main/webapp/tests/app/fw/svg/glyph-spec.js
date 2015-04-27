@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 36,
+    var numBaseGlyphs = 38,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -38,6 +38,10 @@ describe('factory: fw/svg/glyph.js', function() {
             chain: 'M60.4,77.6c-',
             crown: 'M99.5,21.6c0,',
             lock: 'M79.4,48.6h',
+            topo: 'M97.2,76.3H86.6',
+
+            // navigation specific glyphs
+            flowTable: 'M15.9,19.1h-8v-13h',
 
             // toolbar specific glyphs
             summary: longPrefix + 'M16.7',
@@ -75,7 +79,7 @@ describe('factory: fw/svg/glyph.js', function() {
         },
         glyphIds = [
             'unknown', 'node', 'switch', 'roadm', 'endstation', 'router',
-            'bgpSpeaker', 'chain', 'crown', 'lock',
+            'bgpSpeaker', 'chain', 'crown', 'lock', 'topo', 'flowTable',
             'summary', 'details', 'ports', 'map', 'cycleLabels', 'oblique',
             'filters', 'resetZoom', 'relatedIntents', 'nextIntent',
             'prevIntent', 'intentTraffic', 'allTraffic', 'flows', 'eqMaster'
