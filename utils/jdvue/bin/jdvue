@@ -1,0 +1,31 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#   Java Package Dependency viewer
+#
+#   written by Thomas Vachuska
+#                                                                    -- Doobs --
+#-------------------------------------------------------------------------------
+
+JDVUE_ROOT=${JDVUE_ROOT:-$(dirname $0)/..}
+cd $JDVUE_ROOT
+VER=1.2.0-SNAPSHOT
+JAR=$PWD/target/jdvue-${VER}.jar # start with the dev jar first
+cd - >/dev/null
+
+# If the dev jar is not available, use one from .m2/repository
+[ -f ${JAR} ] || JAR=~/.m2/repository/org/onlab/tools/jdvue/${VER}/jdvue-${VER}.jar
+
+# Assume default project to be the base-name of the argument or of current dir
+name=$(basename ${1:-$PWD})
+
+# If the -n option is specified use the next argument as the catalog name
+[ "$1" = "-n" -a $# -ge 2 ] && name=$2 && shift 2
+
+# Use the rest of the arguments as paths to scan for sources to build catalog
+find "${@:-.}" -type f -name \*.java \
+    | grep -v -E '/lost+found/|/target/|archetype-resources' \
+    | xargs grep -E "^[ \t]*import .*;.*|^[ \t]*package .*;.*" \
+    | tr -d '\r' > $name.db
+
+# Now run the Java Dependency Viewer jar on the catalog
+java -jar ${JAR} $name && rm $name.db && open $name.html

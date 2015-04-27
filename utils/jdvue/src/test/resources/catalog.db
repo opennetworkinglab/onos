@@ -1,0 +1,33 @@
+src/main/java/a/A.java:package a;
+src/main/java/a/A.java:import b.B;
+src/main/java/a/A2.java:package a;
+src/main/java/a/A2.java:import c.C;
+src/main/java/b/B.java:package b;
+src/main/java/b/B.java:import c.C;
+src/main/java/c/C.java:package c;
+
+src/main/java/x/X.java:package x;
+src/main/java/x/X.java:import y.Y;
+src/main/java/y/Y.java:package y;
+src/main/java/y/Y.java:import z.Z;
+src/main/java/z/Z.java:package z;
+src/main/java/z/Z.java:import x.X;
+
+src/main/java/u/U.java:package u;
+src/main/java/u/U.java:import v.V;
+src/main/java/u/U2.java:package u;
+src/main/java/u/U2.java:import v.V;
+src/main/java/v/V.java:package v;
+src/main/java/v/V.java:import u.U;
+
+src/main/java/k/K.java:package k;
+src/main/java/k/K.java:import l.L;
+src/main/java/l/L.java:package l;
+src/main/java/l/L.java:import k.K;
+src/main/java/l/L.java:import m.M;
+src/main/java/l/L.java:import n.N;
+src/main/java/m/M.java:package m;
+src/main/java/m/M.java:import n.N;
+src/main/java/n/N.java:package n;
+src/main/java/n/N.java:import k.K;
+

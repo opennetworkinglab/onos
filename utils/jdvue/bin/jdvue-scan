@@ -1,0 +1,12 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#   Java Package Dependency scanner
+#
+#   written by Thomas Vachuska
+#                                                                    -- Doobs --
+#-------------------------------------------------------------------------------
+
+find "${@:-.}" -type f -name \*.java \
+    | grep -v -E '/lost+found/|/target/' \
+    | xargs grep -E "^[ \t]*import .*;.*|^[ \t]*package .*;.*" \
+    | tr -d '\r' > jpd.db

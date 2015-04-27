@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>TITLE_PLACEHOLDER</title>
+    <style>
+
+        .node {
+            font: 300 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            fill: #bbb;
+        }
+
+        .link {
+            stroke: steelblue;
+            stroke-opacity: .4;
+            fill: none;
+            pointer-events: none;
+        }
+
+        .node--focus {
+            font-weight: 700;
+            fill: #000;
+        }
+
+        .node:hover {
+            fill: steelblue;
+        }
+
+        .node:hover,
+        .node--source,
+        .node--target {
+            font-weight: 700;
+        }
+
+        .node--source {
+            fill: #2ca02c;
+        }
+
+        .node--target {
+            fill: #d59800;
+        }
+
+        .link--source,
+        .link--target {
+            stroke-opacity: 1;
+            stroke-width: 3px;
+        }
+
+        .link--source {
+            stroke: #d59800;
+        }
+
+        .link--target {
+            stroke: #2ca02c;
+        }
+
+        .link--cycle {
+            stroke: #ff0000;
+        }
+
+        .summary {
+            font: 300 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            width: 192px;
+            background-color: #ffffff;
+            box-shadow: 2px 2px 4px 2px #777777;
+            padding: 5px;
+        }
+
+        .details {
+            display: none;
+            font: 300 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            position: fixed;
+            top: 220px;
+            right: 32px;
+            width: 192px;
+            background-color: #ffffff;
+            box-shadow: 2px 2px 4px 2px #777777;
+            padding: 5px;
+        }
+
+        .shown {
+            display:block;
+        }
+
+        .stat {
+            text-align: right;
+            width: 64px;
+        }
+
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #package {
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="summary">
+        <div class="title">Project TITLE_PLACEHOLDER</div>
+        <table>
+            <tr>
+                <td>Sources:</td>
+                <td id="sourceCount" class="stat"></td>
+            </tr>
+            <tr>
+                <td>Packages:</td>
+                <td id="packageCount" class="stat"></td>
+            </tr>
+            <tr>
+                <td>Cyclic Segments:</td>
+                <td id="segmentCount" class="stat"></td>
+            </tr>
+            <tr>
+                <td>Cycles:</td>
+                <td id="cycleCount" class="stat"></td>
+            </tr>
+        </table>
+        <div><hr size="1"></div>
+        <div><input type="checkbox"> Highlight cycles</input></div>
+        <div><input style="width: 95%" type="range" min="0" max="100" value="75"></div>
+    </div>
+    <div class="details">
+        <div id="package">Package Details</div>
+        <table>
+            <tr>
+                <td>Sources:</td>
+                <td id="psourceCount" class="stat"></td>
+            </tr>
+            <tr>
+                <td>Dependents:</td>
+                <td id="pdependentCount" class="stat"></td>
+            </tr>
+            <tr>
+                <td>Cyclic Segments:</td>
+                <td id="psegmentCount" class="stat"></td>
+            </tr>
+            <tr>
+                <td>Cycles:</td>
+                <td id="pcycleCount" class="stat"></td>
+            </tr>
+        </table>
+    </div>
+<script>
+D3JS_PLACEHOLDER
+
+    var catalog =
+DATA_PLACEHOLDER
+            ;
+
+    var diameter = 1000,
+            radius = diameter / 2,
+            innerRadius = radius - 300;
+
+    var cluster = d3.layout.cluster()
+            .size([360, innerRadius])
+            .sort(null)
+            .value(function(d) { return d.size; });
+
+    var bundle = d3.layout.bundle();
+
+    var line = d3.svg.line.radial()
+            .interpolate("bundle")
+            .tension(.75)
+            .radius(function(d) { return d.y; })
+            .angle(function(d) { return d.x / 180 * Math.PI; });
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+            .append("g")
+            .attr("transform", "translate(" + radius + "," + radius + ")");
+
+    var link = svg.append("g").selectAll(".link"),
+            node = svg.append("g").selectAll(".node"),
+            cycles = {}, highlightCycles, selectedNode;
+
+    function isCyclicLink(l) {
+        return highlightCycles &&
+                (cycles[l.source.key + "-" + l.target.key] || cycles[l.target.key + "-" + l.source.key]);
+    }
+
+    function isCyclicPackageLink(l, p) {
+        var key = l.source.key + "-" + l.target.key,
+                rKey = l.target.key + "-" + l.source.key;
+        return isCyclicLink(l) && (p.cycleSegments[key] || p.cycleSegments[rKey]);
+    }
+
+    function refreshPaths() {
+        svg.selectAll("path.link").classed("link--cycle", isCyclicLink);
+    }
+
+    function processCatalog() {
+        var nodes = cluster.nodes(packageHierarchy(catalog.packages)),
+                links = packageImports(nodes),
+                splines = bundle(links);
+        cycles = catalog.cycleSegments;
+
+        d3.select("input[type=checkbox]").on("change", function() {
+            highlightCycles = this.checked;
+            refreshPaths();
+        });
+
+        link = link
+                .data(splines)
+                .enter().append("path")
+                .each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+                .attr("class", "link")
+                .classed("link--cycle", isCyclicLink)
+                .attr("d", function(d, i) { return line(splines[i]); });
+
+
+        node = node
+                .data(nodes.filter(function(n) { return !n.children; }))
+                .enter().append("text")
+                .attr("class", "node")
+                .attr("dy", ".31em")
+                .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); })
+                .style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+                .text(function(d) { return d.key; })
+                .on("focus", processSelect)
+                .on("blur", processSelect);
+
+        d3.select("input[type=range]").on("change", function() {
+            line.tension(this.value / 100);
+            svg.selectAll("path.link")
+                    .data(splines)
+                    .attr("d", function(d, i) { return line(splines[i]); });
+        });
+
+        d3.select("#packageCount").text(catalog.summary.packages);
+        d3.select("#sourceCount").text(catalog.summary.sources);
+        d3.select("#segmentCount").text(catalog.summary.cycleSegments);
+        d3.select("#cycleCount").text(catalog.summary.cycles);
+    }
+
+    function processSelect(d) {
+        if (selectedNode === d) {
+            deselected(d);
+            selectedNode = null;
+
+        } else if (selectedNode) {
+            deselected(selectedNode);
+            selectedNode = null;
+            selected(d);
+
+        } else {
+            selected(d);
+            selectedNode = d;
+        }
+    }
+
+    function selected(d) {
+        node
+                .each(function(n) { n.target = n.source = false; })
+                .classed("node--focus", function(n) { return n === d; });
+
+        link
+                .classed("link--cycle", function(l) { return isCyclicPackageLink(l, d); })
+                .classed("link--target", function(l) { if (l.target === d) return l.source.source = true; })
+                .classed("link--source", function(l) { if (l.source === d) return l.target.target = true; })
+                .filter(function(l) { return l.target === d || l.source === d; })
+                .each(function() { this.parentNode.appendChild(this); });
+
+        node
+                .classed("node--target", function(n) { return n.target; })
+                .classed("node--source", function(n) { return n.source; });
+
+        d3.select("#psourceCount").text(d.size);
+        d3.select("#pdependentCount").text(d.imports.length);
+        d3.select("#psegmentCount").text(d.cycleSegmentCount);
+        d3.select("#pcycleCount").text(d.cycleCount);
+        d3.select(".details").classed("shown", function() { return true; });
+    }
+
+    function deselected(d) {
+        link
+                .classed("link--cycle", isCyclicLink)
+                .classed("link--target", false)
+                .classed("link--source", false);
+
+        node
+                .classed("node--target", false)
+                .classed("node--source", false)
+                .classed("node--focus", false);
+        d3.select(".details").classed("shown", function() { return false; });
+    }
+
+    d3.select(self.frameElement).style("height", diameter + "px");
+
+    // Lazily construct the package hierarchy.
+    function packageHierarchy(packages) {
+        var map = {}, cnt = 0;
+
+        // Builds the structure top-down to the specified leaf or until
+        // another leaf in which case hook this leaf to the same parent
+        function buildHierarchy(leaf, i) {
+            var leafName = leaf.name,
+                    node, name, parent = map[""], start = 0;
+            while (start < leafName.length) {
+                name = parentName(leafName, start);
+                node = map[name];
+                if (!node) {
+                    node = map[name] = parentNode(name, parent);
+                    parent.children.push(node);
+
+                } else if (node.imports) {
+                    leaf.parent = parent;
+                    parent.children.push(leaf);
+                    break;
+                }
+                parent = node;
+                start = name.length + 1;
+            }
+        }
+
+        function parentNode(name, parent) {
+            return {name: name, parent: parent, key: name, children: []};
+        }
+
+        function parentName(leafName, start) {
+            var i = leafName.indexOf(".", start);
+            return i > 0 ? leafName.substring(0, i) : leafName;
+        }
+
+        // First populate all packages as leafs
+        packages.forEach(function(d) {
+            map[d.name] = d;
+            d.key = d.name;
+        });
+
+        // Next synthesize the intermediate structure, by-passing any leafs
+        map[""] = parentNode("", null);
+        var i = 0;
+        packages.forEach(function(d) {
+            buildHierarchy(d, i++);
+        });
+
+        return map[""];
+    }
+
+    // Return a list of imports for the given array of nodes.
+    function packageImports(nodes) {
+        var map = {},
+                imports = [];
+
+        // Compute a map from name to node.
+        nodes.forEach(function(d) {
+            map[d.name] = d;
+        });
+
+        // For each import, construct a link from the source to target node.
+        nodes.forEach(function(d) {
+            if (d.imports) d.imports.forEach(function(i) {
+                imports.push({source: map[d.name], target: map[i]});
+            });
+        });
+
+        return imports;
+    }
+
+    processCatalog();
+</script>
+</body>
+</html>
