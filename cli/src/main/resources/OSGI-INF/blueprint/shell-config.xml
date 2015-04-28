@@ -255,6 +255,14 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.LinkResourceTestCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.ClustersListCommand"/>
         </command>
         <command>
