@@ -55,8 +55,16 @@ describe('factory: fw/util/keys.js', function() {
         ])).toBeTruthy();
     });
 
-    // Code to emulate key presses....
-    // NOTE: kinda messy, but it seems to get the job done.
+    // This no longer works because 'initKeyboardEvent' has been depreciated.
+    // Now there is a constructor for 'KeyboardEvent' where you can modify
+    //      the new event with a dictionary(?) 'KeyboardEventInit'.
+    // However, the below code has been so recently depreciated, there are no
+    //      examples online of how to use the new interface, and some browsers
+    //      don't support it still. These tests will have to be put off for a
+    //      while more. (Investigated 4/28/15)
+    // Also tried was Angular's triggerHandler() function, but it doesn't seem
+    //      that it can take arguments about the event.
+    // Using jQuery in tests might be a good idea, for triggering test events.
     function jsKeyDown(element, code) {
         var ev = document.createEvent('KeyboardEvent');
 
@@ -184,8 +192,9 @@ describe('factory: fw/util/keys.js', function() {
         expect(ks.keyBindings().viewFunction).toBeFalsy();
     }
 
-    // FIXME: jsKeyDown(...) no longer emulates key presses ?! :(
+    // TODO: jsKeyDown(...) no longer emulates key presses ?! :(
     // The following four unit tests ignored until we can figure this out.
+    // INVESTIGATED: see jsKeyDown for details...
 
     xit('should allow specific key bindings', function () {
         bindTestKeys();

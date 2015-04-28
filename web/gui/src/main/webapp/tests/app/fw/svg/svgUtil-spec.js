@@ -18,7 +18,9 @@
  ONOS GUI -- SVG -- SVG Util Service - Unit Tests
  */
 describe('factory: fw/svg/svgUtil.js', function() {
-    var $log, fs, sus, svg, d3Elem;
+    var $log, fs, sus, svg, defs, force;
+
+    var noop = function () {};
 
     beforeEach(module('onosUtil', 'onosSvg'));
 
@@ -27,7 +29,8 @@ describe('factory: fw/svg/svgUtil.js', function() {
         fs = FnService;
         sus = SvgUtilService;
         svg = d3.select('body').append('svg').attr('id', 'mySvg');
-        d3Elem = svg.append('defs');
+        defs = svg.append('defs');
+        force = d3.layout.force();
     }));
 
     afterEach(function () {
@@ -46,9 +49,100 @@ describe('factory: fw/svg/svgUtil.js', function() {
         ])).toBeTruthy();
     });
 
+    // === createDragBehavior
+    // TODO: break up drag into separate functions for testing
+    // d3 needs better testing support...
 
-    // TODO: add unit tests for drag behavior
-    // TODO: add unit tests for loadGlowDefs
+    // Note: just checking to see if error message was called
+    //       because jasmine spy isn't catching the right newline char
+    it('should complain if function given no parameters', function () {
+        spyOn($log, 'error');
+        expect(sus.createDragBehavior()).toBeNull();
+        expect($log.error).toHaveBeenCalled();
+    });
+
+    it('should complain if function is not given clickEnabled', function () {
+        spyOn($log, 'error');
+        expect(sus.createDragBehavior(force, noop, noop, noop)).toBeNull();
+        expect($log.error).toHaveBeenCalled();
+    });
+
+    it('should complain if function is not given dragEnabled', function () {
+        spyOn($log, 'error');
+        expect(sus.createDragBehavior(force, noop, noop)).toBeNull();
+        expect($log.error).toHaveBeenCalled();
+    });
+
+    it('should complain if function is not given atDragEnd', function () {
+        spyOn($log, 'error');
+        expect(sus.createDragBehavior(force, noop)).toBeNull();
+        expect($log.error).toHaveBeenCalled();
+    });
+
+    it('should complain if function is not given selectCb', function () {
+        spyOn($log, 'error');
+        expect(sus.createDragBehavior(force)).toBeNull();
+        expect($log.error).toHaveBeenCalled();
+    });
+
+    // === loadGlowDefs
+    function checkAttrs(glow, r, g, b) {
+        var filterEffects, feColor, feBlur, feMerge, feMergeNodes;
+
+        // filter attrs
+        expect(glow.attr('x')).toBe('-50%');
+        expect(glow.attr('y')).toBe('-50%');
+        expect(glow.attr('width')).toBe('200%');
+        expect(glow.attr('height')).toBe('200%');
+
+        filterEffects = d3.selectAll(glow.node().childNodes);
+        expect(filterEffects.size()).toBe(3);
+
+        // Note: d3 didn't recognize 'feColorMatrix' and others as valid selectors
+        //       this is a work around
+        feColor = d3.select(filterEffects[0].shift());
+        feBlur = d3.select(filterEffects[0].shift());
+        feMerge = d3.select(filterEffects[0].shift());
+
+        // feColorMatrix attrs
+        expect(feColor.empty()).toBe(false);
+        expect(feColor.attr('type')).toBe('matrix');
+        expect(feColor.attr('values')).toBe(
+            '0 0 0 0  ' + r + ' ' +
+            '0 0 0 0  ' + g + ' ' +
+            '0 0 0 0  ' + b + ' ' +
+            '0 0 0 1  0 '
+        );
+
+        // feGuassianBlur attrs
+        expect(feBlur.empty()).toBe(false);
+        expect(feBlur.attr('stdDeviation')).toBe('3');
+        expect(feBlur.attr('result')).toBe('coloredBlur');
+
+        // feMerge attrs
+        feMergeNodes = d3.selectAll(feMerge.node().childNodes);
+        expect(feMergeNodes.size()).toBe(2);
+        expect(d3.select(feMergeNodes[0][0]).attr('in')).toBe('coloredBlur');
+        expect(d3.select(feMergeNodes[0][1]).attr('in')).toBe('SourceGraphic');
+    }
+
+    it('should load glow definitions', function () {
+        var blue, yellow;
+        sus.loadGlowDefs(defs);
+
+        expect(defs.empty()).toBe(false);
+        expect((defs.selectAll('filter')).size()).toBe(2);
+
+        // blue-glow specific
+        blue = defs.select('#blue-glow');
+        expect(blue.empty()).toBe(false);
+        checkAttrs(blue, 0.0, 0.0, 0.7);
+
+        // yellow-glow specific
+        yellow = defs.select('#yellow-glow');
+        expect(yellow.empty()).toBe(false);
+        checkAttrs(yellow, 1.0, 1.0, 0.3);
+    });
 
     // === cat7
 

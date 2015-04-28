@@ -18,21 +18,20 @@
  ONOS GUI -- Layer -- Flash Service - Unit Tests
  */
 describe('factory: fw/layer/quickhelp.js', function () {
-    var $log, $timeout, fs, qhs, d3Elem;
+    var $log, fs, qhs, d3Elem;
 
     beforeEach(module('onosUtil', 'onosSvg', 'onosLayer'));
 
-    beforeEach(inject(function (_$log_, _$timeout_, FnService, QuickHelpService) {
+    beforeEach(inject(function (_$log_, FnService, QuickHelpService) {
         $log = _$log_;
-        //$timeout = _$timeout_;
         fs = FnService;
         qhs = QuickHelpService;
-        //jasmine.clock().install();
+        jasmine.clock().install();
         d3Elem = d3.select('body').append('div').attr('id', 'myqhdiv');
     }));
 
     afterEach(function () {
-        //jasmine.clock().uninstall();
+        jasmine.clock().uninstall();
         d3.select('#myqhdiv').remove();
     });
 

@@ -53,6 +53,10 @@
                         ' is not a function';
                 }
 
+                if (!force) {
+                    bad.push('SvgUtilService: createDragBehavior(): ' +
+                    'Bad force reference');
+                }
                 if (!fSel) {
                     bad.push(naf('selectCb'));
                 }
@@ -70,7 +74,6 @@
                     $log.error(bad.join('\n'));
                     return null;
                 }
-
 
                 function dragged(d) {
                     var threshold = draggedThreshold(force.alpha()),
