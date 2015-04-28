@@ -265,10 +265,17 @@ public class PacketManager
         @Override
         public void event(DeviceEvent event) {
             Device device = event.subject();
-            if (event.type() == DeviceEvent.Type.DEVICE_ADDED) {
-                for (PacketRequest request : store.existingRequests()) {
-                    pushRule(device, request);
-                }
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    if (deviceService.isAvailable(event.subject().id())) {
+                        for (PacketRequest request : store.existingRequests()) {
+                            pushRule(device, request);
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }
