@@ -28,17 +28,19 @@ import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import net.kuujo.copycat.cluster.internal.MemberInfo;
-import net.kuujo.copycat.protocol.rpc.AppendRequest;
-import net.kuujo.copycat.protocol.rpc.AppendResponse;
-import net.kuujo.copycat.protocol.rpc.CommitRequest;
-import net.kuujo.copycat.protocol.rpc.CommitResponse;
-import net.kuujo.copycat.protocol.rpc.PollRequest;
-import net.kuujo.copycat.protocol.rpc.PollResponse;
-import net.kuujo.copycat.protocol.rpc.QueryRequest;
-import net.kuujo.copycat.protocol.rpc.QueryResponse;
-import net.kuujo.copycat.protocol.rpc.ReplicaInfo;
-import net.kuujo.copycat.protocol.rpc.SyncRequest;
-import net.kuujo.copycat.protocol.rpc.SyncResponse;
+import net.kuujo.copycat.raft.protocol.AppendRequest;
+import net.kuujo.copycat.raft.protocol.AppendResponse;
+import net.kuujo.copycat.raft.protocol.CommitRequest;
+import net.kuujo.copycat.raft.protocol.CommitResponse;
+import net.kuujo.copycat.raft.protocol.PollRequest;
+import net.kuujo.copycat.raft.protocol.PollResponse;
+import net.kuujo.copycat.raft.protocol.QueryRequest;
+import net.kuujo.copycat.raft.protocol.QueryResponse;
+import net.kuujo.copycat.raft.protocol.ReplicaInfo;
+import net.kuujo.copycat.raft.protocol.SyncRequest;
+import net.kuujo.copycat.raft.protocol.SyncResponse;
+import net.kuujo.copycat.raft.protocol.VoteRequest;
+import net.kuujo.copycat.raft.protocol.VoteResponse;
 import net.kuujo.copycat.util.serializer.SerializerConfig;
 
 /**
@@ -52,6 +54,8 @@ public class DatabaseSerializer extends SerializerConfig {
             .register(AppendResponse.class)
             .register(SyncRequest.class)
             .register(SyncResponse.class)
+            .register(VoteRequest.class)
+            .register(VoteResponse.class)
             .register(PollRequest.class)
             .register(PollResponse.class)
             .register(QueryRequest.class)

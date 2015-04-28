@@ -37,6 +37,7 @@ import com.google.common.collect.Sets;
 
 import net.kuujo.copycat.Task;
 import net.kuujo.copycat.cluster.Cluster;
+import net.kuujo.copycat.resource.ResourceState;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -336,6 +337,11 @@ public class PartitionedDatabase implements Database {
 
     @Override
     public Database addShutdownTask(Task<CompletableFuture<Void>> task) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ResourceState state() {
         throw new UnsupportedOperationException();
     }
 

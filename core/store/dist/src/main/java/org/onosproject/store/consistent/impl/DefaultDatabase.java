@@ -16,9 +16,9 @@
 
 package org.onosproject.store.consistent.impl;
 
-import net.kuujo.copycat.resource.internal.ResourceContext;
 import net.kuujo.copycat.state.StateMachine;
 import net.kuujo.copycat.resource.internal.AbstractResource;
+import net.kuujo.copycat.resource.internal.ResourceManager;
 import net.kuujo.copycat.state.internal.DefaultStateMachine;
 import net.kuujo.copycat.util.concurrent.Futures;
 
@@ -39,7 +39,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     private DatabaseProxy<String, byte[]> proxy;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public DefaultDatabase(ResourceContext context) {
+    public DefaultDatabase(ResourceManager context) {
         super(context);
         this.stateMachine = new DefaultStateMachine(context, DatabaseState.class, DefaultDatabaseState.class);
     }
