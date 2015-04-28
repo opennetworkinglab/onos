@@ -35,19 +35,20 @@ import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 
 public class ApplicationArchiveTest {
 
-    static final String ROOT = "/tmp/app-junit/" + new Random().nextInt() + "/foo";
+    static final String ROOT = "/tmp/app-junit/";
+    static final String STORE = ROOT + new Random().nextInt(1000) + "/foo";
 
     private ApplicationArchive aar = new ApplicationArchive();
 
     @Before
     public void setUp() {
-        aar.setRootPath(ROOT);
+        aar.setRootPath(STORE);
     }
 
     @After
     public void tearDown() throws IOException {
-        if (new File(aar.getRootPath()).exists()) {
-            Tools.removeDirectory(aar.getRootPath());
+        if (new File(ROOT).exists()) {
+            Tools.removeDirectory(ROOT);
         }
     }
 
