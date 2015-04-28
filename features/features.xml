@@ -130,4 +130,10 @@
         <bundle>mvn:org.onosproject/onos-core-trivial/@ONOS-VERSION</bundle>
     </feature>
 
+   <feature name="onos-ovsdb" version="@FEATURE-VERSION"
+             description="ONOS SB ovsdb components">
+        <feature>onos-ovsdb</feature>
+        <bundle>mvn:org.onosproject/onos-ovsdb-lib/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-ovsdb-providers/@ONOS-VERSION</bundle>
+    </feature>
 </features>
