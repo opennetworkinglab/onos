@@ -142,7 +142,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
             switch (i.type()) {
             case DROP:
                 log.warn("Saw drop action; assigning drop action");
-                return new LinkedList<>();
+                return Collections.emptyList();
             case L2MODIFICATION:
                 acts.add(buildL2Modification(i));
                 break;

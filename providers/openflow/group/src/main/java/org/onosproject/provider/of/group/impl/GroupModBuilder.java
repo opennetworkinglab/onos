@@ -51,6 +51,7 @@ import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -179,16 +180,16 @@ public final class GroupModBuilder {
     }
 
     private List<OFAction> buildActions(TrafficTreatment treatment) {
-        List<OFAction> actions = new LinkedList<>();
         if (treatment == null) {
-            return actions;
+            return Collections.emptyList();
         }
 
+        List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatment.allInstructions()) {
             switch (i.type()) {
                 case DROP:
                     log.warn("Saw drop action; assigning drop action");
-                    return new LinkedList<>();
+                    return Collections.emptyList();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));
                     break;
