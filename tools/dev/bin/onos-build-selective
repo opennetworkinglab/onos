@@ -3,6 +3,8 @@
 # Selectively builds only those projects that contained modified Java files.
 # ----------------------------------------------------------------------------
 
+cd $ONOS_ROOT
+
 projects=$(find $ONOS_ROOT -type f -path '*/src/*' \
     -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
         grep -v -f $ONOS_ROOT/tools/dev/bin/onos-build-selective.exclude | \
