@@ -162,6 +162,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     @Override
     public void destroy() {
         cancelAllRequests();
+        removeListeners();
         super.destroy();
     }
 
@@ -245,7 +246,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private void cancelAllRequests() {
         stopSummaryMonitoring();
         stopTrafficMonitoring();
-        removeListeners();
     }
 
     // Sends all controller nodes to the client as node-added messages.
