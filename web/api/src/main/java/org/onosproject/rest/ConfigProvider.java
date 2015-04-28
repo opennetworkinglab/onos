@@ -154,6 +154,10 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                 prepareForDeviceEvents(nodes.size());
                 for (JsonNode node : nodes) {
                     parseDevice(node);
+
+                    // FIXME: hack to make sure device attributes take
+                    // This will be fixed when GossipDeviceStore uses ECM
+                    parseDevice(node);
                 }
             }
         } finally {
@@ -237,7 +241,10 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             if (nodes != null) {
                 for (JsonNode node : nodes) {
                     parseHost(node);
-                    parseHost(node); // FIXME: hack to make sure host positions take
+
+                    // FIXME: hack to make sure host attributes take
+                    // This will be fixed when GossipHostStore uses ECM
+                    parseHost(node);
                 }
             }
         } finally {
