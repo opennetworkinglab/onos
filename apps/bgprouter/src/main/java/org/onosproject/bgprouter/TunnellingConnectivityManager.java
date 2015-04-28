@@ -81,6 +81,23 @@ public class TunnellingConnectivityManager {
 
         this.bgpSpeaker = bgpSpeaker;
 
+    }
+
+    public void start() {
+        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 3);
+    }
+
+    public void stop() {
+        packetService.removeProcessor(processor);
+        // Should revoke packet requests in the future
+    }
+
+    /**
+     * Pushes the flow rules for forwarding BGP TCP packets to controller.
+     * It is called when switches are connected and available.
+     */
+    public void notifySwitchAvailable() {
+        // control plane OVS is available, push default flows
         TrafficSelector selectorDst = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
@@ -105,7 +122,7 @@ public class TunnellingConnectivityManager {
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .add();
         flowObjectiveService.forward(bgpSpeaker.connectPoint().deviceId(),
-                                     puntSrc);
+                puntSrc);
 
         ForwardingObjective puntDst = DefaultForwardingObjective.builder()
                 .fromApp(appId)
@@ -115,18 +132,8 @@ public class TunnellingConnectivityManager {
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .add();
         flowObjectiveService.forward(bgpSpeaker.connectPoint().deviceId(),
-                                     puntDst);
+                puntDst);
         log.info("Sent punt forwarding objective to {}", bgpSpeaker.connectPoint().deviceId());
-
-    }
-
-    public void start() {
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 3);
-    }
-
-    public void stop() {
-        packetService.removeProcessor(processor);
-        // Should revoke packet requests in the future
     }
 
     /**

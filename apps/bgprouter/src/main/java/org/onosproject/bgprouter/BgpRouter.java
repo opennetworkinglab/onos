@@ -381,15 +381,21 @@ public class BgpRouter {
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.info("Device connected {}", event.subject().id());
-                        processIntfFilters(true, configService.getInterfaces());
+                        if (event.subject().id().equals(deviceId)) {
+                            processIntfFilters(true, configService.getInterfaces());
 
-                        /* For test only - will be removed before Cardinal release */
-                        delay(1000);
-                        FibEntry fibEntry = new FibEntry(Ip4Prefix.valueOf("10.1.0.0/16"),
-                                                         Ip4Address.valueOf("192.168.10.1"),
-                                                         MacAddress.valueOf("DE:AD:BE:EF:FE:ED"));
-                        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-                        updateFibEntry(Collections.singletonList(fibUpdate));
+                            /* For test only - will be removed before Cardinal release */
+                            delay(1000);
+                            FibEntry fibEntry = new FibEntry(Ip4Prefix.valueOf("10.1.0.0/16"),
+                                    Ip4Address.valueOf("192.168.10.1"),
+                                    MacAddress.valueOf("DE:AD:BE:EF:FE:ED"));
+                            FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
+                            updateFibEntry(Collections.singletonList(fibUpdate));
+                        }
+
+                        if (event.subject().id().equals(ctrlDeviceId)) {
+                            connectivityManager.notifySwitchAvailable();
+                        }
                     }
                     break;
 
