@@ -40,7 +40,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;

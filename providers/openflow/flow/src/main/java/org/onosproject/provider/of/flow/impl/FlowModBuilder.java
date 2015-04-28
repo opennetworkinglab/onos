@@ -22,28 +22,30 @@ import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
-import org.onosproject.net.flow.criteria.Criteria.EthTypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPDscpCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPEcnCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPProtocolCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPv6FlowLabelCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPv6NDLinkLayerAddressCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IPv6NDTargetAddressCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IcmpCodeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.IcmpTypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.Icmpv6CodeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.Criteria.LambdaCriterion;
-import org.onosproject.net.flow.criteria.Criteria.MetadataCriterion;
-import org.onosproject.net.flow.criteria.Criteria.PortCriterion;
-import org.onosproject.net.flow.criteria.Criteria.SctpPortCriterion;
-import org.onosproject.net.flow.criteria.Criteria.TcpPortCriterion;
-import org.onosproject.net.flow.criteria.Criteria.UdpPortCriterion;
-import org.onosproject.net.flow.criteria.Criteria.VlanIdCriterion;
-import org.onosproject.net.flow.criteria.Criteria.VlanPcpCriterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
+import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.IPv6ExthdrFlagsCriterion;
+import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
+import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
+import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
+import org.onosproject.net.flow.criteria.LambdaCriterion;
+import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.SctpPortCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
@@ -362,12 +364,12 @@ public abstract class FlowModBuilder {
                         MacAddress.of(llAddressCriterion.mac().toLong()));
                 break;
             case MPLS_LABEL:
-                Criteria.MplsCriterion mp = (Criteria.MplsCriterion) c;
+                MplsCriterion mp = (MplsCriterion) c;
                 mBuilder.setExact(MatchField.MPLS_LABEL, U32.of(mp.label().toInt()));
                 break;
             case IPV6_EXTHDR:
-                Criteria.IPv6ExthdrFlagsCriterion exthdrFlagsCriterion =
-                    (Criteria.IPv6ExthdrFlagsCriterion) c;
+                IPv6ExthdrFlagsCriterion exthdrFlagsCriterion =
+                    (IPv6ExthdrFlagsCriterion) c;
                 mBuilder.setExact(MatchField.IPV6_EXTHDR,
                                   U16.of(exthdrFlagsCriterion.exthdrFlags()));
                 break;
@@ -378,8 +380,8 @@ public abstract class FlowModBuilder {
                                             (short) lc.lambda(), (short) 1));
                 break;
             case OCH_SIGTYPE:
-                Criteria.OpticalSignalTypeCriterion sc =
-                        (Criteria.OpticalSignalTypeCriterion) c;
+                OpticalSignalTypeCriterion sc =
+                        (OpticalSignalTypeCriterion) c;
                 mBuilder.setExact(MatchField.OCH_SIGTYPE,
                                   U8.of(sc.signalType()));
                 break;

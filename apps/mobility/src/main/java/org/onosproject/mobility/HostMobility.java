@@ -31,7 +31,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.criteria.Criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.host.HostEvent;

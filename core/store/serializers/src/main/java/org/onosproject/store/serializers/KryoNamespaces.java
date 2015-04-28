@@ -73,8 +73,31 @@ import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleBatchRequest;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.StoredFlowEntry;
-import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
+import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.IPv6ExthdrFlagsCriterion;
+import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
+import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
+import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
+import org.onosproject.net.flow.criteria.LambdaCriterion;
+import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.SctpPortCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
@@ -234,30 +257,30 @@ public final class KryoNamespaces {
                     FlowEntry.FlowEntryState.class,
                     FlowId.class,
                     DefaultTrafficSelector.class,
-                    Criteria.PortCriterion.class,
-                    Criteria.MetadataCriterion.class,
-                    Criteria.EthCriterion.class,
-                    Criteria.EthTypeCriterion.class,
-                    Criteria.VlanIdCriterion.class,
-                    Criteria.VlanPcpCriterion.class,
-                    Criteria.IPDscpCriterion.class,
-                    Criteria.IPEcnCriterion.class,
-                    Criteria.IPProtocolCriterion.class,
-                    Criteria.IPCriterion.class,
-                    Criteria.TcpPortCriterion.class,
-                    Criteria.UdpPortCriterion.class,
-                    Criteria.SctpPortCriterion.class,
-                    Criteria.IcmpTypeCriterion.class,
-                    Criteria.IcmpCodeCriterion.class,
-                    Criteria.IPv6FlowLabelCriterion.class,
-                    Criteria.Icmpv6TypeCriterion.class,
-                    Criteria.Icmpv6CodeCriterion.class,
-                    Criteria.IPv6NDTargetAddressCriterion.class,
-                    Criteria.IPv6NDLinkLayerAddressCriterion.class,
-                    Criteria.MplsCriterion.class,
-                    Criteria.IPv6ExthdrFlagsCriterion.class,
-                    Criteria.LambdaCriterion.class,
-                    Criteria.OpticalSignalTypeCriterion.class,
+                    PortCriterion.class,
+                    MetadataCriterion.class,
+                    EthCriterion.class,
+                    EthTypeCriterion.class,
+                    VlanIdCriterion.class,
+                    VlanPcpCriterion.class,
+                    IPDscpCriterion.class,
+                    IPEcnCriterion.class,
+                    IPProtocolCriterion.class,
+                    IPCriterion.class,
+                    TcpPortCriterion.class,
+                    UdpPortCriterion.class,
+                    SctpPortCriterion.class,
+                    IcmpTypeCriterion.class,
+                    IcmpCodeCriterion.class,
+                    IPv6FlowLabelCriterion.class,
+                    Icmpv6TypeCriterion.class,
+                    Icmpv6CodeCriterion.class,
+                    IPv6NDTargetAddressCriterion.class,
+                    IPv6NDLinkLayerAddressCriterion.class,
+                    MplsCriterion.class,
+                    IPv6ExthdrFlagsCriterion.class,
+                    LambdaCriterion.class,
+                    OpticalSignalTypeCriterion.class,
                     Criterion.class,
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,

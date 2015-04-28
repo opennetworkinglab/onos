@@ -17,10 +17,33 @@ package org.onosproject.codec.impl;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
+import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.IPv6ExthdrFlagsCriterion;
+import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
+import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
+import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
+import org.onosproject.net.flow.criteria.LambdaCriterion;
+import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.SctpPortCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 
 /**
  * Hamcrest matcher for criterion objects.
@@ -57,7 +80,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.PortCriterion criterion) {
+    private boolean matchCriterion(PortCriterion criterion) {
         final long port = criterion.port().toLong();
         final long jsonPort = jsonCriterion.get("port").asLong();
         if (port != jsonPort) {
@@ -73,7 +96,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.MetadataCriterion criterion) {
+    private boolean matchCriterion(MetadataCriterion criterion) {
         final long metadata = criterion.metadata();
         final long jsonMetadata = jsonCriterion.get("metadata").asLong();
         if (metadata != jsonMetadata) {
@@ -90,7 +113,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.EthCriterion criterion) {
+    private boolean matchCriterion(EthCriterion criterion) {
         final String mac = criterion.mac().toString();
         final String jsonMac = jsonCriterion.get("mac").textValue();
         if (!mac.equals(jsonMac)) {
@@ -106,7 +129,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.EthTypeCriterion criterion) {
+    private boolean matchCriterion(EthTypeCriterion criterion) {
         final int ethType = criterion.ethType();
         final int jsonEthType = jsonCriterion.get("ethType").intValue();
         if (ethType != jsonEthType) {
@@ -123,7 +146,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.VlanIdCriterion criterion) {
+    private boolean matchCriterion(VlanIdCriterion criterion) {
         final short vlanId = criterion.vlanId().toShort();
         final short jsonVlanId = jsonCriterion.get("vlanId").shortValue();
         if (vlanId != jsonVlanId) {
@@ -139,7 +162,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.VlanPcpCriterion criterion) {
+    private boolean matchCriterion(VlanPcpCriterion criterion) {
         final byte priority = criterion.priority();
         final byte jsonPriority =
                 (byte) jsonCriterion.get("priority").shortValue();
@@ -156,7 +179,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPDscpCriterion criterion) {
+    private boolean matchCriterion(IPDscpCriterion criterion) {
         final byte ipDscp = criterion.ipDscp();
         final byte jsonIpDscp = (byte) jsonCriterion.get("ipDscp").shortValue();
         if (ipDscp != jsonIpDscp) {
@@ -172,7 +195,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPEcnCriterion criterion) {
+    private boolean matchCriterion(IPEcnCriterion criterion) {
         final byte ipEcn = criterion.ipEcn();
         final byte jsonIpEcn = (byte) jsonCriterion.get("ipEcn").shortValue();
         if (ipEcn != jsonIpEcn) {
@@ -188,7 +211,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPProtocolCriterion criterion) {
+    private boolean matchCriterion(IPProtocolCriterion criterion) {
         final short protocol = criterion.protocol();
         final short jsonProtocol = jsonCriterion.get("protocol").shortValue();
         if (protocol != jsonProtocol) {
@@ -205,7 +228,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPCriterion criterion) {
+    private boolean matchCriterion(IPCriterion criterion) {
         final String ip = criterion.ip().toString();
         final String jsonIp = jsonCriterion.get("ip").textValue();
         if (!ip.equals(jsonIp)) {
@@ -221,7 +244,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.TcpPortCriterion criterion) {
+    private boolean matchCriterion(TcpPortCriterion criterion) {
         final int tcpPort = criterion.tcpPort();
         final int jsonTcpPort = jsonCriterion.get("tcpPort").intValue();
         if (tcpPort != jsonTcpPort) {
@@ -238,7 +261,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.UdpPortCriterion criterion) {
+    private boolean matchCriterion(UdpPortCriterion criterion) {
         final int udpPort = criterion.udpPort();
         final int jsonUdpPort = jsonCriterion.get("udpPort").intValue();
         if (udpPort != jsonUdpPort) {
@@ -255,7 +278,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.SctpPortCriterion criterion) {
+    private boolean matchCriterion(SctpPortCriterion criterion) {
         final int sctpPort = criterion.sctpPort();
         final int jsonSctpPort = jsonCriterion.get("sctpPort").intValue();
         if (sctpPort != jsonSctpPort) {
@@ -272,7 +295,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IcmpTypeCriterion criterion) {
+    private boolean matchCriterion(IcmpTypeCriterion criterion) {
         final short icmpType = criterion.icmpType();
         final short jsonIcmpType = jsonCriterion.get("icmpType").shortValue();
         if (icmpType != jsonIcmpType) {
@@ -289,7 +312,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IcmpCodeCriterion criterion) {
+    private boolean matchCriterion(IcmpCodeCriterion criterion) {
         final short icmpCode = criterion.icmpCode();
         final short jsonIcmpCode = jsonCriterion.get("icmpCode").shortValue();
         if (icmpCode != jsonIcmpCode) {
@@ -306,7 +329,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPv6FlowLabelCriterion criterion) {
+    private boolean matchCriterion(IPv6FlowLabelCriterion criterion) {
         final int flowLabel = criterion.flowLabel();
         final int jsonFlowLabel = jsonCriterion.get("flowLabel").intValue();
         if (flowLabel != jsonFlowLabel) {
@@ -323,7 +346,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.Icmpv6TypeCriterion criterion) {
+    private boolean matchCriterion(Icmpv6TypeCriterion criterion) {
         final short icmpv6Type = criterion.icmpv6Type();
         final short jsonIcmpv6Type =
                 jsonCriterion.get("icmpv6Type").shortValue();
@@ -341,7 +364,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.Icmpv6CodeCriterion criterion) {
+    private boolean matchCriterion(Icmpv6CodeCriterion criterion) {
         final short icmpv6Code = criterion.icmpv6Code();
         final short jsonIcmpv6Code =
                 jsonCriterion.get("icmpv6Code").shortValue();
@@ -359,7 +382,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPv6NDTargetAddressCriterion criterion) {
+    private boolean matchCriterion(IPv6NDTargetAddressCriterion criterion) {
         final String targetAddress =
                 criterion.targetAddress().toString();
         final String jsonTargetAddress =
@@ -378,7 +401,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPv6NDLinkLayerAddressCriterion criterion) {
+    private boolean matchCriterion(IPv6NDLinkLayerAddressCriterion criterion) {
         final String llAddress =
                 criterion.mac().toString();
         final String jsonLlAddress =
@@ -396,7 +419,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.MplsCriterion criterion) {
+    private boolean matchCriterion(MplsCriterion criterion) {
         final int label = criterion.label().toInt();
         final int jsonLabel = jsonCriterion.get("label").intValue();
         if (label != jsonLabel) {
@@ -412,7 +435,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.IPv6ExthdrFlagsCriterion criterion) {
+    private boolean matchCriterion(IPv6ExthdrFlagsCriterion criterion) {
         final int exthdrFlags = criterion.exthdrFlags();
         final int jsonExthdrFlags =
                 jsonCriterion.get("exthdrFlags").intValue();
@@ -430,7 +453,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.LambdaCriterion criterion) {
+    private boolean matchCriterion(LambdaCriterion criterion) {
         final int lambda = criterion.lambda();
         final int jsonLambda = jsonCriterion.get("lambda").intValue();
         if (lambda != jsonLambda) {
@@ -446,7 +469,7 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(Criteria.OpticalSignalTypeCriterion criterion) {
+    private boolean matchCriterion(OpticalSignalTypeCriterion criterion) {
         final short signalType = criterion.signalType();
         final short jsonSignalType = jsonCriterion.get("signalType").shortValue();
         if (signalType != jsonSignalType) {
@@ -472,88 +495,88 @@ public final class CriterionJsonMatcher extends
 
             case IN_PORT:
             case IN_PHY_PORT:
-                return matchCriterion((Criteria.PortCriterion) criterion);
+                return matchCriterion((PortCriterion) criterion);
 
             case METADATA:
-                return matchCriterion((Criteria.MetadataCriterion) criterion);
+                return matchCriterion((MetadataCriterion) criterion);
 
             case ETH_DST:
             case ETH_SRC:
-                return matchCriterion((Criteria.EthCriterion) criterion);
+                return matchCriterion((EthCriterion) criterion);
 
             case ETH_TYPE:
-                return matchCriterion((Criteria.EthTypeCriterion) criterion);
+                return matchCriterion((EthTypeCriterion) criterion);
 
             case VLAN_VID:
-                return matchCriterion((Criteria.VlanIdCriterion) criterion);
+                return matchCriterion((VlanIdCriterion) criterion);
 
             case VLAN_PCP:
-                return matchCriterion((Criteria.VlanPcpCriterion) criterion);
+                return matchCriterion((VlanPcpCriterion) criterion);
 
             case IP_DSCP:
-                return matchCriterion((Criteria.IPDscpCriterion) criterion);
+                return matchCriterion((IPDscpCriterion) criterion);
 
             case IP_ECN:
-                return matchCriterion((Criteria.IPEcnCriterion) criterion);
+                return matchCriterion((IPEcnCriterion) criterion);
 
             case IP_PROTO:
-                return matchCriterion((Criteria.IPProtocolCriterion) criterion);
+                return matchCriterion((IPProtocolCriterion) criterion);
 
             case IPV4_SRC:
             case IPV4_DST:
             case IPV6_SRC:
             case IPV6_DST:
-                return matchCriterion((Criteria.IPCriterion) criterion);
+                return matchCriterion((IPCriterion) criterion);
 
             case TCP_SRC:
             case TCP_DST:
-                return matchCriterion((Criteria.TcpPortCriterion) criterion);
+                return matchCriterion((TcpPortCriterion) criterion);
 
             case UDP_SRC:
             case UDP_DST:
-                return matchCriterion((Criteria.UdpPortCriterion) criterion);
+                return matchCriterion((UdpPortCriterion) criterion);
 
             case SCTP_SRC:
             case SCTP_DST:
-                return matchCriterion((Criteria.SctpPortCriterion) criterion);
+                return matchCriterion((SctpPortCriterion) criterion);
 
             case ICMPV4_TYPE:
-                return matchCriterion((Criteria.IcmpTypeCriterion) criterion);
+                return matchCriterion((IcmpTypeCriterion) criterion);
 
             case ICMPV4_CODE:
-                return matchCriterion((Criteria.IcmpCodeCriterion) criterion);
+                return matchCriterion((IcmpCodeCriterion) criterion);
 
             case IPV6_FLABEL:
-                return matchCriterion((Criteria.IPv6FlowLabelCriterion) criterion);
+                return matchCriterion((IPv6FlowLabelCriterion) criterion);
 
             case ICMPV6_TYPE:
-                return matchCriterion((Criteria.Icmpv6TypeCriterion) criterion);
+                return matchCriterion((Icmpv6TypeCriterion) criterion);
 
             case ICMPV6_CODE:
-                return matchCriterion((Criteria.Icmpv6CodeCriterion) criterion);
+                return matchCriterion((Icmpv6CodeCriterion) criterion);
 
             case IPV6_ND_TARGET:
                 return matchCriterion(
-                        (Criteria.IPv6NDTargetAddressCriterion) criterion);
+                        (IPv6NDTargetAddressCriterion) criterion);
 
             case IPV6_ND_SLL:
             case IPV6_ND_TLL:
                 return matchCriterion(
-                        (Criteria.IPv6NDLinkLayerAddressCriterion) criterion);
+                        (IPv6NDLinkLayerAddressCriterion) criterion);
 
             case MPLS_LABEL:
-                return matchCriterion((Criteria.MplsCriterion) criterion);
+                return matchCriterion((MplsCriterion) criterion);
 
             case IPV6_EXTHDR:
                 return matchCriterion(
-                        (Criteria.IPv6ExthdrFlagsCriterion) criterion);
+                        (IPv6ExthdrFlagsCriterion) criterion);
 
             case OCH_SIGID:
-                return matchCriterion((Criteria.LambdaCriterion) criterion);
+                return matchCriterion((LambdaCriterion) criterion);
 
             case OCH_SIGTYPE:
                 return matchCriterion(
-                        (Criteria.OpticalSignalTypeCriterion) criterion);
+                        (OpticalSignalTypeCriterion) criterion);
 
             default:
                 // Don't know how to format this type

@@ -44,6 +44,12 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -245,8 +251,8 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         log.debug("Processing versatile forwarding objective");
         TrafficSelector selector = fwd.selector();
 
-        Criteria.EthTypeCriterion ethType =
-                (Criteria.EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
+        EthTypeCriterion ethType =
+                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         if (ethType == null) {
             log.error("Versatile forwarding objective must include ethType");
             fail(fwd, ObjectiveError.UNKNOWN);
@@ -263,11 +269,11 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         } else if (ethType.ethType() == Ethernet.TYPE_IPV4) {
-            Criteria.IPCriterion ipSrc = (Criteria.IPCriterion) selector
+            IPCriterion ipSrc = (IPCriterion) selector
                     .getCriterion(Criterion.Type.IPV4_SRC);
-            Criteria.IPCriterion ipDst = (Criteria.IPCriterion) selector
+            IPCriterion ipDst = (IPCriterion) selector
                     .getCriterion(Criterion.Type.IPV4_DST);
-            Criteria.IPProtocolCriterion ipProto = (Criteria.IPProtocolCriterion) selector
+            IPProtocolCriterion ipProto = (IPProtocolCriterion) selector
                     .getCriterion(Criterion.Type.IP_PROTO);
             if (ipSrc != null) {
                 log.warn("Driver does not currently handle matching Src IP");
@@ -296,8 +302,8 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
         log.debug("Processing specific forwarding objective");
         TrafficSelector selector = fwd.selector();
-        Criteria.EthTypeCriterion ethType =
-                (Criteria.EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
+        EthTypeCriterion ethType =
+                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         if (ethType == null || ethType.ethType() != Ethernet.TYPE_IPV4) {
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
@@ -307,7 +313,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPDst(
-                                ((Criteria.IPCriterion)
+                                ((IPCriterion)
                                         selector.getCriterion(Criterion.Type.IPV4_DST)).ip())
                         .build();
 
@@ -351,10 +357,10 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                                              ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
-        Criteria.PortCriterion p;
+        PortCriterion p;
         if (!filt.key().equals(Criteria.dummy()) &&
                 filt.key().type() == Criterion.Type.IN_PORT) {
-            p = (Criteria.PortCriterion) filt.key();
+            p = (PortCriterion) filt.key();
         } else {
             log.warn("No key defined in filtering objective from app: {}. Not"
                     + "processing filtering objective", applicationId);
@@ -365,7 +371,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion c : filt.conditions()) {
             if (c.type() == Criterion.Type.ETH_DST) {
-                Criteria.EthCriterion e = (Criteria.EthCriterion) c;
+                EthCriterion e = (EthCriterion) c;
                 log.debug("adding rule for MAC: {}", e.mac());
                 TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -381,7 +387,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                         .forTable(MAC_TABLE).build();
                 ops =  install ? ops.add(rule) : ops.remove(rule);
             } else if (c.type() == Criterion.Type.VLAN_VID) {
-                Criteria.VlanIdCriterion v = (Criteria.VlanIdCriterion) c;
+                VlanIdCriterion v = (VlanIdCriterion) c;
                 log.debug("adding rule for VLAN: {}", v.vlanId());
                 TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -399,7 +405,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                         .forTable(VLAN_TABLE).build();
                 ops = install ? ops.add(rule) : ops.remove(rule);
             } else if (c.type() == Criterion.Type.IPV4_DST) {
-                Criteria.IPCriterion ip = (Criteria.IPCriterion) c;
+                IPCriterion ip = (IPCriterion) c;
                 log.debug("adding rule for IP: {}", ip.ip());
                 TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();

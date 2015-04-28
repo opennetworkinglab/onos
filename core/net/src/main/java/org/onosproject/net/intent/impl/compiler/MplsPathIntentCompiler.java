@@ -34,8 +34,8 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
@@ -241,8 +241,8 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
             // if the ingress ethertype is defined, the egress traffic
             // will be use that value, otherwise the IPv4 ethertype is used.
             Criterion c = intent.selector().getCriterion(Criterion.Type.ETH_TYPE);
-            if (c != null && c instanceof Criteria.EthTypeCriterion) {
-                Criteria.EthTypeCriterion ethertype = (Criteria.EthTypeCriterion) c;
+            if (c != null && c instanceof EthTypeCriterion) {
+                EthTypeCriterion ethertype = (EthTypeCriterion) c;
                 treat.popMpls((short) ethertype.ethType());
             } else {
                 treat.popMpls(Ethernet.TYPE_IPV4);

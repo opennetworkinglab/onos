@@ -19,8 +19,31 @@ import java.util.EnumMap;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
+import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.IPv6ExthdrFlagsCriterion;
+import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
+import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
+import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
+import org.onosproject.net.flow.criteria.LambdaCriterion;
+import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.SctpPortCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +130,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatInPort implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.PortCriterion portCriterion = (Criteria.PortCriterion) criterion;
+            final PortCriterion portCriterion = (PortCriterion) criterion;
             return root.put("port", portCriterion.port().toLong());
         }
     }
@@ -115,8 +138,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatMetadata implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.MetadataCriterion metadataCriterion =
-                    (Criteria.MetadataCriterion) criterion;
+            final MetadataCriterion metadataCriterion =
+                    (MetadataCriterion) criterion;
             return root.put("metadata", metadataCriterion.metadata());
         }
     }
@@ -124,7 +147,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatEth implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.EthCriterion ethCriterion = (Criteria.EthCriterion) criterion;
+            final EthCriterion ethCriterion = (EthCriterion) criterion;
             return root.put("mac", ethCriterion.mac().toString());
         }
     }
@@ -132,8 +155,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatEthType implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.EthTypeCriterion ethTypeCriterion =
-                    (Criteria.EthTypeCriterion) criterion;
+            final EthTypeCriterion ethTypeCriterion =
+                    (EthTypeCriterion) criterion;
             return root.put("ethType", ethTypeCriterion.ethType());
         }
     }
@@ -141,8 +164,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatVlanVid implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.VlanIdCriterion vlanIdCriterion =
-                    (Criteria.VlanIdCriterion) criterion;
+            final VlanIdCriterion vlanIdCriterion =
+                    (VlanIdCriterion) criterion;
             return root.put("vlanId", vlanIdCriterion.vlanId().toShort());
         }
     }
@@ -150,8 +173,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatVlanPcp implements CriterionTypeFormatter {
             @Override
             public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-                final Criteria.VlanPcpCriterion vlanPcpCriterion =
-                        (Criteria.VlanPcpCriterion) criterion;
+                final VlanPcpCriterion vlanPcpCriterion =
+                        (VlanPcpCriterion) criterion;
                 return root.put("priority", vlanPcpCriterion.priority());
             }
     }
@@ -159,8 +182,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIpDscp implements CriterionTypeFormatter {
             @Override
             public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-                final Criteria.IPDscpCriterion ipDscpCriterion =
-                        (Criteria.IPDscpCriterion) criterion;
+                final IPDscpCriterion ipDscpCriterion =
+                        (IPDscpCriterion) criterion;
                 return root.put("ipDscp", ipDscpCriterion.ipDscp());
             }
     }
@@ -168,8 +191,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIpEcn implements CriterionTypeFormatter {
             @Override
             public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-                final Criteria.IPEcnCriterion ipEcnCriterion =
-                        (Criteria.IPEcnCriterion) criterion;
+                final IPEcnCriterion ipEcnCriterion =
+                        (IPEcnCriterion) criterion;
                 return root.put("ipEcn", ipEcnCriterion.ipEcn());
             }
     }
@@ -177,8 +200,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIpProto implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IPProtocolCriterion iPProtocolCriterion =
-                    (Criteria.IPProtocolCriterion) criterion;
+            final IPProtocolCriterion iPProtocolCriterion =
+                    (IPProtocolCriterion) criterion;
             return root.put("protocol", iPProtocolCriterion.protocol());
         }
     }
@@ -186,7 +209,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIp implements CriterionTypeFormatter {
             @Override
             public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-                final Criteria.IPCriterion iPCriterion = (Criteria.IPCriterion) criterion;
+                final IPCriterion iPCriterion = (IPCriterion) criterion;
                 return root.put("ip", iPCriterion.ip().toString());
         }
     }
@@ -194,8 +217,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatTcp implements CriterionTypeFormatter {
             @Override
             public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-                final Criteria.TcpPortCriterion tcpPortCriterion =
-                        (Criteria.TcpPortCriterion) criterion;
+                final TcpPortCriterion tcpPortCriterion =
+                        (TcpPortCriterion) criterion;
                 return root.put("tcpPort", tcpPortCriterion.tcpPort());
             }
     }
@@ -203,8 +226,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatUdp implements CriterionTypeFormatter {
             @Override
             public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-                final Criteria.UdpPortCriterion udpPortCriterion =
-                        (Criteria.UdpPortCriterion) criterion;
+                final UdpPortCriterion udpPortCriterion =
+                        (UdpPortCriterion) criterion;
                 return root.put("udpPort", udpPortCriterion.udpPort());
             }
     }
@@ -212,8 +235,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatSctp implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.SctpPortCriterion sctpPortCriterion =
-                    (Criteria.SctpPortCriterion) criterion;
+            final SctpPortCriterion sctpPortCriterion =
+                    (SctpPortCriterion) criterion;
             return root.put("sctpPort", sctpPortCriterion.sctpPort());
         }
     }
@@ -221,8 +244,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIcmpV4Type implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IcmpTypeCriterion icmpTypeCriterion =
-                    (Criteria.IcmpTypeCriterion) criterion;
+            final IcmpTypeCriterion icmpTypeCriterion =
+                    (IcmpTypeCriterion) criterion;
             return root.put("icmpType", icmpTypeCriterion.icmpType());
         }
     }
@@ -230,8 +253,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIcmpV4Code implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IcmpCodeCriterion icmpCodeCriterion =
-                    (Criteria.IcmpCodeCriterion) criterion;
+            final IcmpCodeCriterion icmpCodeCriterion =
+                    (IcmpCodeCriterion) criterion;
             return root.put("icmpCode", icmpCodeCriterion.icmpCode());
         }
     }
@@ -239,8 +262,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIpV6FLabel implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IPv6FlowLabelCriterion ipv6FlowLabelCriterion =
-                    (Criteria.IPv6FlowLabelCriterion) criterion;
+            final IPv6FlowLabelCriterion ipv6FlowLabelCriterion =
+                    (IPv6FlowLabelCriterion) criterion;
             return root.put("flowLabel", ipv6FlowLabelCriterion.flowLabel());
         }
     }
@@ -248,8 +271,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIcmpV6Type implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.Icmpv6TypeCriterion icmpv6TypeCriterion =
-                    (Criteria.Icmpv6TypeCriterion) criterion;
+            final Icmpv6TypeCriterion icmpv6TypeCriterion =
+                    (Icmpv6TypeCriterion) criterion;
             return root.put("icmpv6Type", icmpv6TypeCriterion.icmpv6Type());
         }
     }
@@ -257,8 +280,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIcmpV6Code implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.Icmpv6CodeCriterion icmpv6CodeCriterion =
-                    (Criteria.Icmpv6CodeCriterion) criterion;
+            final Icmpv6CodeCriterion icmpv6CodeCriterion =
+                    (Icmpv6CodeCriterion) criterion;
             return root.put("icmpv6Code", icmpv6CodeCriterion.icmpv6Code());
         }
     }
@@ -266,8 +289,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatV6NDTarget implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IPv6NDTargetAddressCriterion ipv6NDTargetAddressCriterion
-                = (Criteria.IPv6NDTargetAddressCriterion) criterion;
+            final IPv6NDTargetAddressCriterion ipv6NDTargetAddressCriterion
+                = (IPv6NDTargetAddressCriterion) criterion;
             return root.put("targetAddress", ipv6NDTargetAddressCriterion.targetAddress().toString());
         }
     }
@@ -275,8 +298,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatV6NDTll implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IPv6NDLinkLayerAddressCriterion ipv6NDLinkLayerAddressCriterion
-                = (Criteria.IPv6NDLinkLayerAddressCriterion) criterion;
+            final IPv6NDLinkLayerAddressCriterion ipv6NDLinkLayerAddressCriterion
+                = (IPv6NDLinkLayerAddressCriterion) criterion;
             return root.put("mac", ipv6NDLinkLayerAddressCriterion.mac().toString());
         }
     }
@@ -284,8 +307,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatMplsLabel implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.MplsCriterion mplsCriterion =
-                    (Criteria.MplsCriterion) criterion;
+            final MplsCriterion mplsCriterion =
+                    (MplsCriterion) criterion;
             return root.put("label", mplsCriterion.label().toInt());
         }
     }
@@ -293,8 +316,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatIpV6Exthdr implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.IPv6ExthdrFlagsCriterion exthdrCriterion =
-                    (Criteria.IPv6ExthdrFlagsCriterion) criterion;
+            final IPv6ExthdrFlagsCriterion exthdrCriterion =
+                    (IPv6ExthdrFlagsCriterion) criterion;
             return root.put("exthdrFlags", exthdrCriterion.exthdrFlags());
         }
     }
@@ -302,8 +325,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatOchSigId implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.LambdaCriterion lambdaCriterion =
-                    (Criteria.LambdaCriterion) criterion;
+            final LambdaCriterion lambdaCriterion =
+                    (LambdaCriterion) criterion;
             return root.put("lambda", lambdaCriterion.lambda());
         }
     }
@@ -311,8 +334,8 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatOchSigType implements CriterionTypeFormatter {
         @Override
         public ObjectNode formatCriterion(ObjectNode root, Criterion criterion) {
-            final Criteria.OpticalSignalTypeCriterion opticalSignalTypeCriterion =
-                    (Criteria.OpticalSignalTypeCriterion) criterion;
+            final OpticalSignalTypeCriterion opticalSignalTypeCriterion =
+                    (OpticalSignalTypeCriterion) criterion;
             return root.put("signalType", opticalSignalTypeCriterion.signalType());
         }
     }
