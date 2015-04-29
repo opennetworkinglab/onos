@@ -68,7 +68,7 @@ public final class Lambda extends LinkResource {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.lambda);
+        return lambda;
     }
 
     @Override
