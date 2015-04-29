@@ -18,7 +18,6 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -57,14 +56,16 @@ import org.onosproject.net.Element;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.OchPort;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.OduSignalType;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.flow.CompletedBatchOperation;
@@ -384,6 +385,8 @@ public final class KryoNamespaces {
             .register(ChannelSpacing.class)
             .register(OduCltPort.class)
             .register(OduCltPort.SignalType.class)
+            .register(IndexedLambda.class)
+            .register(OchSignal.class)
             .register(
                     MplsIntent.class,
                     MplsPathIntent.class,

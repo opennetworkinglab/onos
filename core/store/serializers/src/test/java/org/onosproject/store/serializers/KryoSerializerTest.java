@@ -324,6 +324,18 @@ public class KryoSerializerTest {
     }
 
     @Test
+    public void testIndexedLambda() {
+        testSerializedEquals(org.onosproject.net.Lambda.indexedLambda(10L));
+    }
+
+    @Test
+    public void testOchSignal() {
+        testSerializedEquals(org.onosproject.net.Lambda.ochSignal(
+                GridType.DWDM, ChannelSpacing.CHL_100GHZ, 1, 1
+        ));
+    }
+
+    @Test
     public void testDefaultLinkResourceRequest() {
         testSerializable(DefaultLinkResourceRequest.builder(IntentId.valueOf(2501), ImmutableList.of())
                         .addLambdaRequest()
