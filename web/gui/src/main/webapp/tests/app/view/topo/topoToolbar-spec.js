@@ -18,7 +18,7 @@
  ONOS GUI -- Topo View -- Topo Toolbar Service - Unit Tests
  */
 describe('factory: view/topo/topoToolbar.js', function() {
-    var $log, fs, tts, prefs, ps,
+    var $log, fs, ttbs, prefs, ps,
         d3Elem;
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
@@ -28,7 +28,7 @@ describe('factory: view/topo/topoToolbar.js', function() {
                                 TopoToolbarService, PanelService, PrefsService) {
         $log = _$log_;
         fs = FnService;
-        tts = TopoToolbarService;
+        ttbs = TopoToolbarService;
         prefs = PrefsService;
         ps = PanelService;
         d3Elem = d3.select('body').append('div').attr('id', 'floatpanels');
@@ -36,35 +36,17 @@ describe('factory: view/topo/topoToolbar.js', function() {
     }));
 
     it('should define TopoToolbarService', function () {
-        expect(tts).toBeDefined();
+        expect(ttbs).toBeDefined();
     });
 
     it('should define api functions', function () {
-        expect(fs.areFunctions(tts, [
+        expect(fs.areFunctions(ttbs, [
             'init', 'createToolbar', 'destroyToolbar',
             'keyListener', 'toggleToolbar'
         ])).toBeTruthy();
     });
 
-    function verifyFirstRow() {
-
-    }
-
-    function verifySecondRow() {
-
-    }
-
-    function verifyThirdRow() {
-
-    }
-
-    it('should create a toolbar', function () {
-        //var toolbar = tts.createToolbar('foo');
-        //expect(toolbar).toBeTruthy();
-        //expect(d3.select('#toolbar-foo').empty()).toBe(false);
-        //verifyFirstRow();
-        //verifySecondRow();
-        //verifyThirdRow();
-    });
+    // NOTE: topoToolbar relies too much on topo's closure variables
+    // to adequately test it
 
 });

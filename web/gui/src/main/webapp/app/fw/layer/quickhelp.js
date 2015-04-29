@@ -59,6 +59,11 @@
         downArrow: 'D-arrow'
     };
 
+    // list of needed bindings to use in aggregateData
+    var neededBindings = [
+        'globalKeys', 'globalFormat', 'viewKeys', 'viewGestures'
+    ];
+
     // ===========================================
     // === Function Definitions ===
 
@@ -315,6 +320,22 @@
             .remove();
     }
 
+    function goodBindings(bindings) {
+        var warnPrefix = 'Quickhelp Service: showQuickHelp(), ';
+        if (!bindings || !fs.isO(bindings) || fs.isEmptyObject(bindings)) {
+            $log.warn(warnPrefix + 'invalid bindings object');
+            return false;
+        }
+        if (!(neededBindings.every(function (key) { return key in bindings; }))) {
+            $log.warn(
+                warnPrefix +
+                'needed bindings for help panel not provided:',
+                neededBindings
+            );
+            return false
+        }
+        return true;
+    }
 
     // ===========================================
     // === Module Definition ===
@@ -329,12 +350,15 @@
             sus = _sus_;
 
             function initQuickHelp(opts) {
-                settings = angular.extend({}, defaultSettings, opts);
+                settings = angular.extend({}, defaultSettings, fs.isO(opts));
                 qhdiv = d3.select('#quickhelp');
             }
 
             function showQuickHelp(bindings) {
                 svg = qhdiv.select('svg');
+                if (!goodBindings(bindings)) {
+                    return null;
+                }
                 if (svg.empty()) {
                     addSvg();
                     popBind(bindings);

@@ -178,8 +178,23 @@
 
     // --- Toolbar Functions ---------------------------------------------
 
+    function notValid(what) {
+        $log.warn('Topo.js getActionEntry(): Not a valid ' + what);
+    }
     function getActionEntry(key) {
-        var entry = actionMap[key];
+        var entry;
+
+        if (!key) {
+            notValid('key');
+            return null;
+        }
+
+        entry = actionMap[key];
+
+        if (!entry) {
+            notValid('actionMap entry');
+            return null;
+        }
         return fs.isA(entry) || [entry, ''];
     }
 
