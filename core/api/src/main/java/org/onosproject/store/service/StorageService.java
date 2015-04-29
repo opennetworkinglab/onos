@@ -63,9 +63,9 @@ public interface StorageService {
     AtomicCounterBuilder atomicCounterBuilder();
 
     /**
-     * Creates a new transaction context.
+     * Creates a new transaction context builder.
      *
-     * @return transaction context
+     * @return a builder for a transaction context.
      */
-    TransactionContext createTransactionContext();
+    TransactionContextBuilder transactionContextBuilder();
 }

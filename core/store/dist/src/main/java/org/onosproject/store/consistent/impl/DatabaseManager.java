@@ -59,7 +59,7 @@ import org.onosproject.store.service.SetBuilder;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.TransactionContext;
+import org.onosproject.store.service.TransactionContextBuilder;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -217,8 +217,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     @Override
-    public TransactionContext createTransactionContext() {
-        return new DefaultTransactionContext(partitionedDatabase, transactionIdGenerator.getNewId());
+    public TransactionContextBuilder transactionContextBuilder() {
+        return new DefaultTransactionContextBuilder(
+                inMemoryDatabase, partitionedDatabase, transactionIdGenerator.getNewId());
     }
 
     @Override
