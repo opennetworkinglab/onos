@@ -23,8 +23,6 @@ import org.onosproject.net.provider.Provider;
  */
 public interface FlowRuleProvider extends Provider {
 
-    static final int POLL_INTERVAL = 10;
-
     /**
      * Instructs the provider to apply the specified flow rules to their
      * respective devices.

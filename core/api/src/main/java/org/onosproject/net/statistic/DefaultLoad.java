@@ -16,7 +16,6 @@
 package org.onosproject.net.statistic;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.net.flow.FlowRuleProvider;
 
 /**
  * Implementation of a load.
@@ -29,6 +28,11 @@ public class DefaultLoad implements Load {
     private final long time;
 
     /**
+     * Indicates the flow statistics poll interval in seconds.
+     */
+    private static int pollInterval = 10;
+
+     /**
      * Creates an invalid load.
      */
     public DefaultLoad() {
@@ -50,9 +54,19 @@ public class DefaultLoad implements Load {
         this.isValid = true;
     }
 
+    /**
+     * Sets the poll interval in seconds. Used solely for the purpose of
+     * computing the load.
+     *
+     * @param newPollInterval poll interval duration in seconds
+     */
+    public static void setPollInterval(int newPollInterval) {
+        pollInterval = newPollInterval;
+    }
+
     @Override
     public long rate() {
-        return (current - previous) / FlowRuleProvider.POLL_INTERVAL;
+        return (current - previous) / pollInterval;
     }
 
     @Override
