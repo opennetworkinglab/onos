@@ -30,7 +30,6 @@ import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.DatabaseUpdate.Type;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -57,7 +56,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
      * The presence of a entry in this map indicates that element is
      * participating in a transaction and is currently locked for updates.
      */
-    private Map<String, Map<String, Pair<Long, byte[]>>> locks;
+    private Map<String, Map<String, Update>> locks;
 
     @Initializer
     @Override
@@ -275,7 +274,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         return tables.computeIfAbsent(tableName, name -> Maps.newConcurrentMap());
     }
 
-    private Map<String, Pair<Long, byte[]>> getLockMap(String tableName) {
+    private Map<String, Update> getLockMap(String tableName) {
         return locks.computeIfAbsent(tableName, name -> Maps.newConcurrentMap());
     }
 
@@ -305,18 +304,18 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     private void doProvisionalUpdate(DatabaseUpdate update, long transactionId) {
-        Map<String, Pair<Long, byte[]>> lockMap = getLockMap(update.tableName());
+        Map<String, Update> lockMap = getLockMap(update.tableName());
         switch (update.type()) {
         case PUT:
         case PUT_IF_ABSENT:
         case PUT_IF_VERSION_MATCH:
         case PUT_IF_VALUE_MATCH:
-            lockMap.put(update.key(), Pair.of(transactionId, update.value()));
+            lockMap.put(update.key(), new Update(transactionId, update.value()));
             break;
         case REMOVE:
         case REMOVE_IF_VERSION_MATCH:
         case REMOVE_IF_VALUE_MATCH:
-            lockMap.put(update.key(), null);
+            lockMap.put(update.key(), new Update(transactionId, null));
             break;
         default:
             throw new IllegalStateException("Unsupported type: " + update.type());
@@ -327,8 +326,8 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         String tableName = update.tableName();
         String key = update.key();
         Type type = update.type();
-        Pair<Long, byte[]> provisionalUpdate = getLockMap(tableName).get(key);
-        if (Objects.equal(transactionId, provisionalUpdate.getLeft()))  {
+        Update provisionalUpdate = getLockMap(tableName).get(key);
+        if (Objects.equal(transactionId, provisionalUpdate.transactionId()))  {
             getLockMap(tableName).remove(key);
         } else {
             return;
@@ -339,7 +338,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         case PUT_IF_ABSENT:
         case PUT_IF_VERSION_MATCH:
         case PUT_IF_VALUE_MATCH:
-            put(tableName, key, provisionalUpdate.getRight());
+            put(tableName, key, provisionalUpdate.value());
             break;
         case REMOVE:
         case REMOVE_IF_VERSION_MATCH:
@@ -354,18 +353,18 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     private void undoProvisionalUpdate(DatabaseUpdate update, long transactionId) {
         String tableName = update.tableName();
         String key = update.key();
-        Pair<Long, byte[]> provisionalUpdate = getLockMap(tableName).get(key);
+        Update provisionalUpdate = getLockMap(tableName).get(key);
         if (provisionalUpdate == null) {
             return;
         }
-        if (Objects.equal(transactionId, provisionalUpdate.getLeft()))  {
+        if (Objects.equal(transactionId, provisionalUpdate.transactionId()))  {
             getLockMap(tableName).remove(key);
         }
     }
 
     private boolean isLockedByAnotherTransaction(String tableName, String key, long transactionId) {
-        Pair<Long, byte[]> update = getLockMap(tableName).get(key);
-        return update != null && !Objects.equal(transactionId, update.getLeft());
+        Update update = getLockMap(tableName).get(key);
+        return update != null && !Objects.equal(transactionId, update.transactionId());
     }
 
     private boolean isLockedForUpdates(String tableName, String key) {
@@ -374,5 +373,23 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
 
     private boolean areTransactionsInProgress(String tableName) {
         return !getLockMap(tableName).isEmpty();
+    }
+
+    private class Update {
+        private final long transactionId;
+        private final byte[] value;
+
+        public Update(long txId, byte[] value) {
+            this.transactionId = txId;
+            this.value = value;
+        }
+
+        public long transactionId() {
+            return this.transactionId;
+        }
+
+        public byte[] value() {
+            return this.value;
+        }
     }
 }
