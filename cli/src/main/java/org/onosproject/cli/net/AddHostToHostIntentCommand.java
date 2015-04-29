@@ -20,6 +20,8 @@ import java.util.List;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.HostId;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.IntentService;
@@ -46,6 +48,8 @@ public class AddHostToHostIntentCommand extends ConnectivityIntentCommand {
         HostId oneId = HostId.hostId(one);
         HostId twoId = HostId.hostId(two);
 
+        TrafficSelector selector = buildTrafficSelector();
+        TrafficTreatment treatment = buildTrafficTreatment();
         List<Constraint> constraints = buildConstraints();
 
         HostToHostIntent intent = HostToHostIntent.builder()
@@ -53,6 +57,8 @@ public class AddHostToHostIntentCommand extends ConnectivityIntentCommand {
                 .key(key())
                 .one(oneId)
                 .two(twoId)
+                .selector(selector)
+                .treatment(treatment)
                 .constraints(constraints)
                 .priority(priority())
                 .build();
