@@ -15,17 +15,11 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -33,6 +27,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.impl.TestCoreManager;
 import org.onosproject.event.impl.TestEventDispatcher;
@@ -51,18 +46,21 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onlab.junit.TestTools.assertAfter;
 import static org.onlab.util.Tools.delay;
 import static org.onosproject.net.intent.IntentState.*;
@@ -460,14 +458,13 @@ public class IntentManagerTest {
      * Tests an intent with no installer.
      */
     @Test
-    @Ignore //FIXME corrupt or failed?
     public void intentWithoutInstaller() {
         MockIntent intent = new MockIntent(MockIntent.nextId());
         listener.setLatch(1, Type.INSTALL_REQ);
-        listener.setLatch(1, Type.FAILED);
+        listener.setLatch(1, Type.CORRUPT);
         service.submit(intent);
         listener.await(Type.INSTALL_REQ);
-        listener.await(Type.FAILED);
+        listener.await(Type.CORRUPT);
         verifyState();
     }
 
@@ -549,16 +546,63 @@ public class IntentManagerTest {
     }
 
     /**
+     * Test failure to install an intent, then succeed on retry via IntentCleanup.
+     */
+    @Test
+    public void testCorruptCleanup() {
+        IntentCleanup cleanup = new IntentCleanup();
+        cleanup.service = manager;
+        cleanup.store = manager.store;
+        cleanup.cfgService = new ComponentConfigAdapter();
+
+        try {
+            cleanup.activate();
+
+            final TestIntentCompilerMultipleFlows errorCompiler = new TestIntentCompilerMultipleFlows();
+            extensionService.registerCompiler(MockIntent.class, errorCompiler);
+            List<Intent> intents;
+
+            flowRuleService.setFuture(false);
+
+            intents = Lists.newArrayList(service.getIntents());
+            assertThat(intents, hasSize(0));
+
+            final MockIntent intent1 = new MockIntent(MockIntent.nextId());
+
+            listener.setLatch(1, Type.INSTALL_REQ);
+            listener.setLatch(1, Type.CORRUPT);
+            listener.setLatch(1, Type.INSTALLED);
+
+            service.submit(intent1);
+
+            listener.await(Type.INSTALL_REQ);
+            listener.await(Type.CORRUPT);
+
+            flowRuleService.setFuture(true);
+
+            listener.await(Type.INSTALLED);
+
+            assertThat(listener.getCounts(Type.CORRUPT), is(1));
+            assertThat(listener.getCounts(Type.INSTALLED), is(1));
+            assertEquals(INSTALLED, manager.getIntentState(intent1.key()));
+            assertThat(flowRuleService.getFlowRuleCount(), is(5));
+        } finally {
+            cleanup.deactivate();
+        }
+    }
+
+    /**
      * Tests that an intent that fails installation results in no flows remaining.
      */
     @Test
-    @Ignore("Cleanup state is not yet implemented in the intent manager")
+    @Ignore("MockFlowRule numbering issue") //test works if run independently
     public void testFlowRemovalInstallError() {
         final TestIntentCompilerMultipleFlows errorCompiler = new TestIntentCompilerMultipleFlows();
         extensionService.registerCompiler(MockIntent.class, errorCompiler);
         List<Intent> intents;
 
         flowRuleService.setFuture(true);
+        //FIXME relying on "3" is brittle
         flowRuleService.setErrorFlow(3);
 
         intents = Lists.newArrayList(service.getIntents());
@@ -567,13 +611,14 @@ public class IntentManagerTest {
         final MockIntent intent1 = new MockIntent(MockIntent.nextId());
 
         listener.setLatch(1, Type.INSTALL_REQ);
-        listener.setLatch(1, Type.FAILED);
+        listener.setLatch(1, Type.CORRUPT);
 
         service.submit(intent1);
         listener.await(Type.INSTALL_REQ);
-        listener.await(Type.FAILED);
+        listener.await(Type.CORRUPT);
 
-        assertThat(listener.getCounts(Type.FAILED), is(1));
-        assertThat(flowRuleService.getFlowRuleCount(), is(0));
+        assertThat(listener.getCounts(Type.CORRUPT), is(1));
+        // in this test, there will still be flows abandoned on the data plane
+        //assertThat(flowRuleService.getFlowRuleCount(), is(0));
     }
 }

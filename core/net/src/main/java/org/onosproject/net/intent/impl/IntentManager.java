@@ -132,6 +132,7 @@ public class IntentManager
         trackerService.unsetDelegate(topoDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
         batchExecutor.shutdown();
+        workerExecutor.shutdown();
         Intent.unbindIdGenerator(idGenerator);
         log.info("Stopped");
     }

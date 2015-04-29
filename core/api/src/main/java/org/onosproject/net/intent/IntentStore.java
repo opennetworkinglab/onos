@@ -32,11 +32,21 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     long getIntentCount();
 
     /**
-     * Returns a collection of all intents in the store.
+     * Returns an iterable of all intents in the store.
      *
-     * @return iterable collection of all intents
+     * @return iterable  of all intents
      */
     Iterable<Intent> getIntents();
+
+
+    /**
+     * Returns an iterable of all intent data objects in the store.
+     *
+     * @param localOnly should only intents for which this instance is master
+     *                  should be returned
+     * @return iterable of all intent data objects
+     */
+    Iterable<IntentData> getIntentData(boolean localOnly);
 
     /**
      * Returns the state of the specified intent.

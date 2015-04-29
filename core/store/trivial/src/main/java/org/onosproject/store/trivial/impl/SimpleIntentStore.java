@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.trivial.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -72,6 +73,16 @@ public class SimpleIntentStore
         return current.values().stream()
                 .map(IntentData::intent)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Iterable<IntentData> getIntentData(boolean localOnly) {
+        if (localOnly) {
+            return current.values().stream()
+                    .filter(data -> isMaster(data.key()))
+                    .collect(Collectors.toList());
+        }
+        return Lists.newArrayList(current.values());
     }
 
     @Override

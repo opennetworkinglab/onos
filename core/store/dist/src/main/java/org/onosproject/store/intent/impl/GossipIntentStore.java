@@ -132,6 +132,16 @@ public class GossipIntentStore
     }
 
     @Override
+    public Iterable<IntentData> getIntentData(boolean localOnly) {
+        if (localOnly) {
+            return currentMap.values().stream()
+                    .filter(data -> isMaster(data.key()))
+                    .collect(Collectors.toList());
+        }
+        return currentMap.values();
+    }
+
+    @Override
     public IntentState getIntentState(Key intentKey) {
         IntentData data = currentMap.get(intentKey);
         if (data != null) {

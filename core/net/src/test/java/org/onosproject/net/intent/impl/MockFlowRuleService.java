@@ -15,9 +15,7 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -26,7 +24,11 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleServiceAdapter;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static org.onosproject.net.flow.FlowRuleOperation.Type.REMOVE;
 
 
 public class MockFlowRuleService extends FlowRuleServiceAdapter {
@@ -45,9 +47,10 @@ public class MockFlowRuleService extends FlowRuleServiceAdapter {
 
     @Override
     public void apply(FlowRuleOperations ops) {
+        AtomicBoolean thisSuccess = new AtomicBoolean(success);
         ops.stages().forEach(stage -> stage.forEach(flow -> {
             if (errorFlow == flow.rule().id().value()) {
-                success = false;
+                thisSuccess.set(false);
             } else {
                 switch (flow.type()) {
                     case ADD:
@@ -62,7 +65,7 @@ public class MockFlowRuleService extends FlowRuleServiceAdapter {
                 }
             }
         }));
-        if (success) {
+        if (thisSuccess.get()) {
             ops.callback().onSuccess(ops);
         } else {
             ops.callback().onError(ops);
