@@ -40,8 +40,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
         description = "Finds the leader for particular topic.")
 public class LeaderCommand extends AbstractShellCommand {
 
-    private static final String FMT = "%-20s | %-15s | %-6s | %-10s |";
-    private static final String FMT_C = "%-20s | %-15s | %-19s |";
+    private static final String FMT = "%-30s | %-15s | %-6s | %-10s |";
+    private static final String FMT_C = "%-30s | %-15s | %-19s |";
     private boolean allTopics;
     private Pattern pattern;
 
@@ -77,9 +77,9 @@ public class LeaderCommand extends AbstractShellCommand {
      * @param leaderBoard map of leaders
      */
     private void displayLeaders(Map<String, Leadership> leaderBoard) {
-        print("--------------------------------------------------------------");
+        print("------------------------------------------------------------------------");
         print(FMT, "Topic", "Leader", "Epoch", "Elected");
-        print("--------------------------------------------------------------");
+        print("------------------------------------------------------------------------");
 
         leaderBoard.values()
                 .stream()
@@ -90,14 +90,14 @@ public class LeaderCommand extends AbstractShellCommand {
                         l.leader(),
                         l.epoch(),
                         Tools.timeAgo(l.electedTime())));
-        print("--------------------------------------------------------------");
+        print("------------------------------------------------------------------------");
     }
 
     private void displayCandidates(Map<String, Leadership> leaderBoard,
             Map<String, List<NodeId>> candidates) {
-        print("--------------------------------------------------------------");
+        print("------------------------------------------------------------------------");
         print(FMT_C, "Topic", "Leader", "Candidates");
-        print("--------------------------------------------------------------");
+        print("------------------------------------------------------------------------");
          candidates
                 .entrySet()
                 .stream()
@@ -116,7 +116,7 @@ public class LeaderCommand extends AbstractShellCommand {
                             list.subList(1, list.size()).forEach(n -> print(FMT_C, " ", " ", n));
                             print(FMT_C, " ", " ", " ");
                         });
-        print("--------------------------------------------------------------");
+         print("------------------------------------------------------------------------");
     }
 
     /**

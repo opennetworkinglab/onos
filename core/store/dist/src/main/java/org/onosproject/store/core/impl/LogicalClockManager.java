@@ -36,12 +36,12 @@ public class LogicalClockManager implements LogicalClockService {
                                       .withName(SYSTEM_LOGICAL_CLOCK_COUNTER_NAME)
                                       .withPartitionsDisabled()
                                       .build();
-        log.info("Started.");
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        log.info("Stopped.");
+        log.info("Stopped");
     }
 
     @Override

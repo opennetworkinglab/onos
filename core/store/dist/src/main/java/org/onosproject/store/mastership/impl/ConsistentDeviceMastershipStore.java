@@ -69,7 +69,7 @@ import com.google.common.collect.Sets;
 /**
  * Implementation of the MastershipStore on top of Leadership Service.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class ConsistentDeviceMastershipStore
     extends AbstractStore<MastershipEvent, MastershipStoreDelegate>
@@ -95,9 +95,8 @@ public class ConsistentDeviceMastershipStore
             new MessageSubject("mastership-store-device-role-relinquish");
 
     private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN =
-            Pattern.compile("/devices/(.*)/mastership");
+            Pattern.compile("device:(.*)");
 
-    private static final long PEER_REQUEST_TIMEOUT_MS = 5000;
     private ExecutorService messageHandlingExecutor;
     private final LeadershipEventListener leadershipEventListener =
             new InternalDeviceMastershipEventListener();
@@ -345,7 +344,7 @@ public class ConsistentDeviceMastershipStore
     }
 
     private String createDeviceMastershipTopic(DeviceId deviceId) {
-        return "/devices/" + deviceId.toString() + "/mastership";
+        return String.format("device:%s", deviceId.toString());
     }
 
     private DeviceId extractDeviceIdFromTopic(String topic) {

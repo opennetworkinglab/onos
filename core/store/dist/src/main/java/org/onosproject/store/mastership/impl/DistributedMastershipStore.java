@@ -60,7 +60,7 @@ import static org.onosproject.net.MastershipRole.*;
  * Distributed implementation of the mastership store. The store is
  * responsible for the master selection process.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class DistributedMastershipStore
     extends AbstractHazelcastStore<MastershipEvent, MastershipStoreDelegate>
