@@ -49,7 +49,7 @@ public interface TrafficSelector {
     /**
      * Builder of traffic selector entities.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Adds a traffic selection criterion. If a same type criterion has
@@ -66,7 +66,7 @@ public interface TrafficSelector {
          * @param port the inport
          * @return a selection builder
          */
-        public Builder matchInPort(PortNumber port);
+        Builder matchInPort(PortNumber port);
 
         /**
          * Matches a physical inport.
@@ -74,7 +74,7 @@ public interface TrafficSelector {
          * @param port the physical inport
          * @return a selection builder
          */
-        public Builder matchInPhyPort(PortNumber port);
+        Builder matchInPhyPort(PortNumber port);
 
         /**
          * Matches a metadata.
@@ -82,7 +82,7 @@ public interface TrafficSelector {
          * @param metadata the metadata
          * @return a selection builder
          */
-        public Builder matchMetadata(long metadata);
+        Builder matchMetadata(long metadata);
 
         /**
          * Matches a l2 dst address.
@@ -90,7 +90,7 @@ public interface TrafficSelector {
          * @param addr a l2 address
          * @return a selection builder
          */
-        public Builder matchEthDst(MacAddress addr);
+        Builder matchEthDst(MacAddress addr);
 
         /**
          * Matches a l2 src address.
@@ -98,7 +98,7 @@ public interface TrafficSelector {
          * @param addr a l2 address
          * @return a selection builder
          */
-        public Builder matchEthSrc(MacAddress addr);
+        Builder matchEthSrc(MacAddress addr);
 
         /**
          * Matches the ethernet type.
@@ -106,7 +106,7 @@ public interface TrafficSelector {
          * @param ethType an ethernet type
          * @return a selection builder
          */
-        public Builder matchEthType(short ethType);
+        Builder matchEthType(short ethType);
 
         /**
          * Matches the vlan id.
@@ -114,7 +114,7 @@ public interface TrafficSelector {
          * @param vlanId a vlan id
          * @return a selection builder
          */
-        public Builder matchVlanId(VlanId vlanId);
+        Builder matchVlanId(VlanId vlanId);
 
         /**
          * Matches a vlan priority.
@@ -122,7 +122,7 @@ public interface TrafficSelector {
          * @param vlanPcp a vlan priority
          * @return a selection builder
          */
-        public Builder matchVlanPcp(byte vlanPcp);
+        Builder matchVlanPcp(byte vlanPcp);
 
         /**
          * Matches an IP DSCP (6 bits in ToS field).
@@ -130,7 +130,7 @@ public interface TrafficSelector {
          * @param ipDscp an IP DSCP value
          * @return a selection builder
          */
-        public Builder matchIPDscp(byte ipDscp);
+        Builder matchIPDscp(byte ipDscp);
 
         /**
          * Matches an IP ECN (2 bits in ToS field).
@@ -138,7 +138,7 @@ public interface TrafficSelector {
          * @param ipEcn an IP ECN value
          * @return a selection builder
          */
-        public Builder matchIPEcn(byte ipEcn);
+        Builder matchIPEcn(byte ipEcn);
 
         /**
          * Matches the l3 protocol.
@@ -146,7 +146,7 @@ public interface TrafficSelector {
          * @param proto a l3 protocol
          * @return a selection builder
          */
-        public Builder matchIPProtocol(byte proto);
+        Builder matchIPProtocol(byte proto);
 
         /**
          * Matches a l3 IPv4 address.
@@ -154,7 +154,7 @@ public interface TrafficSelector {
          * @param ip a l3 address
          * @return a selection builder
          */
-        public Builder matchIPSrc(IpPrefix ip);
+        Builder matchIPSrc(IpPrefix ip);
 
         /**
          * Matches a l3 IPv4 address.
@@ -162,7 +162,7 @@ public interface TrafficSelector {
          * @param ip a l3 address
          * @return a selection builder
          */
-        public Builder matchIPDst(IpPrefix ip);
+        Builder matchIPDst(IpPrefix ip);
 
         /**
          * Matches a TCP source port number.
@@ -170,7 +170,7 @@ public interface TrafficSelector {
          * @param tcpPort a TCP source port number
          * @return a selection builder
          */
-        public Builder matchTcpSrc(short tcpPort);
+        Builder matchTcpSrc(short tcpPort);
 
         /**
          * Matches a TCP destination port number.
@@ -178,7 +178,7 @@ public interface TrafficSelector {
          * @param tcpPort a TCP destination port number
          * @return a selection builder
          */
-        public Builder matchTcpDst(short tcpPort);
+        Builder matchTcpDst(short tcpPort);
 
         /**
          * Matches an UDP source port number.
@@ -186,7 +186,7 @@ public interface TrafficSelector {
          * @param udpPort an UDP source port number
          * @return a selection builder
          */
-        public Builder matchUdpSrc(short udpPort);
+        Builder matchUdpSrc(short udpPort);
 
         /**
          * Matches an UDP destination port number.
@@ -194,7 +194,7 @@ public interface TrafficSelector {
          * @param udpPort an UDP destination port number
          * @return a selection builder
          */
-        public Builder matchUdpDst(short udpPort);
+        Builder matchUdpDst(short udpPort);
 
         /**
          * Matches a SCTP source port number.
@@ -202,7 +202,7 @@ public interface TrafficSelector {
          * @param sctpPort a SCTP source port number
          * @return a selection builder
          */
-        public Builder matchSctpSrc(short sctpPort);
+        Builder matchSctpSrc(short sctpPort);
 
         /**
          * Matches a SCTP destination port number.
@@ -210,7 +210,7 @@ public interface TrafficSelector {
          * @param sctpPort a SCTP destination port number
          * @return a selection builder
          */
-        public Builder matchSctpDst(short sctpPort);
+        Builder matchSctpDst(short sctpPort);
 
         /**
          * Matches an ICMP type.
@@ -218,7 +218,7 @@ public interface TrafficSelector {
          * @param icmpType an ICMP type
          * @return a selection builder
          */
-        public Builder matchIcmpType(byte icmpType);
+        Builder matchIcmpType(byte icmpType);
 
         /**
          * Matches an ICMP code.
@@ -226,7 +226,7 @@ public interface TrafficSelector {
          * @param icmpCode an ICMP code
          * @return a selection builder
          */
-        public Builder matchIcmpCode(byte icmpCode);
+        Builder matchIcmpCode(byte icmpCode);
 
         /**
          * Matches a l3 IPv6 address.
@@ -234,7 +234,7 @@ public interface TrafficSelector {
          * @param ip a l3 IPv6 address
          * @return a selection builder
          */
-        public Builder matchIPv6Src(IpPrefix ip);
+        Builder matchIPv6Src(IpPrefix ip);
 
         /**
          * Matches a l3 IPv6 address.
@@ -242,7 +242,7 @@ public interface TrafficSelector {
          * @param ip a l3 IPv6 address
          * @return a selection builder
          */
-        public Builder matchIPv6Dst(IpPrefix ip);
+        Builder matchIPv6Dst(IpPrefix ip);
 
         /**
          * Matches an IPv6 flow label.
@@ -250,7 +250,7 @@ public interface TrafficSelector {
          * @param flowLabel an IPv6 flow label
          * @return a selection builder
          */
-        public Builder matchIPv6FlowLabel(int flowLabel);
+        Builder matchIPv6FlowLabel(int flowLabel);
 
         /**
          * Matches an ICMPv6 type.
@@ -258,7 +258,7 @@ public interface TrafficSelector {
          * @param icmpv6Type an ICMPv6 type
          * @return a selection builder
          */
-        public Builder matchIcmpv6Type(byte icmpv6Type);
+        Builder matchIcmpv6Type(byte icmpv6Type);
 
         /**
          * Matches an ICMPv6 code.
@@ -266,7 +266,7 @@ public interface TrafficSelector {
          * @param icmpv6Code an ICMPv6 code
          * @return a selection builder
          */
-        public Builder matchIcmpv6Code(byte icmpv6Code);
+        Builder matchIcmpv6Code(byte icmpv6Code);
 
         /**
          * Matches an IPv6 Neighbor Discovery target address.
@@ -274,7 +274,7 @@ public interface TrafficSelector {
          * @param targetAddress an IPv6 Neighbor Discovery target address
          * @return a selection builder
          */
-        public Builder matchIPv6NDTargetAddress(Ip6Address targetAddress);
+        Builder matchIPv6NDTargetAddress(Ip6Address targetAddress);
 
         /**
          * Matches an IPv6 Neighbor Discovery source link-layer address.
@@ -282,7 +282,7 @@ public interface TrafficSelector {
          * @param mac an IPv6 Neighbor Discovery source link-layer address
          * @return a selection builder
          */
-        public Builder matchIPv6NDSourceLinkLayerAddress(MacAddress mac);
+        Builder matchIPv6NDSourceLinkLayerAddress(MacAddress mac);
 
         /**
          * Matches an IPv6 Neighbor Discovery target link-layer address.
@@ -290,7 +290,7 @@ public interface TrafficSelector {
          * @param mac an IPv6 Neighbor Discovery target link-layer address
          * @return a selection builder
          */
-        public Builder matchIPv6NDTargetLinkLayerAddress(MacAddress mac);
+        Builder matchIPv6NDTargetLinkLayerAddress(MacAddress mac);
 
         /**
          * Matches on a MPLS label.
@@ -298,7 +298,7 @@ public interface TrafficSelector {
          * @param mplsLabel a MPLS label.
          * @return a selection builder
          */
-        public Builder matchMplsLabel(MplsLabel mplsLabel);
+        Builder matchMplsLabel(MplsLabel mplsLabel);
 
         /**
          * Matches on IPv6 Extension Header pseudo-field fiags.
@@ -306,7 +306,7 @@ public interface TrafficSelector {
          * @param exthdrFlags the IPv6 Extension Header pseudo-field fiags
          * @return a selection builder
          */
-        public Builder matchIPv6ExthdrFlags(short exthdrFlags);
+        Builder matchIPv6ExthdrFlags(short exthdrFlags);
 
         /**
          * Matches an optical signal ID or lambda.
@@ -314,7 +314,7 @@ public interface TrafficSelector {
          * @param lambda lamda
          * @return a selection builder
          */
-        public Builder matchLambda(short lambda);
+        Builder matchLambda(short lambda);
 
         /**
          * Matches an optical Signal Type.
@@ -322,7 +322,7 @@ public interface TrafficSelector {
          * @param signalType signalType
          * @return a selection builder
          */
-        public Builder matchOpticalSignalType(short signalType);
+        Builder matchOpticalSignalType(short signalType);
 
         /**
          * Builds an immutable traffic selector.
