@@ -50,7 +50,7 @@ public interface IntentProcessPhase {
             case WITHDRAW_REQ:
                 return new WithdrawRequest(processor, data, Optional.ofNullable(current));
             case PURGE_REQ:
-                return new PurgeRequest(data, current);
+                return new PurgeRequest(data, Optional.ofNullable(current));
             default:
                 // illegal state
                 return new Failed(data);

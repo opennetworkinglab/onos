@@ -19,6 +19,8 @@ import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentState;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -32,29 +34,37 @@ final class PurgeRequest extends FinalIntentProcessPhase {
 
     private static final Logger log = getLogger(PurgeRequest.class);
 
-    private final IntentData pending;
-    private final IntentData current;
+    private final IntentData data;
+    private final Optional<IntentData> stored;
 
-    PurgeRequest(IntentData intentData, IntentData current) {
-        this.pending = checkNotNull(intentData);
-        this.current = checkNotNull(current);
+    PurgeRequest(IntentData intentData, Optional<IntentData> stored) {
+        this.data = checkNotNull(intentData);
+        this.stored = checkNotNull(stored);
     }
 
     private boolean shouldAcceptPurge() {
-        if (current.state() == IntentState.WITHDRAWN
-                || current.state() == IntentState.FAILED) {
+        if (!stored.isPresent()) {
+            log.info("Purge for intent {}, but intent is not present",
+                     data.key());
             return true;
         }
-        log.info("Purge for intent {} is rejected", pending.key());
+
+        IntentData storedData = stored.get();
+        if (storedData.state() == IntentState.WITHDRAWN
+                || storedData.state() == IntentState.FAILED) {
+            return true;
+        }
+        log.info("Purge for intent {} is rejected because intent state is {}",
+                 data.key(), storedData.state());
         return false;
     }
 
     @Override
     public IntentData data() {
         if (shouldAcceptPurge()) {
-            return pending;
+            return data;
         } else {
-            return current;
+            return stored.get();
         }
     }
 }
