@@ -59,6 +59,7 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             OFDescStatsReply desc, OFVersion ofv) {
         String vendor = desc.getMfrDesc();
         String hw = desc.getHwDesc();
+        String sw = desc.getSwDesc();
 
         if (dpid.equals(corsaDpid)) {
             if (hw.startsWith("Open vSwitch")) {
@@ -90,7 +91,12 @@ public final class DriverManager implements OpenFlowSwitchDriverFactory {
             }
         }
 
-        String sw = desc.getSwDesc();
+        if (vendor.equals("Pica8, Inc.") && sw.startsWith("PicOS") &&
+                ofv == OFVersion.OF_13) {
+            return new OFSwitchImplOVS13(dpid, desc);
+        }
+
+
         if (sw.startsWith("LINC-OE")) {
             log.warn("Optical Emulator LINC-OE with DPID:{} found..", dpid);
             return new OFOpticalSwitchImplLINC13(dpid, desc);
