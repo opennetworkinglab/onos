@@ -29,6 +29,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
@@ -265,24 +266,33 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      */
     protected TrafficTreatment buildTrafficTreatment() {
         final TrafficTreatment.Builder treatmentBuilder = builder();
+        boolean emptyTreatment = true;
 
         if (!isNullOrEmpty(setEthSrcString)) {
             treatmentBuilder.setEthSrc(MacAddress.valueOf(setEthSrcString));
+            emptyTreatment = false;
         }
 
         if (!isNullOrEmpty(setEthDstString)) {
             treatmentBuilder.setEthDst(MacAddress.valueOf(setEthDstString));
+            emptyTreatment = false;
         }
 
         if (!isNullOrEmpty(setIpSrcString)) {
             treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpSrcString));
+            emptyTreatment = false;
         }
 
         if (!isNullOrEmpty(setIpDstString)) {
             treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpDstString));
+            emptyTreatment = false;
         }
 
-        return treatmentBuilder.build();
+        if (emptyTreatment) {
+            return DefaultTrafficTreatment.emptyTreatment();
+        } else {
+            return treatmentBuilder.build();
+        }
     }
 
     /**
