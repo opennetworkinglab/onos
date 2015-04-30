@@ -21,6 +21,7 @@ import org.onosproject.net.intent.impl.IntentProcessor;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.transferErrorCount;
 
 /**
  * Represents a phase where intent installation has been requested.
@@ -47,6 +48,8 @@ final class InstallRequest implements IntentProcessPhase {
 
     @Override
     public Optional<IntentProcessPhase> execute() {
+        transferErrorCount(data, stored);
+
         return Optional.of(new Compiling(processor, data, stored));
     }
 }

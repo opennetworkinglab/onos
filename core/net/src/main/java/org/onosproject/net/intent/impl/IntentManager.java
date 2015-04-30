@@ -448,6 +448,7 @@ public class IntentManager
                     log.warn("Failed installation: {} {} on {}",
                              installData.key(), installData.intent(), ops);
                     installData.setState(CORRUPT);
+                    installData.incrementErrorCount();
                     store.write(installData);
                 }
                 // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
@@ -456,6 +457,7 @@ public class IntentManager
                     log.warn("Failed withdrawal: {} {} on {}",
                              uninstallData.key(), uninstallData.intent(), ops);
                     uninstallData.setState(CORRUPT);
+                    uninstallData.incrementErrorCount();
                     store.write(uninstallData);
                 }
             }

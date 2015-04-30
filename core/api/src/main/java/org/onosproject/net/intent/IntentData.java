@@ -44,6 +44,7 @@ public class IntentData { //FIXME need to make this "immutable"
     private IntentState state;
     private Timestamp version;
     private NodeId origin;
+    private int errorCount;
 
     private List<Intent> installables;
 
@@ -75,6 +76,7 @@ public class IntentData { //FIXME need to make this "immutable"
         version = intentData.version;
         origin = intentData.origin;
         installables = intentData.installables;
+        errorCount = intentData.errorCount;
     }
 
     // kryo constructor
@@ -162,6 +164,32 @@ public class IntentData { //FIXME need to make this "immutable"
      */
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    /**
+     * Increments the error count for this intent.
+     */
+    public void incrementErrorCount() {
+        errorCount++;
+    }
+
+    /**
+     * Sets the error count for this intent.
+     *
+     * @param newCount new count
+     */
+    public void setErrorCount(int newCount) {
+        errorCount = newCount;
+    }
+
+    /**
+     * Returns the number of times that this intent has encountered an error
+     * during installation or withdrawal.
+     *
+     * @return error count
+     */
+    public int errorCount() {
+        return errorCount;
     }
 
     /**

@@ -21,6 +21,7 @@ import org.onosproject.net.intent.impl.IntentProcessor;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.transferErrorCount;
 
 /**
  * Represents a phase of requesting a withdraw of an intent.
@@ -50,6 +51,8 @@ final class WithdrawRequest implements IntentProcessPhase {
         //TODO perhaps we want to validate that the pending and current are the
         // same version i.e. they are the same
         // Note: this call is not just the symmetric version of submit
+
+        transferErrorCount(data, stored);
 
         if (!stored.isPresent() || stored.get().installables().isEmpty()) {
             switch (data.request()) {

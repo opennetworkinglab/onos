@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl.phase;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.impl.IntentProcessor;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -54,6 +55,18 @@ public interface IntentProcessPhase {
             default:
                 // illegal state
                 return new Failed(data);
+        }
+    }
+
+    static void transferErrorCount(IntentData data, Optional<IntentData> stored) {
+        if (stored.isPresent()) {
+            IntentData storedData = stored.get();
+            if (Objects.equals(data.intent(), storedData.intent()) &&
+                    Objects.equals(data.request(), storedData.request())) {
+                data.setErrorCount(storedData.errorCount());
+            } else {
+                data.setErrorCount(0);
+            }
         }
     }
 

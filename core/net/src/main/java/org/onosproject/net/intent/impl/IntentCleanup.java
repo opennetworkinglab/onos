@@ -59,11 +59,16 @@ public class IntentCleanup implements Runnable, IntentListener {
     private static final Logger log = getLogger(IntentManager.class);
 
     private static final int DEFAULT_PERIOD = 5; //seconds
+    private static final int DEFAULT_THRESHOLD = 5; //tries
 
     @Property(name = "period", intValue = DEFAULT_PERIOD,
               label = "Frequency in ms between cleanup runs")
     protected int period = DEFAULT_PERIOD;
     private long periodMs;
+
+    @Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
+            label = "Number of times to retry CORRUPT intent without delay")
+    private int retryThreshold = DEFAULT_THRESHOLD;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService service;
@@ -106,6 +111,9 @@ public class IntentCleanup implements Runnable, IntentListener {
         try {
             String s = get(properties, "period");
             newPeriod = isNullOrEmpty(s) ? period : Integer.parseInt(s.trim());
+
+            s = get(properties, "retryThreshold");
+            retryThreshold = isNullOrEmpty(s) ? period : Integer.parseInt(s.trim());
         } catch (NumberFormatException e) {
             log.warn(e.getMessage());
             newPeriod = period;
@@ -147,9 +155,9 @@ public class IntentCleanup implements Runnable, IntentListener {
     }
 
     private void resubmitCorrupt(IntentData intentData, boolean checkThreshold) {
-        //TODO we might want to give up when retry count exceeds a threshold
-        // FIXME drop this if we exceed retry threshold
-
+        if (checkThreshold && intentData.errorCount() >= retryThreshold) {
+            return; // threshold met or exceeded
+        }
 
         switch (intentData.request()) {
             case INSTALL_REQ:
@@ -211,7 +219,7 @@ public class IntentCleanup implements Runnable, IntentListener {
 
     @Override
     public void event(IntentEvent event) {
-        // fast path for CORRUPT intents, retry on event notification
+        // this is the fast path for CORRUPT intents, retry on event notification.
         //TODO we might consider using the timer to back off for subsequent retries
         if (event.type() == IntentEvent.Type.CORRUPT) {
             Key key = event.subject().key();
