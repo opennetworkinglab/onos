@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2015 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
   -->
 <archetype-descriptor
         xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
-        name="onos-cli" partial="true"
+        name="onos-ui" partial="true"
         xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <fileSets>
@@ -29,7 +29,9 @@
         <fileSet filtered="true" packaged="false" encoding="UTF-8">
             <directory>src/main/resources</directory>
             <includes>
-                <include>**/*.xml</include>
+                <include>**/*.html</include>
+                <include>**/*.js</include>
+                <include>**/*.css</include>
             </includes>
         </fileSet>
     </fileSets>

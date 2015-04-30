@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class AppComponent {
 
-    private static Logger log = LoggerFactory.getLogger(AppComponent.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Activate
     protected void activate() {

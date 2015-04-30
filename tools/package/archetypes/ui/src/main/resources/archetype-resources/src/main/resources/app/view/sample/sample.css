@@ -1,0 +1,16 @@
+/* css for sample app view */
+
+#ov-sample p {
+    margin: 0 30px;
+    padding: 10px;
+    border: 2px solid;
+}
+
+.light #ov-sample p {
+    color: darkblue;
+    border-color: #88c;
+}
+.dark #ov-sample p {
+    color: #aac;
+    border-color: #448;
+}

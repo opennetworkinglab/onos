@@ -36,6 +36,7 @@
         <module>api</module>
         <module>bundle</module>
         <module>cli</module>
+        <module>ui</module>
     </modules>
 
     <build>
