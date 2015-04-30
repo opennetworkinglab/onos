@@ -27,11 +27,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -66,12 +63,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static org.onlab.util.Tools.delay;
 
 /**
  * BgpRouter component.
@@ -226,7 +220,7 @@ public class BgpRouter {
 
         for (FibUpdate update : withdraws) {
             FibEntry entry = update.entry();
-            Integer nextId = nextHops.get(entry.nextHopIp());
+            //Integer nextId = nextHops.get(entry.nextHopIp());
 
            /* Group group = deleteNextHop(entry.prefix());
             if (group == null) {
@@ -235,7 +229,7 @@ public class BgpRouter {
             }*/
 
             flowObjectiveService.forward(deviceId,
-                generateRibForwardingObj(entry.prefix(), nextId).remove());
+                generateRibForwardingObj(entry.prefix(), null).remove());
 
         }
 
@@ -253,11 +247,15 @@ public class BgpRouter {
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
-                .nextStep(nextId)
                 .withSelector(selector)
                 .withPriority(priority)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
 
+        if (nextId == null) {
+            fwdBuilder.withTreatment(DefaultTrafficTreatment.builder().build());
+        } else {
+            fwdBuilder.nextStep(nextId);
+        }
         return fwdBuilder;
     }
 
@@ -384,13 +382,14 @@ public class BgpRouter {
                         if (event.subject().id().equals(deviceId)) {
                             processIntfFilters(true, configService.getInterfaces());
 
-                            /* For test only - will be removed before Cardinal release */
+                            /* For test only - will be removed before Cardinal release
                             delay(1000);
                             FibEntry fibEntry = new FibEntry(Ip4Prefix.valueOf("10.1.0.0/16"),
                                     Ip4Address.valueOf("192.168.10.1"),
                                     MacAddress.valueOf("DE:AD:BE:EF:FE:ED"));
                             FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
                             updateFibEntry(Collections.singletonList(fibUpdate));
+                            */
                         }
 
                         if (event.subject().id().equals(ctrlDeviceId)) {

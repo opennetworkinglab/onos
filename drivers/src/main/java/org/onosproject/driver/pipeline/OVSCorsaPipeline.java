@@ -317,28 +317,26 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                                         selector.getCriterion(Criterion.Type.IPV4_DST)).ip())
                         .build();
 
-        NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
 
-        GroupKey key = appKryo.deserialize(next.data());
-
-        Group group = groupService.getGroup(deviceId, key);
-
-        if (group == null) {
-            log.warn("The group left!");
-            fail(fwd, ObjectiveError.GROUPMISSING);
-            return Collections.emptySet();
+        if (fwd.nextId() != null) {
+            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+            GroupKey key = appKryo.deserialize(next.data());
+            Group group = groupService.getGroup(deviceId, key);
+            if (group == null) {
+                log.warn("The group left!");
+                fail(fwd, ObjectiveError.GROUPMISSING);
+                return Collections.emptySet();
+            }
+            tb.group(group.id());
         }
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .group(group.id())
-                .build();
 
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority())
                 .forDevice(deviceId)
                 .withSelector(filteredSelector)
-                .withTreatment(treatment);
+                .withTreatment(tb.build());
 
         if (fwd.permanent()) {
             ruleBuilder.makePermanent();
