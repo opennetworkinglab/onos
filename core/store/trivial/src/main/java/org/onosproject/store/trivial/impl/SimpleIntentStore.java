@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.PURGE_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -76,11 +76,15 @@ public class SimpleIntentStore
     }
 
     @Override
-    public Iterable<IntentData> getIntentData(boolean localOnly) {
-        if (localOnly) {
-            return current.values().stream()
-                    .filter(data -> isMaster(data.key()))
+    public Iterable<IntentData> getIntentData(boolean localOnly, long olderThan) {
+        if (localOnly || olderThan > 0) {
+            long older = System.nanoTime() - olderThan * 1_000_000; //convert ms to ns
+            final SystemClockTimestamp time = new SystemClockTimestamp(older);
+            return pending.values().stream()
+                    .filter(data -> data.version().isOlderThan(time) &&
+                            (!localOnly || isMaster(data.key())))
                     .collect(Collectors.toList());
+
         }
         return Lists.newArrayList(current.values());
     }
@@ -189,6 +193,21 @@ public class SimpleIntentStore
     public Iterable<Intent> getPending() {
         return pending.values().stream()
                 .map(IntentData::intent)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Iterable<IntentData> getPendingData() {
+        return Lists.newArrayList(pending.values());
+    }
+
+    @Override
+    public Iterable<IntentData> getPendingData(boolean localOnly, long olderThan) {
+        long older = System.nanoTime() - olderThan * 1_000_000; //convert ms to ns
+        final SystemClockTimestamp time = new SystemClockTimestamp(older);
+        return pending.values().stream()
+                .filter(data -> data.version().isOlderThan(time) &&
+                        (!localOnly || isMaster(data.key())))
                 .collect(Collectors.toList());
     }
 }

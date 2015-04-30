@@ -29,10 +29,14 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class SystemClockTimestamp implements Timestamp {
 
-    private final long unixTimestamp;
+    private final long nanoTimestamp;
 
     public SystemClockTimestamp() {
-        unixTimestamp = System.nanoTime();
+        nanoTimestamp = System.nanoTime();
+    }
+
+    public SystemClockTimestamp(long timestamp) {
+        nanoTimestamp = timestamp;
     }
 
     @Override
@@ -42,12 +46,12 @@ public class SystemClockTimestamp implements Timestamp {
         SystemClockTimestamp that = (SystemClockTimestamp) o;
 
         return ComparisonChain.start()
-                .compare(this.unixTimestamp, that.unixTimestamp)
+                .compare(this.nanoTimestamp, that.nanoTimestamp)
                 .result();
     }
     @Override
     public int hashCode() {
-        return Objects.hash(unixTimestamp);
+        return Objects.hash(nanoTimestamp);
     }
 
     @Override
@@ -59,17 +63,21 @@ public class SystemClockTimestamp implements Timestamp {
             return false;
         }
         SystemClockTimestamp that = (SystemClockTimestamp) obj;
-        return Objects.equals(this.unixTimestamp, that.unixTimestamp);
+        return Objects.equals(this.nanoTimestamp, that.nanoTimestamp);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                    .add("unixTimestamp", unixTimestamp)
+                    .add("nanoTimestamp", nanoTimestamp)
                     .toString();
     }
 
+    public long nanoTimestamp() {
+        return nanoTimestamp;
+    }
+
     public long systemTimestamp() {
-        return unixTimestamp;
+        return nanoTimestamp / 1_000_000; // convert ns to ms
     }
 }

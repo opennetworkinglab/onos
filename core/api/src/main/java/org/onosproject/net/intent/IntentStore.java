@@ -43,10 +43,11 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * Returns an iterable of all intent data objects in the store.
      *
      * @param localOnly should only intents for which this instance is master
-     *                  should be returned
+     *                  be returned
+     * @param olderThan specified duration in milliseconds (0 for "now")
      * @return iterable of all intent data objects
      */
-    Iterable<IntentData> getIntentData(boolean localOnly);
+    Iterable<IntentData> getIntentData(boolean localOnly, long olderThan);
 
     /**
      * Returns the state of the specified intent.
@@ -119,4 +120,22 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
      * @return pending intents
      */
     Iterable<Intent> getPending();
+
+    /**
+     * Returns the intent data objects that are pending processing.
+     *
+     * @return pending intent data objects
+     */
+    Iterable<IntentData> getPendingData();
+
+    /**
+     * Returns the intent data objects that are pending processing for longer
+     * than the specified duration.
+     *
+     * @param localOnly  should only intents for which this instance is master
+     *                   be returned
+     * @param olderThan specified duration in milliseconds (0 for "now")
+     * @return pending intent data objects
+     */
+    Iterable<IntentData> getPendingData(boolean localOnly, long olderThan);
 }

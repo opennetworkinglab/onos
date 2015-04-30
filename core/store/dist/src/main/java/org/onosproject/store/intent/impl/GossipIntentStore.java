@@ -132,10 +132,13 @@ public class GossipIntentStore
     }
 
     @Override
-    public Iterable<IntentData> getIntentData(boolean localOnly) {
-        if (localOnly) {
+    public Iterable<IntentData> getIntentData(boolean localOnly, long olderThan) {
+        if (localOnly || olderThan > 0) {
+            long now = System.currentTimeMillis();
+            final WallClockTimestamp time = new WallClockTimestamp(now - olderThan);
             return currentMap.values().stream()
-                    .filter(data -> isMaster(data.key()))
+                    .filter(data -> data.version().isOlderThan(time) &&
+                            (!localOnly || isMaster(data.key())))
                     .collect(Collectors.toList());
         }
         return currentMap.values();
@@ -258,6 +261,21 @@ public class GossipIntentStore
     public Iterable<Intent> getPending() {
         return pendingMap.values().stream()
                 .map(IntentData::intent)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Iterable<IntentData> getPendingData() {
+        return pendingMap.values();
+    }
+
+    @Override
+    public Iterable<IntentData> getPendingData(boolean localOnly, long olderThan) {
+        long now = System.currentTimeMillis();
+        final WallClockTimestamp time = new WallClockTimestamp(now - olderThan);
+        return pendingMap.values().stream()
+                .filter(data -> data.version().isOlderThan(time) &&
+                                (!localOnly || isMaster(data.key())))
                 .collect(Collectors.toList());
     }
 

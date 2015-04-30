@@ -28,6 +28,7 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentStore;
+import org.onosproject.net.intent.Key;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -41,12 +42,16 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.intent.IntentState.CORRUPT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * FIXME Class to cleanup Intents in CORRUPT state.
- * FIXME move this to its own file eventually (but need executor for now)
+ * This component cleans up intents that have encountered errors or otherwise
+ * stalled during installation or withdrawal.
+ * <p>
+ * It periodically polls (based on configured period) for pending and CORRUPT
+ * intents from the store and retries. It also listens for CORRUPT event
+ * notifications, which signify errors in processing, and retries.
+ * </p>
  */
 @Component(immediate = true)
 public class IntentCleanup implements Runnable, IntentListener {
@@ -58,6 +63,7 @@ public class IntentCleanup implements Runnable, IntentListener {
     @Property(name = "period", intValue = DEFAULT_PERIOD,
               label = "Frequency in ms between cleanup runs")
     protected int period = DEFAULT_PERIOD;
+    private long periodMs;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService service;
@@ -126,7 +132,7 @@ public class IntentCleanup implements Runnable, IntentListener {
             }
         };
 
-        long periodMs = period * 1000; //convert to ms
+        periodMs = period * 1_000; //convert to ms
         timer.scheduleAtFixedRate(timerTask, periodMs, periodMs);
     }
 
@@ -140,41 +146,79 @@ public class IntentCleanup implements Runnable, IntentListener {
         }
     }
 
+    private void resubmitCorrupt(IntentData intentData, boolean checkThreshold) {
+        //TODO we might want to give up when retry count exceeds a threshold
+        // FIXME drop this if we exceed retry threshold
+
+
+        switch (intentData.request()) {
+            case INSTALL_REQ:
+                service.submit(intentData.intent());
+                break;
+            case WITHDRAW_REQ:
+                service.withdraw(intentData.intent());
+                break;
+            default:
+                //TODO this is an error, might want to log it
+                break;
+        }
+    }
+
+    private void resubmitPendingRequest(IntentData intentData) {
+        switch (intentData.request()) {
+            case INSTALL_REQ:
+                service.submit(intentData.intent());
+                break;
+            case WITHDRAW_REQ:
+                service.withdraw(intentData.intent());
+                break;
+            default:
+                //TODO this is an error (or could be purge), might want to log it
+                break;
+        }
+    }
+
     /**
-     * Iterate through CORRUPT intents and re-submit/withdraw.
+     * Iterate through CORRUPT intents and re-submit/withdraw appropriately.
      *
-     * FIXME we want to eventually count number of retries per intent and give up
-     * FIXME we probably also want to look at intents that have been stuck
-     *       in *_REQ or *ING for "too long".
      */
     private void cleanup() {
-        int count = 0;
-        for (IntentData intentData : store.getIntentData(true)) {
-            if (intentData.state() == CORRUPT) {
-                switch (intentData.request()) {
-                    case INSTALL_REQ:
-                        service.submit(intentData.intent());
-                        count++;
-                        break;
-                    case WITHDRAW_REQ:
-                        service.withdraw(intentData.intent());
-                        count++;
-                        break;
-                    default:
-                        //TODO this is an error
-                        break;
-                }
+        int corruptCount = 0, stuckCount = 0, pendingCount = 0;
+        for (IntentData intentData : store.getIntentData(true, periodMs)) {
+            switch (intentData.state()) {
+                case CORRUPT:
+                    resubmitCorrupt(intentData, false);
+                    corruptCount++;
+                case INSTALLING: //FALLTHROUGH
+                case WITHDRAWING:
+                    resubmitPendingRequest(intentData);
+                    stuckCount++;
+                default:
+                    //NOOP
+                    break;
             }
         }
-        log.debug("Intent cleanup ran and resubmitted {} intents", count);
+
+        for (IntentData intentData : store.getPendingData(true, periodMs)) {
+            //TODO should we do age check here, or in the store?
+            resubmitPendingRequest(intentData);
+            stuckCount++;
+        }
+
+        log.debug("Intent cleanup ran and resubmitted {} corrupt, {} stuck, and {} pending intents",
+                  corruptCount, stuckCount, pendingCount);
     }
 
     @Override
     public void event(IntentEvent event) {
+        // fast path for CORRUPT intents, retry on event notification
+        //TODO we might consider using the timer to back off for subsequent retries
         if (event.type() == IntentEvent.Type.CORRUPT) {
-            // FIXME drop this if we exceed retry threshold
-            // just run the whole cleanup script for now
-            executor.submit(this);
+            Key key = event.subject().key();
+            if (store.isMaster(key)) {
+                IntentData data = store.getIntentData(event.subject().key());
+                resubmitCorrupt(data, true);
+            }
         }
     }
 }

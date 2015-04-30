@@ -36,6 +36,10 @@ public class WallClockTimestamp implements Timestamp {
         unixTimestamp = System.currentTimeMillis();
     }
 
+    public WallClockTimestamp(long timestamp) {
+        unixTimestamp = timestamp;
+    }
+
     @Override
     public int compareTo(Timestamp o) {
         checkArgument(o instanceof WallClockTimestamp,
