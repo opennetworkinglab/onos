@@ -45,6 +45,9 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceClockService;
@@ -52,6 +55,9 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
+import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.ProviderId;
@@ -211,7 +217,7 @@ public class GossipDeviceStore
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
-                    initialDelaySec, periodSec, TimeUnit.SECONDS);
+                initialDelaySec, periodSec, TimeUnit.SECONDS);
 
         log.info("Started");
     }
@@ -1017,10 +1023,27 @@ public class GossipDeviceStore
             }
         }
 
-        return portDesc == null ?
-                new DefaultPort(device, number, false, annotations) :
-                new DefaultPort(device, number, isEnabled, portDesc.value().type(),
-                                portDesc.value().portSpeed(), annotations);
+        if (portDesc == null) {
+            return new DefaultPort(device, number, false, annotations);
+        }
+
+        switch (portDesc.value().type()) {
+            case OMS:
+                OmsPortDescription omsPortDesc = (OmsPortDescription) portDesc.value();
+                return new OmsPort(device, number, isEnabled, omsPortDesc.minFrequency(),
+                        omsPortDesc.maxFrequency(), omsPortDesc.grid());
+            case OCH:
+                OchPortDescription ochPortDesc = (OchPortDescription) portDesc.value();
+                return new OchPort(device, number, isEnabled, ochPortDesc.signalType(),
+                        ochPortDesc.isTunable(), ochPortDesc.gridType(), ochPortDesc.channelSpacing(),
+                        ochPortDesc.spacingMultiplier(), ochPortDesc.slotGranularity(), annotations);
+            case ODUCLT:
+                OduCltPortDescription oduCltPortDesc = (OduCltPortDescription) portDesc.value();
+                return new OduCltPort(device, number, isEnabled, oduCltPortDesc.signalType(), annotations);
+            default:
+                return new DefaultPort(device, number, isEnabled, portDesc.value().type(),
+                        portDesc.value().portSpeed(), annotations);
+        }
     }
 
     /**
