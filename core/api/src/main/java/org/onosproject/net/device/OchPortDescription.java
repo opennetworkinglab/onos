@@ -16,9 +16,11 @@
 package org.onosproject.net.device;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.net.OchPort;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.SparseAnnotations;
 
 /**
@@ -26,10 +28,10 @@ import org.onosproject.net.SparseAnnotations;
  */
 public class OchPortDescription extends DefaultPortDescription {
 
-    private final OchPort.SignalType signalType;
+    private final OduSignalType signalType;
     private final boolean isTunable;
-    private final OchPort.GridType gridType;
-    private final OchPort.ChannelSpacing channelSpacing;
+    private final GridType gridType;
+    private final ChannelSpacing channelSpacing;
     // Frequency = 193.1 THz + spacingMultiplier * channelSpacing
     private final int spacingMultiplier;
     // Slot width = slotGranularity * 12.5 GHz
@@ -48,9 +50,9 @@ public class OchPortDescription extends DefaultPortDescription {
      * @param slotGranularity   slow width granularity
      * @param annotations       optional key/value annotations map
      */
-    public OchPortDescription(PortNumber number, boolean isEnabled, OchPort.SignalType signalType,
-                              boolean isTunable, OchPort.GridType gridType,
-                              OchPort.ChannelSpacing channelSpacing,
+    public OchPortDescription(PortNumber number, boolean isEnabled, OduSignalType signalType,
+                              boolean isTunable, GridType gridType,
+                                      ChannelSpacing channelSpacing,
                               int spacingMultiplier, int slotGranularity, SparseAnnotations... annotations) {
         super(number, isEnabled, Port.Type.OCH, 0, annotations);
         this.signalType = signalType;
@@ -73,8 +75,8 @@ public class OchPortDescription extends DefaultPortDescription {
      * @param slotGranularity   slot width granularity
      * @param annotations       optional key/value annotations map
      */
-    public OchPortDescription(PortDescription base, OchPort.SignalType signalType, boolean isTunable,
-                              OchPort.GridType gridType, OchPort.ChannelSpacing channelSpacing,
+    public OchPortDescription(PortDescription base, OduSignalType signalType, boolean isTunable,
+                              GridType gridType, ChannelSpacing channelSpacing,
                               int spacingMultiplier, int slotGranularity, SparseAnnotations annotations) {
         super(base, annotations);
         this.signalType = signalType;
@@ -90,7 +92,7 @@ public class OchPortDescription extends DefaultPortDescription {
      *
      * @return ODU signal type
      */
-    public OchPort.SignalType signalType() {
+    public OduSignalType signalType() {
         return signalType;
     }
 
@@ -108,7 +110,7 @@ public class OchPortDescription extends DefaultPortDescription {
      *
      * @return grid type
      */
-    public OchPort.GridType gridType() {
+    public GridType gridType() {
         return gridType;
     }
 
@@ -117,7 +119,7 @@ public class OchPortDescription extends DefaultPortDescription {
      *
      * @return channel spacing
      */
-    public OchPort.ChannelSpacing channelSpacing() {
+    public ChannelSpacing channelSpacing() {
         return channelSpacing;
     }
 

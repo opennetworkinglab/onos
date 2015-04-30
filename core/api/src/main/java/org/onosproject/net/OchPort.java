@@ -31,41 +31,7 @@ public class OchPort extends DefaultPort {
     public static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
     public static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
 
-    public enum SignalType {
-        ODU0,
-        ODU1,
-        ODU2,
-        ODU2e,
-        ODU3,
-        ODU4
-    }
-
-    public enum GridType {
-        RES,                // ??
-        DWDM,               // Dense Wavelength Division Multiplexing
-        CWDM,               // Coarse WDM
-        FLEX                // Flex Grid
-    }
-
-    public enum ChannelSpacing {
-        CHL_100GHZ(100),        // 100 GHz
-        CHL_50GHZ(50),          // 50 GHz
-        CHL_25GHZ(25),          // 25 GHz
-        CHL_12P5GHZ(12.5),      // 12.5 GHz
-        CHL_6P25GHZ(6.5);       // 6.25 GHz
-
-        private final Frequency frequency;
-
-        ChannelSpacing(double value) {
-            this.frequency = Frequency.ofGHz(value);
-        }
-
-        public Frequency frequency() {
-            return frequency;
-        }
-    }
-
-    private final SignalType signalType;
+    private final OduSignalType signalType;
     private final boolean isTunable;
     private final GridType gridType;
     private final ChannelSpacing channelSpacing;
@@ -89,7 +55,7 @@ public class OchPort extends DefaultPort {
      * @param slotGranularity       slot width granularity
      * @param annotations           optional key/value annotations
      */
-    public OchPort(Element element, PortNumber number, boolean isEnabled, SignalType signalType,
+    public OchPort(Element element, PortNumber number, boolean isEnabled, OduSignalType signalType,
                    boolean isTunable, GridType gridType, ChannelSpacing channelSpacing,
                    int spacingMultiplier, int slotGranularity, Annotations... annotations) {
         super(element, number, isEnabled, Type.OCH, 0, annotations);
@@ -106,7 +72,7 @@ public class OchPort extends DefaultPort {
      *
      * @return ODU signal type
      */
-    public SignalType signalType() {
+    public OduSignalType signalType() {
         return signalType;
     }
 

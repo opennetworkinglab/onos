@@ -43,6 +43,7 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.Version;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -53,6 +54,7 @@ import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
+import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
@@ -62,6 +64,7 @@ import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.flow.CompletedBatchOperation;
@@ -376,9 +379,9 @@ public final class KryoNamespaces {
             .register(Annotations.class)
             .register(OmsPort.class)
             .register(OchPort.class)
-            .register(OchPort.SignalType.class)
-            .register(OchPort.GridType.class)
-            .register(OchPort.ChannelSpacing.class)
+            .register(OduSignalType.class)
+            .register(GridType.class)
+            .register(ChannelSpacing.class)
             .register(OduCltPort.class)
             .register(OduCltPort.SignalType.class)
             .register(

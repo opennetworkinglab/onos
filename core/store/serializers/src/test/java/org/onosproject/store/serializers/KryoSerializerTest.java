@@ -30,6 +30,7 @@ import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -37,6 +38,7 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.Type;
@@ -45,6 +47,7 @@ import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -190,10 +193,10 @@ public class KryoSerializerTest {
 
     @Test
     public void testOchPort() {
-        testSerializedEquals(new OchPort(DEV1, P1, true, OchPort.SignalType.ODU0, false, OchPort.GridType.DWDM,
-                OchPort.ChannelSpacing.CHL_100GHZ, -8, 4));
-        testSerializedEquals(new OchPort(DEV1, P1, true, OchPort.SignalType.ODU0, false, OchPort.GridType.DWDM,
-                OchPort.ChannelSpacing.CHL_100GHZ, -8, 4, A1_2));
+        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, GridType.DWDM,
+                ChannelSpacing.CHL_100GHZ, -8, 4));
+        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, GridType.DWDM,
+                ChannelSpacing.CHL_100GHZ, -8, 4, A1_2));
     }
 
     @Test
@@ -323,10 +326,10 @@ public class KryoSerializerTest {
     @Test
     public void testDefaultLinkResourceRequest() {
         testSerializable(DefaultLinkResourceRequest.builder(IntentId.valueOf(2501), ImmutableList.of())
-                       .addLambdaRequest()
-                       .addBandwidthRequest(32.195)
-                       .build()
-                       );
+                        .addLambdaRequest()
+                        .addBandwidthRequest(32.195)
+                        .build()
+        );
     }
 
     @Test
