@@ -74,7 +74,7 @@ public class SetTestGetCommand extends AbstractShellCommand {
         if (set.isEmpty()) {
             print("[]");
         } else {
-            for (String e : set.toArray(new String[0])) {
+            for (String e : set.toArray(new String[set.size()])) {
                 if (output.isEmpty()) {
                     output += e;
                 } else {
@@ -84,7 +84,9 @@ public class SetTestGetCommand extends AbstractShellCommand {
             print("[%s]", output);
         }
         // Check if given values are in the set
-        if (values.length == 1) {
+        if (values == null) {
+            return;
+        } else if (values.length == 1) {
             // contains
             if (set.contains(values[0])) {
                 print("Set %s contains the value %s", setName, values[0]);
