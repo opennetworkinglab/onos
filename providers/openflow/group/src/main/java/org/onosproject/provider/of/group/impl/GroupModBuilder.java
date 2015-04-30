@@ -35,6 +35,7 @@ import org.projectfloodlight.openflow.protocol.OFGroupDelete;
 import org.projectfloodlight.openflow.protocol.OFGroupMod;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
@@ -210,6 +211,12 @@ public final class GroupModBuilder {
                     actions.add(action.build());
                     break;
                 case GROUP:
+                    Instructions.GroupInstruction grp =
+                            (Instructions.GroupInstruction) i;
+                    OFActionGroup.Builder actgrp = factory.actions().buildGroup()
+                            .setGroup(OFGroup.of(grp.groupId().id()));
+                    actions.add(actgrp.build());
+                    break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());
             }

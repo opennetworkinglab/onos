@@ -252,6 +252,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             new GroupBuckets(
                                     Collections.singletonList(bucket)),
                             key,
+                            null,
                             nextObjective.appId());
                     groupService.addGroup(groupDescription);
                     pendingGroups.put(key, nextObjective);
@@ -274,6 +275,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             GroupDescription.Type.SELECT,
                             new GroupBuckets(buckets),
                             key,
+                            null,
                             nextObjective.appId());
                     groupService.addGroup(groupDescription);
                     pendingGroups.put(key, nextObjective);

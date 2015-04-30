@@ -260,6 +260,8 @@ public class BgpRouter {
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
 
         if (nextId == null) {
+            // Route withdraws are not specified with next hops. Generating
+            // dummy treatment as there is no equivalent nextId info.
             fwdBuilder.withTreatment(DefaultTrafficTreatment.builder().build());
         } else {
             fwdBuilder.nextStep(nextId);

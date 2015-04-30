@@ -21,11 +21,11 @@ package org.onosproject.core;
 public interface GroupId {
 
     /**
-     * Returns a group ID as short value.
+     * Returns a group ID as an integer value.
      * The method is not intended for use by application developers.
      * Return data type may change in the future release.
      *
-     * @return a group ID as short value
+     * @return a group ID as integer value
      */
     int id();
 }

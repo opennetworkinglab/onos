@@ -36,7 +36,7 @@ public enum ObjectiveError {
     GROUPINSTALLATIONFAILED,
 
     /**
-     * The group was reported as installed but is not missing.
+     * The group was reported as installed but is missing.
      */
     GROUPMISSING,
 
@@ -44,6 +44,11 @@ public enum ObjectiveError {
      * The device was not available to install objectives to.
      */
     DEVICEMISSING,
+
+    /**
+     * Incorrect Objective parameters passed in by the caller.
+     */
+    BADPARAMS,
 
     /**
      * An unknown error occurred.

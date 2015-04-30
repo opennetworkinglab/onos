@@ -85,8 +85,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
-
-
     protected static final int MAC_TABLE = 0;
     protected static final int VLAN_MPLS_TABLE = 1;
     protected static final int VLAN_TABLE = 2;
@@ -149,7 +147,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         appId = coreService.registerApplication(
                 "org.onosproject.driver.OVSCorsaPipeline");
 
-        pushDefaultRules();
+        initializePipeline();
     }
 
     @Override
@@ -216,6 +214,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                                     new GroupBuckets(Collections
                                                              .singletonList(bucket)),
                                     key,
+                                    null, // let group service determine group id
                                     nextObjective.appId());
                     groupService.addGroup(groupDescription);
                     pendingGroups.put(key, nextObjective);
@@ -454,7 +453,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         }
     }
 
-    private void pushDefaultRules() {
+    private void initializePipeline() {
         processMacTable(true);
         processVlanMplsTable(true);
         processVlanTable(true);

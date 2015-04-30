@@ -32,11 +32,17 @@ public class DefaultGroupDescription implements GroupDescription {
     private final GroupKey appCookie;
     private final ApplicationId appId;
     private final DeviceId deviceId;
+    private final Integer givenGroupId;
 
     /**
      * Constructor to be used by north bound applications.
      * NOTE: The caller of this subsystem MUST ensure the appCookie
-     * provided in this API is immutable
+     * provided in this API is immutable.
+     * NOTE: The caller may choose to pass in 'null' for the groupId. This is
+     * the typical case, where the caller allows the group subsystem to choose
+     * the groupId in a globally unique way. If the caller passes in the groupId,
+     * the caller MUST ensure that the id is globally unique (not just unique
+     * per device).
      *
      * @param deviceId device identifier
      * @param type type of the group
@@ -49,11 +55,13 @@ public class DefaultGroupDescription implements GroupDescription {
                                    GroupDescription.Type type,
                                    GroupBuckets buckets,
                                    GroupKey appCookie,
+                                   Integer groupId,
                                    ApplicationId appId) {
         this.type = checkNotNull(type);
         this.deviceId = checkNotNull(deviceId);
         this.buckets = checkNotNull(buckets);
         this.appCookie = appCookie;
+        this.givenGroupId = groupId;
         this.appId = appId;
     }
 
@@ -70,6 +78,7 @@ public class DefaultGroupDescription implements GroupDescription {
         this.buckets = groupDesc.buckets();
         this.appCookie = groupDesc.appCookie();
         this.appId = groupDesc.appId();
+        this.givenGroupId = groupDesc.givenGroupId();
     }
 
     /**
@@ -85,7 +94,7 @@ public class DefaultGroupDescription implements GroupDescription {
     public DefaultGroupDescription(DeviceId deviceId,
                                    GroupDescription.Type type,
                                    GroupBuckets buckets) {
-        this(deviceId, type, buckets, null, null);
+        this(deviceId, type, buckets, null, null, null);
     }
 
     /**
@@ -138,6 +147,17 @@ public class DefaultGroupDescription implements GroupDescription {
         return this.buckets;
     }
 
+    /**
+     * Returns groupId passed in by application.
+     *
+     * @return Integer group Id passed in by caller. May be null if caller passed
+     *                 in null during GroupDescription creation.
+     */
+    @Override
+    public Integer givenGroupId() {
+        return this.givenGroupId;
+    }
+
     @Override
     /*
      * The deviceId, type and buckets are used for hash.
@@ -177,6 +197,7 @@ public class DefaultGroupDescription implements GroupDescription {
                 .add("type", type)
                 .add("buckets", buckets)
                 .add("appId", appId)
+                .add("givenGroupId", givenGroupId)
                 .toString();
     }
 }

@@ -213,6 +213,7 @@ public class Controller {
             ofSwitchDriver.init(new Dpid(dpid), desc, ofv);
             ofSwitchDriver.setAgent(agent);
             ofSwitchDriver.setRoleHandler(new RoleManager(ofSwitchDriver));
+            log.info("OpenFlow handshaker found for device {}: {}", dpid, ofSwitchDriver);
             return ofSwitchDriver;
         }
         log.error("No OpenFlow driver for {} : {}", dpid, desc);

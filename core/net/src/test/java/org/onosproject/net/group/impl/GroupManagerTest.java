@@ -177,6 +177,7 @@ public class GroupManagerTest {
                                                                     Group.Type.SELECT,
                                                                     groupBuckets,
                                                                     key,
+                                                                    null,
                                                                     appId);
         groupService.addGroup(newGroupDesc);
         internalProvider.validate(DID, null);
@@ -397,6 +398,7 @@ public class GroupManagerTest {
                 Group.Type.SELECT,
                 groupBuckets,
                 key,
+                null,
                 appId);
         groupService.addGroup(newGroupDesc);
 

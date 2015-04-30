@@ -224,6 +224,7 @@ public class SimpleGroupStoreTest {
                                                  Group.Type.SELECT,
                                                  groupBuckets,
                                                  key,
+                                                 null,
                                                  appId);
         InternalGroupStoreDelegate checkStoreGroupDelegate =
                 new InternalGroupStoreDelegate(key,
@@ -424,6 +425,7 @@ public class SimpleGroupStoreTest {
                 Group.Type.SELECT,
                 groupBuckets,
                 key,
+                null,
                 appId);
         InternalGroupStoreDelegate checkStoreGroupDelegate =
                 new InternalGroupStoreDelegate(key,

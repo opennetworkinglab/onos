@@ -55,5 +55,9 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFCorsaSwitchDriver"/>
     </driver>
+    <driver name="ofdpa" manufacturer="Broadcom Corp." hwVersion="OF-DPA 1.0" swVersion="OF-DPA 1.0">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
+    </driver>
 </drivers>
 

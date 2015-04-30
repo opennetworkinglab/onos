@@ -75,6 +75,14 @@ public interface GroupDescription {
     public GroupKey appCookie();
 
     /**
+     * Returns groupId passed in by caller.
+     *
+     * @return Integer group id passed in by caller. May be null if caller
+     *                 passed in null to let groupService determin the group id.
+     */
+    public Integer givenGroupId();
+
+    /**
      * Returns group buckets of a group.
      *
      * @return GroupBuckets immutable list of group bucket

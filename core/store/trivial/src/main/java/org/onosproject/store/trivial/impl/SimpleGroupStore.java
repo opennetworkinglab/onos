@@ -275,8 +275,13 @@ public class SimpleGroupStore
             return;
         }
 
-        // Get a new group identifier
-        GroupId id = new DefaultGroupId(getFreeGroupIdValue(groupDesc.deviceId()));
+        GroupId id = null;
+        if (groupDesc.givenGroupId() == null) {
+            // Get a new group identifier
+            id = new DefaultGroupId(getFreeGroupIdValue(groupDesc.deviceId()));
+        } else {
+            id = new DefaultGroupId(groupDesc.givenGroupId());
+        }
         // Create a group entry object
         StoredGroupEntry group = new DefaultGroup(id, groupDesc);
         // Insert the newly created group entry into concurrent key and id maps
@@ -324,6 +329,7 @@ public class SimpleGroupStore
                                                         oldGroup.type(),
                                                         updatedBuckets,
                                                         newCookie,
+                                                        oldGroup.givenGroupId(),
                                                         oldGroup.appId());
             StoredGroupEntry newGroup = new DefaultGroup(oldGroup.id(),
                                                      updatedGroupDesc);
@@ -494,6 +500,7 @@ public class SimpleGroupStore
                                                                        group.type(),
                                                                        group.buckets(),
                                                                        group.appCookie(),
+                                                                       group.givenGroupId(),
                                                                        group.appId());
                     storeGroupDescriptionInternal(tmp);
                 }
