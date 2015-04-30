@@ -67,6 +67,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/* For test only - will be removed before Cardinal release
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.MacAddress;
+import java.util.Collections;
+import static org.onlab.util.Tools.delay;
+*/
+
 /**
  * BgpRouter component.
  */
