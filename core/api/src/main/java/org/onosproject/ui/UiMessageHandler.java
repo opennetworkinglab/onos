@@ -138,13 +138,17 @@ public abstract class UiMessageHandler {
      * @return the object node representation
      */
     protected ObjectNode envelope(String type, long sid, ObjectNode payload) {
-        ObjectNode event = mapper.createObjectNode();
-        event.put("event", type);
-        if (sid > 0) {
-            event.put("sid", sid);
-        }
-        event.set("payload", payload);
-        return event;
+        return JsonUtils.envelope(type, sid, payload);
+    }
+
+    /**
+     * Returns the event type from the specified event.
+     *
+     * @param event the event
+     * @return the event type
+     */
+    protected String eventType(ObjectNode event) {
+        return JsonUtils.eventType(event);
     }
 
     /**
@@ -154,7 +158,7 @@ public abstract class UiMessageHandler {
      * @return extracted payload object
      */
     protected ObjectNode payload(ObjectNode event) {
-        return (ObjectNode) event.path("payload");
+        return JsonUtils.payload(event);
     }
 
     /**
@@ -165,7 +169,7 @@ public abstract class UiMessageHandler {
      * @return property as number
      */
     protected long number(ObjectNode node, String name) {
-        return node.path(name).asLong();
+        return JsonUtils.number(node, name);
     }
 
     /**
@@ -176,7 +180,7 @@ public abstract class UiMessageHandler {
      * @return property as a string
      */
     protected String string(ObjectNode node, String name) {
-        return node.path(name).asText();
+        return JsonUtils.string(node, name);
     }
 
     /**
@@ -188,7 +192,21 @@ public abstract class UiMessageHandler {
      * @return property as a string
      */
     protected String string(ObjectNode node, String name, String defaultValue) {
-        return node.path(name).asText(defaultValue);
+        return JsonUtils.string(node, name, defaultValue);
     }
 
+    /**
+     * Concatenates an arbitrary number of objects, using their
+     * toString() methods.
+     *
+     * @param items the items to concatenate
+     * @return a concatenated string
+     */
+    protected static String concat(Object... items) {
+        StringBuilder sb = new StringBuilder();
+        for (Object o : items) {
+            sb.append(o);
+        }
+        return sb.toString();
+    }
 }

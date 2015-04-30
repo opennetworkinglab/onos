@@ -15,13 +15,17 @@
  */
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostService;
+import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +36,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Message handler for host view related messages.
  */
-public class HostViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class HostViewMessageHandler extends UiMessageHandler {
 
     /**
      * Creates a new message handler for the host messages.
@@ -43,18 +47,21 @@ public class HostViewMessageHandler extends AbstractTabularViewMessageHandler {
 
     @Override
     public void process(ObjectNode message) {
+        String type = eventType(message);
+        if (type.equals("hostDataRequest")) {
+            sendHostList(message);
+        }
+    }
+
+    private void sendHostList(ObjectNode message) {
         ObjectNode payload = payload(message);
-        String sortCol = string(payload, "sortCol", "id");
-        String sortDir = string(payload, "sortDir", "asc");
+        RowComparator rc = TableUtils.createRowComparator(payload);
 
         HostService service = get(HostService.class);
         TableRow[] rows = generateTableRows(service);
-        RowComparator rc =
-                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
-        ArrayNode hosts = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("hosts", hosts);
+        rootNode.set("hosts", TableUtils.generateArrayNode(rows));
 
         connection().sendMessage("hostDataResponse", 0, rootNode);
     }
@@ -89,12 +96,11 @@ public class HostViewMessageHandler extends AbstractTabularViewMessageHandler {
             HostLocation location = h.location();
 
             add(TYPE_IID, getTypeIconId(h));
-            add(ID, h.id().toString());
-            add(MAC, h.mac().toString());
-            add(VLAN, h.vlan().toString());
-            add(IPS, h.ipAddresses().toString());
-            add(LOCATION, (location.deviceId().toString() + '/' +
-                           location.port().toString()));
+            add(ID, h.id());
+            add(MAC, h.mac());
+            add(VLAN, h.vlan());
+            add(IPS, h.ipAddresses());
+            add(LOCATION, concat(location.deviceId(), "/", location.port()));
         }
 
         private String getTypeIconId(Host host) {

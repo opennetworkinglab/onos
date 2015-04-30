@@ -15,7 +15,6 @@
  */
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
@@ -32,6 +31,11 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +45,7 @@ import java.util.Set;
 /**
  * Message handler for intent view related messages.
  */
-public class IntentViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class IntentViewMessageHandler extends UiMessageHandler {
 
     /**
      * Creates a new message handler for the intent messages.
@@ -52,18 +56,21 @@ public class IntentViewMessageHandler extends AbstractTabularViewMessageHandler 
 
     @Override
     public void process(ObjectNode message) {
+        String type = eventType(message);
+        if (type.equals("intentDataRequest")) {
+            sendIntentList(message);
+        }
+    }
+
+    private void sendIntentList(ObjectNode message) {
         ObjectNode payload = payload(message);
-        String sortCol = string(payload, "sortCol", "appId");
-        String sortDir = string(payload, "sortDir", "asc");
+        RowComparator rc = TableUtils.createRowComparator(payload);
 
         IntentService service = get(IntentService.class);
         TableRow[] rows = generateTableRows(service);
-        RowComparator rc =
-                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
-        ArrayNode intents = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("intents", intents);
+        rootNode.set("intents", TableUtils.generateArrayNode(rows));
 
         connection().sendMessage("intentDataResponse", 0, rootNode);
     }
@@ -222,10 +229,10 @@ public class IntentViewMessageHandler extends AbstractTabularViewMessageHandler 
         public IntentTableRow(Intent intent) {
             ApplicationId appid = intent.appId();
 
-            add(APP_ID, String.valueOf(appid.id()) + " : " + appid.name());
-            add(KEY, intent.key().toString());
+            add(APP_ID, concat(appid.id(), " : ", appid.name()));
+            add(KEY, intent.key());
             add(TYPE, intent.getClass().getSimpleName());
-            add(PRIORITY, Integer.toString(intent.priority()));
+            add(PRIORITY, intent.priority());
             add(RESOURCES, formatResources(intent));
             add(DETAILS, formatDetails(intent));
         }

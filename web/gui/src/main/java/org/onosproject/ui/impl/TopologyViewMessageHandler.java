@@ -131,7 +131,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
      * Creates a new web-socket for serving data to GUI topology view.
      */
     public TopologyViewMessageHandler() {
-        super(ImmutableSet.of("topoStart", "topoStop",
+        super(ImmutableSet.of("topoStart",
+                              "topoStop",
                               "requestDetails",
                               "updateMeta",
                               "addHostIntent",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.ui.impl;
+package org.onosproject.ui.table;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,18 +30,18 @@ public abstract class AbstractTableRow implements TableRow {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private final Map<String, String> data = new HashMap<>();
+    private final Map<String, String> cells = new HashMap<>();
 
     @Override
     public String get(String key) {
-        return data.get(key);
+        return cells.get(key);
     }
 
     @Override
     public ObjectNode toJsonNode() {
         ObjectNode result = MAPPER.createObjectNode();
         for (String id : columnIds()) {
-            result.put(id, data.get(id));
+            result.put(id, cells.get(id));
         }
         return result;
     }
@@ -54,12 +54,23 @@ public abstract class AbstractTableRow implements TableRow {
     protected abstract String[] columnIds();
 
     /**
-     * Add a column ID to value binding.
+     * Add a column ID to cell value binding.
      *
      * @param id the column ID
      * @param value the cell value
      */
     protected void add(String id, String value) {
-        data.put(id, value);
+        cells.put(id, value);
+    }
+
+    /**
+     * Add a column ID to cell value binding.
+     * Note that value.toString() is invoked.
+     *
+     * @param id the column ID
+     * @param value the cell value
+     */
+    protected void add(String id, Object value) {
+        cells.put(id, value.toString());
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.ui.impl;
+package org.onosproject.ui.table;
 
 import java.util.Comparator;
 
@@ -22,7 +22,13 @@ import java.util.Comparator;
  * Comparator for {@link TableRow}.
  */
 public class RowComparator implements Comparator<TableRow> {
-    public static enum Direction { ASC, DESC }
+    /** Designates the sort direction. */
+    public enum Direction {
+        /** Sort Ascending. */
+        ASC,
+        /** Sort Descending. */
+        DESC
+    }
 
     public static final String DESC_STR = "desc";
 

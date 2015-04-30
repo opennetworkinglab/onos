@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.ui.impl;
+package org.onosproject.ui.table;
 
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +23,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Defines a table row abstraction to support sortable tables on the GUI.
  */
 public interface TableRow {
+
+    // TODO: Define TableCell interface and return that, rather than String
+    // The hope is that this will allow us to write a generic mechanism for
+    // selecting a comparator based on the cell type for the column, to be
+    // used for sorting the table rows.
     /**
      * Returns the value of the cell for the given column ID.
      *

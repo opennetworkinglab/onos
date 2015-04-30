@@ -16,7 +16,6 @@
 
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.WordUtils;
@@ -27,6 +26,11 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +41,7 @@ import java.util.Set;
 /**
  * Message handler for flow view related messages.
  */
-public class FlowViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class FlowViewMessageHandler extends UiMessageHandler {
 
     private static final String NO_DEV = "none";
 
@@ -50,10 +54,16 @@ public class FlowViewMessageHandler extends AbstractTabularViewMessageHandler {
 
     @Override
     public void process(ObjectNode message) {
+        String type = eventType(message);
+        if (type.equals("flowDataRequest")) {
+            sendFlowList(message);
+        }
+    }
+
+    private void sendFlowList(ObjectNode message) {
         ObjectNode payload = payload(message);
+        RowComparator rc = TableUtils.createRowComparator(payload);
         String uri = string(payload, "devId", NO_DEV);
-        String sortCol = string(payload, "sortCol", "id");
-        String sortDir = string(payload, "sortDir", "asc");
 
         ObjectNode rootNode;
         if (uri.equals(NO_DEV)) {
@@ -61,16 +71,11 @@ public class FlowViewMessageHandler extends AbstractTabularViewMessageHandler {
             rootNode.set("flows", mapper.createArrayNode());
         } else {
             DeviceId deviceId = DeviceId.deviceId(uri);
-
             FlowRuleService service = get(FlowRuleService.class);
             TableRow[] rows = generateTableRows(service, deviceId);
-            RowComparator rc =
-                    new RowComparator(sortCol, RowComparator.direction(sortDir));
             Arrays.sort(rows, rc);
-            ArrayNode flows = generateArrayNode(rows);
-
             rootNode = mapper.createObjectNode();
-            rootNode.set("flows", flows);
+            rootNode.set("flows", TableUtils.generateArrayNode(rows));
         }
 
         connection().sendMessage("flowDataResponse", 0, rootNode);
@@ -190,7 +195,6 @@ public class FlowViewMessageHandler extends AbstractTabularViewMessageHandler {
             sb.delete(pos, sb.length());
             return sb;
         }
-
 
         @Override
         protected String[] columnIds() {

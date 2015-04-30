@@ -16,7 +16,6 @@
 
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -24,7 +23,12 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +40,7 @@ import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.addLink;
 /**
  * Message handler for link view related messages.
  */
-public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class LinkViewMessageHandler extends UiMessageHandler {
 
     /**
      * Creates a new message handler for the link messages.
@@ -47,18 +51,21 @@ public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
 
     @Override
     public void process(ObjectNode message) {
+        String type = eventType(message);
+        if (type.equals("linkDataRequest")) {
+            sendLinkList(message);
+        }
+    }
+
+    private void sendLinkList(ObjectNode message) {
         ObjectNode payload = payload(message);
-        String sortCol = string(payload, "sortCol", "one");
-        String sortDir = string(payload, "sortDir", "asc");
+        RowComparator rc = TableUtils.createRowComparator(payload, "one");
 
         LinkService service = get(LinkService.class);
         TableRow[] rows = generateTableRows(service);
-        RowComparator rc =
-                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
-        ArrayNode links = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("links", links);
+        rootNode.set("links", TableUtils.generateArrayNode(rows));
 
         connection().sendMessage("linkDataResponse", 0, rootNode);
     }
@@ -99,8 +106,8 @@ public class LinkViewMessageHandler extends AbstractTabularViewMessageHandler {
             ConnectPoint dst = link.one.dst();
             linkState(link);
 
-            add(ONE, src.elementId().toString() + "/" + src.port().toString());
-            add(TWO, dst.elementId().toString() + "/" + dst.port().toString());
+            add(ONE, concat(src.elementId(), "/", src.port()));
+            add(TWO, concat(dst.elementId(), "/", dst.port()));
             add(TYPE, linkType(link).toLowerCase());
             add(STATE, linkState(link));
             add(DIRECTION, link.two != null ? "A <--> B" : "A --> B");

@@ -27,6 +27,11 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +42,7 @@ import java.util.Set;
 /**
  * Message handler for device view related messages.
  */
-public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class DeviceViewMessageHandler extends UiMessageHandler {
 
     private static final String ID = "id";
     private static final String TYPE = "type";
@@ -68,36 +73,31 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
     }
 
     @Override
-    public void process(ObjectNode event) {
-        String type = string(event, "event", "unknown");
+    public void process(ObjectNode message) {
+        String type = eventType(message);
         if (type.equals("deviceDataRequest")) {
-            dataRequest(event);
+            dataRequest(message);
         } else if (type.equals("deviceDetailsRequest")) {
-            detailsRequest(event);
+            detailsRequest(message);
         }
     }
 
-    private void dataRequest(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        String sortCol = string(payload, "sortCol", "id");
-        String sortDir = string(payload, "sortDir", "asc");
+    private void dataRequest(ObjectNode message) {
+        ObjectNode payload = payload(message);
+        RowComparator rc = TableUtils.createRowComparator(payload);
 
         DeviceService service = get(DeviceService.class);
         MastershipService mastershipService = get(MastershipService.class);
-
         TableRow[] rows = generateTableRows(service, mastershipService);
-        RowComparator rc =
-                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
-        ArrayNode devices = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("devices", devices);
+        rootNode.set("devices", TableUtils.generateArrayNode(rows));
 
         connection().sendMessage("deviceDataResponse", 0, rootNode);
     }
 
-    private void detailsRequest(ObjectNode event) {
-        ObjectNode payload = payload(event);
+    private void detailsRequest(ObjectNode message) {
+        ObjectNode payload = payload(message);
         String id = string(payload, "id", "of:0000000000000000");
 
         DeviceId deviceId = DeviceId.deviceId(id);
@@ -139,9 +139,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
                                          MastershipService mastershipService) {
         List<TableRow> list = new ArrayList<>();
         for (Device dev : service.getDevices()) {
-            list.add(new DeviceTableRow(service,
-                                        mastershipService,
-                                        dev));
+            list.add(new DeviceTableRow(service, mastershipService, dev));
         }
         return list.toArray(new TableRow[list.size()]);
     }
@@ -159,13 +157,13 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
 
         Set<Link> links = ls.getEgressLinks(new ConnectPoint(id, p.number()));
         if (!links.isEmpty()) {
-            String egressLinks = "";
+            StringBuilder egressLinks = new StringBuilder();
             for (Link l : links) {
                 ConnectPoint dest = l.dst();
-                egressLinks += dest.elementId().toString()
-                        + "/" + dest.port().toString() + " ";
+                egressLinks.append(dest.elementId()).append("/")
+                        .append(dest.port()).append(" ");
             }
-            port.put(LINK_DEST, egressLinks);
+            port.put(LINK_DEST, egressLinks.toString());
         }
 
         return port;

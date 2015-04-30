@@ -15,7 +15,6 @@
  */
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.app.ApplicationAdminService;
@@ -23,6 +22,11 @@ import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +37,7 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 /**
  * Message handler for application view related messages.
  */
-public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class ApplicationViewMessageHandler extends UiMessageHandler {
 
     /**
      * Creates a new message handler for the application messages.
@@ -44,7 +48,7 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
 
     @Override
     public void process(ObjectNode message) {
-        String type = string(message, "event", "unknown");
+        String type = eventType(message);
         if (type.equals("appDataRequest")) {
             sendAppList(message);
         } else if (type.equals("appManagementRequest")) {
@@ -54,17 +58,13 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
 
     private void sendAppList(ObjectNode message) {
         ObjectNode payload = payload(message);
-        String sortCol = string(payload, "sortCol", "id");
-        String sortDir = string(payload, "sortDir", "asc");
+        RowComparator rc = TableUtils.createRowComparator(payload);
 
         ApplicationService service = get(ApplicationService.class);
         TableRow[] rows = generateTableRows(service);
-        RowComparator rc =
-                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
-        ArrayNode applications = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("apps", applications);
+        rootNode.set("apps", TableUtils.generateArrayNode(rows));
 
         connection().sendMessage("appDataResponse", 0, rootNode);
     }
@@ -95,7 +95,8 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
     }
 
     /**
-     * TableRow implementation for {@link org.onosproject.core.Application applications}.
+     * TableRow implementation for
+     * {@link org.onosproject.core.Application applications}.
      */
     private static class ApplicationTableRow extends AbstractTableRow {
 
@@ -118,10 +119,10 @@ public class ApplicationViewMessageHandler extends AbstractTabularViewMessageHan
             ApplicationState state = service.getState(app.id());
             String iconId = state == ACTIVE ? ICON_ID_ACTIVE : ICON_ID_INACTIVE;
 
-            add(STATE, state.toString());
+            add(STATE, state);
             add(STATE_IID, iconId);
             add(ID, app.id().name());
-            add(VERSION, app.version().toString());
+            add(VERSION, app.version());
             add(ORIGIN, app.origin());
             add(DESC, app.description());
         }

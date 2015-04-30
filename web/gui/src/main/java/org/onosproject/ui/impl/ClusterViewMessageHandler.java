@@ -16,7 +16,6 @@
 
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.joda.time.DateTime;
@@ -24,6 +23,11 @@ import org.joda.time.format.DateTimeFormat;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +37,7 @@ import java.util.List;
 /**
  * Message handler for cluster view related messages.
  */
-public class ClusterViewMessageHandler extends AbstractTabularViewMessageHandler {
+public class ClusterViewMessageHandler extends UiMessageHandler {
 
     /**
      * Creates a new message handler for the cluster messages.
@@ -44,18 +48,21 @@ public class ClusterViewMessageHandler extends AbstractTabularViewMessageHandler
 
     @Override
     public void process(ObjectNode message) {
+        String type = eventType(message);
+        if (type.equals("clusterDataRequest")) {
+            sendClusterList(message);
+        }
+    }
+
+    private void sendClusterList(ObjectNode message) {
         ObjectNode payload = payload(message);
-        String sortCol = string(payload, "sortCol", "id");
-        String sortDir = string(payload, "sortDir", "asc");
+        RowComparator rc = TableUtils.createRowComparator(payload);
 
         ClusterService service = get(ClusterService.class);
         TableRow[] rows = generateTableRows(service);
-        RowComparator rc =
-                new RowComparator(sortCol, RowComparator.direction(sortDir));
         Arrays.sort(rows, rc);
-        ArrayNode clusterNodes = generateArrayNode(rows);
         ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("clusters", clusterNodes);
+        rootNode.set("clusters", TableUtils.generateArrayNode(rows));
 
         connection().sendMessage("clusterDataResponse", 0, rootNode);
     }
