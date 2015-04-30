@@ -203,12 +203,12 @@
 
     angular.module('ovDevice', [])
     .controller('OvDeviceCtrl',
-        ['$log', '$scope', 'TableBuilderService', 'FnService',
+        ['$log', '$scope', 'TableService', 'TableBuilderService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
             'ButtonService', 'NavService', 'TooltipService',
 
         function (_$log_, _$scope_,
-                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _bns_, _ns_, _ttip_) {
+                  ts, tbs, _fs_, _mast_, _ps_, _wss_, _is_, _bns_, _ns_, _ttip_) {
             $log = _$log_;
             $scope = _$scope_;
             fs = _fs_;
@@ -243,6 +243,12 @@
                 tag: 'device',
                 selCb: selCb
             });
+
+            $scope.refresh = function () {
+                $log.debug('Refreshing devices page');
+                ts.resetSortIcons();
+                $scope.sortCallback();
+            };
             createDetailsPane();
 
             // details panel handlers

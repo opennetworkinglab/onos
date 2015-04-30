@@ -3,6 +3,10 @@
     <div class="tabular-header">
         <h2>Applications ({{ctrl.tableData.length}} total)</h2>
         <div class="ctrl-btns">
+            <div class="refresh active"
+                 icon icon-size="36" icon-id="crown"
+                 ng-click="refresh()"></div>
+            <div class="separator"></div>
             <div id="app-install"    icon icon-size="36" icon-id="plus" class="active"></div>
             <div id="app-activate"   icon icon-size="36" icon-id="play"></div>
             <div id="app-deactivate" icon icon-size="36" icon-id="stop"></div>

@@ -18,6 +18,14 @@
  ONOS GUI -- Device View -- CSS file
  */
 
+#ov-device h2 {
+    display: inline-block;
+}
+
+#ov-device div.ctrl-btns {
+    width: 45px;
+}
+
 /* More in generic panel.css */
 
 #device-details-panel.floatpanel {

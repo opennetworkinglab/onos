@@ -22,19 +22,21 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, tbs;
+    var $log, $scope, $location, fs, ts, tbs;
 
     angular.module('ovFlow', [])
     .controller('OvFlowCtrl',
-        ['$log', '$scope', '$location', 'FnService', 'TableBuilderService',
+        ['$log', '$scope', '$location',
+            'FnService', 'TableService', 'TableBuilderService',
 
-        function (_$log_, _$scope_, _$location_, _fs_, _tbs_) {
+        function (_$log_, _$scope_, _$location_, _fs_, _ts_, _tbs_) {
             var self = this,
                 params;
             $log = _$log_;
             $scope = _$scope_;
             $location = _$location_;
             fs = _fs_;
+            ts = _ts_;
             tbs = _tbs_;
 
             params = $location.search();
@@ -48,6 +50,12 @@
                 tag: 'flow',
                 query: params
             });
+
+            $scope.refresh = function () {
+                $log.debug('Refreshing flows page');
+                ts.resetSortIcons();
+                $scope.sortCallback();
+            };
             
             $log.log('OvFlowCtrl has been created');
         }]);

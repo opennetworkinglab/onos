@@ -19,7 +19,7 @@
  */
 describe('factory: fw/widget/table.js', function () {
     var $log, $compile, $rootScope,
-        fs, mast, is,
+        fs, ts, mast, is,
         scope, compiled,
         table, thead, tbody, mockHeader,
         mockH2Height = 20,
@@ -99,11 +99,12 @@ describe('factory: fw/widget/table.js', function () {
     });
 
     beforeEach(inject(function (_$log_, _$compile_, _$rootScope_,
-                                FnService, MastService, IconService) {
+                                FnService, TableService, MastService, IconService) {
         $log = _$log_;
         $compile = _$compile_;
         $rootScope = _$rootScope_;
         fs = FnService;
+        ts = TableService;
         mast = MastService;
         is = IconService;
     }));
@@ -125,6 +126,16 @@ describe('factory: fw/widget/table.js', function () {
         thead = null;
         tbody = null;
         mockHeader.remove();
+    });
+
+    it('should define TableBuilderService', function () {
+        expect(ts).toBeDefined();
+    });
+
+    it('should define api functions', function () {
+        expect(fs.areFunctions(ts, [
+            'resetSortIcons'
+        ])).toBeTruthy();
     });
 
     function compileTable() {
@@ -204,26 +215,22 @@ describe('factory: fw/widget/table.js', function () {
         thElems[1].click();
         currentTh = angular.element(thElems[1]);
         div = currentTh.find('div');
-        expect(div.html()).toBe('<svg class="embeddedIcon" ' +
-                                'width="10" height="10" viewBox="0 0 50 50">' +
-                                '<g class="icon upArrow">' +
-                                '<rect width="50" height="50" rx="5"></rect>' +
-                                '<use width="50" height="50" class="glyph" ' +
-                                'xmlns:xlink="http://www.w3.org/1999/xlink" ' +
-                                'xlink:href="#triangleUp">' +
-                                '</use>' +
-                                '</g></svg>');
+        expect(div.html()).toBe(
+            '<svg class="embeddedIcon" width="10" height="10" viewBox="0 0 ' +
+            '50 50"><g class="icon upArrow"><rect width="50" height="50" ' +
+            'rx="5"></rect><use width="50" height="50" class="glyph" xmlns:' +
+            'xlink="http://www.w3.org/1999/xlink" xlink:href="#triangleUp">' +
+            '</use></g></svg>'
+        );
         thElems[1].click();
         div = currentTh.find('div');
-        expect(div.html()).toBe('<svg class="embeddedIcon" ' +
-                                'width="10" height="10" viewBox="0 0 50 50">' +
-                                '<g class="icon downArrow">' +
-                                '<rect width="50" height="50" rx="5"></rect>' +
-                                '<use width="50" height="50" class="glyph" ' +
-                                'xmlns:xlink="http://www.w3.org/1999/xlink" ' +
-                                'xlink:href="#triangleDown">' +
-                                '</use>' +
-                                '</g></svg>');
+        expect(div.html()).toBe(
+            '<svg class="embeddedIcon" width="10" height="10" viewBox="0 0 ' +
+            '50 50"><g class="icon downArrow"><rect width="50" height="50" ' +
+            'rx="5"></rect><use width="50" height="50" class="glyph" xmlns:' +
+            'xlink="http://www.w3.org/1999/xlink" xlink:href="#triangleDown">' +
+            '</use></g></svg>'
+        );
 
         thElems[2].click();
         div = currentTh.children();
@@ -233,15 +240,13 @@ describe('factory: fw/widget/table.js', function () {
         // the new element should have the ascending icon
         currentTh = angular.element(thElems[2]);
         div = currentTh.children();
-        expect(div.html()).toBe('<svg class="embeddedIcon" ' +
-                                'width="10" height="10" viewBox="0 0 50 50">' +
-                                '<g class="icon upArrow">' +
-                                '<rect width="50" height="50" rx="5"></rect>' +
-                                '<use width="50" height="50" class="glyph" ' +
-                                'xmlns:xlink="http://www.w3.org/1999/xlink" ' +
-                                'xlink:href="#triangleUp">' +
-                                '</use>' +
-                                '</g></svg>');
+        expect(div.html()).toBe(
+            '<svg class="embeddedIcon" width="10" height="10" viewBox="0 0 ' +
+            '50 50"><g class="icon upArrow"><rect width="50" height="50" ' +
+            'rx="5"></rect><use width="50" height="50" class="glyph" xmlns:' +
+            'xlink="http://www.w3.org/1999/xlink" xlink:href="#triangleUp">' +
+            '</use></g></svg>'
+        );
     }
 
     it('should affirm that onos-fixed-header is working', function () {
@@ -264,13 +269,16 @@ describe('factory: fw/widget/table.js', function () {
 
         compileTable();
         verifyGivenTags('onos-sortable-header');
-        // ctrlCallback functionality is tested in device-spec
-        // only checking that it has been called correctly in the directive
+
         scope.sortCallback = jasmine.createSpy('sortCallback');
 
         thElems = thead.find('th');
         verifyCallbacks(thElems);
         verifyIcons(thElems);
     });
+
+    // Note: testing resetSortIcons isn't feasible because due to the nature of
+    //       directive compilation: they are jQuery elements, not d3 elements,
+    //       so the function doesn't work.
 
 });

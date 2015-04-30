@@ -27,11 +27,15 @@
     var tableIconTdSize = 33,
         pdg = 12,
         colWidth = 'col-width',
-        tableIcon = 'table-icon';
+        tableIcon = 'table-icon',
+        asc = 'asc',
+        desc = 'desc',
+        none = 'none';
 
     // internal state
     var currCol = {},
-        prevCol = {};
+        prevCol = {},
+        sortIconAPI;
 
     // Functions for creating a fixed header on a table (Angular Directive)
 
@@ -115,46 +119,47 @@
         setTableHeight(th, tb);
     }
 
-    // Functions for sorting table rows by header and choosing appropriate icon
+    // Functions for sorting table rows by header
 
-    function updateSortingIcons(thElem, api) {
-        var div;
+    function updateSortDirection(thElem) {
+        sortIconAPI.sortNone(thElem.select('div'));
+        currCol.div = thElem.append('div');
         currCol.colId = thElem.attr('colId');
 
         if (currCol.colId === prevCol.colId) {
-            (currCol.icon === 'downArrow') ?
-                currCol.icon = 'upArrow' :
-                currCol.icon = 'downArrow';
-            prevCol.icon = currCol.icon;
+            (currCol.dir === desc) ? currCol.dir = asc : currCol.dir = desc;
+            prevCol.dir = currCol.dir;
         } else {
-            currCol.icon = 'upArrow';
-            prevCol.icon = 'tableColSortNone';
+            currCol.dir = asc;
+            prevCol.dir = none;
         }
+        (currCol.dir === asc) ?
+            sortIconAPI.sortAsc(currCol.div) : sortIconAPI.sortDesc(currCol.div);
 
-        div = thElem.select('div');
-        api.sortNone(div);
-        div = thElem.append('div');
-
-        if (currCol.icon === 'upArrow') {
-            api.sortAsc(div);
-        } else {
-            api.sortDesc(div);
-        }
-
-        if (prevCol.colId !== undefined &&
-            prevCol.icon === 'tableColSortNone') {
-            api.sortNone(prevCol.elem.select('div'));
+        if (prevCol.colId && prevCol.dir === none) {
+            sortIconAPI.sortNone(prevCol.div);
         }
 
         prevCol.colId = currCol.colId;
-        prevCol.elem = thElem;
+        prevCol.div = currCol.div;
     }
 
     function sortRequestParams() {
         return {
             sortCol: currCol.colId,
-            sortDir: (currCol.icon === 'upArrow' ? 'asc' : 'desc')
+            sortDir: currCol.dir
         };
+    }
+
+    function resetSortIcons() {
+        if (currCol.div) {
+            sortIconAPI.sortNone(currCol.div);
+        }
+        if (prevCol.div) {
+            sortIconAPI.sortNone(prevCol.div);
+        }
+        currCol = {};
+        prevCol = {};
     }
 
     angular.module('onosWidget')
@@ -210,8 +215,8 @@
                 link: function (scope, element) {
                     $log = _$log_;
                     is = _is_;
-                    var table = d3.select(element[0]),
-                        sortIconAPI = is.createSortIcon();
+                    var table = d3.select(element[0]);
+                        sortIconAPI = is.sortIcons();
 
                     // when a header is clicked, change its icon tag
                     // and get sorting order to send to the server.
@@ -219,7 +224,7 @@
                         var thElem = d3.select(this);
 
                         if (thElem.attr('sortable') === '') {
-                            updateSortingIcons(thElem, sortIconAPI);
+                            updateSortDirection(thElem);
                             scope.ctrlCallback({
                                 requestParams: sortRequestParams()
                             });
@@ -227,6 +232,16 @@
                     });
                 }
             };
+        }])
+
+        .factory('TableService', ['$log', 'IconService',
+
+            function ($log, is) {
+                sortIconAPI = is.sortIcons();
+
+                return {
+                    resetSortIcons: resetSortIcons
+                };
         }]);
 
 }());

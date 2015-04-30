@@ -23,14 +23,20 @@
 
     angular.module('ovLink', [])
     .controller('OvLinkCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', 'TableService', 'TableBuilderService',
 
-        function ($log, $scope, tbs) {
+        function ($log, $scope, ts, tbs) {
             tbs.buildTable({
                 self: this,
                 scope: $scope,
                 tag: 'link'
             });
+
+            $scope.refresh = function () {
+                $log.debug('Refreshing links page');
+                ts.resetSortIcons();
+                $scope.sortCallback();
+            };
             
             $log.log('OvLinkCtrl has been created');
         }]);

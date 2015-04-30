@@ -18,6 +18,11 @@
 <div id="ov-intent">
     <div class="tabular-header">
         <h2>Intents ({{ctrl.tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh active"
+                 icon icon-size="36" icon-id="crown"
+                 ng-click="refresh()"></div>
+        </div>
     </div>
     <table class="summary-list"
            onos-fixed-header

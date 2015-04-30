@@ -23,14 +23,20 @@
 
     angular.module('ovHost', [])
     .controller('OvHostCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', 'TableService', 'TableBuilderService',
 
-        function ($log, $scope, tbs) {
+        function ($log, $scope, ts, tbs) {
             tbs.buildTable({
                 self: this,
                 scope: $scope,
                 tag: 'host'
             });
+
+            $scope.refresh = function () {
+                $log.debug('Refreshing hosts page');
+                ts.resetSortIcons();
+                $scope.sortCallback();
+            };
             
             $log.log('OvHostCtrl has been created');
         }]);

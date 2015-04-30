@@ -2,9 +2,14 @@
 <div id="ov-flow">
     <div class="tabular-header">
         <h2>
-            Flows for Device {{ctrl.devId || "none"}}
+            Flows for Device {{ctrl.devId || "(No device selected)"}}
             ({{ctrl.tableData.length}} total)
         </h2>
+        <div class="ctrl-btns">
+            <div class="refresh active"
+                 icon icon-size="36" icon-id="crown"
+                 ng-click="refresh()"></div>
+        </div>
     </div>
 
     <table class="summary-list"

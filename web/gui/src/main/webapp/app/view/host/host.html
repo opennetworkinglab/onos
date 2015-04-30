@@ -2,6 +2,11 @@
 <div id="ov-host">
     <div class="tabular-header">
         <h2>Hosts ({{ctrl.tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh active"
+                 icon icon-size="36" icon-id="crown"
+                 ng-click="refresh()"></div>
+        </div>
     </div>
 
     <table class="summary-list"

@@ -18,5 +18,10 @@
  ONOS GUI -- Cluster View -- CSS file
  */
 
-#ov-cluster td {
+#ov-cluster h2 {
+    display: inline-block;
+}
+
+#ov-cluster div.ctrl-btns {
+    width: 45px;
 }

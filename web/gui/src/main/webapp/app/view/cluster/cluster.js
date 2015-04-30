@@ -23,14 +23,20 @@
 
     angular.module('ovCluster', [])
         .controller('OvClusterCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', 'TableService', 'TableBuilderService',
 
-            function ($log, $scope, tbs) {
+            function ($log, $scope, ts, tbs) {
                 tbs.buildTable({
                     self: this,
                     scope: $scope,
                     tag: 'cluster'
                 });
+
+                $scope.refresh = function () {
+                    $log.debug('Refreshing cluster nodes page');
+                    ts.resetSortIcons();
+                    $scope.sortCallback();
+                };
 
                 $log.log('OvClusterCtrl has been created');
             }]);

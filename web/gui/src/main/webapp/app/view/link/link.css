@@ -18,5 +18,10 @@
  ONOS GUI -- Link View -- CSS file
  */
 
-#ov-link td {
+#ov-link h2 {
+    display: inline-block;
+}
+
+#ov-link div.ctrl-btns {
+    width: 45px;
 }

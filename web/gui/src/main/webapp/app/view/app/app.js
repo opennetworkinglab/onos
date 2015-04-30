@@ -25,9 +25,9 @@
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
-        ['$log', '$scope', 'TableBuilderService', 'WebSocketService',
+        ['$log', '$scope', 'TableService', 'TableBuilderService', 'WebSocketService',
 
-    function ($log, $scope, tbs, wss) {
+    function ($log, $scope, ts, tbs, wss) {
         function selCb($event, row) {
             selRow = angular.element($event.currentTarget);
             selection = row;
@@ -44,6 +44,12 @@
             evt.initEvent("click", true, true);
             document.getElementById('file').dispatchEvent(evt);
         });
+
+        $scope.refresh = function () {
+            $log.debug('Refreshing application page');
+            ts.resetSortIcons();
+            $scope.sortCallback();
+        };
 
         function appAction(action) {
             if (selection) {

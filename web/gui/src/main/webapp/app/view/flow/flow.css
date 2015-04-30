@@ -18,6 +18,14 @@
  ONOS GUI -- Flow View -- CSS file
  */
 
+#ov-flow h2 {
+    display: inline-block;
+}
+
+#ov-flow div.ctrl-btns {
+    width: 45px;
+}
+
 .light #ov-flow tr:nth-child(6n + 2),
 .light #ov-flow tr:nth-child(6n + 3),
 .light #ov-flow tr:nth-child(6n + 4) {

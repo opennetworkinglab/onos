@@ -23,14 +23,20 @@
 
     angular.module('ovIntent', [])
         .controller('OvIntentCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', 'TableService', 'TableBuilderService',
 
-            function ($log, $scope, tbs) {
+            function ($log, $scope, ts, tbs) {
                 tbs.buildTable({
                     self: this,
                     scope: $scope,
                     tag: 'intent'
                 });
+
+                $scope.refresh = function () {
+                    $log.debug('Refreshing intents page');
+                    ts.resetSortIcons();
+                    $scope.sortCallback();
+                };
 
                 $log.log('OvIntentCtrl has been created');
             }]);

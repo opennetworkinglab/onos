@@ -18,6 +18,14 @@
  ONOS GUI -- Intent View -- CSS file
  */
 
+#ov-intent h2 {
+    display: inline-block;
+}
+
+#ov-intent div.ctrl-btns {
+    width: 45px;
+}
+
 .light #ov-intent tr:nth-child(6n + 2),
 .light #ov-intent tr:nth-child(6n + 3),
 .light #ov-intent tr:nth-child(6n + 4) {

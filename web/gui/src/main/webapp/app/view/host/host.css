@@ -18,5 +18,10 @@
  ONOS GUI -- Host View -- CSS file
  */
 
-#ov-host td {
+#ov-host h2 {
+    display: inline-block;
+}
+
+#ov-host div.ctrl-btns {
+    width: 45px;
 }

@@ -37,6 +37,8 @@
         play: 'play',
         stop: 'stop',
 
+        crown: 'crown',
+
         upArrow: 'triangleUp',
         downArrow: 'triangleDown',
 
@@ -191,7 +193,7 @@
         return g;
     }
 
-    function createSortIcon() {
+    function sortIcons() {
         function sortAsc(div) {
             div.style('display', 'inline-block');
             loadEmbeddedIcon(div, 'upArrow', 10);
@@ -236,7 +238,7 @@
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
                 iconConfig: function () { return config; },
-                createSortIcon: createSortIcon
+                sortIcons: sortIcons
             };
         }]);
 
