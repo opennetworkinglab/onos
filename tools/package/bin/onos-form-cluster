@@ -1,0 +1,26 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Forms ONOS cluster using REST API of each separate instance.
+# -----------------------------------------------------------------------------
+
+[ $# -lt 2 ] && echo "usage: $(basename $0) ip1 ip2..." && exit 1
+
+ip=$1
+shift
+nodes=$*
+
+ipPrefix=${ip%.*}
+
+aux=/tmp/${ipPrefix}.cluster.json
+trap "rm -f $aux" EXIT
+
+echo "{ \"nodes\": [ { \"ip\": \"$ip\" }" > $aux
+for node in $nodes; do
+    echo ", { \"ip\": \"$node\" }" >> $aux
+done
+echo "], \"ipPrefix\": \"$ipPrefix.*\" }" >> $aux
+
+for node in $ip $nodes; do
+    echo "Forming cluster on $node..."
+    curl -X POST http://$node:8181/onos/v1/cluster/configuration -d @$aux
+done

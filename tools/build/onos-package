@@ -40,6 +40,9 @@ cp -r $ONOS_ROOT/tools/package/etc/* $ONOS_STAGE/$KARAF_DIST/etc
 # Stage all builtin ONOS apps for factory install
 onos-stage-apps $ONOS_STAGE/apps $ONOS_STAGE/$KARAF_DIST/system
 
+# Mark the org.onosproject.drivers app active by default
+touch $ONOS_STAGE/apps/org.onosproject.drivers/active
+
 # Patch-in proper Karaf version into the startup script
 sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
     $ONOS_ROOT/tools/package/bin/onos-service > bin/onos-service
