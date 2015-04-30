@@ -16,7 +16,7 @@
 package org.onosproject.ui.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.onosproject.ui.UiExtension;
+import com.google.common.collect.ImmutableList.Builder;
 import org.onosproject.ui.UiExtensionService;
 
 import javax.ws.rs.GET;
@@ -70,20 +70,23 @@ public class MainIndexResource extends AbstractInjectionResource {
 
     // Produces an input stream including CSS injections from all extensions.
     private InputStream includeCss(UiExtensionService service) {
-        ImmutableList.Builder<InputStream> builder = ImmutableList.builder();
-        for (UiExtension extension : service.getExtensions()) {
-            builder.add(extension.css());
-        }
+        Builder<InputStream> builder = ImmutableList.builder();
+        service.getExtensions().forEach(ext -> add(builder, ext.css()));
         return new SequenceInputStream(new StreamEnumeration(builder.build()));
     }
 
     // Produces an input stream including JS injections from all extensions.
     private InputStream includeJs(UiExtensionService service) {
-        ImmutableList.Builder<InputStream> builder = ImmutableList.builder();
-        for (UiExtension extension : service.getExtensions()) {
-            builder.add(extension.js());
-        }
+        Builder<InputStream> builder = ImmutableList.builder();
+        service.getExtensions().forEach(ext -> add(builder, ext.js()));
         return new SequenceInputStream(new StreamEnumeration(builder.build()));
+    }
+
+    // Safely adds the stream to the list builder only if stream is not null.
+    private void add(Builder<InputStream> builder, InputStream inputStream) {
+        if (inputStream != null) {
+            builder.add(inputStream);
+        }
     }
 
 }

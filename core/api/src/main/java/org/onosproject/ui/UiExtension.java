@@ -16,6 +16,8 @@
 package org.onosproject.ui;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.List;
@@ -26,6 +28,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * User interface extension.
  */
 public class UiExtension {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String VIEW_PREFIX = "app/view/";
 
@@ -73,7 +77,7 @@ public class UiExtension {
      * @return CSS inclusion statements
      */
     public InputStream css() {
-        return classLoader.getResourceAsStream(prefix + "css.html");
+        return getStream(prefix + "css.html");
     }
 
     /**
@@ -82,7 +86,7 @@ public class UiExtension {
      * @return JavaScript inclusion statements
      */
     public InputStream js() {
-        return classLoader.getResourceAsStream(prefix + "js.html");
+       return getStream(prefix + "js.html");
     }
 
     /**
@@ -102,8 +106,7 @@ public class UiExtension {
      * @return resource input stream
      */
     public InputStream resource(String viewId, String path) {
-        InputStream is = classLoader.getResourceAsStream(VIEW_PREFIX + viewId + "/" + path);
-        return is;
+        return getStream(VIEW_PREFIX + viewId + "/" + path);
     }
 
     /**
@@ -114,4 +117,15 @@ public class UiExtension {
     public UiMessageHandlerFactory messageHandlerFactory() {
         return messageHandlerFactory;
     }
+
+    // Returns the resource input stream from the specified class-loader.
+    private InputStream getStream(String path) {
+        InputStream stream = classLoader.getResourceAsStream(path);
+        if (stream == null) {
+            log.warn("Unable to find resource {}", path);
+        }
+        return stream;
+    }
+
+
 }
