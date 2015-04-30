@@ -56,7 +56,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class IntentCleanup implements Runnable, IntentListener {
 
-    private static final Logger log = getLogger(IntentManager.class);
+    private static final Logger log = getLogger(IntentCleanup.class);
 
     private static final int DEFAULT_PERIOD = 5; //seconds
     private static final int DEFAULT_THRESHOLD = 5; //tries
@@ -68,7 +68,7 @@ public class IntentCleanup implements Runnable, IntentListener {
 
     @Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
             label = "Number of times to retry CORRUPT intent without delay")
-    private int retryThreshold = DEFAULT_THRESHOLD;
+    protected int retryThreshold = DEFAULT_THRESHOLD;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService service;
