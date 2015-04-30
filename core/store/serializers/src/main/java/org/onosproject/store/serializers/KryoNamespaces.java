@@ -210,6 +210,7 @@ public final class KryoNamespaces {
             .register(new Ip6AddressSerializer(), Ip6Address.class)
             .register(new MacAddressSerializer(), MacAddress.class)
             .register(VlanId.class)
+            .register(Frequency.class)
             .build();
 
     /**

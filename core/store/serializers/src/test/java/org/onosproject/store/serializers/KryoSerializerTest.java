@@ -343,6 +343,12 @@ public class KryoSerializerTest {
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
 
+
+    @Test
+    public void testFrequency() {
+        testSerializedEquals(Frequency.ofGHz(100));
+    }
+
     @Test
     public void testLambdaConstraint() {
         testSerializable(new LambdaConstraint(Lambda.valueOf(1)));
