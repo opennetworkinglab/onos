@@ -43,6 +43,7 @@
         <module>routing</module>
         <module>routing-api</module>
         <module>reactive-routing</module>
+        <module>virtualbng</module>
         <module>bgprouter</module>
         <module>test</module>
         <module>segmentrouting</module>
