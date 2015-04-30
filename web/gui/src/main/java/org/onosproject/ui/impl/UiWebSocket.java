@@ -136,7 +136,7 @@ public class UiWebSocket
     }
 
     @Override
-    public void sendMessage(ObjectNode message) {
+    public synchronized void sendMessage(ObjectNode message) {
         try {
             if (connection.isOpen()) {
                 connection.sendMessage(message.toString());
@@ -148,7 +148,7 @@ public class UiWebSocket
     }
 
     @Override
-    public void sendMessage(String type, long sid, ObjectNode payload) {
+    public synchronized void sendMessage(String type, long sid, ObjectNode payload) {
         ObjectNode message = mapper.createObjectNode();
         message.put("event", type);
         if (sid > 0) {
@@ -160,7 +160,7 @@ public class UiWebSocket
     }
 
     // Creates new message handlers.
-    private void createHandlers() {
+    private synchronized void createHandlers() {
         handlers = new HashMap<>();
         UiExtensionService service = directory.get(UiExtensionService.class);
         service.getExtensions().forEach(ext -> {
