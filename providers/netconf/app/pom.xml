@@ -21,28 +21,23 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-providers</artifactId>
+        <artifactId>onos-netconf-providers</artifactId>
         <version>1.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-netconf-providers</artifactId>
+    <artifactId>onos-netconf</artifactId>
     <packaging>pom</packaging>
 
-    <description>ONOS Netconf protocol adapters</description>
-
-    <modules>
-        <module>device</module>
-        <module>app</module>
-    </modules>
+    <description>NetConf protocol southbound providers</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
+            <artifactId>onos-netconf-provider-device</artifactId>
+            <version>${project.version}</version>
         </dependency>
+        <!-- TODO: add other dependencies here as more bundles are added to the app -->
     </dependencies>
 
 </project>

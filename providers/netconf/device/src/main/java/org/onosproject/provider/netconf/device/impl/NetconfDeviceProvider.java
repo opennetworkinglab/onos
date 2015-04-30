@@ -39,6 +39,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -78,9 +79,11 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private ExecutorService deviceBuilder = Executors
-            .newFixedThreadPool(1,
-                                groupedThreads("onos/netconf", "device-creator"));
+            .newFixedThreadPool(1, groupedThreads("onos/netconf", "device-creator"));
 
     // Delay between events in ms.
     private static final int EVENTINTERVAL = 5;
@@ -90,7 +93,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Property(name = "devConfigs", value = "", label = "Instance-specific configurations")
     private String devConfigs = null;
 
-    @Property(name = "devPasswords", value = "", label = "Instace-specific password")
+    @Property(name = "devPasswords", value = "", label = "Instance-specific password")
     private String devPasswords = null;
 
     /**
@@ -102,13 +105,15 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Activate
     public void activate(ComponentContext context) {
-        log.info("Netconf Device Provider Started");
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         modified(context);
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
+        cfgService.unregisterProperties(getClass(), false);
         try {
             for (Entry<DeviceId, NetconfDevice> deviceEntry : netconfDeviceMap
                     .entrySet()) {
@@ -134,13 +139,9 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
         Dictionary<?, ?> properties = context.getProperties();
         String deviceCfgValue = get(properties, "devConfigs");
-        log.info("Getting Device configuration from cfg file: "
-                + deviceCfgValue);
+        log.info("Settings: devConfigs={}", deviceCfgValue);
         if (!isNullOrEmpty(deviceCfgValue)) {
             addOrRemoveDevicesConfig(deviceCfgValue);
-        } else {
-            log.info("Device Configuration value receiviced from the property 'devConfigs': "
-                    + deviceCfgValue + ", is not valid");
         }
     }
 
@@ -148,11 +149,9 @@ public class NetconfDeviceProvider extends AbstractProvider
         for (String deviceEntry : deviceConfig.split(",")) {
             NetconfDevice device = processDeviceEntry(deviceEntry);
             if (device != null) {
-                log.info("Device Detail: " + "username: "
-                        + device.getUsername() + ", host: "
-                        + device.getSshHost() + ", port: "
-                        + device.getSshPort() + " device state: "
-                        + device.getDeviceState().name());
+                log.info("Device Detail: username: {}, host={}, port={}, state={}",
+                        device.getUsername(), device.getSshHost(),
+                         device.getSshPort(), device.getDeviceState().name());
                 if (device.isActive()) {
                     deviceBuilder.submit(new DeviceCreator(device, true));
                 } else {

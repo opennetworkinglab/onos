@@ -130,10 +130,4 @@
         <bundle>mvn:org.onosproject/onos-core-trivial/@ONOS-VERSION</bundle>
     </feature>
     
-    <feature name="onos-netconf" version="@FEATURE-VERSION"
-             description="ONOS Netconf providers">
-        <feature>onos-api</feature>        
-        <bundle>mvn:org.onosproject/onos-netconf-provider-device/@ONOS-VERSION</bundle>        
-    </feature>
-
 </features>
