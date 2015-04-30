@@ -307,7 +307,7 @@ public class DeviceManager
             // check my Role
             mastershipService.requestRoleFor(deviceId);
             final MastershipTerm term = termService.getMastershipTerm(deviceId);
-            if (!myNodeId.equals(term.master())) {
+            if (term == null || !myNodeId.equals(term.master())) {
                 log.info("Role of this node is STANDBY for {}", deviceId);
                 // TODO: Do we need to explicitly tell the Provider that
                 // this instance is not the MASTER
