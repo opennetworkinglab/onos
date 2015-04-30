@@ -25,76 +25,51 @@ import org.onosproject.net.Provided;
 
 /**
  * Generic representation of a logical port entity in a consistent way,
- * it is used to identify e.g., VLAN#, MPLS label#, ODUk timeSlot, WDM lambda, etc.
+ * it is used to identify e.g., ODUk timeSlot, WDM lambda, etc.
  * It supports nested case.
  */
-public interface Label extends Annotated, Provided, NetworkResource {
+public interface OpticalTunnelEndPoint extends TunnelEndPoint, Annotated, Provided, NetworkResource {
 
-    /** Represents coarse Label type classification. */
-    enum Type {
+    /** Represents coarse tunnel point type classification. */
+    public enum Type {
         /**
-         * Signifies VLAN-based tag.
-         */
-        VLAN,
-
-        /**
-         * Signifies LAG-based label.
-         */
-        LAG,
-
-        /**
-         * Signifies MPLS-based label.
-         */
-        MPLS,
-
-        /**
-         * Signifies IP-based label.
-         */
-        IP,
-
-        /**
-         * Signifies optical data unit-based label.
+         * Signifies optical data unit-based tunnel point.
          */
         TIMESLOT,
 
         /**
-         * Signifies optical wavelength-based label.
+         * Signifies optical wavelength-based tunnel point.
          */
-        LAMBDA,
-
-        /**
-         * Signifies device-based identifier for the label.
-         */
-        DEVICE
+        LAMBDA
     }
 
     /**
-     * Returns the identifier to this Label.
+     * Returns the identifier.
      *
      * @return identifier
      */
-    LabelId id();
+    OpticalLogicId id();
 
     /**
-     * Returns the parent network element to which this label belongs.
+     * Returns the parent network element to which this tunnel point belongs.
      *
      * @return parent network element
      */
     Optional<ElementId> elementId();
 
     /**
-     * Returns the parent network port to which this label belongs, can not be be null.
+     * Returns the parent network port to which this tunnel point belongs, can not be be null.
      *
      * @return port number
      */
     Optional<PortNumber> portNumber();
 
     /**
-     * Returns the parent label to which this label belongs, optional.
+     * Returns the parent tunnel point to which this tunnel point belongs, optional.
      *
-     * @return parent label, if it is null, the parent is a physical port
+     * @return parent tunnel point, if it is null, the parent is a physical port
      */
-    Optional<Label> parentLabel();
+    Optional<OpticalTunnelEndPoint> parentPoint();
 
     /**
      * Indicates whether or not the port is global significant.
@@ -104,9 +79,9 @@ public interface Label extends Annotated, Provided, NetworkResource {
     boolean isGlobal();
 
     /**
-     * Returns the label type.
+     * Returns the tunnel point type.
      *
-     * @return label type
+     * @return tunnel point type
      */
     Type type();
 }

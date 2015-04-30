@@ -26,8 +26,9 @@ public interface TunnelProviderService extends ProviderService<TunnelProvider> {
      * Signals that the provider has added a tunnel.
      *
      * @param tunnel tunnel information
+     * @return tunnel identity
      */
-    void tunnelAdded(TunnelDescription tunnel);
+    TunnelId tunnelAdded(TunnelDescription tunnel);
 
     /**
      * Signals that the provider has removed a tunnel.

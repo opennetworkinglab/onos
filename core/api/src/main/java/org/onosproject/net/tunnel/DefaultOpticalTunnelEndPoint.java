@@ -1,5 +1,6 @@
 package org.onosproject.net.tunnel;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
@@ -12,43 +13,46 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 
 /**
- * Default label model implementation.
+ * Default optical tunnel point model implementation.
  */
-public class DefaultLabel extends AbstractModel implements Label {
+public class DefaultOpticalTunnelEndPoint extends AbstractModel implements OpticalTunnelEndPoint {
     private final Optional<ElementId> elementId;
     private final Optional<PortNumber> portNumber;
-    private final Optional<Label> parentLabel;
+    private final Optional<OpticalTunnelEndPoint> parentPoint;
     private final Type type;
-    private final LabelId id;
+    private final OpticalLogicId id;
     private final boolean isGlobal;
 
     /**
-     * Creates a label attributed to the specified provider (may be null).
-     * if provider is null, which means the label is not managed by the SB.
+     * Creates a optical tunnel point attributed to the specified provider (may be null).
+     * if provider is null, which means the optical tunnel point is not managed by the SB.
      *
      * @param providerId  tunnelProvider Id
      * @param elementId   parent network element
      * @param number      port number
-     * @param parentLabel parent port or parent label
+     * @param parentPoint parent port or parent label
      * @param type        port type
      * @param id          LabelId
      * @param isGlobal    indicator whether the label is global significant or not
      * @param annotations optional key/value annotations
      */
-    public DefaultLabel(ProviderId providerId, Optional<ElementId> elementId,
-                        Optional<PortNumber> number, Optional<Label> parentLabel,
-                        Type type, LabelId id, boolean isGlobal, Annotations... annotations) {
+    public DefaultOpticalTunnelEndPoint(ProviderId providerId, Optional<ElementId> elementId,
+                        Optional<PortNumber> number, Optional<OpticalTunnelEndPoint> parentPoint,
+                        Type type, OpticalLogicId id, boolean isGlobal, Annotations... annotations) {
         super(providerId, annotations);
+        checkNotNull(type, "type cannot be null");
+        checkNotNull(id, "id cannot be null");
+        checkNotNull(isGlobal, "isGlobal cannot be null");
         this.elementId = elementId;
         this.portNumber = number;
-        this.parentLabel = parentLabel;
+        this.parentPoint = parentPoint;
         this.id = id;
         this.type = type;
         this.isGlobal = isGlobal;
     }
 
     @Override
-    public LabelId id() {
+    public OpticalLogicId id() {
         return id;
     }
 
@@ -63,8 +67,8 @@ public class DefaultLabel extends AbstractModel implements Label {
     }
 
     @Override
-    public Optional<Label> parentLabel() {
-        return parentLabel;
+    public Optional<OpticalTunnelEndPoint> parentPoint() {
+        return parentPoint;
     }
 
     @Override
@@ -79,7 +83,7 @@ public class DefaultLabel extends AbstractModel implements Label {
 
     @Override
     public int hashCode() {
-        return Objects.hash(elementId, portNumber, parentLabel, id);
+        return Objects.hash(elementId, portNumber, parentPoint, id);
     }
 
     @Override
@@ -87,14 +91,14 @@ public class DefaultLabel extends AbstractModel implements Label {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof DefaultLabel) {
-            final DefaultLabel other = (DefaultLabel) obj;
+        if (obj instanceof DefaultOpticalTunnelEndPoint) {
+            final DefaultOpticalTunnelEndPoint other = (DefaultOpticalTunnelEndPoint) obj;
             return Objects.equals(this.id, other.id) &&
                    Objects.equals(this.type, other.type) &&
                    Objects.equals(this.isGlobal, other.isGlobal) &&
                    Objects.equals(this.elementId, other.elementId) &&
                    Objects.equals(this.portNumber, other.portNumber) &&
-                   Objects.equals(this.parentLabel, other.parentLabel);
+                   Objects.equals(this.parentPoint, other.parentPoint);
         }
         return false;
     }
@@ -104,7 +108,7 @@ public class DefaultLabel extends AbstractModel implements Label {
         return toStringHelper(this)
                 .add("elementId", elementId)
                 .add("portNumber", portNumber)
-                .add("parentLabel", parentLabel)
+                .add("parentPoint", parentPoint)
                 .add("type", type)
                 .add("id", id)
                 .add("isGlobal", isGlobal)

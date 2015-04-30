@@ -21,17 +21,17 @@ import com.google.common.primitives.UnsignedLongs;
 /**
  * Representation of a label Id, a logical port identifier.
  */
-public final class LabelId {
+public final class OpticalLogicId {
         /**
          * Represents a logical Id.
         */
-        private final long labelId;
+        private final long logicId;
 
         /**
          * Constructor, public creation is prohibited.
          */
-        private LabelId(long id) {
-            this.labelId = id;
+        private OpticalLogicId(long id) {
+            this.logicId = id;
         }
 
         /**
@@ -40,26 +40,26 @@ public final class LabelId {
          * @param id identifier as long value
          * @return LabelId
          */
-        public static LabelId labelId(long id) {
-            return new LabelId(id);
+        public static OpticalLogicId logicId(long id) {
+            return new OpticalLogicId(id);
         }
 
-        public static LabelId labelId(String string) {
-            return new LabelId(UnsignedLongs.decode(string));
+        public static OpticalLogicId logicId(String string) {
+            return new OpticalLogicId(UnsignedLongs.decode(string));
         }
 
         public long toLong() {
-            return labelId;
+            return logicId;
         }
 
         @Override
         public String toString() {
-            return UnsignedLongs.toString(labelId);
+            return UnsignedLongs.toString(logicId);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(labelId);
+            return Objects.hash(logicId);
         }
 
         @Override
@@ -67,9 +67,9 @@ public final class LabelId {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof LabelId) {
-                final LabelId other = (LabelId) obj;
-                return this.labelId == other.labelId;
+            if (obj instanceof OpticalLogicId) {
+                final OpticalLogicId other = (OpticalLogicId) obj;
+                return this.logicId == other.logicId;
             }
             return false;
         }

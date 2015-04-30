@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.tunnel;
 
-import com.google.common.base.MoreObjects;
-
+import static com.google.common.base.Preconditions.checkNotNull;
+import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.AbstractDescription;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.provider.ProviderId;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Default implementation of immutable tunnel description entity.
@@ -27,31 +29,46 @@ import org.onosproject.net.SparseAnnotations;
 public class DefaultTunnelDescription extends AbstractDescription
         implements TunnelDescription {
 
-    private final TunnelId  tunnelId;
-    private final ConnectPoint src;
-    private final ConnectPoint dst;
+    private final TunnelId tunnelId;
+    private final TunnelEndPoint src;
+    private final TunnelEndPoint dst;
     private final Tunnel.Type type;
-    private final boolean isBidirectional;
+    private final DefaultGroupId groupId; // represent for a group flow table
+    // which a tunnel match up
+    // tunnel producer
+    private final ProviderId producerName; // tunnel producer name
+    private final TunnelName tunnelName; // name of a tunnel
 
     /**
      * Creates a tunnel description using the supplied information.
      *
-     * @param id          TunnelId
-     * @param src         ConnectPoint source
-     * @param dst         ConnectPoint destination
-     * @param type        tunnel type
-     * @param isBidirectional        boolean
+     * @param id TunnelId
+     * @param src TunnelPoint source
+     * @param dst TunnelPoint destination
+     * @param type tunnel type
+     * @param groupId groupId
+     * @param producerName tunnel producer
+     * @param tunnelName tunnel name
      * @param annotations optional key/value annotations
      */
-    public DefaultTunnelDescription(TunnelId id, ConnectPoint src, ConnectPoint dst,
-                                  Tunnel.Type type, boolean isBidirectional,
-                                  SparseAnnotations... annotations) {
+    public DefaultTunnelDescription(TunnelId id, TunnelEndPoint src,
+                                    TunnelEndPoint dst, Tunnel.Type type,
+                                    DefaultGroupId groupId,
+                                    ProviderId producerName,
+                                    TunnelName tunnelName,
+                                    SparseAnnotations... annotations) {
         super(annotations);
+        checkNotNull(producerName, "producerName cannot be null");
+        checkNotNull(src, "src cannot be null");
+        checkNotNull(dst, "dst cannot be null");
+        checkNotNull(type, "type cannot be null");
         this.tunnelId = id;
         this.src = src;
         this.dst = dst;
         this.type = type;
-        this.isBidirectional = isBidirectional;
+        this.groupId = groupId;
+        this.producerName = producerName;
+        this.tunnelName = tunnelName;
     }
 
     @Override
@@ -60,12 +77,12 @@ public class DefaultTunnelDescription extends AbstractDescription
     }
 
     @Override
-    public ConnectPoint src() {
+    public TunnelEndPoint src() {
         return src;
     }
 
     @Override
-    public ConnectPoint dst() {
+    public TunnelEndPoint dst() {
         return dst;
     }
 
@@ -75,8 +92,18 @@ public class DefaultTunnelDescription extends AbstractDescription
     }
 
     @Override
-    public boolean isBidirectional() {
-        return isBidirectional;
+    public DefaultGroupId groupId() {
+        return groupId;
+    }
+
+    @Override
+    public ProviderId producerName() {
+        return producerName;
+    }
+
+    @Override
+    public TunnelName tunnelName() {
+        return tunnelName;
     }
 
     @Override
@@ -86,7 +113,9 @@ public class DefaultTunnelDescription extends AbstractDescription
                 .add("src", src())
                 .add("dst", dst())
                 .add("type", type())
-                .add("isBidirectional", isBidirectional())
+                .add("tunnelName", tunnelName())
+                .add("producerName", producerName())
+                .add("groupId", groupId())
                 .toString();
     }
 

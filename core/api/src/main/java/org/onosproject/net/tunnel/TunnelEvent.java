@@ -20,7 +20,7 @@ import org.onosproject.event.AbstractEvent;
 /**
  * Describes tunnel events.
  */
-public class TunnelEvent extends AbstractEvent<TunnelEvent.Type, Tunnel> {
+public final class TunnelEvent extends AbstractEvent<TunnelEvent.Type, Tunnel> {
 
     /**
      * Type of tunnel events.

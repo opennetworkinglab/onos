@@ -25,7 +25,7 @@ import org.onosproject.net.provider.Provider;
 public interface TunnelProvider extends Provider {
 
     /**
-     * Instructs the provider to setup a tunnel.
+     * Instructs the provider to setup a tunnel. It's used by consumers.
      *
      * @param tunnel Tunnel
      * @param path explicit route or null for the tunnel
@@ -34,6 +34,7 @@ public interface TunnelProvider extends Provider {
 
     /**
      * Instructs the provider to setup a tunnel given the respective device.
+     * It's used by consumers.
      *
      * @param srcElement device
      * @param tunnel Tunnel
@@ -42,7 +43,7 @@ public interface TunnelProvider extends Provider {
     void setupTunnel(ElementId srcElement, Tunnel tunnel, Path path);
 
     /**
-     * Instructs the provider to release a tunnel.
+     * Instructs the provider to release a tunnel. It's used by consumers.
      *
      * @param tunnel Tunnel
      */
@@ -50,6 +51,7 @@ public interface TunnelProvider extends Provider {
 
     /**
      * Instructs the provider to release a tunnel given the respective device.
+     * It's used by consumers.
      *
      * @param srcElement device
      * @param tunnel Tunnel
@@ -57,20 +59,46 @@ public interface TunnelProvider extends Provider {
     void releaseTunnel(ElementId srcElement, Tunnel tunnel);
 
     /**
-     * Instructs the provider to update a tunnel.
+     * Instructs the provider to update a tunnel. It's used by consumers. Maybe
+     * some consumers enable to update a tunnel.
      *
      * @param tunnel Tunnel
-     * @param path explicit route (path changed) or null (path not changed) for the tunnel
+     * @param path explicit route (path changed) or null (path not changed) for
+     *            the tunnel
      */
     void updateTunnel(Tunnel tunnel, Path path);
 
     /**
      * Instructs the provider to update a tunnel given the respective device.
+     * It's used by consumers. Maybe some consumers enable to update a tunnel.
      *
      * @param srcElement device
      * @param tunnel Tunnel
-     * @param path explicit route (path changed) or null (path not changed) for the tunnel
+     * @param path explicit route (path changed) or null (path not changed) for
+     *            the tunnel
      */
     void updateTunnel(ElementId srcElement, Tunnel tunnel, Path path);
 
+    /**
+     * Signals that the provider has added a tunnel. It's used by producers.
+     *
+     * @param tunnel tunnel information
+     * @return tunnel identity
+     */
+    TunnelId tunnelAdded(TunnelDescription tunnel);
+
+    /**
+     * Signals that the provider has removed a tunnel. It's used by producers.
+     *
+     * @param tunnel tunnel information
+     */
+    void tunnelRemoved(TunnelDescription tunnel);
+
+    /**
+     * Signals that the a tunnel was changed (e.g., sensing changes of
+     * tunnel).It's used by producers.
+     *
+     * @param tunnel tunnel information
+     */
+    void tunnelUpdated(TunnelDescription tunnel);
 }

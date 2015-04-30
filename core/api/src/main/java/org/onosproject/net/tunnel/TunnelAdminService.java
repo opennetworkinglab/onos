@@ -15,9 +15,8 @@
  */
 package org.onosproject.net.tunnel;
 
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Path;
+import org.onosproject.net.provider.ProviderId;
 
 /**
  * Service for administering the inventory of provisioned tunnels.
@@ -37,17 +36,9 @@ public interface TunnelAdminService {
      *
      * @param src source label
      * @param dst destination label
+     * @param producerName producer name
      */
-    void removeTunnels(Label src, Label dst);
-
-    /**
-     * Removes all provisioned tunnels leading to and from the
-     * specified connection point.
-     *
-     * @param src source connection point
-     * @param dst destination connection point
-     */
-    void removeTunnels(ConnectPoint src, ConnectPoint dst);
+    void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst, ProviderId producerName);
 
     /**
      * Removes all provisioned tunnels leading to and from the
@@ -56,24 +47,9 @@ public interface TunnelAdminService {
      * @param src source connection point
      * @param dst destination connection point
      * @param type tunnel type
+     * @param producerName producer name
      */
-    void removeTunnels(ConnectPoint src, ConnectPoint dst, Tunnel.Type type);
-
-    /**
-     * Removes all provisioned tunnels leading to and from the
-     * specified connection point.
-     *
-     * @param connectPoint connection point
-     */
-    void removeTunnels(ConnectPoint connectPoint);
-
-    /**
-     * Removes all provisioned tunnels leading to and from the
-     * specified device.
-     *
-     * @param deviceId device identifier
-     */
-    void removeTunnels(DeviceId deviceId);
+    void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst, Tunnel.Type type, ProviderId producerName);
 
     /**
      * Invokes the core to update a tunnel based on specified tunnel parameters.

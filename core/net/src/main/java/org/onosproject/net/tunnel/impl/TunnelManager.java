@@ -15,52 +15,54 @@
  */
 package org.onosproject.net.tunnel.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.Path;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.BandwidthResource;
-import org.onosproject.net.tunnel.Label;
 import org.onosproject.net.tunnel.Tunnel;
 import org.onosproject.net.tunnel.Tunnel.Type;
 import org.onosproject.net.tunnel.TunnelAdminService;
 import org.onosproject.net.tunnel.TunnelDescription;
+import org.onosproject.net.tunnel.TunnelEndPoint;
 import org.onosproject.net.tunnel.TunnelEvent;
 import org.onosproject.net.tunnel.TunnelId;
 import org.onosproject.net.tunnel.TunnelListener;
+import org.onosproject.net.tunnel.TunnelName;
 import org.onosproject.net.tunnel.TunnelProvider;
 import org.onosproject.net.tunnel.TunnelProviderRegistry;
 import org.onosproject.net.tunnel.TunnelProviderService;
 import org.onosproject.net.tunnel.TunnelService;
 import org.onosproject.net.tunnel.TunnelStore;
 import org.onosproject.net.tunnel.TunnelStoreDelegate;
+import org.onosproject.net.tunnel.TunnelSubscription;
 import org.slf4j.Logger;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the tunnel NB/SB APIs.
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, TunnelProviderService>
+public class TunnelManager
+        extends AbstractProviderRegistry<TunnelProvider, TunnelProviderService>
         implements TunnelService, TunnelAdminService, TunnelProviderRegistry {
 
     private static final String TUNNNEL_ID_NULL = "Tunnel ID cannot be null";
@@ -120,53 +122,6 @@ public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, Tunn
         // TODO Auto-generated method stub
         return null;
     }
-    @Override
-    public void removeTunnels(Label src, Label dst) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeTunnels(ConnectPoint connectPoint) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeTunnels(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public int getTunnelCount() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public Collection<Tunnel> getTunnels(Type type) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Set<Tunnel> getTunnels(ConnectPoint connectPoint, Type type) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tunnel getTunnel(Label src, Label dst) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tunnel getTunnel(TunnelId id) {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     @Override
     public void addListener(TunnelListener listener) {
@@ -205,9 +160,9 @@ public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, Tunn
         }
 
         @Override
-        public void tunnelAdded(TunnelDescription tunnel) {
+        public TunnelId tunnelAdded(TunnelDescription tunnel) {
             // TODO Auto-generated method stub
-
+            return null;
         }
 
         @Override
@@ -235,33 +190,21 @@ public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, Tunn
     }
 
     @Override
-    public void requestTunnel(ConnectPoint src, ConnectPoint dst,
-                                BandwidthResource bw, Path path) {
-        // TODO Auto-generated method stub
-    }
-
-
-    @Override
-    public void requestTunnel(ConnectPoint src, ConnectPoint dst, Type type,
-                              BandwidthResource bw, Path path) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public void removeTunnel(TunnelId tunnelId) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void removeTunnels(ConnectPoint src, ConnectPoint dst) {
+    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
+                              ProviderId producerName) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void removeTunnels(ConnectPoint src, ConnectPoint dst, Type type) {
+    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
+                              Type type, ProviderId producerName) {
         // TODO Auto-generated method stub
 
     }
@@ -273,9 +216,95 @@ public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, Tunn
     }
 
     @Override
-    public Collection<Tunnel> getTunnels(ConnectPoint src, ConnectPoint dst,
-                                       Type type) {
+    public Tunnel borrowTunnel(ApplicationId consumerId, TunnelId tunnelId,
+                               Annotations... annotations) {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                           TunnelName tunnelName,
+                                           Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                           TunnelEndPoint src,
+                                           TunnelEndPoint dst,
+                                           Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                           TunnelEndPoint src,
+                                           TunnelEndPoint dst, Type type,
+                                           Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelId tunnelId,
+                                Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId,
+                                TunnelName tunnelName, Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
+                                TunnelEndPoint dst, Type type,
+                                Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
+                                TunnelEndPoint dst, Annotations... annotations) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public Tunnel queryTunnel(TunnelId tunnelId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Collection<Tunnel> queryTunnel(Type type) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int tunnelCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
 }

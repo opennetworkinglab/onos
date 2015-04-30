@@ -15,13 +15,16 @@
  */
 package org.onosproject.net.tunnel;
 
-import org.onosproject.net.ConnectPoint;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.net.Annotated;
 import org.onosproject.net.Description;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.tunnel.Tunnel.Type;
 
 /**
- * Describes the tunnel.
+ * Describes a tunnel.
  */
-public interface TunnelDescription extends Description {
+public interface TunnelDescription extends Description, Annotated {
 
     /**
      * Returns the tunnel id.
@@ -35,27 +38,40 @@ public interface TunnelDescription extends Description {
      *
      * @return tunnel source ConnectionPoint
      */
-    ConnectPoint src();
+    TunnelEndPoint src();
 
     /**
      * Returns the connection point destination.
      *
      * @return tunnel destination
      */
-    ConnectPoint dst();
+    TunnelEndPoint dst();
 
     /**
      * Returns the tunnel type.
      *
      * @return tunnel type
      */
-    Tunnel.Type type();
+    Type type();
 
     /**
-     * Returns if the tunnel is bidirectional.
+     * Returns group flow table id which a tunnel match up.
      *
-     * @return true if bidirectional, otherwise false
+     * @return OpenFlowGroupId
      */
-    boolean isBidirectional();
+    DefaultGroupId groupId();
 
+    /**
+     * Returns tunnel producer name.
+     *
+     * @return producer name
+     */
+    ProviderId producerName();
+
+    /**
+     * Return the name of a tunnel.
+     *
+     * @return Tunnel Name
+     */
+    TunnelName tunnelName();
 }
