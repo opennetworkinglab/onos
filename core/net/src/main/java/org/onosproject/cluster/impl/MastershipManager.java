@@ -24,8 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
-import org.onosproject.cluster.ClusterEvent;
-import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -52,8 +50,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onlab.metrics.MetricsUtil.startTimer;
@@ -91,7 +87,6 @@ public class MastershipManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MetricsService metricsService;
 
-    private ClusterEventListener clusterListener = new InternalClusterEventListener();
     private Timer requestRoleTimer;
 
     @Activate
@@ -99,7 +94,6 @@ public class MastershipManager
         requestRoleTimer = createTimer("Mastership", "requestRole", "responseTime");
 
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
-        clusterService.addListener(clusterListener);
         store.setDelegate(delegate);
         log.info("Started");
     }
@@ -107,7 +101,6 @@ public class MastershipManager
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(MastershipEvent.class);
-        clusterService.removeListener(clusterListener);
         store.unsetDelegate(delegate);
         log.info("Stopped");
     }
@@ -280,52 +273,6 @@ public class MastershipManager
         if (event != null && eventDispatcher != null) {
             eventDispatcher.post(event);
         }
-    }
-
-    //callback for reacting to cluster events
-    private class InternalClusterEventListener implements ClusterEventListener {
-
-        // A notion of a local maximum cluster size, used to tie-break.
-        // Think of a better way to do this.
-        private AtomicInteger clusterSize;
-
-        InternalClusterEventListener() {
-            clusterSize = new AtomicInteger(0);
-        }
-
-        @Override
-        public void event(ClusterEvent event) {
-            switch (event.type()) {
-                case INSTANCE_ADDED:
-                case INSTANCE_ACTIVATED:
-                    clusterSize.incrementAndGet();
-                    log.info("instance {} added/activated", event.subject());
-                    break;
-                case INSTANCE_REMOVED:
-                case INSTANCE_DEACTIVATED:
-                    ControllerNode node = event.subject();
-                    log.info("instance {} removed/deactivated", node);
-                    store.relinquishAllRole(node.id());
-
-                    clusterSize.decrementAndGet();
-                    break;
-                default:
-                    log.warn("unknown cluster event {}", event);
-            }
-        }
-
-        // Can be removed if we go with naive split-brain handling: only majority
-        // assigns mastership
-        private boolean isInMajority() {
-            if (clusterService.getNodes().size() > (clusterSize.intValue() / 2)) {
-                return true;
-            }
-
-             //FIXME: break tie for equal-sized clusters,
-
-            return false;
-        }
-
     }
 
     public class InternalDelegate implements MastershipStoreDelegate {

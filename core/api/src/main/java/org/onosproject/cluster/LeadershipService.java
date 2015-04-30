@@ -67,6 +67,32 @@ public interface LeadershipService {
     void withdraw(String path);
 
     /**
+     * If the local nodeId is the leader for specified topic, this method causes it to
+     * step down temporarily from leadership.
+     * <p>
+     * The node will continue to be in contention for leadership and can
+     * potentially become the leader again if and when it becomes the highest
+     * priority candidate
+     * <p>
+     * If the local nodeId is not the leader, this method will be a noop.
+     *
+     * @param path topic for which this controller node should give up leadership
+     * @return true if this node stepped down from leadership, false otherwise
+     */
+    boolean stepdown(String path);
+
+    /**
+     * Moves the specified nodeId to the top of the candidates list for the topic.
+     * <p>
+     * If the node is not a candidate for this topic, this method will be a noop.
+     *
+     * @param path leadership topic
+     * @param nodeId nodeId to make the top candidate
+     * @return true if nodeId is now the top candidate, false otherwise
+     */
+    boolean makeTopCandidate(String path, NodeId nodeId);
+
+    /**
      * Returns the current leader board.
      *
      * @return mapping from topic to leadership info.

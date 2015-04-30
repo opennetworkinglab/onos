@@ -73,4 +73,14 @@ public class LeadershipServiceAdapter implements LeadershipService {
     public List<NodeId> getCandidates(String path) {
         return null;
     }
+
+    @Override
+    public boolean stepdown(String path) {
+        return false;
+    }
+
+    @Override
+    public boolean makeTopCandidate(String path, NodeId nodeId) {
+        return false;
+    }
 }

@@ -119,4 +119,14 @@ public class SimpleLeadershipManager implements LeadershipService {
     public List<NodeId> getCandidates(String path) {
         return null;
     }
+
+    @Override
+    public boolean stepdown(String path) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean makeTopCandidate(String path, NodeId nodeId) {
+        throw new UnsupportedOperationException();
+    }
 }

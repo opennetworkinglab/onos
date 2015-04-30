@@ -536,7 +536,7 @@ public class DeviceManager
         if (myNextRole == NONE) {
             mastershipService.requestRoleFor(did);
             MastershipTerm term = termService.getMastershipTerm(did);
-            if (myNodeId.equals(term.master())) {
+            if (term != null && myNodeId.equals(term.master())) {
                 myNextRole = MASTER;
             } else {
                 myNextRole = STANDBY;
