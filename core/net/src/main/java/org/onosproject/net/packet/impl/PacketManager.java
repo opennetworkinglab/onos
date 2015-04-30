@@ -78,9 +78,6 @@ public class PacketManager
     private CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private FlowObjectiveService objectiveService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -88,6 +85,9 @@ public class PacketManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PacketStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private FlowObjectiveService objectiveService;
 
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
@@ -100,6 +100,7 @@ public class PacketManager
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
+        // TODO: Should we request packets for all existing devices? I believe we should.
         log.info("Started");
     }
 
@@ -250,8 +251,7 @@ public class PacketManager
     /**
      * Internal callback from the packet store.
      */
-    private class InternalStoreDelegate
-            implements PacketStoreDelegate {
+    private class InternalStoreDelegate implements PacketStoreDelegate {
         @Override
         public void notify(PacketEvent event) {
             localEmit(event.subject());

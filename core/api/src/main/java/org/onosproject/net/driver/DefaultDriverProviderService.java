@@ -17,7 +17,7 @@
 package org.onosproject.net.driver;
 
 /**
- * Service capable of providing a set of default drivers.
+ * Service representing availability of default drivers.
  */
-public interface DefaultDriverProviderService extends DriverProvider {
+public interface DefaultDriverProviderService {
 }

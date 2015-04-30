@@ -27,7 +27,6 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -37,6 +36,7 @@ import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
@@ -56,8 +56,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
@@ -96,6 +96,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveStore flowObjectiveStore;
 
+    // Note: This must remain an optional dependency to allow re-install of default drivers.
+    // Note: For now disabled until we can move to OPTIONAL_UNARY dependency
+    // @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY, policy = ReferencePolicy.DYNAMIC)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DefaultDriverProviderService defaultDriverService;
+
     private final FlowObjectiveStoreDelegate delegate = new InternalStoreDelegate();
 
     private final Map<DeviceId, DriverHandler> driverHandlers = Maps.newConcurrentMap();
@@ -107,20 +113,14 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     protected ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
 
-    private NodeId localNode;
-
-    private Map<Integer, Set<PendingNext>> pendingForwards =
-            Maps.newConcurrentMap();
+    private Map<Integer, Set<PendingNext>> pendingForwards = Maps.newConcurrentMap();
 
     private ExecutorService executorService;
 
     @Activate
     protected void activate() {
-        executorService = Executors.newFixedThreadPool(
-                4, groupedThreads("onos/objective-installer", "%d"));
-
+        executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d"));
         flowObjectiveStore.setDelegate(delegate);
-        localNode = clusterService.getLocalNode().id();
         mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);
         deviceService.getDevices().forEach(device -> setupPipelineHandler(device.id()));
@@ -132,8 +132,37 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         flowObjectiveStore.unsetDelegate(delegate);
         mastershipService.removeListener(mastershipListener);
         deviceService.removeListener(deviceListener);
+        executorService.shutdown();
+        pipeliners.clear();
+        driverHandlers.clear();
         log.info("Stopped");
     }
+
+    /**
+     * Hook for binding the optional default driver providers.
+     *
+     * @param service arriving default driver provider service
+     */
+    // Note: For now disabled until we can move to OPTIONAL_UNARY dependency
+    protected void xbindDefaultDriverService(DefaultDriverProviderService service) {
+        log.info("Detected default drivers... going active");
+        defaultDriverService = service;
+        deviceService.getDevices().forEach(device -> setupPipelineHandler(device.id()));
+    }
+
+    /**
+     * Hook for unbinding the optional default driver providers.
+     *
+     * @param service departing default driver provider service
+     */
+    // Note: For now disabled until we can move to OPTIONAL_UNARY dependency
+    protected void xunbindDefaultDriverService(DefaultDriverProviderService service) {
+        log.info("Lost default drivers... going dormant");
+        defaultDriverService = null;
+        pipeliners.clear();
+        driverHandlers.clear();
+    }
+
 
     /**
      * Task that passes the flow objective down to the driver. The task will
@@ -187,13 +216,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     }
 
     @Override
-    public void forward(DeviceId deviceId,
-                                   ForwardingObjective forwardingObjective) {
-
+    public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
         if (queueObjective(deviceId, forwardingObjective)) {
             return;
         }
-
         executorService.submit(new ObjectiveInstaller(deviceId, forwardingObjective));
     }
 
@@ -212,7 +238,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {
             log.trace("Queuing forwarding objective for nextId {}", fwd.nextId());
             if (pendingForwards.putIfAbsent(fwd.nextId(),
-                                Sets.newHashSet(new PendingNext(deviceId, fwd))) != null) {
+                                            Sets.newHashSet(new PendingNext(deviceId, fwd))) != null) {
                 Set<PendingNext> pending = pendingForwards.get(fwd.nextId());
                 pending.add(new PendingNext(deviceId, fwd));
             }
@@ -228,6 +254,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     }
 
     private void setupPipelineHandler(DeviceId deviceId) {
+        if (defaultDriverService == null) {
+            // We're not ready to go to work yet.
+            return;
+        }
+
         // Attempt to lookup the handler in the cache
         DriverHandler handler = driverHandlers.get(deviceId);
         if (handler == null) {

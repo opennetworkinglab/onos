@@ -23,7 +23,6 @@
         <bundle>mvn:${project.groupId}/onos-of-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-drivers/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-ctl/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-drivers/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-lldp-provider/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-host-provider/${project.version}</bundle>

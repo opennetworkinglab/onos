@@ -18,9 +18,11 @@ package org.onosproject.driver.pipeline;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.driver.DefaultDriverProviderService;
-import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.driver.XmlDriverLoader;
 import org.slf4j.Logger;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 /**
  * Bootstrap for built in drivers.
@@ -43,12 +44,16 @@ public class DefaultDrivers implements DefaultDriverProviderService {
 
     private DriverProvider provider;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverAdminService driverAdminService;
+
     @Activate
     protected void activate() {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             InputStream stream = classLoader.getResourceAsStream(DRIVERS_XML);
             provider = new XmlDriverLoader(classLoader).loadDrivers(stream);
+            driverAdminService.registerProvider(provider);
         } catch (IOException e) {
             log.error("Unable to load default drivers", e);
         }
@@ -57,11 +62,8 @@ public class DefaultDrivers implements DefaultDriverProviderService {
 
     @Deactivate
     protected void deactivate() {
+        driverAdminService.unregisterProvider(provider);
         log.info("Stopped");
     }
 
-    @Override
-    public Set<Driver> getDrivers() {
-        return provider.getDrivers();
-    }
 }

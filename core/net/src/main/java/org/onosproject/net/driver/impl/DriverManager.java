@@ -31,7 +31,6 @@ import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.DefaultDriverProvider;
-import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverHandler;
@@ -63,21 +62,16 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DefaultDriverProviderService defaultDriverService;
-
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();
     private Map<String, Driver> driverByKey = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
-        registerProvider(defaultDriverService);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        unregisterProvider(defaultDriverService);
         log.info("Stopped");
     }
 
