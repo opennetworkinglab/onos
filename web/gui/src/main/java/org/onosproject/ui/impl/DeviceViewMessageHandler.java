@@ -15,7 +15,6 @@
  */
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
@@ -59,8 +58,6 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
     private static final String ENABLED = "enabled";
     private static final String SPEED = "speed";
     private static final String NAME = "name";
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
     /**
@@ -107,7 +104,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         DeviceService service = get(DeviceService.class);
         MastershipService ms = get(MastershipService.class);
         Device device = service.getDevice(deviceId);
-        ObjectNode data = MAPPER.createObjectNode();
+        ObjectNode data = mapper.createObjectNode();
 
         data.put(ID, deviceId.toString());
         data.put(TYPE, device.type().toString());
@@ -120,7 +117,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
         data.put(MASTER_ID, ms.getMasterFor(deviceId).toString());
         data.put(PROTOCOL, device.annotations().value(PROTOCOL));
 
-        ArrayNode ports = MAPPER.createArrayNode();
+        ArrayNode ports = mapper.createArrayNode();
 
         List<Port> portList = new ArrayList<>(service.getPorts(deviceId));
         Collections.sort(portList, (p1, p2) -> {
@@ -150,7 +147,7 @@ public class DeviceViewMessageHandler extends AbstractTabularViewMessageHandler 
     }
 
     private ObjectNode portData(Port p, DeviceId id) {
-        ObjectNode port = MAPPER.createObjectNode();
+        ObjectNode port = mapper.createObjectNode();
         LinkService ls = get(LinkService.class);
         String name = p.annotations().value(AnnotationKeys.PORT_NAME);
 
