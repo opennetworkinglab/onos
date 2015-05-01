@@ -159,6 +159,7 @@ public class DefaultRoutingHandler {
     private boolean repopulateRoutingRulesForRoutes(Set<ArrayList<DeviceId>> routes) {
         rulePopulator.resetCounter();
         for (ArrayList<DeviceId> link: routes) {
+            // When only the source device is defined, reinstall routes to all other devices
             if (link.size() == 1) {
                 ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(link.get(0), srManager);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {

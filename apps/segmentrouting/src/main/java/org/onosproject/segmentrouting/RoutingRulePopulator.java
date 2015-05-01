@@ -173,6 +173,11 @@ public class RoutingRulePopulator {
         TrafficTreatment treatment = tbuilder.build();
         TrafficSelector selector = sbuilder.build();
 
+        if (srManager.getNextObjectiveId(deviceId, ns) <= 0) {
+            log.warn("No next objective in {} for ns: {}", deviceId, ns);
+            return false;
+        }
+
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                 .builder()
                 .fromApp(srManager.appId)
@@ -183,7 +188,7 @@ public class RoutingRulePopulator {
                 .withPriority(100)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
         log.debug("Installing IPv4 forwarding objective "
-                + "for router IP/subnet {} in switch {}",
+                        + "for router IP/subnet {} in switch {}",
                 ipPrefix,
                 deviceId);
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add());

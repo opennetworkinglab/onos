@@ -304,6 +304,10 @@ public class SegmentRoutingManager {
 
     private void processLinkRemoved(Link link) {
         log.debug("A link {} was removed", link.toString());
+        DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src().deviceId());
+        if (groupHandler != null) {
+            groupHandler.portDown(link.src().port());
+        }
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
     }
 

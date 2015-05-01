@@ -186,17 +186,19 @@ public class DefaultGroupHandler {
                 tBuilder.pushMpls().setMpls(MplsLabel.mplsLabel(ns
                                                     .getEdgeLabel()));
             }
-            /*
-             * GroupBucket removeBucket = DefaultGroupBucket.
-             * createSelectGroupBucket(tBuilder.build()); GroupBuckets
-             * removeBuckets = new GroupBuckets( Arrays.asList(removeBucket));
-             * log.debug("portDown in device{}: " +
-             * "groupService.removeBucketsFromGroup " + "for neighborset{}",
-             * deviceId, ns); groupService.removeBucketsFromGroup(deviceId,
-             * getGroupKey(ns), removeBuckets, getGroupKey(ns), appId);
-             */
-            //TODO: Use next objective API to update the previously created
-            //next objectives.
+
+            Integer nextId = deviceNextObjectiveIds.get(getGroupKey(ns));
+            if (nextId != null) {
+                NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                        .builder().withType(NextObjective.Type.SIMPLE).withId(nextId).fromApp(appId);
+
+                nextObjBuilder.addTreatment(tBuilder.build());
+
+                NextObjective nextObjective = nextObjBuilder.remove();
+
+                flowObjectiveService.next(deviceId, nextObjective);
+            }
+
         }
 
         devicePortMap.get(portDeviceMap.get(port)).remove(port);
@@ -333,6 +335,11 @@ public class DefaultGroupHandler {
                     .builder().withId(nextId)
                     .withType(NextObjective.Type.HASHED).fromApp(appId);
             for (DeviceId d : ns.getDeviceIds()) {
+                if (devicePortMap.get(d) == null) {
+                    log.warn("Device {} is not in the port map yet", d);
+                    return;
+                }
+
                 for (PortNumber sp : devicePortMap.get(d)) {
                     TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
                             .builder();
@@ -341,7 +348,7 @@ public class DefaultGroupHandler {
                             .setEthSrc(nodeMacAddr);
                     if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
                         tBuilder.pushMpls().setMpls(MplsLabel.mplsLabel(ns
-                                                            .getEdgeLabel()));
+                                .getEdgeLabel()));
                     }
                     nextObjBuilder.addTreatment(tBuilder.build());
                 }

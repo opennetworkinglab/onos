@@ -25,7 +25,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.link.LinkService;
 
 /**
@@ -126,18 +128,18 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                         .setMpls(MplsLabel.
                                  mplsLabel(ns.getEdgeLabel()));
             }
-            /*GroupBucket updatedBucket = DefaultGroupBucket.
-                    createSelectGroupBucket(tBuilder.build());
-            GroupBuckets updatedBuckets = new GroupBuckets(
-                                        Arrays.asList(updatedBucket));
-            log.debug("newPortToExistingNeighborAtEdgeRouter: "
-                    + "groupService.addBucketsToGroup for neighborset{}", ns);
-            groupService.addBucketsToGroup(deviceId,
-                                           getGroupKey(ns),
-                                           updatedBuckets,
-                                           getGroupKey(ns),
-                                           appId);*/
-            //TODO: Use nextObjective APIs to update the next objective
+
+            Integer nextId = deviceNextObjectiveIds.get(getGroupKey(ns));
+            if (nextId != null) {
+                NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                        .builder().withId(nextId)
+                        .withType(NextObjective.Type.HASHED).fromApp(appId);
+
+                nextObjBuilder.addTreatment(tBuilder.build());
+
+                NextObjective nextObjective = nextObjBuilder.add();
+                flowObjectiveService.next(deviceId, nextObjective);
+            }
         }
     }
 

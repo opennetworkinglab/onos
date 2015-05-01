@@ -23,7 +23,7 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
     </driver>
-    <driver name="spring-open-cpqd" manufacturer="Stanford University, Ericsson Research and CPqD Research" hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion="Apr  6 2015 16:10:53">
+    <driver name="spring-open-cpqd" manufacturer="Stanford University, Ericsson Research and CPqD Research" hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTP"/>
     </driver>

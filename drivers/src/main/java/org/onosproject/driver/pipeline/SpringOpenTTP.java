@@ -73,6 +73,7 @@ import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -207,61 +208,138 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
 
     @Override
     public void next(NextObjective nextObjective) {
-        switch (nextObjective.type()) {
-        case SIMPLE:
-            log.debug("processing SIMPLE next objective");
-            Collection<TrafficTreatment> treatments = nextObjective.next();
-            if (treatments.size() == 1) {
-                TrafficTreatment treatment = treatments.iterator().next();
-                GroupBucket bucket = DefaultGroupBucket
-                        .createIndirectGroupBucket(treatment);
-                final GroupKey key = new DefaultGroupKey(
-                                                         appKryo.serialize(nextObjective
-                                                                 .id()));
-                GroupDescription groupDescription = new DefaultGroupDescription(
-                                                    deviceId,
-                                                    GroupDescription.Type.INDIRECT,
-                                                    new GroupBuckets(
-                                                       Collections.singletonList(bucket)),
-                                                    key,
-                                                    nextObjective.appId());
-                groupService.addGroup(groupDescription);
-                pendingGroups.put(key, nextObjective);
+
+        if (nextObjective.op() == Objective.Operation.REMOVE) {
+            if (nextObjective.next() == null) {
+                removeGroup(nextObjective);
+            } else {
+                removeBucketFromGroup(nextObjective);
             }
-            break;
-        case HASHED:
-            log.debug("processing HASHED next objective");
-            List<GroupBucket> buckets = nextObjective
-                    .next()
-                    .stream()
-                    .map((treatment) -> DefaultGroupBucket
-                                 .createSelectGroupBucket(treatment))
-                    .collect(Collectors.toList());
-            if (!buckets.isEmpty()) {
-                final GroupKey key = new DefaultGroupKey(
-                                                         appKryo.serialize(nextObjective
-                                                                 .id()));
-                GroupDescription groupDescription = new DefaultGroupDescription(
-                                                            deviceId,
-                                                            GroupDescription.Type.SELECT,
-                                                            new GroupBuckets(buckets),
-                                                            key,
-                                                            nextObjective.appId());
-                groupService.addGroup(groupDescription);
-                pendingGroups.put(key, nextObjective);
+        } else if (nextObjective.op() == Objective.Operation.ADD) {
+            NextGroup nextGroup = flowObjectiveStore.getNextGroup(nextObjective.id());
+            if (nextGroup != null) {
+                addBucketToGroup(nextObjective);
+            } else {
+                addGroup(nextObjective);
             }
-            break;
-        case BROADCAST:
-        case FAILOVER:
-            log.debug("BROADCAST and FAILOVER next objectives not supported");
-            fail(nextObjective, ObjectiveError.UNSUPPORTED);
-            log.warn("Unsupported next objective type {}", nextObjective.type());
-            break;
-        default:
-            fail(nextObjective, ObjectiveError.UNKNOWN);
-            log.warn("Unknown next objective type {}", nextObjective.type());
+        } else {
+            log.warn("Unsupported operation {}", nextObjective.op());
         }
 
+    }
+
+    private void removeGroup(NextObjective nextObjective) {
+        final GroupKey key = new DefaultGroupKey(
+                appKryo.serialize(nextObjective.id()));
+        groupService.removeGroup(deviceId, key, appId);
+    }
+
+    private void addGroup(NextObjective nextObjective) {
+        switch (nextObjective.type()) {
+            case SIMPLE:
+                log.debug("processing SIMPLE next objective");
+                Collection<TrafficTreatment> treatments = nextObjective.next();
+                if (treatments.size() == 1) {
+                    TrafficTreatment treatment = treatments.iterator().next();
+                    GroupBucket bucket = DefaultGroupBucket
+                            .createIndirectGroupBucket(treatment);
+                    final GroupKey key = new DefaultGroupKey(
+                            appKryo.serialize(nextObjective
+                                    .id()));
+                    GroupDescription groupDescription = new DefaultGroupDescription(
+                            deviceId,
+                            GroupDescription.Type.INDIRECT,
+                            new GroupBuckets(
+                                    Collections.singletonList(bucket)),
+                            key,
+                            nextObjective.appId());
+                    groupService.addGroup(groupDescription);
+                    pendingGroups.put(key, nextObjective);
+                }
+                break;
+            case HASHED:
+                log.debug("processing HASHED next objective");
+                List<GroupBucket> buckets = nextObjective
+                        .next()
+                        .stream()
+                        .map((treatment) -> DefaultGroupBucket
+                                .createSelectGroupBucket(treatment))
+                        .collect(Collectors.toList());
+                if (!buckets.isEmpty()) {
+                    final GroupKey key = new DefaultGroupKey(
+                            appKryo.serialize(nextObjective
+                                    .id()));
+                    GroupDescription groupDescription = new DefaultGroupDescription(
+                            deviceId,
+                            GroupDescription.Type.SELECT,
+                            new GroupBuckets(buckets),
+                            key,
+                            nextObjective.appId());
+                    groupService.addGroup(groupDescription);
+                    pendingGroups.put(key, nextObjective);
+                }
+                break;
+            case BROADCAST:
+            case FAILOVER:
+                log.debug("BROADCAST and FAILOVER next objectives not supported");
+                fail(nextObjective, ObjectiveError.UNSUPPORTED);
+                log.warn("Unsupported next objective type {}", nextObjective.type());
+                break;
+            default:
+                fail(nextObjective, ObjectiveError.UNKNOWN);
+                log.warn("Unknown next objective type {}", nextObjective.type());
+        }
+    }
+
+    private void addBucketToGroup(NextObjective nextObjective) {
+        Collection<TrafficTreatment> treatments = nextObjective.next();
+        TrafficTreatment treatment = treatments.iterator().next();
+        final GroupKey key = new DefaultGroupKey(
+                appKryo.serialize(nextObjective
+                        .id()));
+        Group group = groupService.getGroup(deviceId, key);
+        if (group == null) {
+            log.warn("Group is not found in {} for {}", deviceId, key);
+            return;
+        }
+        GroupBucket bucket;
+        if (group.type() == GroupDescription.Type.INDIRECT) {
+            bucket = DefaultGroupBucket.createIndirectGroupBucket(treatment);
+        } else if (group.type() == GroupDescription.Type.SELECT) {
+            bucket = DefaultGroupBucket.createSelectGroupBucket(treatment);
+        } else {
+            log.warn("Unsupported Group type {}", group.type());
+            return;
+        }
+        GroupBuckets bucketsToAdd = new GroupBuckets(Arrays.asList(bucket));
+        groupService.addBucketsToGroup(deviceId, key, bucketsToAdd, key, appId);
+    }
+
+    private void removeBucketFromGroup(NextObjective nextObjective) {
+        NextGroup nextGroup = flowObjectiveStore.getNextGroup(nextObjective.id());
+        if (nextGroup != null) {
+            Collection<TrafficTreatment> treatments = nextObjective.next();
+            TrafficTreatment treatment = treatments.iterator().next();
+            final GroupKey key = new DefaultGroupKey(
+                    appKryo.serialize(nextObjective
+                            .id()));
+            Group group = groupService.getGroup(deviceId, key);
+            if (group == null) {
+                log.warn("Group is not found in {} for {}", deviceId, key);
+                return;
+            }
+            GroupBucket bucket;
+            if (group.type() == GroupDescription.Type.INDIRECT) {
+                bucket = DefaultGroupBucket.createIndirectGroupBucket(treatment);
+            } else if (group.type() == GroupDescription.Type.SELECT) {
+                bucket = DefaultGroupBucket.createSelectGroupBucket(treatment);
+            } else {
+                log.warn("Unsupported Group type {}", group.type());
+                return;
+            }
+            GroupBuckets removeBuckets = new GroupBuckets(Arrays.asList(bucket));
+            groupService.removeBucketsFromGroup(deviceId, key, removeBuckets, key, appId);
+        }
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
