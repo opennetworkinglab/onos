@@ -80,11 +80,10 @@ public class SimpleIntentStore
         if (localOnly || olderThan > 0) {
             long older = System.nanoTime() - olderThan * 1_000_000; //convert ms to ns
             final SystemClockTimestamp time = new SystemClockTimestamp(older);
-            return pending.values().stream()
+            return current.values().stream()
                     .filter(data -> data.version().isOlderThan(time) &&
                             (!localOnly || isMaster(data.key())))
                     .collect(Collectors.toList());
-
         }
         return Lists.newArrayList(current.values());
     }
@@ -174,7 +173,7 @@ public class SimpleIntentStore
                     existingData.version().compareTo(data.version()) < 0) {
                 pending.put(data.key(), data);
                 checkNotNull(delegate, "Store delegate is not set")
-                        .process(data);
+                        .process(new IntentData(data));
                 notifyDelegateIfNotNull(IntentEvent.getEvent(data));
             } else {
                 log.debug("IntentData {} is older than existing: {}",

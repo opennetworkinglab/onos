@@ -128,7 +128,7 @@ public class IntentCleanup implements Runnable, IntentListener {
         log.info("Settings: period={}", period);
     }
 
-    private void adjustRate() {
+    protected void adjustRate() {
         if (timerTask != null) {
             timerTask.cancel();
         }
@@ -192,15 +192,18 @@ public class IntentCleanup implements Runnable, IntentListener {
      */
     private void cleanup() {
         int corruptCount = 0, stuckCount = 0, pendingCount = 0;
+        store.getIntentData(true, periodMs);
         for (IntentData intentData : store.getIntentData(true, periodMs)) {
             switch (intentData.state()) {
                 case CORRUPT:
                     resubmitCorrupt(intentData, false);
                     corruptCount++;
+                    break;
                 case INSTALLING: //FALLTHROUGH
                 case WITHDRAWING:
                     resubmitPendingRequest(intentData);
                     stuckCount++;
+                    break;
                 default:
                     //NOOP
                     break;

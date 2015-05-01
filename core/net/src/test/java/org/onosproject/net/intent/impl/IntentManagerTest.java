@@ -592,6 +592,48 @@ public class IntentManagerTest {
     }
 
     /**
+     * Test failure to install an intent, and verify retries.
+     */
+    @Test
+    public void testCorruptRetry() {
+        IntentCleanup cleanup = new IntentCleanup();
+        cleanup.service = manager;
+        cleanup.store = manager.store;
+        cleanup.cfgService = new ComponentConfigAdapter();
+        cleanup.period = 1_000_000;
+        cleanup.retryThreshold = 3;
+
+        try {
+            cleanup.activate();
+
+            final TestIntentCompilerMultipleFlows errorCompiler = new TestIntentCompilerMultipleFlows();
+            extensionService.registerCompiler(MockIntent.class, errorCompiler);
+            List<Intent> intents;
+
+            flowRuleService.setFuture(false);
+
+            intents = Lists.newArrayList(service.getIntents());
+            assertThat(intents, hasSize(0));
+
+            final MockIntent intent1 = new MockIntent(MockIntent.nextId());
+
+            listener.setLatch(1, Type.INSTALL_REQ);
+            listener.setLatch(cleanup.retryThreshold, Type.CORRUPT);
+            listener.setLatch(1, Type.INSTALLED);
+
+            service.submit(intent1);
+
+            listener.await(Type.INSTALL_REQ);
+            listener.await(Type.CORRUPT);
+            assertEquals(CORRUPT, manager.getIntentState(intent1.key()));
+            assertThat(listener.getCounts(Type.CORRUPT), is(cleanup.retryThreshold));
+
+        } finally {
+            cleanup.deactivate();
+        }
+    }
+
+    /**
      * Tests that an intent that fails installation results in no flows remaining.
      */
     @Test
