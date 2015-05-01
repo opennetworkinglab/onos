@@ -16,6 +16,7 @@
 package org.onosproject.store.consistent.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;

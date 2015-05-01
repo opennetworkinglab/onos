@@ -184,7 +184,7 @@ public class IntentTestsMocks {
         }
 
         @Override
-        public IntentId intendId() {
+        public IntentId intentId() {
             return null;
         }
 

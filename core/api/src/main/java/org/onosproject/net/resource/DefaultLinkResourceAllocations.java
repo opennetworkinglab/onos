@@ -27,6 +27,7 @@ import org.onosproject.net.intent.IntentId;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -56,8 +57,8 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
     }
 
     @Override
-    public IntentId intendId() {
-        return request.intendId();
+    public IntentId intentId() {
+        return request.intentId();
     }
 
     @Override
@@ -82,6 +83,24 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
             result = Collections.emptySet();
         }
         return result;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(request, allocations);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final DefaultLinkResourceAllocations other = (DefaultLinkResourceAllocations) obj;
+        return Objects.equals(this.request, other.request)
+                && Objects.equals(this.allocations, other.allocations);
     }
 
     @Override

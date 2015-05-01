@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.resource;
 
+import java.util.Objects;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -45,6 +47,23 @@ public class BandwidthResourceRequest implements ResourceRequest {
     @Override
     public ResourceType type() {
         return ResourceType.BANDWIDTH;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bandwidth);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final BandwidthResourceAllocation other = (BandwidthResourceAllocation) obj;
+        return Objects.equals(this.bandwidth, other.bandwidth());
     }
 
     @Override

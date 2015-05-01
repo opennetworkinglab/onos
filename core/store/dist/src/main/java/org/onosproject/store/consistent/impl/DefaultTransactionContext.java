@@ -34,7 +34,6 @@ import com.google.common.collect.Maps;
  * Default TransactionContext implementation.
  */
 public class DefaultTransactionContext implements TransactionContext {
-
     private static final String TX_NOT_OPEN_ERROR = "Transaction Context is not open";
 
     @SuppressWarnings("rawtypes")

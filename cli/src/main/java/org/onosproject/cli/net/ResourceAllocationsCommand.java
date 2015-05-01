@@ -21,14 +21,13 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceService;
 
 /**
- * Lists allocations by link.
+ * Lists allocations by link. Lists all allocations if link is unspecified.
  */
 @Command(scope = "onos", name = "resource-allocations",
-         description = "Lists allocations by link")
+        description = "Lists allocations by link. Lists all allocations if link is unspecified.")
 public class ResourceAllocationsCommand extends AbstractShellCommand {
 
     private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s%s";
@@ -46,27 +45,20 @@ public class ResourceAllocationsCommand extends AbstractShellCommand {
         LinkResourceService resourceService = get(LinkResourceService.class);
         LinkService linkService = get(LinkService.class);
 
-        Iterable<LinkResourceAllocations> itr = null;
-        try {
-            ConnectPoint src = ConnectPoint.deviceConnectPoint(srcString);
+        if (srcString == null || dstString == null) {
+            print("----- Displaying all resource allocations -----");
+            resourceService.getAllocations().forEach(alloc -> print("%s", alloc));
+            return;
+        }
 
-            ConnectPoint dst = ConnectPoint.deviceConnectPoint(dstString);
+        ConnectPoint src = ConnectPoint.deviceConnectPoint(srcString);
+        ConnectPoint dst = ConnectPoint.deviceConnectPoint(dstString);
 
-            Link link = linkService.getLink(src, dst);
-
-            itr = resourceService.getAllocations(link);
-
-            for (LinkResourceAllocations allocation : itr) {
-                print("%s", allocation.getResourceAllocation(link));
-            }
-
-        } catch (Exception e) {
-            print("----- Displaying all resource allocations -----", e.getMessage());
-            itr = resourceService.getAllocations();
-            for (LinkResourceAllocations allocation : itr) {
-                print("%s", allocation);
-            }
-
+        Link link = linkService.getLink(src, dst);
+        if (link != null) {
+            resourceService.getAllocations(link).forEach(alloc -> print("%s", alloc));
+        } else {
+            print("No path found for endpoints: %s, %s", src, dst);
         }
     }
 }

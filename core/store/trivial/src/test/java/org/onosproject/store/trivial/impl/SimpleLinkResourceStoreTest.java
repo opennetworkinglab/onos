@@ -191,7 +191,7 @@ public class SimpleLinkResourceStoreTest {
         }
 
         @Override
-        public IntentId intendId() {
+        public IntentId intentId() {
             return null;
         }
 
@@ -227,7 +227,7 @@ public class SimpleLinkResourceStoreTest {
         }
 
         @Override
-        public IntentId intendId() {
+        public IntentId intentId() {
             return null;
         }
 

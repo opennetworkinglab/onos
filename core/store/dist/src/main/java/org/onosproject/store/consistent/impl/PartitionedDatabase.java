@@ -356,7 +356,6 @@ public class PartitionedDatabase implements Database {
         }
         Map<Database, Transaction> subTransactions = Maps.newHashMap();
         perPartitionUpdates.forEach((k, v) -> subTransactions.put(k, new DefaultTransaction(transaction.id(), v)));
-
         return subTransactions;
     }
 }

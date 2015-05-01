@@ -18,12 +18,14 @@ package org.onosproject.net.resource;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Objects;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 
@@ -59,7 +61,7 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
     }
 
     @Override
-    public IntentId intendId() {
+    public IntentId intentId() {
         return intentId;
     }
 
@@ -150,7 +152,6 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
             return this;
         }
 
-
         /**
          * Returns link resource request.
          *
@@ -162,4 +163,21 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(intentId, links);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final DefaultLinkResourceRequest other = (DefaultLinkResourceRequest) obj;
+        return Objects.equals(this.intentId, other.intentId)
+                && Objects.equals(this.links, other.links);
+    }
 }

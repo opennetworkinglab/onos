@@ -16,7 +16,6 @@
 
 package org.onosproject.store.service;
 
-
 /**
  * Transactional Map data structure.
  * <p>

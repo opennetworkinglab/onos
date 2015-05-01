@@ -224,7 +224,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
     @Override
     public synchronized void allocateResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
-        linkResourceAllocationsMap.put(allocations.intendId(), allocations);
+        linkResourceAllocationsMap.put(allocations.intentId(), allocations);
         for (Link link : allocations.links()) {
             subtractFreeResources(link, allocations);
             Set<LinkResourceAllocations> linkAllocs = allocatedResources.get(link);
@@ -239,7 +239,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
     @Override
     public synchronized LinkResourceEvent releaseResources(LinkResourceAllocations allocations) {
         checkNotNull(allocations);
-        linkResourceAllocationsMap.remove(allocations.intendId());
+        linkResourceAllocationsMap.remove(allocations.intentId());
         for (Link link : allocations.links()) {
             addFreeResources(link, allocations);
             Set<LinkResourceAllocations> linkAllocs = allocatedResources.get(link);

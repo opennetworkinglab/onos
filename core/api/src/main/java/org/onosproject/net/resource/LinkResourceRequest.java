@@ -32,7 +32,7 @@ public interface LinkResourceRequest extends ResourceRequest {
      *
      * @return the {@link IntentId} associated with the request
      */
-    IntentId intendId();
+    IntentId intentId();
 
     /**
      * Returns the set of target links.
