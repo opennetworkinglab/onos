@@ -89,6 +89,12 @@
                             </packages>
                         </group>
                         <group>
+                            <title>NetConf Providers</title>
+                            <packages>
+                                org.onosproject.provider.netconf:org.onosproject.provider.netconf*
+                            </packages>
+                        </group>
+                        <group>
                             <title>Null Providers</title>
                             <packages>
                                 org.onosproject.provider.nil:org.onosproject.provider.nil.*

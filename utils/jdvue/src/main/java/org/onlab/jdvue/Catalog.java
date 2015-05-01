@@ -41,6 +41,7 @@ public class Catalog {
      * Loads the catalog from the specified catalog file.
      *
      * @param catalogPath catalog file path
+     * @throws IOException if unable to read the catalog file
      */
     public void load(String catalogPath) throws IOException {
         InputStream is = new FileInputStream(catalogPath);

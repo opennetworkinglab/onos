@@ -28,6 +28,7 @@ public interface NetworkConfigService {
      * Returns the set of subjects for which some configuration is available.
      *
      * @param subjectClass subject class
+     * @param <T> type of subject
      * @return set of configured subjects
      */
     <T> Set<T> getSubjects(Class<T> subjectClass);
@@ -38,6 +39,7 @@ public interface NetworkConfigService {
      *
      * @param subjectClass subject class
      * @param configClass  configuration class
+     * @param <T> type of subject
      * @return set of configured subjects
      */
     <T> Set<T> getSubjects(Class<T> subjectClass, Class<Config<T>> configClass);
@@ -47,6 +49,7 @@ public interface NetworkConfigService {
      * Returns all configurations for the specified subject.
      *
      * @param subject configuration subject
+     * @param <T> type of subject
      * @return set of configurations
      */
     <T> Set<Config<T>> getConfigs(T subject);
@@ -57,6 +60,7 @@ public interface NetworkConfigService {
      *
      * @param subject     configuration subject
      * @param configClass configuration class
+     * @param <T> type of subject
      * @return configuration or null if one is not available
      */
     <T> Config<T> getConfig(T subject, Class<Config<T>> configClass);

@@ -90,7 +90,10 @@ public class NetconfDevice {
 
     /**
      * This will try to connect to NETCONF device and find all the capabilities.
+     *
+     * @throws Exception if unable to connect to the device
      */
+    // FIXME: this should not be a generic Exception; perhaps wrap in some RuntimeException
     public void init() throws Exception {
         try {
             if (sshConnection == null) {

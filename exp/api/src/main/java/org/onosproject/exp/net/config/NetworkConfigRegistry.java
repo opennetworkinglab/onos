@@ -41,6 +41,8 @@ public interface NetworkConfigRegistry {
      * class of subject.
      *
      * @param subjectClass subject class
+     * @param <T> type of subject
+     * @return set of config factories
      */
     <T> Set<ConfigFactory<T>> getConfigFactories(Class<T> subjectClass);
 
@@ -49,6 +51,9 @@ public interface NetworkConfigRegistry {
      * subject type and key.
      *
      * @param subjectClass subject class
+     * @param configKey    configuration key
+     * @param <T> type of subject
+     * @return config factory
      */
     <T> ConfigFactory<T> getConfigFactory(Class<T> subjectClass, String configKey);
 
@@ -57,6 +62,8 @@ public interface NetworkConfigRegistry {
      * configuration class.
      *
      * @param configClass configuration class
+     * @param <T> type of subject
+     * @return config factory
      */
     <T> ConfigFactory<T> getConfigFactory(Class<Config<T>> configClass);
 

@@ -74,6 +74,8 @@ public class RoutingRulePopulator {
 
     /**
      * Returns the number of rules populated.
+     *
+     * @return number of rules
      */
     public long getCounter() {
         return rulePopulationCounter.get();

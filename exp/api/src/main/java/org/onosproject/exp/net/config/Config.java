@@ -45,9 +45,10 @@ public abstract class Config<S> {
     /**
      * Initializes the configuration behaviour with necessary context.
      *
-     * @param subject configuration subject
-     * @param node    JSON object node where configuration data is stored
-     * @param mapper  JSON object mapper
+     * @param subject  configuration subject
+     * @param node     JSON object node where configuration data is stored
+     * @param mapper   JSON object mapper
+     * @param delegate delegate context
      */
     public void init(S subject, ObjectNode node, ObjectMapper mapper,
                      ConfigApplyDelegate<S> delegate) {

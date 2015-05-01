@@ -22,6 +22,7 @@ public class JavaSource extends JavaEntity {
      * Creates a new Java source entity.
      *
      * @param name java source file name
+     * @param path source file path
      */
     JavaSource(String name, String path) {
         super(name);
@@ -50,6 +51,7 @@ public class JavaSource extends JavaEntity {
 
     /**
      * Returns the set of resolved imports for this Java source
+     *
      * @return set of imports
      */
     public Set<JavaEntity> getImports() {
@@ -78,6 +80,7 @@ public class JavaSource extends JavaEntity {
 
     /**
      * Returns the set of imported, but unresolved, Java entity names.
+     *
      * @return set of imported Java entity names
      */
     Set<String> getImportNames() {
