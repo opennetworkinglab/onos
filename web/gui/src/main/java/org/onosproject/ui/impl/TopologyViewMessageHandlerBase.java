@@ -63,8 +63,9 @@ import org.onosproject.net.statistic.Load;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,11 +101,13 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 /**
  * Facility for creating messages bound for the topology viewer.
  */
-public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
+public abstract class TopologyViewMessageHandlerBase extends UiMessageHandlerTwo {
 
-    protected static final Logger log = LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
+    protected static final Logger log =
+            LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
 
-    private static final ProviderId PID = new ProviderId("core", "org.onosproject.core", true);
+    private static final ProviderId PID =
+            new ProviderId("core", "org.onosproject.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
 
     private static final double KB = 1024;
@@ -133,15 +136,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
 
     /**
-     * Creates a new message handler for the specified set of message types.
-     *
-     * @param messageTypes set of message types
-     */
-    protected TopologyViewMessageHandlerBase(Set<String> messageTypes) {
-        super(messageTypes);
-    }
-
-    /**
      * Returns read-only view of the meta-ui information.
      *
      * @return map of id to meta-ui mementos
@@ -166,26 +160,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         String ver = directory.get(CoreService.class).version().toString();
         version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
-    }
-
-    // Retrieves the payload from the specified event.
-    protected ObjectNode payload(ObjectNode event) {
-        return (ObjectNode) event.path("payload");
-    }
-
-    // Returns the specified node property as a number
-    protected long number(ObjectNode node, String name) {
-        return node.path(name).asLong();
-    }
-
-    // Returns the specified node property as a string.
-    protected String string(ObjectNode node, String name) {
-        return node.path(name).asText();
-    }
-
-    // Returns the specified node property as a string.
-    protected String string(ObjectNode node, String name, String defaultValue) {
-        return node.path(name).asText(defaultValue);
     }
 
     // Returns the specified set of IP addresses as a string.
@@ -222,21 +196,11 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces a log message event bound to the client.
     private ObjectNode message(String severity, long id, String message) {
-        return envelope("message", id,
-                        mapper.createObjectNode()
-                                .put("severity", severity)
-                                .put("message", message));
-    }
+        ObjectNode payload = mapper.createObjectNode()
+                .put("severity", severity)
+                .put("message", message);
 
-    // Puts the payload into an envelope and returns it.
-    protected ObjectNode envelope(String type, long sid, ObjectNode payload) {
-        ObjectNode event = mapper.createObjectNode();
-        event.put("event", type);
-        if (sid > 0) {
-            event.put("sid", sid);
-        }
-        event.set("payload", payload);
-        return event;
+        return JsonUtils.envelope("message", id, payload);
     }
 
     // Produces a set of all hosts listed in the specified JSON array.
@@ -320,7 +284,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 ((event.type() == INSTANCE_ADDED) ? "addInstance" :
                         ((event.type() == INSTANCE_REMOVED ? "removeInstance" :
                                 "addInstance")));
-        return envelope(type, 0, payload);
+        return JsonUtils.envelope(type, 0, payload);
     }
 
     // Produces a device event message to the client.
@@ -347,7 +311,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
                 ((event.type() == DEVICE_REMOVED) ? "removeDevice" : "updateDevice");
-        return envelope(type, 0, payload);
+        return JsonUtils.envelope(type, 0, payload);
     }
 
     // Produces a link event message to the client.
@@ -364,7 +328,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("dstPort", link.dst().port().toString());
         String type = (event.type() == LINK_ADDED) ? "addLink" :
                 ((event.type() == LINK_REMOVED) ? "removeLink" : "updateLink");
-        return envelope(type, 0, payload);
+        return JsonUtils.envelope(type, 0, payload);
     }
 
     // Produces a host event message to the client.
@@ -385,7 +349,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         String type = (event.type() == HOST_ADDED) ? "addHost" :
                 ((event.type() == HOST_REMOVED) ? "removeHost" : "updateHost");
-        return envelope(type, 0, payload);
+        return JsonUtils.envelope(type, 0, payload);
     }
 
     // Encodes the specified host location into a JSON object.
@@ -447,15 +411,15 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Updates meta UI information for the specified object.
-    protected void updateMetaUi(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        metaUi.put(string(payload, "id"), (ObjectNode) payload.path("memento"));
+    protected void updateMetaUi(ObjectNode payload) {
+        metaUi.put(JsonUtils.string(payload, "id"),
+                   JsonUtils.node(payload, "memento"));
     }
 
     // Returns summary response.
     protected ObjectNode summmaryMessage(long sid) {
         Topology topology = topologyService.currentTopology();
-        return envelope("showSummary", sid,
+        return JsonUtils.envelope("showSummary", sid,
                         json("ONOS Summary", "node",
                              new Prop("Devices", format(topology.deviceCount())),
                              new Prop("Links", format(topology.linkCount())),
@@ -474,7 +438,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String name = annot.value(AnnotationKeys.NAME);
         int portCount = deviceService.getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
-        return envelope("showDetails", sid,
+        return JsonUtils.envelope("showDetails", sid,
                         json(isNullOrEmpty(name) ? deviceId.toString() : name,
                              device.type().toString().toLowerCase(),
                              new Prop("URI", deviceId.toString()),
@@ -552,7 +516,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String type = annot.value(AnnotationKeys.TYPE);
         String name = annot.value(AnnotationKeys.NAME);
         String vlan = host.vlan().toString();
-        return envelope("showDetails", sid,
+        return JsonUtils.envelope("showDetails", sid,
                         json(isNullOrEmpty(name) ? hostId.toString() : name,
                              isNullOrEmpty(type) ? "endstation" : type,
                              new Prop("MAC", host.mac().toString()),
@@ -565,7 +529,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
 
     // Produces JSON message to trigger traffic overview visualization
-    protected ObjectNode trafficSummaryMessage(long sid) {
+    protected ObjectNode trafficSummaryMessage() {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode paths = mapper.createArrayNode();
         payload.set("paths", paths);
@@ -603,7 +567,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 }
             }
         }
-        return envelope("showTraffic", sid, payload);
+        return JsonUtils.envelope("showTraffic", 0, payload);
     }
 
     private Collection<BiLink> consolidateLinks(Iterable<Link> links) {
@@ -615,7 +579,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Produces JSON message to trigger flow overview visualization
-    protected ObjectNode flowSummaryMessage(long sid, Set<Device> devices) {
+    protected ObjectNode flowSummaryMessage(Set<Device> devices) {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode paths = mapper.createArrayNode();
         payload.set("paths", paths);
@@ -626,7 +590,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 addLinkFlows(link, paths, counts.get(link));
             }
         }
-        return envelope("showTraffic", sid, payload);
+        return JsonUtils.envelope("showTraffic", 0, payload);
     }
 
     private void addLinkFlows(Link link, ArrayNode paths, Integer count) {
@@ -644,7 +608,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
 
     // Produces JSON message to trigger traffic visualization
-    protected ObjectNode trafficMessage(long sid, TrafficClass... trafficClasses) {
+    protected ObjectNode trafficMessage(TrafficClass... trafficClasses) {
         ObjectNode payload = mapper.createObjectNode();
         ArrayNode paths = mapper.createArrayNode();
         payload.set("paths", paths);
@@ -670,7 +634,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             ((ArrayNode) pathNode.path("labels")).add(hasTraffic ? formatBytes(biLink.bytes) : "");
         }
 
-        return envelope("showTraffic", sid, payload);
+        return JsonUtils.envelope("showTraffic", 0, payload);
     }
 
     // Classifies the link traffic according to the specified classes.

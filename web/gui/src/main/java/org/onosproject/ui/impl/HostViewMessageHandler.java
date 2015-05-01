@@ -21,7 +21,8 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostService;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -29,6 +30,7 @@ import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -36,43 +38,47 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Message handler for host view related messages.
  */
-public class HostViewMessageHandler extends UiMessageHandler {
+public class HostViewMessageHandler extends UiMessageHandlerTwo {
 
-    /**
-     * Creates a new message handler for the host messages.
-     */
-    protected HostViewMessageHandler() {
-        super(ImmutableSet.of("hostDataRequest"));
-    }
+    private static final String HOST_DATA_REQ = "hostDataRequest";
+
 
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("hostDataRequest")) {
-            sendHostList(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(new HostDataRequest());
+    }
+
+    // ======================================================================
+
+    private final class HostDataRequest extends RequestHandler {
+
+        private HostDataRequest() {
+            super(HOST_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload);
+
+            HostService service = get(HostService.class);
+            TableRow[] rows = generateTableRows(service);
+            Arrays.sort(rows, rc);
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("hosts", TableUtils.generateArrayNode(rows));
+
+            sendMessage("hostDataResponse", 0, rootNode);
+        }
+
+        private TableRow[] generateTableRows(HostService service) {
+            List<TableRow> list = new ArrayList<>();
+            for (Host host : service.getHosts()) {
+                list.add(new HostTableRow(host));
+            }
+            return list.toArray(new TableRow[list.size()]);
         }
     }
 
-    private void sendHostList(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload);
-
-        HostService service = get(HostService.class);
-        TableRow[] rows = generateTableRows(service);
-        Arrays.sort(rows, rc);
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("hosts", TableUtils.generateArrayNode(rows));
-
-        connection().sendMessage("hostDataResponse", 0, rootNode);
-    }
-
-    private TableRow[] generateTableRows(HostService service) {
-        List<TableRow> list = new ArrayList<>();
-        for (Host host : service.getHosts()) {
-            list.add(new HostTableRow(host));
-        }
-        return list.toArray(new TableRow[list.size()]);
-    }
+    // ======================================================================
 
     /**
      * TableRow implementation for {@link Host hosts}.

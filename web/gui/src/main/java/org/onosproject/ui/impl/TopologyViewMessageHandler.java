@@ -54,9 +54,12 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
+import org.onosproject.ui.JsonUtils;
+import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -78,6 +81,26 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
  * Web socket capable of interacting with the GUI topology view.
  */
 public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
+
+    private static final String REQ_DETAILS = "requestDetails";
+    private static final String UPDATE_META = "updateMeta";
+    private static final String ADD_HOST_INTENT = "addHostIntent";
+    private static final String ADD_MULTI_SRC_INTENT = "addMultiSourceIntent";
+    private static final String REQ_RELATED_INTENTS = "requestRelatedIntents";
+    private static final String REQ_NEXT_INTENT = "requestNextRelatedIntent";
+    private static final String REQ_PREV_INTENT = "requestPrevRelatedIntent";
+    private static final String REQ_SEL_INTENT_TRAFFIC = "requestSelectedIntentTraffic";
+    private static final String REQ_ALL_TRAFFIC = "requestAllTraffic";
+    private static final String REQ_DEV_LINK_FLOWS = "requestDeviceLinkFlows";
+    private static final String CANCEL_TRAFFIC = "cancelTraffic";
+    private static final String REQ_SUMMARY = "requestSummary";
+    private static final String CANCEL_SUMMARY = "cancelSummary";
+    private static final String EQ_MASTERS = "equalizeMasters";
+    private static final String SPRITE_LIST_REQ = "spriteListRequest";
+    private static final String SPRITE_DATA_REQ = "spriteDataRequest";
+    private static final String TOPO_START = "topoStart";
+    private static final String TOPO_STOP = "topoStop";
+
 
     private static final String APP_ID = "org.onosproject.gui";
 
@@ -111,11 +134,11 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private final Accumulator<Event> eventAccummulator = new InternalEventAccummulator();
 
-    private TimerTask trafficTask;
-    private ObjectNode trafficEvent;
+    private TimerTask trafficTask = null;
+    private TrafficEvent trafficEvent = null;
 
-    private TimerTask summaryTask;
-    private ObjectNode summaryEvent;
+    private TimerTask summaryTask = null;
+    private boolean summaryRunning = false;
 
     private boolean listenersRemoved = false;
 
@@ -127,30 +150,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private List<Intent> selectedIntents;
     private int currentIntentIndex = -1;
 
-    /**
-     * Creates a new web-socket for serving data to GUI topology view.
-     */
-    public TopologyViewMessageHandler() {
-        super(ImmutableSet.of("topoStart",
-                              "topoStop",
-                              "requestDetails",
-                              "updateMeta",
-                              "addHostIntent",
-                              "addMultiSourceIntent",
-                              "requestRelatedIntents",
-                              "requestNextRelatedIntent",
-                              "requestPrevRelatedIntent",
-                              "requestSelectedIntentTraffic",
-                              "requestAllTraffic",
-                              "requestDeviceLinkFlows",
-                              "cancelTraffic",
-                              "requestSummary",
-                              "cancelSummary",
-                              "equalizeMasters",
-                              "spriteListRequest",
-                              "spriteDataRequest"
-        ));
-    }
 
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
@@ -167,65 +166,325 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         super.destroy();
     }
 
-    // Processes the specified event.
     @Override
-    public void process(ObjectNode event) {
-        String type = string(event, "event", "unknown");
-        if (type.equals("requestDetails")) {
-            requestDetails(event);
-        } else if (type.equals("updateMeta")) {
-            updateMetaUi(event);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(
+                new TopoStart(),
+                new TopoStop(),
+                new ReqSummary(),
+                new CancelSummary(),
+                new SpriteListReq(),
+                new SpriteDataReq(),
+                new RequestDetails(),
+                new UpdateMeta(),
+                new EqMasters(),
 
-        } else if (type.equals("addHostIntent")) {
-            createHostIntent(event);
-        } else if (type.equals("addMultiSourceIntent")) {
-            createMultiSourceIntent(event);
+                // TODO: migrate traffic related to separate app
+                new AddHostIntent(),
+                new AddMultiSourceIntent(),
+                new ReqRelatedIntents(),
+                new ReqNextIntent(),
+                new ReqPrevIntent(),
+                new ReqSelectedIntentTraffic(),
+                new ReqAllTraffic(),
+                new ReqDevLinkFlows(),
+                new CancelTraffic()
+        );
+    }
 
-        } else if (type.equals("requestRelatedIntents")) {
-            stopTrafficMonitoring();
-            requestRelatedIntents(event);
+    // ==================================================================
 
-        } else if (type.equals("requestNextRelatedIntent")) {
-            stopTrafficMonitoring();
-            requestAnotherRelatedIntent(event, +1);
-        } else if (type.equals("requestPrevRelatedIntent")) {
-            stopTrafficMonitoring();
-            requestAnotherRelatedIntent(event, -1);
-        } else if (type.equals("requestSelectedIntentTraffic")) {
-            requestSelectedIntentTraffic(event);
-            startTrafficMonitoring(event);
+    private final class TopoStart extends RequestHandler {
+        private TopoStart() {
+            super(TOPO_START);
+        }
 
-        } else if (type.equals("requestAllTraffic")) {
-            requestAllTraffic(event);
-            startTrafficMonitoring(event);
-
-        } else if (type.equals("requestDeviceLinkFlows")) {
-            requestDeviceLinkFlows(event);
-            startTrafficMonitoring(event);
-
-        } else if (type.equals("cancelTraffic")) {
-            cancelTraffic(event);
-
-        } else if (type.equals("requestSummary")) {
-            requestSummary(event);
-            startSummaryMonitoring(event);
-        } else if (type.equals("cancelSummary")) {
-            stopSummaryMonitoring();
-
-        } else if (type.equals("equalizeMasters")) {
-            equalizeMasters(event);
-
-        } else if (type.equals("spriteListRequest")) {
-            sendSpriteList(event);
-        } else if (type.equals("spriteDataRequest")) {
-            sendSpriteData(event);
-
-        } else if (type.equals("topoStart")) {
-            sendAllInitialData();
-        } else if (type.equals("topoStop")) {
-            cancelAllRequests();
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            addListeners();
+            sendAllInstances(null);
+            sendAllDevices();
+            sendAllLinks();
+            sendAllHosts();
         }
     }
+
+    private final class TopoStop extends RequestHandler {
+        private TopoStop() {
+            super(TOPO_STOP);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            stopSummaryMonitoring();
+            stopTrafficMonitoring();
+        }
+    }
+
+    private final class ReqSummary extends RequestHandler {
+        private ReqSummary() {
+            super(REQ_SUMMARY);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            requestSummary(sid);
+            startSummaryMonitoring();
+        }
+    }
+
+    private final class CancelSummary extends RequestHandler {
+        private CancelSummary() {
+            super(CANCEL_SUMMARY);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            stopSummaryMonitoring();
+        }
+    }
+
+    private final class SpriteListReq extends RequestHandler {
+        private SpriteListReq() {
+            super(SPRITE_LIST_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            ObjectNode root = mapper.createObjectNode();
+            ArrayNode names = mapper.createArrayNode();
+            get(SpriteService.class).getNames().forEach(names::add);
+            root.set("names", names);
+            sendMessage("spriteListResponse", sid, root);
+        }
+    }
+
+    private final class SpriteDataReq extends RequestHandler {
+        private SpriteDataReq() {
+            super(SPRITE_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String name = string(payload, "name");
+            ObjectNode root = mapper.createObjectNode();
+            root.set("data", get(SpriteService.class).get(name));
+            sendMessage("spriteDataResponse", sid, root);
+        }
+    }
+
+    private final class RequestDetails extends RequestHandler {
+        private RequestDetails() {
+            super(REQ_DETAILS);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String type = string(payload, "class", "unknown");
+            String id = JsonUtils.string(payload, "id");
+
+            if (type.equals("device")) {
+                sendMessage(deviceDetails(deviceId(id), sid));
+            } else if (type.equals("host")) {
+                sendMessage(hostDetails(hostId(id), sid));
+            }
+        }
+    }
+
+    private final class UpdateMeta extends RequestHandler {
+        private UpdateMeta() {
+            super(UPDATE_META);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            updateMetaUi(payload);
+        }
+    }
+
+    private final class EqMasters extends RequestHandler {
+        private EqMasters() {
+            super(EQ_MASTERS);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            directory.get(MastershipAdminService.class).balanceRoles();
+        }
+    }
+
+    // === TODO: move traffic related classes to traffic app
+
+    private final class AddHostIntent extends RequestHandler {
+        private AddHostIntent() {
+            super(ADD_HOST_INTENT);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            // TODO: add protection against device ids and non-existent hosts.
+            HostId one = hostId(string(payload, "one"));
+            HostId two = hostId(string(payload, "two"));
+
+            HostToHostIntent intent = HostToHostIntent.builder()
+                            .appId(appId)
+                            .one(one)
+                            .two(two)
+                            .build();
+
+            intentService.submit(intent);
+            startMonitoringIntent(intent);
+        }
+    }
+
+    private final class AddMultiSourceIntent extends RequestHandler {
+        private AddMultiSourceIntent() {
+            super(ADD_MULTI_SRC_INTENT);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            // TODO: add protection against device ids and non-existent hosts.
+            Set<HostId> src = getHostIds((ArrayNode) payload.path("src"));
+            HostId dst = hostId(string(payload, "dst"));
+            Host dstHost = hostService.getHost(dst);
+
+            Set<ConnectPoint> ingressPoints = getHostLocations(src);
+
+            // FIXME: clearly, this is not enough
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthDst(dstHost.mac()).build();
+            TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+
+            MultiPointToSinglePointIntent intent =
+                    MultiPointToSinglePointIntent.builder()
+                            .appId(appId)
+                            .selector(selector)
+                            .treatment(treatment)
+                            .ingressPoints(ingressPoints)
+                            .egressPoint(dstHost.location())
+                            .build();
+
+            intentService.submit(intent);
+            startMonitoringIntent(intent);
+        }
+    }
+
+    private final class ReqRelatedIntents extends RequestHandler {
+        private ReqRelatedIntents() {
+            super(REQ_RELATED_INTENTS);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            // Cancel any other traffic monitoring mode.
+            stopTrafficMonitoring();
+
+            if (!payload.has("ids")) {
+                return;
+            }
+
+            // Get the set of selected hosts and their intents.
+            ArrayNode ids = (ArrayNode) payload.path("ids");
+            selectedHosts = getHosts(ids);
+            selectedDevices = getDevices(ids);
+            selectedIntents = intentFilter.findPathIntents(
+                    selectedHosts, selectedDevices, intentService.getIntents());
+            currentIntentIndex = -1;
+
+            if (haveSelectedIntents()) {
+                // Send a message to highlight all links of all monitored intents.
+                sendMessage(trafficMessage(new TrafficClass("primary", selectedIntents)));
+            }
+
+            // TODO: Re-introduce once the client click vs hover gesture stuff is sorted out.
+//        String hover = string(payload, "hover");
+//        if (!isNullOrEmpty(hover)) {
+//            // If there is a hover node, include it in the selection and find intents.
+//            processHoverExtendedSelection(sid, hover);
+//        }
+        }
+    }
+
+    private final class ReqNextIntent extends RequestHandler {
+        private ReqNextIntent() {
+            super(REQ_NEXT_INTENT);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            stopTrafficMonitoring();
+            requestAnotherRelatedIntent(+1);
+        }
+    }
+
+    private final class ReqPrevIntent extends RequestHandler {
+        private ReqPrevIntent() {
+            super(REQ_PREV_INTENT);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            stopTrafficMonitoring();
+            requestAnotherRelatedIntent(-1);
+        }
+    }
+
+    private final class ReqSelectedIntentTraffic extends RequestHandler {
+        private ReqSelectedIntentTraffic() {
+            super(REQ_SEL_INTENT_TRAFFIC);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            trafficEvent =
+                    new TrafficEvent(TrafficEvent.Type.SEL_INTENT, payload);
+            requestSelectedIntentTraffic();
+            startTrafficMonitoring();
+        }
+    }
+
+    private final class ReqAllTraffic extends RequestHandler {
+        private ReqAllTraffic() {
+            super(REQ_ALL_TRAFFIC);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            trafficEvent =
+                    new TrafficEvent(TrafficEvent.Type.ALL_TRAFFIC, payload);
+            requestAllTraffic();
+        }
+    }
+
+    private final class ReqDevLinkFlows extends RequestHandler {
+        private ReqDevLinkFlows() {
+            super(REQ_DEV_LINK_FLOWS);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            trafficEvent =
+                    new TrafficEvent(TrafficEvent.Type.DEV_LINK_FLOWS, payload);
+            requestDeviceLinkFlows(payload);
+        }
+    }
+
+    private final class CancelTraffic extends RequestHandler {
+        private CancelTraffic() {
+            super(CANCEL_TRAFFIC);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            selectedIntents = null;
+            sendMessage(trafficMessage());
+            stopTrafficMonitoring();
+        }
+    }
+
+    //=======================================================================
+
 
     // Sends the specified data to the client.
     protected synchronized void sendMessage(ObjectNode data) {
@@ -235,14 +494,11 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    private void sendAllInitialData() {
-        addListeners();
-        sendAllInstances(null);
-        sendAllDevices();
-        sendAllLinks();
-        sendAllHosts();
-
+    // Subscribes for summary messages.
+    private synchronized void requestSummary(long sid) {
+        sendMessage(summmaryMessage(sid));
     }
+
 
     private void cancelAllRequests() {
         stopSummaryMonitoring();
@@ -296,77 +552,15 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    // Sends back device or host details.
-    private void requestDetails(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        String type = string(payload, "class", "unknown");
-        long sid = number(event, "sid");
 
-        if (type.equals("device")) {
-            sendMessage(deviceDetails(deviceId(string(payload, "id")), sid));
-        } else if (type.equals("host")) {
-            sendMessage(hostDetails(hostId(string(payload, "id")), sid));
-        }
-    }
-
-
-    // Creates host-to-host intent.
-    private void createHostIntent(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        long id = number(event, "sid");
-        // TODO: add protection against device ids and non-existent hosts.
-        HostId one = hostId(string(payload, "one"));
-        HostId two = hostId(string(payload, "two"));
-
-        HostToHostIntent intent =
-                HostToHostIntent.builder()
-                        .appId(appId)
-                        .one(one)
-                        .two(two)
-                        .build();
-
-        intentService.submit(intent);
-        startMonitoringIntent(event, intent);
-    }
-
-    // Creates multi-source-to-single-dest intent.
-    private void createMultiSourceIntent(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        long id = number(event, "sid");
-        // TODO: add protection against device ids and non-existent hosts.
-        Set<HostId> src = getHostIds((ArrayNode) payload.path("src"));
-        HostId dst = hostId(string(payload, "dst"));
-        Host dstHost = hostService.getHost(dst);
-
-        Set<ConnectPoint> ingressPoints = getHostLocations(src);
-
-        // FIXME: clearly, this is not enough
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthDst(dstHost.mac()).build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
-
-        MultiPointToSinglePointIntent intent =
-                MultiPointToSinglePointIntent.builder()
-                        .appId(appId)
-                        .selector(selector)
-                        .treatment(treatment)
-                        .ingressPoints(ingressPoints)
-                        .egressPoint(dstHost.location())
-                        .build();
-
-        intentService.submit(intent);
-        startMonitoringIntent(event, intent);
-    }
-
-
-    private synchronized void startMonitoringIntent(ObjectNode event, Intent intent) {
+    private synchronized void startMonitoringIntent(Intent intent) {
         selectedHosts = new HashSet<>();
         selectedDevices = new HashSet<>();
         selectedIntents = new ArrayList<>();
         selectedIntents.add(intent);
         currentIntentIndex = -1;
-        requestAnotherRelatedIntent(event, +1);
-        requestSelectedIntentTraffic(event);
+        requestAnotherRelatedIntent(+1);
+        requestSelectedIntentTraffic();
     }
 
 
@@ -392,31 +586,27 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
 
-    private synchronized long startTrafficMonitoring(ObjectNode event) {
+    private synchronized void startTrafficMonitoring() {
         stopTrafficMonitoring();
-        trafficEvent = event;
         trafficTask = new TrafficMonitor();
         timer.schedule(trafficTask, TRAFFIC_FREQUENCY, TRAFFIC_FREQUENCY);
-        return number(event, "sid");
     }
 
     private synchronized void stopTrafficMonitoring() {
         if (trafficTask != null) {
             trafficTask.cancel();
             trafficTask = null;
-            trafficEvent = null;
         }
     }
 
     // Subscribes for host traffic messages.
-    private synchronized void requestAllTraffic(ObjectNode event) {
-        long sid = startTrafficMonitoring(event);
-        sendMessage(trafficSummaryMessage(sid));
+    private synchronized void requestAllTraffic() {
+        startTrafficMonitoring();
+        sendMessage(trafficSummaryMessage());
     }
 
-    private void requestDeviceLinkFlows(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        long sid = startTrafficMonitoring(event);
+    private void requestDeviceLinkFlows(ObjectNode payload) {
+        startTrafficMonitoring();
 
         // Get the set of selected hosts and their intents.
         ArrayNode ids = (ArrayNode) payload.path("ids");
@@ -424,46 +614,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         Set<Device> devices = getDevices(ids);
 
         // If there is a hover node, include it in the hosts and find intents.
-        String hover = string(payload, "hover");
+        String hover = JsonUtils.string(payload, "hover");
         if (!isNullOrEmpty(hover)) {
             addHover(hosts, devices, hover);
         }
-        sendMessage(flowSummaryMessage(sid, devices));
+        sendMessage(flowSummaryMessage(devices));
     }
 
-
-    // Requests related intents message.
-    private synchronized void requestRelatedIntents(ObjectNode event) {
-        ObjectNode payload = payload(event);
-        if (!payload.has("ids")) {
-            return;
-        }
-
-        long sid = number(event, "sid");
-
-        // Cancel any other traffic monitoring mode.
-        stopTrafficMonitoring();
-
-        // Get the set of selected hosts and their intents.
-        ArrayNode ids = (ArrayNode) payload.path("ids");
-        selectedHosts = getHosts(ids);
-        selectedDevices = getDevices(ids);
-        selectedIntents = intentFilter.findPathIntents(selectedHosts, selectedDevices,
-                                                       intentService.getIntents());
-        currentIntentIndex = -1;
-
-        if (haveSelectedIntents()) {
-            // Send a message to highlight all links of all monitored intents.
-            sendMessage(trafficMessage(sid, new TrafficClass("primary", selectedIntents)));
-        }
-
-        // FIXME: Re-introduce one the client click vs hover gesture stuff is sorted out.
-//        String hover = string(payload, "hover");
-//        if (!isNullOrEmpty(hover)) {
-//            // If there is a hover node, include it in the selection and find intents.
-//            processHoverExtendedSelection(sid, hover);
-//        }
-    }
 
     private boolean haveSelectedIntents() {
         return selectedIntents != null && !selectedIntents.isEmpty();
@@ -483,12 +640,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         secondary.removeAll(primary);
 
         // Send a message to highlight all links of all monitored intents.
-        sendMessage(trafficMessage(sid, new TrafficClass("primary", primary),
+        sendMessage(trafficMessage(new TrafficClass("primary", primary),
                                    new TrafficClass("secondary", secondary)));
     }
 
     // Requests next or previous related intent.
-    private void requestAnotherRelatedIntent(ObjectNode event, int offset) {
+    private void requestAnotherRelatedIntent(int offset) {
         if (haveSelectedIntents()) {
             currentIntentIndex = currentIntentIndex + offset;
             if (currentIntentIndex < 0) {
@@ -496,13 +653,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             } else if (currentIntentIndex >= selectedIntents.size()) {
                 currentIntentIndex = 0;
             }
-            sendSelectedIntent(event);
+            sendSelectedIntent();
         }
     }
 
     // Sends traffic information on the related intents with the currently
     // selected intent highlighted.
-    private void sendSelectedIntent(ObjectNode event) {
+    private void sendSelectedIntent() {
         Intent selectedIntent = selectedIntents.get(currentIntentIndex);
         log.info("Requested next intent {}", selectedIntent.id());
 
@@ -513,13 +670,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         secondary.remove(selectedIntent);
 
         // Send a message to highlight all links of the selected intent.
-        sendMessage(trafficMessage(number(event, "sid"),
-                                   new TrafficClass("primary", primary),
+        sendMessage(trafficMessage(new TrafficClass("primary", primary),
                                    new TrafficClass("secondary", secondary)));
     }
 
     // Requests monitoring of traffic for the selected intent.
-    private void requestSelectedIntentTraffic(ObjectNode event) {
+    private void requestSelectedIntentTraffic() {
         if (haveSelectedIntents()) {
             if (currentIntentIndex < 0) {
                 currentIntentIndex = 0;
@@ -531,61 +687,23 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             primary.add(selectedIntent);
 
             // Send a message to highlight all links of the selected intent.
-            sendMessage(trafficMessage(number(event, "sid"),
-                                       new TrafficClass("primary", primary, true)));
+            sendMessage(trafficMessage(new TrafficClass("primary", primary, true)));
         }
     }
 
-    // Cancels sending traffic messages.
-    private void cancelTraffic(ObjectNode event) {
-        selectedIntents = null;
-        sendMessage(trafficMessage(number(event, "sid")));
-        stopTrafficMonitoring();
-    }
-
-
-    private synchronized long startSummaryMonitoring(ObjectNode event) {
+    private synchronized void startSummaryMonitoring() {
         stopSummaryMonitoring();
-        summaryEvent = event;
         summaryTask = new SummaryMonitor();
         timer.schedule(summaryTask, SUMMARY_FREQUENCY, SUMMARY_FREQUENCY);
-        return number(event, "sid");
+        summaryRunning = true;
     }
 
     private synchronized void stopSummaryMonitoring() {
-        if (summaryEvent != null) {
+        if (summaryTask != null) {
             summaryTask.cancel();
             summaryTask = null;
-            summaryEvent = null;
         }
-    }
-
-    // Subscribes for summary messages.
-    private synchronized void requestSummary(ObjectNode event) {
-        sendMessage(summmaryMessage(number(event, "sid")));
-    }
-
-
-    // Forces mastership role rebalancing.
-    private void equalizeMasters(ObjectNode event) {
-        directory.get(MastershipAdminService.class).balanceRoles();
-    }
-
-    // Sends a list of sprite names.
-    private void sendSpriteList(ObjectNode event) {
-        ObjectNode root = mapper.createObjectNode();
-        ArrayNode names = mapper.createArrayNode();
-        get(SpriteService.class).getNames().forEach(names::add);
-        root.set("names", names);
-        sendMessage(envelope("spriteListResponse", number(event, "sid"), root));
-    }
-
-    // Sends requested sprite data.
-    private void sendSpriteData(ObjectNode event) {
-        String name = event.path("payload").path("name").asText();
-        ObjectNode root = mapper.createObjectNode();
-        root.set("data", get(SpriteService.class).get(name));
-        sendMessage(envelope("spriteDataResponse", number(event, "sid"), root));
+        summaryRunning = false;
     }
 
 
@@ -666,8 +784,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
-            if (trafficEvent != null) {
-                requestSelectedIntentTraffic(trafficEvent);
+            if (trafficTask != null) {
+                requestSelectedIntentTraffic();
             }
             eventAccummulator.add(event);
         }
@@ -681,19 +799,38 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    // encapsulate
+    private static class TrafficEvent {
+        enum Type { ALL_TRAFFIC, DEV_LINK_FLOWS, SEL_INTENT }
+
+        private final Type type;
+        private final ObjectNode payload;
+
+        TrafficEvent(Type type, ObjectNode payload) {
+            this.type = type;
+            this.payload = payload;
+        }
+    }
+
     // Periodic update of the traffic information
     private class TrafficMonitor extends TimerTask {
         @Override
         public void run() {
             try {
                 if (trafficEvent != null) {
-                    String type = string(trafficEvent, "event", "unknown");
-                    if (type.equals("requestAllTraffic")) {
-                        requestAllTraffic(trafficEvent);
-                    } else if (type.equals("requestDeviceLinkFlows")) {
-                        requestDeviceLinkFlows(trafficEvent);
-                    } else if (type.equals("requestSelectedIntentTraffic")) {
-                        requestSelectedIntentTraffic(trafficEvent);
+                    switch (trafficEvent.type) {
+                        case ALL_TRAFFIC:
+                            requestAllTraffic();
+                            break;
+                        case DEV_LINK_FLOWS:
+                            requestDeviceLinkFlows(trafficEvent.payload);
+                            break;
+                        case SEL_INTENT:
+                            requestSelectedIntentTraffic();
+                            break;
+                        default:
+                            // nothing to do
+                            break;
                     }
                 }
             } catch (Exception e) {
@@ -708,8 +845,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void run() {
             try {
-                if (summaryEvent != null) {
-                    requestSummary(summaryEvent);
+                if (summaryRunning) {
+                    requestSummary(0);
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
@@ -727,8 +864,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void processItems(List<Event> items) {
             try {
-                if (summaryEvent != null) {
-                    sendMessage(summmaryMessage(0));
+                if (summaryRunning) {
+                    requestSummary(0);
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
@@ -737,4 +874,3 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 }
-

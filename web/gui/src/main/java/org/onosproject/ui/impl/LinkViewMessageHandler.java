@@ -23,7 +23,8 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
@@ -32,6 +33,7 @@ import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -40,47 +42,51 @@ import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.addLink;
 /**
  * Message handler for link view related messages.
  */
-public class LinkViewMessageHandler extends UiMessageHandler {
+public class LinkViewMessageHandler extends UiMessageHandlerTwo {
 
-    /**
-     * Creates a new message handler for the link messages.
-     */
-    protected LinkViewMessageHandler() {
-        super(ImmutableSet.of("linkDataRequest"));
-    }
+    private static final String LINK_DATA_REQ = "linkDataRequest";
+
 
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("linkDataRequest")) {
-            sendLinkList(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(new LinkDataRequest());
+    }
+
+    // ======================================================================
+
+    private final class LinkDataRequest extends RequestHandler {
+
+        private LinkDataRequest() {
+            super(LINK_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload, "one");
+
+            LinkService service = get(LinkService.class);
+            TableRow[] rows = generateTableRows(service);
+            Arrays.sort(rows, rc);
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("links", TableUtils.generateArrayNode(rows));
+
+            sendMessage("linkDataResponse", 0, rootNode);
+        }
+
+        private TableRow[] generateTableRows(LinkService service) {
+            List<TableRow> list = new ArrayList<>();
+
+            // First consolidate all uni-directional links into two-directional ones.
+            Map<LinkKey, BiLink> biLinks = Maps.newHashMap();
+            service.getLinks().forEach(link -> addLink(biLinks, link));
+
+            // Now scan over all bi-links and produce table rows from them.
+            biLinks.values().forEach(biLink -> list.add(new LinkTableRow(biLink)));
+            return list.toArray(new TableRow[list.size()]);
         }
     }
 
-    private void sendLinkList(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload, "one");
-
-        LinkService service = get(LinkService.class);
-        TableRow[] rows = generateTableRows(service);
-        Arrays.sort(rows, rc);
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("links", TableUtils.generateArrayNode(rows));
-
-        connection().sendMessage("linkDataResponse", 0, rootNode);
-    }
-
-    private TableRow[] generateTableRows(LinkService service) {
-        List<TableRow> list = new ArrayList<>();
-
-        // First consolidate all uni-directional links into two-directional ones.
-        Map<LinkKey, BiLink> biLinks = Maps.newHashMap();
-        service.getLinks().forEach(link -> addLink(biLinks, link));
-
-        // Now scan over all bi-links and produce table rows from them.
-        biLinks.values().forEach(biLink -> list.add(new LinkTableRow(biLink)));
-        return list.toArray(new TableRow[list.size()]);
-    }
+    // ======================================================================
 
     /**
      * TableRow implementation for {@link org.onosproject.net.Link links}.

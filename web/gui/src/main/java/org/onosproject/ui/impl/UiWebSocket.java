@@ -24,8 +24,8 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtensionService;
-import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class UiWebSocket
 
     private long lastActive = System.currentTimeMillis();
 
-    private Map<String, UiMessageHandler> handlers;
+    private Map<String, UiMessageHandlerTwo> handlers;
 
     /**
      * Creates a new web-socket for serving data to GUI.
@@ -123,7 +123,7 @@ public class UiWebSocket
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
             String type = message.path("event").asText("unknown");
-            UiMessageHandler handler = handlers.get(type);
+            UiMessageHandlerTwo handler = handlers.get(type);
             if (handler != null) {
                 handler.process(message);
             } else {

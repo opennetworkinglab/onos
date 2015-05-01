@@ -27,10 +27,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.intentperf.IntentPerfCollector.Sample;
+import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.UiView;
 
 import java.util.Collection;
@@ -48,14 +49,20 @@ import static org.onosproject.ui.UiView.Category.OTHER;
 @Service(value = IntentPerfUi.class)
 public class IntentPerfUi {
 
+    private static final String INTENT_PERF_START = "intentPerfStart";
+    private static final String INTENT_PERF_STOP = "intentPerfStop";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected UiExtensionService uiExtensionService;
 
     private final Set<StreamingControl> handlers = synchronizedSet(new HashSet<>());
 
-    private List<UiView> views = ImmutableList.of(new UiView(OTHER, "intentPerf", "Intent Performance"));
-    private UiExtension uiExtension = new UiExtension(views, this::newHandlers,
-                                                      getClass().getClassLoader());
+    private List<UiView> views = ImmutableList.of(
+            new UiView(OTHER, "intentPerf", "Intent Performance")
+    );
+
+    private UiExtension uiExtension =
+            new UiExtension(views, this::newHandlers, getClass().getClassLoader());
 
     private IntentPerfCollector collector;
 
@@ -90,25 +97,22 @@ public class IntentPerfUi {
     }
 
     // Creates and returns session specific message handler.
-    private Collection<UiMessageHandler> newHandlers() {
+    private Collection<UiMessageHandlerTwo> newHandlers() {
         return ImmutableList.of(new StreamingControl());
     }
 
+
     // UI Message handlers for turning on/off reporting to a session.
-    private class StreamingControl extends UiMessageHandler {
+    private class StreamingControl extends UiMessageHandlerTwo {
 
         private boolean streamingEnabled = false;
 
-        protected StreamingControl() {
-            super(ImmutableSet.of("intentPerfStart", "intentPerfStop"));
-        }
-
         @Override
-        public void process(ObjectNode message) {
-            streamingEnabled = message.path("event").asText("unknown").equals("intentPerfStart");
-            if (streamingEnabled) {
-                sendInitData();
-            }
+        protected Collection<RequestHandler> getHandlers() {
+            return ImmutableSet.of(
+                    new IntentPerfStart(),
+                    new IntentPerfStop()
+            );
         }
 
         @Override
@@ -129,17 +133,6 @@ public class IntentPerfUi {
             }
         }
 
-        private void sendInitData() {
-            ObjectNode rootNode = mapper.createObjectNode();
-            ArrayNode an = mapper.createArrayNode();
-            ArrayNode sn = mapper.createArrayNode();
-            rootNode.set("headers", an);
-            rootNode.set("samples", sn);
-
-            collector.getSampleHeaders().forEach(an::add);
-            collector.getSamples().forEach(s -> sn.add(sampleNode(s)));
-            connection().sendMessage("intentPerfInit", 0, rootNode);
-        }
 
         private ObjectNode sampleNode(Sample sample) {
             ObjectNode sampleNode = mapper.createObjectNode();
@@ -151,6 +144,47 @@ public class IntentPerfUi {
                 an.add(d);
             }
             return sampleNode;
+        }
+
+        // ======================================================================
+
+        private final class IntentPerfStart extends RequestHandler {
+
+            private IntentPerfStart() {
+                super(INTENT_PERF_START);
+            }
+
+            @Override
+            public void process(long sid, ObjectNode payload) {
+                streamingEnabled = true;
+                sendInitData();
+            }
+
+            private void sendInitData() {
+                ObjectNode rootNode = MAPPER.createObjectNode();
+                ArrayNode an = MAPPER.createArrayNode();
+                ArrayNode sn = MAPPER.createArrayNode();
+                rootNode.set("headers", an);
+                rootNode.set("samples", sn);
+
+                collector.getSampleHeaders().forEach(an::add);
+                collector.getSamples().forEach(s -> sn.add(sampleNode(s)));
+                sendMessage("intentPerfInit", 0, rootNode);
+            }
+        }
+
+        // ======================================================================
+
+        private final class IntentPerfStop extends RequestHandler {
+
+            private IntentPerfStop() {
+                super(INTENT_PERF_STOP);
+            }
+
+            @Override
+            public void process(long sid, ObjectNode payload) {
+                streamingEnabled = false;
+            }
         }
 
     }

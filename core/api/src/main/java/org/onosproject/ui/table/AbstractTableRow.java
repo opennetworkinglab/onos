@@ -73,4 +73,19 @@ public abstract class AbstractTableRow implements TableRow {
     protected void add(String id, Object value) {
         cells.put(id, value.toString());
     }
+
+    /**
+     * Concatenates an arbitrary number of objects, using their
+     * toString() methods.
+     *
+     * @param items the items to concatenate
+     * @return a concatenated string
+     */
+    protected static String concat(Object... items) {
+        StringBuilder sb = new StringBuilder();
+        for (Object o : items) {
+            sb.append(o);
+        }
+        return sb.toString();
+    }
 }

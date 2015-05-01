@@ -31,7 +31,8 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -39,49 +40,54 @@ import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Message handler for intent view related messages.
  */
-public class IntentViewMessageHandler extends UiMessageHandler {
+public class IntentViewMessageHandler extends UiMessageHandlerTwo {
 
-    /**
-     * Creates a new message handler for the intent messages.
-     */
-    protected IntentViewMessageHandler() {
-        super(ImmutableSet.of("intentDataRequest"));
-    }
+    private static final String INTENT_DATA_REQ = "intentDataRequest";
+
 
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("intentDataRequest")) {
-            sendIntentList(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(new IntentDataRequest());
+    }
+
+    // ======================================================================
+
+    private final class IntentDataRequest extends RequestHandler {
+
+        private IntentDataRequest() {
+            super(INTENT_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload);
+
+            IntentService service = get(IntentService.class);
+            TableRow[] rows = generateTableRows(service);
+            Arrays.sort(rows, rc);
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("intents", TableUtils.generateArrayNode(rows));
+
+            sendMessage("intentDataResponse", 0, rootNode);
+        }
+
+        private TableRow[] generateTableRows(IntentService service) {
+            List<TableRow> list = new ArrayList<>();
+            for (Intent intent : service.getIntents()) {
+                list.add(new IntentTableRow(intent));
+            }
+            return list.toArray(new TableRow[list.size()]);
         }
     }
 
-    private void sendIntentList(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload);
-
-        IntentService service = get(IntentService.class);
-        TableRow[] rows = generateTableRows(service);
-        Arrays.sort(rows, rc);
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("intents", TableUtils.generateArrayNode(rows));
-
-        connection().sendMessage("intentDataResponse", 0, rootNode);
-    }
-
-    private TableRow[] generateTableRows(IntentService service) {
-        List<TableRow> list = new ArrayList<>();
-        for (Intent intent : service.getIntents()) {
-            list.add(new IntentTableRow(intent));
-        }
-        return list.toArray(new TableRow[list.size()]);
-    }
+    // ======================================================================
 
     /**
      * TableRow implementation for {@link Intent intents}.

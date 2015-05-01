@@ -19,6 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -40,10 +44,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * }
  * </pre>
  */
-@Deprecated
-public abstract class UiMessageHandler {
+public abstract class UiMessageHandlerTwo {
 
-    private final Set<String> messageTypes;
+    private final Map<String, RequestHandler> handlerMap = new HashMap<>();
+
     private UiConnection connection;
     private ServiceDirectory directory;
 
@@ -53,14 +57,27 @@ public abstract class UiMessageHandler {
     protected final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * Creates a new message handler for the specified set of message types.
-     *
-     * @param messageTypes set of message types
+     * Binds the handlers returned from {@link #getHandlers()} to this
+     * instance.
      */
-    protected UiMessageHandler(Set<String> messageTypes) {
-        this.messageTypes = checkNotNull(messageTypes, "Message types cannot be null");
-        checkArgument(!messageTypes.isEmpty(), "Message types cannot be empty");
+    void bindHandlers() {
+        Collection<RequestHandler> handlers = getHandlers();
+        checkNotNull(handlers, "Handlers cannot be null");
+        checkArgument(!handlers.isEmpty(), "Handlers cannot be empty");
+
+        for (RequestHandler h : handlers) {
+            h.setParent(this);
+            handlerMap.put(h.eventType(), h);
+        }
     }
+
+    /**
+     * Subclasses must return the collection of handlers for the
+     * message types they handle.
+     *
+     * @return the message handler instances
+     */
+    protected abstract Collection<RequestHandler> getHandlers();
 
     /**
      * Returns the set of message types which this handler is capable of
@@ -69,7 +86,7 @@ public abstract class UiMessageHandler {
      * @return set of message types
      */
     public Set<String> messageTypes() {
-        return messageTypes;
+        return Collections.unmodifiableSet(handlerMap.keySet());
     }
 
     /**
@@ -77,7 +94,26 @@ public abstract class UiMessageHandler {
      *
      * @param message JSON message
      */
-    public abstract void process(ObjectNode message);
+    public void process(ObjectNode message) {
+        String type = JsonUtils.eventType(message);
+        long sid = JsonUtils.sid(message);
+        ObjectNode payload = JsonUtils.payload(message);
+        exec(type, sid, payload);
+    }
+
+    /**
+     * Finds the appropriate handler and executes the process method.
+     *
+     * @param eventType event type
+     * @param sid       sequence identifier
+     * @param payload   message payload
+     */
+    void exec(String eventType, long sid, ObjectNode payload) {
+        RequestHandler handler = handlerMap.get(eventType);
+        if (handler != null) {
+            handler.process(sid, payload);
+        }
+    }
 
     /**
      * Initializes the handler with the user interface connection and
@@ -89,6 +125,7 @@ public abstract class UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
         this.connection = connection;
         this.directory = directory;
+        bindHandlers();
     }
 
     /**
@@ -129,85 +166,4 @@ public abstract class UiMessageHandler {
         return directory.get(serviceClass);
     }
 
-    /**
-     * Wraps a message payload into an event structure for the given event
-     * type and sequence ID. Generally the
-     *
-     * @param type    event type
-     * @param sid     sequence ID
-     * @param payload event payload
-     * @return the object node representation
-     */
-    protected ObjectNode envelope(String type, long sid, ObjectNode payload) {
-        return JsonUtils.envelope(type, sid, payload);
-    }
-
-    /**
-     * Returns the event type from the specified event.
-     *
-     * @param event the event
-     * @return the event type
-     */
-    protected String eventType(ObjectNode event) {
-        return JsonUtils.eventType(event);
-    }
-
-    /**
-     * Retrieves the payload from the specified event.
-     *
-     * @param event message event
-     * @return extracted payload object
-     */
-    protected ObjectNode payload(ObjectNode event) {
-        return JsonUtils.payload(event);
-    }
-
-    /**
-     * Returns the specified node property as a number.
-     *
-     * @param node message event
-     * @param name property name
-     * @return property as number
-     */
-    protected long number(ObjectNode node, String name) {
-        return JsonUtils.number(node, name);
-    }
-
-    /**
-     * Returns the specified node property as a string.
-     *
-     * @param node message event
-     * @param name property name
-     * @return property as a string
-     */
-    protected String string(ObjectNode node, String name) {
-        return JsonUtils.string(node, name);
-    }
-
-    /**
-     * Returns the specified node property as a string with a default fallback.
-     *
-     * @param node         message event
-     * @param name         property name
-     * @param defaultValue fallback value if property is absent
-     * @return property as a string
-     */
-    protected String string(ObjectNode node, String name, String defaultValue) {
-        return JsonUtils.string(node, name, defaultValue);
-    }
-
-    /**
-     * Concatenates an arbitrary number of objects, using their
-     * toString() methods.
-     *
-     * @param items the items to concatenate
-     * @return a concatenated string
-     */
-    protected static String concat(Object... items) {
-        StringBuilder sb = new StringBuilder();
-        for (Object o : items) {
-            sb.append(o);
-        }
-        return sb.toString();
-    }
 }

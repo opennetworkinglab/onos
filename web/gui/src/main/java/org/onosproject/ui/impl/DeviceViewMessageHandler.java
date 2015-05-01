@@ -27,7 +27,8 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -35,6 +36,7 @@ import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +44,10 @@ import java.util.Set;
 /**
  * Message handler for device view related messages.
  */
-public class DeviceViewMessageHandler extends UiMessageHandler {
+public class DeviceViewMessageHandler extends UiMessageHandlerTwo {
+
+    private static final String DEV_DATA_REQ = "deviceDataRequest";
+    private static final String DEV_DETAIL_REQ = "deviceDetailRequest";
 
     private static final String ID = "id";
     private static final String TYPE = "type";
@@ -65,109 +70,119 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String NAME = "name";
 
 
-    /**
-     * Creates a new message handler for the device messages.
-     */
-    protected DeviceViewMessageHandler() {
-        super(ImmutableSet.of("deviceDataRequest", "deviceDetailsRequest"));
-    }
-
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("deviceDataRequest")) {
-            dataRequest(message);
-        } else if (type.equals("deviceDetailsRequest")) {
-            detailsRequest(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(
+                new DataRequestHandler(),
+                new DetailRequestHandler()
+        );
+    }
+
+    // ======================================================================
+
+    private final class DataRequestHandler extends RequestHandler {
+
+        private DataRequestHandler() {
+            super(DEV_DATA_REQ);
         }
-    }
 
-    private void dataRequest(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload);
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload);
 
-        DeviceService service = get(DeviceService.class);
-        MastershipService mastershipService = get(MastershipService.class);
-        TableRow[] rows = generateTableRows(service, mastershipService);
-        Arrays.sort(rows, rc);
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("devices", TableUtils.generateArrayNode(rows));
+            DeviceService service = get(DeviceService.class);
+            MastershipService mastershipService = get(MastershipService.class);
+            TableRow[] rows = generateTableRows(service, mastershipService);
+            Arrays.sort(rows, rc);
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("devices", TableUtils.generateArrayNode(rows));
 
-        connection().sendMessage("deviceDataResponse", 0, rootNode);
-    }
-
-    private void detailsRequest(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        String id = string(payload, "id", "of:0000000000000000");
-
-        DeviceId deviceId = DeviceId.deviceId(id);
-        DeviceService service = get(DeviceService.class);
-        MastershipService ms = get(MastershipService.class);
-        Device device = service.getDevice(deviceId);
-        ObjectNode data = mapper.createObjectNode();
-
-        data.put(ID, deviceId.toString());
-        data.put(TYPE, device.type().toString());
-        data.put(TYPE_IID, getTypeIconId(device));
-        data.put(MFR, device.manufacturer());
-        data.put(HW, device.hwVersion());
-        data.put(SW, device.swVersion());
-        data.put(SERIAL, device.serialNumber());
-        data.put(CHASSIS_ID, device.chassisId().toString());
-        data.put(MASTER_ID, ms.getMasterFor(deviceId).toString());
-        data.put(PROTOCOL, device.annotations().value(PROTOCOL));
-
-        ArrayNode ports = mapper.createArrayNode();
-
-        List<Port> portList = new ArrayList<>(service.getPorts(deviceId));
-        Collections.sort(portList, (p1, p2) -> {
-            long delta = p1.number().toLong() - p2.number().toLong();
-            return delta == 0 ? 0 : (delta < 0 ? -1 : +1);
-        });
-
-        for (Port p : portList) {
-            ports.add(portData(p, deviceId));
+            sendMessage("deviceDataResponse", 0, rootNode);
         }
-        data.set(PORTS, ports);
 
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("details", data);
-        connection().sendMessage("deviceDetailsResponse", 0, rootNode);
-    }
-
-    private TableRow[] generateTableRows(DeviceService service,
-                                         MastershipService mastershipService) {
-        List<TableRow> list = new ArrayList<>();
-        for (Device dev : service.getDevices()) {
-            list.add(new DeviceTableRow(service, mastershipService, dev));
-        }
-        return list.toArray(new TableRow[list.size()]);
-    }
-
-    private ObjectNode portData(Port p, DeviceId id) {
-        ObjectNode port = mapper.createObjectNode();
-        LinkService ls = get(LinkService.class);
-        String name = p.annotations().value(AnnotationKeys.PORT_NAME);
-
-        port.put(ID, p.number().toString());
-        port.put(TYPE, p.type().toString());
-        port.put(SPEED, p.portSpeed());
-        port.put(ENABLED, p.isEnabled());
-        port.put(NAME, name != null ? name : "");
-
-        Set<Link> links = ls.getEgressLinks(new ConnectPoint(id, p.number()));
-        if (!links.isEmpty()) {
-            StringBuilder egressLinks = new StringBuilder();
-            for (Link l : links) {
-                ConnectPoint dest = l.dst();
-                egressLinks.append(dest.elementId()).append("/")
-                        .append(dest.port()).append(" ");
+        private TableRow[] generateTableRows(DeviceService service,
+                                             MastershipService mastershipService) {
+            List<TableRow> list = new ArrayList<>();
+            for (Device dev : service.getDevices()) {
+                list.add(new DeviceTableRow(service, mastershipService, dev));
             }
-            port.put(LINK_DEST, egressLinks.toString());
+            return list.toArray(new TableRow[list.size()]);
+        }
+    }
+
+    // ======================================================================
+
+    private final class DetailRequestHandler extends RequestHandler {
+        private DetailRequestHandler() {
+            super(DEV_DETAIL_REQ);
         }
 
-        return port;
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String id = string(payload, "id", "of:0000000000000000");
+
+            DeviceId deviceId = DeviceId.deviceId(id);
+            DeviceService service = get(DeviceService.class);
+            MastershipService ms = get(MastershipService.class);
+            Device device = service.getDevice(deviceId);
+            ObjectNode data = MAPPER.createObjectNode();
+
+            data.put(ID, deviceId.toString());
+            data.put(TYPE, device.type().toString());
+            data.put(TYPE_IID, getTypeIconId(device));
+            data.put(MFR, device.manufacturer());
+            data.put(HW, device.hwVersion());
+            data.put(SW, device.swVersion());
+            data.put(SERIAL, device.serialNumber());
+            data.put(CHASSIS_ID, device.chassisId().toString());
+            data.put(MASTER_ID, ms.getMasterFor(deviceId).toString());
+            data.put(PROTOCOL, device.annotations().value(PROTOCOL));
+
+            ArrayNode ports = MAPPER.createArrayNode();
+
+            List<Port> portList = new ArrayList<>(service.getPorts(deviceId));
+            Collections.sort(portList, (p1, p2) -> {
+                long delta = p1.number().toLong() - p2.number().toLong();
+                return delta == 0 ? 0 : (delta < 0 ? -1 : +1);
+            });
+
+            for (Port p : portList) {
+                ports.add(portData(p, deviceId));
+            }
+            data.set(PORTS, ports);
+
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("details", data);
+            sendMessage("deviceDetailsResponse", 0, rootNode);
+        }
+
+        private ObjectNode portData(Port p, DeviceId id) {
+            ObjectNode port = MAPPER.createObjectNode();
+            LinkService ls = get(LinkService.class);
+            String name = p.annotations().value(AnnotationKeys.PORT_NAME);
+
+            port.put(ID, p.number().toString());
+            port.put(TYPE, p.type().toString());
+            port.put(SPEED, p.portSpeed());
+            port.put(ENABLED, p.isEnabled());
+            port.put(NAME, name != null ? name : "");
+
+            Set<Link> links = ls.getEgressLinks(new ConnectPoint(id, p.number()));
+            if (!links.isEmpty()) {
+                StringBuilder egressLinks = new StringBuilder();
+                for (Link l : links) {
+                    ConnectPoint dest = l.dst();
+                    egressLinks.append(dest.elementId()).append("/")
+                            .append(dest.port()).append(" ");
+                }
+                port.put(LINK_DEST, egressLinks.toString());
+            }
+
+            return port;
+        }
+
     }
+
 
     private static String getTypeIconId(Device d) {
         return DEV_ICON_PREFIX + d.type().toString();

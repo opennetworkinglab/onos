@@ -61,6 +61,17 @@ public final class JsonUtils {
     }
 
     /**
+     * Returns the sequence identifier from the specified event, or 0 (zero)
+     * if the "sid" property does not exist.
+     *
+     * @param event message event
+     * @return extracted sequence identifier
+     */
+    public static long sid(ObjectNode event) {
+        return number(event, "sid");
+    }
+
+    /**
      * Returns the payload from the specified event.
      *
      * @param event message event
@@ -95,13 +106,24 @@ public final class JsonUtils {
     /**
      * Returns the specified node property as a string, with a default fallback.
      *
-     * @param node         message event
+     * @param node         object node
      * @param name         property name
      * @param defaultValue fallback value if property is absent
      * @return property as a string
      */
     public static String string(ObjectNode node, String name, String defaultValue) {
         return node.path(name).asText(defaultValue);
+    }
+
+    /**
+     * Returns the specified node property as an object node.
+     *
+     * @param node object node
+     * @param name property name
+     * @return property as a node
+     */
+    public static ObjectNode node(ObjectNode node, String name) {
+        return (ObjectNode) node.path(name);
     }
 
 }

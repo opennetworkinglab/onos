@@ -28,6 +28,6 @@ public interface UiMessageHandlerFactory {
      *
      * @return collection of new handlers
      */
-    Collection<UiMessageHandler> newHandlers();
+    Collection<UiMessageHandlerTwo> newHandlers();
 
 }

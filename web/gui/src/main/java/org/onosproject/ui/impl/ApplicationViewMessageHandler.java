@@ -22,13 +22,15 @@ import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
 import org.onosproject.ui.table.TableUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,62 +39,74 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 /**
  * Message handler for application view related messages.
  */
-public class ApplicationViewMessageHandler extends UiMessageHandler {
+public class ApplicationViewMessageHandler extends UiMessageHandlerTwo {
 
-    /**
-     * Creates a new message handler for the application messages.
-     */
-    protected ApplicationViewMessageHandler() {
-        super(ImmutableSet.of("appDataRequest", "appManagementRequest"));
-    }
+    private static final String APP_DATA_REQ = "appDataRequest";
+    private static final String APP_MGMT_REQ = "appManagementRequest";
 
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("appDataRequest")) {
-            sendAppList(message);
-        } else if (type.equals("appManagementRequest")) {
-            processManagementCommand(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(
+                new AppDataRequest(),
+                new AppMgmtRequest()
+        );
+    }
+
+    // ======================================================================
+
+    private final class AppDataRequest extends RequestHandler {
+
+        private AppDataRequest() {
+            super(APP_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload);
+
+            ApplicationService service = get(ApplicationService.class);
+            TableRow[] rows = generateTableRows(service);
+            Arrays.sort(rows, rc);
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("apps", TableUtils.generateArrayNode(rows));
+
+            sendMessage("appDataResponse", 0, rootNode);
+        }
+
+        private TableRow[] generateTableRows(ApplicationService service) {
+            List<TableRow> list = service.getApplications().stream()
+                    .map(application -> new ApplicationTableRow(service, application))
+                    .collect(Collectors.toList());
+            return list.toArray(new TableRow[list.size()]);
         }
     }
+    // ======================================================================
 
-    private void sendAppList(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload);
+    private final class AppMgmtRequest extends RequestHandler {
 
-        ApplicationService service = get(ApplicationService.class);
-        TableRow[] rows = generateTableRows(service);
-        Arrays.sort(rows, rc);
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("apps", TableUtils.generateArrayNode(rows));
+        private AppMgmtRequest() {
+            super(APP_MGMT_REQ);
+        }
 
-        connection().sendMessage("appDataResponse", 0, rootNode);
-    }
-
-    private void processManagementCommand(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        String action = string(payload, "action");
-        String name = string(payload, "name");
-        if (action != null && name != null) {
-            ApplicationAdminService service = get(ApplicationAdminService.class);
-            ApplicationId appId = service.getId(name);
-            if (action.equals("activate")) {
-                service.activate(appId);
-            } else if (action.equals("deactivate")) {
-                service.deactivate(appId);
-            } else if (action.equals("uninstall")) {
-                service.uninstall(appId);
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String action = string(payload, "action");
+            String name = string(payload, "name");
+            if (action != null && name != null) {
+                ApplicationAdminService service = get(ApplicationAdminService.class);
+                ApplicationId appId = service.getId(name);
+                if (action.equals("activate")) {
+                    service.activate(appId);
+                } else if (action.equals("deactivate")) {
+                    service.deactivate(appId);
+                } else if (action.equals("uninstall")) {
+                    service.uninstall(appId);
+                }
+                chain(APP_DATA_REQ, sid, payload);
             }
-            sendAppList(message);
         }
     }
-
-    private TableRow[] generateTableRows(ApplicationService service) {
-        List<TableRow> list = service.getApplications().stream()
-                .map(application -> new ApplicationTableRow(service, application))
-                .collect(Collectors.toList());
-        return list.toArray(new TableRow[list.size()]);
-    }
+    // ======================================================================
 
     /**
      * TableRow implementation for

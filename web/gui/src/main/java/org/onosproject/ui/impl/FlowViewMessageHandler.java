@@ -26,7 +26,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -34,6 +35,7 @@ import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -41,54 +43,57 @@ import java.util.Set;
 /**
  * Message handler for flow view related messages.
  */
-public class FlowViewMessageHandler extends UiMessageHandler {
+public class FlowViewMessageHandler extends UiMessageHandlerTwo {
+
+    private static final String FLOW_DATA_REQ = "flowDataRequest";
 
     private static final String NO_DEV = "none";
 
-    /**
-     * Creates a new message handler for the flow messages.
-     */
-    protected FlowViewMessageHandler() {
-        super(ImmutableSet.of("flowDataRequest"));
-    }
-
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("flowDataRequest")) {
-            sendFlowList(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(new FlowDataRequest());
+    }
+
+    // ======================================================================
+
+    private final class FlowDataRequest extends RequestHandler {
+
+        private FlowDataRequest() {
+            super(FLOW_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload);
+            String uri = string(payload, "devId", NO_DEV);
+
+            ObjectNode rootNode;
+            if (uri.equals(NO_DEV)) {
+                rootNode = MAPPER.createObjectNode();
+                rootNode.set("flows", MAPPER.createArrayNode());
+            } else {
+                DeviceId deviceId = DeviceId.deviceId(uri);
+                FlowRuleService service = get(FlowRuleService.class);
+                TableRow[] rows = generateTableRows(service, deviceId);
+                Arrays.sort(rows, rc);
+                rootNode = MAPPER.createObjectNode();
+                rootNode.set("flows", TableUtils.generateArrayNode(rows));
+            }
+
+            sendMessage("flowDataResponse", 0, rootNode);
+        }
+
+        private TableRow[] generateTableRows(FlowRuleService service,
+                                             DeviceId deviceId) {
+            List<TableRow> list = new ArrayList<>();
+            for (FlowEntry flow : service.getFlowEntries(deviceId)) {
+                list.add(new FlowTableRow(flow));
+            }
+            return list.toArray(new TableRow[list.size()]);
         }
     }
 
-    private void sendFlowList(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload);
-        String uri = string(payload, "devId", NO_DEV);
-
-        ObjectNode rootNode;
-        if (uri.equals(NO_DEV)) {
-            rootNode = mapper.createObjectNode();
-            rootNode.set("flows", mapper.createArrayNode());
-        } else {
-            DeviceId deviceId = DeviceId.deviceId(uri);
-            FlowRuleService service = get(FlowRuleService.class);
-            TableRow[] rows = generateTableRows(service, deviceId);
-            Arrays.sort(rows, rc);
-            rootNode = mapper.createObjectNode();
-            rootNode.set("flows", TableUtils.generateArrayNode(rows));
-        }
-
-        connection().sendMessage("flowDataResponse", 0, rootNode);
-    }
-
-    private TableRow[] generateTableRows(FlowRuleService service,
-                                         DeviceId deviceId) {
-        List<TableRow> list = new ArrayList<>();
-        for (FlowEntry flow : service.getFlowEntries(deviceId)) {
-            list.add(new FlowTableRow(flow));
-        }
-        return list.toArray(new TableRow[list.size()]);
-    }
+    // ======================================================================
 
     /**
      * TableRow implementation for {@link org.onosproject.net.flow.FlowRule flows}.

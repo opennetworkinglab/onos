@@ -23,57 +23,61 @@ import org.joda.time.format.DateTimeFormat;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.RequestHandler;
+import org.onosproject.ui.UiMessageHandlerTwo;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
 import org.onosproject.ui.table.TableUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
  * Message handler for cluster view related messages.
  */
-public class ClusterViewMessageHandler extends UiMessageHandler {
+public class ClusterViewMessageHandler extends UiMessageHandlerTwo {
 
-    /**
-     * Creates a new message handler for the cluster messages.
-     */
-    protected ClusterViewMessageHandler() {
-        super(ImmutableSet.of("clusterDataRequest"));
-    }
+    private static final String CLUSTER_DATA_REQ = "clusterDataRequest";
 
     @Override
-    public void process(ObjectNode message) {
-        String type = eventType(message);
-        if (type.equals("clusterDataRequest")) {
-            sendClusterList(message);
+    protected Collection<RequestHandler> getHandlers() {
+        return ImmutableSet.of(new ClusterDataRequest());
+    }
+
+    // ======================================================================
+
+    private final class ClusterDataRequest extends RequestHandler {
+
+        private ClusterDataRequest() {
+            super(CLUSTER_DATA_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            RowComparator rc = TableUtils.createRowComparator(payload);
+
+            ClusterService service = get(ClusterService.class);
+            TableRow[] rows = generateTableRows(service);
+            Arrays.sort(rows, rc);
+            ObjectNode rootNode = MAPPER.createObjectNode();
+            rootNode.set("clusters", TableUtils.generateArrayNode(rows));
+
+            sendMessage("clusterDataResponse", 0, rootNode);
+        }
+
+        private TableRow[] generateTableRows(ClusterService service) {
+            List<TableRow> list = service.getNodes().stream()
+                    .map(node -> new ControllerNodeTableRow(service, node))
+                    .collect(Collectors.toList());
+            return list.toArray(new TableRow[list.size()]);
         }
     }
 
-    private void sendClusterList(ObjectNode message) {
-        ObjectNode payload = payload(message);
-        RowComparator rc = TableUtils.createRowComparator(payload);
-
-        ClusterService service = get(ClusterService.class);
-        TableRow[] rows = generateTableRows(service);
-        Arrays.sort(rows, rc);
-        ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.set("clusters", TableUtils.generateArrayNode(rows));
-
-        connection().sendMessage("clusterDataResponse", 0, rootNode);
-    }
-
-    private TableRow[] generateTableRows(ClusterService service) {
-        List<TableRow> list = new ArrayList<>();
-        for (ControllerNode node : service.getNodes()) {
-            list.add(new ControllerNodeTableRow(service, node));
-        }
-        return list.toArray(new TableRow[list.size()]);
-    }
+    // ======================================================================
 
     /**
      * TableRow implementation for {@link ControllerNode controller nodes}.
