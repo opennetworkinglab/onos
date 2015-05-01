@@ -51,6 +51,12 @@ public class IntentViewMessageHandler extends UiMessageHandler {
 
     private static final String INTENT_DATA_REQ = "intentDataRequest";
 
+    private static final String APP_ID = "appId";
+    private static final String KEY = "key";
+    private static final String TYPE = "type";
+    private static final String PRIORITY = "priority";
+    private static final String RESOURCES = "resources";
+    private static final String DETAILS = "details";
 
     @Override
     protected Collection<RequestHandler> getHandlers() {
@@ -67,7 +73,7 @@ public class IntentViewMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload);
+            RowComparator rc = TableUtils.createRowComparator(payload, APP_ID);
 
             IntentService service = get(IntentService.class);
             TableRow[] rows = generateTableRows(service);
@@ -93,13 +99,6 @@ public class IntentViewMessageHandler extends UiMessageHandler {
      * TableRow implementation for {@link Intent intents}.
      */
     private static class IntentTableRow extends AbstractTableRow {
-
-        private static final String APP_ID = "appId";
-        private static final String KEY = "key";
-        private static final String TYPE = "type";
-        private static final String PRIORITY = "priority";
-        private static final String RESOURCES = "resources";
-        private static final String DETAILS = "details";
 
         private static final String[] COL_IDS = {
                 APP_ID, KEY, TYPE, PRIORITY, RESOURCES, DETAILS

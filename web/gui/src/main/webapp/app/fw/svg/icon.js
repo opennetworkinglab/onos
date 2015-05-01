@@ -37,7 +37,7 @@
         play: 'play',
         stop: 'stop',
 
-        crown: 'crown',
+        refresh: 'refresh',
 
         upArrow: 'triangleUp',
         downArrow: 'triangleDown',
