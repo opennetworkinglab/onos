@@ -33,8 +33,8 @@ public class DefaultDistributedSet<E> implements Set<E> {
 
     private final ConsistentMap<E, Boolean> backingMap;
 
-    public DefaultDistributedSet(String name, Database database, Serializer serializer) {
-        backingMap = new DefaultConsistentMap<>(name, database, serializer);
+    public DefaultDistributedSet(String name, Database database, Serializer serializer, boolean readOnly) {
+        backingMap = new DefaultConsistentMap<>(name, database, serializer, readOnly);
     }
 
     @Override

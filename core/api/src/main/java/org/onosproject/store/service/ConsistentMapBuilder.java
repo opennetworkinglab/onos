@@ -56,6 +56,15 @@ public interface ConsistentMapBuilder<K, V> {
     public ConsistentMapBuilder<K, V> withPartitionsDisabled();
 
     /**
+     * Disables map updates.
+     * <p>
+     * Attempt to update the built map will throw {@code UnsupportedOperationException}.
+     *
+     * @return this ConsistentMapBuilder
+     */
+    public ConsistentMapBuilder<K, V> withUpdatesDisabled();
+
+    /**
      * Builds an consistent map based on the configuration options
      * supplied to this builder.
      *

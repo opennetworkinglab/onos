@@ -19,6 +19,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     private Serializer serializer;
     private String name;
     private boolean partitionsEnabled = true;
+    private boolean readOnly = false;
     private final Database partitionedDatabase;
     private final Database inMemoryDatabase;
 
@@ -47,6 +48,12 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
         return this;
     }
 
+    @Override
+    public ConsistentMapBuilder<K, V> withUpdatesDisabled() {
+        readOnly = true;
+        return this;
+    }
+
     private boolean validInputs() {
         return name != null && serializer != null;
     }
@@ -57,7 +64,8 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
         return new DefaultConsistentMap<>(
                 name,
                 partitionsEnabled ? partitionedDatabase : inMemoryDatabase,
-                serializer);
+                serializer,
+                readOnly);
     }
 
     @Override
@@ -66,6 +74,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
         return new DefaultAsyncConsistentMap<>(
                 name,
                 partitionsEnabled ? partitionedDatabase : inMemoryDatabase,
-                serializer);
+                serializer,
+                readOnly);
     }
 }

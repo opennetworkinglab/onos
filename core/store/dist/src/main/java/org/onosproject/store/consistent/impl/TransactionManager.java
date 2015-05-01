@@ -60,7 +60,7 @@ public class TransactionManager {
      */
     public TransactionManager(Database database) {
         this.database = checkNotNull(database, "database cannot be null");
-        this.transactions = new DefaultAsyncConsistentMap<>("onos-transactions", this.database, serializer);
+        this.transactions = new DefaultAsyncConsistentMap<>("onos-transactions", this.database, serializer, false);
     }
 
     /**

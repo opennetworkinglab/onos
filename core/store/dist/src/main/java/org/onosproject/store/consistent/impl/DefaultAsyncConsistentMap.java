@@ -48,6 +48,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     private final String name;
     private final Database database;
     private final Serializer serializer;
+    private final boolean readOnly;
 
     private static final String ERROR_NULL_KEY = "Key cannot be null";
     private static final String ERROR_NULL_VALUE = "Null values are not allowed";
@@ -68,10 +69,12 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
 
     public DefaultAsyncConsistentMap(String name,
             Database database,
-            Serializer serializer) {
+            Serializer serializer,
+            boolean readOnly) {
         this.name = checkNotNull(name, "map name cannot be null");
         this.database = checkNotNull(database, "database cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
+        this.readOnly = readOnly;
     }
 
     @Override
@@ -108,6 +111,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> put(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
         return database.put(name, keyCache.getUnchecked(key), serializer.encode(value))
                 .thenApply(this::unwrapResult)
                 .thenApply(v -> v != null
@@ -117,6 +121,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
+        checkIfUnmodifiable();
         return database.remove(name, keyCache.getUnchecked(key))
                 .thenApply(this::unwrapResult)
                 .thenApply(v -> v != null
@@ -125,6 +130,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
 
     @Override
     public CompletableFuture<Void> clear() {
+        checkIfUnmodifiable();
         return database.clear(name).thenApply(this::unwrapResult);
     }
 
@@ -157,6 +163,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
         return database.putIfAbsent(name,
                                     keyCache.getUnchecked(key),
                                     serializer.encode(value))
@@ -169,6 +176,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Boolean> remove(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
         return database.remove(name, keyCache.getUnchecked(key), serializer.encode(value))
                 .thenApply(this::unwrapResult);
     }
@@ -176,6 +184,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     @Override
     public CompletableFuture<Boolean> remove(K key, long version) {
         checkNotNull(key, ERROR_NULL_KEY);
+        checkIfUnmodifiable();
         return database.remove(name, keyCache.getUnchecked(key), version)
                 .thenApply(this::unwrapResult);
 
@@ -185,6 +194,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
         byte[] existing = oldValue != null ? serializer.encode(oldValue) : null;
         return database.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue))
                 .thenApply(this::unwrapResult);
@@ -194,6 +204,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
         return database.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue))
                 .thenApply(this::unwrapResult);
     }
@@ -214,6 +225,12 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
             return result.value();
         } else {
             throw new IllegalStateException("Must not be here");
+        }
+    }
+
+    private void checkIfUnmodifiable() {
+        if (readOnly) {
+            throw new UnsupportedOperationException();
         }
     }
 }

@@ -53,6 +53,15 @@ public interface SetBuilder<E> {
     public SetBuilder<E> withSerializer(Serializer serializer);
 
     /**
+     * Disables set updates.
+     * <p>
+     * Attempt to update the built set will throw {@code UnsupportedOperationException}.
+     *
+     * @return this SetBuilder
+     */
+    SetBuilder<E> withUpdatesDisabled();
+
+    /**
      * Builds an set based on the configuration options
      * supplied to this builder.
      *

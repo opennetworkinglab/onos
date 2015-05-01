@@ -72,7 +72,7 @@ public class DefaultTransactionContext implements TransactionContext {
         checkNotNull(serializer);
         return txMaps.computeIfAbsent(mapName, name -> new DefaultTransactionalMap<>(
                                 name,
-                                new DefaultConsistentMap<>(name, database, serializer),
+                                new DefaultConsistentMap<>(name, database, serializer, false),
                                 this,
                                 serializer));
     }

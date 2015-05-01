@@ -34,6 +34,7 @@ public class DefaultSetBuilder<E> implements SetBuilder<E> {
     private Serializer serializer;
     private String name;
     private final Database database;
+    private boolean readOnly;
 
     public DefaultSetBuilder(Database database) {
         this.database = checkNotNull(database);
@@ -53,6 +54,12 @@ public class DefaultSetBuilder<E> implements SetBuilder<E> {
         return this;
     }
 
+    @Override
+    public SetBuilder<E> withUpdatesDisabled() {
+        readOnly = true;
+        return this;
+    }
+
     private boolean validInputs() {
         return name != null && serializer != null;
     }
@@ -60,6 +67,6 @@ public class DefaultSetBuilder<E> implements SetBuilder<E> {
     @Override
     public Set<E> build() {
         checkState(validInputs());
-        return new DefaultDistributedSet<>(name, database, serializer);
+        return new DefaultDistributedSet<>(name, database, serializer, readOnly);
     }
 }

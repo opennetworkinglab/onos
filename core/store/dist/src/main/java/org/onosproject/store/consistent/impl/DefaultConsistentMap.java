@@ -45,8 +45,9 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
 
     public DefaultConsistentMap(String name,
             Database database,
-            Serializer serializer) {
-        asyncMap = new DefaultAsyncConsistentMap<>(name, database, serializer);
+            Serializer serializer,
+            boolean readOnly) {
+        asyncMap = new DefaultAsyncConsistentMap<>(name, database, serializer, readOnly);
     }
 
     @Override
