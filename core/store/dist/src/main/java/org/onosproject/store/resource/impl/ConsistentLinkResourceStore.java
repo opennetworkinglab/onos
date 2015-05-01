@@ -59,7 +59,7 @@ import static org.onosproject.net.AnnotationKeys.OPTICAL_WAVES;
 /**
  * Store that manages link resources using Copycat-backed TransactionalMaps.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class ConsistentLinkResourceStore extends
         AbstractStore<LinkResourceEvent, LinkResourceStoreDelegate> implements
