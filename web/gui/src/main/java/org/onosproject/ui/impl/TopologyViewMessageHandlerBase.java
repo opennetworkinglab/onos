@@ -65,7 +65,7 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +101,7 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 /**
  * Facility for creating messages bound for the topology viewer.
  */
-public abstract class TopologyViewMessageHandlerBase extends UiMessageHandlerTwo {
+public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     protected static final Logger log =
             LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
@@ -420,15 +420,15 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandlerTwo
     protected ObjectNode summmaryMessage(long sid) {
         Topology topology = topologyService.currentTopology();
         return JsonUtils.envelope("showSummary", sid,
-                        json("ONOS Summary", "node",
-                             new Prop("Devices", format(topology.deviceCount())),
-                             new Prop("Links", format(topology.linkCount())),
-                             new Prop("Hosts", format(hostService.getHostCount())),
-                             new Prop("Topology SCCs", format(topology.clusterCount())),
-                             new Separator(),
-                             new Prop("Intents", format(intentService.getIntentCount())),
-                             new Prop("Flows", format(flowService.getFlowRuleCount())),
-                             new Prop("Version", version)));
+                                  json("ONOS Summary", "node",
+                                       new Prop("Devices", format(topology.deviceCount())),
+                                       new Prop("Links", format(topology.linkCount())),
+                                       new Prop("Hosts", format(hostService.getHostCount())),
+                                       new Prop("Topology SCCs", format(topology.clusterCount())),
+                                       new Separator(),
+                                       new Prop("Intents", format(intentService.getIntentCount())),
+                                       new Prop("Flows", format(flowService.getFlowRuleCount())),
+                                       new Prop("Version", version)));
     }
 
     // Returns device details response.
@@ -439,21 +439,21 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandlerTwo
         int portCount = deviceService.getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
         return JsonUtils.envelope("showDetails", sid,
-                        json(isNullOrEmpty(name) ? deviceId.toString() : name,
-                             device.type().toString().toLowerCase(),
-                             new Prop("URI", deviceId.toString()),
-                             new Prop("Vendor", device.manufacturer()),
-                             new Prop("H/W Version", device.hwVersion()),
-                             new Prop("S/W Version", device.swVersion()),
-                             new Prop("Serial Number", device.serialNumber()),
-                             new Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)),
-                             new Separator(),
-                             new Prop("Master", master(deviceId)),
-                             new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
-                             new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)),
-                             new Separator(),
-                             new Prop("Ports", Integer.toString(portCount)),
-                             new Prop("Flows", Integer.toString(flowCount))));
+                                  json(isNullOrEmpty(name) ? deviceId.toString() : name,
+                                       device.type().toString().toLowerCase(),
+                                       new Prop("URI", deviceId.toString()),
+                                       new Prop("Vendor", device.manufacturer()),
+                                       new Prop("H/W Version", device.hwVersion()),
+                                       new Prop("S/W Version", device.swVersion()),
+                                       new Prop("Serial Number", device.serialNumber()),
+                                       new Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)),
+                                       new Separator(),
+                                       new Prop("Master", master(deviceId)),
+                                       new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
+                                       new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)),
+                                       new Separator(),
+                                       new Prop("Ports", Integer.toString(portCount)),
+                                       new Prop("Flows", Integer.toString(flowCount))));
     }
 
     protected int getFlowCount(DeviceId deviceId) {
@@ -517,14 +517,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandlerTwo
         String name = annot.value(AnnotationKeys.NAME);
         String vlan = host.vlan().toString();
         return JsonUtils.envelope("showDetails", sid,
-                        json(isNullOrEmpty(name) ? hostId.toString() : name,
-                             isNullOrEmpty(type) ? "endstation" : type,
-                             new Prop("MAC", host.mac().toString()),
-                             new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
-                             new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
-                             new Separator(),
-                             new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
-                             new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE))));
+                                  json(isNullOrEmpty(name) ? hostId.toString() : name,
+                                       isNullOrEmpty(type) ? "endstation" : type,
+                                       new Prop("MAC", host.mac().toString()),
+                                       new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
+                                       new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
+                                       new Separator(),
+                                       new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
+                                       new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE))));
     }
 
 

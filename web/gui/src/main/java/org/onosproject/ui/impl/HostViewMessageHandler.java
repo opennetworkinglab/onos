@@ -22,7 +22,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostService;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -38,7 +38,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Message handler for host view related messages.
  */
-public class HostViewMessageHandler extends UiMessageHandlerTwo {
+public class HostViewMessageHandler extends UiMessageHandler {
 
     private static final String HOST_DATA_REQ = "hostDataRequest";
 

@@ -28,7 +28,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -44,7 +44,7 @@ import java.util.Set;
 /**
  * Message handler for device view related messages.
  */
-public class DeviceViewMessageHandler extends UiMessageHandlerTwo {
+public class DeviceViewMessageHandler extends UiMessageHandler {
 
     private static final String DEV_DATA_REQ = "deviceDataRequest";
     private static final String DEV_DETAIL_REQ = "deviceDetailRequest";

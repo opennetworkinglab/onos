@@ -24,7 +24,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
@@ -42,7 +42,7 @@ import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.addLink;
 /**
  * Message handler for link view related messages.
  */
-public class LinkViewMessageHandler extends UiMessageHandlerTwo {
+public class LinkViewMessageHandler extends UiMessageHandler {
 
     private static final String LINK_DATA_REQ = "linkDataRequest";
 

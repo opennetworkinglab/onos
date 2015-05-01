@@ -24,7 +24,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * Message handler for cluster view related messages.
  */
-public class ClusterViewMessageHandler extends UiMessageHandlerTwo {
+public class ClusterViewMessageHandler extends UiMessageHandler {
 
     private static final String CLUSTER_DATA_REQ = "clusterDataRequest";
 

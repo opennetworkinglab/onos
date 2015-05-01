@@ -27,7 +27,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * Message handler for flow view related messages.
  */
-public class FlowViewMessageHandler extends UiMessageHandlerTwo {
+public class FlowViewMessageHandler extends UiMessageHandler {
 
     private static final String FLOW_DATA_REQ = "flowDataRequest";
 

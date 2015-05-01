@@ -31,7 +31,7 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiView;
 
 import java.util.Collection;
@@ -97,13 +97,13 @@ public class IntentPerfUi {
     }
 
     // Creates and returns session specific message handler.
-    private Collection<UiMessageHandlerTwo> newHandlers() {
+    private Collection<UiMessageHandler> newHandlers() {
         return ImmutableList.of(new StreamingControl());
     }
 
 
     // UI Message handlers for turning on/off reporting to a session.
-    private class StreamingControl extends UiMessageHandlerTwo {
+    private class StreamingControl extends UiMessageHandler {
 
         private boolean streamingEnabled = false;
 

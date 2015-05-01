@@ -23,7 +23,7 @@ import org.onosproject.app.ApplicationState;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -39,7 +39,7 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 /**
  * Message handler for application view related messages.
  */
-public class ApplicationViewMessageHandler extends UiMessageHandlerTwo {
+public class ApplicationViewMessageHandler extends UiMessageHandler {
 
     private static final String APP_DATA_REQ = "appDataRequest";
     private static final String APP_MGMT_REQ = "appManagementRequest";

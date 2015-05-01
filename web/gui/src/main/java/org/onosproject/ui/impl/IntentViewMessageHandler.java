@@ -32,7 +32,7 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandlerTwo;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
 import org.onosproject.ui.table.RowComparator;
 import org.onosproject.ui.table.TableRow;
@@ -47,7 +47,7 @@ import java.util.Set;
 /**
  * Message handler for intent view related messages.
  */
-public class IntentViewMessageHandler extends UiMessageHandlerTwo {
+public class IntentViewMessageHandler extends UiMessageHandler {
 
     private static final String INTENT_DATA_REQ = "intentDataRequest";
 

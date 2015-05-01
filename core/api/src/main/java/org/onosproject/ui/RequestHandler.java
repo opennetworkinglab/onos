@@ -22,14 +22,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Abstraction of an entity that handles a specific request from the
  * user interface client.
  *
- * @see UiMessageHandlerTwo
+ * @see UiMessageHandler
  */
 public abstract class RequestHandler {
 
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final String eventType;
-    private UiMessageHandlerTwo parent;
+    private UiMessageHandler parent;
 
 
     public RequestHandler(String eventType) {
@@ -37,7 +37,7 @@ public abstract class RequestHandler {
     }
 
     // package private
-    void setParent(UiMessageHandlerTwo parent) {
+    void setParent(UiMessageHandler parent) {
         this.parent = parent;
     }
 

@@ -44,7 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * }
  * </pre>
  */
-public abstract class UiMessageHandlerTwo {
+public abstract class UiMessageHandler {
 
     private final Map<String, RequestHandler> handlerMap = new HashMap<>();
 
@@ -56,20 +56,6 @@ public abstract class UiMessageHandlerTwo {
      */
     protected final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Binds the handlers returned from {@link #getHandlers()} to this
-     * instance.
-     */
-    void bindHandlers() {
-        Collection<RequestHandler> handlers = getHandlers();
-        checkNotNull(handlers, "Handlers cannot be null");
-        checkArgument(!handlers.isEmpty(), "Handlers cannot be empty");
-
-        for (RequestHandler h : handlers) {
-            h.setParent(this);
-            handlerMap.put(h.eventType(), h);
-        }
-    }
 
     /**
      * Subclasses must return the collection of handlers for the
@@ -112,6 +98,17 @@ public abstract class UiMessageHandlerTwo {
         RequestHandler handler = handlerMap.get(eventType);
         if (handler != null) {
             handler.process(sid, payload);
+        }
+    }
+
+    private void bindHandlers() {
+        Collection<RequestHandler> handlers = getHandlers();
+        checkNotNull(handlers, "Handlers cannot be null");
+        checkArgument(!handlers.isEmpty(), "Handlers cannot be empty");
+
+        for (RequestHandler h : handlers) {
+            h.setParent(this);
+            handlerMap.put(h.eventType(), h);
         }
     }
 
