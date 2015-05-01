@@ -25,11 +25,6 @@ import org.onosproject.net.link.LinkService;
 import java.util.List;
 import java.util.SortedSet;
 
-import static org.onosproject.cli.net.AddPointToPointIntentCommand.getDeviceId;
-import static org.onosproject.cli.net.AddPointToPointIntentCommand.getPortNumber;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-
 /**
  * Link destination end-point completer.
  */
@@ -49,8 +44,7 @@ public class LinkDstCompleter extends AbstractCompleter {
         // Generate the device ID/port number identifiers
         SortedSet<String> strings = delegate.getStrings();
         try {
-            ConnectPoint src = new ConnectPoint(deviceId(getDeviceId(srcArg)),
-                                                portNumber(getPortNumber(srcArg)));
+            ConnectPoint src = ConnectPoint.deviceConnectPoint(srcArg);
             service.getEgressLinks(src)
                     .forEach(link -> strings.add(link.dst().elementId().toString() +
                                                          "/" + link.dst().port()));

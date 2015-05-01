@@ -19,16 +19,10 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.provider.nil.NullProviders;
 
 import static org.onosproject.cli.UpDownCompleter.DOWN;
 import static org.onosproject.cli.UpDownCompleter.UP;
-import static org.onosproject.cli.net.AddPointToPointIntentCommand.getDeviceId;
-import static org.onosproject.cli.net.AddPointToPointIntentCommand.getPortNumber;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Servers or repairs a simulated link.
@@ -55,13 +49,9 @@ public class NullLinkCommand extends AbstractShellCommand {
         NullProviders service = get(NullProviders.class);
 
         try {
-            DeviceId oneId = deviceId(getDeviceId(one));
-            PortNumber onePort = portNumber(getPortNumber(one));
-            ConnectPoint onePoint = new ConnectPoint(oneId, onePort);
+            ConnectPoint onePoint = ConnectPoint.deviceConnectPoint(one);
 
-            DeviceId twoId = deviceId(getDeviceId(two));
-            PortNumber twoPort = portNumber(getPortNumber(two));
-            ConnectPoint twoPoint = new ConnectPoint(twoId, twoPort);
+            ConnectPoint twoPoint = ConnectPoint.deviceConnectPoint(two);
 
             if (cmd.equals(UP)) {
                 service.repairLink(onePoint, twoPoint);

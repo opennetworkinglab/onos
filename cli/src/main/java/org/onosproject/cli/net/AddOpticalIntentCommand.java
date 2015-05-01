@@ -15,14 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
@@ -48,13 +43,9 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
     protected void execute() {
         IntentService service = get(IntentService.class);
 
-        DeviceId ingressDeviceId = deviceId(getDeviceId(ingressDeviceString));
-        PortNumber ingressPortNumber = portNumber(getPortNumber(ingressDeviceString));
-        ConnectPoint ingress = new ConnectPoint(ingressDeviceId, ingressPortNumber);
+        ConnectPoint ingress = ConnectPoint.deviceConnectPoint(ingressDeviceString);
 
-        DeviceId egressDeviceId = deviceId(getDeviceId(egressDeviceString));
-        PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
-        ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
+        ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
 
         Intent intent = OpticalConnectivityIntent.builder()
                 .appId(appId())
@@ -64,33 +55,5 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                 .build();
         service.submit(intent);
         print("Optical intent submitted:\n%s", intent.toString());
-    }
-
-    /**
-     * Extracts the port number portion of the ConnectPoint.
-     *
-     * @param deviceString string representing the device/port
-     * @return port number as a string, empty string if the port is not found
-     */
-    private String getPortNumber(String deviceString) {
-        int slash = deviceString.indexOf('/');
-        if (slash <= 0) {
-            return "";
-        }
-        return deviceString.substring(slash + 1, deviceString.length());
-    }
-
-    /**
-     * Extracts the device ID portion of the ConnectPoint.
-     *
-     * @param deviceString string representing the device/port
-     * @return device ID string
-     */
-    private String getDeviceId(String deviceString) {
-        int slash = deviceString.indexOf('/');
-        if (slash <= 0) {
-            return "";
-        }
-        return deviceString.substring(0, slash);
     }
 }

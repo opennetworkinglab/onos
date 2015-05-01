@@ -63,7 +63,6 @@ public class AddFlowsCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);
         CoreService coreService = get(CoreService.class);
@@ -99,7 +98,6 @@ public class AddFlowsCommand extends AbstractShellCommand {
         }
 
         for (int i = 0; i < num; i++) {
-
             latch = new CountDownLatch(2);
             flowService.apply(rules.build(new FlowRuleOperationsContext() {
 
@@ -121,7 +119,6 @@ public class AddFlowsCommand extends AbstractShellCommand {
                 }
             }));
 
-
             flowService.apply(remove.build(new FlowRuleOperationsContext() {
                 @Override
                 public void onSuccess(FlowRuleOperations ops) {
@@ -135,13 +132,7 @@ public class AddFlowsCommand extends AbstractShellCommand {
             }
 
         }
-
-
-
-
     }
-
-
 
     private Object json(ObjectMapper mapper, boolean isSuccess, ArrayList<Long> elapsed) {
         ObjectNode result = mapper.createObjectNode();
@@ -159,6 +150,4 @@ public class AddFlowsCommand extends AbstractShellCommand {
             print("  Run %s : %s", i, elapsed.get(i));
         }
     }
-
-
 }

@@ -1,23 +1,18 @@
 package org.onosproject.cli.net;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.MplsIntent;
 
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Installs MPLS intents.
@@ -53,19 +48,14 @@ public class AddMplsIntent extends ConnectivityIntentCommand {
     protected void execute() {
         IntentService service = get(IntentService.class);
 
-        DeviceId ingressDeviceId = deviceId(getDeviceId(ingressDeviceString));
-        PortNumber ingressPortNumber = portNumber(getPortNumber(ingressDeviceString));
-        ConnectPoint ingress = new ConnectPoint(ingressDeviceId,
-                                                ingressPortNumber);
+        ConnectPoint ingress = ConnectPoint.deviceConnectPoint(ingressDeviceString);
         Optional<MplsLabel> ingressLabel = Optional.empty();
         if (!ingressLabelString.isEmpty()) {
             ingressLabel = Optional
                     .ofNullable(MplsLabel.mplsLabel(parseInt(ingressLabelString)));
         }
 
-        DeviceId egressDeviceId = deviceId(getDeviceId(egressDeviceString));
-        PortNumber egressPortNumber = portNumber(getPortNumber(egressDeviceString));
-        ConnectPoint egress = new ConnectPoint(egressDeviceId, egressPortNumber);
+        ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
 
         Optional<MplsLabel> egressLabel = Optional.empty();
         if (!ingressLabelString.isEmpty()) {
@@ -90,34 +80,6 @@ public class AddMplsIntent extends ConnectivityIntentCommand {
                 .priority(priority())
                 .build();
         service.submit(intent);
-    }
-
-    /**
-     * Extracts the port number portion of the ConnectPoint.
-     *
-     * @param deviceString string representing the device/port
-     * @return port number as a string, empty string if the port is not found
-     */
-    public static String getPortNumber(String deviceString) {
-        int slash = deviceString.indexOf('/');
-        if (slash <= 0) {
-            return "";
-        }
-        return deviceString.substring(slash + 1, deviceString.length());
-    }
-
-    /**
-     * Extracts the device ID portion of the ConnectPoint.
-     *
-     * @param deviceString string representing the device/port
-     * @return device ID string
-     */
-    public static String getDeviceId(String deviceString) {
-        int slash = deviceString.indexOf('/');
-        if (slash <= 0) {
-            return "";
-        }
-        return deviceString.substring(0, slash);
     }
 
     protected Integer parseInt(String value) {

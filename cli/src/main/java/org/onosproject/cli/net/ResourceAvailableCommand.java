@@ -19,17 +19,10 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.resource.LinkResourceService;
 import org.onosproject.net.resource.ResourceRequest;
-
-import static org.onosproject.cli.net.AddPointToPointIntentCommand.getDeviceId;
-import static org.onosproject.cli.net.AddPointToPointIntentCommand.getPortNumber;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Lists allocations by link.
@@ -55,13 +48,9 @@ public class ResourceAvailableCommand extends AbstractShellCommand {
 
         Iterable<ResourceRequest> itr = null;
         try {
-            DeviceId ingressDeviceId = deviceId(getDeviceId(srcString));
-            PortNumber ingressPortNumber = portNumber(getPortNumber(srcString));
-            ConnectPoint src = new ConnectPoint(ingressDeviceId, ingressPortNumber);
+            ConnectPoint src = ConnectPoint.deviceConnectPoint(srcString);
 
-            DeviceId egressDeviceId = deviceId(getDeviceId(dstString));
-            PortNumber egressPortNumber = portNumber(getPortNumber(dstString));
-            ConnectPoint dst = new ConnectPoint(egressDeviceId, egressPortNumber);
+            ConnectPoint dst = ConnectPoint.deviceConnectPoint(dstString);
 
             Link link = linkService.getLink(src, dst);
 

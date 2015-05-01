@@ -15,9 +15,12 @@
  */
 package org.onosproject.net;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of a network connection point expressed as a pair of the
@@ -88,6 +91,42 @@ public class ConnectPoint {
      */
     public PortNumber port() {
         return portNumber;
+    }
+
+    /**
+     * Parse a device connect point from a string.
+     * The connect point should be in the format "deviceUri/portNumber".
+     *
+     * @param string string to parse
+     * @return a ConnectPoint based on the information in the string.
+     */
+    public static ConnectPoint deviceConnectPoint(String string) {
+        checkNotNull(string);
+        String[] splitted = string.split("/");
+        checkArgument(splitted.length == 2,
+                      "Connect point must be in \"deviceUri/portNumber\" format");
+
+        return new ConnectPoint(DeviceId.deviceId(splitted[0]),
+                                PortNumber.portNumber(splitted[1]));
+    }
+
+    /**
+     * Parse a host connect point from a string.
+     * The connect point should be in the format "hostId/vlanId/portNumber".
+     *
+     * @param string string to parse
+     * @return a ConnectPoint based on the information in the string.
+     */
+    public static ConnectPoint hostConnectPoint(String string) {
+        checkNotNull(string);
+        String[] splitted = string.split("/");
+        checkArgument(splitted.length == 3,
+                      "Connect point must be in \"hostId/vlanId/portNumber\" format");
+
+        int lastSlash = string.lastIndexOf("/");
+
+        return new ConnectPoint(HostId.hostId(string.substring(0, lastSlash)),
+                                PortNumber.portNumber(string.substring(lastSlash + 1, string.length())));
     }
 
     @Override
