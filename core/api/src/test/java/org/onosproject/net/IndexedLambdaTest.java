@@ -18,7 +18,13 @@ package org.onosproject.net;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
+/**
+ * Test for IndexedLambda.
+ */
 public class IndexedLambdaTest {
+    /**
+     * Tests equality of IndexedLambda instances.
+     */
     @Test
     public void testEquality() {
         new EqualsTester()
