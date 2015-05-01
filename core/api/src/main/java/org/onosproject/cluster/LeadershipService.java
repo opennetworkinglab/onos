@@ -74,7 +74,8 @@ public interface LeadershipService {
      * potentially become the leader again if and when it becomes the highest
      * priority candidate
      * <p>
-     * If the local nodeId is not the leader, this method will be a noop.
+     * If the local nodeId is not the leader, this method will make no changes and
+     * simply return false.
      *
      * @param path topic for which this controller node should give up leadership
      * @return true if this node stepped down from leadership, false otherwise

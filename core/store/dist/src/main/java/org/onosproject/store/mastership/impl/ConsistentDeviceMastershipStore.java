@@ -93,7 +93,7 @@ public class ConsistentDeviceMastershipStore
             new MessageSubject("mastership-store-device-role-query");
     private static final MessageSubject ROLE_RELINQUISH_SUBJECT =
             new MessageSubject("mastership-store-device-role-relinquish");
-    private static final MessageSubject MASTERSHIP_RELINQUISH_SUBJECT =
+    private static final MessageSubject TRANSITION_FROM_MASTER_TO_STANDBY_SUBJECT =
             new MessageSubject("mastership-store-device-mastership-relinquish");
 
     private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN =
@@ -128,9 +128,9 @@ public class ConsistentDeviceMastershipStore
         clusterCommunicator.addSubscriber(ROLE_RELINQUISH_SUBJECT,
                new RoleRelinquishHandler(),
                messageHandlingExecutor);
-        clusterCommunicator.addSubscriber(MASTERSHIP_RELINQUISH_SUBJECT,
+        clusterCommunicator.addSubscriber(TRANSITION_FROM_MASTER_TO_STANDBY_SUBJECT,
                 SERIALIZER::decode,
-                this::relinquishMastership,
+                this::transitionFromMasterToStandby,
                 SERIALIZER::encode,
                 messageHandlingExecutor);
         localNodeId = clusterService.getLocalNode().id();
@@ -143,7 +143,7 @@ public class ConsistentDeviceMastershipStore
     public void deactivate() {
         clusterCommunicator.removeSubscriber(ROLE_QUERY_SUBJECT);
         clusterCommunicator.removeSubscriber(ROLE_RELINQUISH_SUBJECT);
-        clusterCommunicator.removeSubscriber(MASTERSHIP_RELINQUISH_SUBJECT);
+        clusterCommunicator.removeSubscriber(TRANSITION_FROM_MASTER_TO_STANDBY_SUBJECT);
         messageHandlingExecutor.shutdown();
         leadershipService.removeListener(leadershipEventListener);
 
@@ -256,7 +256,7 @@ public class ConsistentDeviceMastershipStore
                 return null;
             }
             if (leadershipService.makeTopCandidate(leadershipTopic, nodeId)) {
-                return relinquishMastership(deviceId);
+                return transitionFromMasterToStandby(deviceId);
             } else {
                 log.warn("Failed to promote {} to mastership for {}", nodeId, deviceId);
             }
@@ -282,9 +282,9 @@ public class ConsistentDeviceMastershipStore
         if (!nodeId.equals(currentMaster)) {
             return null;
         }
-        // FIXME: This can becomes the master again unless it
-        // is demoted to the end of candidates list.
-        return relinquishMastership(deviceId);
+        // FIXME: This can become the master again unless it
+        // is first demoted to the end of candidates list.
+        return transitionFromMasterToStandby(deviceId);
     }
 
     @Override
@@ -309,14 +309,11 @@ public class ConsistentDeviceMastershipStore
         }
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
-        Leadership currentLeadership = leadershipService.getLeadership(leadershipTopic);
+        NodeId currentLeader = leadershipService.getLeader(leadershipTopic);
 
-        MastershipEvent.Type eventType = null;
-        if (currentLeadership != null && currentLeadership.leader().equals(localNodeId)) {
-            eventType = MastershipEvent.Type.MASTER_CHANGED;
-        } else {
-            eventType = MastershipEvent.Type.BACKUPS_CHANGED;
-        }
+        MastershipEvent.Type eventType = Objects.equal(currentLeader, localNodeId)
+            ? MastershipEvent.Type.MASTER_CHANGED
+            : MastershipEvent.Type.BACKUPS_CHANGED;
 
         connectedDevices.remove(deviceId);
         leadershipService.withdraw(leadershipTopic);
@@ -324,7 +321,7 @@ public class ConsistentDeviceMastershipStore
         return new MastershipEvent(eventType, deviceId, getNodes(deviceId));
     }
 
-    private MastershipEvent relinquishMastership(DeviceId deviceId) {
+    private MastershipEvent transitionFromMasterToStandby(DeviceId deviceId) {
         checkArgument(deviceId != null, DEVICE_ID_NULL);
 
         NodeId currentMaster = getMaster(deviceId);
@@ -337,22 +334,14 @@ public class ConsistentDeviceMastershipStore
                     + "mastership for device {} to {}", deviceId, currentMaster);
             return futureGetOrElse(clusterCommunicator.sendAndReceive(
                     deviceId,
-                    MASTERSHIP_RELINQUISH_SUBJECT,
+                    TRANSITION_FROM_MASTER_TO_STANDBY_SUBJECT,
                     SERIALIZER::encode,
                     SERIALIZER::decode,
                     currentMaster), null);
         }
 
-        String leadershipTopic = createDeviceMastershipTopic(deviceId);
-        Leadership currentLeadership = leadershipService.getLeadership(leadershipTopic);
-
-        MastershipEvent.Type eventType = null;
-        if (currentLeadership != null && currentLeadership.leader().equals(localNodeId)) {
-            eventType = MastershipEvent.Type.MASTER_CHANGED;
-        }
-
-        return leadershipService.stepdown(leadershipTopic)
-                ? new MastershipEvent(eventType, deviceId, getNodes(deviceId)) : null;
+        return leadershipService.stepdown(createDeviceMastershipTopic(deviceId))
+                ? new MastershipEvent(MastershipEvent.Type.MASTER_CHANGED, deviceId, getNodes(deviceId)) : null;
     }
 
     private class RoleQueryHandler implements ClusterMessageHandler {

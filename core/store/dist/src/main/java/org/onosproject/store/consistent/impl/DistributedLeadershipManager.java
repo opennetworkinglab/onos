@@ -271,7 +271,7 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     @Override
     public boolean stepdown(String path) {
-        if (!activeTopics.contains(path)) {
+        if (!activeTopics.contains(path) || !Objects.equals(localNodeId, getLeader(path))) {
             return false;
         }
 
