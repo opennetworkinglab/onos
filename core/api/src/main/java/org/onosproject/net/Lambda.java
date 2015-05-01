@@ -36,6 +36,7 @@ public interface Lambda {
      * @param channelSpacing    channel spacing
      * @param spacingMultiplier channel spacing multiplier
      * @param slotGranularity   slot width granularity
+     * @return new lambda with specified arguments
      */
     static Lambda ochSignal(GridType gridType, ChannelSpacing channelSpacing,
                             int spacingMultiplier, int slotGranularity) {
