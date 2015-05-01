@@ -137,7 +137,7 @@ class NullPacketProvider extends NullProviders.AbstractNullProvider
         @Override
         public void run(Timeout to) {
             if (!devices.isEmpty() && !to.isCancelled()) {
-                sendEvent(devices.get(Math.max(currentDevice, devices.size())));
+                sendEvent(devices.get(Math.min(currentDevice, devices.size() - 1)));
                 currentDevice = (currentDevice + 1) % devices.size();
                 timeout = timer.newTimeout(to.getTask(), delay, TimeUnit.MILLISECONDS);
             }
