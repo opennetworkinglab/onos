@@ -25,8 +25,7 @@
     var $log, $scope, fs, mast, ps, wss, is, bns, ns, ttip;
 
     // internal state
-    var self,
-        detailsPanel,
+    var detailsPanel,
         pStartY, pHeight,
         top, bottom, iconDiv,
         wSize, selRow;
@@ -183,8 +182,8 @@
     }
 
     function respDetailsCb(data) {
-        self.panelData = data.details;
-        populateDetails(self.panelData);
+        $scope.panelData = data.details;
+        populateDetails($scope.panelData);
         detailsPanel.show();
     }
 
@@ -219,9 +218,8 @@
             bns = _bns_;
             ns = _ns_;
             ttip = _ttip_;
-            self = this;
             var handlers = {};
-            self.panelData = [];
+            $scope.panelData = [];
             pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
                                             + mast.mastHeight() + topPdg;
             wSize = fs.windowSize(pStartY);
@@ -238,7 +236,6 @@
             }
 
             tbs.buildTable({
-                self: self,
                 scope: $scope,
                 tag: 'device',
                 selCb: selCb

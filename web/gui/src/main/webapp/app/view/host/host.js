@@ -27,7 +27,6 @@
 
         function ($log, $scope, ts, tbs) {
             tbs.buildTable({
-                self: this,
                 scope: $scope,
                 tag: 'host'
             });
@@ -37,7 +36,7 @@
                 ts.resetSortIcons();
                 $scope.sortCallback();
             };
-            
+
             $log.log('OvHostCtrl has been created');
         }]);
 }());

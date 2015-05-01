@@ -30,8 +30,7 @@
             'FnService', 'TableService', 'TableBuilderService',
 
         function (_$log_, _$scope_, _$location_, _fs_, _ts_, _tbs_) {
-            var self = this,
-                params;
+            var params;
             $log = _$log_;
             $scope = _$scope_;
             $location = _$location_;
@@ -41,11 +40,10 @@
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {
-                self.devId = params['devId'];
+                $scope.devId = params['devId'];
             }
 
             tbs.buildTable({
-                self: self,
                 scope: $scope,
                 tag: 'flow',
                 query: params

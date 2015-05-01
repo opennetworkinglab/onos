@@ -71,7 +71,6 @@
         d3.select('#app-deactivate').on('click', function () { appAction('deactivate'); });
 
         tbs.buildTable({
-            self: this,
             scope: $scope,
             tag: 'app',
             selCb: selCb

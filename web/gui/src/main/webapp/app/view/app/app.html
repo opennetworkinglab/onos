@@ -1,7 +1,7 @@
 <!-- app partial HTML -->
 <div id="ov-app">
     <div class="tabular-header">
-        <h2>Applications ({{ctrl.tableData.length}} total)</h2>
+        <h2>Applications ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
@@ -19,39 +19,44 @@
         </form>
     </div>
 
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-            <tr>
-                <th colId="state" class="table-icon" sortable></th>
-                <th colId="id" sortable>App ID </th>
-                <th colId="version" sortable>Version </th>
-                <th colId="origin" sortable>Origin </th>
-                <th colId="desc" col-width="640px">Description </th>
-            </tr>
-        </thead>
+    <div class="summary-list" onos-fixed-header>
 
-        <tbody>
-            <tr ng-hide="ctrl.tableData.length">
-                <td class="nodata" colspan="5">
-                    No Applications found
-                </td>
-            </tr>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="state" class="table-icon" sortable></td>
+                    <td colId="id" sortable>App ID </td>
+                    <td colId="version" sortable>Version </td>
+                    <td colId="origin" sortable>Origin </td>
+                    <td colId="desc" col-width="475px">Description </td>
+                </tr>
+            </table>
+        </div>
 
-            <tr ng-repeat="app in ctrl.tableData"
-                ng-click="selectCallback($event, app)"
-                ng-class="{selected: app === sel}"
-                ng-repeat-done>
-                <td class="table-icon">
-                    <div icon icon-id="{{app._iconid_state}}"></div>
-                </td>
-                <td>{{app.id}}</td>
-                <td>{{app.version}}</td>
-                <td>{{app.origin}}</td>
-                <td>{{app.desc}}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="5">
+                        No Applications found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="app in tableData"
+                    ng-click="selectCallback($event, app)"
+                    ng-class="{selected: app === sel}"
+                    ng-repeat-done>
+                    <td class="table-icon">
+                        <div icon icon-id="{{app._iconid_state}}"></div>
+                    </td>
+                    <td>{{app.id}}</td>
+                    <td>{{app.version}}</td>
+                    <td>{{app.origin}}</td>
+                    <td>{{app.desc}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

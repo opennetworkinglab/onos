@@ -1,7 +1,7 @@
 <!-- Host partial HTML -->
 <div id="ov-host">
     <div class="tabular-header">
-        <h2>Hosts ({{ctrl.tableData.length}} total)</h2>
+        <h2>Hosts ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
@@ -9,39 +9,44 @@
         </div>
     </div>
 
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-            <tr>
-                <th colId="type" class="table-icon" sortable></th>
-                <th colId="id" sortable>Host ID </th>
-                <th colId="mac" sortable>MAC Address </th>
-                <th colId="vlan" sortable>VLAN ID </th>
-                <th colId="ips" sortable>IP Addresses </th>
-                <th colId="location" sortable>Location </th>
-            </tr>
-        </thead>
+    <div class="summary-list" onos-fixed-header>
 
-        <tbody>
-            <tr ng-hide="ctrl.tableData.length">
-                <td class="nodata" colspan="6">
-                    No Hosts found
-                </td>
-            </tr>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="type" class="table-icon" sortable></td>
+                    <td colId="id" sortable>Host ID </td>
+                    <td colId="mac" sortable>MAC Address </td>
+                    <td colId="vlan" sortable>VLAN ID </td>
+                    <td colId="ips" sortable>IP Addresses </td>
+                    <td colId="location" sortable>Location </td>
+                </tr>
+            </table>
+        </div>
 
-            <tr ng-repeat="host in ctrl.tableData"
-                ng-repeat-done>
-                <td class="table-icon">
-                    <div icon icon-id="{{host._iconid_type}}"></div>
-                </td>
-                <td>{{host.id}}</td>
-                <td>{{host.mac}}</td>
-                <td>{{host.vlan}}</td>
-                <td>{{host.ips}}</td>
-                <td>{{host.location}}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="6">
+                        No Hosts found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="host in tableData"
+                    ng-repeat-done>
+                    <td class="table-icon">
+                        <div icon icon-id="{{host._iconid_type}}"></div>
+                    </td>
+                    <td>{{host.id}}</td>
+                    <td>{{host.mac}}</td>
+                    <td>{{host.vlan}}</td>
+                    <td>{{host.ips}}</td>
+                    <td>{{host.location}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

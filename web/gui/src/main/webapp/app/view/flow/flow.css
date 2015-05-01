@@ -50,4 +50,5 @@
 #ov-flow td.selector,
 #ov-flow td.treatment {
     padding-left: 36px;
+    opacity: 0.65;
 }

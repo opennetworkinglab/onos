@@ -37,86 +37,68 @@
         prevCol = {},
         sortIconAPI;
 
-    // Functions for creating a fixed header on a table (Angular Directive)
+    // Functions for creating a scrolling table body with fixed table header
 
-    function setElemWidth(elem, size) {
-        elem.style('width', size + 'px')
+    function _width(elem, width) {
+        elem.style('width', width);
     }
 
-    function setColWidth(th, td, size) {
-        setElemWidth(th, size);
-        setElemWidth(td, size);
+    function defaultSize(table, width) {
+        var thead = table.select('.table-header').select('table'),
+            tbody = table.select('.table-body').select('table'),
+            wpx = width + 'px';
+        _width(thead, wpx);
+        _width(tbody, wpx);
     }
 
-    // count number of headers of
-    //   - assigned width,
-    //   - icon width,
-    //   - and default width
-    // assumes assigned width is not given to icons
-    // returns the width of all columns that are not icons
-    // or have an assigned width
-    function getDefaultWidth(headers) {
-        var winWidth = fs.windowSize().width,
-            iconCols = 0,
-            regCols = 0,
-            cstmColWidth = 0;
+    function adjustTable(table, width, height) {
+        var thead = table.select('.table-header').select('table'),
+            tbodyDiv = table.select('.table-body'),
+            tbody = tbodyDiv.select('table'),
+            cstmWidths = {};
 
-        headers.each(function (d, i) {
-            var thElement = d3.select(this),
-                cstmWidth = thElement.attr(colWidth);
+        function findCstmWidths() {
+            var headers = thead.selectAll('td');
 
-            if (cstmWidth) {
-                cstmColWidth += fs.noPx(cstmWidth);
-            } else if (thElement.classed(tableIcon)) {
-                iconCols += 1;
-            } else {
-                regCols += 1;
-            }
-        });
+            headers.each(function (d, i) {
+                var h = d3.select(this),
+                    index = i.toString();
+                if (h.classed(tableIcon)) {
+                    cstmWidths[index] = tableIconTdSize + 'px';
+                }
+                if (h.attr(colWidth)) {
+                    cstmWidths[index] = h.attr(colWidth);
+                }
+            });
+            $log.debug('Headers with custom widths: ', cstmWidths);
+        }
 
-        return Math.floor((winWidth - cstmColWidth -
-                            (iconCols * tableIconTdSize)) / regCols);
-    }
+        function setTdWidths(elem) {
+            var tds = elem.selectAll('tr:not(.ignore-width)').selectAll('td');
+            _width(elem, width + 'px');
 
-    function setTableWidth(t) {
-        var tHeaders = t.selectAll('th'),
-            defaultColWidth = getDefaultWidth(tHeaders);
+            tds.each(function (d, i) {
+                var td = d3.select(this),
+                    index = i.toString();
+                if (cstmWidths.hasOwnProperty(index)) {
+                    _width(td, cstmWidths[index]);
+                }
+            });
+        }
 
-        tHeaders.each(function (d, i) {
-            var thElement = d3.select(this),
-                tr = t.select('tr:nth-of-type(2)'),
-                tdElement = tr.select('td:nth-of-type(' + (i + 1) + ')'),
-                custWidth = thElement.attr(colWidth);
+        function setHeight(body) {
+            var h = height - (mast.mastHeight() +
+                fs.noPxStyle(d3.select('.tabular-header'), 'height') +
+                fs.noPxStyle(thead, 'height') + pdg);
+            body.style('height', h + 'px');
+        }
 
-            if (custWidth) {
-                setColWidth(thElement, tdElement, fs.noPx(custWidth));
-            } else if (thElement.classed(tableIcon)) {
-                setColWidth(thElement, tdElement, tableIconTdSize);
-            } else {
-                setColWidth(thElement, tdElement, defaultColWidth);
-            }
-        });
-    }
+        findCstmWidths();
+        setTdWidths(thead);
+        setTdWidths(tbody);
+        setHeight(tbodyDiv);
 
-    // get the size of the window and then subtract the extra space at the top
-    // to get the height of the table
-    function setTableHeight(thead, tbody) {
-        var ttlHgt = fs.noPxStyle(d3.select('.tabular-header'), 'height'),
-            thHgt = fs.noPxStyle(thead, 'height'),
-            totalHgt = ttlHgt + thHgt + pdg,
-            tbleHgt = fs.windowSize(mast.mastHeight() + totalHgt).height;
-
-        thead.style('display', 'block');
-        tbody.style({
-            display: 'block',
-            height: tbleHgt + 'px',
-            overflow: 'auto'
-        });
-    }
-
-    function fixTable(t, th, tb) {
-        setTableWidth(t);
-        setTableHeight(th, tb);
+        cstmWidths = {};
     }
 
     // Functions for sorting table rows by header
@@ -163,40 +145,42 @@
     }
 
     angular.module('onosWidget')
-        .directive('onosFixedHeader', ['$window', 'FnService', 'MastService',
-            function (_$window_, _fs_, _mast_) {
+        .directive('onosFixedHeader', ['$log','$window',
+            'FnService', 'MastService',
+
+            function (_$log_, _$window_, _fs_, _mast_) {
             return function (scope, element) {
+                $log = _$log_;
                 $window = _$window_;
                 fs = _fs_;
                 mast = _mast_;
 
                 var w = angular.element($window),
                     table = d3.select(element[0]),
-                    thead = table.select('thead'),
-                    tbody = table.select('tbody'),
                     canAdjust = false;
 
                 scope.$watch(function () {
                     return {
-                        h: window.innerHeight,
-                        w: window.innerWidth
+                        h: $window.innerHeight,
+                        w: $window.innerWidth
                     };
-                }, function (newVal) {
-                    var wsz = fs.windowSize(0, 30);
-                    scope.windowHeight = newVal.h;
-                    scope.windowWidth = newVal.w;
+                }, function () {
+                    var wsz = fs.windowSize(0, 30),
+                        wWidth = wsz.width,
+                        wHeight = wsz.height;
 
-                    // default table size in case no data elements
-                    table.style('width', wsz.width + 'px');
+                    if (!scope.tableData.length) {
+                        defaultSize(table, wWidth);
+                    }
 
                     scope.$on('LastElement', function () {
                         // only adjust the table once it's completely loaded
-                        fixTable(table, thead, tbody);
+                        adjustTable(table, wWidth, wHeight);
                         canAdjust = true;
                     });
 
                     if (canAdjust) {
-                        fixTable(table, thead, tbody);
+                        adjustTable(table, wWidth, wHeight);
                     }
                 }, true);
 
@@ -215,16 +199,16 @@
                 link: function (scope, element) {
                     $log = _$log_;
                     is = _is_;
-                    var table = d3.select(element[0]);
+                    var header = d3.select(element[0]);
                         sortIconAPI = is.sortIcons();
 
-                    // when a header is clicked, change its icon tag
+                    // when a header is clicked, change its sort direction
                     // and get sorting order to send to the server.
-                    table.selectAll('th').on('click', function () {
-                        var thElem = d3.select(this);
+                    header.selectAll('td').on('click', function () {
+                        var col = d3.select(this);
 
-                        if (thElem.attr('sortable') === '') {
-                            updateSortDirection(thElem);
+                        if (col.attr('sortable') === '') {
+                            updateSortDirection(col);
                             scope.ctrlCallback({
                                 requestParams: sortRequestParams()
                             });
@@ -234,9 +218,9 @@
             };
         }])
 
-        .factory('TableService', ['$log', 'IconService',
+        .factory('TableService', ['IconService',
 
-            function ($log, is) {
+            function (is) {
                 sortIconAPI = is.sortIcons();
 
                 return {

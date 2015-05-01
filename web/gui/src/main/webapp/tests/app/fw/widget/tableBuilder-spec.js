@@ -48,7 +48,6 @@ describe('factory: fw/widget/tableBuilder.js', function () {
 
     beforeEach(function () {
         mockObj = {
-            self: {},
             scope: $rootScope.$new(),
             tag: 'foo',
             selCb: mockSelCb
@@ -78,10 +77,10 @@ describe('factory: fw/widget/tableBuilder.js', function () {
     });
 
     it('should set tableData', function () {
-        expect(mockObj.self.tableData).not.toBeDefined();
+        expect(mockObj.scope.tableData).not.toBeDefined();
         tbs.buildTable(mockObj);
-        expect(fs.isA(mockObj.self.tableData)).toBeTruthy();
-        expect(mockObj.self.tableData.length).toBe(0);
+        expect(fs.isA(mockObj.scope.tableData)).toBeTruthy();
+        expect(mockObj.scope.tableData.length).toBe(0);
     });
 
     it('should unbind handlers on destroyed scope', function () {

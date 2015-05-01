@@ -16,68 +16,80 @@
 
 /* ------ for summary-list tables ------ */
 
-table.summary-list {
-    margin: 0 20px 16px 12px;
+div.summary-list {
+    margin: 0 20px 16px 10px;
     font-size: 10pt;
     border-spacing: 0;
 }
 
-table.summary-list td.nodata {
+div.summary-list table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    empty-cells: show;
+    margin: 0;
+}
+
+div.summary-list div.table-body {
+    overflow-y: scroll;
+}
+
+div.summary-list tr.no-data td {
     text-align: center;
     font-style: italic;
 }
 
-.light table.summary-list tr:nth-child(even) {
+.light div.summary-list tr:nth-child(even) {
     background-color: #ddd;
 }
-.light table.summary-list tr:nth-child(odd) {
+.light div.summary-list tr:nth-child(odd) {
     background-color: #eee;
 }
-.dark table.summary-list tr:nth-child(even) {
+.dark div.summary-list tr:nth-child(even) {
     background-color: #333;
 }
-.dark table.summary-list tr:nth-child(odd) {
+.dark div.summary-list tr:nth-child(odd) {
     background-color: #444;
 }
 
-.light table.summary-list tr.selected {
+.light div.summary-list tr.selected {
     background-color: deepskyblue;
 }
 
-.dark table.summary-list tr.selected {
+.dark div.summary-list tr.selected {
     background-color: #304860;
 }
 
-table.summary-list td,
-table.summary-list th {
+div.summary-list td {
     padding: 6px;
     text-align: left;
+    word-wrap: break-word;
 }
 
-table.summary-list th {
+div.summary-list .table-header td {
     letter-spacing: 0.02em;
     cursor: pointer;
+    font-weight: bold;
 }
-table.summary-list th:first-child {
+div.summary-list .table-header td:first-child {
     border-radius: 8px 0 0 0;
 }
-table.summary-list th:last-child {
+div.summary-list .table-header td:last-child {
     border-radius: 0 8px 0 0;
 }
 
-.light table.summary-list th {
+.light div.summary-list .table-header td {
     background-color: #bbb;
 }
-.dark table.summary-list th {
+.dark div.summary-list .table-header td {
     background-color: #222;
     color: #ccc;
 }
 
 /* rows are selectable */
-table.summary-list td {
+div.summary-list .table-body td {
     cursor: pointer;
 }
 
-.dark table.summary-list td {
+.dark div.summary-list td {
     color: #ccc;
 }

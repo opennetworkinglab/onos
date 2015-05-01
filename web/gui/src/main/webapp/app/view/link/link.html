@@ -17,7 +17,7 @@
 <!-- Link partial HTML -->
 <div id="ov-link">
     <div class="tabular-header">
-        <h2>Links ({{ctrl.tableData.length}} total)</h2>
+        <h2>Links ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
@@ -25,39 +25,44 @@
         </div>
     </div>
 
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-            <tr>
-                <th colId="_iconid_state" class="table-icon" sortable></th>
-                <th colId="one" sortable>Port 1 </th>
-                <th colId="two" sortable>Port 2 </th>
-                <th colId="type" sortable>Type </th>
-                <th colId="direction" sortable>Direction </th>
-                <th colId="durable" sortable>Durable </th>
-            </tr>
-        </thead>
+    <div class="summary-list" onos-fixed-header>
 
-        <tbody>
-            <tr ng-hide="ctrl.tableData.length">
-                <td class="nodata" colspan="6">
-                    No Links found
-                </td>
-            </tr>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="_iconid_state" class="table-icon" sortable></td>
+                    <td colId="one" sortable>Port 1 </td>
+                    <td colId="two" sortable>Port 2 </td>
+                    <td colId="type" sortable>Type </td>
+                    <td colId="direction" sortable>Direction </td>
+                    <td colId="durable" sortable>Durable </td>
+                </tr>
+            </table>
+        </div>
 
-            <tr ng-repeat="link in ctrl.tableData"
-                ng-repeat-done>
-                <td class="table-icon">
-                    <div icon icon-id="{{link._iconid_state}}"></div>
-                </td>
-                <td>{{link.one}}</td>
-                <td>{{link.two}}</td>
-                <td>{{link.type}}</td>
-                <td>{{link.direction}}</td>
-                <td>{{link.durable}}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="6">
+                        No Links found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="link in tableData"
+                    ng-repeat-done>
+                    <td class="table-icon">
+                        <div icon icon-id="{{link._iconid_state}}"></div>
+                    </td>
+                    <td>{{link.one}}</td>
+                    <td>{{link.two}}</td>
+                    <td>{{link.type}}</td>
+                    <td>{{link.direction}}</td>
+                    <td>{{link.durable}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

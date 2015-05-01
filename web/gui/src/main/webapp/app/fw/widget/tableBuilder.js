@@ -25,7 +25,6 @@
 
     // example params to buildTable:
     // {
-    //    self: this,        <- controller object
     //    scope: $scope,     <- controller scope
     //    tag: 'device',     <- table identifier
     //    selCb: selCb       <- row selection callback (optional)
@@ -43,10 +42,10 @@
             resp = o.tag + 'DataResponse',
             onSel = fs.isF(o.selCb);
 
-        o.self.tableData = [];
+        o.scope.tableData = [];
 
         function respCb(data) {
-            o.self.tableData = data[root];
+            o.scope.tableData = data[root];
             o.scope.$apply();
         }
 

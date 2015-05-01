@@ -17,45 +17,51 @@
 <!-- Intent partial HTML -->
 <div id="ov-intent">
     <div class="tabular-header">
-        <h2>Intents ({{ctrl.tableData.length}} total)</h2>
+        <h2>Intents ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
                  ng-click="refresh()"></div>
         </div>
     </div>
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-        <tr>
-            <th colId="appId" sortable>Application ID </th>
-            <th colId="key" sortable>Key </th>
-            <th colId="type" sortable>Type </th>
-            <th colId="priority" sortable>Priority </th>
-        </tr>
-        </thead>
 
-        <tbody>
-            <tr ng-hide="ctrl.tableData.length">
-                <td class="nodata" colspan="4">
-                    No Intents found
-                </td>
-            </tr>
+    <div class="summary-list" onos-fixed-header>
 
-            <tr ng-repeat-start="intent in ctrl.tableData">
-                <td>{{intent.appId}}</td>
-                <td>{{intent.key}}</td>
-                <td>{{intent.type}}</td>
-                <td>{{intent.priority}}</td>
-            </tr>
-            <tr>
-                <td class="resources" colspan="4">{{intent.resources}}</td>
-            </tr>
-            <tr ng-repeat-end ng-repeat-done>
-                <td class="details" colspan="4">{{intent.details}}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="appId" sortable>Application ID </td>
+                    <td colId="key" sortable>Key </td>
+                    <td colId="type" sortable>Type </td>
+                    <td colId="priority" sortable>Priority </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="4">
+                        No Intents found
+                    </td>
+                </tr>
+
+                <tr ng-repeat-start="intent in tableData">
+                    <td>{{intent.appId}}</td>
+                    <td>{{intent.key}}</td>
+                    <td>{{intent.type}}</td>
+                    <td>{{intent.priority}}</td>
+                </tr>
+                <tr>
+                    <td class="resources" colspan="4">{{intent.resources}}</td>
+                </tr>
+                <tr ng-repeat-end ng-repeat-done>
+                    <td class="details" colspan="4">{{intent.details}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

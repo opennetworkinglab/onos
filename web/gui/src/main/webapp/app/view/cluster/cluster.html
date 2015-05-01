@@ -17,7 +17,7 @@
 <!-- Cluster partial HTML -->
 <div id="ov-cluster">
     <div class="tabular-header">
-        <h2>Cluster Nodes ({{ctrl.tableData.length}} total)</h2>
+        <h2>Cluster Nodes ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
@@ -25,37 +25,42 @@
         </div>
     </div>
 
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-        <tr>
-            <th colId="_iconid_state" class="table-icon" sortable></th>
-            <th colId="id" sortable>ID </th>
-            <th colId="ip" sortable>IP Address </th>
-            <th colId="tcp" sortable>TCP Port </th>
-            <th colId="updated" sortable>Last Updated </th>
-        </tr>
-        </thead>
+    <div class="summary-list" onos-fixed-header>
 
-        <tbody>
-        <tr ng-hide="ctrl.tableData.length">
-            <td class="nodata" colspan="5">
-                No Cluster Nodes found
-            </td>
-        </tr>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="_iconid_state" class="table-icon" sortable></td>
+                    <td colId="id" sortable>ID </td>
+                    <td colId="ip" sortable>IP Address </td>
+                    <td colId="tcp" sortable>TCP Port </td>
+                    <td colId="updated" sortable>Last Updated </td>
+                </tr>
+            </table>
+        </div>
 
-        <tr ng-repeat="node in ctrl.tableData"
-            ng-repeat-done>
-            <td class="table-icon">
-                <div icon icon-id="{{node._iconid_state}}"></div>
-            </td>
-            <td>{{node.id}}</td>
-            <td>{{node.ip}}</td>
-            <td>{{node.tcp}}</td>
-            <td>{{node.updated}}</td>
-        </tr>
-        </tbody>
-    </table>
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="5">
+                        No Cluster Nodes found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="node in tableData"
+                    ng-repeat-done>
+                    <td class="table-icon">
+                        <div icon icon-id="{{node._iconid_state}}"></div>
+                    </td>
+                    <td>{{node.id}}</td>
+                    <td>{{node.ip}}</td>
+                    <td>{{node.tcp}}</td>
+                    <td>{{node.updated}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

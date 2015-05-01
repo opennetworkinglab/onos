@@ -2,8 +2,8 @@
 <div id="ov-flow">
     <div class="tabular-header">
         <h2>
-            Flows for Device {{ctrl.devId || "(No device selected)"}}
-            ({{ctrl.tableData.length}} total)
+            Flows for Device {{devId || "(No device selected)"}}
+            ({{tableData.length}} total)
         </h2>
         <div class="ctrl-btns">
             <div class="refresh active"
@@ -12,46 +12,52 @@
         </div>
     </div>
 
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-        <tr>
-            <th colId="id" sortable>Flow ID </th>
-            <th colId="appId" sortable>App ID </th>
-            <th colId="groupId" sortable>Group ID </th>
-            <th colId="tableId" sortable>Table ID </th>
-            <th colId="priority" sortable>Priority </th>
-            <th colId="timeout" sortable>Timeout </th>
-            <th colId="permanent" sortable>Permanent </th>
-            <th colId="state" sortable>State </th>
-        </tr>
-        </thead>
+    <div class="summary-list" onos-fixed-header>
 
-        <tbody>
-        <tr ng-hide="ctrl.tableData.length">
-            <td class="nodata" colspan="8">
-                No Flows found
-            </td>
-        </tr>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="id" col-width="180px" sortable>Flow ID </td>
+                    <td colId="appId" sortable>App ID </td>
+                    <td colId="groupId" sortable>Group ID </td>
+                    <td colId="tableId" sortable>Table ID </td>
+                    <td colId="priority" sortable>Priority </td>
+                    <td colId="timeout" sortable>Timeout </td>
+                    <td colId="permanent" sortable>Permanent </td>
+                    <td colId="state" sortable>State </td>
+                </tr>
+            </table>
+        </div>
 
-        <tr ng-repeat-start="flow in ctrl.tableData">
-            <td>{{flow.id}}</td>
-            <td>{{flow.appId}}</td>
-            <td>{{flow.groupId}}</td>
-            <td>{{flow.tableId}}</td>
-            <td>{{flow.priority}}</td>
-            <td>{{flow.timeout}}</td>
-            <td>{{flow.permanent}}</td>
-            <td>{{flow.state}}</td>
-        </tr>
-        <tr>
-            <td class="selector" colspan="8">{{flow.selector}}</td>
-        </tr>
-        <tr ng-repeat-end ng-repeat-done>
-            <td class="treatment" colspan="8">{{flow.treatment}}</td>
-        </tr>
-        </tbody>
-    </table>
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="8">
+                        No Flows found
+                    </td>
+                </tr>
+
+                <tr ng-repeat-start="flow in tableData">
+                    <td>{{flow.id}}</td>
+                    <td>{{flow.appId}}</td>
+                    <td>{{flow.groupId}}</td>
+                    <td>{{flow.tableId}}</td>
+                    <td>{{flow.priority}}</td>
+                    <td>{{flow.timeout}}</td>
+                    <td>{{flow.permanent}}</td>
+                    <td>{{flow.state}}</td>
+                </tr>
+                <tr class="ignore-width">
+                    <td class="selector" colspan="8">{{flow.selector}}</td>
+                </tr>
+                <tr class="ignore-width"
+                    ng-repeat-end ng-repeat-done>
+                    <td class="treatment" colspan="8">{{flow.treatment}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

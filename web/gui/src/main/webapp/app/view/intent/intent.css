@@ -50,4 +50,5 @@
 #ov-intent td.resources,
 #ov-intent td.details {
     padding-left: 36px;
+    opacity: 0.65;
 }

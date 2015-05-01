@@ -27,7 +27,6 @@
 
         function ($log, $scope, ts, tbs) {
             tbs.buildTable({
-                self: this,
                 scope: $scope,
                 tag: 'link'
             });
@@ -37,7 +36,7 @@
                 ts.resetSortIcons();
                 $scope.sortCallback();
             };
-            
+
             $log.log('OvLinkCtrl has been created');
         }]);
 }());

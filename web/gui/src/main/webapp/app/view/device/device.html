@@ -1,7 +1,7 @@
 <!-- Device partial HTML -->
 <div id="ov-device">
     <div class="tabular-header">
-        <h2>Devices ({{ctrl.tableData.length}} total)</h2>
+        <h2>Devices ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
@@ -9,49 +9,54 @@
         </div>
     </div>
 
-    <table class="summary-list"
-           onos-fixed-header
-           onos-sortable-header
-           sort-callback="sortCallback(requestParams)">
-        <thead>
-            <tr>
-                <th colId="available" class="table-icon" sortable></th>
-                <th colId="type" class="table-icon" sortable></th>
-                <th colId="id" sortable>Device ID </th>
-                <th colId="masterid" sortable>Master Instance </th>
-                <th colId="num_ports" sortable>Ports </th>
-                <th colId="mfr" sortable>Vendor </th>
-                <th colId="hw" sortable>H/W Version </th>
-                <th colId="sw" sortable>S/W Version </th>
-                <th colId="protocol" sortable>Protocol </th>
-            </tr>
-        </thead>
+    <div class="summary-list" onos-fixed-header>
 
-        <tbody>
-            <tr ng-hide="ctrl.tableData.length">
-                <td class="nodata" colspan="9">
-                    No Devices found
-                </td>
-            </tr>
+        <div class="table-header"
+             onos-sortable-header sort-callback="sortCallback(requestParams)">
+            <table>
+                <tr>
+                    <td colId="available" class="table-icon" sortable></td>
+                    <td colId="type" class="table-icon" sortable></td>
+                    <td colId="id" sortable>Device ID </td>
+                    <td colId="masterid" sortable>Master Instance </td>
+                    <td colId="num_ports" sortable>Ports </td>
+                    <td colId="mfr" sortable>Vendor </td>
+                    <td colId="hw" sortable>H/W Version </td>
+                    <td colId="sw" sortable>S/W Version </td>
+                    <td colId="protocol" sortable>Protocol </td>
+                </tr>
+            </table>
+        </div>
 
-            <tr ng-repeat="dev in ctrl.tableData"
-                ng-click="selectCallback($event, dev)"
-                ng-class="{selected: dev === sel}"
-                ng-repeat-done>
-                <td class="table-icon">
-                    <div icon icon-id="{{dev._iconid_available}}"></div>
-                </td>
-                <td class="table-icon">
-                    <div icon icon-id="{{dev._iconid_type}}"></div>
-                </td>
-                <td>{{dev.id}}</td>
-                <td>{{dev.masterid}}</td>
-                <td>{{dev.num_ports}}</td>
-                <td>{{dev.mfr}}</td>
-                <td>{{dev.hw}}</td>
-                <td>{{dev.sw}}</td>
-                <td>{{dev.protocol}}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="table-body">
+            <table>
+                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                    <td colspan="9">
+                        No Devices found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="dev in tableData"
+                    ng-click="selectCallback($event, dev)"
+                    ng-class="{selected: dev === sel}"
+                    ng-repeat-done>
+                    <td class="table-icon">
+                        <div icon icon-id="{{dev._iconid_available}}"></div>
+                    </td>
+                    <td class="table-icon">
+                        <div icon icon-id="{{dev._iconid_type}}"></div>
+                    </td>
+                    <td>{{dev.id}}</td>
+                    <td>{{dev.masterid}}</td>
+                    <td>{{dev.num_ports}}</td>
+                    <td>{{dev.mfr}}</td>
+                    <td>{{dev.hw}}</td>
+                    <td>{{dev.sw}}</td>
+                    <td>{{dev.protocol}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
 </div>

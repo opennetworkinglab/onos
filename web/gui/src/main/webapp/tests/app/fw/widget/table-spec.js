@@ -20,71 +20,59 @@
 describe('factory: fw/widget/table.js', function () {
     var $log, $compile, $rootScope,
         fs, ts, mast, is,
-        scope, compiled,
-        table, thead, tbody, mockHeader,
-        mockH2Height = 20,
-        mockMastHeight = 20,
-        mockHeaderHeight = mockH2Height + mockMastHeight,
-        tableIconTdSize = 100,
-        numTestElems = 4;
+        scope,
+        containerDiv,
+        headerDiv, bodyDiv,
+        header, body,
+        mockHeader,
+        mockHeaderHeight = 40;
 
     var onosFixedHeaderTags =
-            '<table onos-fixed-header>' +
-            '<thead style="height:27px;">' +
-            '<tr>' +
-            '<th></th>' +
-            '<th>Device ID </th>' +
-            '<th col-width="100px">H/W Version </th>' +
-            '<th>S/W Version </th>' +
-            '</tr>' +
-            '</thead>' +
-            '<tbody>' +
-            '<tr>' +
-            '<td colspan="4">' +
-                'No Devices found' +
-            '</td>' +
-            '</tr>' +
-            '<tr>' +
-            '<td class="table-icon">' +
-                '<div icon icon-id="{{dev._iconid_available}}">' +
-                '</div>' +
-            '</td>' +
-            '<td>Some ID</td>' +
-            '<td>Some HW</td>' +
-            '<td>Some Software</td>' +
-            '</tr>' +
-            '</tbody>' +
-            '</table>',
+            '<div class="summary-list" onos-fixed-header>' +
+            '<div class="table-header">' +
+                '<table>' +
+                    '<tr>' +
+                        '<td colId="type" class="table-icon"></td>' +
+                        '<td colId="id">Host ID </td>' +
+                        '<td colId="mac" sortable>MAC Address </td>' +
+                        '<td colId="location" col-width="110px">Location </td>' +
+                    '</tr>' +
+                '</table>' +
+            '</div>' +
+
+            '<div class="table-body">' +
+                '<table>' +
+                    '<tr class="ignore-width">' +
+                        '<td class="not-picked"></td>' +
+                    '</tr>' +
+                    '<tr>' +
+                        '<td class="table-icon">Some Icon</td>' +
+                        '<td>Some ID</td>' +
+                        '<td>Some MAC Address</td>' +
+                        '<td>Some Location</td>' +
+                    '</tr>' +
+                '</table>' +
+            '</div>' +
+            '</div>',
 
         onosSortableHeaderTags =
-            '<table onos-sortable-header ' +
+            '<div onos-sortable-header ' +
             'sort-callback="sortCallback(requestParams)">' +
-            '<thead>' +
-            '<tr>' +
-            '<th colId="available"></th>' +
-            '<th colId="id" sortable>Device ID </th>' +
-            '<th colId="hw" sortable>H/W Version </th>' +
-            '<th colId="sw" sortable>S/W Version </th>' +
-            '</tr>' +
-            '</thead>' +
-            '<tbody>' +
-            '<tr>' +
-            '<td>' +
-                '<div icon icon-id="{{dev._iconid_available}}">' +
-                '</div>' +
-            '</td>' +
-            '<td>Some ID</td>' +
-            '<td>Some HW</td>' +
-            '<td>Some Software</td>' +
-            '</tr>' +
-            '</tbody>' +
-            '</table>';
+                '<table>' +
+                    '<tr>' +
+                        '<td colId="type"></td>' +
+                        '<td colId="id" sortable>Host ID </td>' +
+                        '<td colId="mac" sortable>MAC Address </td>' +
+                        '<td colId="location" sortable>Location </td>' +
+                    '</tr>' +
+                '</table>' +
+            '</div>';
 
     beforeEach(module('onosWidget', 'onosUtil', 'onosMast', 'onosSvg'));
 
     var mockWindow = {
-        innerWidth: 400,
-        innerHeight: 200,
+        innerWidth: 600,
+        innerHeight: 400,
         navigator: {
             userAgent: 'defaultUA'
         },
@@ -111,22 +99,43 @@ describe('factory: fw/widget/table.js', function () {
 
     beforeEach(function () {
         scope = $rootScope.$new();
+        scope.tableData = [];
     });
 
+    // Note: dummy header so that d3 doesn't trip up.
+    //       $compile has to be used on the directive tag element, so it can't
+    //       be included in the tag strings declared above.
     beforeEach(function () {
         mockHeader = d3.select('body')
             .append('h2')
             .classed('tabular-header', true)
-            .style('height', mockHeaderHeight + 'px')
-            .html('Some Header');
+            .style({
+                height: mockHeaderHeight + 'px',
+                margin: 0,
+                padding: 0
+            })
+            .text('Some Header');
     });
 
     afterEach(function () {
-        table = null;
-        thead = null;
-        tbody = null;
+        containerDiv = undefined;
+        headerDiv = undefined;
+        bodyDiv = undefined;
+        header = undefined;
+        body = undefined;
         mockHeader.remove();
     });
+
+    function populateTableData() {
+        scope.tableData = [
+            {
+                type: 'endstation',
+                id: '1234',
+                mac: '00:00:03',
+                location: 'USA'
+            }
+        ];
+    }
 
     it('should define TableBuilderService', function () {
         expect(ts).toBeDefined();
@@ -138,83 +147,119 @@ describe('factory: fw/widget/table.js', function () {
         ])).toBeTruthy();
     });
 
-    function compileTable() {
-        compiled = $compile(table);
+    function compile(elem) {
+        var compiled = $compile(elem);
         compiled(scope);
         scope.$digest();
     }
 
-    function verifyGivenTags(dirName) {
-        expect(table).toBeDefined();
-        expect(table.attr(dirName)).toBe('');
+    function selectTables() {
+        expect(containerDiv.find('div').length).toBe(2);
 
-        thead = table.find('thead');
-        expect(thead).toBeDefined();
-        tbody = table.find('tbody');
-        expect(tbody).toBeDefined();
+        headerDiv = angular.element(containerDiv[0].querySelector('.table-header'));
+        expect(headerDiv.length).toBe(1);
+
+        bodyDiv = angular.element(containerDiv[0].querySelector('.table-body'));
+        expect(bodyDiv.length).toBe(1);
+
+        header = headerDiv.find('table');
+        expect(header.length).toBe(1);
+
+        body = bodyDiv.find('table');
+        expect(body.length).toBe(1);
     }
 
-    function verifyCssDisplay() {
-        var padding = 21, // bottom table constant 12 + mastPadding(?) 9
-            tableHeight = fs.windowSize(mockHeaderHeight).height -
-                (fs.noPx(table.find('thead').css('height')) + padding);
+    function verifyGivenTags(dirName, div) {
+        expect(div).toBeDefined();
+        expect(div.attr(dirName)).toBe('');
+    }
 
-        expect(thead.css('display')).toBe('block');
-        expect(tbody.css('display')).toBe('block');
-        expect(tbody.css('height')).toBe(tableHeight + 'px');
-        expect(tbody.css('overflow')).toBe('auto');
+    function verifyDefaultSize() {
+        expect(header.css('width')).toBe('570px');
+        expect(body.css('width')).toBe('570px');
+    }
 
-        // TODO: investigate why math for calculating the height works better
-        // in the browser window (thead height is 0 in this test?)
+    function verifyHeight() {
+        var padding = 12,
+            mastHeight = 36,
+            tableHeight = (mockWindow.innerHeight - mockHeaderHeight) -
+                (fs.noPx(headerDiv.css('height')) + mastHeight + padding);
+
+        expect(bodyDiv.css('height')).toBe(tableHeight + 'px');
     }
 
     function verifyColWidth() {
-        var winWidth = fs.windowSize().width,
-            colWidth, thElems, tr, tdElem;
+        var hdrs = header.find('td'),
+            cols = body.find('td');
 
-        colWidth = Math.floor(winWidth / numTestElems);
+        expect(angular.element(hdrs[0]).css('width')).toBe('33px');
+        expect(angular.element(hdrs[3]).css('width')).toBe('110px');
 
-        thElems = thead.find('th');
+        expect(angular.element(cols[1]).css('width')).toBe('33px');
+        expect(angular.element(cols[4]).css('width')).toBe('110px');
+    }
 
-        angular.forEach(thElems, function (thElem, i) {
-            thElem = angular.element(thElems[i]);
-            tr = angular.element(tbody.find('tr').eq(1));
-            tdElem = angular.element(tr.find('td').eq(i));
-            var custWidth = thElem.attr('col-width');
+    function verifyCallbacks(h) {
+        expect(scope.sortCallback).not.toHaveBeenCalled();
 
-            if (custWidth) {
-                expect(thElem.css('width')).toBe(custWidth);
-                expect(tdElem.css('width')).toBe(custWidth);
-            } else if (tdElem.attr('class') === 'table-icon') {
-                expect(thElem.css('width')).toBe(tableIconTdSize + 'px');
-                expect(tdElem.css('width')).toBe(tableIconTdSize + 'px');
-            } else {
-                expect(thElem.css('width')).toBe(colWidth + 'px');
-                expect(tdElem.css('width')).toBe(colWidth + 'px');
-            }
+        h[0].click();
+        expect(scope.sortCallback).not.toHaveBeenCalled();
+
+        h[1].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'id',
+            sortDir: 'asc'
+        });
+        h[1].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'id',
+            sortDir: 'desc'
+        });
+        h[1].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'id',
+            sortDir: 'asc'
+        });
+
+        h[2].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'mac',
+            sortDir: 'asc'
+        });
+        h[2].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'mac',
+            sortDir: 'desc'
+        });
+        h[2].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'mac',
+            sortDir: 'asc'
+        });
+
+        h[3].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'location',
+            sortDir: 'asc'
+        });
+        h[3].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'location',
+            sortDir: 'desc'
+        });
+        h[3].click();
+        expect(scope.sortCallback).toHaveBeenCalledWith({
+            sortCol: 'location',
+            sortDir: 'asc'
         });
     }
 
-    function verifyCallbacks(thElems) {
-        expect(scope.sortCallback).not.toHaveBeenCalled();
+    function verifyIcons(h) {
+        var currH, div;
 
-        // first test header has no 'sortable' attr
-        thElems[0].click();
-        expect(scope.sortCallback).not.toHaveBeenCalled();
-
-        // the other headers have 'sortable'
-        for(var i = 1; i < numTestElems; i += 1) {
-            thElems[i].click();
-            expect(scope.sortCallback).toHaveBeenCalled();
-        }
-    }
-
-    function verifyIcons(thElems) {
-        var currentTh, div;
-        // make sure it has the correct icon after clicking
-        thElems[1].click();
-        currentTh = angular.element(thElems[1]);
-        div = currentTh.find('div');
+        h[1].click();
+        currH = angular.element(h[1]);
+        div = currH.find('div');
         expect(div.html()).toBe(
             '<svg class="embeddedIcon" width="10" height="10" viewBox="0 0 ' +
             '50 50"><g class="icon upArrow"><rect width="50" height="50" ' +
@@ -222,8 +267,8 @@ describe('factory: fw/widget/table.js', function () {
             'xlink="http://www.w3.org/1999/xlink" xlink:href="#triangleUp">' +
             '</use></g></svg>'
         );
-        thElems[1].click();
-        div = currentTh.find('div');
+        h[1].click();
+        div = currH.find('div');
         expect(div.html()).toBe(
             '<svg class="embeddedIcon" width="10" height="10" viewBox="0 0 ' +
             '50 50"><g class="icon downArrow"><rect width="50" height="50" ' +
@@ -232,14 +277,14 @@ describe('factory: fw/widget/table.js', function () {
             '</use></g></svg>'
         );
 
-        thElems[2].click();
-        div = currentTh.children();
+        h[2].click();
+        div = currH.children();
         // clicked on a new element, so the previous icon should have been deleted
         expect(div.html()).toBeFalsy();
 
         // the new element should have the ascending icon
-        currentTh = angular.element(thElems[2]);
-        div = currentTh.children();
+        currH = angular.element(h[2]);
+        div = currH.children();
         expect(div.html()).toBe(
             '<svg class="embeddedIcon" width="10" height="10" viewBox="0 0 ' +
             '50 50"><g class="icon upArrow"><rect width="50" height="50" ' +
@@ -250,31 +295,42 @@ describe('factory: fw/widget/table.js', function () {
     }
 
     it('should affirm that onos-fixed-header is working', function () {
-        table = angular.element(onosFixedHeaderTags);
+        containerDiv = angular.element(onosFixedHeaderTags);
 
-        compileTable();
-        verifyGivenTags('onos-fixed-header');
+        compile(containerDiv);
 
-        // table will not be fixed unless it receives the 'LastElement' event
+        verifyGivenTags('onos-fixed-header', containerDiv);
+        selectTables();
+        verifyDefaultSize();
+
+        populateTableData();
+
         scope.$emit('LastElement');
         scope.$digest();
 
-        verifyCssDisplay();
+        verifyHeight();
+        verifyColWidth();
+
+        mockWindow.innerHeight = 300;
+        scope.$digest();
+        verifyHeight();
+
+        mockWindow.innerWidth = 500;
+        scope.$digest();
         verifyColWidth();
     });
 
     it('should affirm that onos-sortable-header is working', function () {
-        var thElems;
-        table = angular.element(onosSortableHeaderTags);
+        headerDiv = angular.element(onosSortableHeaderTags);
 
-        compileTable();
-        verifyGivenTags('onos-sortable-header');
+        compile(headerDiv);
+        verifyGivenTags('onos-sortable-header', headerDiv);
 
         scope.sortCallback = jasmine.createSpy('sortCallback');
 
-        thElems = thead.find('th');
-        verifyCallbacks(thElems);
-        verifyIcons(thElems);
+        header = headerDiv.find('td');
+        verifyCallbacks(header);
+        verifyIcons(header);
     });
 
     // Note: testing resetSortIcons isn't feasible because due to the nature of
