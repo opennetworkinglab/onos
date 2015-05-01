@@ -26,11 +26,9 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
-import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.TableRow;
-import org.onosproject.ui.table.TableUtils;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,34 +40,29 @@ import java.util.stream.Collectors;
 public class ClusterViewMessageHandler extends UiMessageHandler {
 
     private static final String CLUSTER_DATA_REQ = "clusterDataRequest";
+    private static final String CLUSTER_DATA_RESP = "clusterDataResponse";
+    private static final String CLUSTERS = "clusters";
+
+    private static final String ID = "id";
+    private static final String IP = "ip";
+    private static final String TCP_PORT = "tcp";
+    private static final String STATE_IID = "_iconid_state";
+    private static final String UPDATED = "updated";
 
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new ClusterDataRequest());
     }
 
-    // ======================================================================
-
-    private final class ClusterDataRequest extends RequestHandler {
-
+    // handler for cluster table requests
+    private final class ClusterDataRequest extends TableRequestHandler {
         private ClusterDataRequest() {
-            super(CLUSTER_DATA_REQ);
+            super(CLUSTER_DATA_REQ, CLUSTER_DATA_RESP, CLUSTERS);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload);
-
+        protected TableRow[] generateTableRows(ObjectNode payload) {
             ClusterService service = get(ClusterService.class);
-            TableRow[] rows = generateTableRows(service);
-            Arrays.sort(rows, rc);
-            ObjectNode rootNode = MAPPER.createObjectNode();
-            rootNode.set("clusters", TableUtils.generateArrayNode(rows));
-
-            sendMessage("clusterDataResponse", 0, rootNode);
-        }
-
-        private TableRow[] generateTableRows(ClusterService service) {
             List<TableRow> list = service.getNodes().stream()
                     .map(node -> new ControllerNodeTableRow(service, node))
                     .collect(Collectors.toList());
@@ -77,18 +70,10 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
         }
     }
 
-    // ======================================================================
-
     /**
      * TableRow implementation for {@link ControllerNode controller nodes}.
      */
     private static class ControllerNodeTableRow extends AbstractTableRow {
-
-        private static final String ID = "id";
-        private static final String IP = "ip";
-        private static final String TCP_PORT = "tcp";
-        private static final String STATE_IID = "_iconid_state";
-        private static final String UPDATED = "updated";
 
         private static final String[] COL_IDS = {
                 ID, IP, TCP_PORT, STATE_IID, UPDATED

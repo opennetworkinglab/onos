@@ -34,12 +34,10 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
-import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.TableRow;
-import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +48,8 @@ import java.util.Set;
 public class IntentViewMessageHandler extends UiMessageHandler {
 
     private static final String INTENT_DATA_REQ = "intentDataRequest";
+    private static final String INTENT_DATA_RESP = "intentDataResponse";
+    private static final String INTENTS = "intents";
 
     private static final String APP_ID = "appId";
     private static final String KEY = "key";
@@ -63,37 +63,27 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(new IntentDataRequest());
     }
 
-    // ======================================================================
-
-    private final class IntentDataRequest extends RequestHandler {
-
+    // handler for intent table requests
+    private final class IntentDataRequest extends TableRequestHandler {
         private IntentDataRequest() {
-            super(INTENT_DATA_REQ);
+            super(INTENT_DATA_REQ, INTENT_DATA_RESP, INTENTS);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload, APP_ID);
-
+        protected TableRow[] generateTableRows(ObjectNode payload) {
             IntentService service = get(IntentService.class);
-            TableRow[] rows = generateTableRows(service);
-            Arrays.sort(rows, rc);
-            ObjectNode rootNode = MAPPER.createObjectNode();
-            rootNode.set("intents", TableUtils.generateArrayNode(rows));
-
-            sendMessage("intentDataResponse", 0, rootNode);
-        }
-
-        private TableRow[] generateTableRows(IntentService service) {
             List<TableRow> list = new ArrayList<>();
             for (Intent intent : service.getIntents()) {
                 list.add(new IntentTableRow(intent));
             }
             return list.toArray(new TableRow[list.size()]);
         }
-    }
 
-    // ======================================================================
+        @Override
+        protected String defaultColId() {
+            return APP_ID;
+        }
+    }
 
     /**
      * TableRow implementation for {@link Intent intents}.

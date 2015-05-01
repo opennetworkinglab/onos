@@ -27,12 +27,10 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
 import org.onosproject.ui.table.AbstractTableRow;
-import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.TableRow;
-import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -45,35 +43,30 @@ import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.addLink;
 public class LinkViewMessageHandler extends UiMessageHandler {
 
     private static final String LINK_DATA_REQ = "linkDataRequest";
+    private static final String LINK_DATA_RESP = "linkDataResponse";
+    private static final String LINKS = "links";
 
+    private static final String ONE = "one";
+    private static final String TWO = "two";
+    private static final String TYPE = "type";
+    private static final String STATE = "_iconid_state";
+    private static final String DIRECTION = "direction";
+    private static final String DURABLE = "durable";
 
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new LinkDataRequest());
     }
 
-    // ======================================================================
-
-    private final class LinkDataRequest extends RequestHandler {
-
+    // handler for link table requests
+    private final class LinkDataRequest extends TableRequestHandler {
         private LinkDataRequest() {
-            super(LINK_DATA_REQ);
+            super(LINK_DATA_REQ, LINK_DATA_RESP, LINKS);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload, "one");
-
+        protected TableRow[] generateTableRows(ObjectNode payload) {
             LinkService service = get(LinkService.class);
-            TableRow[] rows = generateTableRows(service);
-            Arrays.sort(rows, rc);
-            ObjectNode rootNode = MAPPER.createObjectNode();
-            rootNode.set("links", TableUtils.generateArrayNode(rows));
-
-            sendMessage("linkDataResponse", 0, rootNode);
-        }
-
-        private TableRow[] generateTableRows(LinkService service) {
             List<TableRow> list = new ArrayList<>();
 
             // First consolidate all uni-directional links into two-directional ones.
@@ -84,21 +77,17 @@ public class LinkViewMessageHandler extends UiMessageHandler {
             biLinks.values().forEach(biLink -> list.add(new LinkTableRow(biLink)));
             return list.toArray(new TableRow[list.size()]);
         }
-    }
 
-    // ======================================================================
+        @Override
+        protected String defaultColId() {
+            return ONE;
+        }
+    }
 
     /**
      * TableRow implementation for {@link org.onosproject.net.Link links}.
      */
     private static class LinkTableRow extends AbstractTableRow {
-
-        private static final String ONE = "one";
-        private static final String TWO = "two";
-        private static final String TYPE = "type";
-        private static final String STATE = "_iconid_state";
-        private static final String DIRECTION = "direction";
-        private static final String DURABLE = "durable";
 
         private static final String[] COL_IDS = {
                 ONE, TWO, TYPE, STATE, DIRECTION, DURABLE

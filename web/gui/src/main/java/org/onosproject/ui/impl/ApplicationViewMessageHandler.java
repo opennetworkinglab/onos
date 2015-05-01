@@ -25,11 +25,9 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
-import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.TableRow;
-import org.onosproject.ui.table.TableUtils;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,7 +40,20 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 public class ApplicationViewMessageHandler extends UiMessageHandler {
 
     private static final String APP_DATA_REQ = "appDataRequest";
+    private static final String APP_DATA_RESP = "appDataResponse";
+    private static final String APPS = "apps";
+
     private static final String APP_MGMT_REQ = "appManagementRequest";
+
+    private static final String STATE = "state";
+    private static final String STATE_IID = "_iconid_state";
+    private static final String ID = "id";
+    private static final String VERSION = "version";
+    private static final String ORIGIN = "origin";
+    private static final String DESC = "desc";
+
+    private static final String ICON_ID_ACTIVE = "active";
+    private static final String ICON_ID_INACTIVE = "appInactive";
 
     @Override
     protected Collection<RequestHandler> getHandlers() {
@@ -52,38 +63,25 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
         );
     }
 
-    // ======================================================================
-
-    private final class AppDataRequest extends RequestHandler {
-
+    // handler for application table requests
+    private final class AppDataRequest extends TableRequestHandler {
         private AppDataRequest() {
-            super(APP_DATA_REQ);
+            super(APP_DATA_REQ, APP_DATA_RESP, APPS);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload);
-
+        protected TableRow[] generateTableRows(ObjectNode payload) {
             ApplicationService service = get(ApplicationService.class);
-            TableRow[] rows = generateTableRows(service);
-            Arrays.sort(rows, rc);
-            ObjectNode rootNode = MAPPER.createObjectNode();
-            rootNode.set("apps", TableUtils.generateArrayNode(rows));
-
-            sendMessage("appDataResponse", 0, rootNode);
-        }
-
-        private TableRow[] generateTableRows(ApplicationService service) {
             List<TableRow> list = service.getApplications().stream()
                     .map(application -> new ApplicationTableRow(service, application))
                     .collect(Collectors.toList());
             return list.toArray(new TableRow[list.size()]);
         }
+
     }
-    // ======================================================================
 
+    // handler for application management control button actions
     private final class AppMgmtRequest extends RequestHandler {
-
         private AppMgmtRequest() {
             super(APP_MGMT_REQ);
         }
@@ -106,7 +104,6 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             }
         }
     }
-    // ======================================================================
 
     /**
      * TableRow implementation for
@@ -114,20 +111,9 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
      */
     private static class ApplicationTableRow extends AbstractTableRow {
 
-        private static final String STATE = "state";
-        private static final String STATE_IID = "_iconid_state";
-        private static final String ID = "id";
-        private static final String VERSION = "version";
-        private static final String ORIGIN = "origin";
-        private static final String DESC = "desc";
-
         private static final String[] COL_IDS = {
                 STATE, STATE_IID, ID, VERSION, ORIGIN, DESC
         };
-
-        private static final String ICON_ID_ACTIVE = "active";
-        private static final String ICON_ID_INACTIVE = "appInactive";
-
 
         public ApplicationTableRow(ApplicationService service, Application app) {
             ApplicationState state = service.getState(app.id());

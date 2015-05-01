@@ -24,12 +24,10 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
-import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.TableRow;
-import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -41,6 +39,17 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class HostViewMessageHandler extends UiMessageHandler {
 
     private static final String HOST_DATA_REQ = "hostDataRequest";
+    private static final String HOST_DATA_RESP = "hostDataResponse";
+    private static final String HOSTS = "hosts";
+
+    private static final String TYPE_IID = "_iconid_type";
+    private static final String ID = "id";
+    private static final String MAC = "mac";
+    private static final String VLAN = "vlan";
+    private static final String IPS = "ips";
+    private static final String LOCATION = "location";
+
+    private static final String HOST_ICON_PREFIX = "hostIcon_";
 
 
     @Override
@@ -48,28 +57,15 @@ public class HostViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(new HostDataRequest());
     }
 
-    // ======================================================================
-
-    private final class HostDataRequest extends RequestHandler {
-
+    // handler for host table requests
+    private final class HostDataRequest extends TableRequestHandler {
         private HostDataRequest() {
-            super(HOST_DATA_REQ);
+            super(HOST_DATA_REQ, HOST_DATA_RESP, HOSTS);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload);
-
+        protected TableRow[] generateTableRows(ObjectNode payload) {
             HostService service = get(HostService.class);
-            TableRow[] rows = generateTableRows(service);
-            Arrays.sort(rows, rc);
-            ObjectNode rootNode = MAPPER.createObjectNode();
-            rootNode.set("hosts", TableUtils.generateArrayNode(rows));
-
-            sendMessage("hostDataResponse", 0, rootNode);
-        }
-
-        private TableRow[] generateTableRows(HostService service) {
             List<TableRow> list = new ArrayList<>();
             for (Host host : service.getHosts()) {
                 list.add(new HostTableRow(host));
@@ -78,21 +74,10 @@ public class HostViewMessageHandler extends UiMessageHandler {
         }
     }
 
-    // ======================================================================
-
     /**
      * TableRow implementation for {@link Host hosts}.
      */
     private static class HostTableRow extends AbstractTableRow {
-
-        private static final String TYPE_IID = "_iconid_type";
-        private static final String ID = "id";
-        private static final String MAC = "mac";
-        private static final String VLAN = "vlan";
-        private static final String IPS = "ips";
-        private static final String LOCATION = "location";
-
-        private static final String HOST_ICON_PREFIX = "hostIcon_";
 
         private static final String[] COL_IDS = {
                 TYPE_IID, ID, MAC, VLAN, IPS, LOCATION

@@ -17,8 +17,8 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang.WordUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
@@ -29,15 +29,15 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.AbstractTableRow;
-import org.onosproject.ui.table.RowComparator;
+import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.TableRow;
-import org.onosproject.ui.table.TableUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static org.apache.commons.lang.WordUtils.capitalizeFully;
 
 
 /**
@@ -46,45 +46,42 @@ import java.util.Set;
 public class FlowViewMessageHandler extends UiMessageHandler {
 
     private static final String FLOW_DATA_REQ = "flowDataRequest";
+    private static final String FLOW_DATA_RESP = "flowDataResponse";
+    private static final String FLOWS = "flows";
 
-    private static final String NO_DEV = "none";
+    private static final String ID = "id";
+    private static final String APP_ID = "appId";
+    private static final String GROUP_ID = "groupId";
+    private static final String TABLE_ID = "tableId";
+    private static final String PRIORITY = "priority";
+    private static final String SELECTOR = "selector";
+    private static final String TREATMENT = "treatment";
+    private static final String TIMEOUT = "timeout";
+    private static final String PERMANENT = "permanent";
+    private static final String STATE = "state";
+
+    private static final String COMMA = ", ";
 
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new FlowDataRequest());
     }
 
-    // ======================================================================
-
-    private final class FlowDataRequest extends RequestHandler {
+    // handler for flow table requests
+    private final class FlowDataRequest extends TableRequestHandler {
 
         private FlowDataRequest() {
-            super(FLOW_DATA_REQ);
+            super(FLOW_DATA_REQ, FLOW_DATA_RESP, FLOWS);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            RowComparator rc = TableUtils.createRowComparator(payload);
-            String uri = string(payload, "devId", NO_DEV);
-
-            ObjectNode rootNode;
-            if (uri.equals(NO_DEV)) {
-                rootNode = MAPPER.createObjectNode();
-                rootNode.set("flows", MAPPER.createArrayNode());
-            } else {
-                DeviceId deviceId = DeviceId.deviceId(uri);
-                FlowRuleService service = get(FlowRuleService.class);
-                TableRow[] rows = generateTableRows(service, deviceId);
-                Arrays.sort(rows, rc);
-                rootNode = MAPPER.createObjectNode();
-                rootNode.set("flows", TableUtils.generateArrayNode(rows));
+        protected TableRow[] generateTableRows(ObjectNode payload) {
+            String uri = string(payload, "devId");
+            if (Strings.isNullOrEmpty(uri)) {
+                return new TableRow[0];
             }
-
-            sendMessage("flowDataResponse", 0, rootNode);
-        }
-
-        private TableRow[] generateTableRows(FlowRuleService service,
-                                             DeviceId deviceId) {
+            DeviceId deviceId = DeviceId.deviceId(uri);
+            FlowRuleService service = get(FlowRuleService.class);
             List<TableRow> list = new ArrayList<>();
             for (FlowEntry flow : service.getFlowEntries(deviceId)) {
                 list.add(new FlowTableRow(flow));
@@ -93,42 +90,28 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         }
     }
 
-    // ======================================================================
-
     /**
-     * TableRow implementation for {@link org.onosproject.net.flow.FlowRule flows}.
+     * TableRow implementation for
+     * {@link org.onosproject.net.flow.FlowRule flows}.
      */
     private static class FlowTableRow extends AbstractTableRow {
 
-        private static final String ID = "id";
-        private static final String APP_ID = "appId";
-        private static final String GROUP_ID = "groupId";
-        private static final String TABLE_ID = "tableId";
-        private static final String PRIORITY = "priority";
-        private static final String SELECTOR = "selector";
-        private static final String TREATMENT = "treatment";
-        private static final String TIMEOUT = "timeout";
-        private static final String PERMANENT = "permanent";
-        private static final String STATE = "state";
-
-        private static final String COMMA = ", ";
-
         private static final String[] COL_IDS = {
-            ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
+                ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
                 TREATMENT, TIMEOUT, PERMANENT, STATE
         };
 
         public FlowTableRow(FlowEntry f) {
-            add(ID, Long.toString(f.id().value()));
-            add(APP_ID, Short.toString(f.appId()));
-            add(GROUP_ID, Integer.toString(f.groupId().id()));
-            add(TABLE_ID, Integer.toString(f.tableId()));
-            add(PRIORITY, Integer.toString(f.priority()));
+            add(ID, f.id().value());
+            add(APP_ID, f.appId());
+            add(GROUP_ID, f.groupId().id());
+            add(TABLE_ID, f.tableId());
+            add(PRIORITY, f.priority());
             add(SELECTOR, getSelectorString(f));
             add(TREATMENT, getTreatmentString(f));
-            add(TIMEOUT, Integer.toString(f.timeout()));
-            add(PERMANENT, Boolean.toString(f.isPermanent()));
-            add(STATE, WordUtils.capitalizeFully(f.state().toString()));
+            add(TIMEOUT, f.timeout());
+            add(PERMANENT, f.isPermanent());
+            add(STATE, capitalizeFully(f.state().toString()));
         }
 
         private String getSelectorString(FlowEntry f) {
@@ -141,8 +124,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             } else {
                 StringBuilder sb = new StringBuilder("Criteria = ");
                 for (Criterion c : criteria) {
-                    sb.append(WordUtils.capitalizeFully(c.type().toString()))
-                            .append(COMMA);
+                    sb.append(capitalizeFully(c.type().toString())).append(COMMA);
                 }
                 result = removeTrailingComma(sb).toString();
             }
@@ -177,8 +159,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             if (!deferred.isEmpty()) {
                 sb.append("Deferred instructions = ");
                 for (Instruction i : deferred) {
-                    sb.append(WordUtils.capitalizeFully(i.type().toString()))
-                            .append(COMMA);
+                    sb.append(capitalizeFully(i.type().toString())).append(COMMA);
                 }
                 removeTrailingComma(sb);
             }
@@ -188,8 +169,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             if (!immediate.isEmpty()) {
                 sb.append("Immediate instructions = ");
                 for (Instruction i : immediate) {
-                    sb.append(WordUtils.capitalizeFully(i.type().toString()))
-                            .append(COMMA);
+                    sb.append(capitalizeFully(i.type().toString())).append(COMMA);
                 }
                 removeTrailingComma(sb);
             }
