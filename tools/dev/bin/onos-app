@@ -11,43 +11,57 @@ export URL=http://$node:8181/onos/v1/applications
 export HDR="-HContent-Type:application/octet-stream"
 export curl="curl -sS"
 
+# Prints usage help
 function usage {
     echo "usage: onos-app <node-ip> list" >&2
     echo "       onos-app <node-ip> {install|install!} <app-file>" >&2
-    echo "       onos-app <node-ip> {reinstall|reinstall!} <app-name> <app-file>" >&2
+    echo "       onos-app <node-ip> {reinstall|reinstall!} [<app-name>] <app-file>" >&2
     echo "       onos-app <node-ip> {activate|deactivate|uninstall} <app-name>" >&2
     exit 1
+}
+
+# Extract app name from the specified *.oar file
+function appName {
+    aux=/tmp/aux$$.jar
+    cp $1 $aux
+    pushd /tmp >/dev/null
+    jar xf $aux app.xml && grep name= app.xml | cut -d\" -f2
+    rm -f $aux /tmp/app.xml
+    popd >/dev/null
 }
 
 [ -z $node -o "$node" = "-h" -o "$node" = "--help" -o "$node" = "-?" ] && usage
 
 case $cmd in
     list) $curl -X GET $URL;;
-    install)
+    install!|install)
+        [ $cmd = "install!" ] && activate="?activate=true"
         [ $# -lt 3 -o ! -f $app ] && usage
-        $curl -X POST $HDR $URL --data-binary @$app;;
-    install!)
-        [ $# -lt 3 -o ! -f $app ] && usage
-        $curl -X POST $HDR $URL?activate=true --data-binary @$app;;
+        $curl -X POST $HDR $URL$activate --data-binary @$app
+        ;;
 
-    reinstall)
-        [ $# -lt 4  -o ! -f $4 ] && usage
+    reinstall!|reinstall)
+        [ $cmd = "reinstall!" ] && activate="?activate=true"
+        [ $# -lt 4 -a ! -f "$3" ] && usage
+        [ $# -eq 4 -a ! -f "$4" ] && usage
+        oar=$4
+        [ $# -lt 4 ] && oar=$3 && app=$(appName $oar)
         $curl -X DELETE $URL/$app
-        $curl -X POST $HDR $URL --data-binary @$4;;
-    reinstall!)
-        [ $# -lt 4  -o ! -f $4 ] && usage
-        $curl -X DELETE $URL/$app
-        $curl -X POST $HDR $URL?activate=true --data-binary @$4;;
+        $curl -X POST $HDR $URL$activate --data-binary @$oar
+        ;;
 
     uninstall)
         [ $# -lt 3 ] && usage
-        $curl -X DELETE $URL/$app;;
+        $curl -X DELETE $URL/$app
+        ;;
     activate)
         [ $# -lt 3 ] && usage
-        $curl -X POST $URL/$app/active;;
+        $curl -X POST $URL/$app/active
+        ;;
     deactivate)
         [ $# -lt 3 ] && usage
-        $curl -X DELETE $URL/$app/active;;
+        $curl -X DELETE $URL/$app/active
+        ;;
 
     *) usage;;
 esac
