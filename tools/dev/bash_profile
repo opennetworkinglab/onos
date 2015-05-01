@@ -27,6 +27,9 @@ export PATH="$PATH:$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/build"
 export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
 
+# Setup cell enviroment
+export ONOS_CELL=${ONOS_CELL:-local}
+
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {
@@ -112,7 +115,7 @@ function cell {
     fi
 }
 
-cell local >/dev/null  # Default cell is the local VMs
+cell $ONOS_CELL > /dev/null
 
 # Lists available cells
 function cells {
