@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Simple implementation of the application ID registry using in-memory
  * structures.
  */
-@Component(immediate = true)
+@Component(immediate = false, enabled = false)
 @Service
 public class DistributedApplicationIdStore
         extends AbstractHazelcastStore<AppIdEvent, AppIdStoreDelegate>
