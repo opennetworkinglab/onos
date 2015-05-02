@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Distributed implementation of id block store using Hazelcast.
  */
-@Component(immediate = true)
+@Component(immediate = false, enabled = false)
 @Service
 public class DistributedIdBlockStore implements IdBlockStore {
 

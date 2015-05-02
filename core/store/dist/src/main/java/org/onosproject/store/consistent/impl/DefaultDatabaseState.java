@@ -225,12 +225,22 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public Long nextValue(String counterName) {
+    public Long counterIncrementAndGet(String counterName) {
         return getCounter(counterName).incrementAndGet();
     }
 
     @Override
-    public Long currentValue(String counterName) {
+    public Long counterGetAndIncrement(String counterName) {
+        return getCounter(counterName).getAndIncrement();
+    }
+
+    @Override
+    public Long counterGetAndAdd(String counterName, long delta) {
+        return getCounter(counterName).getAndAdd(delta);
+    }
+
+    @Override
+    public Long counterGet(String counterName) {
         return getCounter(counterName).get();
     }
 

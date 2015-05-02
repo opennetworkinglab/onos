@@ -30,6 +30,29 @@ public interface AsyncAtomicCounter {
     CompletableFuture<Long> incrementAndGet();
 
     /**
+     * Atomically increment by one the current value.
+     *
+     * @return previous value
+     */
+    CompletableFuture<Long> getAndIncrement();
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta the value to add
+     * @return previous value
+     */
+    CompletableFuture<Long> getAndAdd(long delta);
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta the value to add
+     * @return updated value
+     */
+    CompletableFuture<Long> addAndGet(long delta);
+
+    /**
      * Returns the current value of the counter without modifying it.
      *
      * @return current value

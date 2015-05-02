@@ -150,13 +150,18 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Long> nextValue(String counterName) {
-        return checkOpen(() -> proxy.nextValue(counterName));
+    public CompletableFuture<Long> counterGet(String counterName) {
+        return checkOpen(() -> proxy.counterGet(counterName));
     }
 
     @Override
-    public CompletableFuture<Long> currentValue(String counterName) {
-        return checkOpen(() -> proxy.currentValue(counterName));
+    public CompletableFuture<Long> counterAddAndGet(String counterName, long delta) {
+        return checkOpen(() -> proxy.counterAddAndGet(counterName, delta));
+    }
+
+    @Override
+    public CompletableFuture<Long> counterGetAndAdd(String counterName, long delta) {
+        return checkOpen(() -> proxy.counterGetAndAdd(counterName, delta));
     }
 
     @Override

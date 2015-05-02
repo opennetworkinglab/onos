@@ -46,6 +46,21 @@ public class DefaultAtomicCounter implements AtomicCounter {
     }
 
     @Override
+    public long getAndIncrement() {
+        return complete(asyncCounter.getAndIncrement());
+    }
+
+    @Override
+    public long getAndAdd(long delta) {
+        return complete(asyncCounter.getAndAdd(delta));
+    }
+
+    @Override
+    public long addAndGet(long delta) {
+        return complete(asyncCounter.getAndAdd(delta));
+    }
+
+    @Override
     public long get() {
         return complete(asyncCounter.get());
     }

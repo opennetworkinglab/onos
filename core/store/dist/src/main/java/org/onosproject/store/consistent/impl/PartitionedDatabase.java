@@ -235,15 +235,21 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
-    public CompletableFuture<Long> nextValue(String counterName) {
+    public CompletableFuture<Long> counterGet(String counterName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(counterName, counterName).nextValue(counterName);
+        return partitioner.getPartition(counterName, counterName).counterGet(counterName);
     }
 
     @Override
-    public CompletableFuture<Long> currentValue(String counterName) {
+    public CompletableFuture<Long> counterAddAndGet(String counterName, long delta) {
         checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(counterName, counterName).currentValue(counterName);
+        return partitioner.getPartition(counterName, counterName).counterAddAndGet(counterName, delta);
+    }
+
+    @Override
+    public CompletableFuture<Long> counterGetAndAdd(String counterName, long delta) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(counterName, counterName).counterGetAndAdd(counterName, delta);
     }
 
     @Override

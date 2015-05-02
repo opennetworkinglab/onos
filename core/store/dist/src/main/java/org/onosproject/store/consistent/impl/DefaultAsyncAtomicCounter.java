@@ -16,7 +16,9 @@
 package org.onosproject.store.consistent.impl;
 
 import java.util.concurrent.CompletableFuture;
+
 import org.onosproject.store.service.AsyncAtomicCounter;
+
 import static com.google.common.base.Preconditions.*;
 
 /**
@@ -37,11 +39,26 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
 
     @Override
     public CompletableFuture<Long> incrementAndGet() {
-        return database.nextValue(name);
+        return addAndGet(1L);
     }
 
     @Override
     public CompletableFuture<Long> get() {
-        return database.currentValue(name);
+        return database.counterGet(name);
+    }
+
+    @Override
+    public CompletableFuture<Long> getAndIncrement() {
+        return getAndAdd(1L);
+    }
+
+    @Override
+    public CompletableFuture<Long> getAndAdd(long delta) {
+        return database.counterGetAndAdd(name, delta);
+    }
+
+    @Override
+    public CompletableFuture<Long> addAndGet(long delta) {
+        return database.counterAddAndGet(name, delta);
     }
 }

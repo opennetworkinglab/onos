@@ -28,6 +28,29 @@ public interface AtomicCounter {
     long incrementAndGet();
 
     /**
+     * Atomically increment by one the current value.
+     *
+     * @return previous value
+     */
+    long getAndIncrement();
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta the value to add
+     * @return previous value
+     */
+    long getAndAdd(long delta);
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta the value to add
+     * @return updated value
+     */
+    long addAndGet(long delta);
+
+    /**
      * Returns the current value of the counter without modifying it.
      *
      * @return current value

@@ -98,10 +98,16 @@ public interface DatabaseState<K, V> {
   Result<Boolean> replace(String tableName, K key, long oldVersion, V newValue);
 
   @Command
-  Long nextValue(String counterName);
+  Long counterIncrementAndGet(String counterName);
+
+  @Command
+  Long counterGetAndIncrement(String counterName);
+
+  @Command
+  Long counterGetAndAdd(String counterName, long delta);
 
   @Query
-  Long currentValue(String counterName);
+  Long counterGet(String counterName);
 
   @Command
   boolean prepareAndCommit(Transaction transaction);

@@ -190,21 +190,30 @@ public interface DatabaseProxy<K, V> {
     CompletableFuture<Result<Boolean>> replace(String tableName, K key, long oldVersion, V newValue);
 
     /**
-     * Returns the next value for the specified atomic counter after
-     * incrementing the current value by one.
+     * Atomically add the given value to current value of the specified counter.
      *
      * @param counterName counter name
-     * @return next value for the specified counter
+     * @param delta value to add
+     * @return updated value
      */
-    CompletableFuture<Long> nextValue(String counterName);
+    CompletableFuture<Long> counterAddAndGet(String counterName, long delta);
 
     /**
-     * Returns the current value for the specified atomic counter.
+     * Atomically add the given value to current value of the specified counter.
      *
      * @param counterName counter name
-     * @return current value for the specified counter
+     * @param delta value to add
+     * @return previous value
      */
-    CompletableFuture<Long> currentValue(String counterName);
+    CompletableFuture<Long> counterGetAndAdd(String counterName, long delta);
+
+    /**
+     * Returns the current value of the specified atomic counter.
+     *
+     * @param counterName counter name
+     * @return current value
+     */
+    CompletableFuture<Long> counterGet(String counterName);
 
     /**
      * Prepare and commit the specified transaction.
