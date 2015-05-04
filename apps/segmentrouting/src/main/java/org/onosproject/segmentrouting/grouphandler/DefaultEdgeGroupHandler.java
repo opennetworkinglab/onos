@@ -19,16 +19,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.store.service.EventuallyConsistentMap;
 
 /**
  * Default ECMP group handler creation module for an edge device.
@@ -53,8 +49,11 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                                   ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
-                                  FlowObjectiveService flowObjService) {
-        super(deviceId, appId, config, linkService, flowObjService);
+                                  FlowObjectiveService flowObjService,
+                                  EventuallyConsistentMap<
+                                  NeighborSetNextObjectiveStoreKey,
+                                  Integer> nsNextObjStore) {
+        super(deviceId, appId, config, linkService, flowObjService, nsNextObjStore);
     }
 
     @Override
@@ -108,7 +107,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
 
     @Override
     protected void newPortToExistingNeighbor(Link newNeighborLink) {
-        log.debug("New port to existing neighbor: Updating "
+        /*log.debug("New port to existing neighbor: Updating "
                 + "groups for edge device {}", deviceId);
         addNeighborAtPort(newNeighborLink.dst().deviceId(),
                           newNeighborLink.src().port());
@@ -129,7 +128,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                                  mplsLabel(ns.getEdgeLabel()));
             }
 
-            Integer nextId = deviceNextObjectiveIds.get(getGroupKey(ns));
+            Integer nextId = deviceNextObjectiveIds.get(ns);
             if (nextId != null) {
                 NextObjective.Builder nextObjBuilder = DefaultNextObjective
                         .builder().withId(nextId)
@@ -140,7 +139,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                 NextObjective nextObjective = nextObjBuilder.add();
                 flowObjectiveService.next(deviceId, nextObjective);
             }
-        }
+        }*/
     }
 
     @Override

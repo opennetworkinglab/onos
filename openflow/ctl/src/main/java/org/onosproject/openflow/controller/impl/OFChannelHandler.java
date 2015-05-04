@@ -295,7 +295,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     return;
                 }
                 if (m.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
-                    log.warn("Stats reply indicates more stats from sw {} for "
+                    log.debug("Stats reply indicates more stats from sw {} for "
                             + "port description",
                             h.getSwitchInfoString());
                     h.portDescReplies.add((OFPortDescStatsReply)m);

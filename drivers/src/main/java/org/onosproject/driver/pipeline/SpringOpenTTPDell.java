@@ -15,7 +15,6 @@
  */
 package org.onosproject.driver.pipeline;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -145,6 +144,10 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
                 }
                 treatmentBuilder.group(group.id());
                 log.debug("Adding OUTGROUP action");
+            } else {
+                log.warn("processSpecific: No associated next objective object");
+                fail(fwd, ObjectiveError.GROUPMISSING);
+                return Collections.emptySet();
             }
         }
 
@@ -175,43 +178,23 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
     protected List<FlowRule> processEthDstFilter(Criterion c,
                                                  FilteringObjective filt,
                                                  ApplicationId applicationId) {
-        List<FlowRule> rules = new ArrayList<FlowRule>();
-        EthCriterion e = (EthCriterion) c;
-        TrafficSelector.Builder selectorIp = DefaultTrafficSelector
-                .builder();
-        TrafficTreatment.Builder treatmentIp = DefaultTrafficTreatment
-                .builder();
-
         // Store device termination Mac to be used in IP flow entries
+        EthCriterion e = (EthCriterion) c;
         deviceTMac = e.mac();
 
-        selectorIp.matchEthDst(e.mac());
-        selectorIp.matchEthType(Ethernet.TYPE_IPV4);
-        treatmentIp.transition(ipv4UnicastTableId);
-        FlowRule ruleIp = DefaultFlowRule.builder().forDevice(deviceId)
-                .withSelector(selectorIp.build())
-                .withTreatment(treatmentIp.build())
-                .withPriority(filt.priority()).fromApp(applicationId)
-                .makePermanent().forTable(tmacTableId).build();
-        log.debug("adding IP ETH rule for MAC: {}", e.mac());
-        rules.add(ruleIp);
+        log.debug("For now not adding any TMAC rules "
+                + "into Dell switches as it is ignoring");
 
-        TrafficSelector.Builder selectorMpls = DefaultTrafficSelector
-                .builder();
-        TrafficTreatment.Builder treatmentMpls = DefaultTrafficTreatment
-                .builder();
-        selectorMpls.matchEthDst(e.mac());
-        selectorMpls.matchEthType(Ethernet.MPLS_UNICAST);
-        treatmentMpls.transition(mplsTableId);
-        FlowRule ruleMpls = DefaultFlowRule.builder()
-                .forDevice(deviceId).withSelector(selectorMpls.build())
-                .withTreatment(treatmentMpls.build())
-                .withPriority(filt.priority()).fromApp(applicationId)
-                .makePermanent().forTable(tmacTableId).build();
-        log.debug("adding MPLS ETH rule for MAC: {}", e.mac());
-        rules.add(ruleMpls);
-
-        return rules;
+        return Collections.emptyList();
     }
 
+    @Override
+    protected List<FlowRule> processVlanIdFilter(Criterion c,
+                                                 FilteringObjective filt,
+                                                 ApplicationId applicationId) {
+        log.debug("For now not adding any VLAN rules "
+                + "into Dell switches as it is ignoring");
+
+        return Collections.emptyList();
+    }
 }

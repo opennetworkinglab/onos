@@ -89,14 +89,18 @@ public class DefaultRoutingHandler {
         populationStatus = Status.STARTED;
         rulePopulator.resetCounter();
         log.info("Starts to populate routing rules");
+        log.debug("populateAllRoutingRules: populationStatus is STARTED");
 
         for (Device sw : srManager.deviceService.getDevices()) {
             if (srManager.mastershipService.getLocalRole(sw.id()) != MastershipRole.MASTER) {
+                log.debug("populateAllRoutingRules: skipping device {}...we are not master",
+                          sw.id());
                 continue;
             }
 
             ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(sw.id(), srManager);
             if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
+                log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                 populationStatus = Status.ABORTED;
                 log.debug("Abort routing rule population");
                 return false;
@@ -106,6 +110,7 @@ public class DefaultRoutingHandler {
             // TODO: Set adjacency routing rule for all switches
         }
 
+        log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
         populationStatus = Status.SUCCEEDED;
         log.info("Completes routing rule population. Total # of rules pushed : {}",
                 rulePopulator.getCounter());
@@ -144,6 +149,8 @@ public class DefaultRoutingHandler {
             log.info("Starts rule population from link change");
 
             Set<ArrayList<DeviceId>> routeChanges;
+            log.trace("populateRoutingRulesForLinkStatusChange: "
+                    + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
             if (linkFail == null) {
                 // Compare all routes of existing ECMP SPG with the new ones
@@ -155,16 +162,19 @@ public class DefaultRoutingHandler {
 
             if (routeChanges.isEmpty()) {
                 log.info("No route changes for the link status change");
+                log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is SUCCEEDED");
                 populationStatus = Status.SUCCEEDED;
                 return true;
             }
 
             if (repopulateRoutingRulesForRoutes(routeChanges)) {
+                log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is SUCCEEDED");
                 populationStatus = Status.SUCCEEDED;
                 log.info("Complete to repopulate the rules. # of rules populated : {}",
                         rulePopulator.getCounter());
                 return true;
             } else {
+                log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is ABORTED");
                 populationStatus = Status.ABORTED;
                 log.warn("Failed to repopulate the rules.");
                 return false;
@@ -177,6 +187,7 @@ public class DefaultRoutingHandler {
         for (ArrayList<DeviceId> link: routes) {
             // When only the source device is defined, reinstall routes to all other devices
             if (link.size() == 1) {
+                log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
                 ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(link.get(0), srManager);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
@@ -187,8 +198,7 @@ public class DefaultRoutingHandler {
             } else {
                 DeviceId src = link.get(0);
                 DeviceId dst = link.get(1);
-                log.trace("repopulateRoutingRulesForRoutes: running ECMP graph "
-                        + "for device {}", dst);
+                log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", dst);
                 ECMPShortestPathGraph ecmpSpg = updatedEcmpSpgMap.get(dst);
                 HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
                         ecmpSpg.getAllLearnedSwitchesAndVia();
@@ -278,14 +288,12 @@ public class DefaultRoutingHandler {
             log.debug("Checking route change for switch {}", sw.id());
             ECMPShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
             if (ecmpSpg == null) {
-                log.debug("No existing ECMP path for Switch {}", sw.id());
+                log.debug("No existing ECMP graph for device {}", sw.id());
                 ArrayList<DeviceId> route = new ArrayList<>();
                 route.add(sw.id());
                 routes.add(route);
                 continue;
             }
-            log.debug("computeRouteChange: running ECMP graph "
-                    + "for device {}", sw.id());
             ECMPShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(sw.id());
             currentEcmpSpgMap.put(sw.id(), newEcmpSpg);
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
@@ -400,6 +408,8 @@ public class DefaultRoutingHandler {
         // rule for both subnet and router IP.
         if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
             List<Ip4Prefix> subnets = config.getSubnets(destSw);
+            log.debug("populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
+                    targetSw, destSw, subnets);
             result = rulePopulator.populateIpRuleForSubnet(targetSw,
                                                            subnets,
                                                            destSw,
@@ -410,6 +420,8 @@ public class DefaultRoutingHandler {
 
             Ip4Address routerIp = config.getRouterIp(destSw);
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            log.debug("populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
+                    targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
@@ -419,6 +431,8 @@ public class DefaultRoutingHandler {
         } else if (config.isEdgeDevice(targetSw)) {
             Ip4Address routerIp = config.getRouterIp(destSw);
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            log.debug("populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
+                    targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
@@ -426,6 +440,8 @@ public class DefaultRoutingHandler {
         }
 
         // Populates MPLS rules to all routers
+        log.debug("populateEcmpRoutingRulePartial in device{} towards {} for all MPLS rules",
+                targetSw, destSw);
         result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
         if (!result) {
             return false;
@@ -453,9 +469,13 @@ public class DefaultRoutingHandler {
     public void startPopulationProcess() {
         synchronized (populationStatus) {
             if (populationStatus == Status.IDLE
-                    || populationStatus == Status.SUCCEEDED) {
+                    || populationStatus == Status.SUCCEEDED
+                    || populationStatus == Status.ABORTED) {
                 populationStatus = Status.STARTED;
                 populateAllRoutingRules();
+            } else {
+                log.warn("Not initiating startPopulationProcess as populationStatus is {}",
+                         populationStatus);
             }
         }
     }

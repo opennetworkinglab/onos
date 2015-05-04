@@ -15,7 +15,11 @@
  */
 package org.onosproject.net.group.impl;
 
-import com.google.common.collect.Sets;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.Collections;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -47,13 +51,6 @@ import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the group service APIs.
@@ -316,131 +313,13 @@ public class GroupManager
             store.groupOperationFailed(deviceId, operation);
         }
 
-        private void groupMissing(Group group) {
-            checkValidity();
-            GroupProvider gp = getProvider(group.deviceId());
-            switch (group.state()) {
-                case PENDING_DELETE:
-                    log.debug("Group {} delete confirmation from device {}",
-                              group, group.deviceId());
-                    store.removeGroupEntry(group);
-                    break;
-                case ADDED:
-                case PENDING_ADD:
-                    log.debug("Group {} is in store but not on device {}",
-                              group, group.deviceId());
-                    GroupOperation groupAddOp = GroupOperation.
-                                    createAddGroupOperation(group.id(),
-                                                            group.type(),
-                                                            group.buckets());
-                    GroupOperations groupOps = new GroupOperations(
-                            Collections.singletonList(groupAddOp));
-                    gp.performGroupOperation(group.deviceId(), groupOps);
-                    break;
-                default:
-                    log.debug("Group {} has not been installed.", group);
-                    break;
-            }
-        }
-
-
-        private void extraneousGroup(Group group) {
-            log.debug("Group {} is on device {} but not in store.",
-                      group, group.deviceId());
-            checkValidity();
-            store.addOrUpdateExtraneousGroupEntry(group);
-        }
-
-        private void groupAdded(Group group) {
-            checkValidity();
-
-            log.trace("Group {} Added or Updated in device {}",
-                      group, group.deviceId());
-            store.addOrUpdateGroupEntry(group);
-        }
-
         @Override
         public void pushGroupMetrics(DeviceId deviceId,
                                      Collection<Group> groupEntries) {
             log.trace("Received group metrics from device {}",
                     deviceId);
-            boolean deviceInitialAuditStatus =
-                    store.deviceInitialAuditStatus(deviceId);
-            Set<Group> southboundGroupEntries =
-                    Sets.newHashSet(groupEntries);
-            Set<Group> storedGroupEntries =
-                    Sets.newHashSet(store.getGroups(deviceId));
-            Set<Group> extraneousStoredEntries =
-                    Sets.newHashSet(store.getExtraneousGroups(deviceId));
-
-            log.trace("Displaying all ({}) southboundGroupEntries for device {}",
-                      southboundGroupEntries.size(),
-                      deviceId);
-            for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
-                Group group = it.next();
-                log.trace("Group {} in device {}", group, deviceId);
-            }
-
-            log.trace("Displaying all ({}) stored group entries for device {}",
-                      storedGroupEntries.size(),
-                      deviceId);
-            for (Iterator<Group> it1 = storedGroupEntries.iterator(); it1.hasNext();) {
-                Group group = it1.next();
-                log.trace("Stored Group {} for device {}", group, deviceId);
-            }
-
-            for (Iterator<Group> it2 = southboundGroupEntries.iterator(); it2.hasNext();) {
-                Group group = it2.next();
-                if (storedGroupEntries.remove(group)) {
-                    // we both have the group, let's update some info then.
-                    log.trace("Group AUDIT: group {} exists "
-                            + "in both planes for device {}",
-                            group.id(), deviceId);
-                    groupAdded(group);
-                    it2.remove();
-                }
-            }
-            for (Group group : southboundGroupEntries) {
-                if (store.getGroup(group.deviceId(), group.id()) != null) {
-                    // There is a group existing with the same id
-                    // It is possible that group update is
-                    // in progress while we got a stale info from switch
-                    if (!storedGroupEntries.remove(store.getGroup(
-                                 group.deviceId(), group.id()))) {
-                        log.warn("Group AUDIT: Inconsistent state:"
-                                + "Group exists in ID based table while "
-                                + "not present in key based table");
-                    }
-                } else {
-                    // there are groups in the switch that aren't in the store
-                    log.trace("Group AUDIT: extraneous group {} exists "
-                            + "in data plane for device {}",
-                            group.id(), deviceId);
-                    extraneousStoredEntries.remove(group);
-                    extraneousGroup(group);
-                }
-            }
-            for (Group group : storedGroupEntries) {
-                // there are groups in the store that aren't in the switch
-                log.trace("Group AUDIT: group {} missing "
-                        + "in data plane for device {}",
-                        group.id(), deviceId);
-                groupMissing(group);
-            }
-            for (Group group : extraneousStoredEntries) {
-                // there are groups in the extraneous store that
-                // aren't in the switch
-                log.trace("Group AUDIT: clearing extransoeus group {} "
-                        + "from store for device {}",
-                        group.id(), deviceId);
-                store.removeExtraneousGroupEntry(group);
-            }
-
-            if (!deviceInitialAuditStatus) {
-                log.debug("Group AUDIT: Setting device {} initial "
-                        + "AUDIT completed", deviceId);
-                store.deviceInitialAuditCompleted(deviceId, true);
-            }
+            checkValidity();
+            store.pushGroupMetrics(deviceId, groupEntries);
         }
     }
 
@@ -450,10 +329,16 @@ public class GroupManager
         public void event(DeviceEvent event) {
             switch (event.type()) {
             case DEVICE_REMOVED:
-                log.debug("Clearing device {} initial "
-                        + "AUDIT completed status as device is going down",
-                        event.subject().id());
-                store.deviceInitialAuditCompleted(event.subject().id(), false);
+            case DEVICE_AVAILABILITY_CHANGED:
+                if (!deviceService.isAvailable(event.subject().id())) {
+                    log.debug("GroupService DeviceListener: Received event {}."
+                            + "Device is no more available."
+                            + "Clearing device {} initial "
+                            + "AUDIT completed status",
+                            event.type(),
+                            event.subject().id());
+                    store.deviceInitialAuditCompleted(event.subject().id(), false);
+                }
                 break;
 
             default:

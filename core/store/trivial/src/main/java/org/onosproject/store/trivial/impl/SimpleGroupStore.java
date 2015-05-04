@@ -19,9 +19,12 @@ import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsent
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,6 +57,7 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Sets;
 
 /**
  * Manages inventory of group entries using trivial in-memory implementation.
@@ -583,4 +587,131 @@ public class SimpleGroupStore
                   getExtraneousGroupIdTable(deviceId).values());
     }
 
+    @Override
+    public void pushGroupMetrics(DeviceId deviceId,
+                                 Collection<Group> groupEntries) {
+        boolean deviceInitialAuditStatus =
+                deviceInitialAuditStatus(deviceId);
+        Set<Group> southboundGroupEntries =
+                Sets.newHashSet(groupEntries);
+        Set<Group> storedGroupEntries =
+                Sets.newHashSet(getGroups(deviceId));
+        Set<Group> extraneousStoredEntries =
+                Sets.newHashSet(getExtraneousGroups(deviceId));
+
+        log.trace("pushGroupMetrics: Displaying all ({}) "
+                + "southboundGroupEntries for device {}",
+                  southboundGroupEntries.size(),
+                  deviceId);
+        for (Iterator<Group> it = southboundGroupEntries.iterator(); it.hasNext();) {
+            Group group = it.next();
+            log.trace("Group {} in device {}", group, deviceId);
+        }
+
+        log.trace("Displaying all ({}) stored group entries for device {}",
+                  storedGroupEntries.size(),
+                  deviceId);
+        for (Iterator<Group> it1 = storedGroupEntries.iterator();
+                it1.hasNext();) {
+            Group group = it1.next();
+            log.trace("Stored Group {} for device {}", group, deviceId);
+        }
+
+        for (Iterator<Group> it2 = southboundGroupEntries.iterator(); it2.hasNext();) {
+            Group group = it2.next();
+            if (storedGroupEntries.remove(group)) {
+                // we both have the group, let's update some info then.
+                log.trace("Group AUDIT: group {} exists "
+                        + "in both planes for device {}",
+                        group.id(), deviceId);
+                groupAdded(group);
+                it2.remove();
+            }
+        }
+        for (Group group : southboundGroupEntries) {
+            if (getGroup(group.deviceId(), group.id()) != null) {
+                // There is a group existing with the same id
+                // It is possible that group update is
+                // in progress while we got a stale info from switch
+                if (!storedGroupEntries.remove(getGroup(
+                             group.deviceId(), group.id()))) {
+                    log.warn("Group AUDIT: Inconsistent state:"
+                            + "Group exists in ID based table while "
+                            + "not present in key based table");
+                }
+            } else {
+                // there are groups in the switch that aren't in the store
+                log.trace("Group AUDIT: extraneous group {} exists "
+                        + "in data plane for device {}",
+                        group.id(), deviceId);
+                extraneousStoredEntries.remove(group);
+                extraneousGroup(group);
+            }
+        }
+        for (Group group : storedGroupEntries) {
+            // there are groups in the store that aren't in the switch
+            log.trace("Group AUDIT: group {} missing "
+                    + "in data plane for device {}",
+                    group.id(), deviceId);
+            groupMissing(group);
+        }
+        for (Group group : extraneousStoredEntries) {
+            // there are groups in the extraneous store that
+            // aren't in the switch
+            log.trace("Group AUDIT: clearing extransoeus group {} "
+                    + "from store for device {}",
+                    group.id(), deviceId);
+            removeExtraneousGroupEntry(group);
+        }
+
+        if (!deviceInitialAuditStatus) {
+            log.debug("Group AUDIT: Setting device {} initial "
+                    + "AUDIT completed", deviceId);
+            deviceInitialAuditCompleted(deviceId, true);
+        }
+    }
+
+    private void groupMissing(Group group) {
+        switch (group.state()) {
+            case PENDING_DELETE:
+                log.debug("Group {} delete confirmation from device {}",
+                          group, group.deviceId());
+                removeGroupEntry(group);
+                break;
+            case ADDED:
+            case PENDING_ADD:
+            case PENDING_UPDATE:
+                log.debug("Group {} is in store but not on device {}",
+                          group, group.deviceId());
+                StoredGroupEntry existing = (groupEntriesById.get(
+                              group.deviceId()) != null) ?
+                              groupEntriesById.get(group.deviceId()).get(group.id()) :
+                              null;
+                log.trace("groupMissing: group "
+                        + "entry {} in device {} moving "
+                        + "from {} to PENDING_ADD",
+                        existing.id(),
+                        existing.deviceId(),
+                        existing.state());
+                existing.setState(Group.GroupState.PENDING_ADD);
+                notifyDelegate(new GroupEvent(GroupEvent.Type.GROUP_ADD_REQUESTED,
+                                              group));
+                break;
+            default:
+                log.debug("Group {} has not been installed.", group);
+                break;
+        }
+    }
+
+    private void extraneousGroup(Group group) {
+        log.debug("Group {} is on device {} but not in store.",
+                  group, group.deviceId());
+        addOrUpdateExtraneousGroupEntry(group);
+    }
+
+    private void groupAdded(Group group) {
+        log.trace("Group {} Added or Updated in device {}",
+                  group, group.deviceId());
+        addOrUpdateGroupEntry(group);
+    }
 }

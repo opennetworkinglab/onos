@@ -99,6 +99,9 @@ public class DeviceConfiguration implements DeviceProperties {
                     deviceConfigMap.get(deviceId).nodeSid);
             return deviceConfigMap.get(deviceId).nodeSid;
         } else {
+            log.warn("getSegmentId for device {} "
+                    + "throwing IllegalStateException "
+                    + "because device does not exist in config", deviceId);
             throw new IllegalStateException();
         }
     }
@@ -151,6 +154,9 @@ public class DeviceConfiguration implements DeviceProperties {
                     deviceConfigMap.get(deviceId).mac);
             return deviceConfigMap.get(deviceId).mac;
         } else {
+            log.warn("getDeviceMac for device {} "
+                    + "throwing IllegalStateException "
+                    + "because device does not exist in config", deviceId);
             throw new IllegalStateException();
         }
     }
@@ -168,6 +174,9 @@ public class DeviceConfiguration implements DeviceProperties {
                     deviceConfigMap.get(deviceId).ip);
             return deviceConfigMap.get(deviceId).ip;
         } else {
+            log.warn("getRouterIp for device {} "
+                    + "throwing IllegalStateException "
+                    + "because device does not exist in config", deviceId);
             throw new IllegalStateException();
         }
     }
@@ -187,6 +196,9 @@ public class DeviceConfiguration implements DeviceProperties {
                     deviceConfigMap.get(deviceId).isEdge);
             return deviceConfigMap.get(deviceId).isEdge;
         } else {
+            log.warn("isEdgeDevice for device {} "
+                    + "throwing IllegalStateException "
+                    + "because device does not exist in config", deviceId);
             throw new IllegalStateException();
         }
     }

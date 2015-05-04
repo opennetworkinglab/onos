@@ -315,6 +315,7 @@ public final class KryoNamespaces {
                     Instructions.DropInstruction.class,
                     Instructions.OutputInstruction.class,
                     Instructions.GroupInstruction.class,
+                    Instructions.TableTypeTransition.class,
                     L0ModificationInstruction.class,
                     L0ModificationInstruction.L0SubType.class,
                     L0ModificationInstruction.ModLambdaInstruction.class,

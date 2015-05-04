@@ -195,11 +195,17 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     @Override
                     public void onSuccess(FlowRuleOperations ops) {
                         pass(fwd);
+                        log.debug("Provisioned tables in {} with "
+                                + "forwarding rules for segment "
+                                + "router", deviceId);
                     }
 
                     @Override
                     public void onError(FlowRuleOperations ops) {
                         fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
+                        log.warn("Failed to provision tables in {} with "
+                                + "forwarding rules for segment router",
+                                deviceId);
                     }
                 }));
 
@@ -228,6 +234,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     }
 
     private void removeGroup(NextObjective nextObjective) {
+        log.debug("removeGroup in {}: for next objective id {}",
+                  deviceId, nextObjective.id());
         final GroupKey key = new DefaultGroupKey(
                 appKryo.serialize(nextObjective.id()));
         groupService.removeGroup(deviceId, key, appId);
@@ -293,6 +301,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     }
 
     private void addBucketToGroup(NextObjective nextObjective) {
+        log.debug("addBucketToGroup in {}: for next objective id {}",
+                  deviceId, nextObjective.id());
         Collection<TrafficTreatment> treatments = nextObjective.next();
         TrafficTreatment treatment = treatments.iterator().next();
         final GroupKey key = new DefaultGroupKey(
@@ -317,6 +327,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     }
 
     private void removeBucketFromGroup(NextObjective nextObjective) {
+        log.debug("removeBucketFromGroup in {}: for next objective id {}",
+                  deviceId, nextObjective.id());
         NextGroup nextGroup = flowObjectiveStore.getNextGroup(nextObjective.id());
         if (nextGroup != null) {
             Collection<TrafficTreatment> treatments = nextObjective.next();
@@ -369,7 +381,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         if ((ethType == null) ||
                 ((((short) ethType.ethType()) != Ethernet.TYPE_IPV4) &&
                 (((short) ethType.ethType()) != Ethernet.MPLS_UNICAST))) {
-            log.debug("processSpecific: Unsupported "
+            log.warn("processSpecific: Unsupported "
                     + "forwarding objective criteraia");
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
@@ -424,6 +436,10 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                 }
                 treatmentBuilder.group(group.id());
                 log.debug("Adding OUTGROUP action");
+            } else {
+                log.warn("processSpecific: No associated next objective object");
+                fail(fwd, ObjectiveError.GROUPMISSING);
+                return Collections.emptySet();
             }
         }
 
@@ -485,15 +501,39 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         return rules;
     }
 
+    protected List<FlowRule> processVlanIdFilter(Criterion c,
+                                                 FilteringObjective filt,
+                                                 ApplicationId applicationId) {
+        List<FlowRule> rules = new ArrayList<FlowRule>();
+        VlanIdCriterion v = (VlanIdCriterion) c;
+        log.debug("adding rule for VLAN: {}", v.vlanId());
+        TrafficSelector.Builder selector = DefaultTrafficSelector
+                .builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment
+                .builder();
+        PortCriterion p = (PortCriterion) filt.key();
+        if (v.vlanId() != VlanId.NONE) {
+            selector.matchVlanId(v.vlanId());
+            selector.matchInPort(p.port());
+            treatment.deferred().popVlan();
+        }
+        treatment.transition(tmacTableId);
+        FlowRule rule = DefaultFlowRule.builder().forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(filt.priority()).fromApp(applicationId)
+                .makePermanent().forTable(vlanTableId).build();
+        rules.add(rule);
+
+        return rules;
+    }
+
     private void processFilter(FilteringObjective filt, boolean install,
                                ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
-        PortCriterion p;
-        if (!filt.key().equals(Criteria.dummy())
-                && filt.key().type() == Criterion.Type.IN_PORT) {
-            p = (PortCriterion) filt.key();
-        } else {
+        if (filt.key().equals(Criteria.dummy())
+                || filt.key().type() != Criterion.Type.IN_PORT) {
             log.warn("No key defined in filtering objective from app: {}. Not"
                     + "processing filtering objective", applicationId);
             fail(filt, ObjectiveError.UNKNOWN);
@@ -509,24 +549,11 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     ops = install ? ops.add(rule) : ops.remove(rule);
                 }
             } else if (c.type() == Criterion.Type.VLAN_VID) {
-                VlanIdCriterion v = (VlanIdCriterion) c;
-                log.debug("adding rule for VLAN: {}", v.vlanId());
-                TrafficSelector.Builder selector = DefaultTrafficSelector
-                        .builder();
-                TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                        .builder();
-                if (v.vlanId() != VlanId.NONE) {
-                    selector.matchVlanId(v.vlanId());
-                    selector.matchInPort(p.port());
-                    treatment.deferred().popVlan();
+                for (FlowRule rule : processVlanIdFilter(c,
+                                                         filt,
+                                                         applicationId)) {
+                    ops = install ? ops.add(rule) : ops.remove(rule);
                 }
-                treatment.transition(tmacTableId);
-                FlowRule rule = DefaultFlowRule.builder().forDevice(deviceId)
-                        .withSelector(selector.build())
-                        .withTreatment(treatment.build())
-                        .withPriority(filt.priority()).fromApp(applicationId)
-                        .makePermanent().forTable(vlanTableId).build();
-                ops = install ? ops.add(rule) : ops.remove(rule);
             } else if (c.type() == Criterion.Type.IPV4_DST) {
                 IPCriterion ip = (IPCriterion) c;
                 log.debug("adding rule for IP: {}", ip.ip());
@@ -554,13 +581,15 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             @Override
             public void onSuccess(FlowRuleOperations ops) {
                 pass(filt);
-                log.info("Provisioned tables for segment router");
+                log.debug("Provisioned tables in {} with fitering "
+                        + "rules for segment router", deviceId);
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
                 fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
-                log.info("Failed to provision tables for segment router");
+                log.warn("Failed to provision tables in {} with "
+                        + "fitering rules for segment router", deviceId);
             }
         }));
     }
@@ -618,6 +647,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         @Override
         public void event(GroupEvent event) {
             if (event.type() == GroupEvent.Type.GROUP_ADDED) {
+                log.debug("InnerGroupListener: Group ADDED "
+                        + "event received in device {}", deviceId);
                 GroupKey key = event.subject().appCookie();
 
                 NextObjective obj = pendingGroups.getIfPresent(key);
@@ -628,6 +659,9 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     pass(obj);
                     pendingGroups.invalidate(key);
                 }
+            } else if (event.type() == GroupEvent.Type.GROUP_ADD_FAILED) {
+                log.warn("InnerGroupListener: Group ADD "
+                        + "failed event received in device {}", deviceId);
             }
         }
     }

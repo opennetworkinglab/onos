@@ -217,6 +217,11 @@ public class RoutingRulePopulator {
 
         // If the next hop is the destination router, do PHP
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
+            log.debug("populateMplsRule: Installing MPLS forwarding objective for "
+                    + "label {} in switch {} with PHP",
+                    config.getSegmentId(destSwId),
+                    deviceId);
+
             ForwardingObjective.Builder fwdObjBosBuilder =
                     getMplsForwardingObjective(deviceId,
                                                destSwId,
@@ -237,6 +242,11 @@ public class RoutingRulePopulator {
                 return false;
             }
         } else {
+            log.debug("Installing MPLS forwarding objective for "
+                    + "label {} in switch {} without PHP",
+                    config.getSegmentId(destSwId),
+                    deviceId);
+
             ForwardingObjective.Builder fwdObjBosBuilder =
                     getMplsForwardingObjective(deviceId,
                                                destSwId,
@@ -264,8 +274,6 @@ public class RoutingRulePopulator {
                     .makePermanent()).withSelector(selector)
                     .withPriority(100))
                     .withFlag(ForwardingObjective.Flag.SPECIFIC);
-            log.debug("Installing MPLS forwarding objective in switch {}",
-                    deviceId);
             srManager.flowObjectiveService.forward(deviceId,
                                                    fwdObjBuilder.add());
             rulePopulationCounter.incrementAndGet();

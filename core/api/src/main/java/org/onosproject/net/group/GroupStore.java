@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.group;
 
+import java.util.Collection;
+
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
@@ -162,4 +164,12 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @param operation the group operation failed
      */
     void groupOperationFailed(DeviceId deviceId, GroupOperation operation);
+
+    /**
+     * Submits the group metrics to store for a given device ID.
+     *
+     * @param deviceId the device ID
+     * @param groupEntries the group entries as received from southbound
+     */
+    void pushGroupMetrics(DeviceId deviceId, Collection<Group> groupEntries);
 }

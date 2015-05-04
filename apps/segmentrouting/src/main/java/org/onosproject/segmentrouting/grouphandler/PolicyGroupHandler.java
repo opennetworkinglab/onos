@@ -27,6 +27,7 @@ import java.util.List;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.segmentrouting.grouphandler.GroupBucketIdentifier.BucketOutputType;
+import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -58,8 +59,11 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                               ApplicationId appId,
                               DeviceProperties config,
                               LinkService linkService,
-                              FlowObjectiveService flowObjService) {
-        super(deviceId, appId, config, linkService, flowObjService);
+                              FlowObjectiveService flowObjService,
+                              EventuallyConsistentMap<
+                              NeighborSetNextObjectiveStoreKey,
+                              Integer> nsNextObjStore) {
+        super(deviceId, appId, config, linkService, flowObjService, nsNextObjStore);
     }
 
     public PolicyGroupIdentifier createPolicyGroupChain(String id,
