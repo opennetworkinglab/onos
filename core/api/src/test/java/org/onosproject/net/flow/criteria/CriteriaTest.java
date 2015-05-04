@@ -220,6 +220,10 @@ public class CriteriaTest {
     Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
     Criterion matchLambda2 = Criteria.matchLambda(lambda2);
 
+    Criterion matchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));
+    Criterion sameAsMatchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));
+    Criterion matchIndexedLambda2 = Criteria.matchLambda(Lambda.indexedLambda(2));
+
     short signalLambda1 = 1;
     short signalLambda2 = 2;
     Criterion matchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
@@ -1034,6 +1038,14 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchLambda1, sameAsMatchLambda1)
                 .addEqualityGroup(matchLambda2)
+                .testEquals();
+    }
+
+    @Test
+    public void testIndexedLambdaCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchIndexedLambda1, sameAsMatchIndexedLambda1)
+                .addEqualityGroup(matchIndexedLambda2)
                 .testEquals();
     }
 

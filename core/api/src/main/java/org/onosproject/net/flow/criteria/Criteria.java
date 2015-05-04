@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
@@ -359,6 +360,7 @@ public final class Criteria {
      * @param lambda lambda to match on (16 bits unsigned integer)
      * @return match criterion
      */
+    @Deprecated
     public static Criterion matchLambda(int lambda) {
         return new LambdaCriterion(lambda, Type.OCH_SIGID);
     }
@@ -370,7 +372,9 @@ public final class Criteria {
      * @return match criterion
      */
     public static Criterion matchLambda(Lambda lambda) {
-        if (lambda instanceof OchSignal) {
+        if (lambda instanceof IndexedLambda) {
+            return new IndexedLambdaCriterion((IndexedLambda) lambda);
+        } else if (lambda instanceof OchSignal) {
             return new OchSignalCriterion((OchSignal) lambda);
         } else {
             throw new UnsupportedOperationException(String.format("Unsupported type of Lambda: %s", lambda));
