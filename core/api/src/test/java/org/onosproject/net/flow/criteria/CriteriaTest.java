@@ -16,6 +16,9 @@
 package org.onosproject.net.flow.criteria;
 
 import org.junit.Test;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip6Address;
@@ -222,6 +225,13 @@ public class CriteriaTest {
     Criterion matchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion sameAsMatchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
     Criterion matchSignalLambda2 = Criteria.matchOpticalSignalType(signalLambda2);
+
+    Criterion matchOchSignal1 =
+            Criteria.matchLambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8));
+    Criterion sameAsMatchOchSignal1 =
+            Criteria.matchLambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8));
+    Criterion matchOchSignal2 =
+            Criteria.matchLambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 4, 8));
 
     /**
      * Checks that a Criterion object has the proper type, and then converts
@@ -1024,6 +1034,14 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchLambda1, sameAsMatchLambda1)
                 .addEqualityGroup(matchLambda2)
+                .testEquals();
+    }
+
+    @Test
+    public void testOchSignalCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchOchSignal1, sameAsMatchOchSignal1)
+                .addEqualityGroup(matchOchSignal2)
                 .testEquals();
     }
 

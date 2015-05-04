@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onosproject.net.Lambda;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onlab.packet.IpPrefix;
@@ -359,6 +361,20 @@ public final class Criteria {
      */
     public static Criterion matchLambda(int lambda) {
         return new LambdaCriterion(lambda, Type.OCH_SIGID);
+    }
+
+    /**
+     * Creates a match on lambda using the specified value.
+     *
+     * @param lambda lambda
+     * @return match criterion
+     */
+    public static Criterion matchLambda(Lambda lambda) {
+        if (lambda instanceof OchSignal) {
+            return new OchSignalCriterion((OchSignal) lambda);
+        } else {
+            throw new UnsupportedOperationException(String.format("Unsupported type of Lambda: %s", lambda));
+        }
     }
 
     /**
