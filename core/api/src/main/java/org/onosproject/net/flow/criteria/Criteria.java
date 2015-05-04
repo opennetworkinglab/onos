@@ -25,6 +25,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.tunnel.OchSignalType;
 
 /**
  * Factory class to create various traffic selection criteria.
@@ -389,6 +390,16 @@ public final class Criteria {
      */
     public static Criterion matchOpticalSignalType(short sigType) {
         return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
+    }
+
+    /**
+     * Create a match on OCh (Optical Channel) signal type.
+     *
+     * @param signalType OCh signal type
+     * @return match criterion
+     */
+    public static Criterion matchOchSignalType(OchSignalType signalType) {
+        return new OchSignalTypeCriterion(signalType);
     }
 
     public static Criterion dummy() {

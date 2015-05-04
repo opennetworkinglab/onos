@@ -27,6 +27,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
+import org.onosproject.net.tunnel.OchSignalType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -219,6 +220,10 @@ public class CriteriaTest {
     Criterion matchLambda1 = Criteria.matchLambda(lambda1);
     Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
     Criterion matchLambda2 = Criteria.matchLambda(lambda2);
+
+    Criterion matchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIX_GRID);
+    Criterion sameAsMatchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIX_GRID);
+    Criterion matchOchSignalType2 = Criteria.matchOchSignalType(OchSignalType.FLEX_GRID);
 
     Criterion matchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));
     Criterion sameAsMatchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));
@@ -1054,6 +1059,17 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchOchSignal1, sameAsMatchOchSignal1)
                 .addEqualityGroup(matchOchSignal2)
+                .testEquals();
+    }
+
+    /**
+     * Test the equals() method of the OchSignalTypeCriterion class.
+     */
+    @Test
+    public void testOchSignalTypeCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchOchSignalType1, sameAsMatchOchSignalType1)
+                .addEqualityGroup(matchOchSignalType2)
                 .testEquals();
     }
 
