@@ -21,12 +21,19 @@ import static com.google.common.base.Preconditions.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.HexString;
+import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
@@ -108,14 +115,126 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     }
 
     @Override
+    public CompletableFuture<Versioned<V>> computeIfAbsent(K key,
+            Function<? super K, ? extends V> mappingFunction) {
+        return computeIf(key, Objects::isNull, (k, v) -> mappingFunction.apply(k));
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V>> computeIfPresent(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return computeIf(key, Objects::nonNull, remappingFunction);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V>> compute(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return computeIf(key, v -> true, remappingFunction);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V>> computeIf(K key,
+            Predicate<? super V> condition,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(condition, "predicate function cannot be null");
+        checkNotNull(remappingFunction, "Remapping function cannot be null");
+        return get(key).thenCompose(r1 -> {
+            V existingValue = r1 == null ? null : r1.value();
+            // if the condition evaluates to false, return existing value.
+            if (!condition.test(existingValue)) {
+                return CompletableFuture.completedFuture(r1);
+            }
+
+            AtomicReference<V> computedValue = new AtomicReference<>();
+            // if remappingFunction throws an exception, return the exception.
+            try {
+                computedValue.set(remappingFunction.apply(key, existingValue));
+            } catch (Exception e) {
+                return Tools.exceptionalFuture(e);
+            }
+
+            // if the computed value is null, remove current value if one exists.
+            // throw an exception if concurrent modification is detected.
+            if (computedValue.get() == null) {
+                if (r1 != null) {
+                    return remove(key, r1.version()).thenApply(result -> {
+                        if (result) {
+                            return null;
+                        } else {
+                            throw new ConsistentMapException.ConcurrentModification();
+                        }
+                    });
+                } else {
+                    return CompletableFuture.completedFuture(null);
+                }
+            } else {
+                // replace current value; throw an exception if concurrent modification is detected
+                if (r1 != null) {
+                    return replaceAndGet(key, r1.version(), computedValue.get())
+                            .thenApply(v -> {
+                                if (v.isPresent()) {
+                                    return v.get();
+                                } else {
+                                    throw new ConsistentMapException.ConcurrentModification();
+                                }
+                            });
+                } else {
+                    return putIfAbsentAndGet(key, computedValue.get()).thenApply(result -> {
+                        if (!result.isPresent()) {
+                            throw new ConsistentMapException.ConcurrentModification();
+                        } else {
+                            return result.get();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    @Override
     public CompletableFuture<Versioned<V>> put(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
         checkIfUnmodifiable();
         return database.put(name, keyCache.getUnchecked(key), serializer.encode(value))
+                       .thenApply(this::unwrapResult)
+                       .thenApply(v -> v != null
+                       ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V>> putAndGet(K key, V value) {
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(value, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
+        return database.putAndGet(name, keyCache.getUnchecked(key), serializer.encode(value))
                 .thenApply(this::unwrapResult)
-                .thenApply(v -> v != null
-                ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+                .thenApply(v -> {
+                    Versioned<byte[]> rawNewValue = v.newValue();
+                    return new Versioned<>(serializer.decode(rawNewValue.value()),
+                            rawNewValue.version(),
+                            rawNewValue.creationTime());
+                });
+    }
+
+    @Override
+    public CompletableFuture<Optional<Versioned<V>>> putIfAbsentAndGet(K key, V value) {
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(value, ERROR_NULL_VALUE);
+        checkIfUnmodifiable();
+        return database.putIfAbsentAndGet(name, keyCache.getUnchecked(key), serializer.encode(value))
+                .thenApply(this::unwrapResult)
+                .thenApply(v -> {
+                    if (v.updated()) {
+                        Versioned<byte[]> rawNewValue = v.newValue();
+                        return Optional.of(new Versioned<>(serializer.decode(rawNewValue.value()),
+                                                           rawNewValue.version(),
+                                                           rawNewValue.creationTime()));
+                    } else {
+                        return Optional.empty();
+                    }
+                });
     }
 
     @Override
@@ -167,9 +286,9 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         return database.putIfAbsent(name,
                                     keyCache.getUnchecked(key),
                                     serializer.encode(value))
-               .thenApply(this::unwrapResult)
-               .thenApply(v -> v != null ?
-                       new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+                .thenApply(this::unwrapResult)
+                .thenApply(v -> v != null ?
+                        new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
     }
 
     @Override
@@ -178,7 +297,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(value, ERROR_NULL_VALUE);
         checkIfUnmodifiable();
         return database.remove(name, keyCache.getUnchecked(key), serializer.encode(value))
-                .thenApply(this::unwrapResult);
+                       .thenApply(this::unwrapResult);
     }
 
     @Override
@@ -186,7 +305,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkIfUnmodifiable();
         return database.remove(name, keyCache.getUnchecked(key), version)
-                .thenApply(this::unwrapResult);
+                       .thenApply(this::unwrapResult);
 
     }
 
@@ -197,16 +316,34 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkIfUnmodifiable();
         byte[] existing = oldValue != null ? serializer.encode(oldValue) : null;
         return database.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue))
-                .thenApply(this::unwrapResult);
+                       .thenApply(this::unwrapResult);
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
+        return replaceAndGet(key, oldVersion, newValue).thenApply(Optional::isPresent);
+    }
+
+    @Override
+    public CompletableFuture<Optional<Versioned<V>>> replaceAndGet(K key, long oldVersion, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(newValue, ERROR_NULL_VALUE);
         checkIfUnmodifiable();
-        return database.replace(name, keyCache.getUnchecked(key), oldVersion, serializer.encode(newValue))
-                .thenApply(this::unwrapResult);
+        return database.replaceAndGet(name,
+                                      keyCache.getUnchecked(key),
+                                      oldVersion,
+                                      serializer.encode(newValue))
+                       .thenApply(this::unwrapResult)
+                       .thenApply(v -> {
+                                   if (v.updated()) {
+                                       Versioned<byte[]> rawNewValue = v.newValue();
+                                       return Optional.of(new Versioned<>(serializer.decode(rawNewValue.value()),
+                                                                            rawNewValue.version(),
+                                                                            rawNewValue.creationTime()));
+                                   } else {
+                                       return Optional.empty();
+                                   }
+                       });
     }
 
     private Map.Entry<K, Versioned<V>> fromRawEntry(Map.Entry<String, Versioned<byte[]>> e) {

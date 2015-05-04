@@ -18,10 +18,14 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.Set;
 
 import org.onosproject.store.service.AsyncConsistentMap;
@@ -76,8 +80,43 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
+    public Versioned<V> computeIfAbsent(K key,
+            Function<? super K, ? extends V> mappingFunction) {
+        return complete(asyncMap.computeIfAbsent(key, mappingFunction));
+    }
+
+    @Override
+    public Versioned<V> computeIfPresent(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return complete(asyncMap.computeIfPresent(key, remappingFunction));
+    }
+
+    @Override
+    public Versioned<V> compute(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return complete(asyncMap.compute(key, remappingFunction));
+    }
+
+    @Override
+    public Versioned<V> computeIf(K key,
+            Predicate<? super V> condition,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return complete(asyncMap.computeIf(key, condition, remappingFunction));
+    }
+
+    @Override
     public Versioned<V> put(K key, V value) {
         return complete(asyncMap.put(key, value));
+    }
+
+    @Override
+    public Versioned<V> putAndGet(K key, V value) {
+        return complete(asyncMap.putAndGet(key, value));
+    }
+
+    @Override
+    public Optional<Versioned<V>> putIfAbsentAndGet(K key, V value) {
+        return complete(asyncMap.putIfAbsentAndGet(key, value));
     }
 
     @Override
@@ -130,6 +169,11 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
         return complete(asyncMap.replace(key, oldVersion, newValue));
     }
 
+    @Override
+    public Optional<Versioned<V>> replaceAndGet(K key, long oldVersion, V newValue) {
+        return complete(asyncMap.replaceAndGet(key, oldVersion, newValue));
+    }
+
     private static <T> T complete(CompletableFuture<T> future) {
         try {
             return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
@@ -139,7 +183,11 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
         } catch (TimeoutException e) {
             throw new ConsistentMapException.Timeout();
         } catch (ExecutionException e) {
-            throw new ConsistentMapException(e.getCause());
+            if (e.getCause() instanceof ConsistentMapException) {
+                throw (ConsistentMapException) e.getCause();
+            } else {
+                throw new ConsistentMapException(e.getCause());
+            }
         }
     }
 }

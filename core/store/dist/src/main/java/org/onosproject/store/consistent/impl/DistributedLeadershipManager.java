@@ -216,39 +216,24 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     private void doRunForLeadership(String path, CompletableFuture<Leadership> future) {
         try {
-            Versioned<List<NodeId>> candidates = candidateMap.get(path);
-            if (candidates != null) {
-                List<NodeId> candidateList = Lists.newArrayList(candidates.value());
-                if (!candidateList.contains(localNodeId)) {
-                    candidateList.add(localNodeId);
-                    if (candidateMap.replace(path, candidates.version(), candidateList)) {
-                        Versioned<List<NodeId>> newCandidates = candidateMap.get(path);
-                        publish(new LeadershipEvent(
-                                LeadershipEvent.Type.CANDIDATES_CHANGED,
-                                new Leadership(path,
-                                    newCandidates.value(),
-                                    newCandidates.version(),
-                                    newCandidates.creationTime())));
-                    } else {
-                        rerunForLeadership(path, future);
-                        return;
-                    }
-                }
-            } else {
-                List<NodeId> candidateList = ImmutableList.of(localNodeId);
-                if ((candidateMap.putIfAbsent(path, candidateList) == null)) {
-                    Versioned<List<NodeId>> newCandidates = candidateMap.get(path);
-                    publish(new LeadershipEvent(
-                            LeadershipEvent.Type.CANDIDATES_CHANGED,
-                            new Leadership(path,
-                                newCandidates.value(),
-                                newCandidates.version(),
-                                newCandidates.creationTime())));
-                } else {
-                    rerunForLeadership(path, future);
-                    return;
-                }
-            }
+            Versioned<List<NodeId>> candidates = candidateMap.computeIf(path,
+                    currentList -> currentList == null || !currentList.contains(localNodeId),
+                    (topic, currentList) -> {
+                        if (currentList == null) {
+                            return ImmutableList.of(localNodeId);
+                        } else {
+                            List<NodeId> newList = Lists.newLinkedList();
+                            newList.addAll(currentList);
+                            newList.add(localNodeId);
+                            return newList;
+                        }
+                    });
+            publish(new LeadershipEvent(
+                    LeadershipEvent.Type.CANDIDATES_CHANGED,
+                    new Leadership(path,
+                            candidates.value(),
+                            candidates.version(),
+                            candidates.creationTime())));
             log.debug("In the leadership race for topic {} with candidates {}", path, candidates);
             activeTopics.add(path);
             tryLeaderLock(path, future);
@@ -352,28 +337,22 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     @Override
     public boolean makeTopCandidate(String path, NodeId nodeId) {
-        Versioned<List<NodeId>> candidates = candidateMap.get(path);
-        if (candidates == null || !candidates.value().contains(nodeId)) {
-            return false;
-        }
-        List<NodeId> currentRoster = candidates.value();
-        if (nodeId.equals(currentRoster.get(LEADER_CANDIDATE_POS))) {
-            return true;
-        }
-        List<NodeId> newRoster = new ArrayList<>(currentRoster.size());
-        newRoster.add(nodeId);
-        currentRoster.stream().filter(id -> !nodeId.equals(id)).forEach(newRoster::add);
-        boolean updated = candidateMap.replace(path, candidates.version(), newRoster);
-        if (updated) {
-            Versioned<List<NodeId>> newCandidates = candidateMap.get(path);
-            publish(new LeadershipEvent(
+        Versioned<List<NodeId>> newCandidates = candidateMap.computeIf(path,
+                candidates -> (candidates != null && candidates.contains(nodeId)) ||
+                              (candidates != null && Objects.equals(nodeId, candidates.get(LEADER_CANDIDATE_POS))),
+                (topic, candidates) -> {
+                    List<NodeId> updatedCandidates = new ArrayList<>(candidates.size());
+                    updatedCandidates.add(nodeId);
+                    candidates.stream().filter(id -> !nodeId.equals(id)).forEach(updatedCandidates::add);
+                    return updatedCandidates;
+                });
+        publish(new LeadershipEvent(
                     LeadershipEvent.Type.CANDIDATES_CHANGED,
                     new Leadership(path,
                         newCandidates.value(),
                         newCandidates.version(),
                         newCandidates.creationTime())));
-        }
-        return updated;
+        return true;
     }
 
     private void tryLeaderLock(String path, CompletableFuture<Leadership> future) {
@@ -403,41 +382,19 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     private void leaderLockAttempt(String path, List<NodeId> candidates, CompletableFuture<Leadership> future) {
         try {
-            Versioned<NodeId> currentLeader = leaderMap.get(path);
-            if (currentLeader != null) {
-                if (localNodeId.equals(currentLeader.value())) {
-                    log.debug("Already has leadership for {}", path);
-                    // FIXME: candidates can get out of sync.
-                    Leadership leadership = new Leadership(path,
-                            localNodeId,
-                            currentLeader.version(),
-                            currentLeader.creationTime());
-                    future.complete(leadership);
-                    publish(new LeadershipEvent(
-                            LeadershipEvent.Type.LEADER_ELECTED,
-                            leadership));
-                } else {
-                    // someone else has leadership. will retry after sometime.
-                    retryLock(path, future);
-                }
+            Versioned<NodeId> leader = leaderMap.computeIfAbsent(path, p -> localNodeId);
+            if (Objects.equals(leader.value(), localNodeId)) {
+                log.debug("Assumed leadership for {}", path);
+                Leadership leadership = new Leadership(path,
+                        leader.value(),
+                        leader.version(),
+                        leader.creationTime());
+                future.complete(leadership);
+                publish(new LeadershipEvent(
+                        LeadershipEvent.Type.LEADER_ELECTED,
+                        leadership));
             } else {
-                if (leaderMap.putIfAbsent(path, localNodeId) == null) {
-                    log.debug("Assumed leadership for {}", path);
-                    // do a get again to get the version (epoch)
-                    Versioned<NodeId> newLeader = leaderMap.get(path);
-                    // FIXME: candidates can get out of sync
-                    Leadership leadership = new Leadership(path,
-                            newLeader.value(),
-                            newLeader.version(),
-                            newLeader.creationTime());
-                    future.complete(leadership);
-                    publish(new LeadershipEvent(
-                            LeadershipEvent.Type.LEADER_ELECTED,
-                            leadership));
-                } else {
-                    // someone beat us to it.
-                    retryLock(path, future);
-                }
+                retryLock(path, future);
             }
         } catch (Exception e) {
             log.debug("Attempt to acquire leadership lock for topic {} failed", path, e);

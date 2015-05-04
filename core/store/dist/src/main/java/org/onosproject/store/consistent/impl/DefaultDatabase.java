@@ -100,6 +100,20 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
+    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putAndGet(String tableName,
+            String key,
+            byte[] value) {
+        return checkOpen(() -> proxy.putAndGet(tableName, key, value));
+    }
+
+    @Override
+    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putIfAbsentAndGet(String tableName,
+            String key,
+            byte[] value) {
+        return checkOpen(() -> proxy.putIfAbsentAndGet(tableName, key, value));
+    }
+
+    @Override
     public CompletableFuture<Result<Versioned<byte[]>>> remove(String tableName, String key) {
         return checkOpen(() -> proxy.remove(tableName, key));
     }
@@ -147,6 +161,14 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @Override
     public CompletableFuture<Result<Boolean>> replace(String tableName, String key, long oldVersion, byte[] newValue) {
         return checkOpen(() -> proxy.replace(tableName, key, oldVersion, newValue));
+    }
+
+    @Override
+    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> replaceAndGet(String tableName,
+            String key,
+            long oldVersion,
+            byte[] newValue) {
+        return checkOpen(() -> proxy.replaceAndGet(tableName, key, oldVersion, newValue));
     }
 
     @Override

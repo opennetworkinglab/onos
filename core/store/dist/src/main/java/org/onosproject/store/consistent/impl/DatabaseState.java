@@ -68,6 +68,12 @@ public interface DatabaseState<K, V> {
   Result<Versioned<V>> put(String tableName, K key, V value);
 
   @Command
+  Result<UpdateResult<Versioned<V>>> putAndGet(String tableName, K key, V value);
+
+  @Command
+  Result<UpdateResult<Versioned<V>>> putIfAbsentAndGet(String tableName, K key, V value);
+
+  @Command
   Result<Versioned<V>> remove(String tableName, K key);
 
   @Command
@@ -96,6 +102,9 @@ public interface DatabaseState<K, V> {
 
   @Command
   Result<Boolean> replace(String tableName, K key, long oldVersion, V newValue);
+
+  @Command
+  Result<UpdateResult<Versioned<V>>> replaceAndGet(String tableName, K key, long oldVersion, V newValue);
 
   @Command
   Long counterAddAndGet(String counterName, long delta);

@@ -97,6 +97,26 @@ public interface DatabaseProxy<K, V> {
     CompletableFuture<Result<Versioned<V>>> put(String tableName, K key, V value);
 
     /**
+     * Puts a value in the table.
+     *
+     * @param tableName table name
+     * @param key       The key to set.
+     * @param value     The value to set.
+     * @return A completable future to be completed with the result once complete.
+     */
+    CompletableFuture<Result<UpdateResult<Versioned<V>>>> putAndGet(String tableName, K key, V value);
+
+    /**
+     * Puts a value in the table.
+     *
+     * @param tableName table name
+     * @param key       The key to set.
+     * @param value     The value to set.
+     * @return A completable future to be completed with the result once complete.
+     */
+    CompletableFuture<Result<UpdateResult<Versioned<V>>>> putIfAbsentAndGet(String tableName, K key, V value);
+
+    /**
      * Removes a value from the table.
      *
      * @param tableName table name
@@ -188,6 +208,19 @@ public interface DatabaseProxy<K, V> {
      * @return A completable future to be completed with the result once complete.
      */
     CompletableFuture<Result<Boolean>> replace(String tableName, K key, long oldVersion, V newValue);
+
+    /**
+     * Replaces the entry for the specified key only if currently mapped to the specified version.
+     *
+     * @param tableName  table name
+     * @param key        The key to update
+     * @param oldVersion existing version in the map for this replace to succeed.
+     * @param newValue   The value with which to replace the given key and version.
+     * @return A completable future to be completed with the result once complete.
+     */
+    CompletableFuture<Result<UpdateResult<Versioned<V>>>> replaceAndGet(String tableName,
+            K key, long oldVersion,
+            V newValue);
 
     /**
      * Atomically add the given value to current value of the specified counter.

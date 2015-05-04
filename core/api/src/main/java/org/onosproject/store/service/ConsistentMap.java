@@ -18,7 +18,11 @@ package org.onosproject.store.service;
 
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * A distributed, strongly consistent map.
@@ -83,6 +87,64 @@ public interface ConsistentMap<K, V> {
     Versioned<V> get(K key);
 
     /**
+     * If the specified key is not already associated with a value (or is mapped to null),
+     * attempts to compute its value using the given mapping function and enters it into
+     * this map unless null.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param mappingFunction the function to compute a value
+     * @return the current (existing or computed) value associated with the specified key,
+     * or null if the computed value is null. Method throws {@code ConsistentMapException.ConcurrentModification}
+     * if a concurrent modification of map is detected
+     */
+    Versioned<V> computeIfAbsent(K key,
+            Function<? super K, ? extends V> mappingFunction);
+
+    /**
+     * Attempts to compute a mapping for the specified key and its current mapped value (or
+     * null if there is no current mapping).
+     * If the computed value is null, the current mapping will be removed from the map.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
+     * @return the new value associated with the specified key, or null if none.
+     * This method throws {@code ConsistentMapException.ConcurrentModification}
+     * if a concurrent modification of map is detected
+     */
+    Versioned<V> compute(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    /**
+     * If the value for the specified key is present and non-null, attempts to compute a new
+     * mapping given the key and its current mapped value.
+     * If the computed value is null, the current mapping will be removed from the map.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
+     * @return the new value associated with the specified key, or null if none.
+     * This method throws {@code ConsistentMapException.ConcurrentModification}
+     * if a concurrent modification of map is detected
+     */
+    Versioned<V> computeIfPresent(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    /**
+     * If the value for the specified key satisfies a condition, attempts to compute a new
+     * mapping given the key and its current mapped value.
+     * If the computed value is null, the current mapping will be removed from the map.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param condition condition that should evaluate to true for the computation to proceed
+     * @param remappingFunction the function to compute a value
+     * @return the new value associated with the specified key, or the old value if condition evaluates to false.
+     * This method throws {@code ConsistentMapException.ConcurrentModification} if a concurrent
+     * modification of map is detected
+     */
+    Versioned<V> computeIf(K key,
+            Predicate<? super V> condition,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    /**
      * Associates the specified value with the specified key in this map (optional operation).
      * If the map previously contained a mapping for the key, the old value is replaced by the
      * specified value.
@@ -93,6 +155,28 @@ public interface ConsistentMap<K, V> {
      * no mapping for key.
      */
     Versioned<V> put(K key, V value);
+
+    /**
+     * Associates the specified value with the specified key in this map (optional operation).
+     * If the map previously contained a mapping for the key, the old value is replaced by the
+     * specified value.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return new value.
+     */
+    Versioned<V> putAndGet(K key, V value);
+
+    /**
+     * Associates the specified value with the specified key in this map (optional operation).
+     * If the map previously contained a mapping for the key, the old value is replaced by the
+     * specified value.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return optional updated value. Will be empty if update did not happen
+     */
+    Optional<Versioned<V>> putIfAbsentAndGet(K key, V value);
 
     /**
      * Removes the mapping for a key from this map if it is present (optional operation).
@@ -194,4 +278,15 @@ public interface ConsistentMap<K, V> {
      * @return true if the value was replaced
      */
     boolean replace(K key, long oldVersion, V newValue);
+
+    /**
+     * Replaces the entry for the specified key only if it is currently mapped to the
+     * specified version.
+     *
+     * @param key key key with which the specified value is associated
+     * @param oldVersion version expected to be associated with the specified key
+     * @param newValue value to be associated with the specified key
+     * @return optional new value. Will be empty if replace did not happen
+     */
+    Optional<Versioned<V>> replaceAndGet(K key, long oldVersion, V newValue);
 }

@@ -74,6 +74,7 @@ public class DatabaseSerializer extends SerializerConfig {
             .register(Pair.class)
             .register(ImmutablePair.class)
             .register(Result.class)
+            .register(UpdateResult.class)
             .register(Result.Status.class)
             .register(DefaultTransaction.class)
             .register(Transaction.State.class)

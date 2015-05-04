@@ -18,8 +18,12 @@ package org.onosproject.store.service;
 
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * A distributed, strongly consistent map whose methods are all executed asynchronously.
@@ -84,6 +88,61 @@ public interface AsyncConsistentMap<K, V> {
     CompletableFuture<Versioned<V>> get(K key);
 
     /**
+     * If the specified key is not already associated with a value (or is mapped to null),
+     * attempts to compute its value using the given mapping function and enters it into
+     * this map unless null.
+     * If a conflicting concurrent modification attempt is detected, the returned future
+     * will be completed exceptionally with ConsistentMapException.ConcurrentModification.
+     * @param key key with which the specified value is to be associated
+     * @param mappingFunction the function to compute a value
+     * @return the current (existing or computed) value associated with the specified key,
+     * or null if the computed value is null
+     */
+    CompletableFuture<Versioned<V>> computeIfAbsent(K key,
+            Function<? super K, ? extends V> mappingFunction);
+
+    /**
+     * If the value for the specified key is present and non-null, attempts to compute a new
+     * mapping given the key and its current mapped value.
+     * If the computed value is null, the current mapping will be removed from the map.
+     * If a conflicting concurrent modification attempt is detected, the returned future
+     * will be completed exceptionally with ConsistentMapException.ConcurrentModification.
+     * @param key key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
+     * @return the new value associated with the specified key, or null if computed value is null
+     */
+    CompletableFuture<Versioned<V>> computeIfPresent(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    /**
+     * Attempts to compute a mapping for the specified key and its current mapped value (or
+     * null if there is no current mapping).
+     * If the computed value is null, the current mapping (if one exists) will be removed from the map.
+     * If a conflicting concurrent modification attempt is detected, the returned future
+     * will be completed exceptionally with ConsistentMapException.ConcurrentModification.
+     * @param key key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
+     * @return the new value associated with the specified key, or null if computed value is null
+     */
+    CompletableFuture<Versioned<V>> compute(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    /**
+     * If the value for the specified key satisfies a condition, attempts to compute a new
+     * mapping given the key and its current mapped value.
+     * If the computed value is null, the current mapping will be removed from the map.
+     * If a conflicting concurrent modification attempt is detected, the returned future
+     * will be completed exceptionally with ConsistentMapException.ConcurrentModification.
+     * @param key key with which the specified value is to be associated
+     * @param condition condition that should evaluate to true for the computation to proceed
+     * @param remappingFunction the function to compute a value
+     * @return the new value associated with the specified key, or the old value if condition evaluates to false
+     */
+    CompletableFuture<Versioned<V>> computeIf(K key,
+            Predicate<? super V> condition,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    /**
      * Associates the specified value with the specified key in this map (optional operation).
      * If the map previously contained a mapping for the key, the old value is replaced by the
      * specified value.
@@ -94,6 +153,28 @@ public interface AsyncConsistentMap<K, V> {
      * no mapping for key.
      */
     CompletableFuture<Versioned<V>> put(K key, V value);
+
+    /**
+     * Associates the specified value with the specified key in this map (optional operation).
+     * If the map previously contained a mapping for the key, the old value is replaced by the
+     * specified value.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return new value.
+     */
+    CompletableFuture<Versioned<V>> putAndGet(K key, V value);
+
+    /**
+     * Associates the specified value with the specified key in this map (optional operation).
+     * If the map previously contained a mapping for the key, the old value is replaced by the
+     * specified value.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return optional updated value. Will be empty if update did not happen
+     */
+    CompletableFuture<Optional<Versioned<V>>> putIfAbsentAndGet(K key, V value);
 
     /**
      * Removes the mapping for a key from this map if it is present (optional operation).
@@ -196,4 +277,15 @@ public interface AsyncConsistentMap<K, V> {
      * @return true if the value was replaced
      */
     CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue);
+
+    /**
+     * Replaces the entry for the specified key only if it is currently mapped to the
+     * specified version.
+     *
+     * @param key key key with which the specified value is associated
+     * @param oldVersion version expected to be associated with the specified key
+     * @param newValue value to be associated with the specified key
+     * @return optional updated value. Will be empty if update did not happen.
+     */
+    CompletableFuture<Optional<Versioned<V>>> replaceAndGet(K key, long oldVersion, V newValue);
 }

@@ -152,6 +152,22 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
+    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putAndGet(String tableName,
+            String key,
+            byte[] value) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(tableName, key).putAndGet(tableName, key, value);
+    }
+
+    @Override
+    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putIfAbsentAndGet(String tableName,
+            String key,
+            byte[] value) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(tableName, key).putIfAbsentAndGet(tableName, key, value);
+    }
+
+    @Override
     public CompletableFuture<Result<Versioned<byte[]>>> remove(String tableName, String key) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).remove(tableName, key);
@@ -232,6 +248,13 @@ public class PartitionedDatabase implements Database {
             String tableName, String key, long oldVersion, byte[] newValue) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(tableName, key).replace(tableName, key, oldVersion, newValue);
+    }
+
+    @Override
+    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> replaceAndGet(
+            String tableName, String key, long oldVersion, byte[] newValue) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(tableName, key).replaceAndGet(tableName, key, oldVersion, newValue);
     }
 
     @Override

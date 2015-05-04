@@ -30,6 +30,7 @@ import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.DatabaseUpdate.Type;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -128,6 +129,36 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
+    public Result<UpdateResult<Versioned<byte[]>>> putAndGet(String tableName,
+            String key,
+            byte[] value) {
+        if (isLockedForUpdates(tableName, key)) {
+            return Result.locked();
+        } else {
+            Versioned<byte[]> newValue = new Versioned<>(value, ++nextVersion);
+            Versioned<byte[]> oldValue = getTableMap(tableName).put(key, newValue);
+            return Result.ok(new UpdateResult<>(true, oldValue, newValue));
+        }
+    }
+
+    @Override
+    public Result<UpdateResult<Versioned<byte[]>>> putIfAbsentAndGet(String tableName,
+            String key,
+            byte[] value) {
+        if (isLockedForUpdates(tableName, key)) {
+            return Result.locked();
+        }
+        Versioned<byte[]> currentValue = getTableMap(tableName).get(key);
+        if (currentValue != null) {
+            return Result.ok(new UpdateResult<>(false, currentValue, currentValue));
+        } else {
+            Versioned<byte[]> newValue = new Versioned<>(value, ++nextVersion);
+            getTableMap(tableName).put(key, newValue);
+            return Result.ok(new UpdateResult<>(true, null, newValue));
+        }
+    }
+
+    @Override
     public Result<Versioned<byte[]>> remove(String tableName, String key) {
         return isLockedForUpdates(tableName, key)
                 ? Result.locked()
@@ -222,6 +253,23 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
             return Result.ok(true);
         }
         return Result.ok(false);
+    }
+
+    @Override
+    public Result<UpdateResult<Versioned<byte[]>>> replaceAndGet(
+            String tableName, String key, long oldVersion, byte[] newValue) {
+        if (isLockedForUpdates(tableName, key)) {
+            return Result.locked();
+        }
+        boolean updated = false;
+        Versioned<byte[]> previous = get(tableName, key);
+        Versioned<byte[]> current = previous;
+        if (previous != null && previous.version() == oldVersion) {
+            current = new Versioned<>(newValue, ++nextVersion);
+            getTableMap(tableName).put(key, current);
+            updated = true;
+        }
+        return Result.ok(new UpdateResult<>(updated, previous, current));
     }
 
     @Override
