@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
@@ -35,6 +36,7 @@ import org.onosproject.ui.UiView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -77,13 +79,21 @@ public class AppUiComponent {
 
     // Application UI message handler
     private class AppUiMessageHandler extends UiMessageHandler {
-        protected AppUiMessageHandler() {
-            super(ImmutableSet.of("sampleRequest"));
-        }
 
         @Override
-        public void process(ObjectNode objectNode) {
-            log.info("We got a message: {}", objectNode);
+        protected Collection<RequestHandler> getHandlers() {
+            return ImmutableSet.of(new SampleRequest());
+        }
+
+        private class SampleRequest extends RequestHandler {
+            public SampleRequest() {
+                super("sampleRequest");
+            }
+
+            @Override
+            public void process(long sid, ObjectNode objectNode) {
+                log.info("We got a message: {}", objectNode);
+            }
         }
     }
 
