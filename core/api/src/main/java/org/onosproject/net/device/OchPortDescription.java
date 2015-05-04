@@ -16,12 +16,13 @@
 package org.onosproject.net.device;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.OduSignalType;
 import org.onosproject.net.SparseAnnotations;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of immutable OCh port description.
@@ -30,61 +31,41 @@ public class OchPortDescription extends DefaultPortDescription {
 
     private final OduSignalType signalType;
     private final boolean isTunable;
-    private final GridType gridType;
-    private final ChannelSpacing channelSpacing;
-    // Frequency = 193.1 THz + spacingMultiplier * channelSpacing
-    private final int spacingMultiplier;
-    // Slot width = slotGranularity * 12.5 GHz
-    private final int slotGranularity;
+    private final OchSignal lambda;
 
     /**
      * Creates OCH port description based on the supplied information.
      *
-     * @param number            port number
-     * @param isEnabled         port enabled state
-     * @param signalType        ODU signal type
-     * @param isTunable         tunable wavelength capability
-     * @param gridType          grid type
-     * @param channelSpacing    channel spacing
-     * @param spacingMultiplier channel spacing multiplier
-     * @param slotGranularity   slow width granularity
-     * @param annotations       optional key/value annotations map
+     * @param number      port number
+     * @param isEnabled   port enabled state
+     * @param signalType  ODU signal type
+     * @param isTunable   tunable wavelength capability
+     * @param lambda      Och signal
+     * @param annotations optional key/value annotations map
      */
     public OchPortDescription(PortNumber number, boolean isEnabled, OduSignalType signalType,
-                              boolean isTunable, GridType gridType,
-                                      ChannelSpacing channelSpacing,
-                              int spacingMultiplier, int slotGranularity, SparseAnnotations... annotations) {
+                              boolean isTunable, OchSignal lambda, SparseAnnotations... annotations) {
         super(number, isEnabled, Port.Type.OCH, 0, annotations);
         this.signalType = signalType;
         this.isTunable = isTunable;
-        this.gridType = gridType;
-        this.channelSpacing = channelSpacing;
-        this.spacingMultiplier = spacingMultiplier;
-        this.slotGranularity = slotGranularity;
+        this.lambda = checkNotNull(lambda);
     }
 
     /**
      * Creates OCH port description based on the supplied information.
      *
-     * @param base              PortDescription to get basic information from
-     * @param signalType        ODU signal type
-     * @param isTunable         tunable wavelength capability
-     * @param gridType          grid type
-     * @param channelSpacing    channel spacing
-     * @param spacingMultiplier channel spacing multiplier
-     * @param slotGranularity   slot width granularity
-     * @param annotations       optional key/value annotations map
+     * @param base        PortDescription to get basic information from
+     * @param signalType  ODU signal type
+     * @param isTunable   tunable wavelength capability
+     * @param lambda      OCh signal
+     * @param annotations optional key/value annotations map
      */
     public OchPortDescription(PortDescription base, OduSignalType signalType, boolean isTunable,
-                              GridType gridType, ChannelSpacing channelSpacing,
-                              int spacingMultiplier, int slotGranularity, SparseAnnotations annotations) {
+                              OchSignal lambda, SparseAnnotations annotations) {
         super(base, annotations);
         this.signalType = signalType;
         this.isTunable = isTunable;
-        this.gridType = gridType;
-        this.channelSpacing = channelSpacing;
-        this.spacingMultiplier = spacingMultiplier;
-        this.slotGranularity = slotGranularity;
+        this.lambda = checkNotNull(lambda);
     }
 
     /**
@@ -106,39 +87,12 @@ public class OchPortDescription extends DefaultPortDescription {
     }
 
     /**
-     * Returns grid type.
+     * Returns OCh signal.
      *
-     * @return grid type
+     * @return OCh signal
      */
-    public GridType gridType() {
-        return gridType;
-    }
-
-    /**
-     * Returns channel spacing.
-     *
-     * @return channel spacing
-     */
-    public ChannelSpacing channelSpacing() {
-        return channelSpacing;
-    }
-
-    /**
-     * Returns channel spacing multiplier.
-     *
-     * @return channel spacing multiplier
-     */
-    public int spacingMultiplier() {
-        return spacingMultiplier;
-    }
-
-    /**
-     * Returns slot width granularity.
-     *
-     * @return slot width granularity
-     */
-    public int slotGranularity() {
-        return slotGranularity;
+    public OchSignal lambda() {
+        return lambda;
     }
 
     @Override
@@ -149,10 +103,7 @@ public class OchPortDescription extends DefaultPortDescription {
                 .add("type", type())
                 .add("signalType", signalType)
                 .add("isTunable", isTunable)
-                .add("gridType", gridType)
-                .add("channelSpacing", channelSpacing)
-                .add("spacingMultiplier", spacingMultiplier)
-                .add("slotGranularity", slotGranularity)
+                .add("lambda", lambda)
                 .add("annotations", annotations())
                 .toString();
     }

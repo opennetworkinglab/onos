@@ -1035,8 +1035,7 @@ public class GossipDeviceStore
             case OCH:
                 OchPortDescription ochPortDesc = (OchPortDescription) portDesc.value();
                 return new OchPort(device, number, isEnabled, ochPortDesc.signalType(),
-                        ochPortDesc.isTunable(), ochPortDesc.gridType(), ochPortDesc.channelSpacing(),
-                        ochPortDesc.spacingMultiplier(), ochPortDesc.slotGranularity(), annotations);
+                        ochPortDesc.isTunable(), ochPortDesc.lambda(), annotations);
             case ODUCLT:
                 OduCltPortDescription oduCltPortDesc = (OduCltPortDescription) portDesc.value();
                 return new OduCltPort(device, number, isEnabled, oduCltPortDesc.signalType(), annotations);

@@ -20,6 +20,7 @@ import org.onlab.util.Frequency;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of OCh port (Optical Channel).
@@ -33,38 +34,25 @@ public class OchPort extends DefaultPort {
 
     private final OduSignalType signalType;
     private final boolean isTunable;
-    private final GridType gridType;
-    private final ChannelSpacing channelSpacing;
-    // Frequency = 193.1 THz + spacingMultiplier * channelSpacing
-    private final int spacingMultiplier;
-    // Slot width = slotGranularity * 12.5 GHz
-    private final int slotGranularity;
-
+    private final OchSignal lambda;
 
     /**
      * Creates an OCh port in the specified network element.
      *
-     * @param element               parent network element
-     * @param number                port number
-     * @param isEnabled             port enabled state
-     * @param signalType            ODU signal type
-     * @param isTunable             maximum frequency in MHz
-     * @param gridType              grid type
-     * @param channelSpacing        channel spacing
-     * @param spacingMultiplier     channel spacing multiplier
-     * @param slotGranularity       slot width granularity
-     * @param annotations           optional key/value annotations
+     * @param element     parent network element
+     * @param number      port number
+     * @param isEnabled   port enabled state
+     * @param signalType  ODU signal type
+     * @param isTunable   maximum frequency in MHz
+     * @param lambda      OCh signal
+     * @param annotations optional key/value annotations
      */
     public OchPort(Element element, PortNumber number, boolean isEnabled, OduSignalType signalType,
-                   boolean isTunable, GridType gridType, ChannelSpacing channelSpacing,
-                   int spacingMultiplier, int slotGranularity, Annotations... annotations) {
+                   boolean isTunable, OchSignal lambda, Annotations... annotations) {
         super(element, number, isEnabled, Type.OCH, 0, annotations);
         this.signalType = signalType;
         this.isTunable = isTunable;
-        this.gridType = gridType;
-        this.channelSpacing = channelSpacing;
-        this.spacingMultiplier = spacingMultiplier;
-        this.slotGranularity = slotGranularity;
+        this.lambda = checkNotNull(lambda);
     }
 
     /**
@@ -86,63 +74,17 @@ public class OchPort extends DefaultPort {
     }
 
     /**
-     * Returns grid type.
+     * Returns OCh signal.
      *
-     * @return grid type
+     * @return OCh signal
      */
-    public GridType gridType() {
-        return gridType;
-    }
-
-    /**
-     * Returns channel spacing.
-     *
-     * @return channel spacing
-     */
-    public ChannelSpacing channelSpacing() {
-        return channelSpacing;
-    }
-
-    /**
-     * Returns spacing multiplier.
-     *
-     * @return spacing multiplier
-     */
-    public int spacingMultiplier() {
-        return spacingMultiplier;
-    }
-
-    /**
-     * Returns slow width granularity.
-     *
-     * @return slow width granularity
-     */
-    public int slotGranularity() {
-        return slotGranularity;
-    }
-
-    /**
-     * Returns central frequency in MHz.
-     *
-     * @return frequency in MHz
-     */
-    public Frequency centralFrequency() {
-        return CENTER_FREQUENCY.add(channelSpacing().frequency().multiply(spacingMultiplier));
-    }
-
-    /**
-     * Returns slot width.
-     *
-     * @return slot width
-     */
-    public Frequency slotWidth() {
-        return FLEX_GRID_SLOT.multiply(slotGranularity);
+    public OchSignal lambda() {
+        return lambda;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(number(), isEnabled(), type(), signalType, isTunable,
-                gridType, channelSpacing, spacingMultiplier, slotGranularity, annotations());
+        return Objects.hash(number(), isEnabled(), type(), signalType, isTunable, lambda, annotations());
     }
 
     @Override
@@ -157,10 +99,7 @@ public class OchPort extends DefaultPort {
                     Objects.equals(this.isEnabled(), other.isEnabled()) &&
                     Objects.equals(this.signalType, other.signalType) &&
                     Objects.equals(this.isTunable, other.isTunable) &&
-                    Objects.equals(this.gridType, other.gridType) &&
-                    Objects.equals(this.channelSpacing, other.channelSpacing) &&
-                    Objects.equals(this.spacingMultiplier, other.spacingMultiplier) &&
-                    Objects.equals(this.slotGranularity, other.slotGranularity) &&
+                    Objects.equals(this.lambda, other.lambda) &&
                     Objects.equals(this.annotations(), other.annotations());
         }
         return false;
@@ -175,10 +114,7 @@ public class OchPort extends DefaultPort {
                 .add("type", type())
                 .add("signalType", signalType)
                 .add("isTunable", isTunable)
-                .add("gridType", gridType)
-                .add("channelSpacing", channelSpacing)
-                .add("spacingMultiplier", spacingMultiplier)
-                .add("slotGranularity", slotGranularity)
+                .add("lambda", lambda)
                 .toString();
     }
 }

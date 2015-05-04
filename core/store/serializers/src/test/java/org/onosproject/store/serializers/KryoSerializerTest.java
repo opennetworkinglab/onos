@@ -44,6 +44,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.OchPort;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.PortNumber;
@@ -121,6 +122,8 @@ public class KryoSerializerTest {
             .remove("A1")
             .set("B3", "b3")
             .build();
+    private static final OchSignal OCH_SIGNAL1 = (OchSignal) org.onosproject.net.Lambda.ochSignal(
+            GridType.DWDM, ChannelSpacing.CHL_100GHZ, -8, 4);
 
     private KryoSerializer serializer;
 
@@ -193,10 +196,8 @@ public class KryoSerializerTest {
 
     @Test
     public void testOchPort() {
-        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, GridType.DWDM,
-                ChannelSpacing.CHL_100GHZ, -8, 4));
-        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, GridType.DWDM,
-                ChannelSpacing.CHL_100GHZ, -8, 4, A1_2));
+        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, OCH_SIGNAL1));
+        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, OCH_SIGNAL1, A1_2));
     }
 
     @Test
