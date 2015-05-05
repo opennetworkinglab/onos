@@ -69,7 +69,7 @@ public interface TrafficTreatment {
     /**
      * Builder of traffic treatment entities.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Adds an instruction to the builder.
@@ -84,14 +84,14 @@ public interface TrafficTreatment {
          *
          * @return a treatment builder
          */
-        public Builder drop();
+        Builder drop();
 
         /**
          * Adds a punt-to-controller instruction.
          *
          * @return a treatment builder
          */
-        public Builder punt();
+        Builder punt();
 
         /**
          * Set the output port.
@@ -99,7 +99,7 @@ public interface TrafficTreatment {
          * @param number the out port
          * @return a treatment builder
          */
-        public Builder setOutput(PortNumber number);
+        Builder setOutput(PortNumber number);
 
         /**
          * Sets the src l2 address.
@@ -107,7 +107,7 @@ public interface TrafficTreatment {
          * @param addr a macaddress
          * @return a treatment builder
          */
-        public Builder setEthSrc(MacAddress addr);
+        Builder setEthSrc(MacAddress addr);
 
         /**
          * Sets the dst l2 address.
@@ -115,7 +115,7 @@ public interface TrafficTreatment {
          * @param addr a macaddress
          * @return a treatment builder
          */
-        public Builder setEthDst(MacAddress addr);
+        Builder setEthDst(MacAddress addr);
 
         /**
          * Sets the vlan id.
@@ -123,7 +123,7 @@ public interface TrafficTreatment {
          * @param id a vlanid
          * @return a treatment builder
          */
-        public Builder setVlanId(VlanId id);
+        Builder setVlanId(VlanId id);
 
         /**
          * Sets the vlan priority.
@@ -131,7 +131,7 @@ public interface TrafficTreatment {
          * @param pcp a vlan priority
          * @return a treatment builder
          */
-        public Builder setVlanPcp(Byte pcp);
+        Builder setVlanPcp(Byte pcp);
 
         /**
          * Sets the src l3 address.
@@ -139,7 +139,7 @@ public interface TrafficTreatment {
          * @param addr an ip
          * @return a treatment builder
          */
-        public Builder setIpSrc(IpAddress addr);
+        Builder setIpSrc(IpAddress addr);
 
         /**
          * Sets the dst l3 address.
@@ -147,42 +147,42 @@ public interface TrafficTreatment {
          * @param addr an ip
          * @return a treatment builder
          */
-        public Builder setIpDst(IpAddress addr);
+        Builder setIpDst(IpAddress addr);
 
         /**
          * Decrement the TTL in IP header by one.
          *
          * @return a treatment builder
          */
-        public Builder decNwTtl();
+        Builder decNwTtl();
 
         /**
          * Copy the TTL to outer protocol layer.
          *
          * @return a treatment builder
          */
-        public Builder copyTtlOut();
+        Builder copyTtlOut();
 
         /**
          * Copy the TTL to inner protocol layer.
          *
          * @return a treatment builder
          */
-        public Builder copyTtlIn();
+        Builder copyTtlIn();
 
         /**
          * Push MPLS ether type.
          *
          * @return a treatment builder.
          */
-        public Builder pushMpls();
+        Builder pushMpls();
 
         /**
          * Pops MPLS ether type.
          *
          * @return a treatment builder.
          */
-        public Builder popMpls();
+        Builder popMpls();
 
         /**
          * Pops MPLS ether type and set the new ethertype.
@@ -190,7 +190,7 @@ public interface TrafficTreatment {
          * @param etherType an ether type
          * @return a treatment builder.
          */
-        public Builder popMpls(Short etherType);
+        Builder popMpls(Short etherType);
 
         /**
          * Sets the mpls label.
@@ -198,14 +198,14 @@ public interface TrafficTreatment {
          * @param mplsLabel MPLS label.
          * @return a treatment builder.
          */
-        public Builder setMpls(MplsLabel mplsLabel);
+        Builder setMpls(MplsLabel mplsLabel);
 
         /**
          * Decrement MPLS TTL.
          *
          * @return a treatment builder
          */
-        public Builder decMplsTtl();
+        Builder decMplsTtl();
 
         /**
          * Sets the optical channel ID or lambda.
@@ -213,7 +213,7 @@ public interface TrafficTreatment {
          * @param lambda optical channel ID
          * @return a treatment builder
          */
-        public Builder setLambda(short lambda);
+        Builder setLambda(short lambda);
 
         /**
          * Sets the group ID.
@@ -221,7 +221,7 @@ public interface TrafficTreatment {
          * @param groupId group ID
          * @return a treatment builder
          */
-        public Builder group(GroupId groupId);
+        Builder group(GroupId groupId);
 
 
         /**
@@ -231,7 +231,7 @@ public interface TrafficTreatment {
          * @return a treatement builder
          */
         @Deprecated
-        public Builder transition(FlowRule.Type type);
+        Builder transition(FlowRule.Type type);
 
         /**
          * Sets the next table id to transition to.
@@ -239,7 +239,7 @@ public interface TrafficTreatment {
          * @param tableId the table table
          * @return a treatement builder
          */
-        public Builder transition(Integer tableId);
+        Builder transition(Integer tableId);
 
 
         /**
@@ -247,33 +247,33 @@ public interface TrafficTreatment {
          *
          * @return a treatment builder.
          */
-        public Builder popVlan();
+        Builder popVlan();
 
         /**
          * Pushes a new VLAN tag.
          *
          * @return a treatment builder.
          */
-        public Builder pushVlan();
+        Builder pushVlan();
 
         /**
          * Any instructions preceded by this method call will be deferred.
          * @return a treatment builder
          */
-        public Builder deferred();
+        Builder deferred();
 
         /**
          * Any instructions preceded by this method call will be immediate.
          * @return a treatment builder
          */
-        public Builder immediate();
+        Builder immediate();
 
 
         /**
          * Instructs the device to clear the deferred instructions set.
          * @return a treatment builder
          */
-        public Builder wipeDeferred();
+        Builder wipeDeferred();
 
         /**
          * Builds an immutable traffic treatment descriptor.
