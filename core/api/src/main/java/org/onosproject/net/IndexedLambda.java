@@ -22,20 +22,29 @@ import com.google.common.base.MoreObjects;
  */
 public class IndexedLambda implements Lambda {
 
-    private final long lambda;
+    private final long index;
 
     /**
      * Creates an instance representing the wavelength specified by the given index number.
      *
-     * @param lambda index number of wavelength
+     * @param index index number of wavelength
      */
-    IndexedLambda(long lambda) {
-        this.lambda = lambda;
+    IndexedLambda(long index) {
+        this.index = index;
+    }
+
+    /**
+     * Returns the index number of lambda.
+     *
+     * @return the index number of lambda
+     */
+    public long index() {
+        return index;
     }
 
     @Override
     public int hashCode() {
-        return (int) (lambda ^ (lambda >>> 32));
+        return (int) (index ^ (index >>> 32));
     }
 
     @Override
@@ -48,13 +57,13 @@ public class IndexedLambda implements Lambda {
         }
 
         final IndexedLambda that = (IndexedLambda) obj;
-        return this.lambda == that.lambda;
+        return this.index == that.index;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("lambda", lambda)
+                .add("lambda", index)
                 .toString();
     }
 }

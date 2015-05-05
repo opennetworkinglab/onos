@@ -21,10 +21,13 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.IndexedLambda;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
@@ -81,7 +84,9 @@ public final class Instructions {
      *
      * @param lambda the lambda to modify to
      * @return a l0 modification
+     * @deprecated in Cardinal Release. Use {@link #modL0Lambda(Lambda)} instead.
      */
+    @Deprecated
     public static L0ModificationInstruction modL0Lambda(short lambda) {
         checkNotNull(lambda, "L0 lambda cannot be null");
         return new ModLambdaInstruction(L0SubType.LAMBDA, lambda);
@@ -93,9 +98,16 @@ public final class Instructions {
      * @param lambda OCh signal
      * @return an L0 modification
      */
-    public static L0ModificationInstruction modL0OchSignal(OchSignal lambda) {
+    public static L0ModificationInstruction modL0Lambda(Lambda lambda) {
         checkNotNull(lambda, "L0 OCh signal cannot be null");
-        return new L0ModificationInstruction.ModOchSignalInstruction(lambda);
+
+        if (lambda instanceof IndexedLambda) {
+            return new ModLambdaInstruction(L0SubType.LAMBDA, (short) ((IndexedLambda) lambda).index());
+        } else if (lambda instanceof OchSignal) {
+            return new ModOchSignalInstruction((OchSignal) lambda);
+        } else {
+            throw new UnsupportedOperationException(String.format("Unsupported type: %s", lambda));
+        }
     }
 
     /**
