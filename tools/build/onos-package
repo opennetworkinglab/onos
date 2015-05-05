@@ -51,12 +51,12 @@ sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
 
 # Stage the ONOS bundles, but only those that match the version
 mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
-find $M2_REPO/org/onosproject/ -type d -name $ONOS_POM_VERSION | while read line; do
-    path=${line#*/onosproject/}
-    artifact=${path%/$ONOS_POM_VERSION}
-    mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject/$artifact
-    cp -r $M2_REPO/org/onosproject/$artifact/$ONOS_POM_VERSION \
-        $ONOS_STAGE/$KARAF_DIST/system/org/onosproject/$artifact/$ONOS_POM_VERSION
+find $M2_REPO/org/onosproject -type f -path "*/$ONOS_POM_VERSION/*" \
+    -name '*.jar' -o -name '*.pom' -o -name 'features.xml' \
+        | grep -v -e '-tests.jar' | while read src; do
+    dst=$ONOS_STAGE/$KARAF_DIST/system/${src#$M2_REPO/*}
+    mkdir -p $(dirname $dst)
+    cp $src $dst
 done
 
 # ONOS Patching ----------------------------------------------------------------
@@ -82,5 +82,5 @@ cd $ONOS_STAGE_ROOT
 rm -f $ONOS_TAR $ONOS_ZIP
 COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
 which zip >/dev/null && zip -rq $ONOS_ZIP $ONOS_BITS
-ls -l $ONOS_TAR $ONOS_ZIP 2>/dev/null
+which zip >/dev/null && ls -l $ONOS_TAR $ONOS_ZIP || ls -l $ONOS_TAR
 rm -r $ONOS_STAGE
