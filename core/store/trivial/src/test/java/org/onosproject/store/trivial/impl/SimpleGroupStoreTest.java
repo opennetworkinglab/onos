@@ -21,6 +21,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -112,7 +113,7 @@ public class SimpleGroupStoreTest {
                              createdBuckets.buckets().
                              containsAll(event.subject().buckets().buckets()));
                 for (GroupBucket bucket:event.subject().buckets().buckets()) {
-                    java.util.Optional<GroupBucket> matched = createdBuckets.buckets()
+                    Optional<GroupBucket> matched = createdBuckets.buckets()
                             .stream()
                             .filter((expected) -> expected.equals(bucket))
                             .findFirst();

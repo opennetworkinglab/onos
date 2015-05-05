@@ -21,6 +21,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -418,7 +419,7 @@ public class SimpleGroupStore
         if (existing != null) {
             synchronized (existing) {
                 for (GroupBucket bucket:group.buckets().buckets()) {
-                    java.util.Optional<GroupBucket> matchingBucket =
+                    Optional<GroupBucket> matchingBucket =
                             existing.buckets().buckets()
                             .stream()
                             .filter((existingBucket)->(existingBucket.equals(bucket)))

@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.group.impl;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 
@@ -78,6 +77,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -628,7 +628,7 @@ public class DistributedGroupStore
                     group.deviceId());
             synchronized (existing) {
                 for (GroupBucket bucket:group.buckets().buckets()) {
-                    java.util.Optional<GroupBucket> matchingBucket =
+                    Optional<GroupBucket> matchingBucket =
                             existing.buckets().buckets()
                             .stream()
                             .filter((existingBucket)->(existingBucket.equals(bucket)))
