@@ -485,13 +485,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.17</version>
+                    <version>2.18.1</version>
                     <configuration>
-                        <redirectTestOutputToFile>true
-                        </redirectTestOutputToFile>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <printSummary>true</printSummary>
-                        <excludedGroups>org.onlab.junit.IntegrationTest
-                        </excludedGroups>
+                        <excludedGroups>org.onlab.junit.IntegrationTest</excludedGroups>
+                        <rerunFailingTestsCount>1</rerunFailingTestsCount>
                     </configuration>
                 </plugin>
 
