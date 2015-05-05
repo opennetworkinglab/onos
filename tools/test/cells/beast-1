@@ -9,4 +9,4 @@ export OCT=10.254.1.200
 # Use the 1G NICs for external access
 export OC1=10.254.1.201
 
-export ONOS_APPS=null,intentperf
+export ONOS_APPS="drivers,null,intentperf"

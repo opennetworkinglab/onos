@@ -11,4 +11,4 @@ export OC1=10.254.1.201
 export OC2=10.254.1.202
 export OC3=10.254.1.203
 
-export ONOS_APPS=null,intentperf
+export ONOS_APPS="drivers,null,intentperf"
