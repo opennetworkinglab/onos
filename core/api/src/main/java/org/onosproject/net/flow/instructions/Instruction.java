@@ -60,9 +60,6 @@ public interface Instruction {
         L3MODIFICATION
     }
 
-    // TODO: Create factory class 'Instructions' that will have various factory
-    // to create specific instructions.
-
     /**
      * Returns the type of instruction.
      * @return type of instruction
