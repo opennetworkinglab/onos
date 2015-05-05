@@ -15,6 +15,8 @@
  */
 package org.onosproject.cli.net;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import static com.google.common.collect.Lists.newArrayList;
-
 /**
- * Lists all currently-known hosts.
+ * Lists all currently-known flows.
  */
 @Command(scope = "onos", name = "flows",
          description = "Lists all currently-known flows.")
@@ -50,7 +50,7 @@ public class FlowsListCommand extends AbstractShellCommand {
     public static final String ANY = "any";
 
     private static final String FMT =
-            "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s, tableId=%s, timeout=%s, appId=%s";
+            "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s, tableId=%s appId=%s, payLoad=%s";
     private static final String TFMT = "      treatment=%s";
     private static final String SFMT = "      selector=%s";
 
@@ -156,7 +156,8 @@ public class FlowsListCommand extends AbstractShellCommand {
             for (FlowEntry f : flows) {
                 print(FMT, Long.toHexString(f.id().value()), f.state(),
                       f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
-                      f.timeout(), coreService.getAppId(f.appId()).name());
+                      coreService.getAppId(f.appId()).name(),
+                      f.payLoad() == null ? null : f.payLoad().payLoad().toString());
                 print(SFMT, f.selector().criteria());
                 print(TFMT, f.treatment());
             }
