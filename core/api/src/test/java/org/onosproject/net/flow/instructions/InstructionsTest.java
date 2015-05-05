@@ -16,6 +16,9 @@
 package org.onosproject.net.flow.instructions;
 
 import org.junit.Test;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -90,6 +93,7 @@ public class InstructionsTest {
         assertThatClassIsImmutable(Instructions.DropInstruction.class);
         assertThatClassIsImmutable(Instructions.OutputInstruction.class);
         assertThatClassIsImmutable(L0ModificationInstruction.ModLambdaInstruction.class);
+        assertThatClassIsImmutable(L0ModificationInstruction.ModOchSignalInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModEtherInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanPcpInstruction.class);
@@ -195,7 +199,6 @@ public class InstructionsTest {
         assertThat(lambdaInstruction.lambda(), is(equalTo(lambda1)));
     }
 
-
     /**
      * Test the equals() method of the ModLambdaInstruction class.
      */
@@ -216,7 +219,42 @@ public class InstructionsTest {
         assertThat(lambdaInstruction1.hashCode(),
                    is(equalTo(sameAsLambdaInstruction1.hashCode())));
         assertThat(lambdaInstruction1.hashCode(),
-                   is(not(equalTo(lambdaInstruction2.hashCode()))));
+                is(not(equalTo(lambdaInstruction2.hashCode()))));
+    }
+
+    private final Lambda och1 = Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8);
+    private final Lambda och2 = Lambda.ochSignal(GridType.CWDM, ChannelSpacing.CHL_100GHZ, 4, 8);
+    private final Instruction ochInstruction1 = Instructions.modL0Lambda(och1);
+    private final Instruction sameAsOchInstruction1 = Instructions.modL0Lambda(och1);
+    private final Instruction ochInstruction2 = Instructions.modL0Lambda(och2);
+
+    /**
+     * Test the modL0Lambda().
+     */
+    @Test
+    public void testModL0LambdaMethod() {
+        Instruction instruction = Instructions.modL0Lambda(och1);
+        L0ModificationInstruction.ModOchSignalInstruction ochInstruction =
+                checkAndConvert(instruction, Instruction.Type.L0MODIFICATION,
+                        L0ModificationInstruction.ModOchSignalInstruction.class);
+        assertThat(ochInstruction.lambda(), is(och1));
+    }
+
+    /**
+     * Test the equals() method of the ModOchSignalInstruction class.
+     */
+    @Test
+    public void testModOchSignalInstructionEquals() {
+        checkEqualsAndToString(ochInstruction1, sameAsOchInstruction1, ochInstruction2);
+    }
+
+    /**
+     * Test the hashCode() method of the ModOchSignalInstruction class.
+     */
+    @Test
+    public void testModOchSignalInstructionHashCode() {
+        assertThat(ochInstruction1.hashCode(), is(sameAsOchInstruction1.hashCode()));
+        assertThat(ochInstruction1.hashCode(), is(not(ochInstruction2.hashCode())));
     }
 
     //  ModEtherInstruction
