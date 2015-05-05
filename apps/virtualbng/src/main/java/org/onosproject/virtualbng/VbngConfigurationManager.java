@@ -112,7 +112,8 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     // TODO handle the case: the number of public IP addresses is not enough
     // for 1:1 mapping from public IP to private IP.
     @Override
-    public IpAddress getAvailablePublicIpAddress(IpAddress privateIpAddress) {
+    public synchronized IpAddress getAvailablePublicIpAddress(IpAddress
+                                                           privateIpAddress) {
         // If there is already a mapping entry for the private IP address,
         // then fetch the public IP address in the mapping entry and return it.
         IpAddress publicIpAddress = ipAddressMap.get(privateIpAddress);

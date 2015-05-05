@@ -47,10 +47,8 @@ public class VbngResource extends BaseResource {
         VbngService vbngService = get(VbngService.class);
 
         IpAddress publicIpAddress = null;
-        synchronized (this) {
-            // Create a virtual BNG
-            publicIpAddress = vbngService.createVbng(privateIpAddress);
-        }
+        // Create a virtual BNG
+        publicIpAddress = vbngService.createVbng(privateIpAddress);
 
         if (publicIpAddress != null) {
             return publicIpAddress.toString();
