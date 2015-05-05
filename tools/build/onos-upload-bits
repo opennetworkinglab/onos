@@ -6,7 +6,6 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 #FIXME need to export s3Creds
-#FIXME verify that ONOS_VERSION is set
+#TODO we could verify that ONOS_VERSION is set, and only upload that version
 
-# upload to EC2
-upload-to-s3 -d release/ /tmp/onos-$ONOS_VERSION.*
+python onosUploadBits.py

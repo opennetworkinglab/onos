@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Upload a file to S3
 """
@@ -13,7 +12,7 @@ from boto.s3.key import Key
 from boto.s3.connection import S3Connection
 
 
-def uploadFile( bucket, filename, dest=None ):
+def uploadFile( filename, dest=None, bucket=None, overwrite=False ):
     "Upload a file to a bucket"
     if not bucket:
         bucket = 'onos'
@@ -37,10 +36,13 @@ def uploadFile( bucket, filename, dest=None ):
     bucket = conn.get_bucket( bucket )
     k = Key( bucket )
     k.key = key
-    k.set_contents_from_filename( filename, cb=callback, num_cb=100 )
-    print
-    elapsed = time() - start
-    print "* elapsed time: %.2f seconds" % elapsed
+    if overwrite or not k.exists():
+        k.set_contents_from_filename( filename, cb=callback, num_cb=100 )
+        print
+        elapsed = time() - start
+        print "* elapsed time: %.2f seconds" % elapsed
+    else:
+        print 'file', basename( filename ), 'already exists in', bucket.name
 
 if __name__ == '__main__':
     usage = "Usage: %prog [options] <file to upload>"
@@ -53,11 +55,13 @@ if __name__ == '__main__':
                       help="Bucket on S3")
     parser.add_option("-s", "--secret", dest="awsSecret",
                       help="Bucket on S3")
+    parser.add_option("-f", "--force", dest="overwrite",
+                      help="Overwrite existing file")
     (options, args) = parser.parse_args()
     
     if len( args ) == 0:
         parser.error("missing filenames")
     for file in args:
-        uploadFile( options.bucket, file, options.dest )
+        uploadFile( file, options.dest, options.bucket, options.overwrite )
 
     #FIXME key and secret are unused
