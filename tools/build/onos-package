@@ -53,7 +53,8 @@ sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
 mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
 find $M2_REPO/org/onosproject -type f -path "*/$ONOS_POM_VERSION/*" \
     -name '*.jar' -o -name '*.pom' -o -name 'features.xml' \
-        | grep -v -e '-tests.jar' | while read src; do
+        | grep -v -Ee '-tests.jar|-[0-9]{8}.[0-9]{6}-' \
+        | while read src; do
     dst=$ONOS_STAGE/$KARAF_DIST/system/${src#$M2_REPO/*}
     mkdir -p $(dirname $dst)
     cp $src $dst
