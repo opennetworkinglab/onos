@@ -254,6 +254,7 @@ public class LinkResourceManager implements LinkResourceService {
                 break;
             case MPLS_LABEL:
                 result.add(new MplsLabelResourceRequest());
+                break;
             default:
                 break;
             }
