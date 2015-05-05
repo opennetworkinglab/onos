@@ -21,6 +21,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
@@ -84,6 +85,17 @@ public final class Instructions {
     public static L0ModificationInstruction modL0Lambda(short lambda) {
         checkNotNull(lambda, "L0 lambda cannot be null");
         return new ModLambdaInstruction(L0SubType.LAMBDA, lambda);
+    }
+
+    /**
+     * Creates an L0 modification with the specified OCh signal.
+     *
+     * @param lambda OCh signal
+     * @return an L0 modification
+     */
+    public static L0ModificationInstruction modL0OchSignal(OchSignal lambda) {
+        checkNotNull(lambda, "L0 OCh signal cannot be null");
+        return new L0ModificationInstruction.ModOchSignalInstruction(lambda);
     }
 
     /**

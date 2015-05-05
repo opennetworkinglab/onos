@@ -15,6 +15,9 @@
  */
 package org.onosproject.net.flow.instructions;
 
+import com.google.common.base.MoreObjects;
+import org.onosproject.net.OchSignal;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
@@ -28,9 +31,11 @@ public abstract class L0ModificationInstruction implements Instruction {
         /**
          * Lambda modification.
          */
-        LAMBDA
-
-        //TODO: remaining types
+        LAMBDA,
+        /**
+         * OCh (Optical Channel) modification.
+         */
+        OCH,
     }
 
     public abstract L0SubType subtype();
@@ -84,6 +89,51 @@ public abstract class L0ModificationInstruction implements Instruction {
                         Objects.equals(subtype, that.subtype);
             }
             return false;
+        }
+    }
+
+    /**
+     * Represents an L0 OCh (Optical Channel) modification instruction.
+     */
+    public static final class ModOchSignalInstruction extends L0ModificationInstruction {
+
+        private final OchSignal lambda;
+
+        ModOchSignalInstruction(OchSignal lambda) {
+            this.lambda = lambda;
+        }
+
+        @Override
+        public L0SubType subtype() {
+            return L0SubType.OCH;
+        }
+
+        public OchSignal lambda() {
+            return lambda;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(lambda);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof ModOchSignalInstruction)) {
+                return false;
+            }
+            final ModOchSignalInstruction that = (ModOchSignalInstruction) obj;
+            return Objects.equals(this.lambda, that.lambda);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                    .add("lambda", lambda)
+                    .toString();
         }
     }
 }
