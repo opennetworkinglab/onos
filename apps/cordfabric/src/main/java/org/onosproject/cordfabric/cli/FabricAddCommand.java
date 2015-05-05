@@ -21,6 +21,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordfabric.FabricService;
+import org.onosproject.cordfabric.FabricVlan;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.ArrayList;
@@ -58,6 +59,6 @@ public class FabricAddCommand extends AbstractShellCommand {
             ports.add(ConnectPoint.deviceConnectPoint(portString));
         }
 
-        service.addVlan(vlan, ports);
+        service.addVlan(new FabricVlan(vlan, ports));
     }
 }

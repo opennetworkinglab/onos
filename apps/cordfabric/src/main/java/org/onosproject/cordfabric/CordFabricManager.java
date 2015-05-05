@@ -18,7 +18,6 @@ package org.onosproject.cordfabric;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,6 +43,7 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -85,18 +85,17 @@ public class CordFabricManager implements FabricService {
     }
 
     @Override
-    public void addVlan(VlanId vlanId, List<ConnectPoint> ports) {
-        checkNotNull(vlanId);
-        checkNotNull(ports);
-        checkArgument(ports.size() > 1);
-        verifyPorts(ports);
+    public void addVlan(FabricVlan vlan) {
+        checkNotNull(vlan);
+        checkArgument(vlan.ports().size() > 1);
+        verifyPorts(vlan.ports());
 
-        removeVlan(vlanId);
+        removeVlan(vlan.vlan());
 
-        ports.forEach(cp -> {
-            if (vlans.put(vlanId, cp)) {
-                addForwarding(vlanId, cp.deviceId(), cp.port(),
-                              ports.stream()
+        vlan.ports().forEach(cp -> {
+            if (vlans.put(vlan.vlan(), cp)) {
+                addForwarding(vlan.vlan(), cp.deviceId(), cp.port(),
+                              vlan.ports().stream()
                                       .filter(p -> p != cp)
                                       .map(ConnectPoint::port)
                                       .collect(Collectors.toList()));
@@ -111,8 +110,11 @@ public class CordFabricManager implements FabricService {
     }
 
     @Override
-    public Multimap<VlanId, ConnectPoint> getVlans() {
-        return Multimaps.unmodifiableMultimap(vlans);
+    public List<FabricVlan> getVlans() {
+        List<FabricVlan> fVlans = new ArrayList<>();
+        vlans.keySet().forEach(vlan -> fVlans.add(
+                new FabricVlan(vlan, vlans.get(vlan))));
+        return fVlans;
     }
 
     private static void verifyPorts(List<ConnectPoint> ports) {

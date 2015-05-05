@@ -16,12 +16,12 @@
 
 package org.onosproject.cordfabric.cli;
 
-import com.google.common.collect.Multimap;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordfabric.FabricService;
-import org.onosproject.net.ConnectPoint;
+import org.onosproject.cordfabric.FabricVlan;
+
+import java.util.List;
 
 /**
  * Shows the vlans in the fabric.
@@ -37,11 +37,11 @@ public class FabricShowCommand extends AbstractShellCommand {
     protected void execute() {
         FabricService service = AbstractShellCommand.get(FabricService.class);
 
-        Multimap<VlanId, ConnectPoint> vlans = service.getVlans();
+        List<FabricVlan> vlans = service.getVlans();
 
-        vlans.keySet().forEach(vlanId -> {
-            print(VLAN_HEADER_LINE_FORMAT, vlanId);
-            vlans.get(vlanId).forEach(cp -> print(PORT_LINE_FORMAT, cp));
+        vlans.forEach(fabricVlan -> {
+            print(VLAN_HEADER_LINE_FORMAT, fabricVlan.vlan());
+            fabricVlan.ports().forEach(cp -> print(PORT_LINE_FORMAT, cp));
         });
     }
 }

@@ -16,35 +16,36 @@
 
 package org.onosproject.cordfabric;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.ConnectPoint;
 
+import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Service used to interact with fabric.
+ * Vlan which spans multiple fabric ports.
  */
-public interface FabricService {
+public class FabricVlan {
 
-    /**
-     * Remaps a vlan to the specified ports. The specified ports will be the
-     * only ports in this vlan once the operation completes.
-     *
-     * @param vlan vlan object to add
-     */
-    void addVlan(FabricVlan vlan);
+    private final VlanId vlan;
 
-    /**
-     * Removes a vlan from all ports in the fabric.
-     *
-     * @param vlanId ID of vlan to remove
-     */
-    void removeVlan(VlanId vlanId);
+    private final List<ConnectPoint> ports;
 
-    /**
-     * Returns the vlan to port mapping for all vlans/ports configured in the
-     * fabric.
-     *
-     * @return mapping of vlan to port
-     */
-    List<FabricVlan> getVlans();
+    public FabricVlan(VlanId vlan, Collection<ConnectPoint> ports) {
+        checkNotNull(vlan);
+        checkNotNull(ports);
+        this.vlan = vlan;
+        this.ports = ImmutableList.copyOf(ports);
+    }
+
+    public VlanId vlan() {
+        return vlan;
+    }
+
+    public List<ConnectPoint> ports() {
+        return ports;
+    }
 }
