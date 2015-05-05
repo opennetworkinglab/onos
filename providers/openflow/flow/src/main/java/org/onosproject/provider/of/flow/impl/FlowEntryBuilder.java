@@ -445,6 +445,7 @@ public class FlowEntryBuilder {
         }
     }
 
+    // CHECKSTYLE IGNORE MethodLength FOR NEXT 1 LINES
     private TrafficSelector buildSelector() {
         MacAddress mac;
         Ip4Prefix ip4Prefix;
@@ -551,6 +552,7 @@ public class FlowEntryBuilder {
                 break;
             case UDP_DST:
                 builder.matchUdpDst((short) match.get(MatchField.UDP_DST).getPort());
+                break;
             case MPLS_LABEL:
                 builder.matchMplsLabel(MplsLabel.mplsLabel((int) match.get(MatchField.MPLS_LABEL)
                                             .getValue()));
