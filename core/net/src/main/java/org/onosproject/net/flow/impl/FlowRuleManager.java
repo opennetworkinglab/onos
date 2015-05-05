@@ -400,7 +400,7 @@ public class FlowRuleManager
                             extraneousFlow(rule);
                         }
                     }
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     log.debug("Can't process added or extra rule {}", e.getMessage());
                     continue;
                 }
@@ -409,7 +409,7 @@ public class FlowRuleManager
                 try {
                     // there are rules in the store that aren't on the switch
                     flowMissing(rule);
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     log.debug("Can't add missing flow rule {}", e.getMessage());
                     continue;
                 }

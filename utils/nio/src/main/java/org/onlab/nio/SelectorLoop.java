@@ -103,7 +103,7 @@ public abstract class SelectorLoop implements Runnable {
         state = State.STARTING;
         try {
             loop();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             error = e;
             log.error("Loop aborted", e);
         }

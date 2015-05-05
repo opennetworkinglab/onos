@@ -102,8 +102,8 @@ public class NettyMessagingManager implements MessagingService {
             serverChannelClass = EpollServerSocketChannel.class;
             clientChannelClass = EpollSocketChannel.class;
             return;
-        } catch (Throwable t) {
-            log.warn("Failed to initialize native (epoll) transport. Reason: {}. Proceeding with nio.", t.getMessage());
+        } catch (Exception e) {
+            log.warn("Failed to initialize native (epoll) transport. Reason: {}. Proceeding with nio.", e.getMessage());
         }
         clientGroup = new NioEventLoopGroup();
         serverGroup = new NioEventLoopGroup();
