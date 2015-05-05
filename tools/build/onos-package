@@ -63,7 +63,7 @@ done
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
 perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
-    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg 
+    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 
 # Patch the Apache Karaf distribution file to load default ONOS boot features
 export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui"
@@ -82,5 +82,5 @@ cd $ONOS_STAGE_ROOT
 rm -f $ONOS_TAR $ONOS_ZIP
 COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
 which zip >/dev/null && zip -rq $ONOS_ZIP $ONOS_BITS
-which zip >/dev/null && ls -l $ONOS_TAR $ONOS_ZIP || ls -l $ONOS_TAR
+which zip >/dev/null && ls -lh $ONOS_TAR $ONOS_ZIP || ls -lh $ONOS_TAR
 rm -r $ONOS_STAGE
