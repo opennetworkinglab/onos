@@ -463,8 +463,8 @@ public class DistributedGroupStore
                                        GroupBuckets newBuckets,
                                        GroupKey newAppCookie) {
         // Check if group update to be done by a remote instance
-        if (mastershipService.
-                getLocalRole(deviceId) != MastershipRole.MASTER) {
+        if (mastershipService.getMasterFor(deviceId) != null &&
+                mastershipService.getLocalRole(deviceId) != MastershipRole.MASTER) {
             GroupStoreMessage groupOp = GroupStoreMessage.
                     createGroupUpdateRequestMsg(deviceId,
                                                 oldAppCookie,

@@ -124,8 +124,11 @@ public class DefaultRoutingHandler {
         synchronized (populationStatus) {
 
             if (populationStatus == Status.STARTED) {
+                log.warn("Previous rule population is not finished.");
                 return true;
             }
+
+            log.info("Starts rule population from link change");
 
             Set<ArrayList<DeviceId>> routeChanges;
             populationStatus = Status.STARTED;
@@ -138,7 +141,7 @@ public class DefaultRoutingHandler {
             }
 
             if (routeChanges.isEmpty()) {
-                log.debug("No route changes for the link status change");
+                log.info("No route changes for the link status change");
                 populationStatus = Status.SUCCEEDED;
                 return true;
             }
@@ -164,6 +167,9 @@ public class DefaultRoutingHandler {
                 ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(link.get(0), srManager);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
+                } else {
+                    log.warn("Failed to populate the flow ruls from {} to all", link.get(0));
+                    return false;
                 }
                 continue;
             }
@@ -358,8 +364,7 @@ public class DefaultRoutingHandler {
         }
 
         // If both target switch and dest switch are edge routers, then set IP
-        // rule
-        // for both subnet and router IP.
+        // rule for both subnet and router IP.
         if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
             List<Ip4Prefix> subnets = config.getSubnets(destSw);
             result = rulePopulator.populateIpRuleForSubnet(targetSw,
@@ -377,7 +382,7 @@ public class DefaultRoutingHandler {
                 return false;
             }
 
-        // TODO: If the target switch is an edge router, then set IP rules for the router IP.
+        // If the target switch is an edge router, then set IP rules for the router IP.
         } else if (config.isEdgeDevice(targetSw)) {
             Ip4Address routerIp = config.getRouterIp(destSw);
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
@@ -385,13 +390,12 @@ public class DefaultRoutingHandler {
             if (!result) {
                 return false;
             }
+        }
 
-        // TODO: If the target switch is an transit router, then set MPLS rules only.
-        } else if (!config.isEdgeDevice(targetSw)) {
-            result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
-            if (!result) {
-                return false;
-            }
+        // Populates MPLS rules to all routers
+        result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
+        if (!result) {
+            return false;
         }
 
         return true;
