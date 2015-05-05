@@ -15,11 +15,11 @@
  */
 package org.onosproject.net.tunnel.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -28,16 +28,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Path;
-import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.tunnel.DefaultTunnel;
 import org.onosproject.net.tunnel.Tunnel;
 import org.onosproject.net.tunnel.Tunnel.Type;
 import org.onosproject.net.tunnel.TunnelAdminService;
@@ -73,8 +71,7 @@ public class TunnelManager
             listenerRegistry = new ListenerRegistry<>();
 
     private final TunnelStoreDelegate delegate = new InternalStoreDelegate();
-    private final InternalTunnelListener tunnelListener = new InternalTunnelListener();
-    private InternalLinkListener linkListener = new InternalLinkListener();
+
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TunnelStore store;
@@ -82,73 +79,221 @@ public class TunnelManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
-
-    private ExecutorService futureService;
-
     @Activate
     public void activate() {
-        // TODO Auto-generated method stub
+        store.setDelegate(delegate);
+        eventDispatcher.addSink(TunnelEvent.class, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        // TODO Auto-generated method stub
+        store.unsetDelegate(delegate);
+        eventDispatcher.removeSink(TunnelEvent.class);
         log.info("Stopped");
     }
 
     @Override
+    public void removeTunnel(TunnelId tunnelId) {
+        checkNotNull(tunnelId, TUNNNEL_ID_NULL);
+        store.deleteTunnel(tunnelId);
+        Tunnel tunnel = store.queryTunnel(tunnelId);
+        if (tunnel.providerId() != null) {
+            TunnelProvider provider = getProvider(tunnel.providerId());
+            if (provider != null) {
+                provider.releaseTunnel(tunnel);
+            }
+        } else {
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.releaseTunnel(tunnel);
+            }
+        }
+    }
+
+    @Override
+    public void updateTunnel(Tunnel tunnel, Path path) {
+        store.createOrUpdateTunnel(tunnel);
+        if (tunnel.providerId() != null) {
+            TunnelProvider provider = getProvider(tunnel.providerId());
+            if (provider != null) {
+                provider.updateTunnel(tunnel, path);
+            }
+        } else {
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.updateTunnel(tunnel, path);
+            }
+        }
+    }
+
+    @Override
+    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
+                              ProviderId producerName) {
+        store.deleteTunnel(src, dst, producerName);
+        Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
+        for (Tunnel tunnel : setTunnels) {
+            if (producerName != null
+                    && !tunnel.providerId().equals(producerName)) {
+                continue;
+            }
+            if (tunnel.providerId() != null) {
+                TunnelProvider provider = getProvider(tunnel.providerId());
+                if (provider != null) {
+                    provider.releaseTunnel(tunnel);
+                }
+            } else {
+                Set<ProviderId> ids = getProviders();
+                for (ProviderId providerId : ids) {
+                    TunnelProvider provider = getProvider(providerId);
+                    provider.releaseTunnel(tunnel);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst, Type type,
+                              ProviderId producerName) {
+        store.deleteTunnel(src, dst, type, producerName);
+        Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
+        for (Tunnel tunnel : setTunnels) {
+            if (producerName != null
+                    && !tunnel.providerId().equals(producerName)
+                    || !type.equals(tunnel.type())) {
+                continue;
+            }
+            if (tunnel.providerId() != null) {
+                TunnelProvider provider = getProvider(tunnel.providerId());
+                if (provider != null) {
+                    provider.releaseTunnel(tunnel);
+                }
+            } else {
+                Set<ProviderId> ids = getProviders();
+                for (ProviderId providerId : ids) {
+                    TunnelProvider provider = getProvider(providerId);
+                    provider.releaseTunnel(tunnel);
+                }
+            }
+        }
+    }
+
+    @Override
+    public Tunnel borrowTunnel(ApplicationId consumerId, TunnelId tunnelId,
+                                  Annotations... annotations) {
+        return store.borrowTunnel(consumerId, tunnelId, annotations);
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                              TunnelName tunnelName,
+                                              Annotations... annotations) {
+        return store.borrowTunnel(consumerId, tunnelName, annotations);
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                              TunnelEndPoint src, TunnelEndPoint dst,
+                                              Annotations... annotations) {
+        Collection<Tunnel> tunnels = store.borrowTunnel(consumerId, src,
+                                                           dst, annotations);
+        if (tunnels == null || tunnels.size() == 0) {
+            Tunnel tunnel = new DefaultTunnel(null, src, dst, null, null, null,
+                                              null, null, annotations);
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.setupTunnel(tunnel, null);
+            }
+        }
+        return tunnels;
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                              TunnelEndPoint src, TunnelEndPoint dst,
+                                              Type type, Annotations... annotations) {
+        Collection<Tunnel> tunnels = store.borrowTunnel(consumerId, src,
+                                                           dst, type,
+                                                           annotations);
+        if (tunnels == null || tunnels.size() == 0) {
+            Tunnel tunnel = new DefaultTunnel(null, src, dst, type, null, null,
+                                              null, null, annotations);
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.setupTunnel(tunnel, null);
+            }
+        }
+        return tunnels;
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId,
+                                     TunnelId tunnelId, Annotations... annotations) {
+        return store.returnTunnel(consumerId, tunnelId, annotations);
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId,
+                                     TunnelName tunnelName,
+                                     Annotations... annotations) {
+        return store.returnTunnel(consumerId, tunnelName, annotations);
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
+                                     TunnelEndPoint dst, Type type,
+                                     Annotations... annotations) {
+        return store.returnTunnel(consumerId, src, dst, type, annotations);
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
+                                     TunnelEndPoint dst, Annotations... annotations) {
+        return store.returnTunnel(consumerId, src, dst, annotations);
+    }
+
+    @Override
+    public Tunnel queryTunnel(TunnelId tunnelId) {
+        return store.queryTunnel(tunnelId);
+    }
+
+    @Override
+    public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
+        return store.queryTunnelSubscription(consumerId);
+    }
+
+    @Override
+    public Collection<Tunnel> queryTunnel(Type type) {
+        return store.queryTunnel(type);
+    }
+
+    @Override
+    public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
+        return store.queryTunnel(src, dst);
+    }
+
+    @Override
+    public int tunnelCount() {
+        return store.tunnelCount();
+    }
+
+    @Override
     protected TunnelProviderService createProviderService(TunnelProvider provider) {
-        // TODO Auto-generated method stub
         return new InternalTunnelProviderService(provider);
     }
 
     @Override
-    public TunnelProviderService register(TunnelProvider provider) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void unregister(TunnelProvider provider) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public Set<ProviderId> getProviders() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public void addListener(TunnelListener listener) {
-        // TODO Auto-generated method stub
-
+        listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(TunnelListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    private class InternalTunnelListener implements TunnelListener {
-        @Override
-        public void event(TunnelEvent event) {
-            // TODO Auto-generated method stub
-
-        }
-    }
-
-    private class InternalLinkListener implements LinkListener {
-        @Override
-        public void event(LinkEvent event) {
-            // TODO Auto-generated method stub
-
-        }
+        listenerRegistry.removeListener(listener);
     }
 
     private class InternalTunnelProviderService
@@ -156,25 +301,47 @@ public class TunnelManager
             implements TunnelProviderService {
         protected InternalTunnelProviderService(TunnelProvider provider) {
             super(provider);
-            // TODO Auto-generated constructor stub
         }
+
 
         @Override
         public TunnelId tunnelAdded(TunnelDescription tunnel) {
-            // TODO Auto-generated method stub
-            return null;
+            Tunnel storedTunnel = new DefaultTunnel(provider().id(),
+                                                    tunnel.src(), tunnel.dst(),
+                                                    tunnel.type(),
+                                                    tunnel.groupId(),
+                                                    tunnel.id(),
+                                                    tunnel.tunnelName(),
+                                                    tunnel.annotations());
+            return store.createOrUpdateTunnel(storedTunnel);
         }
 
         @Override
         public void tunnelUpdated(TunnelDescription tunnel) {
-            // TODO Auto-generated method stub
-
+            Tunnel storedTunnel = new DefaultTunnel(provider().id(),
+                                                    tunnel.src(), tunnel.dst(),
+                                                    tunnel.type(),
+                                                    tunnel.groupId(),
+                                                    tunnel.id(),
+                                                    tunnel.tunnelName(),
+                                                    tunnel.annotations());
+            store.createOrUpdateTunnel(storedTunnel);
         }
 
         @Override
         public void tunnelRemoved(TunnelDescription tunnel) {
-            // TODO Auto-generated method stub
-
+            if (tunnel.id() != null) {
+                store.deleteTunnel(tunnel.id());
+            }
+            if (tunnel.src() != null && tunnel.dst() != null
+                    && tunnel.type() != null) {
+                store.deleteTunnel(tunnel.src(), tunnel.dst(), tunnel.type(),
+                                   provider().id());
+            }
+            if (tunnel.src() != null && tunnel.dst() != null
+                    && tunnel.type() == null) {
+                store.deleteTunnel(tunnel.src(), tunnel.dst(), provider().id());
+            }
         }
 
     }
@@ -182,129 +349,9 @@ public class TunnelManager
     private class InternalStoreDelegate implements TunnelStoreDelegate {
         @Override
         public void notify(TunnelEvent event) {
-            // TODO Auto-generated method stub
             if (event != null) {
                 eventDispatcher.post(event);
             }
         }
     }
-
-    @Override
-    public void removeTunnel(TunnelId tunnelId) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
-                              ProviderId producerName) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
-                              Type type, ProviderId producerName) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void updateTunnel(Tunnel tunnel, Path path) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public Tunnel borrowTunnel(ApplicationId consumerId, TunnelId tunnelId,
-                               Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
-                                           TunnelName tunnelName,
-                                           Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
-                                           TunnelEndPoint src,
-                                           TunnelEndPoint dst,
-                                           Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
-                                           TunnelEndPoint src,
-                                           TunnelEndPoint dst, Type type,
-                                           Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean returnTunnel(ApplicationId consumerId, TunnelId tunnelId,
-                                Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean returnTunnel(ApplicationId consumerId,
-                                TunnelName tunnelName, Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
-                                TunnelEndPoint dst, Type type,
-                                Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
-                                TunnelEndPoint dst, Annotations... annotations) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public Tunnel queryTunnel(TunnelId tunnelId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<Tunnel> queryTunnel(Type type) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public int tunnelCount() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
 }

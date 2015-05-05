@@ -21,62 +21,41 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
+        <artifactId>onos-providers</artifactId>
         <version>1.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-providers</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-tunnel-provider</artifactId>
+    <packaging>bundle</packaging>
 
-    <description>ONOS information providers &amp; control/management protocol adapter</description>
+    <description>tunnel southbound providers</description>
 
-    <modules>
-        <module>openflow</module>
-        <module>lldp</module>
-        <module>host</module>
-        <module>netconf</module>
-        <module>null</module>
-        <module>tunnel</module>
-    </modules>
+    <properties>
+        <onos.app.name>org.onosproject.tunnel</onos.app.name>
+    </properties>
 
     <dependencies>
         <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.onosproject</groupId>
-                <artifactId>onos-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

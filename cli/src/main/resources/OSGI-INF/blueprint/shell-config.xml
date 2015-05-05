@@ -367,6 +367,22 @@
         <command>
             <action class="org.onosproject.cli.net.ApplyLabelResourceCommand"/>
         </command>
+        <!-- tunnel commands -->
+        <command>
+            <action class="org.onosproject.cli.net.DeleteTunnelCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.BorrowTunnelCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.ReturnTunnelCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.QueryTunnelCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.QueryTunnelSubscriptionCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="permAppNameCompleter" class="org.onosproject.cli.security.PermissionApplicationNameCompleter"/>
