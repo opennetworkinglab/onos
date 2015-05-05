@@ -15,14 +15,17 @@
  *
  */
 
-package org.onosproject.ui.table;
+package org.onosproject.ui.table.cell;
 
 /**
- * A default cell formatter. Uses the object's toString() method.
+ * A default cell comparator. Implements a lexicographical compare function
+ * (i.e. string sorting). Uses the objects' toString() method and then
+ * compares the resulting strings. Note that null values are acceptable and
+ * are considered "smaller" than any non-null value.
  */
-public class DefaultCellFormatter implements CellFormatter {
+public class DefaultCellComparator extends AbstractCellComparator {
     @Override
-    public String format(Object value) {
-        return value == null ? "" : value.toString();
+    protected int nonNullCompare(Object o1, Object o2) {
+        return o1.toString().compareTo(o2.toString());
     }
 }

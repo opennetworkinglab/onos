@@ -15,20 +15,28 @@
  *
  */
 
-package org.onosproject.ui.table;
+package org.onosproject.ui.table.cell;
+
+import org.onosproject.ui.table.CellFormatter;
 
 /**
- * Defines a formatter for cell values.
+ * Base implementation of a {@link CellFormatter}. This class takes care of
+ * dealing with null inputs; subclasses should implement their format method
+ * knowing that the input is guaranteed to be non-null.
  */
-public interface CellFormatter {
+public abstract class AbstractCellFormatter implements CellFormatter {
+
+    @Override
+    public String format(Object value) {
+        return value == null ? "" : nonNullFormat(value);
+    }
 
     /**
      * Formats the specified value into a string appropriate for displaying
-     * in a table cell. Note that null values are acceptable, and will result
-     * in the empty string.
+     * in a table cell. Note that value is guaranteed to be non-null.
      *
      * @param value the value
      * @return the formatted string
      */
-    String format(Object value);
+    protected abstract String nonNullFormat(Object value);
 }

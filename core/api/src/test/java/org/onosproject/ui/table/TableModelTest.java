@@ -18,6 +18,9 @@ package org.onosproject.ui.table;
 
 import org.junit.Test;
 import org.onosproject.ui.table.TableModel.SortDir;
+import org.onosproject.ui.table.cell.DefaultCellFormatter;
+import org.onosproject.ui.table.cell.HexFormatter;
+import org.onosproject.ui.table.cell.IntComparator;
 
 import static org.junit.Assert.*;
 
@@ -26,22 +29,13 @@ import static org.junit.Assert.*;
  */
 public class TableModelTest {
 
-    private static final String UNEX_SORT_ORDER = "unexpected sort: index ";
+    private static final String UNEX_SORT = "unexpected sort: index ";
 
     private static final String FOO = "foo";
     private static final String BAR = "bar";
     private static final String ZOO = "zoo";
 
-    private static class TestCmpr implements CellComparator {
-        @Override
-        public int compare(Object o1, Object o2) {
-            int i1 = (int) o1;
-            int i2 = (int) o2;
-            return i1 - i2;
-        }
-    }
-
-    private static class TestFmtr implements CellFormatter {
+    private static class ParenFormatter implements CellFormatter {
         @Override
         public String format(Object value) {
             return "(" + value + ")";
@@ -95,14 +89,14 @@ public class TableModelTest {
     @Test
     public void altFormatter() {
         tm = new TableModel(FOO, BAR);
-        tm.setFormatter(BAR, new TestFmtr());
+        tm.setFormatter(BAR, new ParenFormatter());
 
         fmt = tm.getFormatter(FOO);
         assertTrue("Wrong formatter", fmt instanceof DefaultCellFormatter);
         assertEquals("Wrong result", "2", fmt.format(2));
 
         fmt = tm.getFormatter(BAR);
-        assertTrue("Wrong formatter", fmt instanceof TestFmtr);
+        assertTrue("Wrong formatter", fmt instanceof ParenFormatter);
         assertEquals("Wrong result", "(2)", fmt.format(2));
     }
 
@@ -174,6 +168,10 @@ public class TableModelTest {
         1, 2, 3, 4, 11, 12, 20, 30
     };
 
+    private static final String[] SORTED_HEX = {
+        "0x1", "0x2", "0x3", "0x4", "0xb", "0xc", "0x14", "0x1e"
+    };
+
     @Test
     public void verifyTestData() {
         // not a unit test per se, but will fail if we don't keep
@@ -206,7 +204,7 @@ public class TableModelTest {
         int nr = rows.length;
         assertEquals("row count", NAMES.length, nr);
         for (int i = 0; i < nr; i++) {
-            assertEquals(UNEX_SORT_ORDER + i, SORTED_NAMES[i], rows[i].get(FOO));
+            assertEquals(UNEX_SORT + i, SORTED_NAMES[i], rows[i].get(FOO));
         }
 
         // now the other way
@@ -217,7 +215,7 @@ public class TableModelTest {
         nr = rows.length;
         assertEquals("row count", NAMES.length, nr);
         for (int i = 0; i < nr; i++) {
-            assertEquals(UNEX_SORT_ORDER + i,
+            assertEquals(UNEX_SORT + i,
                          SORTED_NAMES[nr - 1 - i], rows[i].get(FOO));
         }
     }
@@ -227,7 +225,7 @@ public class TableModelTest {
         initUnsortedTable();
 
         // first, tell the table to use an integer-based comparator
-        tm.setComparator(BAR, new TestCmpr());
+        tm.setComparator(BAR, new IntComparator());
 
         // sort by number
         tm.sort(BAR, SortDir.ASC);
@@ -237,7 +235,7 @@ public class TableModelTest {
         int nr = rows.length;
         assertEquals("row count", NUMBERS.length, nr);
         for (int i = 0; i < nr; i++) {
-            assertEquals(UNEX_SORT_ORDER + i, SORTED_NUMBERS[i], rows[i].get(BAR));
+            assertEquals(UNEX_SORT + i, SORTED_NUMBERS[i], rows[i].get(BAR));
         }
 
         // now the other way
@@ -248,10 +246,31 @@ public class TableModelTest {
         nr = rows.length;
         assertEquals("row count", NUMBERS.length, nr);
         for (int i = 0; i < nr; i++) {
-            assertEquals(UNEX_SORT_ORDER + i,
+            assertEquals(UNEX_SORT + i,
                          SORTED_NUMBERS[nr - 1 - i], rows[i].get(BAR));
         }
     }
+
+    @Test
+    public void sortAndFormat() {
+        initUnsortedTable();
+
+        // set integer-based comparator and hex formatter
+        tm.setComparator(BAR, new IntComparator());
+        tm.setFormatter(BAR, new HexFormatter());
+
+        // sort by number
+        tm.sort(BAR, SortDir.ASC);
+
+        // verify results
+        rows = tm.getRows();
+        int nr = rows.length;
+        assertEquals("row count", SORTED_HEX.length, nr);
+        for (int i = 0; i < nr; i++) {
+            assertEquals(UNEX_SORT + i, SORTED_HEX[i], rows[i].getAsString(BAR));
+        }
+    }
+
 
     @Test
     public void sortDirAsc() {

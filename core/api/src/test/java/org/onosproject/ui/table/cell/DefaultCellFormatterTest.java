@@ -15,9 +15,10 @@
  *
  */
 
-package org.onosproject.ui.table;
+package org.onosproject.ui.table.cell;
 
 import org.junit.Test;
+import org.onosproject.ui.table.CellFormatter;
 
 import static org.junit.Assert.assertEquals;
 

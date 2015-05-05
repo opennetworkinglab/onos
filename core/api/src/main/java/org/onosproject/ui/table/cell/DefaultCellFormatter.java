@@ -15,20 +15,14 @@
  *
  */
 
-package org.onosproject.ui.table;
+package org.onosproject.ui.table.cell;
 
 /**
- * Defines a formatter for cell values.
+ * A default cell formatter. Uses the object's toString() method.
  */
-public interface CellFormatter {
-
-    /**
-     * Formats the specified value into a string appropriate for displaying
-     * in a table cell. Note that null values are acceptable, and will result
-     * in the empty string.
-     *
-     * @param value the value
-     * @return the formatted string
-     */
-    String format(Object value);
+public class DefaultCellFormatter extends AbstractCellFormatter {
+    @Override
+    public String nonNullFormat(Object value) {
+        return value.toString();
+    }
 }

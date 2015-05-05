@@ -15,20 +15,14 @@
  *
  */
 
-package org.onosproject.ui.table;
+package org.onosproject.ui.table.cell;
 
 /**
- * Defines a formatter for cell values.
+ * Formats integer values as hex strings.
  */
-public interface CellFormatter {
-
-    /**
-     * Formats the specified value into a string appropriate for displaying
-     * in a table cell. Note that null values are acceptable, and will result
-     * in the empty string.
-     *
-     * @param value the value
-     * @return the formatted string
-     */
-    String format(Object value);
+public class HexFormatter extends AbstractCellFormatter {
+    @Override
+    protected String nonNullFormat(Object value) {
+        return "0x" + Integer.toHexString((Integer) value);
+    }
 }

@@ -17,6 +17,8 @@
 package org.onosproject.ui.table;
 
 import com.google.common.collect.Sets;
+import org.onosproject.ui.table.cell.DefaultCellComparator;
+import org.onosproject.ui.table.cell.DefaultCellFormatter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -253,6 +255,17 @@ public class TableModel {
          */
         public Object get(String columnId) {
             return cells.get(columnId);
+        }
+
+        /**
+         * Returns the value of the cell as a string, using the
+         * formatter appropriate for the column.
+         *
+         * @param columnId column identifier
+         * @return formatted cell value
+         */
+        public String getAsString(String columnId) {
+            return getFormatter(columnId).format(get(columnId));
         }
     }
 

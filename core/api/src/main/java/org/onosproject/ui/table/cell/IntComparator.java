@@ -15,20 +15,16 @@
  *
  */
 
-package org.onosproject.ui.table;
+package org.onosproject.ui.table.cell;
 
 /**
- * Defines a formatter for cell values.
+ * An integer-based cell comparator.
+ * Note that null values are acceptable and are considered "smaller" than
+ * any non-null value.
  */
-public interface CellFormatter {
-
-    /**
-     * Formats the specified value into a string appropriate for displaying
-     * in a table cell. Note that null values are acceptable, and will result
-     * in the empty string.
-     *
-     * @param value the value
-     * @return the formatted string
-     */
-    String format(Object value);
+public class IntComparator extends AbstractCellComparator {
+    @Override
+    protected int nonNullCompare(Object o1, Object o2) {
+        return ((int) o1) - ((int) o2);
+    }
 }
