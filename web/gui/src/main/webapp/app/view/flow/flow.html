@@ -26,6 +26,8 @@
                     <td colId="timeout" sortable>Timeout </td>
                     <td colId="permanent" sortable>Permanent </td>
                     <td colId="state" sortable>State </td>
+                    <td colId="packets" sortable>Packets </td>
+                    <td colId="bytes" sortable>Bytes </td>
                 </tr>
             </table>
         </div>
@@ -33,7 +35,7 @@
         <div class="table-body">
             <table>
                 <tr ng-hide="tableData.length" class="no-data ignore-width">
-                    <td colspan="8">
+                    <td colspan="10">
                         No Flows found
                     </td>
                 </tr>
@@ -47,13 +49,15 @@
                     <td>{{flow.timeout}}</td>
                     <td>{{flow.permanent}}</td>
                     <td>{{flow.state}}</td>
+                    <td>{{flow.packets}}</td>
+                    <td>{{flow.bytes}}</td>
                 </tr>
                 <tr class="ignore-width">
-                    <td class="selector" colspan="8">{{flow.selector}}</td>
+                    <td class="selector" colspan="10">{{flow.selector}}</td>
                 </tr>
                 <tr class="ignore-width"
                     ng-repeat-end ng-repeat-done>
-                    <td class="treatment" colspan="8">{{flow.treatment}}</td>
+                    <td class="treatment" colspan="10">{{flow.treatment}}</td>
                 </tr>
             </table>
         </div>

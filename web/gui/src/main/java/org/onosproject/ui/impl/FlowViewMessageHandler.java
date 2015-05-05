@@ -59,6 +59,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String TIMEOUT = "timeout";
     private static final String PERMANENT = "permanent";
     private static final String STATE = "state";
+    private static final String PACKETS = "packets";
+    private static final String BYTES = "bytes";
 
     private static final String COMMA = ", ";
 
@@ -98,7 +100,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
         private static final String[] COL_IDS = {
                 ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
-                TREATMENT, TIMEOUT, PERMANENT, STATE
+                TREATMENT, TIMEOUT, PERMANENT, STATE, PACKETS, BYTES
         };
 
         public FlowTableRow(FlowEntry f) {
@@ -112,6 +114,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             add(TIMEOUT, f.timeout());
             add(PERMANENT, f.isPermanent());
             add(STATE, capitalizeFully(f.state().toString()));
+            add(PACKETS, f.packets());
+            add(BYTES, f.packets());
         }
 
         private String getSelectorString(FlowEntry f) {
