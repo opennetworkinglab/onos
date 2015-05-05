@@ -17,19 +17,29 @@
 package org.onosproject.ui.table;
 
 import org.junit.Test;
+import org.onosproject.ui.table.TableModel.SortDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link TableModel}.
  */
 public class TableModelTest {
 
+    private static final String UNEX_SORT_ORDER = "unexpected sort: index ";
+
     private static final String FOO = "foo";
     private static final String BAR = "bar";
-    private static final String BAZ = "baz";
     private static final String ZOO = "zoo";
+
+    private static class TestCmpr implements CellComparator {
+        @Override
+        public int compare(Object o1, Object o2) {
+            int i1 = (int) o1;
+            int i2 = (int) o2;
+            return i1 - i2;
+        }
+    }
 
     private static class TestFmtr implements CellFormatter {
         @Override
@@ -39,7 +49,9 @@ public class TableModelTest {
     }
 
     private TableModel tm;
-    private TableRow[] rows;
+    private TableModel.Row[] rows;
+    private TableModel.Row row;
+    private TableRow[] tableRows;
     private CellFormatter fmt;
 
     @Test(expected = NullPointerException.class)
@@ -63,8 +75,8 @@ public class TableModelTest {
         assertEquals("column count", 2, tm.columnCount());
         assertEquals("row count", 0, tm.rowCount());
 
-        rows = tm.getTableRows();
-        assertEquals("row count alt", 0, rows.length);
+        tableRows = tm.getTableRows();
+        assertEquals("row count alt", 0, tableRows.length);
     }
 
     @Test
@@ -118,8 +130,147 @@ public class TableModelTest {
         tm = new TableModel(FOO, BAR);
         tm.addRow().cell(FOO, 3).cell(BAR, true);
         assertEquals("bad row count", 1, tm.rowCount());
-        TableModel.Row r = tm.getRows()[0];
-        assertEquals("bad cell", 3, r.get(FOO));
-        assertEquals("bad cell", true, r.get(BAR));
+        row = tm.getRows()[0];
+        assertEquals("bad cell", 3, row.get(FOO));
+        assertEquals("bad cell", true, row.get(BAR));
     }
+
+
+    private static final String ONE = "one";
+    private static final String TWO = "two";
+    private static final String THREE = "three";
+    private static final String FOUR = "four";
+    private static final String ELEVEN = "eleven";
+    private static final String TWELVE = "twelve";
+    private static final String TWENTY = "twenty";
+    private static final String THIRTY = "thirty";
+
+    private static final String[] NAMES = {
+            FOUR,
+            THREE,
+            TWO,
+            ONE,
+            ELEVEN,
+            TWELVE,
+            THIRTY,
+            TWENTY,
+    };
+    private static final String[] SORTED_NAMES = {
+            ELEVEN,
+            FOUR,
+            ONE,
+            THIRTY,
+            THREE,
+            TWELVE,
+            TWENTY,
+            TWO,
+    };
+
+    private static final int[] NUMBERS = {
+        4, 3, 2, 1, 11, 12, 30, 20
+    };
+
+    private static final int[] SORTED_NUMBERS = {
+        1, 2, 3, 4, 11, 12, 20, 30
+    };
+
+    @Test
+    public void verifyTestData() {
+        // not a unit test per se, but will fail if we don't keep
+        // the three test arrays in sync
+        int nalen = NAMES.length;
+        int snlen = SORTED_NAMES.length;
+        int nulen = NUMBERS.length;
+
+        if (nalen != snlen || nalen != nulen) {
+            fail("test data array size discrepancy");
+        }
+    }
+
+    private void initUnsortedTable() {
+        tm = new TableModel(FOO, BAR);
+        for (int i = 0; i < NAMES.length; i++) {
+            tm.addRow().cell(FOO, NAMES[i]).cell(BAR, NUMBERS[i]);
+        }
+    }
+
+    @Test
+    public void tableStringSort() {
+        initUnsortedTable();
+
+        // sort by name
+        tm.sort(FOO, SortDir.ASC);
+
+        // verify results
+        rows = tm.getRows();
+        int nr = rows.length;
+        assertEquals("row count", NAMES.length, nr);
+        for (int i = 0; i < nr; i++) {
+            assertEquals(UNEX_SORT_ORDER + i, SORTED_NAMES[i], rows[i].get(FOO));
+        }
+
+        // now the other way
+        tm.sort(FOO, SortDir.DESC);
+
+        // verify results
+        rows = tm.getRows();
+        nr = rows.length;
+        assertEquals("row count", NAMES.length, nr);
+        for (int i = 0; i < nr; i++) {
+            assertEquals(UNEX_SORT_ORDER + i,
+                         SORTED_NAMES[nr - 1 - i], rows[i].get(FOO));
+        }
+    }
+
+    @Test
+    public void tableNumberSort() {
+        initUnsortedTable();
+
+        // first, tell the table to use an integer-based comparator
+        tm.setComparator(BAR, new TestCmpr());
+
+        // sort by number
+        tm.sort(BAR, SortDir.ASC);
+
+        // verify results
+        rows = tm.getRows();
+        int nr = rows.length;
+        assertEquals("row count", NUMBERS.length, nr);
+        for (int i = 0; i < nr; i++) {
+            assertEquals(UNEX_SORT_ORDER + i, SORTED_NUMBERS[i], rows[i].get(BAR));
+        }
+
+        // now the other way
+        tm.sort(BAR, SortDir.DESC);
+
+        // verify results
+        rows = tm.getRows();
+        nr = rows.length;
+        assertEquals("row count", NUMBERS.length, nr);
+        for (int i = 0; i < nr; i++) {
+            assertEquals(UNEX_SORT_ORDER + i,
+                         SORTED_NUMBERS[nr - 1 - i], rows[i].get(BAR));
+        }
+    }
+
+    @Test
+    public void sortDirAsc() {
+        assertEquals("asc sort dir", SortDir.ASC, TableModel.sortDir("asc"));
+    }
+
+    @Test
+    public void sortDirDesc() {
+        assertEquals("desc sort dir", SortDir.DESC, TableModel.sortDir("desc"));
+    }
+
+    @Test
+    public void sortDirOther() {
+        assertEquals("other sort dir", SortDir.ASC, TableModel.sortDir("other"));
+    }
+
+    @Test
+    public void sortDirNull() {
+        assertEquals("null sort dir", SortDir.ASC, TableModel.sortDir(null));
+    }
+
 }

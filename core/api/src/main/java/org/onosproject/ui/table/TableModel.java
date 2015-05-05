@@ -20,6 +20,8 @@ import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,14 +31,25 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A model of table data.
+ * A simple model of table data.
+ * <p>
+ * Note that this is not a full MVC type model; the expected usage pattern
+ * is to create an empty table, add rows (by consulting the business model),
+ * sort rows (based on client request parameters), and finally produce the
+ * sorted list of rows.
+ * <p>
+ * The table also provides a mechanism for defining how cell values for a
+ * particular column should be formatted into strings, to help facilitate
+ * the encoding of the table data into a JSON structure.
  */
 public class TableModel {
 
+    private static final CellComparator DEF_CMP = new DefaultCellComparator();
     private static final CellFormatter DEF_FMT = new DefaultCellFormatter();
 
     private final String[] columnIds;
     private final Set<String> idSet;
+    private final Map<String, CellComparator> comparators = new HashMap<>();
     private final Map<String, CellFormatter> formatters = new HashMap<>();
     private final List<Row> rows = new ArrayList<>();
 
@@ -88,6 +101,7 @@ public class TableModel {
      *
      * @return formatted table rows
      */
+    // TODO: still need to decide if we need this
     public TableRow[] getTableRows() {
         return new TableRow[0];
     }
@@ -97,8 +111,33 @@ public class TableModel {
      *
      * @return raw table rows
      */
+    // TODO: still need to decide if we should expose this
     public Row[] getRows() {
         return rows.toArray(new Row[rows.size()]);
+    }
+
+    /**
+     * Sets a cell comparator for the specified column.
+     *
+     * @param columnId column identifier
+     * @param comparator comparator to use
+     */
+    public void setComparator(String columnId, CellComparator comparator) {
+        checkNotNull(comparator, "must provide a comparator");
+        checkId(columnId);
+        comparators.put(columnId, comparator);
+    }
+
+    /**
+     * Returns the cell comparator to use on values in the specified column.
+     *
+     * @param columnId column identifier
+     * @return an appropriate cell comparator
+     */
+    private CellComparator getComparator(String columnId) {
+        checkId(columnId);
+        CellComparator cmp = comparators.get(columnId);
+        return cmp == null ? DEF_CMP : cmp;
     }
 
     /**
@@ -137,6 +176,56 @@ public class TableModel {
     }
 
     /**
+     * Sorts the table rows based on the specified column, in the
+     * specified direction.
+     *
+     * @param columnId column identifier
+     * @param dir sort direction
+     */
+    public void sort(String columnId, SortDir dir) {
+        Collections.sort(rows, new RowComparator(columnId, dir));
+    }
+
+
+    /** Designates sorting direction. */
+    public enum SortDir {
+        /** Designates an ascending sort. */
+        ASC,
+        /** Designates a descending sort. */
+        DESC
+    }
+
+    /**
+     * Row comparator.
+     */
+    private class RowComparator implements Comparator<Row> {
+        private final String columnId;
+        private final SortDir dir;
+        private final CellComparator cellComparator;
+
+        /**
+         * Constructs a row comparator based on the specified
+         * column identifier and sort direction.
+         *
+         * @param columnId column identifier
+         * @param dir sort direction
+         */
+        public RowComparator(String columnId, SortDir dir) {
+            this.columnId = columnId;
+            this.dir = dir;
+            cellComparator = getComparator(columnId);
+        }
+
+        @Override
+        public int compare(Row a, Row b) {
+            Object cellA = a.get(columnId);
+            Object cellB = b.get(columnId);
+            int result = cellComparator.compare(cellA, cellB);
+            return dir == SortDir.ASC ? result : -result;
+        }
+    }
+
+    /**
      * Model of a row.
      */
     public class Row {
@@ -165,5 +254,21 @@ public class TableModel {
         public Object get(String columnId) {
             return cells.get(columnId);
         }
+    }
+
+    private static final String DESC = "desc";
+
+    /**
+     * Returns the appropriate sort direction for the given string.
+     * <p>
+     * The expected strings are "asc" for {@link SortDir#ASC ascending} and
+     * "desc" for {@link SortDir#DESC descending}. Any other value will
+     * default to ascending.
+     *
+     * @param s sort direction string encoding
+     * @return sort direction
+     */
+    public static SortDir sortDir(String s) {
+        return !DESC.equals(s) ? SortDir.ASC : SortDir.DESC;
     }
 }
