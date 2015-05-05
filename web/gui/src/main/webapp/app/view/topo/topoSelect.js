@@ -41,7 +41,8 @@
         consumeClick = false;   // used to coordinate with SVG click handler
 
     // constants
-    var flowPath = 'flow';
+    var flowPath = 'flow',
+        portPath ='port';
 
     // ==========================
 
@@ -252,7 +253,15 @@
                 cb: function () {
                     ns.navTo(flowPath, { devId: data.props['URI'] });
                 },
-                tt: 'Show flows table for this device'
+                tt: 'Show flow view for this device'
+            });
+            tps.addAction({
+                id: 'ports-table-btn',
+                gid: 'chain',
+                cb: function () {
+                    ns.navTo(portPath, { devId: data.props['URI'] });
+                },
+                tt: 'Show port view for this device'
             });
         }
 

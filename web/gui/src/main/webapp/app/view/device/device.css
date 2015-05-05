@@ -90,8 +90,9 @@
 }
 
 #device-details-panel .actionBtns div {
-    padding: 12px 0;
+    padding: 12px 6px;
 }
+
 #device-details-panel .top hr {
     width: 95%;
     margin: 0 auto;

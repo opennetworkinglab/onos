@@ -36,8 +36,10 @@
         scrollSize = 17,
         portsTblPdg = 50,
         flowPath = 'flow',
+        portPath = 'port',
 
         pName = 'device-details-panel',
+        bName = 'dev-dets-p',
         detailsReq = 'deviceDetailsRequest',
         detailsResp = 'deviceDetailsResponse',
 
@@ -116,13 +118,24 @@
             addProp(i < 3 ? leftTbl : rightTbl, i, details[prop]);
         });
 
-        bns.button(btnsDiv,
-            'dev-dets-p-flows',
+        bns.button(
+            btnsDiv,
+            bName + '-flows',
             'flowTable',
             function () {
                 ns.navTo(flowPath, { devId: details.id });
             },
-            'Show flows table for this device');
+            'Show flow view for this device'
+        );
+        bns.button(
+            btnsDiv,
+            bName + '-ports',
+            'chain',
+            function () {
+                ns.navTo(portPath, { devId: details.id });
+            },
+            'Show port view for this device'
+        );
     }
 
     function addPortRow(tbody, port) {

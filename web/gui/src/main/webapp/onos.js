@@ -39,6 +39,7 @@
         'topo',
         'device',
         'flow',
+        'port',
         'host',
         'app',
         'intent',
