@@ -23,7 +23,7 @@ public interface Instruction {
     /**
      * Represents the type of traffic treatment.
      */
-    public enum Type {
+    enum Type {
         /**
          * Signifies that the traffic should be dropped.
          */
@@ -67,6 +67,6 @@ public interface Instruction {
      * Returns the type of instruction.
      * @return type of instruction
      */
-    public Type type();
+    Type type();
 
 }
