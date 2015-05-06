@@ -45,7 +45,7 @@ public class DefaultSwitchHandShaker extends AbstractOpenFlowSwitch {
         if (factory().getVersion() == OFVersion.OF_10) {
             OFFlowAdd.Builder fmBuilder = factory().buildFlowAdd();
             fmBuilder.setPriority(LOWEST_PRIORITY);
-            sendMsg(fmBuilder.build());
+            sendHandshakeMessage(fmBuilder.build());
         }
     }
 

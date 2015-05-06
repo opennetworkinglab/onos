@@ -64,7 +64,7 @@ public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
                 .setXid(barrierXid).build();
 
 
-        sendMsg(Collections.singletonList(barrier));
+        sendHandshakeMessage(barrier);
 
     }
 

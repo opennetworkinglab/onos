@@ -229,6 +229,10 @@ public class RoleManagerTest {
         }
 
         @Override
+        public void sendHandshakeMessage(OFMessage message) {
+        }
+
+        @Override
         public boolean connectSwitch() {
             return false;
         }

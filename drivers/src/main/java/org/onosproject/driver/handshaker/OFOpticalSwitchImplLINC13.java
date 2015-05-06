@@ -64,9 +64,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
     @Override
     public boolean isDriverHandshakeComplete() {
-        if (!startDriverHandshakeCalled) {
-            throw new SwitchDriverSubHandshakeNotStarted();
-        }
         return driverHandshakeComplete.get();
     }
 
@@ -161,7 +158,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                          "message " +
                          "{}",
                  circuitPortsRequest.toString());
-        this.sendMsg(Collections.<OFMessage>singletonList(circuitPortsRequest));
+        this.sendHandshakeMessage(circuitPortsRequest);
     }
 
     @Override

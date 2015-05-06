@@ -136,6 +136,12 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                                                    "a non role request message");
     }
 
+    public final void sendHandshakeMessage(OFMessage message) {
+        if (!this.isDriverHandshakeComplete()) {
+            channel.write(Collections.singletonList(message));
+        }
+    }
+
     @Override
     public final boolean isConnected() {
         return this.connected;

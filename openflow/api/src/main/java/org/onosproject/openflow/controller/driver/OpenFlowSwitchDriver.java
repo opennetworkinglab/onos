@@ -210,4 +210,12 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
      */
     void sendRoleRequest(OFMessage message);
 
+    /**
+     * Allows the handshaker behaviour to send messages during the
+     * handshake phase only.
+     *
+     * @param message an OpenFlow message
+     */
+    void sendHandshakeMessage(OFMessage message);
+
 }

@@ -222,7 +222,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .build();
         msglist.add(getAC);
 
-        sendMsg(msglist);
+        msglist.stream().forEach(m -> sendHandshakeMessage(m));
     }
 
     private void decodeAsyncGetReply(OFAsyncGetReply rep) {
@@ -245,21 +245,21 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         OFMessage gtf = factory.buildTableFeaturesStatsRequest()
                 .setXid(getNextTransactionId())
                 .build();
-        sendMsg(gtf);
+        sendHandshakeMessage(gtf);
     }
 
     private void sendGroupFeaturesRequest() throws IOException {
         OFMessage gfr = factory.buildGroupFeaturesStatsRequest()
                 .setXid(getNextTransactionId())
                 .build();
-        sendMsg(gfr);
+        sendHandshakeMessage(gfr);
     }
 
     private void sendGroupDescRequest() throws IOException {
         OFMessage gdr = factory.buildGroupDescStatsRequest()
                 .setXid(getNextTransactionId())
                 .build();
-        sendMsg(gdr);
+        sendHandshakeMessage(gdr);
     }
 
     /*Create L2 interface groups for all physical ports
@@ -290,12 +290,12 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                         .setGroupType(OFGroupType.INDIRECT)
                         .setXid(getNextTransactionId())
                         .build();
+                sendHandshakeMessage(gmAdd);
                 msglist.add(gmAdd);
                 l2groups.put(pnum, gl2);
             }
         }
         log.debug("Creating {} L2 groups in sw {}", msglist.size(), getStringId());
-        sendMsg(msglist);
     }
 
     private int getVlanConfig(int portnum) {
@@ -394,9 +394,10 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setGroupType(OFGroupType.INDIRECT)
                     .setXid(getNextTransactionId())
                     .build();
-            msglist.add(gmAdd);
+            sendHandshakeMessage(gmAdd);
+
         }
-        sendMsg(msglist);
+
         log.debug("Creating {} L3 groups in sw {}", msglist.size(), getStringId());
     }
 
@@ -407,7 +408,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
      * instead of the IP ttl
      */
     private void setL25Groups() throws IOException {
-        List<OFMessage> msglist = new ArrayList<OFMessage>();
+
         for (OFGroup gl2 : l2groups.values()) {
             int gnum = gl2.getGroupNumber();
             int portnum = gnum & 0x0000ffff;
@@ -445,11 +446,12 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                         .setGroupType(OFGroupType.INDIRECT)
                         .setXid(getNextTransactionId())
                         .build();
-                msglist.add(gmAdd);
+                sendHandshakeMessage(gmAdd);
+
             }
         }
-        sendMsg(msglist);
-        log.debug("Creating {} MPLS groups in sw {}", msglist.size(), getStringId());
+
+        log.debug("Created MPLS groups in sw {}", getStringId());
     }
 
     /* Using ECMP groups
@@ -560,13 +562,14 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                         .setHardTimeout(0)
                         .setXid(getNextTransactionId())
                         .build();
-                msglist.add(flowEntry);
+                sendHandshakeMessage(flowEntry);
+
             }
         }
         // table-vlan has no table-miss entry, and so packets that miss are
         // essentially dropped
-        sendMsg(msglist);
-        log.debug("Adding {} vlan-rules in sw {}", msglist.size(), getStringId());
+
+        log.debug("Added vlan-rules in sw {}", getStringId());
     }
 
     private void populateTableTMac() throws IOException {
@@ -617,7 +620,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
         List<OFMessage> msglist = new ArrayList<OFMessage>(2);
         msglist.add(ipEntry);
         msglist.add(mplsEntry);
-        sendMsg(msglist);
+        msglist.stream().forEach(m -> sendHandshakeMessage(m));
     }
 
     private List<String> getMyIps() { // send to controller
@@ -762,10 +765,10 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setHardTimeout(0)
                     .setXid(getNextTransactionId())
                     .build();
-            msglist.add(myIpEntry);
+            sendHandshakeMessage(myIpEntry);
+
         }
-        sendMsg(msglist);
-        log.debug("Adding {} my-ip-rules in sw {}", msglist.size(), getStringId());
+        log.debug("Added {} my-ip-rules in sw {}", getStringId());
     }
 
     private void populateMySubnets() throws IOException {
@@ -804,11 +807,10 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setHardTimeout(0)
                     .setXid(getNextTransactionId())
                     .build();
-            msglist.add(myIpEntry);
+            sendHandshakeMessage(myIpEntry);
+
         }
-        sendMsg(msglist);
-        log.debug("Adding {} subnet-ip-rules in sw {}", msglist.size(), getStringId());
-        msglist.clear();
+        log.debug("Added subnet-ip-rules in sw {}", getStringId());
     }
 
     private void populateRoutes() throws IOException {
@@ -948,10 +950,10 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setHardTimeout(0)
                     .setXid(getNextTransactionId())
                     .build();
+            sendHandshakeMessage(myMetaEntry);
             msglist.add(myMetaEntry);
 
         }
-        sendMsg(msglist);
         log.debug("Adding {} next-hop-router-rules in sw {}", msglist.size(),
                 getStringId());
 
@@ -1007,9 +1009,9 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setHardTimeout(0)
                     .setXid(getNextTransactionId())
                     .build();
-            msglist.add(myIpEntry);
+            sendHandshakeMessage(myIpEntry);
         }
-        sendMsg(msglist);
+
         log.debug("Adding {} next-hop-host-rules in sw {}", msglist.size(), getStringId());
     }
 
@@ -1081,9 +1083,10 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                     .setHardTimeout(0)
                     .setXid(getNextTransactionId())
                     .build();
+            sendHandshakeMessage(myMplsEntry);
             msglist.add(myMplsEntry);
         }
-        sendMsg(msglist);
+
         log.debug("Adding {} mpls-forwarding-rules in sw {}", msglist.size(),
                 getStringId());
 
@@ -1166,7 +1169,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setXid(getNextTransactionId())
                 .build();
 
-        sendMsg(tableMissEntry);
+        sendHandshakeMessage(tableMissEntry);
     }
 
     private void sendBarrier(boolean finalBarrier) {
@@ -1179,7 +1182,7 @@ public class OFSwitchImplCPqD13 extends AbstractOpenFlowSwitch {
                 .setXid(xid)
                 .build();
 
-        sendMsg(br);
+        sendHandshakeMessage(br);
     }
 
     @Override
