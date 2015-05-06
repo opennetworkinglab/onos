@@ -22,23 +22,20 @@ import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.ui.table.cell.EnumFormatter;
 import org.onosproject.ui.table.cell.IntComparator;
 import org.onosproject.ui.table.cell.LongComparator;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import static org.apache.commons.lang.WordUtils.capitalizeFully;
-
 
 /**
  * Message handler for flow view related messages.
@@ -95,6 +92,10 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             tm.setComparator(TIMEOUT, IntComparator.INSTANCE);
             tm.setComparator(PACKETS, LongComparator.INSTANCE);
             tm.setComparator(BYTES, LongComparator.INSTANCE);
+
+            tm.setFormatter(SELECTOR, new SelectorFormatter());
+            tm.setFormatter(TREATMENT, new TreatmentFormatter());
+            tm.setFormatter(STATE, EnumFormatter.INSTANCE);
             return tm;
         }
 
@@ -116,73 +117,50 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 .cell(GROUP_ID, flow.groupId().id())
                 .cell(TABLE_ID, flow.tableId())
                 .cell(PRIORITY, flow.priority())
-                .cell(SELECTOR, getSelectorString(flow))
-                .cell(TREATMENT, getTreatmentString(flow))
+                .cell(SELECTOR, flow)
+                .cell(TREATMENT, flow)
                 .cell(TIMEOUT, flow.timeout())
                 .cell(PERMANENT, flow.isPermanent())
-                .cell(STATE, capitalizeFully(flow.state().toString()))
+                .cell(STATE, flow.state())
                 .cell(PACKETS, flow.packets())
                 .cell(BYTES, flow.bytes());
         }
 
-        private String getSelectorString(FlowEntry f) {
-            String result;
-            TrafficSelector selector = f.selector();
-            Set<Criterion> criteria = selector.criteria();
+        private final class SelectorFormatter implements CellFormatter {
+            @Override
+            public String format(Object value) {
+                FlowEntry flow = (FlowEntry) value;
+                Set<Criterion> criteria = flow.selector().criteria();
 
-            if (criteria.isEmpty()) {
-                result = "(No traffic selectors for this flow)";
-            } else {
-                StringBuilder sb = new StringBuilder("Criteria = ");
+                if (criteria.isEmpty()) {
+                    return "(No traffic selector criteria for this flow)";
+                }
+                StringBuilder sb = new StringBuilder("Criteria: ");
                 for (Criterion c : criteria) {
-                    sb.append(capitalizeFully(c.type().toString())).append(COMMA);
-                }
-                result = removeTrailingComma(sb).toString();
-            }
-            return result;
-        }
-
-        private String getTreatmentString(FlowEntry f) {
-            TrafficTreatment treatment = f.treatment();
-            List<Instruction> deferred = treatment.deferred();
-            List<Instruction> immediate = treatment.immediate();
-            boolean haveDef = !deferred.isEmpty();
-            boolean haveImm = !immediate.isEmpty();
-            boolean both = haveDef && haveImm;
-            boolean neither = !haveDef && !haveImm;
-            String result;
-
-            if (neither) {
-                result = "(No traffic treatment instructions for this flow)";
-            } else {
-                StringBuilder sb = new StringBuilder();
-                addDeferred(sb, deferred);
-                if (both) {
-                    sb.append(COMMA);
-                }
-                addImmediate(sb, immediate);
-                result = sb.toString();
-            }
-            return result;
-        }
-
-        private void addDeferred(StringBuilder sb, List<Instruction> deferred) {
-            if (!deferred.isEmpty()) {
-                sb.append("Deferred instructions = ");
-                for (Instruction i : deferred) {
-                    sb.append(capitalizeFully(i.type().toString())).append(COMMA);
+                    sb.append(c).append(COMMA);
                 }
                 removeTrailingComma(sb);
+
+                return sb.toString();
             }
         }
 
-        private void addImmediate(StringBuilder sb, List<Instruction> immediate) {
-            if (!immediate.isEmpty()) {
-                sb.append("Immediate instructions = ");
-                for (Instruction i : immediate) {
-                    sb.append(capitalizeFully(i.type().toString())).append(COMMA);
+        private final class TreatmentFormatter implements CellFormatter {
+            @Override
+            public String format(Object value) {
+                FlowEntry flow = (FlowEntry) value;
+                List<Instruction> instructions = flow.treatment().allInstructions();
+
+                if (instructions.isEmpty()) {
+                    return "(No traffic treatment instructions for this flow)";
+                }
+                StringBuilder sb = new StringBuilder("Treatment Instructions: ");
+                for (Instruction i : instructions) {
+                    sb.append(i).append(COMMA);
                 }
                 removeTrailingComma(sb);
+
+                return sb.toString();
             }
         }
 

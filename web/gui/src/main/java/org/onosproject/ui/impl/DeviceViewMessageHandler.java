@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.apache.commons.lang.WordUtils.capitalizeFully;
+
 /**
  * Message handler for device view related messages.
  */
@@ -157,7 +159,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             ObjectNode data = MAPPER.createObjectNode();
 
             data.put(ID, deviceId.toString());
-            data.put(TYPE, device.type().toString());
+            data.put(TYPE, capitalizeFully(device.type().toString()));
             data.put(TYPE_IID, getTypeIconId(device));
             data.put(MFR, device.manufacturer());
             data.put(HW, device.hwVersion());
@@ -190,8 +192,8 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             LinkService ls = get(LinkService.class);
             String name = p.annotations().value(AnnotationKeys.PORT_NAME);
 
-            port.put(ID, p.number().toString());
-            port.put(TYPE, p.type().toString());
+            port.put(ID, capitalizeFully(p.number().toString()));
+            port.put(TYPE, capitalizeFully(p.type().toString()));
             port.put(SPEED, p.portSpeed());
             port.put(ENABLED, p.isEnabled());
             port.put(NAME, name != null ? name : "");

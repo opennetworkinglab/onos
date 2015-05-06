@@ -257,7 +257,7 @@
             });
             tps.addAction({
                 id: 'ports-table-btn',
-                gid: 'chain',
+                gid: 'portTable',
                 cb: function () {
                     ns.navTo(portPath, { devId: data.props['URI'] });
                 },

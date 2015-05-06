@@ -28,6 +28,7 @@ import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.ConnectPointFormatter;
+import org.onosproject.ui.table.cell.EnumFormatter;
 
 import java.util.Collection;
 import java.util.Map;
@@ -83,6 +84,7 @@ public class LinkViewMessageHandler extends UiMessageHandler {
             TableModel tm = super.createTableModel();
             tm.setFormatter(ONE, ConnectPointFormatter.INSTANCE);
             tm.setFormatter(TWO, ConnectPointFormatter.INSTANCE);
+            tm.setFormatter(TYPE, EnumFormatter.INSTANCE);
             return tm;
         }
 
@@ -113,7 +115,7 @@ public class LinkViewMessageHandler extends UiMessageHandler {
             if (link.two != null && link.two.type() != link.one.type()) {
                 sb.append(" / ").append(link.two.type());
             }
-            return sb.toString().toLowerCase();
+            return sb.toString();
         }
 
         private String linkState(BiLink link) {

@@ -18,6 +18,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -32,6 +33,7 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.AppIdFormatter;
@@ -86,7 +88,10 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
             tm.setComparator(PRIORITY, IntComparator.INSTANCE);
+
             tm.setFormatter(APP_ID, AppIdFormatter.INSTANCE);
+            tm.setFormatter(RESOURCES, new ResourcesFormatter());
+            tm.setFormatter(DETAILS, new DetailsFormatter());
             return tm;
         }
 
@@ -103,137 +108,168 @@ public class IntentViewMessageHandler extends UiMessageHandler {
                 .cell(KEY, intent.key())
                 .cell(TYPE, intent.getClass().getSimpleName())
                 .cell(PRIORITY, intent.priority())
-                .cell(RESOURCES, formatResources(intent))
-                .cell(DETAILS, formatDetails(intent));
+                .cell(RESOURCES, intent)
+                .cell(DETAILS, intent);
         }
 
+        private final class ResourcesFormatter implements CellFormatter {
+            private static final String COMMA = ", ";
 
-        // == TODO: Review -- Move the following code to a helper class?
-        private StringBuilder details = new StringBuilder();
+            @Override
+            public String format(Object value) {
+                Intent intent = (Intent) value;
+                Collection<NetworkResource> resources = intent.resources();
+                if (resources.isEmpty()) {
+                    return "(No resources for this intent)";
+                }
+                StringBuilder sb = new StringBuilder("Resources: ");
+                for (NetworkResource nr : resources) {
+                    sb.append(nr).append(COMMA);
+                }
+                removeTrailingComma(sb);
 
-        private void appendMultiPointsDetails(Set<ConnectPoint> points) {
-            for (ConnectPoint point : points) {
-                details.append(point.elementId())
+                return sb.toString();
+            }
+
+            private StringBuilder removeTrailingComma(StringBuilder sb) {
+                int pos = sb.lastIndexOf(COMMA);
+                sb.delete(pos, sb.length());
+                return sb;
+            }
+        }
+
+        private final class DetailsFormatter implements CellFormatter {
+            @Override
+            public String format(Object value) {
+                return formatDetails((Intent) value, new StringBuilder()).toString();
+            }
+
+            private StringBuilder formatDetails(Intent intent, StringBuilder sb) {
+                if (intent instanceof ConnectivityIntent) {
+                    buildConnectivityDetails((ConnectivityIntent) intent, sb);
+                }
+
+                if (intent instanceof HostToHostIntent) {
+                    buildHostToHostDetails((HostToHostIntent) intent, sb);
+
+                } else if (intent instanceof PointToPointIntent) {
+                    buildPointToPointDetails((PointToPointIntent) intent, sb);
+
+                } else if (intent instanceof MultiPointToSinglePointIntent) {
+                    buildMPToSPDetails((MultiPointToSinglePointIntent) intent, sb);
+
+                } else if (intent instanceof SinglePointToMultiPointIntent) {
+                    buildSPToMPDetails((SinglePointToMultiPointIntent) intent, sb);
+
+                } else if (intent instanceof PathIntent) {
+                    buildPathDetails((PathIntent) intent, sb);
+
+                } else if (intent instanceof LinkCollectionIntent) {
+                    buildLinkConnectionDetails((LinkCollectionIntent) intent, sb);
+                }
+
+                if (sb.length() == 0) {
+                    sb.append("(No details for this intent)");
+                } else {
+                    sb.insert(0, "Details: ");
+                }
+                return sb;
+            }
+
+            private void appendMultiPointsDetails(Set<ConnectPoint> points,
+                                                  StringBuilder sb) {
+                for (ConnectPoint point : points) {
+                    sb.append(point.elementId())
+                            .append('/')
+                            .append(point.port())
+                            .append(' ');
+                }
+            }
+
+            private void buildConnectivityDetails(ConnectivityIntent intent,
+                                                  StringBuilder sb) {
+                Set<Criterion> criteria = intent.selector().criteria();
+                List<Instruction> instructions = intent.treatment().allInstructions();
+                List<Constraint> constraints = intent.constraints();
+
+                if (!criteria.isEmpty()) {
+                    sb.append("Selector: ").append(criteria);
+                }
+                if (!instructions.isEmpty()) {
+                    sb.append("Treatment: ").append(instructions);
+                }
+                if (constraints != null && !constraints.isEmpty()) {
+                    sb.append("Constraints: ").append(constraints);
+                }
+            }
+
+            private void buildHostToHostDetails(HostToHostIntent intent,
+                                                StringBuilder sb) {
+                sb.append(" Host 1: ")
+                        .append(intent.one())
+                        .append(", Host 2: ")
+                        .append(intent.two());
+            }
+
+            private void buildPointToPointDetails(PointToPointIntent intent,
+                                                  StringBuilder sb) {
+                ConnectPoint ingress = intent.ingressPoint();
+                ConnectPoint egress = intent.egressPoint();
+                sb.append(" Ingress: ")
+                        .append(ingress.elementId())
                         .append('/')
-                        .append(point.port())
+                        .append(ingress.port())
+
+                        .append(", Egress: ")
+                        .append(egress.elementId())
+                        .append('/')
+                        .append(egress.port())
                         .append(' ');
             }
-        }
 
-        private void buildConnectivityDetails(ConnectivityIntent intent) {
-            Set<Criterion> criteria = intent.selector().criteria();
-            List<Instruction> instructions = intent.treatment().allInstructions();
-            List<Constraint> constraints = intent.constraints();
+            private void buildMPToSPDetails(MultiPointToSinglePointIntent intent,
+                                            StringBuilder sb) {
+                ConnectPoint egress = intent.egressPoint();
 
-            if (!criteria.isEmpty()) {
-                details.append("selector=").append(criteria);
-            }
-            if (!instructions.isEmpty()) {
-                details.append("treatment=").append(instructions);
-            }
-            if (constraints != null && !constraints.isEmpty()) {
-                details.append("constraints=").append(constraints);
-            }
-        }
+                sb.append(" Ingress=");
+                appendMultiPointsDetails(intent.ingressPoints(), sb);
 
-        private void buildHostToHostDetails(HostToHostIntent intent) {
-            details.append(" host1=")
-                    .append(intent.one())
-                    .append(", host2=")
-                    .append(intent.two());
-        }
-
-        private void buildPointToPointDetails(PointToPointIntent intent) {
-            ConnectPoint ingress = intent.ingressPoint();
-            ConnectPoint egress = intent.egressPoint();
-            details.append(" ingress=")
-                    .append(ingress.elementId())
-                    .append('/')
-                    .append(ingress.port())
-
-                    .append(", egress=")
-                    .append(egress.elementId())
-                    .append('/')
-                    .append(egress.port())
-                    .append(' ');
-        }
-
-        private void buildMPToSPDetails(MultiPointToSinglePointIntent intent) {
-            ConnectPoint egress = intent.egressPoint();
-
-            details.append(" ingress=");
-            appendMultiPointsDetails(intent.ingressPoints());
-
-            details.append(", egress=")
-                    .append(egress.elementId())
-                    .append('/')
-                    .append(egress.port())
-                    .append(' ');
-        }
-
-        private void buildSPToMPDetails(SinglePointToMultiPointIntent intent) {
-            ConnectPoint ingress = intent.ingressPoint();
-
-            details.append(" ingress=")
-                    .append(ingress.elementId())
-                    .append('/')
-                    .append(ingress.port())
-                    .append(", egress=");
-
-            appendMultiPointsDetails(intent.egressPoints());
-        }
-
-        private void buildPathDetails(PathIntent intent) {
-            details.append(" path=")
-                    .append(intent.path().links())
-                    .append(", cost=")
-                    .append(intent.path().cost());
-        }
-
-        private void buildLinkConnectionDetails(LinkCollectionIntent intent) {
-            details.append(" links=")
-                    .append(intent.links())
-                    .append(", egress=");
-
-            appendMultiPointsDetails(intent.egressPoints());
-        }
-
-        private String formatDetails(Intent intent) {
-            if (intent instanceof ConnectivityIntent) {
-                buildConnectivityDetails((ConnectivityIntent) intent);
+                sb.append(", Egress=")
+                        .append(egress.elementId())
+                        .append('/')
+                        .append(egress.port())
+                        .append(' ');
             }
 
-            if (intent instanceof HostToHostIntent) {
-                buildHostToHostDetails((HostToHostIntent) intent);
+            private void buildSPToMPDetails(SinglePointToMultiPointIntent intent,
+                                            StringBuilder sb) {
+                ConnectPoint ingress = intent.ingressPoint();
 
-            } else if (intent instanceof PointToPointIntent) {
-                buildPointToPointDetails((PointToPointIntent) intent);
+                sb.append(" Ingress=")
+                        .append(ingress.elementId())
+                        .append('/')
+                        .append(ingress.port())
+                        .append(", Egress=");
 
-            } else if (intent instanceof MultiPointToSinglePointIntent) {
-                buildMPToSPDetails((MultiPointToSinglePointIntent) intent);
-
-            } else if (intent instanceof SinglePointToMultiPointIntent) {
-                buildSPToMPDetails((SinglePointToMultiPointIntent) intent);
-
-            } else if (intent instanceof PathIntent) {
-                buildPathDetails((PathIntent) intent);
-
-            } else if (intent instanceof LinkCollectionIntent) {
-                buildLinkConnectionDetails((LinkCollectionIntent) intent);
+                appendMultiPointsDetails(intent.egressPoints(), sb);
             }
 
-            if (details.length() == 0) {
-                details.append("(No details for this intent)");
-            } else {
-                details.insert(0, "Details: ");
+            private void buildPathDetails(PathIntent intent, StringBuilder sb) {
+                sb.append(" path=")
+                        .append(intent.path().links())
+                        .append(", cost=")
+                        .append(intent.path().cost());
             }
-            return details.toString();
-        }
 
-        private String formatResources(Intent intent) {
-            return (intent.resources().isEmpty() ?
-                    "(No resources for this intent)" :
-                    "Resources: " + intent.resources());
+            private void buildLinkConnectionDetails(LinkCollectionIntent intent,
+                                                    StringBuilder sb) {
+                sb.append(" links=")
+                        .append(intent.links())
+                        .append(", egress=");
+
+                appendMultiPointsDetails(intent.egressPoints(), sb);
+            }
+
         }
     }
 }

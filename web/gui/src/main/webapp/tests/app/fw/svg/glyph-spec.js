@@ -20,12 +20,15 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 39,
+    var numBaseGlyphs = 41,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
         longPrefix = 'M95.8,9.2H14.2c-2.8,0-5,2.2-5,5v81.5c0,2.8,2.2,5,5,' +
             '5h81.5c2.8,0,5-2.2,5-5V14.2C100.8,11.5,98.5,9.2,95.8,9.2z ',
+        tablePrefix = 'M15.9,19.1h-8v-13h8V19.1z M90.5,6.1H75.6v13h14.9V6.1' +
+            'z M71.9,6.1H56.9v13h14.9V6.1z M53.2,6.1H38.3v13h14.9V6.1z M34.5,' +
+            '6.1H19.6v13h14.9V6.1z M102.2,6.1h-8v13h8V6.1z ',
         prefixLookup = {
             bird: 'M427.7,300.4',
             unknown: 'M35,40a5',
@@ -42,7 +45,9 @@ describe('factory: fw/svg/glyph.js', function() {
             refresh: 'M102.6,40.8L88.4',
 
             // navigation specific glyphs
-            flowTable: 'M15.9,19.1h-8v-13h',
+            flowTable: tablePrefix + 'M102.2,23.6H7.9v',
+            portTable: tablePrefix + 'M102.6,23.6v78.5H',
+            groupTable: 'M16,19.1H8v-13h',
 
             // toolbar specific glyphs
             summary: longPrefix + 'M16.7',
@@ -81,7 +86,8 @@ describe('factory: fw/svg/glyph.js', function() {
         glyphIds = [
             'unknown', 'node', 'switch', 'roadm', 'endstation', 'router',
             'bgpSpeaker', 'chain', 'crown', 'lock', 'topo', 'refresh',
-            'flowTable', 'summary', 'details', 'ports', 'map', 'cycleLabels',
+            'flowTable', 'portTable', 'groupTable',
+            'summary', 'details', 'ports', 'map', 'cycleLabels',
             'oblique', 'filters', 'resetZoom', 'relatedIntents', 'nextIntent',
             'prevIntent', 'intentTraffic', 'allTraffic', 'flows', 'eqMaster'
         ],

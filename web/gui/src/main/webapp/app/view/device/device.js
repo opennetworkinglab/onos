@@ -130,7 +130,7 @@
         bns.button(
             btnsDiv,
             bName + '-ports',
-            'chain',
+            'portTable',
             function () {
                 ns.navTo(portPath, { devId: details.id });
             },
@@ -142,9 +142,6 @@
         var tr = tbody.append('tr');
 
         portCols.forEach(function (col) {
-            if (col === 'type' || col === 'id') {
-                port[col] = fs.cap(port[col]);
-            }
             tr.append('td').html(port[col]);
         });
     }

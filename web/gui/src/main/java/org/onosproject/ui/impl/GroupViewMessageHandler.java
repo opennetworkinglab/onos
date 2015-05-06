@@ -123,9 +123,9 @@ public class GroupViewMessageHandler extends UiMessageHandler {
 
                 for (GroupBucket b : buckets) {
                     sb.append("Bytes: ")
-                            .append(Long.toString(b.bytes()))
+                            .append(b.bytes())
                             .append(" Packets: ")
-                            .append(Long.toString(b.packets()))
+                            .append(b.packets())
                             .append(" Actions: ")
                             .append(b.treatment().allInstructions())
                             .append(COMMA);

@@ -17,16 +17,19 @@ package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.HostLocationFormatter;
 
 import java.util.Collection;
+import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -72,6 +75,7 @@ public class HostViewMessageHandler extends UiMessageHandler {
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
             tm.setFormatter(LOCATION, HostLocationFormatter.INSTANCE);
+            tm.setFormatter(IPS, new IpSetFormatter());
             return tm;
         }
 
@@ -96,6 +100,31 @@ public class HostViewMessageHandler extends UiMessageHandler {
             String hostType = host.annotations().value(AnnotationKeys.TYPE);
             return HOST_ICON_PREFIX +
                     (isNullOrEmpty(hostType) ? "endstation" : hostType);
+        }
+
+        private final class IpSetFormatter implements CellFormatter {
+            private static final String COMMA = ", ";
+
+            @Override
+            public String format(Object value) {
+                Set<IpAddress> ips = (Set<IpAddress>) value;
+                if (ips.isEmpty()) {
+                    return "(No IP Addresses for this host)";
+                }
+                StringBuilder sb = new StringBuilder();
+                for (IpAddress ip : ips) {
+                    sb.append(ip.toString())
+                            .append(COMMA);
+                }
+                removeTrailingComma(sb);
+                return sb.toString();
+            }
+
+            private StringBuilder removeTrailingComma(StringBuilder sb) {
+                int pos = sb.lastIndexOf(COMMA);
+                sb.delete(pos, sb.length());
+                return sb;
+            }
         }
     }
 }
