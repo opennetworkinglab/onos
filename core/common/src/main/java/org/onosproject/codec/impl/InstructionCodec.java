@@ -17,6 +17,7 @@ package org.onosproject.codec.impl;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -50,6 +51,16 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
                 final L0ModificationInstruction.ModLambdaInstruction modLambdaInstruction =
                         (L0ModificationInstruction.ModLambdaInstruction) instruction;
                 result.put("lambda", modLambdaInstruction.lambda());
+                break;
+
+            case OCH:
+                L0ModificationInstruction.ModOchSignalInstruction ochSignalInstruction =
+                        (L0ModificationInstruction.ModOchSignalInstruction) instruction;
+                OchSignal ochSignal = ochSignalInstruction.lambda();
+                result.put("gridType", ochSignal.gridType().name());
+                result.put("channelSpacing", ochSignal.channelSpacing().name());
+                result.put("spacingMultiplier", ochSignal.spacingMultiplier());
+                result.put("slotGranularity", ochSignal.slotGranularity());
                 break;
 
             default:

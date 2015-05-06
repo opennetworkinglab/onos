@@ -133,6 +133,57 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
     }
 
     /**
+     * Matches teh contents of a mod OCh singal instruction.
+     *
+     * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
+     * @return true if contents matches, false otherwise
+     */
+    private boolean matchModOchSingalInstruction(JsonNode instructionJson,
+                                                 Description description) {
+        ModOchSignalInstruction instructionToMatch =
+                (ModOchSignalInstruction) instruction;
+
+        String jsonSubType = instructionJson.get("subtype").textValue();
+        if (!instructionToMatch.subtype().name().equals(jsonSubType)) {
+            description.appendText("subtype was " + jsonSubType);
+            return false;
+        }
+
+        String jsonType = instructionJson.get("type").textValue();
+        if (!instructionToMatch.type().name().equals(jsonType)) {
+            description.appendText("type was " + jsonType);
+            return false;
+        }
+
+        String jsonGridType = instructionJson.get("gridType").textValue();
+        if (!instructionToMatch.lambda().gridType().name().equals(jsonGridType)) {
+            description.appendText("gridType was " + jsonGridType);
+            return false;
+        }
+
+        String jsonChannelSpacing = instructionJson.get("channelSpacing").textValue();
+        if (!instructionToMatch.lambda().channelSpacing().name().equals(jsonChannelSpacing)) {
+            description.appendText("channelSpacing was " + jsonChannelSpacing);
+            return false;
+        }
+
+        int jsonSpacingMultiplier = instructionJson.get("spacingMultiplier").intValue();
+        if (instructionToMatch.lambda().spacingMultiplier() != jsonSpacingMultiplier) {
+            description.appendText("spacingMultiplier was " + jsonSpacingMultiplier);
+            return false;
+        }
+
+        int jsonSlotGranularity = instructionJson.get("slotGranularity").intValue();
+        if (instructionToMatch.lambda().slotGranularity() != jsonSlotGranularity) {
+            description.appendText("slotGranularity was " + jsonSlotGranularity);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Matches the contents of a mod Ethernet instruction.
      *
      * @param instructionJson JSON instruction to match
@@ -350,6 +401,8 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             return matchOutputInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModLambdaInstruction) {
             return matchModLambdaInstruction(jsonInstruction, description);
+        } else if (instruction instanceof ModOchSignalInstruction) {
+            return matchModOchSingalInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModEtherInstruction) {
             return matchModEtherInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModVlanIdInstruction) {

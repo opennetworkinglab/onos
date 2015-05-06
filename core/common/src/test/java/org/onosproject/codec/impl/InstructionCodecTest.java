@@ -24,6 +24,9 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -100,6 +103,19 @@ public class InstructionCodecTest {
                 (L0ModificationInstruction.ModLambdaInstruction)
                         Instructions.modL0Lambda((short) 55);
         final ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod OCh signal instructions.
+     */
+    @Test
+    public void modOchSignalInstructionTest() {
+        L0ModificationInstruction.ModOchSignalInstruction instruction =
+                (L0ModificationInstruction.ModOchSignalInstruction)
+                        Instructions.modL0Lambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8));
+        ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));
     }
