@@ -69,6 +69,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
                 new UiViewHidden("flow"),
                 new UiViewHidden("port"),
+                new UiViewHidden("group"),
                 new UiView(NETWORK, "link", "Links", "nav_links"),
                 new UiView(NETWORK, "host", "Hosts", "nav_hosts"),
                 new UiView(NETWORK, "intent", "Intents", "nav_intents")
@@ -82,6 +83,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                         new HostViewMessageHandler(),
                         new FlowViewMessageHandler(),
                         new PortViewMessageHandler(),
+                        new GroupViewMessageHandler(),
                         new IntentViewMessageHandler(),
                         new ApplicationViewMessageHandler(),
                         new ClusterViewMessageHandler()

@@ -40,6 +40,7 @@
         'device',
         'flow',
         'port',
+        'group',
         'host',
         'app',
         'intent',
