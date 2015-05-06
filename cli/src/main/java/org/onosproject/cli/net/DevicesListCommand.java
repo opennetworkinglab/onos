@@ -15,18 +15,18 @@
  */
 package org.onosproject.cli.net;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 
-import java.util.Collections;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -44,7 +44,7 @@ public class DevicesListCommand extends AbstractShellCommand {
     protected void execute() {
         DeviceService service = get(DeviceService.class);
         if (outputJson()) {
-            print("%s", json(service, getSortedDevices(service)));
+            print("%s", json(getSortedDevices(service)));
         } else {
             for (Device device : getSortedDevices(service)) {
                 printDevice(service, device);
@@ -55,40 +55,14 @@ public class DevicesListCommand extends AbstractShellCommand {
     /**
      * Returns JSON node representing the specified devices.
      *
-     * @param service device service
      * @param devices collection of devices
      * @return JSON node
      */
-    public static JsonNode json(DeviceService service, Iterable<Device> devices) {
+    private JsonNode json(Iterable<Device> devices) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (Device device : devices) {
-            result.add(json(service, mapper, device));
-        }
-        return result;
-    }
-
-    /**
-     * Returns JSON node representing the specified device.
-     *
-     * @param service device service
-     * @param mapper  object mapper
-     * @param device  infrastructure device
-     * @return JSON node
-     */
-    public static ObjectNode json(DeviceService service, ObjectMapper mapper,
-                                  Device device) {
-        ObjectNode result = mapper.createObjectNode();
-        if (device != null) {
-            result.put("id", device.id().toString())
-                    .put("available", service.isAvailable(device.id()))
-                    .put("type", device.type().toString())
-                    .put("role", service.getRole(device.id()).toString())
-                    .put("mfr", device.manufacturer())
-                    .put("hw", device.hwVersion())
-                    .put("sw", device.swVersion())
-                    .put("serial", device.serialNumber())
-                    .set("annotations", annotations(mapper, device.annotations()));
+            result.add(jsonForEntity(device, Device.class));
         }
         return result;
     }

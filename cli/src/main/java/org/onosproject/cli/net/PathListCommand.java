@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 
@@ -51,7 +52,7 @@ public class PathListCommand extends TopologyCommand {
         init();
         Set<Path> paths = service.getPaths(topology, deviceId(src), deviceId(dst));
         if (outputJson()) {
-            print("%s", json(paths));
+            print("%s", json(this, paths));
         } else {
             for (Path path : paths) {
                 print(pathString(path));
@@ -62,16 +63,17 @@ public class PathListCommand extends TopologyCommand {
     /**
      * Produces a JSON array containing the specified paths.
      *
+     * @param context context to use for looking up codecs
      * @param paths collection of paths
      * @return JSON array
      */
-    public static JsonNode json(Iterable<Path> paths) {
+    public static JsonNode json(AbstractShellCommand context, Iterable<Path> paths) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (Path path : paths) {
-            result.add(LinksListCommand.json(mapper, path)
-                               .put("cost", path.cost())
-                               .set("links", LinksListCommand.json(path.links())));
+            result.add(LinksListCommand.json(context, path)
+                    .put("cost", path.cost())
+                    .set("links", LinksListCommand.json(context, path.links())));
         }
         return result;
     }

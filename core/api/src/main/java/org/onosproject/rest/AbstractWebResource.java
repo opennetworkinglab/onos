@@ -60,4 +60,9 @@ public class AbstractWebResource extends BaseResource implements CodecContext {
         return result;
     }
 
+    @Override
+    public <T> T getService(Class<T> serviceClass) {
+        return get(serviceClass);
+    }
+
 }

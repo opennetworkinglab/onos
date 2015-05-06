@@ -15,31 +15,28 @@
  */
 package org.onosproject.cli.net;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.instructions.Instruction;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -73,7 +70,7 @@ public class FlowsListCommand extends AbstractShellCommand {
         SortedMap<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
 
         if (outputJson()) {
-            print("%s", json(coreService, flows.keySet(), flows));
+            print("%s", json(flows.keySet(), flows));
         } else {
             flows.forEach((device, flow) -> printFlows(device, flow, coreService));
         }
@@ -82,65 +79,31 @@ public class FlowsListCommand extends AbstractShellCommand {
     /**
      * Produces a JSON array of flows grouped by the each device.
      *
-     * @param coreService core service
      * @param devices     collection of devices to group flow by
      * @param flows       collection of flows per each device
      * @return JSON array
      */
-    private JsonNode json(CoreService coreService, Iterable<Device> devices,
+    private JsonNode json(Iterable<Device> devices,
                           Map<Device, List<FlowEntry>> flows) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (Device device : devices) {
-            result.add(json(coreService, mapper, device, flows.get(device)));
+            result.add(json(mapper, device, flows.get(device)));
         }
         return result;
     }
 
     // Produces JSON object with the flows of the given device.
-    private ObjectNode json(CoreService coreService, ObjectMapper mapper,
+    private ObjectNode json(ObjectMapper mapper,
                             Device device, List<FlowEntry> flows) {
         ObjectNode result = mapper.createObjectNode();
         ArrayNode array = mapper.createArrayNode();
 
-        for (FlowEntry flow : flows) {
-            array.add(json(coreService, mapper, flow));
-        }
+        flows.forEach(flow -> array.add(jsonForEntity(flow, FlowEntry.class)));
 
         result.put("device", device.id().toString())
                 .put("flowCount", flows.size())
                 .set("flows", array);
-        return result;
-    }
-
-    // Produces JSON structure with the specified flow data.
-    private ObjectNode json(CoreService coreService, ObjectMapper mapper,
-                            FlowEntry flow) {
-        ObjectNode result = mapper.createObjectNode();
-        ArrayNode crit = mapper.createArrayNode();
-        for (Criterion c : flow.selector().criteria()) {
-            crit.add(c.toString());
-        }
-
-        ArrayNode instr = mapper.createArrayNode();
-        for (Instruction i : flow.treatment().allInstructions()) {
-            instr.add(i.toString());
-        }
-
-        ApplicationId appCoreId = coreService.getAppId(flow.appId());
-        String appName = appCoreId == null ?
-                Short.toString(flow.appId())
-                : appCoreId.name();
-
-        result.put("flowId", Long.toHexString(flow.id().value()))
-                .put("state", flow.state().toString())
-                .put("bytes", flow.bytes())
-                .put("packets", flow.packets())
-                .put("life", flow.life())
-                .put("tableId", flow.tableId())
-                .put("appId", appName);
-        result.set("selector", crit);
-        result.set("treatment", instr);
         return result;
     }
 

@@ -35,7 +35,7 @@ public final class ControllerNodeCodec extends JsonCodec<ControllerNode> {
     @Override
     public ObjectNode encode(ControllerNode node, CodecContext context) {
         checkNotNull(node, "Controller node cannot be null");
-        ClusterService service = context.get(ClusterService.class);
+        ClusterService service = context.getService(ClusterService.class);
         return context.mapper().createObjectNode()
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())

@@ -15,16 +15,11 @@
  */
 package org.onosproject.cli.net;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Link;
-import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -36,8 +31,10 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Lists the inventory of intents and their states.
@@ -393,81 +390,9 @@ public class IntentsListCommand extends AbstractShellCommand {
     private JsonNode json(IntentService service, Iterable<Intent> intents) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-        for (Intent intent : intents) {
-            result.add(json(service, mapper, intent));
-        }
+
+        intents.forEach(intent -> result.add(jsonForEntity(intent, Intent.class)));
         return result;
     }
 
-    private JsonNode json(IntentService service, ObjectMapper mapper, Intent intent) {
-        ObjectNode result = mapper.createObjectNode()
-                .put("id", intent.id().toString())
-                .put("type", intent.getClass().getSimpleName())
-                .put("appId", intent.appId().name());
-
-        IntentState state = service.getIntentState(intent.key());
-        if (state != null) {
-            result.put("state", state.toString());
-        }
-
-        if (!intent.resources().isEmpty()) {
-            ArrayNode rnode = mapper.createArrayNode();
-            for (NetworkResource resource : intent.resources()) {
-                rnode.add(resource.toString());
-            }
-            result.set("resources", rnode);
-        }
-
-        if (intent instanceof ConnectivityIntent) {
-            ConnectivityIntent ci = (ConnectivityIntent) intent;
-            if (!ci.selector().criteria().isEmpty()) {
-                result.put("selector", ci.selector().criteria().toString());
-            }
-            if (!ci.treatment().allInstructions().isEmpty()) {
-                result.put("treatment", ci.treatment().allInstructions().toString());
-            }
-        }
-
-        if (intent instanceof PathIntent) {
-            PathIntent pi = (PathIntent) intent;
-            ArrayNode pnode = mapper.createArrayNode();
-            for (Link link : pi.path().links()) {
-                pnode.add(link.toString());
-            }
-            result.set("path", pnode);
-        } else if (intent instanceof HostToHostIntent) {
-            HostToHostIntent pi = (HostToHostIntent) intent;
-            result.set("host1", LinksListCommand.json(mapper, pi.one()));
-            result.set("host2", LinksListCommand.json(mapper, pi.two()));
-        } else if (intent instanceof PointToPointIntent) {
-            PointToPointIntent pi = (PointToPointIntent) intent;
-            result.set("ingress", LinksListCommand.json(mapper, pi.ingressPoint()));
-            result.set("egress", LinksListCommand.json(mapper, pi.egressPoint()));
-        } else if (intent instanceof MultiPointToSinglePointIntent) {
-            MultiPointToSinglePointIntent pi = (MultiPointToSinglePointIntent) intent;
-            result.set("ingress", json(mapper, pi.ingressPoints()));
-            result.set("egress", LinksListCommand.json(mapper, pi.egressPoint()));
-        } else if (intent instanceof SinglePointToMultiPointIntent) {
-            SinglePointToMultiPointIntent pi = (SinglePointToMultiPointIntent) intent;
-            result.set("ingress", LinksListCommand.json(mapper, pi.ingressPoint()));
-            result.set("egress", json(mapper, pi.egressPoints()));
-        } else if (intent instanceof LinkCollectionIntent) {
-            LinkCollectionIntent li = (LinkCollectionIntent) intent;
-            result.set("links", LinksListCommand.json(li.links()));
-        }
-
-        List<Intent> installable = service.getInstallableIntents(intent.key());
-        if (installable != null && !installable.isEmpty()) {
-            result.set("installable", json(service, installable));
-        }
-        return result;
-    }
-
-    private JsonNode json(ObjectMapper mapper, Set<ConnectPoint> connectPoints) {
-        ArrayNode result = mapper.createArrayNode();
-        for (ConnectPoint cp : connectPoints) {
-            result.add(LinksListCommand.json(mapper, cp));
-        }
-        return result;
-    }
 }

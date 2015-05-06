@@ -27,8 +27,6 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyProvider;
 import org.onosproject.net.topology.TopologyService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Lists summary of the current topology.
  */
@@ -64,14 +62,7 @@ public class TopologyCommand extends AbstractShellCommand {
 
         } else if (outputJson()) {
             print("%s",
-                    new ObjectMapper()
-                            .createObjectNode()
-                            .put("time", topology.time())
-                            .put("created", formatCreationTime(topology.creationTime()))
-                            .put("uptime", formatElapsedTime(topologyUptime))
-                            .put("deviceCount", topology.deviceCount())
-                            .put("linkCount", topology.linkCount())
-                            .put("clusterCount", topology.clusterCount()));
+                    jsonForEntity(topology, Topology.class));
         } else {
             print(FMT, formatCreationTime(topology.creationTime()),
                     formatElapsedTime(topologyUptime),

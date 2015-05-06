@@ -15,17 +15,16 @@
  */
 package org.onosproject.cli.net;
 
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.Link;
+import org.onosproject.net.link.LinkService;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.HostId;
-import org.onosproject.net.Link;
-import org.onosproject.net.link.LinkService;
 
 import static org.onosproject.net.DeviceId.deviceId;
 
@@ -49,7 +48,7 @@ public class LinksListCommand extends AbstractShellCommand {
         Iterable<Link> links = uri != null ?
                 service.getDeviceLinks(deviceId(uri)) : service.getLinks();
         if (outputJson()) {
-            print("%s", json(links));
+            print("%s", json(this, links));
         } else {
             for (Link link : links) {
                 print(linkString(link));
@@ -60,59 +59,28 @@ public class LinksListCommand extends AbstractShellCommand {
     /**
      * Produces a JSON array containing the specified links.
      *
+     * @param context context to use for looking up codecs
      * @param links collection of links
      * @return JSON array
      */
-    public static JsonNode json(Iterable<Link> links) {
+    public static JsonNode json(AbstractShellCommand context, Iterable<Link> links) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-        for (Link link : links) {
-            result.add(json(mapper, link));
-        }
+
+        links.forEach(link -> result.add(context.jsonForEntity(link, Link.class)));
+
         return result;
     }
 
     /**
      * Produces a JSON object for the specified link.
      *
-     * @param mapper object mapper
+     * @param context context to use for looking up codecs
      * @param link   link to encode
      * @return JSON object
      */
-    public static ObjectNode json(ObjectMapper mapper, Link link) {
-        ObjectNode result = mapper.createObjectNode();
-        result.set("src", json(mapper, link.src()));
-        result.set("dst", json(mapper, link.dst()));
-        result.put("type", link.type().toString());
-        result.put("state", link.state().toString());
-        result.set("annotations", annotations(mapper, link.annotations()));
-        return result;
-    }
-
-    /**
-     * Produces a JSON object for the specified host ID.
-     *
-     * @param mapper    object mapper
-     * @param hostId    host ID to encode
-     * @return JSON object
-     */
-    public static ObjectNode json(ObjectMapper mapper, HostId hostId) {
-        return mapper.createObjectNode()
-                .put("mac", hostId.mac().toString())
-                .put("vlanId", hostId.vlanId().toString());
-    }
-
-    /**
-     * Produces a JSON object for the specified connect point.
-     *
-     * @param mapper       object mapper
-     * @param connectPoint connection point to encode
-     * @return JSON object
-     */
-    public static ObjectNode json(ObjectMapper mapper, ConnectPoint connectPoint) {
-        return mapper.createObjectNode()
-                .put("device", connectPoint.deviceId().toString())
-                .put("port", connectPoint.port().toString());
+    public static ObjectNode json(AbstractShellCommand context, Link link) {
+         return context.jsonForEntity(link, Link.class);
     }
 
     /**

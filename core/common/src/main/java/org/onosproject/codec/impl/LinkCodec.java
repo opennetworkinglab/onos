@@ -37,6 +37,7 @@ public final class LinkCodec extends AnnotatedCodec<Link> {
     private static final String SRC = "src";
     private static final String DST = "dst";
     private static final String TYPE = "type";
+    private static final String STATE = "state";
 
     @Override
     public ObjectNode encode(Link link, CodecContext context) {
@@ -46,6 +47,9 @@ public final class LinkCodec extends AnnotatedCodec<Link> {
         result.set(SRC, codec.encode(link.src(), context));
         result.set(DST, codec.encode(link.dst(), context));
         result.put(TYPE, link.type().toString());
+        if (link.state() != null) {
+            result.put(STATE, link.state().toString());
+        }
         return annotate(result, link, context);
     }
 

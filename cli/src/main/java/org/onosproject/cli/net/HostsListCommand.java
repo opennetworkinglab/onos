@@ -15,19 +15,18 @@
  */
 package org.onosproject.cli.net;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;
-import org.onlab.packet.IpAddress;
 
-import java.util.Collections;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -54,30 +53,11 @@ public class HostsListCommand extends AbstractShellCommand {
     }
 
     // Produces JSON structure.
-    private static JsonNode json(Iterable<Host> hosts) {
+    private JsonNode json(Iterable<Host> hosts) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-        for (Host host : hosts) {
-            result.add(json(mapper, host));
-        }
-        return result;
-    }
 
-    // Produces JSON structure.
-    private static JsonNode json(ObjectMapper mapper, Host host) {
-        ObjectNode loc = LinksListCommand.json(mapper, host.location())
-                .put("time", host.location().time());
-        ArrayNode ips = mapper.createArrayNode();
-        for (IpAddress ip : host.ipAddresses()) {
-            ips.add(ip.toString());
-        }
-        ObjectNode result = mapper.createObjectNode()
-                .put("id", host.id().toString())
-                .put("mac", host.mac().toString())
-                .put("vlan", host.vlan().toString());
-        result.set("location", loc);
-        result.set("ips", ips);
-        result.set("annotations", annotations(mapper, host.annotations()));
+        hosts.forEach(host -> result.add(jsonForEntity(host, Host.class)));
         return result;
     }
 

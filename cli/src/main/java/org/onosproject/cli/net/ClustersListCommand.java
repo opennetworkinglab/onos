@@ -55,12 +55,11 @@ public class ClustersListCommand extends TopologyCommand {
     private JsonNode json(Iterable<TopologyCluster> clusters) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-        for (TopologyCluster cluster : clusters) {
-            result.add(mapper.createObjectNode()
-                               .put("id", cluster.id().index())
-                               .put("deviceCount", cluster.deviceCount())
-                               .put("linkCount", cluster.linkCount()));
-        }
+
+        clusters.spliterator()
+                .forEachRemaining(cluster ->
+                        result.add(jsonForEntity(cluster, TopologyCluster.class)));
+
         return result;
     }
 

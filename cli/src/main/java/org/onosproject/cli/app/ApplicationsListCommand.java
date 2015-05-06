@@ -15,9 +15,9 @@
  */
 package org.onosproject.cli.app;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.app.ApplicationService;
@@ -25,8 +25,9 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
 import org.onosproject.core.Application;
 
-import java.util.Collections;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onosproject.app.ApplicationState.ACTIVE;
@@ -88,25 +89,12 @@ public class ApplicationsListCommand extends AbstractShellCommand {
         for (Application app : apps) {
             boolean isActive = service.getState(app.id()) == ACTIVE;
             if (activeOnly && isActive || !activeOnly) {
-                result.add(json(service, mapper, app));
+                result.add(jsonForEntity(app, Application.class));
             }
         }
         return result;
     }
 
-    protected JsonNode json(ApplicationService service, ObjectMapper mapper,
-                            Application app) {
-        return mapper.createObjectNode()
-                .put("name", app.id().name())
-                .put("id", app.id().id())
-                .put("version", app.version().toString())
-                .put("description", app.description())
-                .put("origin", app.origin())
-                .put("permissions", app.permissions().toString())
-                .put("featuresRepo", app.featuresRepo().isPresent() ?
-                        app.featuresRepo().get().toString() : "")
-                .put("features", app.features().toString())
-                .put("state", service.getState(app.id()).toString());
-    }
+
 
 }

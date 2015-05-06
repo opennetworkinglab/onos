@@ -15,20 +15,24 @@
  */
 package org.onosproject.cli;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.AbstractAction;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
+import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.CodecService;
+import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Annotations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Base abstraction of Karaf shell commands.
  */
-public abstract class AbstractShellCommand extends AbstractAction {
+public abstract class AbstractShellCommand extends AbstractAction implements CodecContext {
 
     @Option(name = "-j", aliases = "--json", description = "Output JSON",
             required = false, multiValued = false)
@@ -129,4 +133,35 @@ public abstract class AbstractShellCommand extends AbstractAction {
         return null;
     }
 
+
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public ObjectMapper mapper() {
+        return mapper;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> JsonCodec<T> codec(Class<T> entityClass) {
+        return get(CodecService.class).getCodec(entityClass);
+    }
+
+    @Override
+    public <T> T getService(Class<T> serviceClass) {
+        return get(serviceClass);
+    }
+
+    /**
+     * Generates a Json representation of an object.
+     *
+     * @param entity object to generate JSON for
+     * @param entityClass class to format with - this chooses which codec to use
+     * @param <T> Type of the object being formatted
+     * @return JSON object representation
+     */
+    public <T> ObjectNode jsonForEntity(T entity, Class<T> entityClass) {
+        return codec(entityClass).encode(entity, this);
+    }
 }

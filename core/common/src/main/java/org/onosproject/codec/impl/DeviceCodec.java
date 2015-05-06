@@ -48,7 +48,7 @@ public final class DeviceCodec extends AnnotatedCodec<Device> {
     @Override
     public ObjectNode encode(Device device, CodecContext context) {
         checkNotNull(device, "Device cannot be null");
-        DeviceService service = context.get(DeviceService.class);
+        DeviceService service = context.getService(DeviceService.class);
         ObjectNode result = context.mapper().createObjectNode()
                 .put(ID, device.id().toString())
                 .put(TYPE, device.type().name())

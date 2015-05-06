@@ -31,7 +31,7 @@ public final class ApplicationCodec extends JsonCodec<Application> {
     @Override
     public ObjectNode encode(Application app, CodecContext context) {
         checkNotNull(app, "Application cannot be null");
-        ApplicationService service = context.get(ApplicationService.class);
+        ApplicationService service = context.getService(ApplicationService.class);
         ObjectNode result = context.mapper().createObjectNode()
                 .put("name", app.id().name())
                 .put("id", app.id().id())

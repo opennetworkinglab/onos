@@ -43,7 +43,7 @@ public class ClusterLinksCommand extends ClustersListCommand {
         if (cluster == null) {
             error("No such cluster %s", cid);
         } else if (outputJson()) {
-            print("%s", json(service.getClusterLinks(topology, cluster)));
+            print("%s", json(this, service.getClusterLinks(topology, cluster)));
         } else {
             for (Link link : service.getClusterLinks(topology, cluster)) {
                 print(linkString(link));

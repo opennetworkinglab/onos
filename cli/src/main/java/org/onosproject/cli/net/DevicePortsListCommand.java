@@ -116,7 +116,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
                                   .set("annotations", annotations(mapper, port.annotations())));
             }
         }
-        result.set("device", json(service, mapper, device));
+        result.set("device", jsonForEntity(device, Device.class));
         result.set("ports", ports);
         return result;
     }

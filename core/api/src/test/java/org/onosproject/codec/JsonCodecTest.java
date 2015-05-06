@@ -92,7 +92,7 @@ public class JsonCodecTest {
         }
 
         @Override
-        public <T> T get(Class<T> serviceClass) {
+        public <T> T getService(Class<T> serviceClass) {
             return null;
         }
     }

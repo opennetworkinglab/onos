@@ -67,7 +67,7 @@ public class ApplicationsResourceTest extends ResourceTest {
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T> T get(Class<T> serviceClass) {
+        public <T> T getService(Class<T> serviceClass) {
             return (T) service;
         }
     }

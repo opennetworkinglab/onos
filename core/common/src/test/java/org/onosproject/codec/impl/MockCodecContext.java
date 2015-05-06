@@ -52,7 +52,7 @@ public class MockCodecContext implements CodecContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T get(Class<T> serviceClass) {
+    public <T> T getService(Class<T> serviceClass) {
         return (T) services.get(serviceClass);
     }
 
