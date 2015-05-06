@@ -306,6 +306,7 @@ public final class KryoNamespaces {
                     L0ModificationInstruction.class,
                     L0ModificationInstruction.L0SubType.class,
                     L0ModificationInstruction.ModLambdaInstruction.class,
+                    L0ModificationInstruction.ModOchSignalInstruction.class,
                     L2ModificationInstruction.class,
                     L2ModificationInstruction.L2SubType.class,
                     L2ModificationInstruction.ModEtherInstruction.class,
