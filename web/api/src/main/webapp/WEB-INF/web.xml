@@ -61,19 +61,19 @@
                 org.onosproject.rest.exceptions.ServerErrorMapper,
                 org.onosproject.rest.exceptions.BadRequestMapper,
                 org.onosproject.rest.exceptions.WebApplicationExceptionMapper,
-                org.onosproject.rest.JsonBodyWriter,
+                org.onosproject.rest.resources.JsonBodyWriter,
 
-                org.onosproject.rest.ApplicationsWebResource,
-                org.onosproject.rest.ComponentConfigWebResource,
-                org.onosproject.rest.ClusterWebResource,
-                org.onosproject.rest.DevicesWebResource,
-                org.onosproject.rest.LinksWebResource,
-                org.onosproject.rest.HostsWebResource,
-                org.onosproject.rest.IntentsWebResource,
-                org.onosproject.rest.FlowsWebResource,
-                org.onosproject.rest.TopologyWebResource,
-                org.onosproject.rest.ConfigWebResource,
-                org.onosproject.rest.PathsWebResource
+                org.onosproject.rest.resources.ApplicationsWebResource,
+                org.onosproject.rest.resources.ComponentConfigWebResource,
+                org.onosproject.rest.resources.ClusterWebResource,
+                org.onosproject.rest.resources.DevicesWebResource,
+                org.onosproject.rest.resources.LinksWebResource,
+                org.onosproject.rest.resources.HostsWebResource,
+                org.onosproject.rest.resources.IntentsWebResource,
+                org.onosproject.rest.resources.FlowsWebResource,
+                org.onosproject.rest.resources.TopologyWebResource,
+                org.onosproject.rest.resources.ConfigWebResource,
+                org.onosproject.rest.resources.PathsWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

@@ -17,4 +17,4 @@
 /**
  * Set of resources implementing the ONOS REST API.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;

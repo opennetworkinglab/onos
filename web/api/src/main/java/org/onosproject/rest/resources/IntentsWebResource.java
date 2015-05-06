@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +37,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;

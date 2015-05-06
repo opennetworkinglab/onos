@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -22,6 +22,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;

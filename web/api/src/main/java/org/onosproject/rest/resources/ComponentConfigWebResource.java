@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;

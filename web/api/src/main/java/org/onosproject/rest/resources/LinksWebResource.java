@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -27,7 +28,6 @@ import javax.ws.rs.core.Response;
 
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.rest.LinksWebResource.Direction.valueOf;
 
 /**
  * REST resource for interacting with the inventory of infrastructure links.
@@ -60,7 +60,7 @@ public class LinksWebResource extends AbstractWebResource {
                                                 String direction,
                                                 LinkService service) {
         Direction dir = direction != null ?
-                valueOf(direction.toUpperCase()) : Direction.ALL;
+                Direction.valueOf(direction.toUpperCase()) : Direction.ALL;
         switch (dir) {
             case INGRESS:
                 return service.getIngressLinks(point);
@@ -75,7 +75,7 @@ public class LinksWebResource extends AbstractWebResource {
                                           String direction,
                                           LinkService service) {
         Direction dir = direction != null ?
-                valueOf(direction.toUpperCase()) : Direction.ALL;
+                Direction.valueOf(direction.toUpperCase()) : Direction.ALL;
         switch (dir) {
             case INGRESS:
                 return service.getDeviceIngressLinks(deviceId);

@@ -59,6 +59,11 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

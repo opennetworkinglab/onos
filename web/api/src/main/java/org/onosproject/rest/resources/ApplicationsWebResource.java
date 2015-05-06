@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
