@@ -128,17 +128,43 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
-        readComponentConfiguration(context);
 
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, 1);
         deviceService.addListener(deviceListener);
+        readComponentConfiguration(context);
+        requestPackests();
 
+        log.info("Started with Application ID {}", appId.id());
+    }
+
+    @Deactivate
+    public void deactivate() {
+        // TODO revoke all packet requests when deactivate
+        cfgService.unregisterProperties(getClass(), false);
+        providerRegistry.unregister(this);
+        packetService.removeProcessor(processor);
+        deviceService.removeListener(deviceListener);
+        providerService = null;
+        log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        // TODO revoke unnecessary packet requests when config being modified
+        readComponentConfiguration(context);
+        requestPackests();
+    }
+
+    /**
+     * Request packet in via PacketService.
+     */
+    private void requestPackests() {
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
         selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
         packetService.requestPackets(selectorBuilder.build(),
-                                  PacketPriority.CONTROL, appId);
+                                     PacketPriority.CONTROL, appId);
 
         if (ipv6NeighborDiscovery) {
             // IPv6 Neighbor Solicitation packet.
@@ -157,23 +183,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             packetService.requestPackets(selectorBuilder.build(),
                                          PacketPriority.CONTROL, appId);
         }
-
-        log.info("Started with Application ID {}", appId.id());
-    }
-
-    @Deactivate
-    public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
-        providerRegistry.unregister(this);
-        packetService.removeProcessor(processor);
-        deviceService.removeListener(deviceListener);
-        providerService = null;
-        log.info("Stopped");
-    }
-
-    @Modified
-    public void modified(ComponentContext context) {
-        readComponentConfiguration(context);
     }
 
     /**

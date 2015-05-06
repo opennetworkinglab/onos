@@ -76,10 +76,34 @@ public class ProxyArp {
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.proxyarp");
-        readComponentConfiguration(context);
 
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
+        readComponentConfiguration(context);
+        requestPackests();
 
+        log.info("Started with Application ID {}", appId.id());
+    }
+
+    @Deactivate
+    public void deactivate() {
+        // TODO revoke all packet requests when deactivate
+        cfgService.unregisterProperties(getClass(), false);
+        packetService.removeProcessor(processor);
+        processor = null;
+        log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        // TODO revoke unnecessary packet requests when config being modified
+        readComponentConfiguration(context);
+        requestPackests();
+    }
+
+    /**
+     * Request packet in via PacketService.
+     */
+    private void requestPackests() {
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
         selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
@@ -103,21 +127,6 @@ public class ProxyArp {
             packetService.requestPackets(selectorBuilder.build(),
                                          PacketPriority.CONTROL, appId);
         }
-
-        log.info("Started with Application ID {}", appId.id());
-    }
-
-    @Deactivate
-    public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
-        packetService.removeProcessor(processor);
-        processor = null;
-        log.info("Stopped");
-    }
-
-    @Modified
-    public void modified(ComponentContext context) {
-        readComponentConfiguration(context);
     }
 
     /**

@@ -183,6 +183,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Deactivate
     public void deactivate() {
+        // TODO revoke all packet requests when deactivate
         cfgService.unregisterProperties(getClass(), false);
         if (disableLinkDiscovery) {
             return;
@@ -202,6 +203,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Modified
     public void modified(ComponentContext context) {
+        // TODO revoke unnecessary packet requests when config being modified
         if (context == null) {
             loadSuppressionRules();
             return;
@@ -241,6 +243,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         // should refresh discoverers when we need dynamic reconfiguration
     }
 
+    /**
+     * Request packet in via PacketService.
+     */
     private void requestPackets() {
         TrafficSelector.Builder lldpSelector = DefaultTrafficSelector.builder();
         lldpSelector.matchEthType(Ethernet.TYPE_LLDP);

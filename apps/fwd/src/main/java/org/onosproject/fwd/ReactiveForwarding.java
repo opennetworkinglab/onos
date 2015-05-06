@@ -163,7 +163,32 @@ public class ReactiveForwarding {
 
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         readComponentConfiguration(context);
+        requestPackests();
 
+        log.info("Started with Application ID {}", appId.id());
+    }
+
+    @Deactivate
+    public void deactivate() {
+        // TODO revoke all packet requests when deactivate
+        cfgService.unregisterProperties(getClass(), false);
+        flowRuleService.removeFlowRulesById(appId);
+        packetService.removeProcessor(processor);
+        processor = null;
+        log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        // TODO revoke unnecessary packet requests when config being modified
+        readComponentConfiguration(context);
+        requestPackests();
+    }
+
+    /**
+     * Request packet in via PacketService.
+     */
+    private void requestPackests() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
         packetService.requestPackets(selector.build(), PacketPriority.REACTIVE,
@@ -177,22 +202,6 @@ public class ReactiveForwarding {
             packetService.requestPackets(selector.build(),
                                          PacketPriority.REACTIVE, appId);
         }
-
-        log.info("Started with Application ID {}", appId.id());
-    }
-
-    @Deactivate
-    public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
-        flowRuleService.removeFlowRulesById(appId);
-        packetService.removeProcessor(processor);
-        processor = null;
-        log.info("Stopped");
-    }
-
-    @Modified
-    public void modified(ComponentContext context) {
-        readComponentConfiguration(context);
     }
 
     /**
