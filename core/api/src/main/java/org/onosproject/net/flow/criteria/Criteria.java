@@ -360,6 +360,7 @@ public final class Criteria {
      *
      * @param lambda lambda to match on (16 bits unsigned integer)
      * @return match criterion
+     * @deprecated in Cardinal Release. Use {@link #matchLambda(Lambda)} instead.
      */
     @Deprecated
     public static Criterion matchLambda(int lambda) {
