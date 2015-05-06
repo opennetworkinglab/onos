@@ -17,8 +17,8 @@ package org.onosproject.store.flow;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.onosproject.cluster.NodeId;
 
@@ -30,15 +30,15 @@ import com.google.common.base.Optional;
 public final class ReplicaInfo {
 
     private final Optional<NodeId> master;
-    private final Collection<NodeId> backups;
+    private final List<NodeId> backups;
 
     /**
      * Creates a ReplicaInfo instance.
      *
      * @param master NodeId of the node where the master copy should be
-     * @param backups collection of NodeId, where backup copies should be placed
+     * @param backups list of NodeId, where backup copies should be placed
      */
-    public ReplicaInfo(NodeId master, Collection<NodeId> backups) {
+    public ReplicaInfo(NodeId master, List<NodeId> backups) {
         this.master = Optional.fromNullable(master);
         this.backups = checkNotNull(backups);
     }
@@ -57,7 +57,7 @@ public final class ReplicaInfo {
      *
      * @return collection of NodeId, where backup copies should be placed
      */
-    public Collection<NodeId> backups() {
+    public List<NodeId> backups() {
         return backups;
     }
 

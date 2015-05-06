@@ -218,6 +218,8 @@ public class ConsistentDeviceMastershipStore
         NodeId master = null;
         final List<NodeId> standbys = Lists.newLinkedList();
 
+        List<NodeId> candidates = leadershipService.getCandidates(createDeviceMastershipTopic(deviceId));
+
         for (Map.Entry<NodeId, MastershipRole> entry : roles.entrySet()) {
             if (entry.getValue() == MastershipRole.MASTER) {
                 master = entry.getKey();
@@ -226,7 +228,9 @@ public class ConsistentDeviceMastershipStore
             }
         }
 
-        return new RoleInfo(master, standbys);
+        List<NodeId> sortedStandbyList = candidates.stream().filter(standbys::contains).collect(Collectors.toList());
+
+        return new RoleInfo(master, sortedStandbyList);
     }
 
     @Override

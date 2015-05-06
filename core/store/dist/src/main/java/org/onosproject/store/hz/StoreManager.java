@@ -38,7 +38,7 @@ import java.io.InputStream;
 /**
  * Auxiliary bootstrap of distributed store.
  */
-@Component(immediate = true)
+@Component(immediate = false, enabled = false)
 @Service
 public class StoreManager implements StoreService {
 

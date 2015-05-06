@@ -18,6 +18,7 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -170,6 +171,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public final class KryoNamespaces {
 
@@ -191,6 +194,8 @@ public final class KryoNamespaces {
                       ImmutableMap.of("a", 1).getClass(),
                       ImmutableMap.of("R", 2, "D", 2).getClass())
             .register(HashMap.class)
+            .register(ConcurrentHashMap.class)
+            .register(CopyOnWriteArraySet.class)
             .register(ArrayList.class,
                       LinkedList.class,
                       HashSet.class

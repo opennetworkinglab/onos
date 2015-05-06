@@ -153,6 +153,11 @@ public class ReplicaInfoManagerTest {
         }
 
         @Override
+        public RoleInfo getNodesFor(DeviceId deviceId) {
+            return new RoleInfo(masters.get(deviceId), Collections.emptyList());
+        }
+
+        @Override
         public void addListener(MastershipListener listener) {
             mastershipListenerRegistry.addListener(listener);
         }

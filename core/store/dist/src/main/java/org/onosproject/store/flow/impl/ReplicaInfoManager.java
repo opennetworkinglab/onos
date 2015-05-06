@@ -21,6 +21,8 @@ import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
 import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
 
 import java.util.Collections;
+import java.util.List;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,6 +30,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipEvent;
@@ -76,9 +79,7 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
     @Override
     public ReplicaInfo getReplicaInfoFor(DeviceId deviceId) {
-        // TODO: populate backup List when we reach the point we need them.
-        return new ReplicaInfo(mastershipService.getMasterFor(deviceId),
-                               Collections.<NodeId>emptyList());
+        return buildFromRoleInfo(mastershipService.getNodesFor(deviceId));
     }
 
     @Override
@@ -91,13 +92,17 @@ public class ReplicaInfoManager implements ReplicaInfoService {
         listenerRegistry.removeListener(checkNotNull(listener));
     }
 
+    private static ReplicaInfo buildFromRoleInfo(RoleInfo roles) {
+        List<NodeId> backups = roles.backups() == null ?
+                Collections.emptyList() : roles.backups();
+        return new ReplicaInfo(roles.master(), backups);
+    }
+
     final class InternalMastershipListener implements MastershipListener {
 
         @Override
         public void event(MastershipEvent event) {
-            final ReplicaInfo replicaInfo
-                = new ReplicaInfo(event.roleInfo().master(),
-                                  event.roleInfo().backups());
+            final ReplicaInfo replicaInfo = buildFromRoleInfo(event.roleInfo());
 
             switch (event.type()) {
             case MASTER_CHANGED:
