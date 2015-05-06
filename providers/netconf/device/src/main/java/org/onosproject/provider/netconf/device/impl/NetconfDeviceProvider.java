@@ -66,7 +66,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     private final Logger log = getLogger(NetconfDeviceProvider.class);
 
-    private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<DeviceId, NetconfDevice>();
+    protected Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<DeviceId, NetconfDevice>();
 
     private DeviceProviderService providerService;
 
