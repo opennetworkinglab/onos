@@ -18,8 +18,11 @@
 package org.onosproject.ui.table.cell;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.onosproject.ui.table.CellFormatter;
+
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,10 +31,17 @@ import static org.junit.Assert.assertEquals;
  */
 public class TimeFormatterTest {
 
-    private static final DateTime TIME = DateTime.parse("2010-06-30T01:20");
-    private static final String EXP_OUTPUT = "1:20:00 AM PDT";
+    private static final Locale LOCALE = Locale.ENGLISH;
+    private static final DateTimeZone ZONE = DateTimeZone.UTC;
 
-    private CellFormatter fmt = TimeFormatter.INSTANCE;
+    private static final DateTime TIME = new DateTime(2015, 5, 4, 15, 30, ZONE);
+    private static final String EXP_OUTPUT = "3:30:00 PM UTC";
+
+    // Have to use explicit Locale and TimeZone for the unit test, so that
+    //  irrespective of which locale and time zone the test is run in, it
+    //  always produces the same result...
+    private CellFormatter fmt =
+            new TimeFormatter().withLocale(LOCALE).withZone(ZONE);
 
     @Test
     public void basic() {

@@ -74,7 +74,7 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
             tm.setComparator(TCP_PORT, IntComparator.INSTANCE);
-            tm.setFormatter(UPDATED, TimeFormatter.INSTANCE);
+            tm.setFormatter(UPDATED, new TimeFormatter());
             return tm;
         }
 

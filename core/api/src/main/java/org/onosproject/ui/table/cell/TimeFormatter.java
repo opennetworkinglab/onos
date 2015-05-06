@@ -18,27 +18,55 @@
 package org.onosproject.ui.table.cell;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.onosproject.ui.table.CellFormatter;
+
+import java.util.Locale;
 
 /**
  * Formats time values using {@link DateTimeFormatter}.
  */
 public final class TimeFormatter extends AbstractCellFormatter {
 
-    private static final DateTimeFormatter DTF = DateTimeFormat.longTime();
+    private DateTimeFormatter dtf;
 
-    // non-instantiable
-    private TimeFormatter() { }
+    // NOTE: Unlike other formatters in this package, this one is not
+    //       implemented as a Singleton, because instances may be
+    //       decorated with alternate locale and/or timezone.
 
-    @Override
-    protected String nonNullFormat(Object value) {
-        return DTF.print((DateTime) value);
+    /**
+     * Constructs a time formatter that uses the default locale and timezone.
+     */
+    public TimeFormatter() {
+        dtf = DateTimeFormat.longTime();
     }
 
     /**
-     * An instance of this class.
+     * Sets the locale to use for formatting the time.
+     *
+     * @param locale locale to use for formatting
+     * @return self, for chaining
      */
-    public static final CellFormatter INSTANCE = new TimeFormatter();
+    public TimeFormatter withLocale(Locale locale) {
+        dtf = dtf.withLocale(locale);
+        return this;
+    }
+
+    /**
+     * Sets the time zone to use for formatting the time.
+     *
+     * @param zone time zone to use
+     * @return self, for chaining
+     */
+    public TimeFormatter withZone(DateTimeZone zone) {
+        dtf = dtf.withZone(zone);
+        return this;
+    }
+
+    @Override
+    protected String nonNullFormat(Object value) {
+        return dtf.print((DateTime) value);
+    }
+
 }
