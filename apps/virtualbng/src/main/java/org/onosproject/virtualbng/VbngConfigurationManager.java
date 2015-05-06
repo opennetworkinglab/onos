@@ -164,6 +164,11 @@ public class VbngConfigurationManager implements VbngConfigurationService {
         return null;
     }
 
+    @Override
+    public IpAddress getAssignedPublicIpAddress(IpAddress privateIpAddress) {
+        return ipAddressMap.get(privateIpAddress);
+    }
+
     /**
      * Generates a new IP address base on a given IP address plus a number to
      * increase.

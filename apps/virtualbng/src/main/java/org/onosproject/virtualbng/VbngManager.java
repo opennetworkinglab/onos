@@ -17,7 +17,11 @@ package org.onosproject.virtualbng;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Sets;
+
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -38,6 +42,8 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
@@ -78,28 +84,36 @@ public class VbngManager implements VbngService {
     private Map<IpAddress, PointToPointIntent> p2pIntentsFromHost;
     private Map<IpAddress, PointToPointIntent> p2pIntentsToHost;
 
+    // This set stores all the private IP addresses we failed to create vBNGs
+    // for the first time.
+    private Set<IpAddress> privateIpAddressSet;
+
+    private HostListener hostListener;
+    private IpAddress nextHopIpAddress;
+
+
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
         p2pIntentsFromHost = new ConcurrentHashMap<>();
         p2pIntentsToHost = new ConcurrentHashMap<>();
+        privateIpAddressSet = Sets.newConcurrentHashSet();
+
+        nextHopIpAddress = vbngConfigurationService.getNextHopIpAddress();
+        hostListener = new InternalHostListener();
+        hostService.addListener(hostListener);
+
         log.info("vBNG Started");
     }
 
     @Deactivate
     public void deactivate() {
+        hostService.removeListener(hostListener);
         log.info("vBNG Stopped");
     }
 
     @Override
     public IpAddress createVbng(IpAddress privateIpAddress) {
-
-        IpAddress nextHopIpAddress =
-                vbngConfigurationService.getNextHopIpAddress();
-        if (nextHopIpAddress == null) {
-            log.info("Did not find next hop IP address");
-            return null;
-        }
 
         IpAddress publicIpAddress =
                 vbngConfigurationService.getAvailablePublicIpAddress(
@@ -113,8 +127,9 @@ public class VbngManager implements VbngService {
 
         // Setup paths between the host configured with private IP and
         // next hop
-        setupForwardingPaths(privateIpAddress, publicIpAddress,
-                             nextHopIpAddress);
+        if (!setupForwardingPaths(privateIpAddress, publicIpAddress)) {
+            privateIpAddressSet.add(privateIpAddress);
+        }
         return publicIpAddress;
     }
 
@@ -124,19 +139,21 @@ public class VbngManager implements VbngService {
      *
      * @param privateIp the private IP address of a local host
      * @param publicIp the public IP address assigned for the private IP address
-     * @param nextHopIpAddress the next hop IP address outside local SDN network
      */
-    private void setupForwardingPaths(IpAddress privateIp, IpAddress publicIp,
-                                      IpAddress nextHopIpAddress) {
+    private boolean setupForwardingPaths(IpAddress privateIp, IpAddress publicIp) {
         checkNotNull(privateIp);
         checkNotNull(publicIp);
-        checkNotNull(nextHopIpAddress);
+
+        if (nextHopIpAddress == null) {
+            log.warn("Did not find next hop IP address");
+            return false;
+        }
 
         // If there are already intents for private IP address in the system,
         // we will do nothing and directly return.
         if (p2pIntentsFromHost.containsKey(privateIp)
                 && p2pIntentsToHost.containsKey(privateIp)) {
-            return;
+            return true;
         }
 
         Host localHost = null;
@@ -145,23 +162,19 @@ public class VbngManager implements VbngService {
             nextHopHost = hostService.getHostsByIp(nextHopIpAddress)
                     .iterator().next();
         } else {
-            // TODO to write a new thread to install intents after ONOS
-            // discovers the next hop host
             hostService.startMonitoringIp(nextHopIpAddress);
             if (hostService.getHostsByIp(privateIp).isEmpty()) {
                 hostService.startMonitoringIp(privateIp);
             }
-            return;
+            return false;
         }
 
         if (!hostService.getHostsByIp(privateIp).isEmpty()) {
             localHost =
                     hostService.getHostsByIp(privateIp).iterator().next();
         } else {
-            // TODO to write a new thread to install intents after ONOS
-            // discovers the next hop host
             hostService.startMonitoringIp(privateIp);
-            return;
+            return false;
         }
 
         ConnectPoint nextHopConnectPoint =
@@ -198,7 +211,67 @@ public class VbngManager implements VbngService {
             intentService.submit(toLocalHostIntent);
         }
 
-        return;
+        return true;
+    }
+
+    /**
+     * Listener for host events.
+     */
+    private class InternalHostListener implements HostListener {
+        @Override
+        public void event(HostEvent event) {
+            log.debug("Received HostEvent {}", event);
+
+            Host host = event.subject();
+            if (event.type() != HostEvent.Type.HOST_ADDED) {
+                return;
+            }
+
+            for (IpAddress ipAddress: host.ipAddresses()) {
+                if (privateIpAddressSet.contains(ipAddress)) {
+                    createVbngAgain(ipAddress);
+                }
+
+                if (nextHopIpAddress != null &&
+                        ipAddress.equals(nextHopIpAddress)) {
+                    Iterator<IpAddress> ipAddresses =
+                            privateIpAddressSet.iterator();
+                    while (ipAddresses.hasNext()) {
+                        IpAddress privateIpAddress = ipAddresses.next();
+                        createVbngAgain(privateIpAddress);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Tries to create vBNG again after receiving a host event if the IP
+     * address of the host is a private IP address or the next hop IP
+     * address.
+     *
+     * @param privateIpAddress the private IP address
+     */
+    private void createVbngAgain(IpAddress privateIpAddress) {
+        IpAddress publicIpAddress = vbngConfigurationService
+                .getAssignedPublicIpAddress(privateIpAddress);
+        if (publicIpAddress == null) {
+            // We only need to handle the private IP addresses for which we
+            // already returned the REST replies with assigned public IP
+            // addresses. If a private IP addresses does not have an assigned
+            // public IP address, we should not get it an available public IP
+            // address here, and we should delete it in the unhandled private
+            // IP address set.
+            privateIpAddressSet.remove(privateIpAddress);
+            return;
+        }
+        if (setupForwardingPaths(privateIpAddress, publicIpAddress)) {
+            // At this moment it is still possible to fail to create a vBNG,
+            // because creating a vBNG needs two hosts, one is the local host
+            // configured with private IP address, the other is the next hop
+            // host.
+            privateIpAddressSet.remove(privateIpAddress);
+        }
     }
 
     /**
@@ -300,6 +373,4 @@ public class VbngManager implements VbngService {
 
         return intent;
     }
-
-
 }

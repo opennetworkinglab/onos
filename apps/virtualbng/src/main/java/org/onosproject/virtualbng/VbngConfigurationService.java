@@ -36,4 +36,12 @@ public interface VbngConfigurationService {
      * @return an available public IP address if it exists, otherwise null
      */
     public IpAddress getAvailablePublicIpAddress(IpAddress privateIpAddress);
+
+    /**
+     * Gets the public IP address already assigned for a private IP address.
+     *
+     * @param privateIpAddress a private IP address
+     * @return the assigned public IP address if it exists, otherwise null
+     */
+    public IpAddress getAssignedPublicIpAddress(IpAddress privateIpAddress);
 }
