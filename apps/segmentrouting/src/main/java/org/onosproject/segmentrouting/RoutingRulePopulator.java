@@ -311,6 +311,7 @@ public class RoutingRulePopulator {
             fwdBuilder.withTreatment(tbuilder.build());
         } else {
             NeighborSet ns = new NeighborSet(nextHops);
+            fwdBuilder.withTreatment(tbuilder.build());
             fwdBuilder.nextStep(srManager
                     .getNextObjectiveId(deviceId, ns));
         }
