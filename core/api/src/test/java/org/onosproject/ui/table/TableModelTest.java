@@ -267,6 +267,38 @@ public class TableModelTest {
         }
     }
 
+    private static final String[][] SORTED_NAMES_AND_HEX = {
+            {ELEVEN, "0xb"},
+            {FOUR, "0x4"},
+            {ONE, "0x1"},
+            {THIRTY, "0x1e"},
+            {THREE, "0x3"},
+            {TWELVE, "0xc"},
+            {TWENTY, "0x14"},
+            {TWO, "0x2"},
+    };
+
+    @Test
+    public void sortAndFormatTwo() {
+        initUnsortedTable();
+        tm.setFormatter(BAR, HexFormatter.INSTANCE);
+        tm.sort(FOO, SortDir.ASC);
+        rows = tm.getRows();
+        int nr = rows.length;
+        for (int i = 0; i < nr; i++) {
+            String[] exp = SORTED_NAMES_AND_HEX[i];
+            String[] act = rows[i].getAsFormattedStrings();
+            assertArrayEquals(UNEX_SORT + i, exp, act);
+        }
+    }
+
+    private static final String[] FBZ = {FOO, BAR, ZOO};
+
+    @Test
+    public void getColumnIds() {
+        tm = new TableModel(FOO, BAR, ZOO);
+        assertArrayEquals("col IDs", FBZ, tm.getColumnIds());
+    }
 
     @Test
     public void sortDirAsc() {
