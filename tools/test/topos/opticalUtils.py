@@ -56,6 +56,7 @@ import re
 import json
 import os
 from time import sleep
+import urllib2
 
 from mininet.node import Switch, RemoteController
 from mininet.topo import Topo
@@ -64,6 +65,10 @@ from mininet.net import Mininet
 from mininet.log import  setLogLevel, info, error, warn
 from mininet.link import Link, Intf
 from mininet.cli import CLI
+
+# Sleep time and timeout values in seconds
+SLEEP_TIME = .5
+TIMEOUT = 60
 
 class OpticalSwitch(Switch):
     """
@@ -414,17 +419,37 @@ class LINCSwitch(OpticalSwitch):
                             intf2 = intfList[ 0 ]
                             intf.node.attach(LINCSwitch.findTap(intf2.node, intf2.node.ports[ intf2 ]))
 
-        info('*** Press ENTER to push Topology.json to onos...\n')
-        raw_input()  # FIXME... we should eventually remove this
+        info('*** Waiting for all devices to be available in ONOS...\n')
+        url = 'http://%s:8181/onos/v1/devices' % LINCSwitch.controllers[0].ip
+        time = 0
+        while True:
+            response = json.load(urllib2.urlopen(url))
+            devs = response.get('devices')
+
+            # Wait for all devices to be registered & available
+            if (len(devices) == len(devs)):
+                for d in devs:
+                    if not d['available']:
+                        continue
+                break
+
+            if (time >= TIMEOUT):
+                error('***ERROR: ONOS did not register devices within %s seconds\n' % TIMEOUT)
+                break
+
+            time += SLEEP_TIME
+            sleep(SLEEP_TIME)
+
         info('*** Pushing Topology.json to ONOS\n')
         output = quietRun('%s/tools/test/bin/onos-topo-cfg %s Topology.json' % (LINCSwitch.onosDir, LINCSwitch.controllers[ 0 ].ip), shell=True)
+
         # successful output contains the two characters '{}'
         # if there is more output than this, there is an issue
         if output.strip('{}'):
-            warn('***WARNING: Could not push topology file to ONOS: %s' % output)
+            warn('***WARNING: Could not push topology file to ONOS: %s\n' % output)
 
     @staticmethod
-    def waitStarted(net, timeout=None):
+    def waitStarted(net, timeout=TIMEOUT):
         "wait until all tap interfaces are available"
         tapCount = 0
         time = 0
@@ -437,11 +462,11 @@ class LINCSwitch(OpticalSwitch):
             if str(tapCount) == quietRun('ip addr | grep tap | wc -l', shell=True).strip('\n'):
                 return True
             if timeout:
-                if time >= timeout:
-                    error('***ERROR: Linc OE did not start within %s seconds' % timeout)
+                if time >= TIMEOUT:
+                    error('***ERROR: LINC OE did not start within %s seconds\n' % TIMEOUT)
                     return False
-                time += .5
-            sleep(.5)
+                time += SLEEP_TIME
+            sleep(SLEEP_TIME)
 
     @staticmethod
     def shutdownOE():
