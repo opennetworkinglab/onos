@@ -24,13 +24,10 @@ import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.onosproject.app.ApplicationState.ACTIVE;
 
@@ -55,6 +52,10 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String ICON_ID_ACTIVE = "active";
     private static final String ICON_ID_INACTIVE = "appInactive";
 
+    private static final String[] COL_IDS = {
+            STATE, STATE_IID, ID, VERSION, ORIGIN, DESC
+    };
+
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(
@@ -70,14 +71,31 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            ApplicationService service = get(ApplicationService.class);
-            List<TableRow> list = service.getApplications().stream()
-                    .map(application -> new ApplicationTableRow(service, application))
-                    .collect(Collectors.toList());
-            return list.toArray(new TableRow[list.size()]);
+        protected String[] getColumnIds() {
+            return COL_IDS;
         }
 
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            ApplicationService as = get(ApplicationService.class);
+            for (Application app : as.getApplications()) {
+                populateRow(tm.addRow(), app, as);
+            }
+        }
+
+        private void populateRow(TableModel.Row row, Application app,
+                                 ApplicationService as) {
+            ApplicationId id = app.id();
+            ApplicationState state = as.getState(id);
+            String iconId = state == ACTIVE ? ICON_ID_ACTIVE : ICON_ID_INACTIVE;
+
+            row.cell(STATE, state)
+                .cell(STATE_IID, iconId)
+                .cell(ID, id.name())
+                .cell(VERSION, app.version())
+                .cell(ORIGIN, app.origin())
+                .cell(DESC, app.description());
+        }
     }
 
     // handler for application management control button actions
@@ -104,33 +122,4 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             }
         }
     }
-
-    /**
-     * TableRow implementation for
-     * {@link org.onosproject.core.Application applications}.
-     */
-    private static class ApplicationTableRow extends AbstractTableRow {
-
-        private static final String[] COL_IDS = {
-                STATE, STATE_IID, ID, VERSION, ORIGIN, DESC
-        };
-
-        public ApplicationTableRow(ApplicationService service, Application app) {
-            ApplicationState state = service.getState(app.id());
-            String iconId = state == ACTIVE ? ICON_ID_ACTIVE : ICON_ID_INACTIVE;
-
-            add(STATE, state);
-            add(STATE_IID, iconId);
-            add(ID, app.id().name());
-            add(VERSION, app.version());
-            add(ORIGIN, app.origin());
-            add(DESC, app.description());
-        }
-
-        @Override
-        protected String[] columnIds() {
-            return COL_IDS;
-        }
-    }
-
 }

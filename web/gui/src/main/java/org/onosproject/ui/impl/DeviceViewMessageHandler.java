@@ -29,9 +29,9 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.cell.IntComparator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,12 +73,25 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String NAME = "name";
 
 
+    private static final String[] COL_IDS = {
+            AVAILABLE, AVAILABLE_IID, TYPE_IID, ID,
+            NUM_PORTS, MASTER_ID, MFR, HW, SW,
+            PROTOCOL, CHASSIS_ID, SERIAL
+    };
+
+    private static final String ICON_ID_ONLINE = "active";
+    private static final String ICON_ID_OFFLINE = "inactive";
+
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(
                 new DataRequestHandler(),
                 new DetailRequestHandler()
         );
+    }
+
+    private static String getTypeIconId(Device d) {
+        return DEV_ICON_PREFIX + d.type().toString();
     }
 
     // handler for device table requests
@@ -88,14 +101,42 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            DeviceService service = get(DeviceService.class);
-            MastershipService mastershipService = get(MastershipService.class);
-            List<TableRow> list = new ArrayList<>();
-            for (Device dev : service.getDevices()) {
-                list.add(new DeviceTableRow(service, mastershipService, dev));
+        protected String[] getColumnIds() {
+            return COL_IDS;
+        }
+
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setComparator(NUM_PORTS, IntComparator.INSTANCE);
+            return tm;
+        }
+
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            DeviceService ds = get(DeviceService.class);
+            MastershipService ms = get(MastershipService.class);
+            for (Device dev : ds.getDevices()) {
+                populateRow(tm.addRow(), dev, ds, ms);
             }
-            return list.toArray(new TableRow[list.size()]);
+        }
+
+        private void populateRow(TableModel.Row row, Device dev,
+                                 DeviceService ds, MastershipService ms) {
+            DeviceId id = dev.id();
+            boolean available = ds.isAvailable(id);
+            String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
+
+            row.cell(ID, id)
+                .cell(AVAILABLE, available)
+                .cell(AVAILABLE_IID, iconId)
+                .cell(TYPE_IID, getTypeIconId(dev))
+                .cell(MFR, dev.manufacturer())
+                .cell(HW, dev.hwVersion())
+                .cell(SW, dev.swVersion())
+                .cell(PROTOCOL, dev.annotations().value(PROTOCOL))
+                .cell(NUM_PORTS, ds.getPorts(id).size())
+                .cell(MASTER_ID, ms.getMasterFor(id));
         }
     }
 
@@ -168,51 +209,5 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
             return port;
         }
-
     }
-
-    private static String getTypeIconId(Device d) {
-        return DEV_ICON_PREFIX + d.type().toString();
-    }
-
-    /**
-     * TableRow implementation for {@link Device devices}.
-     */
-    private static class DeviceTableRow extends AbstractTableRow {
-
-        private static final String[] COL_IDS = {
-                AVAILABLE, AVAILABLE_IID, TYPE_IID, ID,
-                NUM_PORTS, MASTER_ID, MFR, HW, SW,
-                PROTOCOL, CHASSIS_ID, SERIAL
-        };
-
-        private static final String ICON_ID_ONLINE = "active";
-        private static final String ICON_ID_OFFLINE = "inactive";
-
-        public DeviceTableRow(DeviceService service,
-                              MastershipService ms,
-                              Device d) {
-            boolean available = service.isAvailable(d.id());
-            String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
-            DeviceId id = d.id();
-            List<Port> ports = service.getPorts(id);
-
-            add(ID, id.toString());
-            add(AVAILABLE, Boolean.toString(available));
-            add(AVAILABLE_IID, iconId);
-            add(TYPE_IID, getTypeIconId(d));
-            add(MFR, d.manufacturer());
-            add(HW, d.hwVersion());
-            add(SW, d.swVersion());
-            add(PROTOCOL, d.annotations().value(PROTOCOL));
-            add(NUM_PORTS, Integer.toString(ports.size()));
-            add(MASTER_ID, ms.getMasterFor(d.id()).toString());
-        }
-
-        @Override
-        protected String[] columnIds() {
-            return COL_IDS;
-        }
-    }
-
 }

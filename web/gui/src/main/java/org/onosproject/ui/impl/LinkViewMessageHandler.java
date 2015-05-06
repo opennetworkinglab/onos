@@ -19,20 +19,17 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase.BiLink;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.cell.ConnectPointFormatter;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.addLink;
@@ -53,6 +50,13 @@ public class LinkViewMessageHandler extends UiMessageHandler {
     private static final String DIRECTION = "direction";
     private static final String DURABLE = "durable";
 
+    private static final String[] COL_IDS = {
+            ONE, TWO, TYPE, STATE, DIRECTION, DURABLE
+    };
+
+    private static final String ICON_ID_ONLINE = "active";
+    private static final String ICON_ID_OFFLINE = "inactive";
+
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new LinkDataRequest());
@@ -65,48 +69,51 @@ public class LinkViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            LinkService service = get(LinkService.class);
-            List<TableRow> list = new ArrayList<>();
-
-            // First consolidate all uni-directional links into two-directional ones.
-            Map<LinkKey, BiLink> biLinks = Maps.newHashMap();
-            service.getLinks().forEach(link -> addLink(biLinks, link));
-
-            // Now scan over all bi-links and produce table rows from them.
-            biLinks.values().forEach(biLink -> list.add(new LinkTableRow(biLink)));
-            return list.toArray(new TableRow[list.size()]);
+        protected String[] getColumnIds() {
+            return COL_IDS;
         }
 
         @Override
-        protected String defaultColId() {
+        protected String defaultColumnId() {
             return ONE;
         }
-    }
 
-    /**
-     * TableRow implementation for {@link org.onosproject.net.Link links}.
-     */
-    private static class LinkTableRow extends AbstractTableRow {
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setFormatter(ONE, ConnectPointFormatter.INSTANCE);
+            tm.setFormatter(TWO, ConnectPointFormatter.INSTANCE);
+            return tm;
+        }
 
-        private static final String[] COL_IDS = {
-                ONE, TWO, TYPE, STATE, DIRECTION, DURABLE
-        };
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            LinkService ls = get(LinkService.class);
 
-        private static final String ICON_ID_ONLINE = "active";
-        private static final String ICON_ID_OFFLINE = "inactive";
+            // First consolidate all uni-directional links into two-directional ones.
+            Map<LinkKey, BiLink> biLinks = Maps.newHashMap();
+            ls.getLinks().forEach(link -> addLink(biLinks, link));
 
-        public LinkTableRow(BiLink link) {
-            ConnectPoint src = link.one.src();
-            ConnectPoint dst = link.one.dst();
-            linkState(link);
+            // Now scan over all bi-links and produce table rows from them.
+            biLinks.values().forEach(biLink -> populateRow(tm.addRow(), biLink));
+        }
 
-            add(ONE, concat(src.elementId(), "/", src.port()));
-            add(TWO, concat(dst.elementId(), "/", dst.port()));
-            add(TYPE, linkType(link).toLowerCase());
-            add(STATE, linkState(link));
-            add(DIRECTION, link.two != null ? "A <--> B" : "A --> B");
-            add(DURABLE, Boolean.toString(link.one.isDurable()));
+        private void populateRow(TableModel.Row row, BiLink biLink) {
+            row.cell(ONE, biLink.one.src())
+                .cell(TWO, biLink.one.dst())
+                .cell(TYPE, linkType(biLink))
+                .cell(STATE, linkState(biLink))
+                .cell(DIRECTION, linkDir(biLink))
+                .cell(DURABLE, biLink.one.isDurable());
+        }
+
+        private String linkType(BiLink link) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(link.one.type());
+            if (link.two != null && link.two.type() != link.one.type()) {
+                sb.append(" / ").append(link.two.type());
+            }
+            return sb.toString().toLowerCase();
         }
 
         private String linkState(BiLink link) {
@@ -115,16 +122,8 @@ public class LinkViewMessageHandler extends UiMessageHandler {
                     ICON_ID_ONLINE : ICON_ID_OFFLINE;
         }
 
-        private String linkType(BiLink link) {
-            return link.two == null || link.one.type() == link.two.type() ?
-                    link.one.type().toString() :
-                    link.one.type().toString() + " / " + link.two.type().toString();
-        }
-
-        @Override
-        protected String[] columnIds() {
-            return COL_IDS;
+        private String linkDir(BiLink link) {
+            return link.two != null ? "A <--> B" : "A --> B";
         }
     }
-
 }

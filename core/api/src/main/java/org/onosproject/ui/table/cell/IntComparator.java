@@ -17,14 +17,22 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.onosproject.ui.table.CellComparator;
+
 /**
  * An integer-based cell comparator.
  * Note that null values are acceptable and are considered "smaller" than
  * any non-null value.
  */
 public class IntComparator extends AbstractCellComparator {
+
     @Override
     protected int nonNullCompare(Object o1, Object o2) {
         return ((int) o1) - ((int) o2);
     }
+
+    /**
+     * An instance of this class.
+     */
+    public static final CellComparator INSTANCE = new IntComparator();
 }

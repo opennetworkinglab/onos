@@ -17,20 +17,22 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.onosproject.net.HostLocation;
 import org.onosproject.ui.table.CellFormatter;
 
 /**
- * A default cell formatter. Uses the object's toString() method.
+ * Formats a host location as "(device-id)/(port)".
  */
-public class DefaultCellFormatter extends AbstractCellFormatter {
+public class HostLocationFormatter extends AbstractCellFormatter {
 
     @Override
-    public String nonNullFormat(Object value) {
-        return value.toString();
+    protected String nonNullFormat(Object value) {
+        HostLocation loc = (HostLocation) value;
+        return loc.deviceId() + "/" + loc.port();
     }
 
     /**
      * An instance of this class.
      */
-    public static final CellFormatter INSTANCE = new DefaultCellFormatter();
+    public static final CellFormatter INSTANCE = new HostLocationFormatter();
 }

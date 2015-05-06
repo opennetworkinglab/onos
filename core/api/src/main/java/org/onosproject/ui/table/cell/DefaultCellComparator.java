@@ -17,6 +17,8 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.onosproject.ui.table.CellComparator;
+
 /**
  * A default cell comparator. Implements a lexicographical compare function
  * (i.e. string sorting). Uses the objects' toString() method and then
@@ -24,8 +26,14 @@ package org.onosproject.ui.table.cell;
  * are considered "smaller" than any non-null value.
  */
 public class DefaultCellComparator extends AbstractCellComparator {
+
     @Override
     protected int nonNullCompare(Object o1, Object o2) {
         return o1.toString().compareTo(o2.toString());
     }
+
+    /**
+     * An instance of this class.
+     */
+    public static final CellComparator INSTANCE = new DefaultCellComparator();
 }

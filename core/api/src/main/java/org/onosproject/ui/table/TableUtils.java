@@ -16,10 +16,10 @@
 
 package org.onosproject.ui.table;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.ui.JsonUtils;
 
 /**
  * Provides static utility methods for dealing with tables.
@@ -32,46 +32,27 @@ public final class TableUtils {
     private TableUtils() { }
 
     /**
-     * Produces a JSON array node from the specified table rows.
+     * Generates a JSON array node from a table model.
      *
-     * @param rows table rows
-     * @return JSON array
+     * @param tm the table model
+     * @return the array node representation
      */
-    public static ArrayNode generateArrayNode(TableRow[] rows) {
+    public static ArrayNode generateArrayNode(TableModel tm) {
         ArrayNode array = MAPPER.createArrayNode();
-        for (TableRow r : rows) {
-            array.add(r.toJsonNode());
+        for (TableModel.Row r : tm.getRows()) {
+            array.add(toJsonNode(r, tm));
         }
         return array;
     }
 
-    /**
-     * Creates a row comparator for the given request. The ID of the column
-     * to sort on is the payload's "sortCol" property (defaults to "id").
-     * The direction for the sort is the payload's "sortDir" property
-     * (defaults to "asc").
-     *
-     * @param payload the event payload
-     * @return a row comparator
-     */
-    public static RowComparator createRowComparator(ObjectNode payload) {
-        return createRowComparator(payload, "id");
-    }
-
-    /**
-     * Creates a row comparator for the given request. The ID of the column to
-     * sort on is the payload's "sortCol" property (or the specified default).
-     * The direction for the sort is the payload's "sortDir" property
-     * (defaults to "asc").
-     *
-     * @param payload the event payload
-     * @param defColId the default column ID
-     * @return a row comparator
-     */
-    public static RowComparator createRowComparator(ObjectNode payload,
-                                                    String defColId) {
-        String sortCol = JsonUtils.string(payload, "sortCol", defColId);
-        String sortDir = JsonUtils.string(payload, "sortDir", "asc");
-        return new RowComparator(sortCol, RowComparator.direction(sortDir));
+    private static JsonNode toJsonNode(TableModel.Row row, TableModel tm) {
+        ObjectNode result = MAPPER.createObjectNode();
+        String[] keys = tm.getColumnIds();
+        String[] cells = row.getAsFormattedStrings();
+        int n = keys.length;
+        for (int i = 0; i < n; i++) {
+            result.put(keys[i], cells[i]);
+        }
+        return result;
     }
 }

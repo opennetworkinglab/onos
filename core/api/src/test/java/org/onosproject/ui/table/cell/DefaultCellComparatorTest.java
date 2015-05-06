@@ -39,7 +39,7 @@ public class DefaultCellComparatorTest {
     private static final int NUMBER = 42;
     private static final TestClass OBJECT = new TestClass();
 
-    private CellComparator cmp = new DefaultCellComparator();
+    private CellComparator cmp = DefaultCellComparator.INSTANCE;
 
     @Test
     public void sameString() {

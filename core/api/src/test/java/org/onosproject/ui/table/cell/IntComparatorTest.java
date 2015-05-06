@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class IntComparatorTest {
 
-    private CellComparator cmp = new IntComparator();
+    private CellComparator cmp = IntComparator.INSTANCE;
 
     @Test
     public void twoNulls() {

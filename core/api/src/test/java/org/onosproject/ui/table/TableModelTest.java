@@ -45,7 +45,6 @@ public class TableModelTest {
     private TableModel tm;
     private TableModel.Row[] rows;
     private TableModel.Row row;
-    private TableRow[] tableRows;
     private CellFormatter fmt;
 
     @Test(expected = NullPointerException.class)
@@ -68,9 +67,6 @@ public class TableModelTest {
         tm = new TableModel(FOO, BAR);
         assertEquals("column count", 2, tm.columnCount());
         assertEquals("row count", 0, tm.rowCount());
-
-        tableRows = tm.getTableRows();
-        assertEquals("row count alt", 0, tableRows.length);
     }
 
     @Test
@@ -225,7 +221,7 @@ public class TableModelTest {
         initUnsortedTable();
 
         // first, tell the table to use an integer-based comparator
-        tm.setComparator(BAR, new IntComparator());
+        tm.setComparator(BAR, IntComparator.INSTANCE);
 
         // sort by number
         tm.sort(BAR, SortDir.ASC);
@@ -256,8 +252,8 @@ public class TableModelTest {
         initUnsortedTable();
 
         // set integer-based comparator and hex formatter
-        tm.setComparator(BAR, new IntComparator());
-        tm.setFormatter(BAR, new HexFormatter());
+        tm.setComparator(BAR, IntComparator.INSTANCE);
+        tm.setFormatter(BAR, HexFormatter.INSTANCE);
 
         // sort by number
         tm.sort(BAR, SortDir.ASC);

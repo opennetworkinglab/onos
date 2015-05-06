@@ -26,6 +26,7 @@ import java.util.Map;
 /**
  * Provides a partial implementation of {@link TableRow}.
  */
+@Deprecated
 public abstract class AbstractTableRow implements TableRow {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

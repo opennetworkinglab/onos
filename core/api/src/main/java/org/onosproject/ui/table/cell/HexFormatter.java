@@ -17,12 +17,20 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.onosproject.ui.table.CellFormatter;
+
 /**
- * Formats integer values as hex strings.
+ * Formats integer values as hex strings with a "0x" prefix.
  */
 public class HexFormatter extends AbstractCellFormatter {
+
     @Override
     protected String nonNullFormat(Object value) {
         return "0x" + Integer.toHexString((Integer) value);
     }
+
+    /**
+     * An instance of this class.
+     */
+    public static final CellFormatter INSTANCE = new HexFormatter();
 }

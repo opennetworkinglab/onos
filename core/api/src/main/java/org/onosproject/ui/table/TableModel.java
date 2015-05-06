@@ -46,8 +46,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class TableModel {
 
-    private static final CellComparator DEF_CMP = new DefaultCellComparator();
-    private static final CellFormatter DEF_FMT = new DefaultCellFormatter();
+    private static final CellComparator DEF_CMP = DefaultCellComparator.INSTANCE;
+    private static final CellFormatter DEF_FMT = DefaultCellFormatter.INSTANCE;
 
     private final String[] columnIds;
     private final Set<String> idSet;
@@ -99,13 +99,16 @@ public class TableModel {
     }
 
     /**
-     * Returns the {@link TableRow} representation of the rows in this table.
+     * Returns the array of column IDs for this table model.
+     * <p>
+     * Implementation note: we are knowingly passing you a reference to
+     * our internal array to avoid copying. Don't mess with it. It's your
+     * table you'll break if you do!
      *
-     * @return formatted table rows
+     * @return the column identifiers
      */
-    // TODO: still need to decide if we need this
-    public TableRow[] getTableRows() {
-        return new TableRow[0];
+    public String[] getColumnIds() {
+        return columnIds;
     }
 
     /**
@@ -113,7 +116,6 @@ public class TableModel {
      *
      * @return raw table rows
      */
-    // TODO: still need to decide if we should expose this
     public Row[] getRows() {
         return rows.toArray(new Row[rows.size()]);
     }
@@ -264,8 +266,21 @@ public class TableModel {
          * @param columnId column identifier
          * @return formatted cell value
          */
-        public String getAsString(String columnId) {
+        String getAsString(String columnId) {
             return getFormatter(columnId).format(get(columnId));
+        }
+
+        /**
+         * Returns the row as an array of formatted strings.
+         *
+         * @return the formatted row data
+         */
+        public String[] getAsFormattedStrings() {
+            List<String> formatted = new ArrayList<>(columnCount());
+            for (String c : columnIds) {
+                formatted.add(getAsString(c));
+            }
+            return formatted.toArray(new String[formatted.size()]);
         }
     }
 

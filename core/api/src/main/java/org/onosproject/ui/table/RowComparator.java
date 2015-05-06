@@ -21,6 +21,7 @@ import java.util.Comparator;
 /**
  * Comparator for {@link TableRow}.
  */
+@Deprecated
 public class RowComparator implements Comparator<TableRow> {
     /** Designates the sort direction. */
     public enum Direction {

@@ -18,6 +18,7 @@
 package org.onosproject.ui.table.cell;
 
 import org.junit.Test;
+import org.onosproject.ui.table.CellFormatter;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,7 +27,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class HexFormatterTest {
 
-    private HexFormatter fmt = new HexFormatter();
+    private CellFormatter fmt = HexFormatter.INSTANCE;
 
     @Test
     public void nullValue() {

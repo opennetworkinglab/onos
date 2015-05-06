@@ -28,11 +28,11 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.cell.IntComparator;
+import org.onosproject.ui.table.cell.LongComparator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +64,11 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
     private static final String COMMA = ", ";
 
+    private static final String[] COL_IDS = {
+            ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
+            TREATMENT, TIMEOUT, PERMANENT, STATE, PACKETS, BYTES
+    };
+
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new FlowDataRequest());
@@ -77,45 +82,47 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            String uri = string(payload, "devId");
-            if (Strings.isNullOrEmpty(uri)) {
-                return new TableRow[0];
-            }
-            DeviceId deviceId = DeviceId.deviceId(uri);
-            FlowRuleService service = get(FlowRuleService.class);
-            List<TableRow> list = new ArrayList<>();
-            for (FlowEntry flow : service.getFlowEntries(deviceId)) {
-                list.add(new FlowTableRow(flow));
-            }
-            return list.toArray(new TableRow[list.size()]);
+        protected String[] getColumnIds() {
+            return COL_IDS;
         }
-    }
 
-    /**
-     * TableRow implementation for
-     * {@link org.onosproject.net.flow.FlowRule flows}.
-     */
-    private static class FlowTableRow extends AbstractTableRow {
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setComparator(GROUP_ID, IntComparator.INSTANCE);
+            tm.setComparator(TABLE_ID, IntComparator.INSTANCE);
+            tm.setComparator(PRIORITY, IntComparator.INSTANCE);
+            tm.setComparator(TIMEOUT, IntComparator.INSTANCE);
+            tm.setComparator(PACKETS, LongComparator.INSTANCE);
+            tm.setComparator(BYTES, LongComparator.INSTANCE);
+            return tm;
+        }
 
-        private static final String[] COL_IDS = {
-                ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
-                TREATMENT, TIMEOUT, PERMANENT, STATE, PACKETS, BYTES
-        };
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            String uri = string(payload, "devId");
+            if (!Strings.isNullOrEmpty(uri)) {
+                DeviceId deviceId = DeviceId.deviceId(uri);
+                FlowRuleService frs = get(FlowRuleService.class);
+                for (FlowEntry flow : frs.getFlowEntries(deviceId)) {
+                    populateRow(tm.addRow(), flow);
+                }
+            }
+        }
 
-        public FlowTableRow(FlowEntry f) {
-            add(ID, f.id().value());
-            add(APP_ID, f.appId());
-            add(GROUP_ID, f.groupId().id());
-            add(TABLE_ID, f.tableId());
-            add(PRIORITY, f.priority());
-            add(SELECTOR, getSelectorString(f));
-            add(TREATMENT, getTreatmentString(f));
-            add(TIMEOUT, f.timeout());
-            add(PERMANENT, f.isPermanent());
-            add(STATE, capitalizeFully(f.state().toString()));
-            add(PACKETS, f.packets());
-            add(BYTES, f.packets());
+        private void populateRow(TableModel.Row row, FlowEntry flow) {
+            row.cell(ID, flow.id().value())
+                .cell(APP_ID, flow.appId())
+                .cell(GROUP_ID, flow.groupId().id())
+                .cell(TABLE_ID, flow.tableId())
+                .cell(PRIORITY, flow.priority())
+                .cell(SELECTOR, getSelectorString(flow))
+                .cell(TREATMENT, getTreatmentString(flow))
+                .cell(TIMEOUT, flow.timeout())
+                .cell(PERMANENT, flow.isPermanent())
+                .cell(STATE, capitalizeFully(flow.state().toString()))
+                .cell(PACKETS, flow.packets())
+                .cell(BYTES, flow.bytes());
         }
 
         private String getSelectorString(FlowEntry f) {
@@ -184,11 +191,5 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             sb.delete(pos, sb.length());
             return sb;
         }
-
-        @Override
-        protected String[] columnIds() {
-            return COL_IDS;
-        }
     }
-
 }

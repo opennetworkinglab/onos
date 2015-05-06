@@ -17,20 +17,23 @@
 
 package org.onosproject.ui.table.cell;
 
-import org.onosproject.ui.table.CellFormatter;
+import org.onosproject.ui.table.CellComparator;
 
 /**
- * A default cell formatter. Uses the object's toString() method.
+ * A long-based cell comparator.
+ * Note that null values are acceptable and are considered "smaller" than
+ * any non-null value.
  */
-public class DefaultCellFormatter extends AbstractCellFormatter {
+public class LongComparator extends AbstractCellComparator {
 
     @Override
-    public String nonNullFormat(Object value) {
-        return value.toString();
+    protected int nonNullCompare(Object o1, Object o2) {
+        long diff = ((long) o1) - ((long) o2);
+        return diff == 0 ? 0 : (diff < 0 ? -1 : 1);
     }
 
     /**
      * An instance of this class.
      */
-    public static final CellFormatter INSTANCE = new DefaultCellFormatter();
+    public static final CellComparator INSTANCE = new LongComparator();
 }

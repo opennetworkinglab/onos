@@ -24,13 +24,11 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.cell.LongComparator;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 
 /**
@@ -51,6 +49,11 @@ public class PortViewMessageHandler extends UiMessageHandler {
     private static final String PKT_TX_DRP = "pkt_tx_drp";
     private static final String DURATION = "duration";
 
+    private static final String[] COL_IDS = {
+            ID, PKT_RX, PKT_TX, BYTES_RX, BYTES_TX,
+            PKT_RX_DRP, PKT_TX_DRP, DURATION
+    };
+
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new PortDataRequest());
@@ -64,47 +67,44 @@ public class PortViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            String uri = string(payload, "devId");
-            if (Strings.isNullOrEmpty(uri)) {
-                return new TableRow[0];
-            }
-            DeviceId deviceId = DeviceId.deviceId(uri);
-            DeviceService service = get(DeviceService.class);
-            List<TableRow> list = new ArrayList<>();
-            for (PortStatistics stat : service.getPortStatistics(deviceId)) {
-                list.add(new PortTableRow(stat));
-            }
-            return list.toArray(new TableRow[list.size()]);
-        }
-    }
-
-    /**
-     * TableRow implementation for
-     * {@link org.onosproject.net.device.PortStatistics port statistics}.
-     */
-    private static class PortTableRow extends AbstractTableRow {
-
-        private static final String[] COL_IDS = {
-                ID, PKT_RX, PKT_TX, BYTES_RX, BYTES_TX,
-                PKT_RX_DRP, PKT_TX_DRP, DURATION
-        };
-
-        public PortTableRow(PortStatistics stat) {
-            add(ID, Integer.toString(stat.port()));
-            add(PKT_RX, Long.toString(stat.packetsReceived()));
-            add(PKT_TX, Long.toString(stat.packetsSent()));
-            add(BYTES_RX, Long.toString(stat.bytesReceived()));
-            add(BYTES_TX, Long.toString(stat.bytesSent()));
-            add(PKT_RX_DRP, Long.toString(stat.packetsRxDropped()));
-            add(PKT_TX_DRP, Long.toString(stat.packetsTxDropped()));
-            add(DURATION, Long.toString(stat.durationSec()));
+        protected String[] getColumnIds() {
+            return COL_IDS;
         }
 
         @Override
-        protected String[] columnIds() {
-            return COL_IDS;
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setComparator(PKT_RX, LongComparator.INSTANCE);
+            tm.setComparator(PKT_TX, LongComparator.INSTANCE);
+            tm.setComparator(BYTES_RX, LongComparator.INSTANCE);
+            tm.setComparator(BYTES_TX, LongComparator.INSTANCE);
+            tm.setComparator(PKT_RX_DRP, LongComparator.INSTANCE);
+            tm.setComparator(PKT_TX_DRP, LongComparator.INSTANCE);
+            tm.setComparator(DURATION, LongComparator.INSTANCE);
+            return tm;
+        }
+
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            String uri = string(payload, "devId");
+            if (!Strings.isNullOrEmpty(uri)) {
+                DeviceId deviceId = DeviceId.deviceId(uri);
+                DeviceService ds = get(DeviceService.class);
+                for (PortStatistics stat : ds.getPortStatistics(deviceId)) {
+                    populateRow(tm.addRow(), stat);
+                }
+            }
+        }
+
+        private void populateRow(TableModel.Row row, PortStatistics stat) {
+            row.cell(ID, stat.port())
+                .cell(PKT_RX, stat.packetsReceived())
+                .cell(PKT_TX, stat.packetsSent())
+                .cell(BYTES_RX, stat.bytesReceived())
+                .cell(BYTES_TX, stat.bytesSent())
+                .cell(PKT_RX_DRP, stat.packetsRxDropped())
+                .cell(PKT_TX_DRP, stat.packetsTxDropped())
+                .cell(DURATION, stat.durationSec());
         }
     }
-
 }

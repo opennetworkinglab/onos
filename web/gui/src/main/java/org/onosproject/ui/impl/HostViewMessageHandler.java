@@ -19,17 +19,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Host;
-import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.cell.HostLocationFormatter;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -51,6 +48,9 @@ public class HostViewMessageHandler extends UiMessageHandler {
 
     private static final String HOST_ICON_PREFIX = "hostIcon_";
 
+    private static final String[] COL_IDS = {
+            TYPE_IID, ID, MAC, VLAN, IPS, LOCATION
+    };
 
     @Override
     protected Collection<RequestHandler> getHandlers() {
@@ -64,34 +64,32 @@ public class HostViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            HostService service = get(HostService.class);
-            List<TableRow> list = new ArrayList<>();
-            for (Host host : service.getHosts()) {
-                list.add(new HostTableRow(host));
-            }
-            return list.toArray(new TableRow[list.size()]);
+        protected String[] getColumnIds() {
+            return COL_IDS;
         }
-    }
 
-    /**
-     * TableRow implementation for {@link Host hosts}.
-     */
-    private static class HostTableRow extends AbstractTableRow {
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setFormatter(LOCATION, HostLocationFormatter.INSTANCE);
+            return tm;
+        }
 
-        private static final String[] COL_IDS = {
-                TYPE_IID, ID, MAC, VLAN, IPS, LOCATION
-        };
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            HostService hs = get(HostService.class);
+            for (Host host : hs.getHosts()) {
+                populateRow(tm.addRow(), host);
+            }
+        }
 
-        public HostTableRow(Host h) {
-            HostLocation location = h.location();
-
-            add(TYPE_IID, getTypeIconId(h));
-            add(ID, h.id());
-            add(MAC, h.mac());
-            add(VLAN, h.vlan());
-            add(IPS, h.ipAddresses());
-            add(LOCATION, concat(location.deviceId(), "/", location.port()));
+        private void populateRow(TableModel.Row row, Host host) {
+            row.cell(TYPE_IID, getTypeIconId(host))
+                    .cell(ID, host.id())
+                    .cell(MAC, host.mac())
+                    .cell(VLAN, host.vlan())
+                    .cell(IPS, host.ipAddresses())
+                    .cell(LOCATION, host.location());
         }
 
         private String getTypeIconId(Host host) {
@@ -99,11 +97,5 @@ public class HostViewMessageHandler extends UiMessageHandler {
             return HOST_ICON_PREFIX +
                     (isNullOrEmpty(hostType) ? "endstation" : hostType);
         }
-
-        @Override
-        protected String[] columnIds() {
-            return COL_IDS;
-        }
     }
-
 }

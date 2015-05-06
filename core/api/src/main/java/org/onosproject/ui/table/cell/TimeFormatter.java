@@ -17,20 +17,25 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.onosproject.ui.table.CellFormatter;
 
 /**
- * A default cell formatter. Uses the object's toString() method.
+ * Formats time values using {@link DateTimeFormatter}.
  */
-public class DefaultCellFormatter extends AbstractCellFormatter {
+public class TimeFormatter extends AbstractCellFormatter {
+
+    private static final DateTimeFormatter DTF = DateTimeFormat.longTime();
 
     @Override
-    public String nonNullFormat(Object value) {
-        return value.toString();
+    protected String nonNullFormat(Object value) {
+        return DTF.print((DateTime) value);
     }
 
     /**
      * An instance of this class.
      */
-    public static final CellFormatter INSTANCE = new DefaultCellFormatter();
+    public static final CellFormatter INSTANCE = new TimeFormatter();
 }

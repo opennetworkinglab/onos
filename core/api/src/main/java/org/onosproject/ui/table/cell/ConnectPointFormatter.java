@@ -17,20 +17,22 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.ui.table.CellFormatter;
 
 /**
- * A default cell formatter. Uses the object's toString() method.
+ * Formats a connect point as "(element-id)/(port)".
  */
-public class DefaultCellFormatter extends AbstractCellFormatter {
+public class ConnectPointFormatter extends AbstractCellFormatter {
 
     @Override
-    public String nonNullFormat(Object value) {
-        return value.toString();
+    protected String nonNullFormat(Object value) {
+        ConnectPoint cp = (ConnectPoint) value;
+        return cp.elementId() + "/" + cp.port();
     }
 
     /**
      * An instance of this class.
      */
-    public static final CellFormatter INSTANCE = new DefaultCellFormatter();
+    public static final CellFormatter INSTANCE = new ConnectPointFormatter();
 }

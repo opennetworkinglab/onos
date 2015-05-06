@@ -17,7 +17,6 @@ package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -33,11 +32,11 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.table.AbstractTableRow;
+import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.TableRow;
+import org.onosproject.ui.table.cell.AppIdFormatter;
+import org.onosproject.ui.table.cell.IntComparator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +57,10 @@ public class IntentViewMessageHandler extends UiMessageHandler {
     private static final String RESOURCES = "resources";
     private static final String DETAILS = "details";
 
+    private static final String[] COL_IDS = {
+            APP_ID, KEY, TYPE, PRIORITY, RESOURCES, DETAILS
+    };
+
     @Override
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(new IntentDataRequest());
@@ -70,30 +73,42 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableRow[] generateTableRows(ObjectNode payload) {
-            IntentService service = get(IntentService.class);
-            List<TableRow> list = new ArrayList<>();
-            for (Intent intent : service.getIntents()) {
-                list.add(new IntentTableRow(intent));
-            }
-            return list.toArray(new TableRow[list.size()]);
+        protected String defaultColumnId() {
+            return APP_ID;
         }
 
         @Override
-        protected String defaultColId() {
-            return APP_ID;
+        protected String[] getColumnIds() {
+            return COL_IDS;
         }
-    }
 
-    /**
-     * TableRow implementation for {@link Intent intents}.
-     */
-    private static class IntentTableRow extends AbstractTableRow {
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setComparator(PRIORITY, IntComparator.INSTANCE);
+            tm.setFormatter(APP_ID, AppIdFormatter.INSTANCE);
+            return tm;
+        }
 
-        private static final String[] COL_IDS = {
-                APP_ID, KEY, TYPE, PRIORITY, RESOURCES, DETAILS
-        };
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            IntentService is = get(IntentService.class);
+            for (Intent intent : is.getIntents()) {
+                populateRow(tm.addRow(), intent);
+            }
+        }
 
+        private void populateRow(TableModel.Row row, Intent intent) {
+            row.cell(APP_ID, intent.appId())
+                .cell(KEY, intent.key())
+                .cell(TYPE, intent.getClass().getSimpleName())
+                .cell(PRIORITY, intent.priority())
+                .cell(RESOURCES, formatResources(intent))
+                .cell(DETAILS, formatDetails(intent));
+        }
+
+
+        // == TODO: Review -- Move the following code to a helper class?
         private StringBuilder details = new StringBuilder();
 
         private void appendMultiPointsDetails(Set<ConnectPoint> points) {
@@ -217,25 +232,8 @@ public class IntentViewMessageHandler extends UiMessageHandler {
 
         private String formatResources(Intent intent) {
             return (intent.resources().isEmpty() ?
-                     "(No resources for this intent)" :
-                     "Resources: " + intent.resources());
-        }
-
-        public IntentTableRow(Intent intent) {
-            ApplicationId appid = intent.appId();
-
-            add(APP_ID, concat(appid.id(), " : ", appid.name()));
-            add(KEY, intent.key());
-            add(TYPE, intent.getClass().getSimpleName());
-            add(PRIORITY, intent.priority());
-            add(RESOURCES, formatResources(intent));
-            add(DETAILS, formatDetails(intent));
-        }
-
-        @Override
-        protected String[] columnIds() {
-            return COL_IDS;
+                    "(No resources for this intent)" :
+                    "Resources: " + intent.resources());
         }
     }
-
 }

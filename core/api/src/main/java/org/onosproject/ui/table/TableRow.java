@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Defines a table row abstraction to support sortable tables on the GUI.
  */
+@Deprecated
 public interface TableRow {
 
     // TODO: Define TableCell interface and return that, rather than String

@@ -17,20 +17,22 @@
 
 package org.onosproject.ui.table.cell;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.ui.table.CellFormatter;
 
 /**
- * A default cell formatter. Uses the object's toString() method.
+ * Formats an application identifier as "(app-id) : (app-name)".
  */
-public class DefaultCellFormatter extends AbstractCellFormatter {
+public class AppIdFormatter extends AbstractCellFormatter {
 
     @Override
-    public String nonNullFormat(Object value) {
-        return value.toString();
+    protected String nonNullFormat(Object value) {
+        ApplicationId appId = (ApplicationId) value;
+        return appId.id() + " : " + appId.name();
     }
 
     /**
      * An instance of this class.
      */
-    public static final CellFormatter INSTANCE = new DefaultCellFormatter();
+    public static final CellFormatter INSTANCE = new AppIdFormatter();
 }

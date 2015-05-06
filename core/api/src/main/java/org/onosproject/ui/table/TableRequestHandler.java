@@ -17,9 +17,8 @@
 package org.onosproject.ui.table;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
-
-import java.util.Arrays;
 
 /**
  * Message handler specifically for table views.
@@ -47,29 +46,66 @@ public abstract class TableRequestHandler extends RequestHandler {
 
     @Override
     public void process(long sid, ObjectNode payload) {
-        RowComparator rc = TableUtils.createRowComparator(payload, defaultColId());
-        TableRow[] rows = generateTableRows(payload);
-        Arrays.sort(rows, rc);
+        TableModel tm = createTableModel();
+        populateTable(tm, payload);
+
+        String sortCol = JsonUtils.string(payload, "sortCol", defaultColumnId());
+        String sortDir = JsonUtils.string(payload, "sortDir", "asc");
+        tm.sort(sortCol, TableModel.sortDir(sortDir));
+
         ObjectNode rootNode = MAPPER.createObjectNode();
-        rootNode.set(nodeName, TableUtils.generateArrayNode(rows));
+        rootNode.set(nodeName, TableUtils.generateArrayNode(tm));
         sendMessage(respType, 0, rootNode);
     }
 
     /**
-     * Returns the default column ID, when one is not supplied in the payload
-     * defining the column on which to sort. This implementation returns "id".
+     * Creates the table model (devoid of data) using {@link #getColumnIds()}
+     * to initialize it, ready to be populated.
+     * <p>
+     * This default implementation returns a table model with default
+     * formatters and comparators for all columns.
      *
-     * @return default sort column id
+     * @return an empty table model
      */
-    protected String defaultColId() {
+    protected TableModel createTableModel() {
+        return new TableModel(getColumnIds());
+    }
+
+    /**
+     * Returns the default column ID to be used when one is not supplied in
+     * the payload as the column on which to sort.
+     * <p>
+     * This default implementation returns "id".
+     *
+     * @return default sort column identifier
+     */
+    protected String defaultColumnId() {
         return "id";
     }
 
     /**
-     * Subclasses should generate table rows for their specific table instance.
+     * Subclasses should return the array of column IDs with which
+     * to initialize their table model.
      *
-     * @param payload provided in case custom parameters are present
-     * @return generated table rows
+     * @return the column IDs
      */
-    protected abstract TableRow[] generateTableRows(ObjectNode payload);
+    protected abstract String[] getColumnIds();
+
+    /**
+     * Subclasses should populate the table model by adding
+     * {@link TableModel.Row rows}.
+     * <pre>
+     *     tm.addRow()
+     *         .cell(COL_ONE, ...)
+     *         .cell(COL_TWO, ...)
+     *         ... ;
+     * </pre>
+     * The request payload is provided in case there are request filtering
+     * parameters (other than sort column and sort direction) that are required
+     * to generate the appropriate data.
+     *
+     * @param tm the table model
+     * @param payload request payload
+     */
+    protected abstract void populateTable(TableModel tm, ObjectNode payload);
 }

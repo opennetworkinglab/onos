@@ -37,7 +37,7 @@ public class DefaultCellFormatterTest {
         }
     }
 
-    private CellFormatter fmt = new DefaultCellFormatter();
+    private CellFormatter fmt = DefaultCellFormatter.INSTANCE;
 
     @Test
     public void formatNull() {
