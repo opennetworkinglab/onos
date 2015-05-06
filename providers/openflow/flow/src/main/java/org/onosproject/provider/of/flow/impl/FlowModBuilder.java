@@ -125,7 +125,7 @@ public abstract class FlowModBuilder {
         this.factory = factory;
         this.flowRule = flowRule;
         this.selector = flowRule.selector();
-        this.xid = xid.orElse((long) 0);
+        this.xid = xid.orElse(0L);
 
     }
 

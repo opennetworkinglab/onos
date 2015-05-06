@@ -36,9 +36,9 @@ public class PathSegmentTest {
     private BgpRouteEntry.PathSegment generatePathSegment() {
         byte pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 1);
-        segmentAsNumbers.add((long) 2);
-        segmentAsNumbers.add((long) 3);
+        segmentAsNumbers.add(1L);
+        segmentAsNumbers.add(2L);
+        segmentAsNumbers.add(3L);
         BgpRouteEntry.PathSegment pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
 
@@ -75,9 +75,9 @@ public class PathSegmentTest {
         // Create the fields to compare against
         byte pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 1);
-        segmentAsNumbers.add((long) 2);
-        segmentAsNumbers.add((long) 3);
+        segmentAsNumbers.add(1L);
+        segmentAsNumbers.add(2L);
+        segmentAsNumbers.add(3L);
 
         // Generate the entry to test
         BgpRouteEntry.PathSegment pathSegment = generatePathSegment();
@@ -107,9 +107,9 @@ public class PathSegmentTest {
         // Setup Path Segment 2
         byte pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 1);
-        segmentAsNumbers.add((long) 22);                        // Different
-        segmentAsNumbers.add((long) 3);
+        segmentAsNumbers.add(1L);
+        segmentAsNumbers.add(22L);                        // Different
+        segmentAsNumbers.add(3L);
         //
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);

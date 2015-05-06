@@ -150,7 +150,7 @@ public class LLDPLinkProviderTest {
         deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID1, port(DID1, 3, true)));
 
         assertTrue("Port not added to discoverer",
-                   provider.discoverers.get(DID1).containsPort((long) 3));
+                   provider.discoverers.get(DID1).containsPort(3L));
     }
 
     @Test
@@ -162,8 +162,8 @@ public class LLDPLinkProviderTest {
 
 
         assertFalse("Port added to discoverer",
-                    provider.discoverers.get(DID1).containsPort((long) 1));
-        assertTrue("Port is not gone.", vanishedPort((long) 1));
+                    provider.discoverers.get(DID1).containsPort(1L));
+        assertTrue("Port is not gone.", vanishedPort(1L));
     }
 
     @Test

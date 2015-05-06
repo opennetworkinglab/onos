@@ -41,36 +41,36 @@ public class AsPathTest {
 
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 1);
-        segmentAsNumbers.add((long) 2);
-        segmentAsNumbers.add((long) 3);
+        segmentAsNumbers.add(1L);
+        segmentAsNumbers.add(2L);
+        segmentAsNumbers.add(3L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
         //
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SET;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 4);
-        segmentAsNumbers.add((long) 5);
-        segmentAsNumbers.add((long) 6);
+        segmentAsNumbers.add(4L);
+        segmentAsNumbers.add(5L);
+        segmentAsNumbers.add(6L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
         //
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 7);
-        segmentAsNumbers.add((long) 8);
-        segmentAsNumbers.add((long) 9);
+        segmentAsNumbers.add(7L);
+        segmentAsNumbers.add(8L);
+        segmentAsNumbers.add(9L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
         //
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SET;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 10);
-        segmentAsNumbers.add((long) 11);
-        segmentAsNumbers.add((long) 12);
+        segmentAsNumbers.add(10L);
+        segmentAsNumbers.add(11L);
+        segmentAsNumbers.add(12L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
@@ -176,36 +176,36 @@ public class AsPathTest {
 
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SEQUENCE;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 1);
-        segmentAsNumbers.add((long) 2);
-        segmentAsNumbers.add((long) 3);
+        segmentAsNumbers.add(1L);
+        segmentAsNumbers.add(2L);
+        segmentAsNumbers.add(3L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
         //
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_CONFED_SET;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 4);
-        segmentAsNumbers.add((long) 5);
-        segmentAsNumbers.add((long) 6);
+        segmentAsNumbers.add(4L);
+        segmentAsNumbers.add(5L);
+        segmentAsNumbers.add(6L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
         //
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 7);
-        segmentAsNumbers.add((long) 8);
-        segmentAsNumbers.add((long) 9);
+        segmentAsNumbers.add(7L);
+        segmentAsNumbers.add(8L);
+        segmentAsNumbers.add(9L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);
         //
         pathSegmentType = (byte) BgpConstants.Update.AsPath.AS_SET;
         segmentAsNumbers = new ArrayList<>();
-        segmentAsNumbers.add((long) 10);
-        segmentAsNumbers.add((long) 111);                       // Different
-        segmentAsNumbers.add((long) 12);
+        segmentAsNumbers.add(10L);
+        segmentAsNumbers.add(111L);                       // Different
+        segmentAsNumbers.add(12L);
         pathSegment =
             new BgpRouteEntry.PathSegment(pathSegmentType, segmentAsNumbers);
         pathSegments.add(pathSegment);

@@ -289,9 +289,9 @@ public class BgpSessionManagerTest {
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
         byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 65010);
-        segmentAsNumbers1.add((long) 65020);
-        segmentAsNumbers1.add((long) 65030);
+        segmentAsNumbers1.add(65010L);
+        segmentAsNumbers1.add(65020L);
+        segmentAsNumbers1.add(65030L);
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
@@ -299,9 +299,9 @@ public class BgpSessionManagerTest {
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 65041);
-        segmentAsNumbers2.add((long) 65042);
-        segmentAsNumbers2.add((long) 65043);
+        segmentAsNumbers2.add(65041L);
+        segmentAsNumbers2.add(65042L);
+        segmentAsNumbers2.add(65043L);
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
         pathSegments.add(pathSegment2);

@@ -99,18 +99,18 @@ public class BgpRouteEntryTest {
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
         byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
+        segmentAsNumbers1.add(1L);
+        segmentAsNumbers1.add(2L);
+        segmentAsNumbers1.add(3L);
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
+        segmentAsNumbers2.add(4L);
+        segmentAsNumbers2.add(5L);
+        segmentAsNumbers2.add(6L);
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
         pathSegments.add(pathSegment2);
@@ -191,18 +191,18 @@ public class BgpRouteEntryTest {
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
         byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
+        segmentAsNumbers1.add(1L);
+        segmentAsNumbers1.add(2L);
+        segmentAsNumbers1.add(3L);
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
+        segmentAsNumbers2.add(4L);
+        segmentAsNumbers2.add(5L);
+        segmentAsNumbers2.add(6L);
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
         pathSegments.add(pathSegment2);
@@ -245,18 +245,18 @@ public class BgpRouteEntryTest {
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
         byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
+        segmentAsNumbers1.add(1L);
+        segmentAsNumbers1.add(2L);
+        segmentAsNumbers1.add(3L);
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
+        segmentAsNumbers2.add(4L);
+        segmentAsNumbers2.add(5L);
+        segmentAsNumbers2.add(6L);
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
         pathSegments.add(pathSegment2);
@@ -293,7 +293,7 @@ public class BgpRouteEntryTest {
         // Get neighbor AS for non-local route
         //
         BgpRouteEntry bgpRouteEntry = generateBgpRouteEntry();
-        assertThat(bgpRouteEntry.getNeighborAs(), is((long) 1));
+        assertThat(bgpRouteEntry.getNeighborAs(), is(1L));
 
         //
         // Get neighbor AS for a local route
@@ -355,18 +355,18 @@ public class BgpRouteEntryTest {
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
         byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
+        segmentAsNumbers1.add(1L);
+        segmentAsNumbers1.add(2L);
+        segmentAsNumbers1.add(3L);
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
+        segmentAsNumbers2.add(4L);
+        segmentAsNumbers2.add(5L);
+        segmentAsNumbers2.add(6L);
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
         pathSegments.add(pathSegment2);
@@ -474,18 +474,18 @@ public class BgpRouteEntryTest {
         ArrayList<BgpRouteEntry.PathSegment> pathSegments = new ArrayList<>();
         byte pathSegmentType1 = (byte) BgpConstants.Update.AsPath.AS_SEQUENCE;
         ArrayList<Long> segmentAsNumbers1 = new ArrayList<>();
-        segmentAsNumbers1.add((long) 1);
-        segmentAsNumbers1.add((long) 2);
-        segmentAsNumbers1.add((long) 3);
+        segmentAsNumbers1.add(1L);
+        segmentAsNumbers1.add(2L);
+        segmentAsNumbers1.add(3L);
         BgpRouteEntry.PathSegment pathSegment1 =
             new BgpRouteEntry.PathSegment(pathSegmentType1, segmentAsNumbers1);
         pathSegments.add(pathSegment1);
         //
         byte pathSegmentType2 = (byte) BgpConstants.Update.AsPath.AS_SET;
         ArrayList<Long> segmentAsNumbers2 = new ArrayList<>();
-        segmentAsNumbers2.add((long) 4);
-        segmentAsNumbers2.add((long) 5);
-        segmentAsNumbers2.add((long) 6);
+        segmentAsNumbers2.add(4L);
+        segmentAsNumbers2.add(5L);
+        segmentAsNumbers2.add(6L);
         BgpRouteEntry.PathSegment pathSegment2 =
             new BgpRouteEntry.PathSegment(pathSegmentType2, segmentAsNumbers2);
         pathSegments.add(pathSegment2);
