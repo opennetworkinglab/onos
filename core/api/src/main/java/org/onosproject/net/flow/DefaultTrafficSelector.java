@@ -297,11 +297,13 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchIPv6ExthdrFlags(exthdrFlags));
         }
 
+        @Deprecated
         @Override
         public Builder matchLambda(short lambda) {
             return add(Criteria.matchLambda(lambda));
         }
 
+        @Deprecated
         @Override
         public Builder matchOpticalSignalType(short signalType) {
             return add(Criteria.matchOpticalSignalType(signalType));

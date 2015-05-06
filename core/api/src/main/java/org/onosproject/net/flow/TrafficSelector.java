@@ -313,7 +313,11 @@ public interface TrafficSelector {
          *
          * @param lambda lambda
          * @return a selection builder
+         * @deprecated in Cardinal Release.
+         * Use {@link #add(Criterion)} with an instance created
+         * by {@link org.onosproject.net.flow.criteria.Criteria#matchLambda(org.onosproject.net.Lambda)}.
          */
+        @Deprecated
         Builder matchLambda(short lambda);
 
         /**
@@ -321,7 +325,11 @@ public interface TrafficSelector {
          *
          * @param signalType signalType
          * @return a selection builder
+         * @deprecated in Cardinal Release.
+         * Use {@link #add(Criterion)}} with an instance created
+         * by {@link org.onosproject.net.flow.criteria.Criteria#matchOchSignalType(org.onosproject.net.OchSignalType)}.
          */
+        @Deprecated
         Builder matchOpticalSignalType(short signalType);
 
         /**
