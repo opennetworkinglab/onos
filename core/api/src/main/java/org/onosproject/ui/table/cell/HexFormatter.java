@@ -22,7 +22,10 @@ import org.onosproject.ui.table.CellFormatter;
 /**
  * Formats integer values as hex strings with a "0x" prefix.
  */
-public class HexFormatter extends AbstractCellFormatter {
+public final class HexFormatter extends AbstractCellFormatter {
+
+    // non-instantiable
+    private HexFormatter() { }
 
     @Override
     protected String nonNullFormat(Object value) {

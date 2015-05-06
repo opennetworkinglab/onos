@@ -25,9 +25,12 @@ import org.onosproject.ui.table.CellFormatter;
 /**
  * Formats time values using {@link DateTimeFormatter}.
  */
-public class TimeFormatter extends AbstractCellFormatter {
+public final class TimeFormatter extends AbstractCellFormatter {
 
     private static final DateTimeFormatter DTF = DateTimeFormat.longTime();
+
+    // non-instantiable
+    private TimeFormatter() { }
 
     @Override
     protected String nonNullFormat(Object value) {

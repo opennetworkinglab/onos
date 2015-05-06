@@ -23,7 +23,10 @@ import org.onosproject.ui.table.CellFormatter;
 /**
  * Formats a connect point as "(element-id)/(port)".
  */
-public class ConnectPointFormatter extends AbstractCellFormatter {
+public final class ConnectPointFormatter extends AbstractCellFormatter {
+
+    // non-instantiable
+    private ConnectPointFormatter() { }
 
     @Override
     protected String nonNullFormat(Object value) {

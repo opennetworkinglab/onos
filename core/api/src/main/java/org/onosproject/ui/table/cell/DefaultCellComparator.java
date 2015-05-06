@@ -25,7 +25,10 @@ import org.onosproject.ui.table.CellComparator;
  * compares the resulting strings. Note that null values are acceptable and
  * are considered "smaller" than any non-null value.
  */
-public class DefaultCellComparator extends AbstractCellComparator {
+public final class DefaultCellComparator extends AbstractCellComparator {
+
+    // non-instantiable
+    private DefaultCellComparator() { }
 
     @Override
     protected int nonNullCompare(Object o1, Object o2) {

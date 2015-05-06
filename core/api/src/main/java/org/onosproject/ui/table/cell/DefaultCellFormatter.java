@@ -22,7 +22,10 @@ import org.onosproject.ui.table.CellFormatter;
 /**
  * A default cell formatter. Uses the object's toString() method.
  */
-public class DefaultCellFormatter extends AbstractCellFormatter {
+public final class DefaultCellFormatter extends AbstractCellFormatter {
+
+    // non-instantiable
+    private DefaultCellFormatter() { }
 
     @Override
     public String nonNullFormat(Object value) {

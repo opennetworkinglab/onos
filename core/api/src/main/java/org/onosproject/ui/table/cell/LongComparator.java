@@ -24,7 +24,10 @@ import org.onosproject.ui.table.CellComparator;
  * Note that null values are acceptable and are considered "smaller" than
  * any non-null value.
  */
-public class LongComparator extends AbstractCellComparator {
+public final class LongComparator extends AbstractCellComparator {
+
+    // non-instantiable
+    private LongComparator() { }
 
     @Override
     protected int nonNullCompare(Object o1, Object o2) {

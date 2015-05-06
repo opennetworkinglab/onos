@@ -23,7 +23,10 @@ import org.onosproject.ui.table.CellFormatter;
 /**
  * Formats an application identifier as "(app-id) : (app-name)".
  */
-public class AppIdFormatter extends AbstractCellFormatter {
+public final class AppIdFormatter extends AbstractCellFormatter {
+
+    // non-instantiable
+    private AppIdFormatter() { }
 
     @Override
     protected String nonNullFormat(Object value) {

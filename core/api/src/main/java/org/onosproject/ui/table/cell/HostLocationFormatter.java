@@ -23,7 +23,10 @@ import org.onosproject.ui.table.CellFormatter;
 /**
  * Formats a host location as "(device-id)/(port)".
  */
-public class HostLocationFormatter extends AbstractCellFormatter {
+public final class HostLocationFormatter extends AbstractCellFormatter {
+
+    // non-instantiable
+    private HostLocationFormatter() { }
 
     @Override
     protected String nonNullFormat(Object value) {

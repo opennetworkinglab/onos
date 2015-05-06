@@ -23,7 +23,10 @@ import static org.apache.commons.lang.WordUtils.capitalizeFully;
 /**
  * Formats enum types to be readable strings.
  */
-public class EnumFormatter extends AbstractCellFormatter {
+public final class EnumFormatter extends AbstractCellFormatter {
+
+    // non-instantiable
+    private EnumFormatter() { }
 
     @Override
     protected String nonNullFormat(Object value) {
