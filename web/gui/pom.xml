@@ -52,6 +52,10 @@
             <scope>test</scope>
             <classifier>tests</classifier>
         </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -81,6 +85,9 @@
                             com.sun.jersey.api,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.server.impl.container.servlet,
+                            com.sun.jersey.multipart,
+                            com.sun.jersey.core.header,
+                            org.jvnet.mimepull,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
                             com.google.common.base.*,

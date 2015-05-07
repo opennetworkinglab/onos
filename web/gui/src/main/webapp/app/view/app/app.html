@@ -13,10 +13,13 @@
             <div id="app-uninstall"  icon icon-size="36" icon-id="minus"></div>
         </div>
 
-        <form id="app-form" method="POST" action="/onos/v1/applications/upload" enctype="multipart/form-data" style="display:none">
-            <input type="file" id="file" accept=".oar">
+        <form id="app-form" method="POST" action="rs/applications/upload"
+              target="app-form-response" enctype="multipart/form-data" style="display:none">
+            <input type="file" name="file" id="file" size="50" accept=".oar">
             <button type="submit" id="app-upload">Upload</button>
         </form>
+        <iframe id="app-form-response" name="app-form-response"
+                src="" width="0" height="0" style="visibility:hidden;display:none"></iframe>
     </div>
 
     <div class="summary-list" onos-fixed-header>

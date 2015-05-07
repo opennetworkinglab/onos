@@ -75,6 +75,8 @@
         <bundle>mvn:com.sun.jersey/jersey-core/1.19</bundle>
         <bundle>mvn:com.sun.jersey/jersey-server/1.19</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/1.19</bundle>
+        <bundle>mvn:com.sun.jersey.contribs/jersey-multipart/1.19</bundle>
+        <bundle>mvn:org.jvnet.mimepull/mimepull/1.9.3</bundle>
         <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
     </feature>
 

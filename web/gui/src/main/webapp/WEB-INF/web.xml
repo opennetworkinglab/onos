@@ -139,6 +139,7 @@
             <param-name>com.sun.jersey.config.property.classnames</param-name>
             <param-value>
                 org.onosproject.ui.impl.TopologyResource,
+                org.onosproject.ui.impl.ApplicationResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
