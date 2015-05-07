@@ -285,7 +285,7 @@ public final class Instructions {
      * @param etherType Ethernet type to set
      * @return a L2 modification.
      */
-    public static Instruction popMpls(Short etherType) {
+    public static Instruction popMpls(int etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
         return new L2ModificationInstruction.PushHeaderInstructions(
                 L2ModificationInstruction.L2SubType.MPLS_POP, etherType);

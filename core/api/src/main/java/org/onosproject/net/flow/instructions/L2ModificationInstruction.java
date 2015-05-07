@@ -145,16 +145,17 @@ public abstract class L2ModificationInstruction implements Instruction {
     public static final class PushHeaderInstructions extends
             L2ModificationInstruction {
 
+        private static final int MASK = 0xffff;
         private final L2SubType subtype;
-        private final short ethernetType; // uint16_t
+        private final int ethernetType; // Ethernet type value: 16 bits
 
-        PushHeaderInstructions(L2SubType subType, short ethernetType) {
+        PushHeaderInstructions(L2SubType subType, int ethernetType) {
             this.subtype = subType;
-            this.ethernetType = ethernetType;
+            this.ethernetType = ethernetType & MASK;
         }
 
         public int ethernetType() {
-            return Short.toUnsignedInt(ethernetType);
+            return ethernetType;
         }
 
         @Override
@@ -239,10 +240,11 @@ public abstract class L2ModificationInstruction implements Instruction {
      */
     public static final class ModVlanPcpInstruction extends L2ModificationInstruction {
 
-        private final Byte vlanPcp;
+        private static final byte MASK = 0x7;
+        private final byte vlanPcp;
 
-        ModVlanPcpInstruction(Byte vlanPcp) {
-            this.vlanPcp = vlanPcp;
+        ModVlanPcpInstruction(byte vlanPcp) {
+            this.vlanPcp = (byte) (vlanPcp & MASK);
         }
 
         @Override
@@ -250,7 +252,7 @@ public abstract class L2ModificationInstruction implements Instruction {
             return L2SubType.VLAN_PCP;
         }
 
-        public Byte vlanPcp() {
+        public byte vlanPcp() {
             return this.vlanPcp;
         }
 

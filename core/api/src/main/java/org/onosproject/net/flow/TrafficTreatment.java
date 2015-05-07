@@ -190,7 +190,7 @@ public interface TrafficTreatment {
          * @param etherType an ether type
          * @return a treatment builder.
          */
-        Builder popMpls(Short etherType);
+        Builder popMpls(int etherType);
 
         /**
          * Sets the mpls label.

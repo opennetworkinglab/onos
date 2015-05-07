@@ -292,7 +292,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder popMpls(Short etherType) {
+        public Builder popMpls(int etherType) {
             return add(Instructions.popMpls(etherType));
         }
 
