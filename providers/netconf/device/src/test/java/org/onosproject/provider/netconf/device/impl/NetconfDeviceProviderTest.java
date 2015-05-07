@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -178,6 +179,7 @@ public class NetconfDeviceProviderTest {
         return dictionary;
     }
 
+    @Ignore
     @Test(expected = IOException.class)
     public void testSSHAuthentication() throws IOException, JNCException {
         TestDeviceCreator objForTestDev = new TestDeviceCreator(
