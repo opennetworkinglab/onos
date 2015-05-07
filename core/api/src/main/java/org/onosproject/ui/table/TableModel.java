@@ -43,6 +43,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * The table also provides a mechanism for defining how cell values for a
  * particular column should be formatted into strings, to help facilitate
  * the encoding of the table data into a JSON structure.
+ * <p>
+ * Note that it is expected that all values for a particular column will
+ * be the same class.
  */
 public class TableModel {
 

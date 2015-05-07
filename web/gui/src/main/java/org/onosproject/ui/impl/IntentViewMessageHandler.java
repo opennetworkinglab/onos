@@ -37,7 +37,6 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.AppIdFormatter;
-import org.onosproject.ui.table.cell.IntComparator;
 
 import java.util.Collection;
 import java.util.List;
@@ -87,8 +86,6 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
-            tm.setComparator(PRIORITY, IntComparator.INSTANCE);
-
             tm.setFormatter(APP_ID, AppIdFormatter.INSTANCE);
             tm.setFormatter(RESOURCES, new ResourcesFormatter());
             tm.setFormatter(DETAILS, new DetailsFormatter());

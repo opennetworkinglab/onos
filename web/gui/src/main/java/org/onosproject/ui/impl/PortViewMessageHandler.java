@@ -26,7 +26,6 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.cell.LongComparator;
 
 import java.util.Collection;
 
@@ -69,19 +68,6 @@ public class PortViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
-        }
-
-        @Override
-        protected TableModel createTableModel() {
-            TableModel tm = super.createTableModel();
-            tm.setComparator(PKT_RX, LongComparator.INSTANCE);
-            tm.setComparator(PKT_TX, LongComparator.INSTANCE);
-            tm.setComparator(BYTES_RX, LongComparator.INSTANCE);
-            tm.setComparator(BYTES_TX, LongComparator.INSTANCE);
-            tm.setComparator(PKT_RX_DRP, LongComparator.INSTANCE);
-            tm.setComparator(PKT_TX_DRP, LongComparator.INSTANCE);
-            tm.setComparator(DURATION, LongComparator.INSTANCE);
-            return tm;
         }
 
         @Override

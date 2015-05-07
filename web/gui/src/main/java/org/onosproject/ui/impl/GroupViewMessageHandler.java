@@ -29,8 +29,6 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
-import org.onosproject.ui.table.cell.IntComparator;
-import org.onosproject.ui.table.cell.LongComparator;
 
 import java.util.Collection;
 import java.util.List;
@@ -77,11 +75,6 @@ public class GroupViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
-
-            tm.setComparator(ID, IntComparator.INSTANCE);
-            tm.setComparator(PACKETS, LongComparator.INSTANCE);
-            tm.setComparator(BYTES, LongComparator.INSTANCE);
-
             tm.setFormatter(TYPE, EnumFormatter.INSTANCE);
             tm.setFormatter(BUCKETS, new BucketFormatter());
             return tm;

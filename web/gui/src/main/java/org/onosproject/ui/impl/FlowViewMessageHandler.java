@@ -30,8 +30,6 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
-import org.onosproject.ui.table.cell.IntComparator;
-import org.onosproject.ui.table.cell.LongComparator;
 
 import java.util.Collection;
 import java.util.List;
@@ -86,13 +84,6 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
-            tm.setComparator(GROUP_ID, IntComparator.INSTANCE);
-            tm.setComparator(TABLE_ID, IntComparator.INSTANCE);
-            tm.setComparator(PRIORITY, IntComparator.INSTANCE);
-            tm.setComparator(TIMEOUT, IntComparator.INSTANCE);
-            tm.setComparator(PACKETS, LongComparator.INSTANCE);
-            tm.setComparator(BYTES, LongComparator.INSTANCE);
-
             tm.setFormatter(SELECTOR, new SelectorFormatter());
             tm.setFormatter(TREATMENT, new TreatmentFormatter());
             tm.setFormatter(STATE, EnumFormatter.INSTANCE);

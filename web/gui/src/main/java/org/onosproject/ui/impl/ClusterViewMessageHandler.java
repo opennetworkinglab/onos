@@ -26,7 +26,6 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.cell.IntComparator;
 import org.onosproject.ui.table.cell.TimeFormatter;
 
 import java.util.Collection;
@@ -73,7 +72,6 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
-            tm.setComparator(TCP_PORT, IntComparator.INSTANCE);
             tm.setFormatter(UPDATED, new TimeFormatter());
             return tm;
         }

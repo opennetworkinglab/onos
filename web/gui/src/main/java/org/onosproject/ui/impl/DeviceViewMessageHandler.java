@@ -31,7 +31,6 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.ui.table.cell.IntComparator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -105,13 +104,6 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
-        }
-
-        @Override
-        protected TableModel createTableModel() {
-            TableModel tm = super.createTableModel();
-            tm.setComparator(NUM_PORTS, IntComparator.INSTANCE);
-            return tm;
         }
 
         @Override

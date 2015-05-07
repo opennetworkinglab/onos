@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.onosproject.ui.table.TableModel.SortDir;
 import org.onosproject.ui.table.cell.DefaultCellFormatter;
 import org.onosproject.ui.table.cell.HexFormatter;
-import org.onosproject.ui.table.cell.IntComparator;
 
 import static org.junit.Assert.*;
 
@@ -34,6 +33,10 @@ public class TableModelTest {
     private static final String FOO = "foo";
     private static final String BAR = "bar";
     private static final String ZOO = "zoo";
+
+    private enum StarWars {
+        LUKE_SKYWALKER, LEIA_ORGANA, HAN_SOLO, C3PO, R2D2, JABBA_THE_HUTT
+    }
 
     private static class ParenFormatter implements CellFormatter {
         @Override
@@ -220,9 +223,6 @@ public class TableModelTest {
     public void tableNumberSort() {
         initUnsortedTable();
 
-        // first, tell the table to use an integer-based comparator
-        tm.setComparator(BAR, IntComparator.INSTANCE);
-
         // sort by number
         tm.sort(BAR, SortDir.ASC);
 
@@ -251,8 +251,7 @@ public class TableModelTest {
     public void sortAndFormat() {
         initUnsortedTable();
 
-        // set integer-based comparator and hex formatter
-        tm.setComparator(BAR, IntComparator.INSTANCE);
+        // set hex formatter
         tm.setFormatter(BAR, HexFormatter.INSTANCE);
 
         // sort by number
@@ -320,4 +319,26 @@ public class TableModelTest {
         assertEquals("null sort dir", SortDir.ASC, TableModel.sortDir(null));
     }
 
+
+    @Test
+    public void enumSort() {
+        tm = new TableModel(FOO);
+        tm.addRow().cell(FOO, StarWars.HAN_SOLO);
+        tm.addRow().cell(FOO, StarWars.C3PO);
+        tm.addRow().cell(FOO, StarWars.JABBA_THE_HUTT);
+        tm.addRow().cell(FOO, StarWars.LEIA_ORGANA);
+        tm.addRow().cell(FOO, StarWars.R2D2);
+        tm.addRow().cell(FOO, StarWars.LUKE_SKYWALKER);
+
+        tm.sort(FOO, SortDir.ASC);
+
+        // verify expected results
+        StarWars[] ordered = StarWars.values();
+        TableModel.Row[] rows = tm.getRows();
+        assertEquals("wrong length?", ordered.length, rows.length);
+        int nr = rows.length;
+        for (int i = 0; i < nr; i++) {
+            assertEquals(UNEX_SORT + i, ordered[i], rows[i].get(FOO));
+        }
+    }
 }
