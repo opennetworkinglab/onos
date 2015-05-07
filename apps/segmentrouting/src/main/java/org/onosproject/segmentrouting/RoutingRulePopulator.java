@@ -265,7 +265,7 @@ public class RoutingRulePopulator {
                     .withPriority(100))
                     .withFlag(ForwardingObjective.Flag.SPECIFIC);
             log.debug("Installing MPLS forwarding objective in switch {}",
-                      deviceId);
+                    deviceId);
             srManager.flowObjectiveService.forward(deviceId,
                                                    fwdObjBuilder.add());
             rulePopulationCounter.incrementAndGet();
@@ -299,15 +299,15 @@ public class RoutingRulePopulator {
         }
 
         if (!isECMPSupportedInTransitRouter() && !config.isEdgeDevice(deviceId)) {
-            Link link = selectOneLink(deviceId, nextHops);
+            PortNumber port = selectOnePort(deviceId, nextHops);
             DeviceId nextHop = (DeviceId) nextHops.toArray()[0];
-            if (link == null) {
+            if (port == null) {
                 log.warn("No link from {} to {}", deviceId, nextHops);
                 return null;
             }
             tbuilder.setEthSrc(config.getDeviceMac(deviceId))
                     .setEthDst(config.getDeviceMac(nextHop))
-                    .setOutput(link.src().port());
+                    .setOutput(port);
             fwdBuilder.withTreatment(tbuilder.build());
         } else {
             NeighborSet ns = new NeighborSet(nextHops);
@@ -356,13 +356,16 @@ public class RoutingRulePopulator {
         srManager.flowObjectiveService.filter(deviceId, fob.add());
     }
 
-    private Link selectOneLink(DeviceId srcId, Set<DeviceId> destIds) {
+    private PortNumber selectOnePort(DeviceId srcId, Set<DeviceId> destIds) {
 
-        Set<Link> links = srManager.linkService.getDeviceEgressLinks(srcId);
-        DeviceId destId = (DeviceId) destIds.toArray()[0];
-        for (Link link : links) {
-            if (link.dst().deviceId().equals(destId)) {
-                return link;
+        Set<Link> links = srManager.linkService.getDeviceLinks(srcId);
+        for (DeviceId destId: destIds) {
+            for (Link link : links) {
+                if (link.dst().deviceId().equals(destId)) {
+                    return link.src().port();
+                } else if (link.src().deviceId().equals(destId)) {
+                    return link.dst().port();
+                }
             }
         }
 
