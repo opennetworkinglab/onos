@@ -26,10 +26,12 @@ public class IndexedLambda implements Lambda {
 
     /**
      * Creates an instance representing the wavelength specified by the given index number.
+     * It is recommended to use {@link Lambda#indexedLambda(long)} unless you want to use the
+     * concrete type, IndexedLambda, directly.
      *
      * @param index index number of wavelength
      */
-    IndexedLambda(long index) {
+    public IndexedLambda(long index) {
         this.index = index;
     }
 

@@ -45,13 +45,15 @@ public class OchSignal implements Lambda {
 
     /**
      * Creates an instance with the specified arguments.
+     * It it recommended to use {@link Lambda#ochSignal(GridType, ChannelSpacing, int, int)}
+     * unless you want to use the concrete type, OchSignal, directly.
      *
      * @param gridType          grid type
      * @param channelSpacing    channel spacing
      * @param spacingMultiplier channel spacing multiplier
      * @param slotGranularity   slot width granularity
      */
-    OchSignal(GridType gridType, ChannelSpacing channelSpacing,
+    public OchSignal(GridType gridType, ChannelSpacing channelSpacing,
               int spacingMultiplier, int slotGranularity) {
         this.gridType = checkNotNull(gridType);
         this.channelSpacing = checkNotNull(channelSpacing);

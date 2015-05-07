@@ -15,36 +15,50 @@
  */
 package org.onosproject.net.resource;
 
+import org.onosproject.net.IndexedLambda;
+
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of lambda resource.
  */
 public final class LambdaResource extends LinkResource {
 
-    private final int lambda;
+    private final IndexedLambda lambda;
 
     /**
      * Creates a new instance with given lambda.
      *
-     * @param lambda lambda value to be assigned
+     * @param lambda lambda to be assigned
      */
-    private LambdaResource(int lambda) {
-        this.lambda = lambda;
+    private LambdaResource(IndexedLambda lambda) {
+        this.lambda = checkNotNull(lambda);
     }
 
     // Constructor for serialization
     private LambdaResource() {
-        this.lambda = 0;
+        this.lambda = null;
     }
 
     /**
-     * Creates a new instance with given lambda.
+     * Creates a new instance with the given index of lambda.
      *
-     * @param lambda lambda value to be assigned
-     * @return {@link LambdaResource} instance with given lambda
+     * @param lambda index value of lambda to be assigned
+     * @return {@link LambdaResource} instance with the given lambda
      */
     public static LambdaResource valueOf(int lambda) {
+        return valueOf(new IndexedLambda(lambda));
+    }
+
+    /**
+     * Creates a new instance with the given lambda.
+     *
+     * @param lambda lambda to be assigned
+     * @return {@link LambdaResource} instance with the given lambda
+     */
+    public static LambdaResource valueOf(IndexedLambda lambda) {
         return new LambdaResource(lambda);
     }
 
@@ -54,7 +68,7 @@ public final class LambdaResource extends LinkResource {
      * @return lambda as an int value
      */
     public int toInt() {
-        return lambda;
+        return (int) lambda.index();
     }
 
     @Override
@@ -68,7 +82,7 @@ public final class LambdaResource extends LinkResource {
 
     @Override
     public int hashCode() {
-        return lambda;
+        return lambda.hashCode();
     }
 
     @Override
