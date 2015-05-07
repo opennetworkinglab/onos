@@ -44,7 +44,7 @@ public class IndexedLambda implements Lambda {
 
     @Override
     public int hashCode() {
-        return (int) (index ^ (index >>> 32));
+        return Long.hashCode(index);
     }
 
     @Override
