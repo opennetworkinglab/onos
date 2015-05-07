@@ -1,0 +1,21 @@
+{
+  "comments": [
+    "Add two devices and one link (auto), and two 'hosts'.",
+    "But the hosts are the same box with two NICs."
+  ],
+  "title": "Multi-Homed Scenario",
+  "params": {
+    "lastAuto": 0
+  },
+  "description": [
+    "Simple sequence of events...",
+    "",
+    "1. add instance A",
+    "2. add instance B",
+    "3. add device [8]",
+    "4. add device [3]",
+    "5. add link [3] --> [8]",
+    "6. add host (to [3])",
+    "7. add host (to [8])"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000ffffffff0003",
+    "type": "switch",
+    "online": true,
+    "master": "myInstB",
+    "labels": [
+      "",
+      "switch-3",
+      "0000ffffffff0003"
+    ],
+    "metaUi": {
+      "x": 800,
+      "y": 280
+    }
+  }
+}

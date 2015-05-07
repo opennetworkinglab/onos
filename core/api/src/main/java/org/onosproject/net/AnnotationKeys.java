@@ -80,6 +80,10 @@ public final class AnnotationKeys {
      */
     public static final String PORT_NAME = "portName";
 
+    /**
+     * Annotation key for the router ID.
+     */
+    public static final String ROUTER_ID = "routerId";
 
     /**
      * Returns the value annotated object for the specified annotation key.
