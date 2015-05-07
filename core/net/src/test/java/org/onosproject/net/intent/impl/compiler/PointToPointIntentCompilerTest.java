@@ -33,7 +33,7 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LinkResourceService;
 
@@ -227,7 +227,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(Bandwidth.bps(100.0)));
+        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(BandwidthResource.bps(100.0)));
 
         final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
 
@@ -248,7 +248,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
-        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(Bandwidth.bps(100.0)));
+        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(BandwidthResource.bps(100.0)));
 
         try {
             final PointToPointIntent intent = makeIntent("s1", "s3", constraints);

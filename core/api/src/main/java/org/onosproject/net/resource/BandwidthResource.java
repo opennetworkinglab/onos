@@ -20,7 +20,7 @@ import java.util.Objects;
 /**
  * Representation of bandwidth resource in bps.
  */
-public final class Bandwidth extends LinkResource {
+public final class BandwidthResource extends LinkResource {
 
     private final double bandwidth;
 
@@ -29,12 +29,12 @@ public final class Bandwidth extends LinkResource {
      *
      * @param bandwidth bandwidth value to be assigned
      */
-    private Bandwidth(double bandwidth) {
+    private BandwidthResource(double bandwidth) {
         this.bandwidth = bandwidth;
     }
 
     // Constructor for serialization
-    private Bandwidth() {
+    private BandwidthResource() {
         this.bandwidth = 0;
     }
 
@@ -42,10 +42,10 @@ public final class Bandwidth extends LinkResource {
      * Creates a new instance with given bandwidth in bps.
      *
      * @param bandwidth bandwidth value to be assigned
-     * @return {@link Bandwidth} instance with given bandwidth
+     * @return {@link BandwidthResource} instance with given bandwidth
      */
     @Deprecated
-    public static Bandwidth valueOf(double bandwidth) {
+    public static BandwidthResource valueOf(double bandwidth) {
         return bps(bandwidth);
     }
 
@@ -53,40 +53,40 @@ public final class Bandwidth extends LinkResource {
      * Creates a new instance with given bandwidth in bps.
      *
      * @param bandwidth bandwidth value to be assigned
-     * @return {@link Bandwidth} instance with given bandwidth
+     * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static Bandwidth bps(double bandwidth) {
-        return new Bandwidth(bandwidth);
+    public static BandwidthResource bps(double bandwidth) {
+        return new BandwidthResource(bandwidth);
     }
 
     /**
      * Creates a new instance with given bandwidth in Kbps.
      *
      * @param bandwidth bandwidth value to be assigned
-     * @return {@link Bandwidth} instance with given bandwidth
+     * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static Bandwidth kbps(double bandwidth) {
-        return new Bandwidth(bandwidth * 1_000L);
+    public static BandwidthResource kbps(double bandwidth) {
+        return new BandwidthResource(bandwidth * 1_000L);
     }
 
     /**
      * Creates a new instance with given bandwidth in Mbps.
      *
      * @param bandwidth bandwidth value to be assigned
-     * @return {@link Bandwidth} instance with given bandwidth
+     * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static Bandwidth mbps(double bandwidth) {
-        return new Bandwidth(bandwidth * 1_000_000L);
+    public static BandwidthResource mbps(double bandwidth) {
+        return new BandwidthResource(bandwidth * 1_000_000L);
     }
 
     /**
      * Creates a new instance with given bandwidth in Gbps.
      *
      * @param bandwidth bandwidth value to be assigned
-     * @return {@link Bandwidth} instance with given bandwidth
+     * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static Bandwidth gbps(double bandwidth) {
-        return new Bandwidth(bandwidth * 1_000_000_000L);
+    public static BandwidthResource gbps(double bandwidth) {
+        return new BandwidthResource(bandwidth * 1_000_000_000L);
     }
 
     /**
@@ -100,8 +100,8 @@ public final class Bandwidth extends LinkResource {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Bandwidth) {
-            Bandwidth that = (Bandwidth) obj;
+        if (obj instanceof BandwidthResource) {
+            BandwidthResource that = (BandwidthResource) obj;
             return Objects.equals(this.bandwidth, that.bandwidth);
         }
         return false;

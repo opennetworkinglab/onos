@@ -28,6 +28,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.app.ApplicationState;
@@ -147,7 +148,7 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.DefaultLinkResourceAllocations;
@@ -223,7 +224,7 @@ public final class KryoNamespaces {
             .register(new MacAddressSerializer(), MacAddress.class)
             .register(VlanId.class)
             .register(Frequency.class)
-            .register(org.onlab.util.Bandwidth.class)
+            .register(Bandwidth.class)
             .build();
 
     /**
@@ -357,7 +358,7 @@ public final class KryoNamespaces {
                     BandwidthResourceRequest.class,
                     LambdaResourceRequest.class,
                     LambdaResource.class,
-                    Bandwidth.class,
+                    BandwidthResource.class,
                     DefaultLinkResourceAllocations.class,
                     BandwidthResourceAllocation.class,
                     LambdaResourceAllocation.class,

@@ -29,12 +29,12 @@ public class BandwidthResourceAllocation extends BandwidthResourceRequest
     }
 
     /**
-     * Creates a new {@link BandwidthResourceAllocation} with {@link Bandwidth}
+     * Creates a new {@link BandwidthResourceAllocation} with {@link BandwidthResource}
      * object.
      *
      * @param bandwidth allocated bandwidth
      */
-    public BandwidthResourceAllocation(Bandwidth bandwidth) {
+    public BandwidthResourceAllocation(BandwidthResource bandwidth) {
         super(bandwidth);
     }
 

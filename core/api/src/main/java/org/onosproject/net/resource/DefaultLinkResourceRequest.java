@@ -137,7 +137,7 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
          */
         @Override
         public Builder addBandwidthRequest(double bandwidth) {
-            resources.add(new BandwidthResourceRequest(Bandwidth.bps(bandwidth)));
+            resources.add(new BandwidthResourceRequest(BandwidthResource.bps(bandwidth)));
             return this;
         }
 

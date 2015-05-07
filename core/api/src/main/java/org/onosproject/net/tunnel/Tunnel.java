@@ -18,7 +18,7 @@ package org.onosproject.net.tunnel;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Provided;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 
 
 /**
@@ -149,7 +149,7 @@ public interface Tunnel extends Annotated, Provided, NetworkResource {
      *
      * @return tunnel bandwidth
      */
-    Bandwidth bandwidth();
+    BandwidthResource bandwidth();
 }
 
 

@@ -38,7 +38,7 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.tunnel.Label;
 import org.onosproject.net.tunnel.Tunnel;
 import org.onosproject.net.tunnel.TunnelAdminService;
@@ -236,14 +236,14 @@ public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, Tunn
 
     @Override
     public void requestTunnel(ConnectPoint src, ConnectPoint dst,
-                                Bandwidth bw, Path path) {
+                                BandwidthResource bw, Path path) {
         // TODO Auto-generated method stub
     }
 
 
     @Override
     public void requestTunnel(ConnectPoint src, ConnectPoint dst, Type type,
-                              Bandwidth bw, Path path) {
+                              BandwidthResource bw, Path path) {
         // TODO Auto-generated method stub
 
     }

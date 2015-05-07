@@ -38,7 +38,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
@@ -307,7 +307,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         // Check for a bandwidth specification
         if (!isNullOrEmpty(bandwidthString)) {
             final double bandwidthValue = Double.parseDouble(bandwidthString);
-            constraints.add(new BandwidthConstraint(Bandwidth.bps(bandwidthValue)));
+            constraints.add(new BandwidthConstraint(BandwidthResource.bps(bandwidthValue)));
         }
 
         // Check for a lambda specification

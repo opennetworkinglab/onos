@@ -35,7 +35,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
@@ -302,7 +302,7 @@ public class IntentTestsMocks {
             final List<ResourceRequest> result = new LinkedList<>();
             if (availableBandwidth > 0.0) {
                 result.add(new BandwidthResourceRequest(
-                        Bandwidth.bps(availableBandwidth)));
+                        BandwidthResource.bps(availableBandwidth)));
             }
             if (availableLambda > 0) {
                 result.add(new LambdaResourceRequest());

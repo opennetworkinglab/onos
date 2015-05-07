@@ -23,15 +23,15 @@ import com.google.common.base.MoreObjects;
  * Representation of a request for bandwidth resource.
  */
 public class BandwidthResourceRequest implements ResourceRequest {
-    private final Bandwidth bandwidth;
+    private final BandwidthResource bandwidth;
 
     /**
-     * Creates a new {@link BandwidthResourceRequest} with {@link Bandwidth}
+     * Creates a new {@link BandwidthResourceRequest} with {@link BandwidthResource}
      * object.
      *
-     * @param bandwidth {@link Bandwidth} object to be requested
+     * @param bandwidth {@link BandwidthResource} object to be requested
      */
-    public BandwidthResourceRequest(Bandwidth bandwidth) {
+    public BandwidthResourceRequest(BandwidthResource bandwidth) {
         this.bandwidth = bandwidth;
     }
 
@@ -40,7 +40,7 @@ public class BandwidthResourceRequest implements ResourceRequest {
      *
      * @return the bandwidth resource
      */
-    public Bandwidth bandwidth() {
+    public BandwidthResource bandwidth() {
         return bandwidth;
     }
 

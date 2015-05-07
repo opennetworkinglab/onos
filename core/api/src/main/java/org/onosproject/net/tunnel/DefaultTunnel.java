@@ -9,7 +9,7 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.net.AbstractModel;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 
 /**
  * Default tunnel model implementation.
@@ -22,7 +22,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
     private final State state;
     private final boolean isDurable;
     private final boolean isBidirectional;
-    private final Bandwidth bandwidth;
+    private final BandwidthResource bandwidth;
 
     /**
      * Constructs an tunnel using the builder pattern.
@@ -80,7 +80,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
     }
 
     @Override
-    public Bandwidth bandwidth() {
+    public BandwidthResource bandwidth() {
         return bandwidth;
     }
 
@@ -127,7 +127,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
         private State state = null;
         private boolean isDurable = false;
         private boolean isBidirectional = false;
-        private Bandwidth bandwidth = null;
+        private BandwidthResource bandwidth = null;
 
         private static IdGenerator idGenerator;
 
@@ -152,7 +152,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
             return this;
         }
 
-        public TunnelBuilder bandwidth(Bandwidth bandwidth) {
+        public TunnelBuilder bandwidth(BandwidthResource bandwidth) {
             this.bandwidth = bandwidth;
             return this;
         }

@@ -23,7 +23,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
@@ -67,8 +67,8 @@ public class ConsistentLinkResourceStore extends
 
     private final Logger log = getLogger(getClass());
 
-    private static final Bandwidth DEFAULT_BANDWIDTH = Bandwidth.mbps(1_000);
-    private static final Bandwidth EMPTY_BW = Bandwidth.bps(0);
+    private static final BandwidthResource DEFAULT_BANDWIDTH = BandwidthResource.mbps(1_000);
+    private static final BandwidthResource EMPTY_BW = BandwidthResource.bps(0);
 
     // Smallest non-reserved MPLS label
     private static final int MIN_UNRESERVED_LABEL = 0x10;
@@ -150,11 +150,11 @@ public class ConsistentLinkResourceStore extends
 
         // if Link annotation exist, use them
         // if all fails, use DEFAULT_BANDWIDTH
-        Bandwidth bandwidth = null;
+        BandwidthResource bandwidth = null;
         String strBw = link.annotations().value(BANDWIDTH);
         if (strBw != null) {
             try {
-                bandwidth = Bandwidth.mbps(Double.parseDouble(strBw));
+                bandwidth = BandwidthResource.mbps(Double.parseDouble(strBw));
             } catch (NumberFormatException e) {
                 // do nothings
                 bandwidth = null;
@@ -237,7 +237,7 @@ public class ConsistentLinkResourceStore extends
                         }
                     }
 
-                    free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(Bandwidth.bps(freeBw))));
+                    free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(BandwidthResource.bps(freeBw))));
                     break;
                 case LAMBDA:
                     Set<? extends ResourceAllocation> lmd = caps.get(type);

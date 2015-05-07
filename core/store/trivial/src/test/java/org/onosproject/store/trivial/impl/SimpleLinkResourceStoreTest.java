@@ -30,7 +30,7 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
@@ -159,7 +159,7 @@ public class SimpleLinkResourceStoreTest {
         final BandwidthResourceAllocation alloc = getBandwidthObj(freeRes);
         assertNotNull(alloc);
 
-        assertEquals(Bandwidth.mbps(1000.0), alloc.bandwidth());
+        assertEquals(BandwidthResource.mbps(1000.0), alloc.bandwidth());
     }
 
     /**
@@ -184,7 +184,7 @@ public class SimpleLinkResourceStoreTest {
         @Override
         public Set<ResourceAllocation> getResourceAllocation(Link link) {
             final ResourceAllocation allocation =
-                    new BandwidthResourceAllocation(Bandwidth.bps(allocationAmount));
+                    new BandwidthResourceAllocation(BandwidthResource.bps(allocationAmount));
             final Set<ResourceAllocation> allocations = new HashSet<>();
             allocations.add(allocation);
             return allocations;

@@ -16,7 +16,7 @@
 package org.onosproject.net.intent.constraint;
 
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.LinkResourceService;
 import org.onosproject.net.resource.ResourceRequest;
@@ -32,14 +32,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class BandwidthConstraint extends BooleanConstraint {
 
-    private final Bandwidth bandwidth;
+    private final BandwidthResource bandwidth;
 
     /**
      * Creates a new bandwidth constraint.
      *
      * @param bandwidth required bandwidth
      */
-    public BandwidthConstraint(Bandwidth bandwidth) {
+    public BandwidthConstraint(BandwidthResource bandwidth) {
         this.bandwidth = checkNotNull(bandwidth, "Bandwidth cannot be null");
     }
 
@@ -66,7 +66,7 @@ public class BandwidthConstraint extends BooleanConstraint {
      *
      * @return required bandwidth
      */
-    public Bandwidth bandwidth() {
+    public BandwidthResource bandwidth() {
         return bandwidth;
     }
 

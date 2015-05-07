@@ -19,7 +19,7 @@ import java.util.Collection;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Path;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 
 /**
  * Service for interacting with the tunnel inventory.
@@ -34,7 +34,7 @@ public interface TunnelService {
      * @param bw  bandwidth
      * @param path explicit path or null
      */
-    void requestTunnel(ConnectPoint src, ConnectPoint dst, Bandwidth bw, Path path);
+    void requestTunnel(ConnectPoint src, ConnectPoint dst, BandwidthResource bw, Path path);
 
     /**
      * Invokes the core to create a tunnel based on specified parameters with a tunnel type.
@@ -45,7 +45,7 @@ public interface TunnelService {
      * @param bw  bandwidth
      * @param path explicit path or null
      */
-    void requestTunnel(ConnectPoint src, ConnectPoint dst, Tunnel.Type type, Bandwidth bw, Path path);
+    void requestTunnel(ConnectPoint src, ConnectPoint dst, Tunnel.Type type, BandwidthResource bw, Path path);
 
     /**
      * Returns the count of all known tunnels in the dataStore.

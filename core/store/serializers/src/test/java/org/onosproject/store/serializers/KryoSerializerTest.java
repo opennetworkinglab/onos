@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
@@ -58,7 +59,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Bandwidth;
+import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.DefaultLinkResourceAllocations;
 import org.onosproject.net.resource.DefaultLinkResourceRequest;
@@ -354,7 +355,7 @@ public class KryoSerializerTest {
                         .build();
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         allocations.put(new DefaultLink(PID, CP1, CP2, Type.DIRECT),
-                        ImmutableSet.of(new BandwidthResourceAllocation(Bandwidth.bps(10.0)),
+                        ImmutableSet.of(new BandwidthResourceAllocation(BandwidthResource.bps(10.0)),
                                         new LambdaResourceAllocation(LambdaResource.valueOf(1))));
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
@@ -367,7 +368,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testBandwidth() {
-        testSerializedEquals(org.onlab.util.Bandwidth.mbps(1000.0));
+        testSerializedEquals(Bandwidth.mbps(1000.0));
     }
 
     @Test
@@ -377,7 +378,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testBandwidthConstraint() {
-        testSerializable(new BandwidthConstraint(Bandwidth.bps(1000.0)));
+        testSerializable(new BandwidthConstraint(BandwidthResource.bps(1000.0)));
     }
 
     @Test
