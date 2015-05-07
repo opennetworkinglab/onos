@@ -31,6 +31,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,7 @@ public class VbngConfigurationManager implements VbngConfigurationService {
             new ConcurrentHashMap<>();
 
     private IpAddress nextHopIpAddress;
+    private MacAddress macOfPublicIpAddresses;
 
     @Activate
     public void activate() {
@@ -96,6 +98,7 @@ public class VbngConfigurationManager implements VbngConfigurationService {
                 localPublicIpPrefixes.put(prefix, true);
             }
             nextHopIpAddress = config.getNextHopIpAddress();
+            macOfPublicIpAddresses = config.getPublicFacingMac();
 
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
@@ -107,6 +110,11 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     @Override
     public IpAddress getNextHopIpAddress() {
         return nextHopIpAddress;
+    }
+
+    @Override
+    public MacAddress getPublicFacingMac() {
+        return macOfPublicIpAddresses;
     }
 
     // TODO handle the case: the number of public IP addresses is not enough
@@ -167,6 +175,11 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     @Override
     public IpAddress getAssignedPublicIpAddress(IpAddress privateIpAddress) {
         return ipAddressMap.get(privateIpAddress);
+    }
+
+    @Override
+    public boolean isAssignedPublicIpAddress(IpAddress ipAddress) {
+        return ipAddressMap.containsValue(ipAddress);
     }
 
     /**

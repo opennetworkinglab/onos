@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 
 /**
  * Contains the configuration data for virtual BNG that has been read from a
@@ -32,6 +33,7 @@ public final class VbngConfiguration {
 
     private final List<IpPrefix> localPublicIpPrefixes;
     private final IpAddress nextHopIpAddress;
+    private final MacAddress publicFacingMac;
 
     /**
      * Default constructor.
@@ -39,6 +41,7 @@ public final class VbngConfiguration {
     private VbngConfiguration() {
         localPublicIpPrefixes = null;
         nextHopIpAddress = null;
+        publicFacingMac = null;
     }
 
     /**
@@ -46,14 +49,19 @@ public final class VbngConfiguration {
      *
      * @param nextHopIpAddress the IP address of the next hop
      * @param prefixes the public IP prefix list for local SDN network
+     * @param publicFacingMac the MAC address configured for all local
+     *        public IP addresses
      */
     @JsonCreator
     public VbngConfiguration(@JsonProperty("localPublicIpPrefixes")
                              List<IpPrefix> prefixes,
                              @JsonProperty("nextHopIpAddress")
-                             IpAddress nextHopIpAddress) {
+                             IpAddress nextHopIpAddress,
+                             @JsonProperty("publicFacingMac")
+                             MacAddress publicFacingMac) {
         localPublicIpPrefixes = prefixes;
         this.nextHopIpAddress = nextHopIpAddress;
+        this.publicFacingMac = publicFacingMac;
     }
 
     /**
@@ -72,5 +80,14 @@ public final class VbngConfiguration {
      */
     public IpAddress getNextHopIpAddress() {
         return nextHopIpAddress;
+    }
+
+    /**
+     * Gets the MAC address configured for all the public IP addresses.
+     *
+     * @return the MAC address
+     */
+    public MacAddress getPublicFacingMac() {
+        return publicFacingMac;
     }
 }

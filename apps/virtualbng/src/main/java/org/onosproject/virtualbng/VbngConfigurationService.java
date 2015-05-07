@@ -16,6 +16,7 @@
 package org.onosproject.virtualbng;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 
 /**
  * Provides information about the virtual BNG configuration.
@@ -28,6 +29,22 @@ public interface VbngConfigurationService {
      * @return the IP address of next hop
      */
     public IpAddress getNextHopIpAddress();
+
+    /**
+     * Gets the MAC address configured for all the public IP addresses.
+     *
+     * @return the MAC address
+     */
+    public MacAddress getPublicFacingMac();
+
+    /**
+     * Evaluates whether an IP address is an assigned public IP address.
+     *
+     * @param ipAddress the IP address to evaluate
+     * @return true if the input IP address is an assigned public IP address,
+     *         otherwise false
+     */
+    public boolean isAssignedPublicIpAddress(IpAddress ipAddress);
 
     /**
      * Gets an available public IP address from local public IP prefixes.
