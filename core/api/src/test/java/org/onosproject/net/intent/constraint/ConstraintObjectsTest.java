@@ -18,7 +18,7 @@ package org.onosproject.net.intent.constraint;
 import org.junit.Test;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.Bandwidth;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 
 import com.google.common.testing.EqualsTester;
 
@@ -65,11 +65,11 @@ public class ConstraintObjectsTest {
     // Lambda Constraint
 
     final LambdaConstraint lambdaConstraint1 =
-            new LambdaConstraint(Lambda.valueOf(100));
+            new LambdaConstraint(LambdaResource.valueOf(100));
     final LambdaConstraint lambdaConstraintSameAs1 =
-            new LambdaConstraint(Lambda.valueOf(100));
+            new LambdaConstraint(LambdaResource.valueOf(100));
     final LambdaConstraint lambdaConstraint2 =
-            new LambdaConstraint(Lambda.valueOf(200));
+            new LambdaConstraint(LambdaResource.valueOf(200));
 
     /**
      * Checks that the objects were created properly.

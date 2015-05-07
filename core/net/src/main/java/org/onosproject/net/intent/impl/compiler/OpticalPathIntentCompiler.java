@@ -37,7 +37,7 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.resource.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceRequest;
@@ -110,7 +110,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .filter(x -> x.type() == ResourceType.LAMBDA)
                     .findFirst()
                     .orElseThrow(() -> new IntentCompilationException("Lambda was not assigned successfully"));
-            Lambda la = ((LambdaResourceAllocation) allocation).lambda();
+            LambdaResource la = ((LambdaResourceAllocation) allocation).lambda();
 
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
             treatmentBuilder.setLambda((short) la.toInt());

@@ -26,7 +26,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
@@ -132,7 +132,7 @@ public class LinkCollectionIntentTest extends IntentTest {
         final LinkedList<Constraint> constraints = new LinkedList<>();
 
         links1.add(link("src", 1, "dst", 2));
-        constraints.add(new LambdaConstraint(Lambda.valueOf(23)));
+        constraints.add(new LambdaConstraint(LambdaResource.valueOf(23)));
         final LinkCollectionIntent collectionIntent =
                 LinkCollectionIntent.builder()
                         .appId(APP_ID)

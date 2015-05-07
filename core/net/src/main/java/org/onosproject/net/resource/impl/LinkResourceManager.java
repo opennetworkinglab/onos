@@ -28,7 +28,7 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.DefaultLinkResourceAllocations;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LambdaResourceRequest;
 import org.onosproject.net.resource.LinkResourceAllocations;
@@ -92,13 +92,13 @@ public class LinkResourceManager implements LinkResourceService {
      * @param link the link
      * @return available lambdas on specified link
      */
-    private Set<Lambda> getAvailableLambdas(Link link) {
+    private Set<LambdaResource> getAvailableLambdas(Link link) {
         checkNotNull(link);
         Set<ResourceAllocation> resAllocs = store.getFreeResources(link);
         if (resAllocs == null) {
             return Collections.emptySet();
         }
-        Set<Lambda> lambdas = new HashSet<>();
+        Set<LambdaResource> lambdas = new HashSet<>();
         for (ResourceAllocation res : resAllocs) {
             if (res.type() == ResourceType.LAMBDA) {
                 lambdas.add(((LambdaResourceAllocation) res).lambda());
@@ -114,11 +114,11 @@ public class LinkResourceManager implements LinkResourceService {
      * @param links the links
      * @return available lambdas on specified links
      */
-    private Iterable<Lambda> getAvailableLambdas(Iterable<Link> links) {
+    private Iterable<LambdaResource> getAvailableLambdas(Iterable<Link> links) {
         checkNotNull(links);
         Iterator<Link> i = links.iterator();
         checkArgument(i.hasNext());
-        Set<Lambda> lambdas = new HashSet<>(getAvailableLambdas(i.next()));
+        Set<LambdaResource> lambdas = new HashSet<>(getAvailableLambdas(i.next()));
         while (i.hasNext()) {
             lambdas.retainAll(getAvailableLambdas(i.next()));
         }
@@ -162,7 +162,7 @@ public class LinkResourceManager implements LinkResourceService {
                 allocs.add(new BandwidthResourceAllocation(br.bandwidth()));
                 break;
             case LAMBDA:
-                Iterator<Lambda> lambdaIterator =
+                Iterator<LambdaResource> lambdaIterator =
                         getAvailableLambdas(req.links()).iterator();
                 if (lambdaIterator.hasNext()) {
                     allocs.add(new LambdaResourceAllocation(lambdaIterator.next()));

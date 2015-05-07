@@ -37,7 +37,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceRequest;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LambdaResourceRequest;
 import org.onosproject.net.resource.LinkResourceAllocations;
@@ -179,7 +179,7 @@ public class IntentTestsMocks {
         @Override
         public Set<ResourceAllocation> getResourceAllocation(Link link) {
             return ImmutableSet.of(
-                    new LambdaResourceAllocation(Lambda.valueOf(77)),
+                    new LambdaResourceAllocation(LambdaResource.valueOf(77)),
                     new MplsLabelResourceAllocation(MplsLabel.valueOf(10)));
         }
 

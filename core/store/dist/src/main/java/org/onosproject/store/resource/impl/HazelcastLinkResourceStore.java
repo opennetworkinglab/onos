@@ -38,7 +38,7 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceEvent;
@@ -157,7 +157,7 @@ public class HazelcastLinkResourceStore
         try {
             final int waves = Integer.parseInt(link.annotations().value(wavesAnnotation));
             for (int i = 1; i <= waves; i++) {
-                allocations.add(new LambdaResourceAllocation(Lambda.valueOf(i)));
+                allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
             }
         } catch (NumberFormatException e) {
             log.debug("No {} annotation on link %s", wavesAnnotation, link);

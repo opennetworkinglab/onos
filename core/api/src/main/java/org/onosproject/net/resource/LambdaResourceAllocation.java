@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class LambdaResourceAllocation extends LambdaResourceRequest
         implements ResourceAllocation {
-    private final Lambda lambda;
+    private final LambdaResource lambda;
 
     @Override
     public ResourceType type() {
@@ -32,12 +32,12 @@ public class LambdaResourceAllocation extends LambdaResourceRequest
     }
 
     /**
-     * Creates a new {@link LambdaResourceAllocation} with {@link Lambda}
+     * Creates a new {@link LambdaResourceAllocation} with {@link LambdaResource}
      * object.
      *
      * @param lambda allocated lambda
      */
-    public LambdaResourceAllocation(Lambda lambda) {
+    public LambdaResourceAllocation(LambdaResource lambda) {
         this.lambda = lambda;
     }
 
@@ -46,7 +46,7 @@ public class LambdaResourceAllocation extends LambdaResourceRequest
      *
      * @return the lambda resource
      */
-    public Lambda lambda() {
+    public LambdaResource lambda() {
         return lambda;
     }
 

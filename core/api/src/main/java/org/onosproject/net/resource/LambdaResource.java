@@ -20,7 +20,7 @@ import java.util.Objects;
 /**
  * Representation of lambda resource.
  */
-public final class Lambda extends LinkResource {
+public final class LambdaResource extends LinkResource {
 
     private final int lambda;
 
@@ -29,12 +29,12 @@ public final class Lambda extends LinkResource {
      *
      * @param lambda lambda value to be assigned
      */
-    private Lambda(int lambda) {
+    private LambdaResource(int lambda) {
         this.lambda = lambda;
     }
 
     // Constructor for serialization
-    private Lambda() {
+    private LambdaResource() {
         this.lambda = 0;
     }
 
@@ -42,10 +42,10 @@ public final class Lambda extends LinkResource {
      * Creates a new instance with given lambda.
      *
      * @param lambda lambda value to be assigned
-     * @return {@link Lambda} instance with given lambda
+     * @return {@link LambdaResource} instance with given lambda
      */
-    public static Lambda valueOf(int lambda) {
-        return new Lambda(lambda);
+    public static LambdaResource valueOf(int lambda) {
+        return new LambdaResource(lambda);
     }
 
     /**
@@ -59,8 +59,8 @@ public final class Lambda extends LinkResource {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Lambda) {
-            Lambda that = (Lambda) obj;
+        if (obj instanceof LambdaResource) {
+            LambdaResource that = (LambdaResource) obj;
             return Objects.equals(this.lambda, that.lambda);
         }
         return false;

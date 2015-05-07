@@ -33,7 +33,7 @@ import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.DefaultLinkResourceAllocations;
 import org.onosproject.net.resource.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceRequest;
@@ -279,7 +279,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                         .build();
         final ResourceAllocation allocation =
-                new LambdaResourceAllocation(Lambda.valueOf(33));
+                new LambdaResourceAllocation(LambdaResource.valueOf(33));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =

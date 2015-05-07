@@ -62,7 +62,7 @@ import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.DefaultLinkResourceAllocations;
 import org.onosproject.net.resource.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceRequest;
 import org.onosproject.net.resource.ResourceAllocation;
@@ -355,7 +355,7 @@ public class KryoSerializerTest {
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         allocations.put(new DefaultLink(PID, CP1, CP2, Type.DIRECT),
                         ImmutableSet.of(new BandwidthResourceAllocation(Bandwidth.bps(10.0)),
-                                        new LambdaResourceAllocation(Lambda.valueOf(1))));
+                                        new LambdaResourceAllocation(LambdaResource.valueOf(1))));
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
 
@@ -367,7 +367,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testLambdaConstraint() {
-        testSerializable(new LambdaConstraint(Lambda.valueOf(1)));
+        testSerializable(new LambdaConstraint(LambdaResource.valueOf(1)));
     }
 
     @Test

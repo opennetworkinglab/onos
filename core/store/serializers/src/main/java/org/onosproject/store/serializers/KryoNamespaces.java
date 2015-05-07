@@ -152,7 +152,7 @@ import org.onosproject.net.resource.BandwidthResourceAllocation;
 import org.onosproject.net.resource.BandwidthResourceRequest;
 import org.onosproject.net.resource.DefaultLinkResourceAllocations;
 import org.onosproject.net.resource.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LambdaResourceRequest;
 import org.onosproject.net.resource.LinkResourceRequest;
@@ -355,7 +355,7 @@ public final class KryoNamespaces {
                     DefaultLinkResourceRequest.class,
                     BandwidthResourceRequest.class,
                     LambdaResourceRequest.class,
-                    Lambda.class,
+                    LambdaResource.class,
                     Bandwidth.class,
                     DefaultLinkResourceAllocations.class,
                     BandwidthResourceAllocation.class,

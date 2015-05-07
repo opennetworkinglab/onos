@@ -34,7 +34,7 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.Bandwidth;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LinkResourceService;
 
 import java.util.Arrays;
@@ -271,7 +271,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testLambdaConstrainedIntentSuccess() {
 
-        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(Lambda.valueOf(1)));
+        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(LambdaResource.valueOf(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
 
@@ -294,7 +294,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testLambdaConstrainedIntentFailure() {
 
-        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(Lambda.valueOf(1)));
+        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(LambdaResource.valueOf(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
         try {

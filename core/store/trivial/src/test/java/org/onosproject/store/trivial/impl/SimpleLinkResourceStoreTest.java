@@ -32,7 +32,7 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Bandwidth;
 import org.onosproject.net.resource.BandwidthResourceAllocation;
-import org.onosproject.net.resource.Lambda;
+import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.resource.LinkResourceStore;
@@ -220,7 +220,7 @@ public class SimpleLinkResourceStoreTest {
         @Override
         public Set<ResourceAllocation> getResourceAllocation(Link link) {
             final ResourceAllocation allocation =
-                    new LambdaResourceAllocation(Lambda.valueOf(allocatedLambda));
+                    new LambdaResourceAllocation(LambdaResource.valueOf(allocatedLambda));
             final Set<ResourceAllocation> allocations = new HashSet<>();
             allocations.add(allocation);
             return allocations;
