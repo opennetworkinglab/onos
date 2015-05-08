@@ -42,7 +42,7 @@ public abstract class Key {
 
     @Override
     public int hashCode() {
-        return (int) (hash() ^ (hash() >>> 32));
+        return Long.hashCode(hash);
     }
 
     @Override

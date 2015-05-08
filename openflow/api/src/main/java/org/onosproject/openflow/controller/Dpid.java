@@ -91,9 +91,7 @@ public final class Dpid {
 
     @Override
     public int hashCode() {
-        int hash = 17;
-        hash += 31 * hash + (int) (value ^ value >>> 32);
-        return hash;
+        return Long.hashCode(value);
     }
 
     /**
