@@ -15,27 +15,31 @@
  */
 package org.onosproject.net.resource;
 
+import org.onlab.util.Bandwidth;
+
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of bandwidth resource in bps.
  */
 public final class BandwidthResource extends LinkResource {
 
-    private final double bandwidth;
+    private final Bandwidth bandwidth;
 
     /**
      * Creates a new instance with given bandwidth.
      *
      * @param bandwidth bandwidth value to be assigned
      */
-    private BandwidthResource(double bandwidth) {
-        this.bandwidth = bandwidth;
+    private BandwidthResource(Bandwidth bandwidth) {
+        this.bandwidth = checkNotNull(bandwidth);
     }
 
     // Constructor for serialization
     private BandwidthResource() {
-        this.bandwidth = 0;
+        this.bandwidth = null;
     }
 
     /**
@@ -49,6 +53,10 @@ public final class BandwidthResource extends LinkResource {
         return bps(bandwidth);
     }
 
+    public static BandwidthResource from(Bandwidth bandwidth) {
+        return new BandwidthResource(bandwidth);
+    }
+
     /**
      * Creates a new instance with given bandwidth in bps.
      *
@@ -56,7 +64,7 @@ public final class BandwidthResource extends LinkResource {
      * @return {@link BandwidthResource} instance with given bandwidth
      */
     public static BandwidthResource bps(double bps) {
-        return new BandwidthResource(bps);
+        return from(Bandwidth.bps(bps));
     }
 
     /**
@@ -66,7 +74,7 @@ public final class BandwidthResource extends LinkResource {
      * @return {@link BandwidthResource} instance with given bandwidth
      */
     public static BandwidthResource kbps(double kbps) {
-        return new BandwidthResource(kbps * 1_000L);
+        return from(Bandwidth.kbps(kbps));
     }
 
     /**
@@ -76,7 +84,7 @@ public final class BandwidthResource extends LinkResource {
      * @return {@link BandwidthResource} instance with given bandwidth
      */
     public static BandwidthResource mbps(double mbps) {
-        return new BandwidthResource(mbps * 1_000_000L);
+        return from(Bandwidth.mbps(mbps));
     }
 
     /**
@@ -86,7 +94,7 @@ public final class BandwidthResource extends LinkResource {
      * @return {@link BandwidthResource} instance with given bandwidth
      */
     public static BandwidthResource gbps(double gbps) {
-        return new BandwidthResource(gbps * 1_000_000_000L);
+        return from(Bandwidth.gbps(gbps));
     }
 
     /**
@@ -95,7 +103,7 @@ public final class BandwidthResource extends LinkResource {
      * @return bandwidth as a double value
      */
     public double toDouble() {
-        return bandwidth;
+        return bandwidth.bps();
     }
 
     @Override
