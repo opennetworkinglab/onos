@@ -18,10 +18,19 @@ package org.onlab.util;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
+import static org.junit.Assert.assertThat;
+
 /**
  * Unit tests for Bandwidth.
  */
 public class BandwidthTest {
+
+    private final Bandwidth small = Bandwidth.kbps(100.0);
+    private final Bandwidth large = Bandwidth.mbps(1.0);
+
     /**
      * Tests equality of Bandwidth instances.
      */
@@ -33,4 +42,21 @@ public class BandwidthTest {
                 .testEquals();
     }
 
+    /**
+     * Tests if the first object is less than the second object.
+     */
+    @Test
+    public void testLessThan() {
+        assertThat(small, is(lessThan(large)));
+        assertThat(small.isLessThan(large), is(true));
+    }
+
+    /**
+     * Tests if the first object is greater than the second object.
+     */
+    @Test
+    public void testGreaterThan() {
+        assertThat(large, is(greaterThan(small)));
+        assertThat(large.isGreaterThan(small), is(true));
+    }
 }

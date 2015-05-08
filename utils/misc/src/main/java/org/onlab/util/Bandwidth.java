@@ -15,13 +15,15 @@
  */
 package org.onlab.util;
 
+import com.google.common.collect.ComparisonChain;
+
 import java.util.Objects;
 
 /**
  * Representation of bandwidth.
  * Use the static factory method corresponding to the unit (like Kbps) you desire on instantiation.
  */
-public final class Bandwidth {
+public final class Bandwidth implements RichComparable<Bandwidth> {
 
     private final double bps;
 
@@ -86,6 +88,13 @@ public final class Bandwidth {
      */
     public double bps() {
         return bps;
+    }
+
+    @Override
+    public int compareTo(Bandwidth other) {
+        return ComparisonChain.start()
+                .compare(this.bps, other.bps)
+                .result();
     }
 
     @Override

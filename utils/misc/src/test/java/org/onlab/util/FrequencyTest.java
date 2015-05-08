@@ -20,7 +20,9 @@ import org.junit.Test;
 import org.onlab.junit.ImmutableClassChecker;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 
 public class FrequencyTest {
 
@@ -50,6 +52,21 @@ public class FrequencyTest {
                 .addEqualityGroup(frequency2, sameFrequency2, moreSameFrequency2)
                 .addEqualityGroup(frequency3, sameFrequency3)
                 .testEquals();
+    }
+
+    /**
+     * Tests the first object is less than the second object.
+     */
+    @Test
+    public void testLessThan() {
+        assertThat(frequency1, is(lessThan(frequency2)));
+        assertThat(frequency1.isLessThan(frequency2), is(true));
+    }
+
+    @Test
+    public void testGreaterThan() {
+        assertThat(frequency2, is(greaterThan(frequency1)));
+        assertThat(frequency2.isGreaterThan(frequency1), is(true));
     }
 
     /**

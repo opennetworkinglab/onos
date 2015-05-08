@@ -16,6 +16,7 @@
 package org.onlab.util;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ComparisonChain;
 
 import java.util.Objects;
 
@@ -30,7 +31,7 @@ import java.util.Objects;
  * sub-Hz accuracy.
  * </p>
  */
-public final class Frequency {
+public final class Frequency implements RichComparable<Frequency> {
 
     private static final long KHZ = 1_000L;
     private static final long MHZ = 1_000_000L;
@@ -135,6 +136,13 @@ public final class Frequency {
      */
     public Frequency multiply(long value) {
         return new Frequency(this.frequency * value);
+    }
+
+    @Override
+    public int compareTo(Frequency other) {
+        return ComparisonChain.start()
+                .compare(this.frequency, other.frequency)
+                .result();
     }
 
     @Override
