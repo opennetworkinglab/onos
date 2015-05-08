@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -143,13 +144,13 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public synchronized MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId) {
+    public synchronized CompletableFuture<MastershipEvent> setMaster(NodeId nodeId, DeviceId deviceId) {
 
         MastershipRole role = getRole(nodeId, deviceId);
         switch (role) {
         case MASTER:
             // no-op
-            return null;
+            return CompletableFuture.completedFuture(null);
         case STANDBY:
         case NONE:
             NodeId prevMaster = masterMap.put(deviceId, nodeId);
@@ -162,8 +163,8 @@ public class SimpleMastershipStore
             return null;
         }
 
-        return new MastershipEvent(MASTER_CHANGED, deviceId,
-                                   getNodes(deviceId));
+        return CompletableFuture.completedFuture(
+                new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
     }
 
     @Override
@@ -285,7 +286,7 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public synchronized MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
+    public synchronized CompletableFuture<MastershipEvent> setStandby(NodeId nodeId, DeviceId deviceId) {
         MastershipRole role = getRole(nodeId, deviceId);
         switch (role) {
         case MASTER:
@@ -294,22 +295,22 @@ public class SimpleMastershipStore
                 // no master alternative
                 masterMap.remove(deviceId);
                 // TODO: Should there be new event type for no MASTER?
-                return new MastershipEvent(MASTER_CHANGED, deviceId,
-                                           getNodes(deviceId));
+                return CompletableFuture.completedFuture(
+                        new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
             } else {
                 NodeId prevMaster = masterMap.put(deviceId, backup);
                 incrementTerm(deviceId);
                 addToBackup(deviceId, prevMaster);
-                return new MastershipEvent(MASTER_CHANGED, deviceId,
-                                           getNodes(deviceId));
+                return CompletableFuture.completedFuture(
+                        new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
             }
 
         case STANDBY:
         case NONE:
             boolean modified = addToBackup(deviceId, nodeId);
             if (modified) {
-                return new MastershipEvent(BACKUPS_CHANGED, deviceId,
-                                           getNodes(deviceId));
+                return CompletableFuture.completedFuture(
+                        new MastershipEvent(BACKUPS_CHANGED, deviceId, getNodes(deviceId)));
             }
             break;
 
@@ -335,20 +336,20 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public synchronized MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
+    public synchronized CompletableFuture<MastershipEvent> relinquishRole(NodeId nodeId, DeviceId deviceId) {
         MastershipRole role = getRole(nodeId, deviceId);
         switch (role) {
         case MASTER:
             NodeId backup = reelect(deviceId, nodeId);
             masterMap.put(deviceId, backup);
             incrementTerm(deviceId);
-            return new MastershipEvent(MASTER_CHANGED, deviceId,
-                                       getNodes(deviceId));
+            return CompletableFuture.completedFuture(
+                    new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
 
         case STANDBY:
             if (removeFromBackups(deviceId, nodeId)) {
-                return new MastershipEvent(BACKUPS_CHANGED, deviceId,
-                                           getNodes(deviceId));
+                return CompletableFuture.completedFuture(
+                    new MastershipEvent(BACKUPS_CHANGED, deviceId, getNodes(deviceId)));
             }
             break;
 
@@ -358,12 +359,12 @@ public class SimpleMastershipStore
         default:
             log.warn("unknown Mastership Role {}", role);
         }
-        return null;
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public synchronized void relinquishAllRole(NodeId nodeId) {
-        List<MastershipEvent> events = new ArrayList<>();
+        List<CompletableFuture<MastershipEvent>> eventFutures = new ArrayList<>();
         Set<DeviceId> toRelinquish = new HashSet<>();
 
         masterMap.entrySet().stream()
@@ -375,12 +376,13 @@ public class SimpleMastershipStore
             .forEach(entry -> toRelinquish.add(entry.getKey()));
 
         toRelinquish.forEach(deviceId -> {
-            MastershipEvent event = relinquishRole(nodeId, deviceId);
-            if (event != null) {
-                events.add(event);
-            }
+            eventFutures.add(relinquishRole(nodeId, deviceId));
         });
 
-        notifyDelegate(events);
+        eventFutures.forEach(future -> {
+            future.whenComplete((event, error) -> {
+                notifyDelegate(event);
+            });
+        });
     }
 }

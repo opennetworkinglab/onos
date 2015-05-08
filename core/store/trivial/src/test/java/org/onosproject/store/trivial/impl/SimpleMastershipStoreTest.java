@@ -29,6 +29,7 @@ import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.DeviceId;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -92,15 +93,15 @@ public class SimpleMastershipStoreTest {
     @Test
     public void setMaster() {
         put(DID1, N1, false, false);
-        assertEquals("wrong event", MASTER_CHANGED, sms.setMaster(N1, DID1).type());
+        assertEquals("wrong event", MASTER_CHANGED, Futures.getUnchecked(sms.setMaster(N1, DID1)).type());
         assertEquals("wrong role", MASTER, sms.getRole(N1, DID1));
         //set node that's already master - should be ignored
-        assertNull("wrong event", sms.setMaster(N1, DID1));
+        assertNull("wrong event", Futures.getUnchecked(sms.setMaster(N1, DID1)));
 
         //set STANDBY to MASTER
         put(DID2, N1, false, true);
         assertEquals("wrong role", STANDBY, sms.getRole(N1, DID2));
-        assertEquals("wrong event", MASTER_CHANGED, sms.setMaster(N1, DID2).type());
+        assertEquals("wrong event", MASTER_CHANGED, Futures.getUnchecked(sms.setMaster(N1, DID2)).type());
         assertEquals("wrong role", MASTER, sms.getRole(N1, DID2));
     }
 
@@ -156,7 +157,7 @@ public class SimpleMastershipStoreTest {
 
         //no backup, MASTER
         put(DID1, N1, true, false);
-        assertNull("expect no MASTER event", sms.setStandby(N1, DID1).roleInfo().master());
+        assertNull("expect no MASTER event", Futures.getUnchecked(sms.setStandby(N1, DID1)).roleInfo().master());
         assertNull("wrong node", sms.masterMap.get(DID1));
 
         //backup, switch
@@ -164,7 +165,7 @@ public class SimpleMastershipStoreTest {
         put(DID1, N1, true, true);
         put(DID1, N2, false, true);
         put(DID2, N2, true, true);
-        MastershipEvent event = sms.setStandby(N1, DID1);
+        MastershipEvent event = Futures.getUnchecked(sms.setStandby(N1, DID1));
         assertEquals("wrong event", MASTER_CHANGED, event.type());
         assertEquals("wrong master", N2, event.roleInfo().master());
     }

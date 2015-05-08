@@ -16,6 +16,7 @@
 package org.onosproject.mastership;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
@@ -80,7 +81,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device identifier
      * @return a mastership event
      */
-    MastershipEvent setMaster(NodeId nodeId, DeviceId deviceId);
+    CompletableFuture<MastershipEvent> setMaster(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Returns the current master and number of past mastership hand-offs
@@ -100,7 +101,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device to revoke mastership role for
      * @return a mastership event
      */
-    MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId);
+    CompletableFuture<MastershipEvent> setStandby(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Allows a controller instance to give up its current role for a device.
@@ -111,7 +112,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device to revoke mastership role for
      * @return a mastership event
      */
-    MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId);
+    CompletableFuture<MastershipEvent> relinquishRole(NodeId nodeId, DeviceId deviceId);
 
     /**
      * Removes all the roles for the specified controller instance.

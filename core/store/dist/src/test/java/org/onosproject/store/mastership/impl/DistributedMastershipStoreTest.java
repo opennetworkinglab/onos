@@ -44,6 +44,7 @@ import org.onosproject.store.hz.TestStoreManager;
 import org.onosproject.store.serializers.KryoSerializer;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -168,15 +169,15 @@ public class DistributedMastershipStoreTest {
         //populate maps with DID1, N1 as MASTER thru NONE case
         testStore.setCurrent(CN1);
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
-        assertNull("wrong event:", dms.setMaster(N1, DID1));
+        assertNull("wrong event:", Futures.getUnchecked(dms.setMaster(N1, DID1)));
 
         //switch over to N2
-        assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID1).type());
+        assertEquals("wrong event:", Type.MASTER_CHANGED, Futures.getUnchecked(dms.setMaster(N2, DID1)).type());
         System.out.println(dms.getTermFor(DID1).master() + ":" + dms.getTermFor(DID1).termNumber());
         assertEquals("wrong term", MastershipTerm.of(N2, 2), dms.getTermFor(DID1));
 
         //orphan switch - should be rare case
-        assertEquals("wrong event:", Type.MASTER_CHANGED, dms.setMaster(N2, DID2).type());
+        assertEquals("wrong event:", Type.MASTER_CHANGED, Futures.getUnchecked(dms.setMaster(N2, DID2)).type());
         assertEquals("wrong term", MastershipTerm.of(N2, 1), dms.getTermFor(DID2));
         //disconnect and reconnect - sign of failing re-election or single-instance channel
         dms.roleMap.clear();
@@ -190,18 +191,18 @@ public class DistributedMastershipStoreTest {
         testStore.setCurrent(CN1);
         assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
         //no backup, no new MASTER/event
-        assertNull("wrong event:", dms.relinquishRole(N1, DID1));
+        assertNull("wrong event:", Futures.getUnchecked(dms.relinquishRole(N1, DID1)));
 
         dms.requestRole(DID1);
 
         //add backup CN2, get it elected MASTER by relinquishing
         testStore.setCurrent(CN2);
         assertEquals("wrong role for NONE:", STANDBY, dms.requestRole(DID1));
-        assertEquals("wrong event:", Type.MASTER_CHANGED, dms.relinquishRole(N1, DID1).type());
+        assertEquals("wrong event:", Type.MASTER_CHANGED, Futures.getUnchecked(dms.relinquishRole(N1, DID1)).type());
         assertEquals("wrong master", N2, dms.getMaster(DID1));
 
         //all nodes "give up" on device, which goes back to NONE.
-        assertNull("wrong event:", dms.relinquishRole(N2, DID1));
+        assertNull("wrong event:", Futures.getUnchecked(dms.relinquishRole(N2, DID1)));
         assertEquals("wrong role for node:", NONE, dms.getRole(N2, DID1));
 
         assertEquals("wrong number of retired nodes", 2,
@@ -215,11 +216,11 @@ public class DistributedMastershipStoreTest {
                 dms.roleMap.get(DID1).nodesOfRole(STANDBY).size());
 
         //If STANDBY, should drop to NONE
-        assertEquals("wrong event:", Type.BACKUPS_CHANGED, dms.relinquishRole(N1, DID1).type());
+        assertEquals("wrong event:", Type.BACKUPS_CHANGED, Futures.getUnchecked(dms.relinquishRole(N1, DID1)).type());
         assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID1));
 
         //NONE - nothing happens
-        assertEquals("wrong event:", Type.BACKUPS_CHANGED, dms.relinquishRole(N1, DID2).type());
+        assertEquals("wrong event:", Type.BACKUPS_CHANGED, Futures.getUnchecked(dms.relinquishRole(N1, DID2)).type());
         assertEquals("wrong role for node:", NONE, dms.getRole(N1, DID2));
 
     }

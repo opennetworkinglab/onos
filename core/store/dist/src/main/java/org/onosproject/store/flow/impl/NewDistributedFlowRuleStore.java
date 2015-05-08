@@ -62,6 +62,8 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.flow.ReplicaInfo;
+import org.onosproject.store.flow.ReplicaInfoEvent;
+import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
@@ -181,6 +183,7 @@ public class NewDistributedFlowRuleStore
         registerMessageHandlers(messageHandlingExecutor);
 
         if (backupEnabled) {
+            replicaInfoManager.addListener(flowTable);
             backupTask = backupSenderExecutor.scheduleWithFixedDelay(
                     flowTable::backup,
                     0,
@@ -193,6 +196,10 @@ public class NewDistributedFlowRuleStore
 
     @Deactivate
     public void deactivate(ComponentContext context) {
+        if (backupEnabled) {
+            replicaInfoManager.removeListener(flowTable);
+            backupTask.cancel(true);
+        }
         configService.unregisterProperties(getClass(), false);
         unregisterMessageHandlers();
         messageHandlingExecutor.shutdownNow();
@@ -232,9 +239,14 @@ public class NewDistributedFlowRuleStore
         boolean restartBackupTask = false;
         if (newBackupEnabled != backupEnabled) {
             backupEnabled = newBackupEnabled;
-            if (!backupEnabled && backupTask != null) {
-                backupTask.cancel(false);
-                backupTask = null;
+            if (!backupEnabled) {
+                replicaInfoManager.removeListener(flowTable);
+                if (backupTask != null) {
+                    backupTask.cancel(false);
+                    backupTask = null;
+                }
+            } else {
+                replicaInfoManager.addListener(flowTable);
             }
             restartBackupTask = backupEnabled;
         }
@@ -590,7 +602,7 @@ public class NewDistributedFlowRuleStore
         }
     }
 
-    private class InternalFlowTable {
+    private class InternalFlowTable implements ReplicaInfoEventListener {
 
         private final ConcurrentMap<DeviceId, ConcurrentMap<FlowId, Set<StoredFlowEntry>>>
                 flowEntries = new ConcurrentHashMap<>();
@@ -601,6 +613,43 @@ public class NewDistributedFlowRuleStore
 
         private NewConcurrentHashMap<FlowId, Set<StoredFlowEntry>> lazyEmptyFlowTable() {
             return NewConcurrentHashMap.<FlowId, Set<StoredFlowEntry>>ifNeeded();
+        }
+
+        @Override
+        public void event(ReplicaInfoEvent event) {
+            if (event.type() == ReplicaInfoEvent.Type.BACKUPS_CHANGED) {
+                DeviceId deviceId = event.subject();
+                if (!Objects.equal(local, replicaInfoManager.getReplicaInfoFor(deviceId).master())) {
+                 // ignore since this event is for a device this node does not manage.
+                    return;
+                }
+                NodeId latestBackupNode = getBackupNode(deviceId);
+                NodeId existingBackupNode = lastBackupNodes.get(deviceId);
+                if (Objects.equal(latestBackupNode, existingBackupNode)) {
+                    // ignore since backup location hasn't changed.
+                    return;
+                }
+                backupFlowEntries(latestBackupNode, Sets.newHashSet(deviceId));
+            }
+        }
+
+        private void backupFlowEntries(NodeId nodeId, Set<DeviceId> deviceIds) {
+            log.debug("Sending flowEntries for devices {} to {} as backup.", deviceIds, nodeId);
+            Map<DeviceId, ConcurrentMap<FlowId, Set<StoredFlowEntry>>> deviceFlowEntries =
+                    Maps.newConcurrentMap();
+            flowEntries.forEach((key, value) -> {
+                if (deviceIds.contains(key)) {
+                    deviceFlowEntries.put(key, value);
+                }
+            });
+            clusterCommunicator.unicast(deviceFlowEntries,
+                    FLOW_TABLE_BACKUP,
+                    SERIALIZER::encode,
+                    nodeId);
+            deviceIds.forEach(id -> {
+                lastBackupTimes.put(id, System.currentTimeMillis());
+                lastBackupNodes.put(id, nodeId);
+            });
         }
 
         /**
@@ -662,7 +711,6 @@ public class NewDistributedFlowRuleStore
             if (!backupEnabled) {
                 return;
             }
-            //TODO: Force backup when backups change.
             try {
                 // determine the set of devices that we need to backup during this run.
                 Set<DeviceId> devicesToBackup = mastershipService.getDevicesOf(local)
@@ -686,35 +734,15 @@ public class NewDistributedFlowRuleStore
                                              .add(deviceId);
                     }
                 });
-
                 // send the device flow entries to their respective backup nodes
-                devicesToBackupByNode.forEach((nodeId, deviceIds) -> {
-                    Map<DeviceId, ConcurrentMap<FlowId, Set<StoredFlowEntry>>> deviceFlowEntries =
-                            Maps.newConcurrentMap();
-                    flowEntries.forEach((key, value) -> {
-                        if (deviceIds.contains(key)) {
-                            deviceFlowEntries.put(key, value);
-                        }
-                    });
-                    clusterCommunicator.unicast(deviceFlowEntries,
-                            FLOW_TABLE_BACKUP,
-                            SERIALIZER::encode,
-                            nodeId);
-                });
-
-                // update state for use in subsequent run.
-                devicesToBackupByNode.forEach((node, devices) -> {
-                    devices.forEach(id -> {
-                        lastBackupTimes.put(id, System.currentTimeMillis());
-                        lastBackupNodes.put(id, node);
-                    });
-                });
+                devicesToBackupByNode.forEach(this::backupFlowEntries);
             } catch (Exception e) {
                 log.error("Backup failed.", e);
             }
         }
 
         private void onBackupReceipt(Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>> flowTables) {
+            log.debug("Received flows for {} to backup", flowTables.keySet());
             Set<DeviceId> managedDevices = mastershipService.getDevicesOf(local);
             // Only process those devices are that not managed by the local node.
             Maps.filterKeys(flowTables, deviceId -> !managedDevices.contains(deviceId))

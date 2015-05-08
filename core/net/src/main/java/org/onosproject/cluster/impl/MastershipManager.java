@@ -17,6 +17,7 @@ package org.onosproject.cluster.impl;
 
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,6 +51,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onlab.metrics.MetricsUtil.startTimer;
@@ -111,26 +114,28 @@ public class MastershipManager
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(role, ROLE_NULL);
 
-        MastershipEvent event = null;
+        CompletableFuture<MastershipEvent> eventFuture = null;
 
         switch (role) {
             case MASTER:
-                event = store.setMaster(nodeId, deviceId);
+                eventFuture = store.setMaster(nodeId, deviceId);
                 break;
             case STANDBY:
-                event = store.setStandby(nodeId, deviceId);
+                eventFuture = store.setStandby(nodeId, deviceId);
                 break;
             case NONE:
-                event = store.relinquishRole(nodeId, deviceId);
+                eventFuture = store.relinquishRole(nodeId, deviceId);
                 break;
             default:
                 log.info("Unknown role; ignoring");
                 return;
         }
 
-        if (event != null) {
-            post(event);
-        }
+        eventFuture.whenComplete((event, error) -> {
+            if (event != null) {
+                post(event);
+            }
+        });
     }
 
     @Override
@@ -141,12 +146,12 @@ public class MastershipManager
 
     @Override
     public void relinquishMastership(DeviceId deviceId) {
-        MastershipEvent event = null;
-        event = store.relinquishRole(
-                clusterService.getLocalNode().id(), deviceId);
-        if (event != null) {
-            post(event);
-        }
+        store.relinquishRole(clusterService.getLocalNode().id(), deviceId)
+             .whenComplete((event, error) -> {
+                 if (event != null) {
+                     post(event);
+                 }
+             });
     }
 
     @Override

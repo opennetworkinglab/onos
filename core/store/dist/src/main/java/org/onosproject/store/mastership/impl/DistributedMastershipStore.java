@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -130,7 +131,7 @@ public class DistributedMastershipStore
     }
 
     @Override
-    public MastershipEvent setMaster(NodeId newMaster, DeviceId deviceId) {
+    public CompletableFuture<MastershipEvent> setMaster(NodeId newMaster, DeviceId deviceId) {
 
         roleMap.lock(deviceId);
         try {
@@ -147,7 +148,7 @@ public class DistributedMastershipStore
                         log.warn("{} was in both MASTER and STANDBY for {}", newMaster, deviceId);
                         // trigger BACKUPS_CHANGED?
                     }
-                    return null;
+                    return CompletableFuture.completedFuture(null);
                 case STANDBY:
                 case NONE:
                     final NodeId currentMaster = rv.get(MASTER);
@@ -163,10 +164,11 @@ public class DistributedMastershipStore
                     rv.reassign(newMaster, STANDBY, NONE);
                     updateTerm(deviceId);
                     roleMap.put(deviceId, rv);
-                    return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+                    return CompletableFuture.completedFuture(
+                            new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo()));
                 default:
                     log.warn("unknown Mastership Role {}", currentRole);
-                    return null;
+                    return CompletableFuture.completedFuture(null);
             }
         } finally {
             roleMap.unlock(deviceId);
@@ -282,7 +284,7 @@ public class DistributedMastershipStore
     }
 
     @Override
-    public MastershipEvent setStandby(NodeId nodeId, DeviceId deviceId) {
+    public CompletableFuture<MastershipEvent> setStandby(NodeId nodeId, DeviceId deviceId) {
         // if nodeId was MASTER, rotate STANDBY
         // if nodeId was STANDBY no-op
         // if nodeId was NONE, add to STANDBY
@@ -298,30 +300,33 @@ public class DistributedMastershipStore
                     updateTerm(deviceId);
                     if (newMaster != null) {
                         roleMap.put(deviceId, rv);
-                        return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+                        return CompletableFuture.completedFuture(
+                                new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo()));
                     } else {
                         // no master candidate
                         roleMap.put(deviceId, rv);
                         // TBD: Should there be new event type for no MASTER?
-                        return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+                        return CompletableFuture.completedFuture(
+                                new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo()));
                     }
                 case STANDBY:
-                    return null;
+                    return CompletableFuture.completedFuture(null);
                 case NONE:
                     rv.reassign(nodeId, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
-                    return new MastershipEvent(BACKUPS_CHANGED, deviceId, rv.roleInfo());
+                    return CompletableFuture.completedFuture(
+                            new MastershipEvent(BACKUPS_CHANGED, deviceId, rv.roleInfo()));
                 default:
                     log.warn("unknown Mastership Role {}", currentRole);
             }
-            return null;
+            return CompletableFuture.completedFuture(null);
         } finally {
             roleMap.unlock(deviceId);
         }
     }
 
     @Override
-    public MastershipEvent relinquishRole(NodeId nodeId, DeviceId deviceId) {
+    public CompletableFuture<MastershipEvent> relinquishRole(NodeId nodeId, DeviceId deviceId) {
         // relinquishRole is basically set to None
 
         // If nodeId was master reelect next and remove nodeId
@@ -337,13 +342,14 @@ public class DistributedMastershipStore
                     if (newMaster != null) {
                         updateTerm(deviceId);
                         roleMap.put(deviceId, rv);
-                        return new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo());
+                        return CompletableFuture.completedFuture(
+                                new MastershipEvent(MASTER_CHANGED, deviceId, rv.roleInfo()));
                     } else {
                         // No master candidate - no more backups, device is likely
                         // fully disconnected
                         roleMap.put(deviceId, rv);
                         // Should there be new event type?
-                        return null;
+                        return CompletableFuture.completedFuture(null);
                     }
                 case STANDBY:
                     //fall through to reinforce relinquishment
@@ -351,13 +357,14 @@ public class DistributedMastershipStore
                     boolean modified = rv.reassign(nodeId, STANDBY, NONE);
                     if (modified) {
                         roleMap.put(deviceId, rv);
-                        return new MastershipEvent(BACKUPS_CHANGED, deviceId, rv.roleInfo());
+                        return CompletableFuture.completedFuture(
+                                new MastershipEvent(BACKUPS_CHANGED, deviceId, rv.roleInfo()));
                     }
-                    return null;
+                    return CompletableFuture.completedFuture(null);
                 default:
                 log.warn("unknown Mastership Role {}", currentRole);
             }
-            return null;
+            return CompletableFuture.completedFuture(null);
         } finally {
             roleMap.unlock(deviceId);
         }
@@ -374,10 +381,11 @@ public class DistributedMastershipStore
             if (roleValue.contains(MASTER, nodeId) ||
                 roleValue.contains(STANDBY, nodeId)) {
 
-                MastershipEvent event = relinquishRole(nodeId, deviceId);
-                if (event != null) {
-                    events.add(event);
-                }
+                relinquishRole(nodeId, deviceId).whenComplete((event, error) -> {
+                    if (event != null) {
+                        events.add(event);
+                    }
+                });
             }
         }
         notifyDelegate(events);
