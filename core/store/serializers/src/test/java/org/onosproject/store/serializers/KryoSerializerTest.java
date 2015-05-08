@@ -366,6 +366,11 @@ public class KryoSerializerTest {
     }
 
     @Test
+    public void testBandwidth() {
+        testSerializedEquals(org.onlab.util.Bandwidth.mbps(1000.0));
+    }
+
+    @Test
     public void testLambdaConstraint() {
         testSerializable(new LambdaConstraint(LambdaResource.valueOf(1)));
     }

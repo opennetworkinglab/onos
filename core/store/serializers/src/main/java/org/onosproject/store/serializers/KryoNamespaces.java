@@ -223,6 +223,7 @@ public final class KryoNamespaces {
             .register(new MacAddressSerializer(), MacAddress.class)
             .register(VlanId.class)
             .register(Frequency.class)
+            .register(org.onlab.util.Bandwidth.class)
             .build();
 
     /**
