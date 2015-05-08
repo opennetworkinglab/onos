@@ -366,14 +366,14 @@ public class BgpRouter {
                       @Override
                       public void onSuccess(Objective objective) {
                           log.info("Successfully installed interface based "
-                                  + "filtering objcetives");
+                                  + "filtering objcetives for intf {}", intf);
                       }
 
                       @Override
                       public void onError(Objective objective,
                                           ObjectiveError error) {
-                          log.error("Failed to install interface filters {}: {}",
-                                   objective, error);
+                          log.error("Failed to install interface filters for intf {}: {}",
+                                   intf, error);
                           // TODO something more than just logging
                       }
                   }));

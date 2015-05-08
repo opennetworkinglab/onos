@@ -353,14 +353,14 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                pass(filt);
                 log.info("Applied filtering rules");
+                pass(filt);
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
                 log.info("Failed to apply filtering rules");
+                fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
             }
         }));
 
@@ -377,7 +377,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @param nextObj  the nextObjective of type SIMPLE
      */
     private void processSimpleNextObjective(NextObjective nextObj) {
-        // break up next objective to GroupChain objects
+        // break up simple next objective to GroupChain objects
         TrafficTreatment treatment = nextObj.next().iterator().next();
         // for the l2interface group, get vlan and port info
         // for the l3unicast group, get the src/dst mac and vlan info
@@ -824,7 +824,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
     private class GroupChecker implements Runnable {
         @Override
         public void run() {
-            Set<GroupKey> keys = pendingNextObjectives.asMap().keySet().stream()
+            Set<GroupKey> keys = pendingGroups.keySet().stream()
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
 
@@ -832,43 +832,49 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 //first check for group chain
                 GroupChainElem gce = pendingGroups.remove(key);
                 if (gce != null) {
-                    log.info("Heard back from group service. Processing next "
-                            + "group in group chain with group key {}", gce.getGkey());
+                    log.info("Group service processed group key {}. Processing next "
+                            + "group in group chain with group key {}",
+                            appKryo.deserialize(key.key()),
+                            appKryo.deserialize(gce.getGkey().key()));
                     processGroupChain(gce);
                 } else {
                     OfdpaGroupChain obj = pendingNextObjectives.getIfPresent(key);
-                    if (obj == null) {
-                        return;
+                    log.info("Group service processed group key {}. Done implementing "
+                            + "next objective: {}", appKryo.deserialize(key.key()),
+                            obj.nextObjective().id());
+                    if (obj != null) {
+                        pass(obj.nextObjective());
+                        pendingNextObjectives.invalidate(key);
+                        flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
                     }
-                    pass(obj.nextObjective());
-                    pendingNextObjectives.invalidate(key);
-                    log.info("Heard back from group service. Applying pending "
-                            + "objectives for nextId {}", obj.nextObjective().id());
-                    flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
                 }
             });
         }
     }
 
-
     private class InnerGroupListener implements GroupListener {
         @Override
         public void event(GroupEvent event) {
+            log.info("received group event of type {}", event.type());
             if (event.type() == GroupEvent.Type.GROUP_ADDED) {
                 GroupKey key = event.subject().appCookie();
                 // first check for group chain
                 GroupChainElem gce = pendingGroups.remove(key);
                 if (gce != null) {
-                    log.info("group ADDED .. Processing next group in group chain "
-                            + "with group key {}", gce.getGkey());
+                    log.info("group ADDED with group key {} .. "
+                            + "Processing next group in group chain with group key {}",
+                            appKryo.deserialize(key.key()),
+                            appKryo.deserialize(gce.getGkey().key()));
                     processGroupChain(gce);
                 } else {
                     OfdpaGroupChain obj = pendingNextObjectives.getIfPresent(key);
-                    log.info("group ADDED .. Applying pending objectives if any");
                     if (obj != null) {
-                        flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
+                        log.info("group ADDED with key {}.. Done implementing next "
+                                + "objective: {}",
+                                appKryo.deserialize(key.key()), obj.nextObjective().id());
                         pass(obj.nextObjective());
                         pendingNextObjectives.invalidate(key);
+                        flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
                     }
                 }
             }

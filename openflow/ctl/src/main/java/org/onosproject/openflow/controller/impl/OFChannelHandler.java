@@ -417,9 +417,9 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                             h.channel.getRemoteAddress());
                     return;
                 }
-                log.info("Received switch description reply from switch at {}",
-                        h.channel.getRemoteAddress());
                 OFDescStatsReply drep = (OFDescStatsReply) m;
+                log.info("Received switch description reply {} from switch at {}",
+                         drep, h.channel.getRemoteAddress());
                 // Here is where we differentiate between different kinds of switches
                 h.sw = h.controller.getOFSwitchInstance(h.thisdpid, drep, h.ofVersion);
 
