@@ -52,41 +52,41 @@ public final class BandwidthResource extends LinkResource {
     /**
      * Creates a new instance with given bandwidth in bps.
      *
-     * @param bandwidth bandwidth value to be assigned
+     * @param bps bandwidth value to be assigned
      * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static BandwidthResource bps(double bandwidth) {
-        return new BandwidthResource(bandwidth);
+    public static BandwidthResource bps(double bps) {
+        return new BandwidthResource(bps);
     }
 
     /**
      * Creates a new instance with given bandwidth in Kbps.
      *
-     * @param bandwidth bandwidth value to be assigned
+     * @param kbps bandwidth value to be assigned
      * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static BandwidthResource kbps(double bandwidth) {
-        return new BandwidthResource(bandwidth * 1_000L);
+    public static BandwidthResource kbps(double kbps) {
+        return new BandwidthResource(kbps * 1_000L);
     }
 
     /**
      * Creates a new instance with given bandwidth in Mbps.
      *
-     * @param bandwidth bandwidth value to be assigned
+     * @param mbps bandwidth value to be assigned
      * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static BandwidthResource mbps(double bandwidth) {
-        return new BandwidthResource(bandwidth * 1_000_000L);
+    public static BandwidthResource mbps(double mbps) {
+        return new BandwidthResource(mbps * 1_000_000L);
     }
 
     /**
      * Creates a new instance with given bandwidth in Gbps.
      *
-     * @param bandwidth bandwidth value to be assigned
+     * @param gbps bandwidth value to be assigned
      * @return {@link BandwidthResource} instance with given bandwidth
      */
-    public static BandwidthResource gbps(double bandwidth) {
-        return new BandwidthResource(bandwidth * 1_000_000_000L);
+    public static BandwidthResource gbps(double gbps) {
+        return new BandwidthResource(gbps * 1_000_000_000L);
     }
 
     /**
