@@ -30,6 +30,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Bandwidth;
 import org.onlab.util.PositionalParameterStringFormatter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Link;
@@ -80,9 +81,9 @@ public class HazelcastLinkResourceStore
 
     private final Logger log = getLogger(getClass());
 
-    private static final BandwidthResource DEFAULT_BANDWIDTH = BandwidthResource.mbps(1_000);
+    private static final BandwidthResource DEFAULT_BANDWIDTH = new BandwidthResource(Bandwidth.mbps(1_000));
 
-    private static final BandwidthResource EMPTY_BW = BandwidthResource.bps(0);
+    private static final BandwidthResource EMPTY_BW = new BandwidthResource(Bandwidth.bps(0));
 
     // table to store current allocations
     /** LinkKey -> List<LinkResourceAllocations>. */
@@ -174,7 +175,7 @@ public class HazelcastLinkResourceStore
         String strBw = link.annotations().value(bandwidthAnnotation);
         if (strBw != null) {
             try {
-                bandwidth = BandwidthResource.mbps(Double.parseDouble(strBw));
+                bandwidth = new BandwidthResource(Bandwidth.mbps(Double.parseDouble(strBw)));
             } catch (NumberFormatException e) {
                 // do nothings
                 bandwidth = null;
@@ -262,7 +263,8 @@ public class HazelcastLinkResourceStore
                     }
                 }
 
-                free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(BandwidthResource.bps(freeBw))));
+                free.put(type, Sets.newHashSet(
+                        new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(freeBw)))));
                 break;
             }
 

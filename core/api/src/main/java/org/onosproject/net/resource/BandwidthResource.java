@@ -33,68 +33,13 @@ public final class BandwidthResource extends LinkResource {
      *
      * @param bandwidth bandwidth value to be assigned
      */
-    private BandwidthResource(Bandwidth bandwidth) {
+    public BandwidthResource(Bandwidth bandwidth) {
         this.bandwidth = checkNotNull(bandwidth);
     }
 
     // Constructor for serialization
     private BandwidthResource() {
         this.bandwidth = null;
-    }
-
-    /**
-     * Creates a new instance with given bandwidth in bps.
-     *
-     * @param bandwidth bandwidth value to be assigned
-     * @return {@link BandwidthResource} instance with given bandwidth
-     */
-    @Deprecated
-    public static BandwidthResource valueOf(double bandwidth) {
-        return bps(bandwidth);
-    }
-
-    public static BandwidthResource from(Bandwidth bandwidth) {
-        return new BandwidthResource(bandwidth);
-    }
-
-    /**
-     * Creates a new instance with given bandwidth in bps.
-     *
-     * @param bps bandwidth value to be assigned
-     * @return {@link BandwidthResource} instance with given bandwidth
-     */
-    public static BandwidthResource bps(double bps) {
-        return from(Bandwidth.bps(bps));
-    }
-
-    /**
-     * Creates a new instance with given bandwidth in Kbps.
-     *
-     * @param kbps bandwidth value to be assigned
-     * @return {@link BandwidthResource} instance with given bandwidth
-     */
-    public static BandwidthResource kbps(double kbps) {
-        return from(Bandwidth.kbps(kbps));
-    }
-
-    /**
-     * Creates a new instance with given bandwidth in Mbps.
-     *
-     * @param mbps bandwidth value to be assigned
-     * @return {@link BandwidthResource} instance with given bandwidth
-     */
-    public static BandwidthResource mbps(double mbps) {
-        return from(Bandwidth.mbps(mbps));
-    }
-
-    /**
-     * Creates a new instance with given bandwidth in Gbps.
-     *
-     * @param gbps bandwidth value to be assigned
-     * @return {@link BandwidthResource} instance with given bandwidth
-     */
-    public static BandwidthResource gbps(double gbps) {
-        return from(Bandwidth.gbps(gbps));
     }
 
     /**

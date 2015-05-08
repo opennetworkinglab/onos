@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.util.Bandwidth;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
@@ -145,7 +146,7 @@ public class IntentCodecTest extends AbstractIntentTest {
 
         final List<Constraint> constraints =
                 ImmutableList.of(
-                    new BandwidthConstraint(BandwidthResource.bps(1.0)),
+                    new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(1.0))),
                     new LambdaConstraint(LambdaResource.valueOf(3)),
                     new AnnotationConstraint("key", 33.0),
                     new AsymmetricPathConstraint(),

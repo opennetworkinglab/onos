@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl.compiler;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.onlab.util.Bandwidth;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -227,7 +228,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(BandwidthResource.bps(100.0)));
+        final List<Constraint> constraints = Arrays.asList(
+                new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(100.0))));
 
         final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
 
@@ -248,7 +250,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
-        final List<Constraint> constraints = Arrays.asList(new BandwidthConstraint(BandwidthResource.bps(100.0)));
+        final List<Constraint> constraints = Arrays.asList(
+                new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(100.0))));
 
         try {
             final PointToPointIntent intent = makeIntent("s1", "s3", constraints);

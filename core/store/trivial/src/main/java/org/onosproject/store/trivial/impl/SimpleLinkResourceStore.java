@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Bandwidth;
 import org.onlab.util.PositionalParameterStringFormatter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
@@ -55,7 +56,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class SimpleLinkResourceStore implements LinkResourceStore {
-    private static final BandwidthResource DEFAULT_BANDWIDTH = BandwidthResource.mbps(1_000);
+    private static final BandwidthResource DEFAULT_BANDWIDTH = new BandwidthResource(Bandwidth.mbps(1_000));
     private final Logger log = getLogger(getClass());
 
     private Map<IntentId, LinkResourceAllocations> linkResourceAllocationsMap;
@@ -98,7 +99,8 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
 
         BandwidthResource bandwidth = DEFAULT_BANDWIDTH;
         try {
-            bandwidth = BandwidthResource.mbps((Double.parseDouble(annotations.value(AnnotationKeys.BANDWIDTH))));
+            bandwidth = new BandwidthResource(
+                    Bandwidth.mbps((Double.parseDouble(annotations.value(AnnotationKeys.BANDWIDTH)))));
         } catch (NumberFormatException e) {
             log.debug("No bandwidth annotation on link %s", link);
         }
@@ -123,7 +125,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 return (BandwidthResourceAllocation) res;
             }
         }
-        return new BandwidthResourceAllocation(BandwidthResource.bps(0));
+        return new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(0)));
     }
 
     /**
@@ -156,7 +158,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 }
                 freeRes.remove(ba);
                 freeRes.add(new BandwidthResourceAllocation(
-                        BandwidthResource.bps(newBandwidth)));
+                        new BandwidthResource(Bandwidth.bps(newBandwidth))));
                 break;
             case LAMBDA:
                 final boolean lambdaAvailable = freeRes.remove(res);
@@ -198,7 +200,7 @@ public class SimpleLinkResourceStore implements LinkResourceStore {
                 double newBandwidth = ba.bandwidth().toDouble() + requestedBandwidth;
                 freeRes.remove(ba);
                 freeRes.add(new BandwidthResourceAllocation(
-                        BandwidthResource.bps(newBandwidth)));
+                        new BandwidthResource(Bandwidth.bps(newBandwidth))));
                 break;
             case LAMBDA:
                 checkState(freeRes.add(res));

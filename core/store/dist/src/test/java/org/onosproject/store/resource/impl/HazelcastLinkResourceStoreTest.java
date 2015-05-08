@@ -21,6 +21,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.util.Bandwidth;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
@@ -172,7 +173,7 @@ public class HazelcastLinkResourceStoreTest {
         final BandwidthResourceAllocation alloc = getBandwidthObj(freeRes);
         assertNotNull(alloc);
 
-        assertEquals(BandwidthResource.mbps(1000.0), alloc.bandwidth());
+        assertEquals(new BandwidthResource(Bandwidth.mbps(1000.0)), alloc.bandwidth());
     }
 
     /**
@@ -209,7 +210,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                 .build();
         final ResourceAllocation allocation =
-                new BandwidthResourceAllocation(BandwidthResource.mbps(900.0));
+                new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.mbps(900.0)));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =
@@ -230,7 +231,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                         .build();
         final ResourceAllocation allocation =
-                new BandwidthResourceAllocation(BandwidthResource.mbps(9000.0));
+                new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.mbps(9000.0)));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =
@@ -258,7 +259,7 @@ public class HazelcastLinkResourceStoreTest {
                         ImmutableSet.of(link))
                         .build();
         final ResourceAllocation allocation =
-                new BandwidthResourceAllocation(BandwidthResource.mbps(900.0));
+                new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.mbps(900.0)));
         final Set<ResourceAllocation> allocationSet = ImmutableSet.of(allocation);
 
         final LinkResourceAllocations allocations =

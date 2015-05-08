@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Objects;
 
+import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
@@ -137,7 +138,7 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
          */
         @Override
         public Builder addBandwidthRequest(double bandwidth) {
-            resources.add(new BandwidthResourceRequest(BandwidthResource.bps(bandwidth)));
+            resources.add(new BandwidthResourceRequest(new BandwidthResource(Bandwidth.bps(bandwidth))));
             return this;
         }
 

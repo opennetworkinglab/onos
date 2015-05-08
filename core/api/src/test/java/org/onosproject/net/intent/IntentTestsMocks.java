@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
+import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
@@ -302,7 +303,7 @@ public class IntentTestsMocks {
             final List<ResourceRequest> result = new LinkedList<>();
             if (availableBandwidth > 0.0) {
                 result.add(new BandwidthResourceRequest(
-                        BandwidthResource.bps(availableBandwidth)));
+                        new BandwidthResource(Bandwidth.bps(availableBandwidth))));
             }
             if (availableLambda > 0) {
                 result.add(new LambdaResourceRequest());

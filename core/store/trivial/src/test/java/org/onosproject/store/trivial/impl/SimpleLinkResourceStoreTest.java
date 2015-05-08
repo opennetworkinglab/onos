@@ -22,6 +22,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.util.Bandwidth;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
@@ -159,7 +160,7 @@ public class SimpleLinkResourceStoreTest {
         final BandwidthResourceAllocation alloc = getBandwidthObj(freeRes);
         assertNotNull(alloc);
 
-        assertEquals(BandwidthResource.mbps(1000.0), alloc.bandwidth());
+        assertEquals(new BandwidthResource(Bandwidth.mbps(1000.0)), alloc.bandwidth());
     }
 
     /**
@@ -184,7 +185,7 @@ public class SimpleLinkResourceStoreTest {
         @Override
         public Set<ResourceAllocation> getResourceAllocation(Link link) {
             final ResourceAllocation allocation =
-                    new BandwidthResourceAllocation(BandwidthResource.bps(allocationAmount));
+                    new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(allocationAmount)));
             final Set<ResourceAllocation> allocations = new HashSet<>();
             allocations.add(allocation);
             return allocations;

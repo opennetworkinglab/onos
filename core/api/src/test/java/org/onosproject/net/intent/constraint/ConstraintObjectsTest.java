@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.constraint;
 
 import org.junit.Test;
+import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.LambdaResource;
@@ -34,12 +35,16 @@ public class ConstraintObjectsTest {
 
     // Bandwidth Constraint
 
+    private final Bandwidth bandwidth1 = Bandwidth.bps(100.0);
+    private final Bandwidth sameAsBandwidth1 = Bandwidth.bps(100.0);
+    private final Bandwidth bandwidth2 = Bandwidth.bps(200.0);
+
     final BandwidthConstraint bandwidthConstraint1 =
-            new BandwidthConstraint(BandwidthResource.bps(100.0));
+            new BandwidthConstraint(new BandwidthResource(bandwidth1));
     final BandwidthConstraint bandwidthConstraintSameAs1 =
-            new BandwidthConstraint(BandwidthResource.bps(100.0));
+            new BandwidthConstraint(new BandwidthResource(sameAsBandwidth1));
     final BandwidthConstraint bandwidthConstraint2 =
-            new BandwidthConstraint(BandwidthResource.bps(200.0));
+            new BandwidthConstraint(new BandwidthResource(bandwidth2));
 
     /**
      * Checks that the objects were created properly.

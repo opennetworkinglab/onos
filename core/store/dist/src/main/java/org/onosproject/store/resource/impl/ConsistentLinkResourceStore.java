@@ -16,6 +16,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.onlab.util.Bandwidth;
 import org.slf4j.Logger;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.PositionalParameterStringFormatter;
@@ -67,8 +68,8 @@ public class ConsistentLinkResourceStore extends
 
     private final Logger log = getLogger(getClass());
 
-    private static final BandwidthResource DEFAULT_BANDWIDTH = BandwidthResource.mbps(1_000);
-    private static final BandwidthResource EMPTY_BW = BandwidthResource.bps(0);
+    private static final BandwidthResource DEFAULT_BANDWIDTH = new BandwidthResource(Bandwidth.mbps(1_000));
+    private static final BandwidthResource EMPTY_BW = new BandwidthResource(Bandwidth.bps(0));
 
     // Smallest non-reserved MPLS label
     private static final int MIN_UNRESERVED_LABEL = 0x10;
@@ -154,7 +155,7 @@ public class ConsistentLinkResourceStore extends
         String strBw = link.annotations().value(BANDWIDTH);
         if (strBw != null) {
             try {
-                bandwidth = BandwidthResource.mbps(Double.parseDouble(strBw));
+                bandwidth = new BandwidthResource(Bandwidth.mbps(Double.parseDouble(strBw)));
             } catch (NumberFormatException e) {
                 // do nothings
                 bandwidth = null;
@@ -237,7 +238,8 @@ public class ConsistentLinkResourceStore extends
                         }
                     }
 
-                    free.put(type, Sets.newHashSet(new BandwidthResourceAllocation(BandwidthResource.bps(freeBw))));
+                    free.put(type, Sets.newHashSet(
+                            new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(freeBw)))));
                     break;
                 case LAMBDA:
                     Set<? extends ResourceAllocation> lmd = caps.get(type);

@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -306,8 +307,8 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
         // Check for a bandwidth specification
         if (!isNullOrEmpty(bandwidthString)) {
-            final double bandwidthValue = Double.parseDouble(bandwidthString);
-            constraints.add(new BandwidthConstraint(BandwidthResource.bps(bandwidthValue)));
+            final Bandwidth bandwidth = Bandwidth.bps(Double.parseDouble(bandwidthString));
+            constraints.add(new BandwidthConstraint(new BandwidthResource(bandwidth)));
         }
 
         // Check for a lambda specification
