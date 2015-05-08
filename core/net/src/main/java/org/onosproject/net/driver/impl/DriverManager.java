@@ -169,5 +169,4 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
     private String key(String mfr, String hw, String sw) {
         return String.format("%s-%s-%s", mfr, hw, sw);
     }
-
 }

@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * Service for obtaining drivers and driver behaviour implementations.
  */
-public interface DriverService {
+public interface DriverService extends DriverResolver {
 
     /**
      * Returns the overall set of drivers being provided.
@@ -38,16 +38,6 @@ public interface DriverService {
      * @return provided drivers
      */
     Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour);
-
-    /**
-     * Returns the specified driver.
-     *
-     * @param driverName driver name
-     * @return driver
-     * @throws org.onlab.util.ItemNotFoundException if driver with the given
-     *                                              name is not found
-     */
-    Driver getDriver(String driverName);
 
     /**
      * Returns the driver that matches the specified primordial device

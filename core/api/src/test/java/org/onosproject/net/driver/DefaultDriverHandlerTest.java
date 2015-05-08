@@ -30,7 +30,7 @@ public class DefaultDriverHandlerTest {
 
     @Before
     public void setUp() {
-        ddc = new DefaultDriver("foo.bar", "Circus", "lux", "1.2a",
+        ddc = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
                                 ImmutableMap.of(TestBehaviour.class,
                                                 TestBehaviourImpl.class,
                                                 TestBehaviourTwo.class,

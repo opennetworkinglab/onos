@@ -28,7 +28,6 @@ import org.onosproject.net.driver.XmlDriverLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -52,9 +51,10 @@ public class DefaultDrivers implements DefaultDriverProviderService {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             InputStream stream = classLoader.getResourceAsStream(DRIVERS_XML);
-            provider = new XmlDriverLoader(classLoader).loadDrivers(stream);
+            provider = new XmlDriverLoader(classLoader)
+                    .loadDrivers(stream, driverAdminService);
             driverAdminService.registerProvider(provider);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Unable to load default drivers", e);
         }
         log.info("Started");

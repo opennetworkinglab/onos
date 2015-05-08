@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -32,6 +33,7 @@ import static com.google.common.collect.ImmutableMap.copyOf;
 public class DefaultDriver implements Driver {
 
     private final String name;
+    private final Driver parent;
 
     private final String manufacturer;
     private final String hwVersion;
@@ -40,22 +42,23 @@ public class DefaultDriver implements Driver {
     private final Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours;
     private final Map<String, String> properties;
 
-
     /**
      * Creates a driver with the specified name.
      *
      * @param name         driver name
+     * @param parent       optional parent driver
      * @param manufacturer device manufacturer
      * @param hwVersion    device hardware version
      * @param swVersion    device software version
      * @param behaviours   device behaviour classes
      * @param properties   properties for configuration of device behaviour classes
      */
-    public DefaultDriver(String name, String manufacturer,
+    public DefaultDriver(String name, Driver parent, String manufacturer,
                          String hwVersion, String swVersion,
                          Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours,
                          Map<String, String> properties) {
         this.name = checkNotNull(name, "Name cannot be null");
+        this.parent = parent;
         this.manufacturer = checkNotNull(manufacturer, "Manufacturer cannot be null");
         this.hwVersion = checkNotNull(hwVersion, "HW version cannot be null");
         this.swVersion = checkNotNull(swVersion, "SW version cannot be null");
@@ -65,6 +68,9 @@ public class DefaultDriver implements Driver {
 
     @Override
     public Driver merge(Driver other) {
+        checkArgument(parent == null || Objects.equals(parent, other.parent()),
+                      "Parent drivers are not the same");
+
         // Merge the behaviours.
         Map<Class<? extends Behaviour>, Class<? extends Behaviour>>
                 behaviours = Maps.newHashMap();
@@ -75,7 +81,7 @@ public class DefaultDriver implements Driver {
         ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
         properties.putAll(this.properties).putAll(other.properties());
 
-        return new DefaultDriver(name, manufacturer, hwVersion, swVersion,
+        return new DefaultDriver(name, other.parent(), manufacturer, hwVersion, swVersion,
                                  ImmutableMap.copyOf(behaviours), properties.build());
     }
 
@@ -100,6 +106,11 @@ public class DefaultDriver implements Driver {
     }
 
     @Override
+    public Driver parent() {
+        return parent;
+    }
+
+    @Override
     public Set<Class<? extends Behaviour>> behaviours() {
         return behaviours.keySet();
     }
@@ -111,19 +122,32 @@ public class DefaultDriver implements Driver {
 
     @Override
     public boolean hasBehaviour(Class<? extends Behaviour> behaviourClass) {
-        return behaviours.containsKey(behaviourClass);
+        return behaviours.containsKey(behaviourClass) ||
+                (parent != null && parent.hasBehaviour(behaviourClass));
     }
 
     @Override
     public <T extends Behaviour> T createBehaviour(DriverData data,
                                                    Class<T> behaviourClass) {
-        return createBehaviour(data, null, behaviourClass);
+        T behaviour = createBehaviour(data, null, behaviourClass);
+        if (behaviour != null) {
+            return behaviour;
+        } else if (parent != null) {
+            return parent.createBehaviour(data, behaviourClass);
+        }
+        throw new IllegalArgumentException(behaviourClass.getName() + " not supported");
     }
 
     @Override
     public <T extends Behaviour> T createBehaviour(DriverHandler handler,
                                                    Class<T> behaviourClass) {
-        return createBehaviour(handler.data(), handler, behaviourClass);
+        T behaviour = createBehaviour(handler.data(), handler, behaviourClass);
+        if (behaviour != null) {
+            return behaviour;
+        } else if (parent != null) {
+            return parent.createBehaviour(handler, behaviourClass);
+        }
+        throw new IllegalArgumentException(behaviourClass.getName() + " not supported");
     }
 
     // Creates an instance of behaviour primed with the specified driver data.
@@ -134,17 +158,18 @@ public class DefaultDriver implements Driver {
 
         // Locate the implementation of the requested behaviour.
         Class<? extends Behaviour> implementation = behaviours.get(behaviourClass);
-        checkArgument(implementation != null, "{} not supported", behaviourClass.getName());
+        if (implementation != null) {
+            // Create an instance of the behaviour and apply data as its context.
+            T behaviour = createBehaviour(behaviourClass, implementation);
+            behaviour.setData(data);
 
-        // Create an instance of the behaviour and apply data as its context.
-        T behaviour = createBehaviour(behaviourClass, implementation);
-        behaviour.setData(data);
-
-        // If this is a handler behaviour, also apply handler as its context.
-        if (handler != null) {
-            ((HandlerBehaviour) behaviour).setHandler(handler);
+            // If this is a handler behaviour, also apply handler as its context.
+            if (handler != null) {
+                ((HandlerBehaviour) behaviour).setHandler(handler);
+            }
+            return behaviour;
         }
-        return behaviour;
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -177,6 +202,7 @@ public class DefaultDriver implements Driver {
     public String toString() {
         return toStringHelper(this)
                 .add("name", name)
+                .add("parent", parent)
                 .add("manufacturer", manufacturer)
                 .add("hwVersion", hwVersion)
                 .add("swVersion", swVersion)

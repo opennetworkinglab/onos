@@ -16,6 +16,7 @@
 package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -51,6 +52,7 @@ public class XmlDriverLoader {
     private static final String PROPERTY = "property";
 
     private static final String NAME = "[@name]";
+    private static final String EXTENDS = "[@extends]";
     private static final String MFG = "[@manufacturer]";
     private static final String HW = "[@hwVersion]";
     private static final String SW = "[@swVersion]";
@@ -58,6 +60,8 @@ public class XmlDriverLoader {
     private static final String IMPL = "[@impl]";
 
     private final ClassLoader classLoader;
+
+    private Map<String, Driver> drivers = Maps.newHashMap();
 
     /**
      * Creates a new driver loader capable of loading drivers from the supplied
@@ -74,18 +78,20 @@ public class XmlDriverLoader {
      * produce a ready-to-register driver provider.
      *
      * @param driversStream stream containing the drivers definitions
+     * @param resolver      driver resolver
      * @return driver provider
      * @throws java.io.IOException if issues are encountered reading the stream
      *                             or parsing the driver definitions within
      */
-    public DefaultDriverProvider loadDrivers(InputStream driversStream) throws IOException {
+    public DefaultDriverProvider loadDrivers(InputStream driversStream,
+                                             DriverResolver resolver) throws IOException {
         try {
             XMLConfiguration cfg = new XMLConfiguration();
             cfg.setRootElementName(DRIVERS);
             cfg.setAttributeSplittingDisabled(true);
 
             cfg.load(driversStream);
-            return loadDrivers(cfg);
+            return loadDrivers(cfg, resolver);
         } catch (ConfigurationException e) {
             throw new IOException("Unable to load drivers", e);
         }
@@ -95,13 +101,18 @@ public class XmlDriverLoader {
      * Loads a driver provider from the supplied hierarchical configuration.
      *
      * @param driversCfg hierarchical configuration containing the drivers definitions
+     * @param resolver   driver resolver
      * @return driver provider
      */
-    public DefaultDriverProvider loadDrivers(HierarchicalConfiguration driversCfg) {
+    public DefaultDriverProvider loadDrivers(HierarchicalConfiguration driversCfg,
+                                             DriverResolver resolver) {
         DefaultDriverProvider provider = new DefaultDriverProvider();
         for (HierarchicalConfiguration cfg : driversCfg.configurationsAt(DRIVER)) {
-            provider.addDriver(loadDriver(cfg));
+            DefaultDriver driver = loadDriver(cfg, resolver);
+            drivers.put(driver.name(), driver);
+            provider.addDriver(driver);
         }
+        drivers.clear();
         return provider;
     }
 
@@ -109,17 +120,28 @@ public class XmlDriverLoader {
      * Loads a driver from the supplied hierarchical configuration.
      *
      * @param driverCfg hierarchical configuration containing the driver definition
+     * @param resolver  driver resolver
      * @return driver
      */
-    public DefaultDriver loadDriver(HierarchicalConfiguration driverCfg) {
+    public DefaultDriver loadDriver(HierarchicalConfiguration driverCfg,
+                                    DriverResolver resolver) {
         String name = driverCfg.getString(NAME);
+        String parentName = driverCfg.getString(EXTENDS);
         String manufacturer = driverCfg.getString(MFG, "");
         String hwVersion = driverCfg.getString(HW, "");
         String swVersion = driverCfg.getString(SW, "");
 
-        return new DefaultDriver(name, manufacturer, hwVersion, swVersion,
+        Driver parent = parentName != null ? resolve(parentName, resolver) : null;
+        return new DefaultDriver(name, parent, manufacturer, hwVersion, swVersion,
                                  parseBehaviours(driverCfg),
                                  parseProperties(driverCfg));
+    }
+
+    // Resolves the driver by name locally at first and then using the specified resolver.
+    private Driver resolve(String parentName, DriverResolver resolver) {
+        Driver driver = drivers.get(parentName);
+        return driver != null ? driver :
+                (resolver != null ? resolver.getDriver(parentName) : null);
     }
 
     // Parses the behaviours section.

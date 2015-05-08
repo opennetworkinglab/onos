@@ -28,7 +28,7 @@ import org.onosproject.net.driver.DriverAdminService;
         description = "Lists device drivers")
 public class DriversListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "driver=%s, mfr=%s, hw=%s, sw=%s";
+    private static final String FMT = "driver=%s, extends=%s, mfr=%s, hw=%s, sw=%s";
     private static final String FMT_B = "   %s via %s";
     private static final String FMT_P = "   %s=%s";
 
@@ -48,8 +48,9 @@ public class DriversListCommand extends AbstractShellCommand {
     }
 
     private void printDriver(Driver driver) {
-        print(FMT, driver.name(), driver.manufacturer(),
-              driver.hwVersion(), driver.swVersion());
+        Driver parent = driver.parent();
+        print(FMT, driver.name(), parent != null ? parent.name() : "none",
+              driver.manufacturer(), driver.hwVersion(), driver.swVersion());
         driver.behaviours().forEach(b -> print(FMT_B, b.getCanonicalName(),
                                                driver.implementation(b).getCanonicalName()));
         driver.properties().forEach((k, v) -> print(FMT_P, k, v));

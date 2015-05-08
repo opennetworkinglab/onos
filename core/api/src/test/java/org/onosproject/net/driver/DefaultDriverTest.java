@@ -25,17 +25,32 @@ public class DefaultDriverTest {
 
     @Test
     public void basics() {
-        DefaultDriver ddc = new DefaultDriver("foo.bar", "Circus", "lux", "1.2a",
+        DefaultDriver ddp = new DefaultDriver("foo.base", null, "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
-                                                              TestBehaviourImpl.class),
+                                                              TestBehaviourImpl.class,
+                                                              TestBehaviourTwo.class,
+                                                              TestBehaviourTwoImpl.class),
+                                              ImmutableMap.of("foo", "bar"));
+
+        DefaultDriver ddc = new DefaultDriver("foo.bar", ddp, "Circus", "lux", "1.2a",
+                                              ImmutableMap.of(),
                                               ImmutableMap.of("foo", "bar"));
         assertEquals("incorrect name", "foo.bar", ddc.name());
+        assertEquals("incorrect parent", ddp, ddc.parent());
         assertEquals("incorrect mfr", "Circus", ddc.manufacturer());
         assertEquals("incorrect hw", "lux", ddc.hwVersion());
         assertEquals("incorrect sw", "1.2a", ddc.swVersion());
 
-        assertEquals("incorrect behaviour count", 1, ddc.behaviours().size());
+        assertEquals("incorrect behaviour count", 2, ddp.behaviours().size());
+        assertEquals("incorrect behaviour count", 0, ddc.behaviours().size());
         assertTrue("incorrect behaviour", ddc.hasBehaviour(TestBehaviour.class));
+
+        Behaviour b1 = ddc.createBehaviour(new DefaultDriverData(ddc), TestBehaviour.class);
+        assertTrue("incorrect behaviour class", b1 instanceof TestBehaviourImpl);
+
+        Behaviour b2 = ddc.createBehaviour(new DefaultDriverHandler(new DefaultDriverData(ddc)),
+                                           TestBehaviourTwo.class);
+        assertTrue("incorrect behaviour class", b2 instanceof TestBehaviourTwoImpl);
 
         assertEquals("incorrect property count", 1, ddc.properties().size());
         assertEquals("incorrect key count", 1, ddc.keys().size());
@@ -46,12 +61,12 @@ public class DefaultDriverTest {
 
     @Test
     public void merge() {
-        DefaultDriver one = new DefaultDriver("foo.bar", "Circus", "lux", "1.2a",
+        DefaultDriver one = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class),
                                               ImmutableMap.of("foo", "bar"));
         Driver ddc =
-                one.merge(new DefaultDriver("foo.bar", "", "", "",
+                one.merge(new DefaultDriver("foo.bar", null, "", "", "",
                                             ImmutableMap.of(TestBehaviourTwo.class,
                                                             TestBehaviourTwoImpl.class),
                                             ImmutableMap.of("goo", "wee")));

@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -32,17 +33,22 @@ public class XmlDriverLoaderTest {
     public void basics() throws IOException {
         XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
         InputStream stream = getClass().getResourceAsStream("drivers.1.xml");
-        DriverProvider provider = loader.loadDrivers(stream);
+        DriverProvider provider = loader.loadDrivers(stream, null);
         System.out.println(provider);
-        assertEquals("incorrect driver count", 1, provider.getDrivers().size());
+        assertEquals("incorrect driver count", 2, provider.getDrivers().size());
 
-        Driver driver = provider.getDrivers().iterator().next();
+        Iterator<Driver> iterator = provider.getDrivers().iterator();
+        Driver driver = iterator.next();
+        if (!driver.name().equals("foo.1")) {
+            driver = iterator.next();
+        }
+
         assertEquals("incorrect driver name", "foo.1", driver.name());
         assertEquals("incorrect driver mfg", "Circus", driver.manufacturer());
         assertEquals("incorrect driver hw", "1.2a", driver.hwVersion());
         assertEquals("incorrect driver sw", "2.2", driver.swVersion());
 
-        assertEquals("incorrect driver behaviours", 2, driver.behaviours().size());
+        assertEquals("incorrect driver behaviours", 1, driver.behaviours().size());
         assertTrue("incorrect driver behaviour", driver.hasBehaviour(TestBehaviour.class));
 
         assertEquals("incorrect driver properties", 2, driver.properties().size());
@@ -52,20 +58,20 @@ public class XmlDriverLoaderTest {
     @Test(expected = IOException.class)
     public void badXML() throws IOException {
         XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
-        loader.loadDrivers(getClass().getResourceAsStream("drivers.bad.xml"));
+        loader.loadDrivers(getClass().getResourceAsStream("drivers.bad.xml"), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void noClass() throws IOException {
         XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
-        loader.loadDrivers(getClass().getResourceAsStream("drivers.noclass.xml"));
+        loader.loadDrivers(getClass().getResourceAsStream("drivers.noclass.xml"), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void noConstructor() throws IOException {
         XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
         InputStream stream = getClass().getResourceAsStream("drivers.noconstructor.xml");
-        DriverProvider provider = loader.loadDrivers(stream);
+        DriverProvider provider = loader.loadDrivers(stream, null);
         Driver driver = provider.getDrivers().iterator().next();
         driver.createBehaviour(new DefaultDriverData(driver), TestBehaviour.class);
     }

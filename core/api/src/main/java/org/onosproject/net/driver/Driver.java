@@ -35,6 +35,14 @@ public interface Driver extends Annotations {
     String name();
 
     /**
+     * Returns the parent driver from which this driver inherits behaviours
+     * and properties.
+     *
+     * @return parent driver; null if driver has no parent
+     */
+    Driver parent();
+
+    /**
      * Returns the device manufacturer name.
      *
      * @return manufacturer name
@@ -57,6 +65,7 @@ public interface Driver extends Annotations {
 
     /**
      * Returns the set of behaviours supported by this driver.
+     * It reflects behaviours of only this driver and not its parent.
      *
      * @return set of device driver behaviours
      */
@@ -64,6 +73,7 @@ public interface Driver extends Annotations {
 
     /**
      * Returns the implementation class for the specified behaviour.
+     * It reflects behaviours of only this driver and not its parent.
      *
      * @param behaviour behaviour interface
      * @return implementation class
@@ -71,8 +81,8 @@ public interface Driver extends Annotations {
     Class<? extends Behaviour> implementation(Class<? extends Behaviour> behaviour);
 
     /**
-     * Indicates whether or not the driver supports the specified class
-     * of behaviour.
+     * Indicates whether or not the driver, or any of its parents, support
+     * the specified class of behaviour. It
      *
      * @param behaviourClass behaviour class
      * @return true if behaviour is supported
@@ -81,6 +91,8 @@ public interface Driver extends Annotations {
 
     /**
      * Creates an instance of behaviour primed with the specified driver data.
+     * If the current driver does not support the specified behaviour and the
+     * driver has parent, the request is delegated to the parent driver.
      *
      * @param data           driver data context
      * @param behaviourClass driver behaviour class
@@ -91,6 +103,8 @@ public interface Driver extends Annotations {
 
     /**
      * Creates an instance of behaviour primed with the specified driver data.
+     * If the current driver does not support the specified behaviour and the
+     * driver has parent, the request is delegated to the parent driver.
      *
      * @param handler        driver handler context
      * @param behaviourClass driver behaviour class

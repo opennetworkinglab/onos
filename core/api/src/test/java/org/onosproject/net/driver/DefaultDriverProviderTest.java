@@ -28,15 +28,15 @@ public class DefaultDriverProviderTest {
     @Test
     public void basics() {
         DefaultDriverProvider ddp = new DefaultDriverProvider();
-        DefaultDriver one = new DefaultDriver("foo.bar", "Circus", "lux", "1.2a",
+        DefaultDriver one = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class),
                                               ImmutableMap.of("foo", "bar"));
-        DefaultDriver two = new DefaultDriver("foo.bar", "", "", "",
+        DefaultDriver two = new DefaultDriver("foo.bar", null, "", "", "",
                                               ImmutableMap.of(TestBehaviourTwo.class,
                                                               TestBehaviourTwoImpl.class),
                                               ImmutableMap.of("goo", "wee"));
-        DefaultDriver three = new DefaultDriver("goo.foo", "BigTop", "better", "2.2",
+        DefaultDriver three = new DefaultDriver("goo.foo", null, "BigTop", "better", "2.2",
                                                 ImmutableMap.of(TestBehaviourTwo.class,
                                                                 TestBehaviourTwoImpl.class),
                                                 ImmutableMap.of("goo", "gee"));
