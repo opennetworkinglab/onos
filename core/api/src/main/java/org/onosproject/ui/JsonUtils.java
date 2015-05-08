@@ -39,12 +39,27 @@ public final class JsonUtils {
      * @param payload event payload
      * @return the object node representation
      */
+    @Deprecated
     public static ObjectNode envelope(String type, long sid, ObjectNode payload) {
         ObjectNode event = MAPPER.createObjectNode();
         event.put("event", type);
         if (sid > 0) {
             event.put("sid", sid);
         }
+        event.set("payload", payload);
+        return event;
+    }
+
+    /**
+     * Composes a message structure for the given message type and payload.
+     *
+     * @param type    message type
+     * @param payload message payload
+     * @return the object node representation
+     */
+    public static ObjectNode envelope(String type, ObjectNode payload) {
+        ObjectNode event = MAPPER.createObjectNode();
+        event.put("event", type);
         event.set("payload", payload);
         return event;
     }

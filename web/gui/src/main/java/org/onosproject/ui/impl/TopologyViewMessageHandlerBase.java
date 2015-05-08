@@ -101,6 +101,7 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 /**
  * Facility for creating messages bound for the topology viewer.
  */
+@Deprecated
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     protected static final Logger log =

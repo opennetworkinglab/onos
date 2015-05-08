@@ -78,6 +78,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
+//                        new AltTopoViewMessageHandler(),
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
                         new HostViewMessageHandler(),
