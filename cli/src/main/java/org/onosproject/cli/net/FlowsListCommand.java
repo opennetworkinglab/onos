@@ -53,7 +53,7 @@ public class FlowsListCommand extends AbstractShellCommand {
     public static final String ANY = "any";
 
     private static final String FMT =
-            "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s, tableId=%s appId=%s";
+            "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s, tableId=%s, timeout=%s, appId=%s";
     private static final String TFMT = "      treatment=%s";
     private static final String SFMT = "      selector=%s";
 
@@ -193,7 +193,7 @@ public class FlowsListCommand extends AbstractShellCommand {
             for (FlowEntry f : flows) {
                 print(FMT, Long.toHexString(f.id().value()), f.state(),
                       f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
-                      coreService.getAppId(f.appId()).name());
+                      f.timeout(), coreService.getAppId(f.appId()).name());
                 print(SFMT, f.selector().criteria());
                 print(TFMT, f.treatment());
             }
