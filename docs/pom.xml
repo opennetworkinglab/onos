@@ -121,7 +121,7 @@
                         <group>
                             <title>Sample Applications</title>
                             <packages>
-                                org.onosproject.tvue:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.foo:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config:org.onosproject.routing:org.onosproject.routing*:org.onosproject.bgprouter:org.onosproject.intentperf:org.onosproject.segmentrouting:org.onosproject.segmentrouting.*:org.onosproject.reactive.routing*:org.onosproject.messagingperf:org.onosproject.virtualbng:org.onosproject.demo*:org.onosproject.election*:org.onosproject.distributedprimitives*:org.onosproject.cordfabric*
+                                org.onosproject.tvue:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.foo:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config:org.onosproject.routing:org.onosproject.routing*:org.onosproject.bgprouter:org.onosproject.intentperf:org.onosproject.segmentrouting:org.onosproject.segmentrouting.*:org.onosproject.reactive.routing*:org.onosproject.messagingperf:org.onosproject.virtualbng:org.onosproject.demo*:org.onosproject.election*:org.onosproject.distributedprimitives*:org.onosproject.cordfabric*:org.onosproject.xosintegration*
                             </packages>
                         </group>
                         <group>
