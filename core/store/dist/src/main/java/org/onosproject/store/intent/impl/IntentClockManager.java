@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.intent.IntentClockService;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.impl.WallClockTimestamp;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;

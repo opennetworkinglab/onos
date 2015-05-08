@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostClockService;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.impl.WallClockTimestamp;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
 /**

@@ -17,7 +17,7 @@ package org.onosproject.store.serializers.impl;
 
 import org.onosproject.store.impl.MastershipBasedTimestamp;
 import org.onosproject.store.impl.Timestamped;
-import org.onosproject.store.impl.WallClockTimestamp;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onlab.util.KryoNamespace;
 

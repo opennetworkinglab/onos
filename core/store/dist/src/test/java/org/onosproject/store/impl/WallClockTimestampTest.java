@@ -24,6 +24,7 @@ import org.onosproject.store.Timestamp;
 import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;
+import org.onosproject.store.service.WallClockTimestamp;
 
 /**
  * Tests for {@link WallClockTimestamp}.

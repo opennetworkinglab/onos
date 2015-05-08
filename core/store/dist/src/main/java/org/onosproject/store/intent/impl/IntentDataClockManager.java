@@ -18,7 +18,7 @@ package org.onosproject.store.intent.impl;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.service.ClockService;
-import org.onosproject.store.impl.MultiValuedTimestamp;
+import org.onosproject.store.service.MultiValuedTimestamp;
 
 /**
  * ClockService that uses IntentData versions as timestamps.

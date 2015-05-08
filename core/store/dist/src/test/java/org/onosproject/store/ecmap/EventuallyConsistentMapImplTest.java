@@ -38,7 +38,7 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.service.ClockService;
 import org.onosproject.store.impl.LogicalTimestamp;
-import org.onosproject.store.impl.WallClockTimestamp;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.service.EventuallyConsistentMap;
