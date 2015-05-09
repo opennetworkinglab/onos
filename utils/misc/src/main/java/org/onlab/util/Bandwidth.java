@@ -90,6 +90,26 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
         return bps;
     }
 
+    /**
+     * Returns a Bandwidth whose value is (this + value).
+     *
+     * @param value value to be added to this Frequency
+     * @return this + value
+     */
+    public Bandwidth add(Bandwidth value) {
+        return bps(this.bps + value.bps);
+    }
+
+    /**
+     * Returns a Bandwidth whose value is (this - value).
+     *
+     * @param value value to be added to this Frequency
+     * @return this - value
+     */
+    public Bandwidth subtract(Bandwidth value) {
+        return bps(this.bps - value.bps);
+    }
+
     @Override
     public int compareTo(Bandwidth other) {
         return ComparisonChain.start()

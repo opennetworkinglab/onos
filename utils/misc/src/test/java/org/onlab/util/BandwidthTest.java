@@ -43,6 +43,26 @@ public class BandwidthTest {
     }
 
     /**
+     * Tests add operation of two Bandwidths.
+     */
+    @Test
+    public void testAdd() {
+        Bandwidth expected = Bandwidth.kbps(1100.0);
+
+        assertThat(small.add(large), is(expected));
+    }
+
+    /**
+     * Tests subtract operation of two Bandwidths.
+     */
+    @Test
+    public void testSubtract() {
+        Bandwidth expected = Bandwidth.kbps(900.0);
+
+        assertThat(large.subtract(small), is(expected));
+    }
+
+    /**
      * Tests if the first object is less than the second object.
      */
     @Test
