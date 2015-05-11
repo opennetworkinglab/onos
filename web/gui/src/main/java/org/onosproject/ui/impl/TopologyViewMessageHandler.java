@@ -194,6 +194,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // ==================================================================
 
+    @Deprecated
     private final class TopoStart extends RequestHandler {
         private TopoStart() {
             super(TOPO_START);
@@ -209,6 +210,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    @Deprecated
     private final class TopoStop extends RequestHandler {
         private TopoStop() {
             super(TOPO_STOP);
@@ -221,6 +223,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    @Deprecated
     private final class ReqSummary extends RequestHandler {
         private ReqSummary() {
             super(REQ_SUMMARY);

@@ -18,6 +18,8 @@ package org.onosproject.ui;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +48,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class UiMessageHandler {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final Map<String, RequestHandler> handlerMap = new HashMap<>();
 
     private UiConnection connection;
@@ -55,7 +58,6 @@ public abstract class UiMessageHandler {
      * Mapper for creating ObjectNodes and ArrayNodes etc.
      */
     protected final ObjectMapper mapper = new ObjectMapper();
-
 
     /**
      * Subclasses must return the collection of handlers for the
@@ -82,6 +84,7 @@ public abstract class UiMessageHandler {
      */
     public void process(ObjectNode message) {
         String type = JsonUtils.eventType(message);
+        // TODO: remove sid
         long sid = JsonUtils.sid(message);
         ObjectNode payload = JsonUtils.payload(message);
         exec(type, sid, payload);
@@ -94,9 +97,11 @@ public abstract class UiMessageHandler {
      * @param sid       sequence identifier
      * @param payload   message payload
      */
+    // TODO: remove sid from signature
     void exec(String eventType, long sid, ObjectNode payload) {
         RequestHandler handler = handlerMap.get(eventType);
         if (handler != null) {
+            log.debug("process {} event...", eventType);
             handler.process(sid, payload);
         }
     }

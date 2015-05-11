@@ -35,10 +35,14 @@ import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +55,7 @@ import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.ui.impl.topo.TopoUiEvent.Type.SUMMARY_UPDATE;
 
 
 /**
@@ -79,6 +84,14 @@ public class TopoUiModelManager implements TopoUiModelService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
 
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -103,6 +116,7 @@ public class TopoUiModelManager implements TopoUiModelService {
                 linkService,
                 hostService,
                 mastershipService
+                // TODO: others??
         );
         log.info("Started");
     }
@@ -112,6 +126,17 @@ public class TopoUiModelManager implements TopoUiModelService {
         eventDispatcher.removeSink(TopoUiEvent.class);
         log.info("Stopped");
     }
+
+
+    // TODO: figure out how to cull zombie listeners
+    // The problem is when one refreshes the GUI (topology view)
+    //  a new instance of AltTopoViewMessageHandler is created and added
+    //  as a listener, but we never got a TopoStop event, which is what
+    //  causes the listener (for an AltTopoViewMessageHandler instance) to
+    //  be removed.
+    // ==== Somehow need to tie this in to the GUI-disconnected event.
+
+
 
     @Override
     public void addListener(TopoUiListener listener) {
@@ -131,6 +156,60 @@ public class TopoUiModelManager implements TopoUiModelService {
         addLinks(results);
         addHosts(results);
         return results;
+    }
+
+    @Override
+    public void startSummaryMonitoring() {
+        // TODO: set up periodic monitoring task
+        // send a summary now, and periodically...
+        post(new TopoUiEvent(SUMMARY_UPDATE, null));
+    }
+
+    @Override
+    public void stopSummaryMonitoring() {
+        // TODO: cancel monitoring task
+
+    }
+
+    @Override
+    public SummaryData getSummaryData() {
+        return new SummaryDataImpl();
+    }
+
+    // =====================================================================
+
+    private final class SummaryDataImpl implements SummaryData {
+        private final Topology topology = topologyService.currentTopology();
+
+        @Override
+        public int deviceCount() {
+            return topology.deviceCount();
+        }
+
+        @Override
+        public int linkCount() {
+            return topology.linkCount();
+        }
+
+        @Override
+        public int hostCount() {
+            return hostService.getHostCount();
+        }
+
+        @Override
+        public int clusterCount() {
+            return topology.clusterCount();
+        }
+
+        @Override
+        public long intentCount() {
+            return intentService.getIntentCount();
+        }
+
+        @Override
+        public int flowRuleCount() {
+            return flowRuleService.getFlowRuleCount();
+        }
     }
 
     // =====================================================================

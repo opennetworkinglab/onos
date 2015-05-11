@@ -19,29 +19,40 @@ package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.core.CoreService;
+import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.impl.topo.OverlayService;
+import org.onosproject.ui.impl.topo.SummaryData;
 import org.onosproject.ui.impl.topo.TopoUiEvent;
 import org.onosproject.ui.impl.topo.TopoUiListener;
 import org.onosproject.ui.impl.topo.TopoUiModelService;
+import org.onosproject.ui.impl.topo.overlay.AbstractSummaryGenerator;
+import org.onosproject.ui.impl.topo.overlay.SummaryGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.ui.impl.topo.TopoUiEvent.Type.SUMMARY_UPDATE;
 
 /**
  * Facility for handling inbound messages from the topology view, and
  * generating outbound messages for the same.
  */
-public class AltTopoViewMessageHandler extends UiMessageHandler {
+public class AltTopoViewMessageHandler extends UiMessageHandler
+            implements OverlayService {
 
     private static final String TOPO_START = "topoStart";
     private static final String TOPO_STOP = "topoStop";
+    private static final String REQ_SUMMARY = "requestSummary";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -50,6 +61,9 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
 
     private TopoUiListener modelListener;
     private String version;
+    private SummaryGenerator defaultSummaryGenerator;
+    private SummaryGenerator currentSummaryGenerator;
+
 
     private boolean topoActive = false;
 
@@ -58,9 +72,12 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
         super.init(connection, directory);
         this.directory = checkNotNull(directory, "Directory cannot be null");
         modelService = directory.get(TopoUiModelService.class);
+        defaultSummaryGenerator = new DefSummaryGenerator("node", "ONOS Summary");
 
+        bindEventHandlers();
         modelListener = new ModelListener();
         version = getVersion();
+        currentSummaryGenerator = defaultSummaryGenerator;
     }
 
 
@@ -74,9 +91,31 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> getHandlers() {
         return ImmutableSet.of(
                 new TopoStart(),
-                new TopoStop()
+                new TopoStop(),
+                new ReqSummary()
+                // TODO: add more handlers here.....
         );
     }
+
+    // =====================================================================
+    // Overlay Service
+    // TODO: figure out how we are going to switch overlays in and out...
+
+    private final Map<String, SummaryGenerator> summGenCache = Maps.newHashMap();
+
+    @Override
+    public void addSummaryGenerator(String overlayId, SummaryGenerator generator) {
+        log.info("Adding custom Summary Generator for overlay [{}]", overlayId);
+        summGenCache.put(overlayId, generator);
+    }
+
+    @Override
+    public void removeSummaryGenerator(String overlayId) {
+        summGenCache.remove(overlayId);
+        log.info("Custom Summary Generator for overlay [{}] removed", overlayId);
+    }
+
+
 
     // =====================================================================
     // Request Handlers for (topo view) events from the UI...
@@ -91,7 +130,6 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
             topoActive = true;
             modelService.addListener(modelListener);
             sendMessages(modelService.getInitialState());
-            log.debug(TOPO_START);
         }
     }
 
@@ -104,7 +142,43 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
         public void process(long sid, ObjectNode payload) {
             topoActive = false;
             modelService.removeListener(modelListener);
-            log.debug(TOPO_STOP);
+        }
+    }
+
+    private final class ReqSummary extends RequestHandler {
+        private ReqSummary() {
+            super(REQ_SUMMARY);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            modelService.startSummaryMonitoring();
+            // NOTE: showSummary messages forwarded through the model listener
+        }
+    }
+
+    // =====================================================================
+
+    private final class DefSummaryGenerator extends AbstractSummaryGenerator {
+        public DefSummaryGenerator(String iconId, String title) {
+            super(iconId, title);
+        }
+
+        @Override
+        public ObjectNode generateSummary() {
+            SummaryData data = modelService.getSummaryData();
+            iconId("node");
+            title("ONOS Summary");
+            clearProps();
+            prop("Devices", format(data.deviceCount()));
+            prop("Links", format(data.linkCount()));
+            prop("Hosts", format(data.hostCount()));
+            prop("Topology SCCs", format(data.clusterCount()));
+            separator();
+            prop("Intents", format(data.intentCount()));
+            prop("Flows", format(data.flowRuleCount()));
+            prop("Version", version);
+            return buildObjectNode();
         }
     }
 
@@ -120,6 +194,15 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
         }
     }
 
+    private void sendMessages(ObjectNode message) {
+        if (topoActive) {
+            UiConnection connection = connection();
+            if (connection != null) {
+                connection.sendMessage(message);
+            }
+        }
+    }
+
     // =====================================================================
     // Our listener for model events so we can push changes out to the UI...
 
@@ -127,7 +210,46 @@ public class AltTopoViewMessageHandler extends UiMessageHandler {
         @Override
         public void event(TopoUiEvent event) {
             log.debug("Handle Event: {}", event);
-            // TODO: handle event
+            ModelEventHandler handler = eventHandlerBinding.get(event.type());
+
+            // any handlers not bound explicitly are assumed to be pass-thru...
+            if (handler == null) {
+                handler = passThruHandler;
+            }
+            handler.handleEvent(event);
         }
     }
+
+
+    // =====================================================================
+    // Model Event Handler definitions and bindings...
+
+    private interface ModelEventHandler {
+        void handleEvent(TopoUiEvent event);
+    }
+
+    private ModelEventHandler passThruHandler = event -> {
+        // simply forward the event message as is
+        ObjectNode message = event.subject();
+        if (message != null) {
+            sendMessages(event.subject());
+        }
+    };
+
+    private ModelEventHandler summaryHandler = event -> {
+        // use the currently selected summary generator to create the body..
+        ObjectNode payload = currentSummaryGenerator.generateSummary();
+        sendMessages(JsonUtils.envelope("showSummary", payload));
+    };
+
+
+    // TopoUiEvent type binding of handlers
+    private final Map<TopoUiEvent.Type, ModelEventHandler>
+            eventHandlerBinding = new HashMap<>();
+
+    private void bindEventHandlers() {
+        eventHandlerBinding.put(SUMMARY_UPDATE, summaryHandler);
+        // NOTE: no need to bind pass-thru handlers
+    }
+
 }

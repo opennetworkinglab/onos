@@ -29,6 +29,8 @@ import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
+import org.onosproject.ui.impl.topo.OverlayService;
+import org.onosproject.ui.impl.topo.overlay.SummaryGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +48,8 @@ import static org.onosproject.ui.UiView.Category.PLATFORM;
  */
 @Component(immediate = true)
 @Service
-public class UiExtensionManager implements UiExtensionService, SpriteService {
+public class UiExtensionManager
+        implements UiExtensionService, SpriteService, OverlayService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -59,9 +62,13 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
     // Core views & core extension
     private final UiExtension core = createCoreExtension();
 
+    // Topology Message Handler
+    private final AltTopoViewMessageHandler topoHandler =
+            new AltTopoViewMessageHandler();
+
 
     // Creates core UI extension
-    private static UiExtension createCoreExtension() {
+    private UiExtension createCoreExtension() {
         List<UiView> coreViews = of(
                 new UiView(PLATFORM, "app", "Applications", "nav_apps"),
                 new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
@@ -78,7 +85,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
-//                        new AltTopoViewMessageHandler(),
+//                        topoHandler,
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
                         new HostViewMessageHandler(),
@@ -119,7 +126,8 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
     @Override
     public synchronized void unregister(UiExtension extension) {
         extensions.remove(extension);
-        extension.views().stream().map(UiView::id).collect(toSet()).forEach(views::remove);
+        extension.views().stream()
+                .map(UiView::id).collect(toSet()).forEach(views::remove);
     }
 
     @Override
@@ -132,9 +140,10 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
         return views.get(viewId);
     }
 
-
+    // =====================================================================
     // Provisional tracking of sprite definitions
-    private Map<String, JsonNode> sprites = Maps.newHashMap();
+
+    private final Map<String, JsonNode> sprites = Maps.newHashMap();
 
     @Override
     public Set<String> getNames() {
@@ -152,4 +161,18 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
         return sprites.get(name);
     }
 
+
+    // =====================================================================
+    // Topology Overlay API -- pass through to topology message handler
+
+    // NOTE: while WIP, comment out calls to topoHandler (for checked in code)
+    @Override
+    public void addSummaryGenerator(String overlayId, SummaryGenerator generator) {
+        topoHandler.addSummaryGenerator(overlayId, generator);
+    }
+
+    @Override
+    public void removeSummaryGenerator(String overlayId) {
+        topoHandler.removeSummaryGenerator(overlayId);
+    }
 }

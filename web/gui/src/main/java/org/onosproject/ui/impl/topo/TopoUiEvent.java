@@ -29,6 +29,10 @@ public class TopoUiEvent extends AbstractEvent<TopoUiEvent.Type, ObjectNode> {
      * Type of Topology UI Model events.
      */
     public enum Type {
+        // notification events
+        SUMMARY_UPDATE,
+
+        // unsolicited topology events
         INSTANCE_ADDED,
         INSTANCE_REMOVED,
         DEVICE_ADDED,

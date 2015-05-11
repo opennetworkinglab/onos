@@ -56,6 +56,7 @@ public abstract class RequestHandler {
      * @param sid message sequence identifier
      * @param payload request message payload
      */
+    // TODO: remove sid from signature
     public abstract void process(long sid, ObjectNode payload);
 
 

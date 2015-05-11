@@ -47,8 +47,27 @@ public interface TopoUiModelService {
      * These will be in the form of "addInstance", "addDevice", "addLink",
      * and "addHost" events, as appropriate.
      *
-     * @return initial state events
+     * @return initial state messages
      */
     List<ObjectNode> getInitialState();
 
+    /**
+     * Starts the summary monitoring process.
+     * <p>
+     * Sends a "showSummary" message now, and schedules a task to send
+     * updates whenever the data changes.
+     */
+    void startSummaryMonitoring();
+
+    /**
+     * Cancels the task that sends summary updates.
+     */
+    void stopSummaryMonitoring();
+
+    /**
+     * Returns base data about the topology.
+     *
+     * @return summary data
+     */
+    SummaryData getSummaryData();
 }
