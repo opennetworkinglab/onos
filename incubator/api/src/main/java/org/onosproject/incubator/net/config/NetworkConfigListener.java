@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.incubator.net.config;
+
+import org.onosproject.event.EventListener;
 
 /**
- * CLI commands for managing centralized component and network configurations.
+ * Entity capable of receiving network configuration related events.
  */
-package org.onosproject.cli.cfg;
+public interface NetworkConfigListener extends EventListener<NetworkConfigEvent> {
+}

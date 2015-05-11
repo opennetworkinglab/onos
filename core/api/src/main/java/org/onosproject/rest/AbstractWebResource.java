@@ -16,6 +16,7 @@
 package org.onosproject.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecContext;
@@ -27,9 +28,11 @@ import org.onosproject.codec.JsonCodec;
  */
 public class AbstractWebResource extends BaseResource implements CodecContext {
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @Override
     public ObjectMapper mapper() {
-        return new ObjectMapper();
+        return mapper;
     }
 
     /**
@@ -65,4 +68,31 @@ public class AbstractWebResource extends BaseResource implements CodecContext {
         return get(serviceClass);
     }
 
+    /**
+     * Creates and returns a new child object within the specified parent and
+     * bound to the given key.
+     *
+     * @param parent parent object
+     * @param key    key for the new child object
+     * @return child object
+     */
+    public ObjectNode newObject(ObjectNode parent, String key) {
+        ObjectNode node = mapper.createObjectNode();
+        parent.set(key, node);
+        return node;
+    }
+
+    /**
+     * Creates and returns a new child array within the specified parent and
+     * bound to the given key.
+     *
+     * @param parent parent object
+     * @param key    key for the new child array
+     * @return child array
+     */
+    public ArrayNode newArray(ObjectNode parent, String key) {
+        ArrayNode node = mapper.createArrayNode();
+        parent.set(key, node);
+        return node;
+    }
 }

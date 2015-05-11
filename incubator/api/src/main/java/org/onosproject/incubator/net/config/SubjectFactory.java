@@ -19,17 +19,16 @@ package org.onosproject.incubator.net.config;
 import com.google.common.annotations.Beta;
 
 /**
- * Base abstract factory for creating configurations for the specified subject type.
+ * Base abstract factory for creating configuration subjects from their
+ * string key image.
  *
- * @param <S> type of subject
- * @param <C> type of configuration
+ * @param <S> subject class
  */
 @Beta
-public abstract class ConfigFactory<S, C extends Config<S>> {
+public abstract class SubjectFactory<S> {
 
-    private final SubjectFactory<S> subjectFactory;
-    private final Class<C> configClass;
-    private final String configKey;
+    private final Class<S> subjectClass;
+    private final String subjectKey;
 
     /**
      * Creates a new configuration factory for the specified class of subjects
@@ -37,15 +36,12 @@ public abstract class ConfigFactory<S, C extends Config<S>> {
      * subject and configuration class keys are used merely as keys for use in
      * composite JSON trees.
      *
-     * @param subjectFactory subject factory
-     * @param configClass  configuration class
-     * @param configKey    configuration class key
+     * @param subjectClass subject class
+     * @param subjectKey   subject class key
      */
-    protected ConfigFactory(SubjectFactory<S> subjectFactory,
-                            Class<C> configClass, String configKey) {
-        this.subjectFactory = subjectFactory;
-        this.configClass = configClass;
-        this.configKey = configKey;
+    protected SubjectFactory(Class<S> subjectClass, String subjectKey) {
+        this.subjectClass = subjectClass;
+        this.subjectKey = subjectKey;
     }
 
     /**
@@ -53,36 +49,26 @@ public abstract class ConfigFactory<S, C extends Config<S>> {
      *
      * @return subject type
      */
-    public SubjectFactory<S> subjectFactory() {
-        return subjectFactory;
+    public Class<S> subjectClass() {
+        return subjectClass;
     }
 
     /**
-     * Returns the class of the configuration which this factory generates.
-     *
-     * @return configuration type
-     */
-    public Class<C> configClass() {
-        return configClass;
-    }
-
-    /**
-     * Returns the unique key (within subject class) of this configuration.
+     * Returns the unique key of this configuration subject class.
      * This is primarily aimed for use in composite JSON trees in external
      * representations and has no bearing on the internal behaviours.
      *
      * @return configuration key
      */
-    public String configKey() {
-        return configKey;
+    public String subjectKey() {
+        return subjectKey;
     }
 
     /**
-     * Creates a new but uninitialized configuration. Framework will initialize
-     * the configuration via {@link Config#init} method.
+     * Creates a configuration subject from its key image.
      *
-     * @return new uninitialized configuration
+     * @return configuration subject
      */
-    public abstract C createConfig();
+    public abstract S createSubject(String key);
 
 }

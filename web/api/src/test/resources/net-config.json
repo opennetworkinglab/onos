@@ -1,0 +1,12 @@
+{
+  "devices": {
+    "of:001122334455667788": {
+      "basic": {
+        "name": "Test ROADM",
+        "type": "ROADM",
+        "latitude": -38.587,
+        "longitude": 134.567
+      }
+    }
+  }
+}

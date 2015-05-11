@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.incubator.net.config;
+
+import org.onosproject.store.StoreDelegate;
 
 /**
- * CLI commands for managing centralized component and network configurations.
+ * Network configuration store delegate abstraction.
  */
-package org.onosproject.cli.cfg;
+public interface NetworkConfigStoreDelegate extends StoreDelegate<NetworkConfigEvent> {
+}

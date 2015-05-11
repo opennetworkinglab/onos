@@ -17,7 +17,11 @@ package org.onosproject.net;
 
 /**
  * Collection of keys for annotation.
- * Definitions of annotation keys needs to be here to avoid scattering.
+ * <p>
+ * Number of the annotation keys have been deprecated as the use of annotations
+ * is being phased out and instead network configuration subsystem is being
+ * phased-in for majority of model meta-data.
+ * </p>
  */
 public final class AnnotationKeys {
 
@@ -26,22 +30,34 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for instance name.
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String NAME = "name";
 
     /**
      * Annotation key for instance type (e.g. host type).
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String TYPE = "type";
 
     /**
      * Annotation key for latitude (e.g. latitude of device).
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String LATITUDE = "latitude";
 
     /**
      * Annotation key for longitute (e.g. longitude of device).
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String LONGITUDE = "longitude";
 
     /**
@@ -51,7 +67,10 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for the device driver name.
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String DRIVER = "driver";
 
     /**
@@ -61,13 +80,19 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for latency.
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String LATENCY = "latency";
 
     /**
      * Annotation key for bandwidth.
      * The value for this key is interpreted as Mbps.
+     *
+     * @deprecated since Cardinal
      */
+    @Deprecated
     public static final String BANDWIDTH = "bandwidth";
 
     /**

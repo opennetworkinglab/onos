@@ -16,103 +16,91 @@
 package org.onosproject.incubator.net.config;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.Beta;
+import org.onosproject.store.Store;
 
 import java.util.Set;
 
 /**
- * Service for tracking network configurations which specify how the discovered
- * network information should be interpreted and how the core or applications
- * should act on or configure the network.
+ * Mechanism for distributing and storing network configuration information.
  */
-@Beta
-public interface NetworkConfigService {
+public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkConfigStoreDelegate> {
 
     /**
-     * Returns the set of subject classes for which configuration may be
-     * available.
+     * Adds a new configuration factory.
      *
-     * @return set of subject classes
+     * @param configFactory configuration factory to add
      */
-    Set<Class> getSubjectClasses();
+    void addConfigFactory(ConfigFactory configFactory);
 
     /**
-     * Returns the subject factory with the specified key.
+     * Removes a configuration factory.
      *
-     * @param subjectKey subject class key
-     * @return subject class
+     * @param configFactory configuration factory to remove
      */
-    SubjectFactory getSubjectFactory(String subjectKey);
+    void removeConfigFactory(ConfigFactory configFactory);
 
     /**
-     * Returns the subject factory for the specified class.
+     * Returns the configuration factory for the specified configuration class.
      *
-     * @param subjectClass subject class
-     * @return subject class key
+     * @param configClass configuration class
+     * @param <S>         type of subject
+     * @param <C>          type of configuration
+     * @return configuration factory or null
      */
-    SubjectFactory getSubjectFactory(Class subjectClass);
+    <S, C extends Config<S>> ConfigFactory<S, C> getConfigFactory(Class<C> configClass);
 
     /**
-     * Returns the configuration class with the specified key.
-     *
-     * @param configKey subject class name
-     * @return subject class
-     */
-    Class<? extends Config> getConfigClass(String configKey);
-
-    /**
-     * Returns the set of subjects for which some configuration is available.
+     * Returns set of subjects of the specified class, which have some
+     * network configuration associated with them.
      *
      * @param subjectClass subject class
      * @param <S>          type of subject
-     * @return set of configured subjects
+     * @return set of subject
      */
     <S> Set<S> getSubjects(Class<S> subjectClass);
 
     /**
-     * Returns the set of subjects for which the specified configuration is
-     * available.
+     * Returns set of subjects of the specified class, which have the
+     * specified class of network configuration associated with them.
      *
      * @param subjectClass subject class
      * @param configClass  configuration class
      * @param <S>          type of subject
      * @param <C>          type of configuration
-     * @return set of configured subjects
+     * @return set of subject
      */
     <S, C extends Config<S>> Set<S> getSubjects(Class<S> subjectClass, Class<C> configClass);
 
     /**
-     * Returns all configurations for the specified subject.
+     * Returns set of configuration classes available for the specified subject.
      *
      * @param subject configuration subject
      * @param <S>     type of subject
-     * @return set of configurations
+     * @return set of configuration classes
      */
-    <S> Set<? extends Config<S>> getConfigs(S subject);
+    <S> Set<Class<? extends Config<S>>> getConfigClasses(S subject);
 
     /**
-     * Returns the configuration for the specified subject and configuration
-     * class if one is available; null otherwise.
+     * Get the configuration of the given class and for the specified subject.
      *
      * @param subject     configuration subject
      * @param configClass configuration class
      * @param <S>         type of subject
      * @param <C>         type of configuration
-     * @return configuration or null if one is not available
+     * @return configuration object
      */
     <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass);
 
     /**
-     * Creates a new configuration for the specified subject and configuration
-     * class. If one already exists, it is simply returned.
+     * Creates a new configuration of the given class for the specified subject.
      *
      * @param subject     configuration subject
      * @param configClass configuration class
      * @param <S>         type of subject
      * @param <C>         type of configuration
-     * @return configuration or null if one is not available
+     * @return configuration object
      */
-    <S, C extends Config<S>> C addConfig(S subject, Class<C> configClass);
+    <S, C extends Config<S>> C createConfig(S subject, Class<C> configClass);
 
     /**
      * Applies configuration for the specified subject and configuration
@@ -124,33 +112,18 @@ public interface NetworkConfigService {
      * @param json        raw JSON node containing the configuration data
      * @param <S>         type of subject
      * @param <C>         type of configuration
-     * @return configuration or null if one is not available
      */
     <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass,
                                            ObjectNode json);
 
     /**
-     * Clears any configuration for the specified subject and configuration
-     * class. If one does not exist, this call has no effect.
+     * Clears the configuration of the given class for the specified subject.
      *
      * @param subject     configuration subject
      * @param configClass configuration class
      * @param <S>         type of subject
      * @param <C>         type of configuration
      */
-    <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass);
+    <S, C extends Config<S>> void clearConfig(S subject, Class<C> configClass);
 
-    /**
-     * Adds the specified network config listener.
-     *
-     * @param listener network config listener
-     */
-    void addListener(NetworkConfigListener listener);
-
-    /**
-     * Removes the specified network config listener.
-     *
-     * @param listener network config listener
-     */
-    void removeListener(NetworkConfigListener listener);
 }

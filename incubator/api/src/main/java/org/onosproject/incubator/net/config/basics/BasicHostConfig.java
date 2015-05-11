@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.incubator.net.config.basics;
+
+import org.onosproject.net.HostId;
 
 /**
- * CLI commands for managing centralized component and network configurations.
+ * Basic configuration for network end-station hosts.
  */
-package org.onosproject.cli.cfg;
+public class BasicHostConfig extends BasicElementConfig<HostId> {
+
+    // TODO: determine what aspects of configuration to add for hosts
+
+}
