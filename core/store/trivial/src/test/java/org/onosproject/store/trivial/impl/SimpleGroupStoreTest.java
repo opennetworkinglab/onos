@@ -20,6 +20,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -307,7 +308,7 @@ public class SimpleGroupStoreTest {
         PortNumber[] newNeighborPorts = {PortNumber.portNumber(41),
                                          PortNumber.portNumber(42)};
         List<PortNumber> newOutPorts = new ArrayList<PortNumber>();
-        newOutPorts.addAll(Arrays.asList(newNeighborPorts[0]));
+        newOutPorts.addAll(Collections.singletonList(newNeighborPorts[0]));
 
         List<GroupBucket> toAddBuckets = new ArrayList<GroupBucket>();
         for (PortNumber portNumber: newOutPorts) {

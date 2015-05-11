@@ -44,7 +44,7 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.resource.LinkResourceAllocations;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -104,7 +104,7 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
         for (DeviceId deviceId: outputPorts.keys()) {
             rules.addAll(createRules(intent, deviceId, inputPorts.get(deviceId), outputPorts.get(deviceId)));
         }
-        return Arrays.asList(new FlowRuleIntent(appId, rules, intent.resources()));
+        return Collections.singletonList(new FlowRuleIntent(appId, rules, intent.resources()));
     }
 
     private List<FlowRule> createRules(LinkCollectionIntent intent, DeviceId deviceId,

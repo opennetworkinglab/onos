@@ -18,7 +18,7 @@ package org.onosproject.segmentrouting.grouphandler;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -95,8 +95,8 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                     new GroupBucketIdentifier(label, sp);
                             PolicyGroupIdentifier key = new
                                     PolicyGroupIdentifier(id,
-                                                          Arrays.asList(param),
-                                                          Arrays.asList(bucketId));
+                                                          Collections.singletonList(param),
+                                                          Collections.singletonList(bucketId));
                             TrafficTreatment.Builder tBuilder =
                                     DefaultTrafficTreatment.builder();
                             tBuilder.setOutput(sp)
@@ -122,8 +122,8 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                                               previousGroupkey);
                             PolicyGroupIdentifier key = new
                                     PolicyGroupIdentifier(id,
-                                                          Arrays.asList(param),
-                                                          Arrays.asList(bucketId));
+                                                          Collections.singletonList(param),
+                                                          Collections.singletonList(bucketId));
                             // Add to group dependency list
                             dependentGroups.put(previousGroupkey, key);
                             previousGroupkey = key;
@@ -283,8 +283,8 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                     new GroupBucketIdentifier(label, sp);
                             PolicyGroupIdentifier key = new
                                     PolicyGroupIdentifier(id,
-                                                          Arrays.asList(param),
-                                                          Arrays.asList(bucketId));
+                                                          Collections.singletonList(param),
+                                                          Collections.singletonList(bucketId));
                             previousGroupkey = key;
                         } else {
                             // Intermediate Groups
@@ -293,8 +293,8 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                                               previousGroupkey);
                             PolicyGroupIdentifier key = new
                                     PolicyGroupIdentifier(id,
-                                                          Arrays.asList(param),
-                                                          Arrays.asList(bucketId));
+                                                          Collections.singletonList(param),
+                                                          Collections.singletonList(bucketId));
                             previousGroupkey = key;
                         }
                     }

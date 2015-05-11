@@ -16,6 +16,7 @@
 package org.onosproject.net.intent;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
@@ -93,7 +94,7 @@ public class PathIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .path(new DefaultPath(provider1, Arrays.asList(link1), cost))
+                .path(new DefaultPath(provider1, Collections.singletonList(link1), cost))
                 .build();
     }
 

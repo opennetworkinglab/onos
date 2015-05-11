@@ -40,7 +40,7 @@ import org.onosproject.net.intent.impl.IntentProcessor;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Timestamp;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,7 +70,7 @@ public class CompilingTest {
     private final ConnectPoint cp3 = new ConnectPoint(deviceId("2"), portNumber(1));
     private final ConnectPoint cp4 = new ConnectPoint(deviceId("2"), portNumber(2));
 
-    private final List<Link> links = Arrays.asList(new DefaultLink(pid, cp2, cp4, DIRECT));
+    private final List<Link> links = Collections.singletonList(new DefaultLink(pid, cp2, cp4, DIRECT));
     private final Path path = new DefaultPath(pid, links, 10);
 
     private PointToPointIntent input;
@@ -118,7 +118,7 @@ public class CompilingTest {
     public void testMoveToNextPhaseWithoutError() {
         IntentData pending = new IntentData(input, INSTALL_REQ, version);
 
-        expect(processor.compile(input, null)).andReturn(Arrays.asList(compiled));
+        expect(processor.compile(input, null)).andReturn(Collections.singletonList(compiled));
         replay(processor);
 
         Compiling sut = new Compiling(processor, pending, Optional.empty());

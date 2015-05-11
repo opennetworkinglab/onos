@@ -78,7 +78,6 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashSet;
@@ -388,7 +387,7 @@ public class DistributedFlowRuleStore
     @Override
     public void storeFlowRule(FlowRule rule) {
         storeBatch(new FlowRuleBatchOperation(
-                Arrays.asList(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule)),
+                Collections.singletonList(new FlowRuleBatchEntry(FlowRuleOperation.ADD, rule)),
                 rule.deviceId(), idGenerator.getNewId()));
     }
 
@@ -516,7 +515,7 @@ public class DistributedFlowRuleStore
     public void deleteFlowRule(FlowRule rule) {
         storeBatch(
                 new FlowRuleBatchOperation(
-                        Arrays.asList(
+                        Collections.singletonList(
                                 new FlowRuleBatchEntry(
                                         FlowRuleOperation.REMOVE,
                                         rule)), rule.deviceId(), idGenerator.getNewId()));

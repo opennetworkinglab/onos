@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,6 +77,6 @@ public class SinglePointToMultiPointIntentCompiler
                 .constraints(intent.constraints())
                 .build();
 
-        return Arrays.asList(result);
+        return Collections.singletonList(result);
     }
 }

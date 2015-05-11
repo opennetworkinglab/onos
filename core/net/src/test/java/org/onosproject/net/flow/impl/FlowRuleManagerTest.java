@@ -63,7 +63,6 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.impl.SimpleFlowRuleStore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -412,7 +411,7 @@ public class FlowRuleManagerTest {
 
         @Override
         public Iterable<Device> getDevices() {
-            return Arrays.asList(DEV);
+            return Collections.singletonList(DEV);
         }
 
         @Override

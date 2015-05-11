@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +110,7 @@ public class MultiPointToSinglePointIntentCompiler
                 .constraints(intent.constraints())
                 .build();
 
-        return Arrays.asList(result);
+        return Collections.singletonList(result);
     }
 
     /**

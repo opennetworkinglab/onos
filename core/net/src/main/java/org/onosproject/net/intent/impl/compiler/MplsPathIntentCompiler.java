@@ -52,7 +52,7 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,7 +86,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         LinkResourceAllocations allocations = assignMplsLabel(intent);
         List<FlowRule> rules = generateRules(intent, allocations);
 
-        return Arrays.asList(new FlowRuleIntent(appId, rules, intent.resources()));
+        return Collections.singletonList(new FlowRuleIntent(appId, rules, intent.resources()));
     }
 
     @Activate

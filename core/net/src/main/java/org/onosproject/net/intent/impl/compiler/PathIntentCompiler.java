@@ -38,7 +38,7 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.resource.LinkResourceAllocations;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -80,7 +80,7 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
             rules.add(rule);
         }
 
-        return Arrays.asList(new FlowRuleIntent(appId, null, rules, intent.resources()));
+        return Collections.singletonList(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
 
     private FlowRule createFlowRule(TrafficSelector originalSelector, TrafficTreatment originalTreatment,

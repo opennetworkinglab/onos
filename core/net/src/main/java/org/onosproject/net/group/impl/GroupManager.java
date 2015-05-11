@@ -17,8 +17,8 @@ package org.onosproject.net.group.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -261,7 +261,7 @@ public class GroupManager
                                                 group.type(),
                                                 group.buckets());
                 groupOps = new GroupOperations(
-                                          Arrays.asList(groupAddOp));
+                        Collections.singletonList(groupAddOp));
                 groupProvider.performGroupOperation(group.deviceId(), groupOps);
                 break;
 
@@ -273,7 +273,7 @@ public class GroupManager
                                                 group.type(),
                                                 group.buckets());
                 groupOps = new GroupOperations(
-                                   Arrays.asList(groupModifyOp));
+                        Collections.singletonList(groupModifyOp));
                 groupProvider.performGroupOperation(group.deviceId(), groupOps);
                 break;
 
@@ -284,7 +284,7 @@ public class GroupManager
                         createDeleteGroupOperation(group.id(),
                                                 group.type());
                 groupOps = new GroupOperations(
-                                   Arrays.asList(groupDeleteOp));
+                        Collections.singletonList(groupDeleteOp));
                 groupProvider.performGroupOperation(group.deviceId(), groupOps);
                 break;
 
@@ -335,7 +335,7 @@ public class GroupManager
                                                             group.type(),
                                                             group.buckets());
                     GroupOperations groupOps = new GroupOperations(
-                                              Arrays.asList(groupAddOp));
+                            Collections.singletonList(groupAddOp));
                     gp.performGroupOperation(group.deviceId(), groupOps);
                     break;
                 default:

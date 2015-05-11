@@ -46,7 +46,6 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -151,7 +150,7 @@ public class IntentManagerTest {
     private static class MockInstallableIntent extends FlowRuleIntent {
 
         public MockInstallableIntent() {
-            super(APPID, Arrays.asList(new MockFlowRule(100)));
+            super(APPID, Collections.singletonList(new MockFlowRule(100)));
         }
     }
 

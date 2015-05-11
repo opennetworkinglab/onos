@@ -258,9 +258,9 @@ public class GroupManagerTest {
                                         DID,
                                         Group.Type.SELECT,
                                         createdGroup.buckets());
-        List<Group> groupEntries = Arrays.asList(createdGroup);
+        List<Group> groupEntries = Collections.singletonList(createdGroup);
         providerService.pushGroupMetrics(DID, groupEntries);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_ADDED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_ADDED));
     }
 
     // Test group add bucket operations
@@ -296,15 +296,15 @@ public class GroupManagerTest {
                                        addKey,
                                        appId);
         GroupBuckets updatedBuckets = new GroupBuckets(buckets);
-        List<GroupOperation> expectedGroupOps = Arrays.asList(
-               GroupOperation.createModifyGroupOperation(createdGroup.id(),
-                                                         Group.Type.SELECT,
-                                                         updatedBuckets));
+        List<GroupOperation> expectedGroupOps = Collections.singletonList(
+                GroupOperation.createModifyGroupOperation(createdGroup.id(),
+                        Group.Type.SELECT,
+                        updatedBuckets));
         internalProvider.validate(DID, expectedGroupOps);
         Group existingGroup = groupService.getGroup(DID, addKey);
-        List<Group> groupEntries = Arrays.asList(existingGroup);
+        List<Group> groupEntries = Collections.singletonList(existingGroup);
         providerService.pushGroupMetrics(DID, groupEntries);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_UPDATED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_UPDATED));
     }
 
     // Test group remove bucket operations
@@ -340,15 +340,15 @@ public class GroupManagerTest {
                                             removeKey,
                                             appId);
         GroupBuckets updatedBuckets = new GroupBuckets(buckets);
-        List<GroupOperation> expectedGroupOps = Arrays.asList(
-               GroupOperation.createModifyGroupOperation(createdGroup.id(),
-                                                         Group.Type.SELECT,
-                                                         updatedBuckets));
+        List<GroupOperation> expectedGroupOps = Collections.singletonList(
+                GroupOperation.createModifyGroupOperation(createdGroup.id(),
+                        Group.Type.SELECT,
+                        updatedBuckets));
         internalProvider.validate(DID, expectedGroupOps);
         Group existingGroup = groupService.getGroup(DID, removeKey);
-        List<Group> groupEntries = Arrays.asList(existingGroup);
+        List<Group> groupEntries = Collections.singletonList(existingGroup);
         providerService.pushGroupMetrics(DID, groupEntries);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_UPDATED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_UPDATED));
     }
 
     // Test group remove operations
@@ -356,13 +356,13 @@ public class GroupManagerTest {
         GroupKey currKey = new DefaultGroupKey("group1RemoveBuckets".getBytes());
         Group existingGroup = groupService.getGroup(DID, currKey);
         groupService.removeGroup(DID, currKey, appId);
-        List<GroupOperation> expectedGroupOps = Arrays.asList(
-             GroupOperation.createDeleteGroupOperation(existingGroup.id(),
-                                                       Group.Type.SELECT));
+        List<GroupOperation> expectedGroupOps = Collections.singletonList(
+                GroupOperation.createDeleteGroupOperation(existingGroup.id(),
+                        Group.Type.SELECT));
         internalProvider.validate(DID, expectedGroupOps);
         List<Group> groupEntries = Collections.emptyList();
         providerService.pushGroupMetrics(DID, groupEntries);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_REMOVED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_REMOVED));
     }
 
     /**
@@ -423,7 +423,7 @@ public class GroupManagerTest {
                         createdGroup.type(),
                         createdGroup.buckets());
         providerService.groupOperationFailed(DID, groupAddOp);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_ADD_FAILED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_ADD_FAILED));
 
         // Group Mod failure test
         groupService.addGroup(newGroupDesc);
@@ -435,7 +435,7 @@ public class GroupManagerTest {
                         createdGroup.type(),
                         createdGroup.buckets());
         providerService.groupOperationFailed(DID, groupModOp);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_UPDATE_FAILED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_UPDATE_FAILED));
 
         // Group Delete failure test
         groupService.addGroup(newGroupDesc);
@@ -446,7 +446,7 @@ public class GroupManagerTest {
                 createDeleteGroupOperation(createdGroup.id(),
                         createdGroup.type());
         providerService.groupOperationFailed(DID, groupDelOp);
-        internalListener.validateEvent(Arrays.asList(GroupEvent.Type.GROUP_REMOVE_FAILED));
+        internalListener.validateEvent(Collections.singletonList(GroupEvent.Type.GROUP_REMOVE_FAILED));
 
     }
 

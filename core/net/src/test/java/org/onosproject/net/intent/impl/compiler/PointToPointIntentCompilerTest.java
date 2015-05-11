@@ -38,7 +38,7 @@ import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.resource.LambdaResource;
 import org.onosproject.net.resource.LinkResourceService;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -228,8 +228,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
-        final List<Constraint> constraints = Arrays.asList(
-                new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(100.0))));
+        final List<Constraint> constraints =
+                Collections.singletonList(new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(100.0))));
 
         final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
 
@@ -250,8 +250,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
-        final List<Constraint> constraints = Arrays.asList(
-                new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(100.0))));
+        final List<Constraint> constraints =
+                Collections.singletonList(new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(100.0))));
 
         try {
             final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
@@ -274,7 +274,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testLambdaConstrainedIntentSuccess() {
 
-        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(LambdaResource.valueOf(1)));
+        final List<Constraint> constraints =
+                Collections.singletonList(new LambdaConstraint(LambdaResource.valueOf(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
 
@@ -297,7 +298,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testLambdaConstrainedIntentFailure() {
 
-        final List<Constraint> constraints = Arrays.asList(new LambdaConstraint(LambdaResource.valueOf(1)));
+        final List<Constraint> constraints =
+                Collections.singletonList(new LambdaConstraint(LambdaResource.valueOf(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
         try {

@@ -73,7 +73,6 @@ import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -313,7 +312,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             log.warn("Unsupported Group type {}", group.type());
             return;
         }
-        GroupBuckets bucketsToAdd = new GroupBuckets(Arrays.asList(bucket));
+        GroupBuckets bucketsToAdd = new GroupBuckets(Collections.singletonList(bucket));
         groupService.addBucketsToGroup(deviceId, key, bucketsToAdd, key, appId);
     }
 
@@ -339,7 +338,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                 log.warn("Unsupported Group type {}", group.type());
                 return;
             }
-            GroupBuckets removeBuckets = new GroupBuckets(Arrays.asList(bucket));
+            GroupBuckets removeBuckets = new GroupBuckets(Collections.singletonList(bucket));
             groupService.removeBucketsFromGroup(deviceId, key, removeBuckets, key, appId);
         }
     }

@@ -46,7 +46,7 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.topology.TopologyService;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -88,7 +88,8 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                                 Set<LinkResourceAllocations> resources) {
         LinkResourceAllocations allocations = assignWavelength(intent);
 
-        return Arrays.asList(new FlowRuleIntent(appId, createRules(intent, allocations), intent.resources()));
+        return Collections.singletonList(
+                new FlowRuleIntent(appId, createRules(intent, allocations), intent.resources()));
     }
 
     private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
