@@ -44,8 +44,13 @@
     // Panel API
     function createTopoPanel(id, opts) {
         var p = ps.createPanel(id, opts),
+            pid = id,
             header, body, footer;
         p.classed(pCls, true);
+
+        function panel() {
+            return p;
+        }
 
         function hAppend(x) {
             return header.append(x);
@@ -71,6 +76,10 @@
             footer = p.el().select('.footer');
         }
 
+        function destroy() {
+            ps.destroyPanel(pid);
+        }
+
         // fromTop is how many pixels from the top of the page the panel is
         // max is the max height of the panel in pixels
         //    only adjusts if the body content would be 10px or larger
@@ -83,10 +92,7 @@
                 $log.warn('adjustHeight: height from top of page not given');
                 return null;
             } else if (!body || !p) {
-                // if we have reached this function without setting a panel
-                // sometimes the d3 tick function calls detail panel's 'up'
-                // on reload when body isn't defined yet.
-                $log.warn('adjustHeight: panel is not defined');
+                $log.warn('adjustHeight: panel contents are not defined');
                 return null;
             }
 
@@ -119,8 +125,9 @@
         }
 
         return {
-            panel: p,
+            panel: panel,
             setup: setup,
+            destroy: destroy,
             appendHeader: hAppend,
             appendBody: bAppend,
             appendFooter: fAppend,
@@ -317,7 +324,7 @@
 
     function toggleSummary(x) {
         var kev = (x === 'keyev'),
-            on = kev ? !summary.panel.isVisible() : !!x,
+            on = kev ? !summary.panel().isVisible() : !!x,
             verb = on ? 'Show' : 'Hide';
 
         if (on) {
@@ -336,10 +343,10 @@
 
     function showSummaryPanel() {
         function _show() {
-            summary.panel.show();
+            summary.panel().show();
             summary.adjustHeight(64, 226);
         }
-        if (detail.panel.isVisible()) {
+        if (detail.panel().isVisible()) {
             detail.down(_show);
         } else {
             _show();
@@ -349,19 +356,20 @@
     function hideSummaryPanel() {
         // instruct server to stop sending summary data
         wss.sendEvent("cancelSummary");
-        summary.panel.hide(detail.up);
+        summary.panel().hide(detail.up);
     }
 
     function showDetailPanel() {
-        if (summary.panel.isVisible()) {
-            detail.down(detail.panel.show);
+        if (summary.panel().isVisible()) {
+            detail.down(detail.panel().show);
         } else {
-            detail.up(detail.panel.show);
+            detail.up(detail.panel().show);
         }
+        detail.adjustHeight(detail.ypos.current);
     }
 
     function hideDetailPanel() {
-        detail.panel.hide();
+        detail.panel().hide();
     }
 
     // ==========================
@@ -377,7 +385,7 @@
                 yp = d.ypos;
             if (yp.current !== y) {
                 yp.current = y;
-                d.panel.el().transition().duration(300)
+                d.panel().el().transition().duration(300)
                     .each('end', endCb)
                     .style('top', yp.current + 'px');
             } else {
@@ -385,15 +393,8 @@
             }
         };
 
-        // d.up is being called on the tick function for some reason
-        d.down = function (cb) {
-            d._move(d.ypos.down, cb);
-            detail.adjustHeight(d.ypos.current);
-        };
-        d.up = function (cb) {
-            d._move(d.ypos.up, cb);
-            detail.adjustHeight(d.ypos.current);
-        };
+        d.down = function (cb) { d._move(d.ypos.down, cb); };
+        d.up = function (cb) { d._move(d.ypos.up, cb); };
     }
 
     function toggleUseDetailsFlag(x) {
@@ -424,9 +425,11 @@
     }
 
     function destroyPanels() {
-        ps.destroyPanel(idSum);
-        ps.destroyPanel(idDet);
-        summary.panel = detail.panel = null;
+        summary.destroy();
+        summary = null;
+
+        detail.destroy();
+        detail = null;
         haveDetails = false;
     }
 
@@ -464,8 +467,8 @@
 
                 hideSummaryPanel: hideSummaryPanel,
 
-                detailVisible: function () { return detail.panel.isVisible(); },
-                summaryVisible: function () { return summary.panel.isVisible(); }
+                detailVisible: function () { return detail.panel().isVisible(); },
+                summaryVisible: function () { return summary.panel().isVisible(); }
             };
         }]);
 }());
