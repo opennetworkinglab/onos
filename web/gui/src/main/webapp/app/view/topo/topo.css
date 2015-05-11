@@ -82,7 +82,7 @@
 
 #topo-p-detail {
     /* Base css from panel.css */
-    top: 320px;
+    top: 310px;
 }
 
 #topo-p-detail .actionBtns .actionBtn {
@@ -94,6 +94,10 @@
 }
 
 /* --- general topo-panel styling --- */
+
+.topo-p div.body {
+    overflow-y: scroll;
+}
 
 .topo-p svg {
     display: inline-block;
@@ -119,7 +123,9 @@
 
 .topo-p h2 {
     position: absolute;
-    margin: 0 4px;
+    padding: 0 4px;
+    margin: 0;
+    word-wrap: break-word;
     top: 20px;
     left: 50px;
 }
@@ -131,7 +137,9 @@
 }
 
 .topo-p h3 {
-    margin: 0 4px;
+    padding: 0 4px;
+    margin: 0;
+    word-wrap: break-word;
     top: 20px;
     left: 50px;
 }
@@ -143,16 +151,19 @@
 }
 
 .topo-p p, table {
-    margin: 4px 4px;
+    padding: 4px;
+    margin: 0;
 }
 
+.topo-p td {
+    word-wrap: break-word;
+}
 .topo-p td.label {
     font-style: italic;
     padding-right: 12px;
     /* works for both light and dark themes ... */
     color: #777;
 }
-
 .topo-p td.value {
 }
 

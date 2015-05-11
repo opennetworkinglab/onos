@@ -33,19 +33,111 @@
             width: 260
         };
 
-    // panels
-    var summaryPanel,
-        detailPanel;
-
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
         haveDetails = false;    // do we have details that we could show?
+
+    // panels
+    var summary, detail;
+
+    // === -----------------------------------------------------
+    // Panel API
+    function createTopoPanel(id, opts) {
+        var p = ps.createPanel(id, opts),
+            header, body, footer;
+        p.classed(pCls, true);
+
+        function hAppend(x) {
+            return header.append(x);
+        }
+
+        function bAppend(x) {
+            return body.append(x);
+        }
+
+        function fAppend(x) {
+            return footer.append(x);
+        }
+
+        function setup() {
+            p.empty();
+
+            p.append('div').classed('header', true);
+            p.append('div').classed('body', true);
+            p.append('div').classed('footer', true);
+
+            header = p.el().select('.header');
+            body = p.el().select('.body');
+            footer = p.el().select('.footer');
+        }
+
+        // fromTop is how many pixels from the top of the page the panel is
+        // max is the max height of the panel in pixels
+        //    only adjusts if the body content would be 10px or larger
+        function adjustHeight(fromTop, max) {
+            var totalPHeight, avSpace,
+                overflow = 0,
+                pdg = 30;
+
+            if (!fromTop) {
+                $log.warn('adjustHeight: height from top of page not given');
+                return null;
+            } else if (!body || !p) {
+                // if we have reached this function without setting a panel
+                // sometimes the d3 tick function calls detail panel's 'up'
+                // on reload when body isn't defined yet.
+                $log.warn('adjustHeight: panel is not defined');
+                return null;
+            }
+
+            p.el().style('height', null);
+            body.style('height', null);
+
+            totalPHeight = fromTop + p.height();
+            avSpace = fs.windowSize(pdg).height;
+
+            if (totalPHeight >= avSpace) {
+                overflow = totalPHeight - avSpace;
+            }
+
+            function _adjustBody(height) {
+                if (height < 10) {
+                    return false;
+                } else {
+                    body.style('height', height + 'px');
+                }
+                return true;
+            }
+
+            if (!_adjustBody(fs.noPxStyle(body, 'height') - overflow)) {
+                return;
+            }
+
+            if (max && p.height() > max) {
+                _adjustBody(fs.noPxStyle(body, 'height') - (p.height() - max));
+            }
+        }
+
+        return {
+            panel: p,
+            setup: setup,
+            appendHeader: hAppend,
+            appendBody: bAppend,
+            appendFooter: fAppend,
+            adjustHeight: adjustHeight
+        };
+    }
 
     // === -----------------------------------------------------
     // Utility functions
 
     function addSep(tbody) {
         tbody.append('tr').append('td').attr('colspan', 2).append('hr');
+    }
+
+    function addBtnFooter() {
+        detail.appendFooter('hr');
+        detail.appendFooter('div').classed('actionBtns', true);
     }
 
     function addProp(tbody, label, value) {
@@ -65,7 +157,7 @@
     }
 
     function listProps(tbody, data) {
-        data.propOrder.forEach(function(p) {
+        data.propOrder.forEach(function (p) {
             if (p === '-') {
                 addSep(tbody);
             } else {
@@ -74,23 +166,15 @@
         });
     }
 
-    function dpa(x) {
-        return detailPanel.append(x);
-    }
-
-    function spa(x) {
-        return summaryPanel.append(x);
-    }
-
     // === -----------------------------------------------------
     //  Functions for populating the summary panel
 
     function populateSummary(data) {
-        summaryPanel.empty();
+        summary.setup();
 
-        var svg = spa('svg'),
-            title = spa('h2'),
-            table = spa('table'),
+        var svg = summary.appendHeader('svg'),
+            title = summary.appendHeader('h2'),
+            table = summary.appendBody('table'),
             tbody = table.append('tbody');
 
         gs.addGlyph(svg, 'node', 40);
@@ -104,33 +188,31 @@
     //  Functions for populating the detail panel
 
     function displaySingle(data) {
-        detailPanel.empty();
+        detail.setup();
 
-        var svg = dpa('svg'),
-            title = dpa('h2'),
-            table = dpa('table'),
+        var svg = detail.appendHeader('svg'),
+            title = detail.appendHeader('h2'),
+            table = detail.appendBody('table'),
             tbody = table.append('tbody');
 
         gs.addGlyph(svg, (data.type || 'unknown'), 40);
         title.text(data.id);
         listProps(tbody, data);
-        dpa('hr');
-        dpa('div').classed('actionBtns', true);
+        addBtnFooter();
     }
 
     function displayMulti(ids) {
-        detailPanel.empty();
+        detail.setup();
 
-        var title = dpa('h3'),
-            table = dpa('table'),
+        var title = detail.appendHeader('h3'),
+            table = detail.appendBody('table'),
             tbody = table.append('tbody');
 
         title.text('Selected Nodes');
         ids.forEach(function (d, i) {
             addProp(tbody, i+1, d);
         });
-        dpa('hr');
-        dpa('div').classed('actionBtns', true);
+        addBtnFooter();
     }
 
     function addAction(o) {
@@ -177,11 +259,11 @@
         ];
 
     function displayLink(data) {
-        detailPanel.empty();
+        detail.setup();
 
-        var svg = dpa('svg'),
-            title = dpa('h2'),
-            table = dpa('table'),
+        var svg = detail.appendHeader('svg'),
+            title = detail.appendHeader('h2'),
+            table = detail.appendBody('table'),
             tbody = table.append('tbody'),
             edgeLink = data.type() === 'hostLink',
             order = edgeLink ? edgeOrder : coreOrder;
@@ -235,7 +317,7 @@
 
     function toggleSummary(x) {
         var kev = (x === 'keyev'),
-            on = kev ? !summaryPanel.isVisible() : !!x,
+            on = kev ? !summary.panel.isVisible() : !!x,
             verb = on ? 'Show' : 'Hide';
 
         if (on) {
@@ -253,29 +335,33 @@
     // === LOGIC For showing/hiding summary and detail panels...
 
     function showSummaryPanel() {
-        if (detailPanel.isVisible()) {
-            detailPanel.down(summaryPanel.show);
+        function _show() {
+            summary.panel.show();
+            summary.adjustHeight(64, 226);
+        }
+        if (detail.panel.isVisible()) {
+            detail.down(_show);
         } else {
-            summaryPanel.show();
+            _show();
         }
     }
 
     function hideSummaryPanel() {
         // instruct server to stop sending summary data
         wss.sendEvent("cancelSummary");
-        summaryPanel.hide(detailPanel.up);
+        summary.panel.hide(detail.up);
     }
 
     function showDetailPanel() {
-        if (summaryPanel.isVisible()) {
-            detailPanel.down(detailPanel.show);
+        if (summary.panel.isVisible()) {
+            detail.down(detail.panel.show);
         } else {
-            detailPanel.up(detailPanel.show);
+            detail.up(detail.panel.show);
         }
     }
 
     function hideDetailPanel() {
-        detailPanel.hide();
+        detail.panel.hide();
     }
 
     // ==========================
@@ -283,15 +369,15 @@
     function noop () {}
 
     function augmentDetailPanel() {
-        var dp = detailPanel;
-        dp.ypos = { up: 64, down: 320, current: 320};
+        var d = detail;
+        d.ypos = { up: 64, down: 310, current: 310};
 
-        dp._move = function (y, cb) {
+        d._move = function (y, cb) {
             var endCb = fs.isF(cb) || noop,
-                yp = dp.ypos;
+                yp = d.ypos;
             if (yp.current !== y) {
                 yp.current = y;
-                dp.el().transition().duration(300)
+                d.panel.el().transition().duration(300)
                     .each('end', endCb)
                     .style('top', yp.current + 'px');
             } else {
@@ -299,8 +385,15 @@
             }
         };
 
-        dp.down = function (cb) { dp._move(dp.ypos.down, cb); };
-        dp.up = function (cb) { dp._move(dp.ypos.up, cb); };
+        // d.up is being called on the tick function for some reason
+        d.down = function (cb) {
+            d._move(d.ypos.down, cb);
+            detail.adjustHeight(d.ypos.current);
+        };
+        d.up = function (cb) {
+            d._move(d.ypos.up, cb);
+            detail.adjustHeight(d.ypos.current);
+        };
     }
 
     function toggleUseDetailsFlag(x) {
@@ -324,11 +417,8 @@
     // ==========================
 
     function initPanels() {
-        summaryPanel = ps.createPanel(idSum, panelOpts);
-        detailPanel = ps.createPanel(idDet, panelOpts);
-
-        summaryPanel.classed(pCls, true);
-        detailPanel.classed(pCls, true);
+        summary = createTopoPanel(idSum, panelOpts);
+        detail = createTopoPanel(idDet, panelOpts);
 
         augmentDetailPanel();
     }
@@ -336,7 +426,7 @@
     function destroyPanels() {
         ps.destroyPanel(idSum);
         ps.destroyPanel(idDet);
-        summaryPanel = detailPanel = null;
+        summary.panel = detail.panel = null;
         haveDetails = false;
     }
 
@@ -359,6 +449,7 @@
             return {
                 initPanels: initPanels,
                 destroyPanels: destroyPanels,
+                createTopoPanel: createTopoPanel,
 
                 showSummary: showSummary,
                 toggleSummary: toggleSummary,
@@ -366,15 +457,15 @@
                 toggleUseDetailsFlag: toggleUseDetailsFlag,
                 displaySingle: displaySingle,
                 displayMulti: displayMulti,
-                addAction: addAction,
                 displayLink: displayLink,
                 displayNothing: displayNothing,
                 displaySomething: displaySomething,
+                addAction: addAction,
 
                 hideSummaryPanel: hideSummaryPanel,
 
-                detailVisible: function () { return detailPanel.isVisible(); },
-                summaryVisible: function () { return summaryPanel.isVisible(); }
+                detailVisible: function () { return detail.panel.isVisible(); },
+                summaryVisible: function () { return summary.panel.isVisible(); }
             };
         }]);
 }());
