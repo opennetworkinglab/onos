@@ -1,0 +1,51 @@
+{
+  "defn_name": "segmentRouting",
+  "defn_desc": "Schematic of Data Center",
+
+  "paths": [
+    {
+      "tag": "chassis",
+      "stroke": {
+        "width": 3.5
+      },
+      "viewbox": "0 0 120 170",
+      "d": "M10,10h80v150h-80z"
+    },
+    {
+      "tag": "module",
+      "stroke": {
+        "width": 2
+      },
+      "viewbox": "0 0 120 20",
+      "d": "M15,5h70v12h-70z"
+    }
+  ],
+
+  "defn": [
+    {
+      "id": "rack",
+      "path": "chassis",
+      "fill": "gray2",
+      "subpathfill": "blue2",
+      "subpaths": [
+        { "path": "module", "pos": [0, 0]},
+        { "path": "module", "pos": [0, 20]},
+        { "path": "module", "pos": [0, 40]},
+        { "path": "module", "pos": [0, 60]}
+      ],
+      "dim":[120,170]
+    }
+  ],
+
+  "load": {
+    "alpha": 0.9,
+    "sprites": [
+      { "id": "rack", "pos":[300,600], "class":"blue1" },
+      { "id": "rack", "pos":[500,600], "class":"blue1" },
+      { "id": "rack", "pos":[700,600], "class":"blue1" }
+    ],
+    "labels": [
+      { "pos":[550,80], "text":"Segment Routing Demo", "class":"blue1", "size":1.4 }
+    ]
+  }
+}

@@ -586,3 +586,18 @@
     fill: #444;
 }
 
+/* fills */
+.light #ov-topo svg #topo-sprites use.fill-gray2 {
+    fill: #eee;
+}
+.dark #ov-topo svg #topo-sprites use.fill-gray2 {
+    fill: #444;
+}
+
+.light #ov-topo svg #topo-sprites use.fill-blue2 {
+    fill: #bce;
+}
+.dark #ov-topo svg #topo-sprites use.fill-blue2 {
+    fill: #447;
+}
+

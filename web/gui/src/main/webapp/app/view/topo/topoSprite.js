@@ -58,9 +58,24 @@
         gs.loadDefs(defsElement, ids, true);
     }
 
+    function applyStrokeStyle(s, use) {
+        var style;
+        if (s) {
+            style = {};
+            angular.forEach(s, function (value, key) {
+                style['stroke-' + key] = value;
+            });
+            use.style(style);
+        }
+    }
 
-    function doSprite(spr, def, pmeta) {
-        var c = spr.class || 'gray1',
+    function applyFillClass(f, use) {
+        use.classed('fill-' + f, true);
+    }
+
+    function doSprite(spr, def, pathmeta) {
+        var pmeta = pathmeta[def.path],
+            c = spr.class || 'gray1',
             p = spr.pos || [0,0],
             lab = spr.label,
             dim = def.dim || [40,40],
@@ -69,7 +84,7 @@
             dy = def.labelyoff || 1,
             sc = def.scale,
             xfm = sus.translate(p),
-            g, attr, use, style;
+            g, attr, use;
 
         if (sc) {
             xfm += sus.scale(sc, sc);
@@ -86,13 +101,24 @@
         };
 
         use = g.append('use').attr(attr);
+        applyStrokeStyle(pmeta.s, use);
+        applyFillClass(def.fill, use);
 
-        if (pmeta.s) {
-            style = {};
-            angular.forEach(pmeta.s, function (value, key) {
-                style['stroke-' + key] = value;
+
+        // add subpaths if they have been defined
+        if (fs.isA(def.subpaths)) {
+            def.subpaths.forEach(function (v) {
+                pmeta = pathmeta[v.path];
+                attr = {
+                    width: w,
+                    height: h,
+                    'xlink:href': '#' + pmeta.u,
+                    transform: sus.translate(v.pos)
+                };
+                use = g.append('use').attr(attr);
+                applyStrokeStyle(pmeta.s, use);
+                applyFillClass(def.subpathfill, use);
             });
-            use.style(style);
         }
 
         if (lab) {
@@ -188,9 +214,8 @@
 
         if (sprites) {
             sprites.forEach(function (spr) {
-                var def = defs[spr.id],
-                    pmeta = pathmeta[def.path];
-                doSprite(spr, def, pmeta);
+                var def = defs[spr.id];
+                doSprite(spr, def, pathmeta);
             });
         }
 
