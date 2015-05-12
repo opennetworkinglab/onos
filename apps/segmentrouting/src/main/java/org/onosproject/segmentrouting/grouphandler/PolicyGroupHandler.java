@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting.grouphandler;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
@@ -322,9 +323,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
     }
 
     public void removeGroupChain(PolicyGroupIdentifier key) {
-        if (!(key instanceof PolicyGroupIdentifier)) {
-            throw new IllegalArgumentException();
-        }
+        checkArgument(key != null);
         List<PolicyGroupIdentifier> groupsToBeDeleted =
                 new ArrayList<PolicyGroupIdentifier>();
         groupsToBeDeleted.add(key);
