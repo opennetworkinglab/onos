@@ -82,7 +82,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                     PolicyGroupIdentifier previousGroupkey = null;
                     DeviceId neighbor = portDeviceMap.get(sp);
                     for (int idx = 0; idx < param.getLabelStack().size(); idx++) {
-                        int label = param.getLabelStack().get(idx).intValue();
+                        int label = param.getLabelStack().get(idx);
                         if (idx == (labelStackSize - 1)) {
                             // Innermost Group
                             GroupBucketIdentifier bucketId =
@@ -134,7 +134,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
             } else {
                 int label = -1;
                 if (labelStackSize == 1) {
-                    label = param.getLabelStack().get(0).intValue();
+                    label = param.getLabelStack().get(0);
                 }
                 for (PortNumber sp : ports) {
                     GroupBucketIdentifier bucketId =
@@ -271,7 +271,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                 for (PortNumber sp : ports) {
                     PolicyGroupIdentifier previousGroupkey = null;
                     for (int idx = 0; idx < param.getLabelStack().size(); idx++) {
-                        int label = param.getLabelStack().get(idx).intValue();
+                        int label = param.getLabelStack().get(idx);
                         if (idx == (labelStackSize - 1)) {
                             // Innermost Group
                             GroupBucketIdentifier bucketId =
@@ -303,7 +303,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
             } else {
                 int label = -1;
                 if (labelStackSize == 1) {
-                    label = param.getLabelStack().get(0).intValue();
+                    label = param.getLabelStack().get(0);
                 }
                 for (PortNumber sp : ports) {
                     GroupBucketIdentifier bucketId =
