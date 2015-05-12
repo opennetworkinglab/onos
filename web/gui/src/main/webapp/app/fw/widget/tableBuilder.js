@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss;
+    var $log, fs, wss, ts;
 
     // example params to buildTable:
     // {
@@ -61,6 +61,12 @@
         }
         o.scope.selectCallback = selCb;
 
+        function refresh() {
+            $log.debug('Refreshing ' + root + ' page');
+            ts.resetSortIcons();
+            sortCb();
+        }
+        o.scope.refresh = refresh;
 
         handlers[resp] = respCb;
         wss.bindHandlers(handlers);
@@ -75,12 +81,13 @@
 
     angular.module('onosWidget')
         .factory('TableBuilderService',
-        ['$log', 'FnService', 'WebSocketService',
+        ['$log', 'FnService', 'WebSocketService', 'TableService',
 
-            function (_$log_, _fs_, _wss_) {
+            function (_$log_, _fs_, _wss_, _ts_) {
                 $log = _$log_;
                 fs = _fs_;
                 wss = _wss_;
+                ts = _ts_;
 
                 return {
                     buildTable: buildTable

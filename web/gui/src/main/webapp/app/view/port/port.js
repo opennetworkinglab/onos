@@ -22,20 +22,18 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, ts, tbs;
+    var $log, $scope, $location, fs, tbs;
 
     angular.module('ovPort', [])
     .controller('OvPortCtrl',
-        ['$log', '$scope', '$location',
-            'FnService', 'TableService', 'TableBuilderService',
+        ['$log', '$scope', '$location', 'FnService', 'TableBuilderService',
 
-        function (_$log_, _$scope_, _$location_, _fs_, _ts_, _tbs_) {
+        function (_$log_, _$scope_, _$location_, _fs_, _tbs_) {
             var params;
             $log = _$log_;
             $scope = _$scope_;
             $location = _$location_;
             fs = _fs_;
-            ts = _ts_;
             tbs = _tbs_;
 
             params = $location.search();
@@ -49,12 +47,6 @@
                 query: params
             });
 
-            $scope.refresh = function () {
-                $log.debug('Refreshing ports page');
-                ts.resetSortIcons();
-                $scope.sortCallback();
-            };
-            
             $log.log('OvPortCtrl has been created');
         }]);
 }());
