@@ -18,7 +18,6 @@ package org.onosproject.openflow.controller.impl;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -61,10 +60,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
@@ -89,19 +88,19 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d"));
 
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
-            new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
+            new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeMasterSwitches =
-            new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
+            new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeEqualSwitches =
-            new ConcurrentHashMap<Dpid, OpenFlowSwitch>();
+            new ConcurrentHashMap<>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
-    protected Set<OpenFlowSwitchListener> ofSwitchListener = new HashSet<>();
+    protected Set<OpenFlowSwitchListener> ofSwitchListener = new CopyOnWriteArraySet<>();
 
     protected Multimap<Integer, PacketListener> ofPacketListener =
             ArrayListMultimap.create();
 
-    protected Set<OpenFlowEventListener> ofEventListener = Sets.newHashSet();
+    protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
 
     protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
             ArrayListMultimap.create();
