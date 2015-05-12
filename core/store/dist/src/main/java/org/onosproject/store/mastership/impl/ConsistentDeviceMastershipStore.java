@@ -17,7 +17,6 @@ package org.onosproject.store.mastership.impl;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.futureGetOrElse;
-import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -408,7 +407,7 @@ public class ConsistentDeviceMastershipStore
                     // There is no concept of leader re-election in the new distributed leadership manager.
                     throw new IllegalStateException("Unexpected event type");
                 case LEADER_BOOTED:
-                    notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, getNodes(deviceId)));
+                    notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
                     break;
                 default:
                     return;
