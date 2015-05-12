@@ -43,8 +43,7 @@ import org.slf4j.Logger;
 public class PolicyGroupHandler extends DefaultGroupHandler {
 
     private final Logger log = getLogger(getClass());
-    private HashMap<PolicyGroupIdentifier, PolicyGroupIdentifier> dependentGroups =
-            new HashMap<PolicyGroupIdentifier, PolicyGroupIdentifier>();
+    private HashMap<PolicyGroupIdentifier, PolicyGroupIdentifier> dependentGroups = new HashMap<>();
 
     /**
      * Policy group handler constructor.
@@ -65,7 +64,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
 
     public PolicyGroupIdentifier createPolicyGroupChain(String id,
                                                         List<PolicyGroupParams> params) {
-        List<GroupBucketIdentifier> bucketIds = new ArrayList<GroupBucketIdentifier>();
+        List<GroupBucketIdentifier> bucketIds = new ArrayList<>();
         for (PolicyGroupParams param: params) {
             List<PortNumber> ports = param.getPorts();
             if (ports == null) {
@@ -91,7 +90,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                             bucketIds.add(bucketId);
                         } else if (idx == 0) {
                             // Outermost Group
-                            List<GroupBucket> outBuckets = new ArrayList<GroupBucket>();
+                            List<GroupBucket> outBuckets = new ArrayList<>();
                             GroupBucketIdentifier bucketId =
                                     new GroupBucketIdentifier(label, sp);
                             PolicyGroupIdentifier key = new
@@ -160,7 +159,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
             }
 
             if (fullyResolved) {
-                List<GroupBucket> outBuckets = new ArrayList<GroupBucket>();
+                List<GroupBucket> outBuckets = new ArrayList<>();
                 for (GroupBucketIdentifier bucketId:bucketIds) {
                     DeviceId neighbor = portDeviceMap.
                             get(bucketId.outPort());
@@ -255,7 +254,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
 
     public PolicyGroupIdentifier generatePolicyGroupKey(String id,
                                    List<PolicyGroupParams> params) {
-        List<GroupBucketIdentifier> bucketIds = new ArrayList<GroupBucketIdentifier>();
+        List<GroupBucketIdentifier> bucketIds = new ArrayList<>();
         for (PolicyGroupParams param: params) {
             List<PortNumber> ports = param.getPorts();
             if (ports == null) {
@@ -324,8 +323,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
 
     public void removeGroupChain(PolicyGroupIdentifier key) {
         checkArgument(key != null);
-        List<PolicyGroupIdentifier> groupsToBeDeleted =
-                new ArrayList<PolicyGroupIdentifier>();
+        List<PolicyGroupIdentifier> groupsToBeDeleted = new ArrayList<>();
         groupsToBeDeleted.add(key);
 
         Iterator<PolicyGroupIdentifier> it =
