@@ -265,7 +265,6 @@
             $scope.$on('$destroy', function () {
                 ps.destroyPanel(pName);
                 wss.unbindHandlers(handlers);
-                ttip.resetTooltip();
             });
 
             $log.log('OvDeviceCtrl has been created');

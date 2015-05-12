@@ -26,8 +26,8 @@
 
     // constants
     var hoverHeight = 35,
-        hoverDelay = 100,
-        exitDelay = 100;
+        hoverDelay = 150,
+        exitDelay = 150;
 
     // internal state
     var tooltip, currElemId;
@@ -104,10 +104,6 @@
         }
     }
 
-    function resetTooltip() {
-        tooltip.style('display', 'none').text('');
-    }
-
     angular.module('onosWidget')
         .factory('TooltipService', ['$log', 'FnService',
 
@@ -119,8 +115,7 @@
 
             return {
                 showTooltip: showTooltip,
-                cancelTooltip: cancelTooltip,
-                resetTooltip: resetTooltip
+                cancelTooltip: cancelTooltip
             };
         }]);
 }());

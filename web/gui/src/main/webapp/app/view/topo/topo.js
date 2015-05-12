@@ -390,7 +390,6 @@
                 tis.destroyInst();
                 tfs.destroyForce();
                 ttbs.destroyToolbar();
-                ttip.resetTooltip();
             });
 
             // svg layer and initialization of components

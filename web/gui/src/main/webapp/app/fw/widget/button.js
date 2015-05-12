@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, is, tts;
+    var $log, $rootScope, fs, is, tts;
 
     // configuration
     var btnSize = 25,
@@ -52,6 +52,9 @@
     function addTooltip(elem, tooltip) {
         elem.on('mouseover', function () { tts.showTooltip(this, tooltip); });
         elem.on('mouseout', function () { tts.cancelTooltip(this); });
+        $rootScope.$on('$routeChangeStart', function () {
+            tts.cancelTooltip(elem.node());
+        });
     }
 
 
@@ -251,10 +254,11 @@
 
     angular.module('onosWidget')
     .factory('ButtonService',
-        ['$log', 'FnService', 'IconService', 'TooltipService',
+        ['$log', '$rootScope', 'FnService', 'IconService', 'TooltipService',
 
-        function (_$log_, _fs_, _is_, _tts_) {
+        function (_$log_, _$rootScope_, _fs_, _is_, _tts_) {
             $log = _$log_;
+            $rootScope = _$rootScope_;
             fs = _fs_;
             is = _is_;
             tts = _tts_;

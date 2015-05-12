@@ -25,7 +25,7 @@
 
     // constants
     var tableIconTdSize = 33,
-        pdg = 12,
+        pdg = 22,
         colWidth = 'col-width',
         tableIcon = 'table-icon',
         asc = 'asc',

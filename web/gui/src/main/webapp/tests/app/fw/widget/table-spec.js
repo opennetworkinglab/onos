@@ -180,7 +180,7 @@ describe('factory: fw/widget/table.js', function () {
     }
 
     function verifyHeight() {
-        var padding = 12,
+        var padding = 22,
             mastHeight = 36,
             tableHeight = (mockWindow.innerHeight - mockHeaderHeight) -
                 (fs.noPx(headerDiv.css('height')) + mastHeight + padding);

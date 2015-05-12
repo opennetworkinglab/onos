@@ -42,7 +42,7 @@ describe('factory: fw/widget/tooltip.js', function () {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(tts, [
-            'showTooltip', 'cancelTooltip', 'resetTooltip'
+            'showTooltip', 'cancelTooltip'
         ])).toBeTruthy();
     });
 
