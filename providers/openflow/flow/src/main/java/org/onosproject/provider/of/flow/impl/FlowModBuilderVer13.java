@@ -186,11 +186,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     }
 
     private List<OFAction> buildActions(List<Instruction> treatments) {
-        List<OFAction> actions = new LinkedList<>();
-        boolean tableFound = false;
         if (treatment == null) {
-            return actions;
+            return Collections.emptyList();
         }
+
+        boolean tableFound = false;
+        List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatments) {
             switch (i.type()) {
                 case DROP:
@@ -230,7 +231,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (tableFound && actions.isEmpty()) {
             // handles the case where there are no actions, but there is
             // a goto instruction for the next table
-            return null;
+            return Collections.emptyList();
         }
         return actions;
     }
