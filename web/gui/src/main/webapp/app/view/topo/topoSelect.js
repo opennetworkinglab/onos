@@ -42,7 +42,8 @@
 
     // constants
     var flowPath = 'flow',
-        portPath ='port';
+        portPath ='port',
+        groupPath = 'group';
 
     // ==========================
 
@@ -262,6 +263,14 @@
                     ns.navTo(portPath, { devId: data.props['URI'] });
                 },
                 tt: 'Show port view for this device'
+            });
+            tps.addAction({
+                id: 'groups-table-btn',
+                gid: 'groupTable',
+                cb: function () {
+                    ns.navTo(groupPath, { devId: data.props['URI'] });
+                },
+                tt: 'Show group view for this device'
             });
         }
 

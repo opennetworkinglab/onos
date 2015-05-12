@@ -37,6 +37,7 @@
         portsTblPdg = 50,
         flowPath = 'flow',
         portPath = 'port',
+        groupPath = 'group',
 
         pName = 'device-details-panel',
         bName = 'dev-dets-p',
@@ -135,6 +136,15 @@
                 ns.navTo(portPath, { devId: details.id });
             },
             'Show port view for this device'
+        );
+        bns.button(
+            btnsDiv,
+            bName + '-groups',
+            'groupTable',
+            function () {
+                ns.navTo(groupPath, { devId: details.id });
+            },
+            'Show group view for this device'
         );
     }
 
