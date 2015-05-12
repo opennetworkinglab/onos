@@ -21,6 +21,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test adapter for mastership service.
@@ -32,7 +33,7 @@ public class MastershipServiceAdapter implements MastershipService {
     }
 
     @Override
-    public MastershipRole requestRoleFor(DeviceId deviceId) {
+    public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
         return null;
     }
 

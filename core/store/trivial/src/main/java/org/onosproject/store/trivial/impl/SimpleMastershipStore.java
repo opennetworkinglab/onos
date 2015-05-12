@@ -191,14 +191,14 @@ public class SimpleMastershipStore
     }
 
     @Override
-    public synchronized MastershipRole requestRole(DeviceId deviceId) {
+    public synchronized CompletableFuture<MastershipRole> requestRole(DeviceId deviceId) {
         //query+possible reelection
         NodeId node = clusterService.getLocalNode().id();
         MastershipRole role = getRole(node, deviceId);
 
         switch (role) {
             case MASTER:
-                return MastershipRole.MASTER;
+                return CompletableFuture.completedFuture(MastershipRole.MASTER);
             case STANDBY:
                 if (getMaster(deviceId) == null) {
                     // no master => become master
@@ -208,9 +208,9 @@ public class SimpleMastershipStore
                     removeFromBackups(deviceId, node);
                     notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId,
                                                        getNodes(deviceId)));
-                    return MastershipRole.MASTER;
+                    return CompletableFuture.completedFuture(MastershipRole.MASTER);
                 }
-                return MastershipRole.STANDBY;
+                return CompletableFuture.completedFuture(MastershipRole.STANDBY);
             case NONE:
                 if (getMaster(deviceId) == null) {
                     // no master => become master
@@ -218,18 +218,18 @@ public class SimpleMastershipStore
                     incrementTerm(deviceId);
                     notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId,
                                                        getNodes(deviceId)));
-                    return MastershipRole.MASTER;
+                    return CompletableFuture.completedFuture(MastershipRole.MASTER);
                 }
                 // add to backup list
                 if (addToBackup(deviceId, node)) {
                     notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId,
                                                        getNodes(deviceId)));
                 }
-                return MastershipRole.STANDBY;
+                return CompletableFuture.completedFuture(MastershipRole.STANDBY);
             default:
                 log.warn("unknown Mastership Role {}", role);
         }
-        return role;
+        return CompletableFuture.completedFuture(role);
     }
 
     // add to backup if not there already, silently ignores null node

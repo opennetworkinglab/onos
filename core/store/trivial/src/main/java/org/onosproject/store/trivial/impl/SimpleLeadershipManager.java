@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
@@ -76,21 +77,23 @@ public class SimpleLeadershipManager implements LeadershipService {
     }
 
     @Override
-    public void runForLeadership(String path) {
+    public CompletableFuture<Leadership> runForLeadership(String path) {
         elections.put(path, true);
         for (LeadershipEventListener listener : listeners) {
             listener.event(new LeadershipEvent(Type.LEADER_ELECTED,
                     new Leadership(path, clusterService.getLocalNode().id(), 0, 0)));
         }
+        return CompletableFuture.completedFuture(new Leadership(path, clusterService.getLocalNode().id(), 0, 0));
     }
 
     @Override
-    public void withdraw(String path) {
+    public CompletableFuture<Void> withdraw(String path) {
         elections.remove(path);
         for (LeadershipEventListener listener : listeners) {
             listener.event(new LeadershipEvent(Type.LEADER_BOOTED,
                     new Leadership(path, clusterService.getLocalNode().id(), 0, 0)));
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

@@ -37,6 +37,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -199,8 +201,14 @@ public class DistributedLeadershipManager implements LeadershipService {
     }
 
     @Override
-    public void runForLeadership(String path) {
+    public CompletableFuture<Leadership> runForLeadership(String path) {
         log.debug("Running for leadership for topic: {}", path);
+        CompletableFuture<Leadership> resultFuture = new CompletableFuture<>();
+        doRunForLeadership(path, resultFuture);
+        return resultFuture;
+    }
+
+    private void doRunForLeadership(String path, CompletableFuture<Leadership> future) {
         try {
             Versioned<List<NodeId>> candidates = candidateMap.get(path);
             if (candidates != null) {
@@ -216,7 +224,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                                     newCandidates.version(),
                                     newCandidates.creationTime())));
                     } else {
-                        rerunForLeadership(path);
+                        rerunForLeadership(path, future);
                         return;
                     }
                 }
@@ -231,28 +239,38 @@ public class DistributedLeadershipManager implements LeadershipService {
                                 newCandidates.version(),
                                 newCandidates.creationTime())));
                 } else {
-                    rerunForLeadership(path);
+                    rerunForLeadership(path, future);
                     return;
                 }
             }
             log.debug("In the leadership race for topic {} with candidates {}", path, candidates);
             activeTopics.add(path);
-            tryLeaderLock(path);
+            tryLeaderLock(path, future);
         } catch (ConsistentMapException e) {
             log.debug("Failed to enter topic leader race for {}. Retrying.", path, e);
-            rerunForLeadership(path);
+            rerunForLeadership(path, future);
         }
     }
 
     @Override
-    public void withdraw(String path) {
+    public CompletableFuture<Void> withdraw(String path) {
         activeTopics.remove(path);
+        CompletableFuture<Void> resultFuture = new CompletableFuture<>();
+        doWithdraw(path, resultFuture);
+        return resultFuture;
+    }
 
+
+    private void doWithdraw(String path, CompletableFuture<Void> future) {
+        if (activeTopics.contains(path)) {
+            future.completeExceptionally(new CancellationException(String.format("%s is now a active topic", path)));
+        }
         try {
             Versioned<NodeId> leader = leaderMap.get(path);
             if (leader != null && Objects.equals(leader.value(), localNodeId)) {
                 if (leaderMap.remove(path, leader.version())) {
                     log.info("Gave up leadership for {}", path);
+                    future.complete(null);
                     publish(new LeadershipEvent(
                             LeadershipEvent.Type.LEADER_BOOTED,
                             new Leadership(path,
@@ -267,10 +285,12 @@ public class DistributedLeadershipManager implements LeadershipService {
                     ? Lists.newArrayList(candidates.value())
                     : Lists.newArrayList();
             if (!candidateList.remove(localNodeId)) {
+                future.complete(null);
                 return;
             }
             if (candidateMap.replace(path, candidates.version(), candidateList)) {
                 Versioned<List<NodeId>> newCandidates = candidateMap.get(path);
+                future.complete(null);
                 publish(new LeadershipEvent(
                                 LeadershipEvent.Type.CANDIDATES_CHANGED,
                                 new Leadership(path,
@@ -279,11 +299,11 @@ public class DistributedLeadershipManager implements LeadershipService {
                                     newCandidates.creationTime())));
             } else {
                 log.warn("Failed to withdraw from candidates list. Will retry");
-                retryWithdraw(path);
+                retryWithdraw(path, future);
             }
         } catch (Exception e) {
             log.debug("Failed to verify (and clear) any lock this node might be holding for {}", path, e);
-            retryWithdraw(path);
+            retryWithdraw(path, future);
         }
     }
 
@@ -304,7 +324,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                                 localNodeId,
                                 leader.version(),
                                 leader.creationTime())));
-                    retryLock(path);
+                    retryLock(path, new CompletableFuture<>());
                     return true;
                 }
             }
@@ -350,7 +370,7 @@ public class DistributedLeadershipManager implements LeadershipService {
         return updated;
     }
 
-    private void tryLeaderLock(String path) {
+    private void tryLeaderLock(String path, CompletableFuture<Leadership> future) {
         if (!activeTopics.contains(path) || Objects.equals(localNodeId, getLeader(path))) {
             return;
         }
@@ -362,35 +382,37 @@ public class DistributedLeadershipManager implements LeadershipService {
                                   .filter(n -> clusterService.getState(n) == ACTIVE)
                                   .collect(Collectors.toList());
                 if (localNodeId.equals(activeNodes.get(LEADER_CANDIDATE_POS))) {
-                    leaderLockAttempt(path, candidates.value());
+                    leaderLockAttempt(path, candidates.value(), future);
                 } else {
-                    retryLock(path);
+                    retryLock(path, future);
                 }
             } else {
                 throw new IllegalStateException("should not be here");
             }
         } catch (Exception e) {
             log.debug("Failed to fetch candidate information for {}", path, e);
-            retryLock(path);
+            retryLock(path, future);
         }
     }
 
-    private void leaderLockAttempt(String path, List<NodeId> candidates) {
+    private void leaderLockAttempt(String path, List<NodeId> candidates, CompletableFuture<Leadership> future) {
         try {
             Versioned<NodeId> currentLeader = leaderMap.get(path);
             if (currentLeader != null) {
                 if (localNodeId.equals(currentLeader.value())) {
                     log.info("Already has leadership for {}", path);
                     // FIXME: candidates can get out of sync.
+                    Leadership leadership = new Leadership(path,
+                            localNodeId,
+                            currentLeader.version(),
+                            currentLeader.creationTime());
+                    future.complete(leadership);
                     publish(new LeadershipEvent(
                             LeadershipEvent.Type.LEADER_ELECTED,
-                            new Leadership(path,
-                                localNodeId,
-                                currentLeader.version(),
-                                currentLeader.creationTime())));
+                            leadership));
                 } else {
                     // someone else has leadership. will retry after sometime.
-                    retryLock(path);
+                    retryLock(path, future);
                 }
             } else {
                 if (leaderMap.putIfAbsent(path, localNodeId) == null) {
@@ -398,20 +420,22 @@ public class DistributedLeadershipManager implements LeadershipService {
                     // do a get again to get the version (epoch)
                     Versioned<NodeId> newLeader = leaderMap.get(path);
                     // FIXME: candidates can get out of sync
+                    Leadership leadership = new Leadership(path,
+                            newLeader.value(),
+                            newLeader.version(),
+                            newLeader.creationTime());
+                    future.complete(leadership);
                     publish(new LeadershipEvent(
                             LeadershipEvent.Type.LEADER_ELECTED,
-                            new Leadership(path,
-                                newLeader.value(),
-                                newLeader.version(),
-                                newLeader.creationTime())));
+                            leadership));
                 } else {
                     // someone beat us to it.
-                    retryLock(path);
+                    retryLock(path, future);
                 }
             }
         } catch (Exception e) {
             log.debug("Attempt to acquire leadership lock for topic {} failed", path, e);
-            retryLock(path);
+            retryLock(path, future);
         }
     }
 
@@ -463,23 +487,23 @@ public class DistributedLeadershipManager implements LeadershipService {
         }
     }
 
-    private void rerunForLeadership(String path) {
+    private void rerunForLeadership(String path, CompletableFuture<Leadership> future) {
         retryLeaderLockExecutor.schedule(
-                () -> runForLeadership(path),
+                () -> doRunForLeadership(path, future),
                 ELECTION_JOIN_ATTEMPT_INTERVAL_SEC,
                 TimeUnit.SECONDS);
     }
 
-    private void retryLock(String path) {
+    private void retryLock(String path, CompletableFuture<Leadership> future) {
         retryLeaderLockExecutor.schedule(
-                () -> tryLeaderLock(path),
+                () -> tryLeaderLock(path, future),
                 DELAY_BETWEEN_LEADER_LOCK_ATTEMPTS_SEC,
                 TimeUnit.SECONDS);
     }
 
-    private void retryWithdraw(String path) {
+    private void retryWithdraw(String path, CompletableFuture<Void> future) {
         retryLeaderLockExecutor.schedule(
-                () -> withdraw(path),
+                () -> doWithdraw(path, future),
                 DELAY_BETWEEN_LEADER_LOCK_ATTEMPTS_SEC,
                 TimeUnit.SECONDS);
     }

@@ -130,19 +130,19 @@ public class SimpleMastershipStoreTest {
     public void requestRole() {
         //NONE - become MASTER
         put(DID1, N1, false, false);
-        assertEquals("wrong role", MASTER, sms.requestRole(DID1));
+        assertEquals("wrong role", MASTER, Futures.getUnchecked(sms.requestRole(DID1)));
 
         //was STANDBY - become MASTER
         put(DID2, N1, false, true);
-        assertEquals("wrong role", MASTER, sms.requestRole(DID2));
+        assertEquals("wrong role", MASTER, Futures.getUnchecked(sms.requestRole(DID2)));
 
         //other MASTER - stay STANDBY
         put(DID3, N2, true, false);
-        assertEquals("wrong role", STANDBY, sms.requestRole(DID3));
+        assertEquals("wrong role", STANDBY, Futures.getUnchecked(sms.requestRole(DID3)));
 
         //local (N1) is MASTER - stay MASTER
         put(DID4, N1, true, true);
-        assertEquals("wrong role", MASTER, sms.requestRole(DID4));
+        assertEquals("wrong role", MASTER, Futures.getUnchecked(sms.requestRole(DID4)));
     }
 
     @Test

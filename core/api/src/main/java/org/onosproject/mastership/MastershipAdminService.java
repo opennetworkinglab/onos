@@ -15,6 +15,8 @@
  */
 package org.onosproject.mastership;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -30,8 +32,9 @@ public interface MastershipAdminService {
      * @param instance controller instance identifier
      * @param deviceId device identifier
      * @param role     requested role
+     * @return future that is completed when the role is set
      */
-    void setRole(NodeId instance, DeviceId deviceId, MastershipRole role);
+    CompletableFuture<Void> setRole(NodeId instance, DeviceId deviceId, MastershipRole role);
 
     /**
      * Balances the mastership to be shared as evenly as possibly by all

@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.After;
 import org.junit.Before;
@@ -496,8 +497,8 @@ public class LLDPLinkProviderTest {
         }
 
         @Override
-        public MastershipRole requestRoleFor(DeviceId deviceId) {
-            return null;
+        public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
+            return CompletableFuture.completedFuture(null);
         }
 
         @Override

@@ -205,7 +205,7 @@ public class DistributedMastershipStore
     }
 
     @Override
-    public MastershipRole requestRole(DeviceId deviceId) {
+    public CompletableFuture<MastershipRole> requestRole(DeviceId deviceId) {
 
         // if no master => become master
         // if there already exists a master:
@@ -225,7 +225,7 @@ public class DistributedMastershipStore
 
                 updateTerm(deviceId);
                 roleMap.put(deviceId, rv);
-                return MASTER;
+                return CompletableFuture.completedFuture(MASTER);
             }
             final MastershipRole currentRole = rv.getRole(local);
             switch (currentRole) {
@@ -239,7 +239,7 @@ public class DistributedMastershipStore
                         roleMap.put(deviceId, rv);
                         // trigger BACKUPS_CHANGED?
                     }
-                    return currentRole;
+                    return CompletableFuture.completedFuture(currentRole);
                 case STANDBY:
                     // RoleInfo integrity check
                     modified = rv.reassign(local, NONE, STANDBY);
@@ -250,16 +250,16 @@ public class DistributedMastershipStore
                         roleMap.put(deviceId, rv);
                         // trigger BACKUPS_CHANGED?
                     }
-                    return currentRole;
+                    return CompletableFuture.completedFuture(currentRole);
                 case NONE:
                     rv.reassign(local, NONE, STANDBY);
                     roleMap.put(deviceId, rv);
                     // TODO: notifyDelegate BACKUPS_CHANGED
-                    return STANDBY;
+                    return CompletableFuture.completedFuture(STANDBY);
                 default:
                     log.warn("unknown Mastership Role {}", currentRole);
             }
-            return currentRole;
+            return CompletableFuture.completedFuture(currentRole);
         } finally {
             roleMap.unlock(deviceId);
         }

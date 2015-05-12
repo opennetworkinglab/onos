@@ -38,7 +38,7 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param deviceId device identifier
      * @return established or newly negotiated mastership role
      */
-    MastershipRole requestRole(DeviceId deviceId);
+    CompletableFuture<MastershipRole> requestRole(DeviceId deviceId);
 
     /**
      * Returns the role of a device for a specific controller instance.

@@ -16,6 +16,7 @@
 package org.onosproject.mastership;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
@@ -46,7 +47,7 @@ public interface MastershipService {
      * @param deviceId the the identifier of the device
      * @return the role of this controller instance
      */
-    MastershipRole requestRoleFor(DeviceId deviceId);
+    CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId);
 
     /**
      * Abandons mastership of the specified device on the local node thus

@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -188,7 +189,7 @@ public class HazelcastLeadershipService implements LeadershipService {
     }
 
     @Override
-    public void runForLeadership(String path) {
+    public CompletableFuture<Leadership> runForLeadership(String path) {
         checkArgument(path != null);
         Topic topic = new Topic(path);
         Topic oldTopic = topics.putIfAbsent(path, topic);
@@ -198,16 +199,18 @@ public class HazelcastLeadershipService implements LeadershipService {
         } else {
             oldTopic.runForLeadership();
         }
+        return CompletableFuture.completedFuture(getLeadership(path));
     }
 
     @Override
-    public void withdraw(String path) {
+    public CompletableFuture<Void> withdraw(String path) {
         checkArgument(path != null);
         Topic topic = topics.get(path);
         if (topic != null) {
             topics.remove(path, topic);
             topic.stop();
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

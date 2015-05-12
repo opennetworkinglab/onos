@@ -18,6 +18,7 @@ package org.onosproject.cluster;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for leader election.
@@ -55,16 +56,18 @@ public interface LeadershipService {
     /**
      * Joins the leadership contest.
      *
-     * @param path topic for which this controller node wishes to be a leader.
+     * @param path topic for which this controller node wishes to be a leader
+     * @return {@code Leadership} future
      */
-    void runForLeadership(String path);
+    CompletableFuture<Leadership> runForLeadership(String path);
 
     /**
      * Withdraws from a leadership contest.
      *
-     * @param path topic for which this controller node no longer wishes to be a leader.
+     * @param path topic for which this controller node no longer wishes to be a leader
+     * @return future that is successfully completed when withdraw is done
      */
-    void withdraw(String path);
+    CompletableFuture<Void> withdraw(String path);
 
     /**
      * If the local nodeId is the leader for specified topic, this method causes it to

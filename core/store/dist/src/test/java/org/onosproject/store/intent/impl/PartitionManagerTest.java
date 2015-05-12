@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.easymock.EasyMock.anyObject;
@@ -74,8 +75,11 @@ public class PartitionManagerTest {
 
         leadershipService.addListener(anyObject(LeadershipEventListener.class));
         expectLastCall().andDelegateTo(new TestLeadershipService());
-        leadershipService.runForLeadership(anyString());
-        expectLastCall().anyTimes();
+        for (int i = 0; i < PartitionManager.NUM_PARTITIONS; i++) {
+            expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
+                .andReturn(CompletableFuture.completedFuture(null))
+                .times(1);
+        }
 
         partitionManager = new PartitionManager()
                 .withScheduledExecutor(new NullScheduledExecutor());
@@ -92,6 +96,7 @@ public class PartitionManagerTest {
      * @param numMine number of partitions that should be owned by the local node
      */
     private void setUpLeadershipService(int numMine) {
+
         Map<String, Leadership> leaderBoard = new HashMap<>();
 
         for (int i = 0; i < numMine; i++) {
@@ -123,7 +128,9 @@ public class PartitionManagerTest {
         leadershipService.addListener(anyObject(LeadershipEventListener.class));
 
         for (int i = 0; i < PartitionManager.NUM_PARTITIONS; i++) {
-            leadershipService.runForLeadership(ELECTION_PREFIX + i);
+            expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
+                .andReturn(CompletableFuture.completedFuture(null))
+                .times(1);
         }
 
         replay(leadershipService);
@@ -172,8 +179,9 @@ public class PartitionManagerTest {
         // We have all the partitions so we'll need to relinquish some
         setUpLeadershipService(PartitionManager.NUM_PARTITIONS);
 
-        leadershipService.withdraw(anyString());
-        expectLastCall().times(7);
+        expect(leadershipService.withdraw(anyString()))
+                                .andReturn(CompletableFuture.completedFuture(null))
+                                .times(7);
 
         replay(leadershipService);
 

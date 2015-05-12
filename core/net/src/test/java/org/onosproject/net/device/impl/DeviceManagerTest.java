@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.After;
 import org.junit.Before;
@@ -305,8 +306,8 @@ public class DeviceManagerTest {
         }
 
         @Override
-        public MastershipRole requestRoleFor(DeviceId deviceId) {
-            return MastershipRole.MASTER;
+        public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
+            return CompletableFuture.completedFuture(MastershipRole.MASTER);
         }
 
         @Override

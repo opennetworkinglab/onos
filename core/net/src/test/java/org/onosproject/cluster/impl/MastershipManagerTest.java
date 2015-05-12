@@ -34,6 +34,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.store.trivial.impl.SimpleMastershipStore;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -77,7 +78,7 @@ public class MastershipManagerTest {
     public void setRole() {
         mgr.setRole(NID_OTHER, DEV_MASTER, MASTER);
         assertEquals("wrong local role:", NONE, mgr.getLocalRole(DEV_MASTER));
-        assertEquals("wrong obtained role:", STANDBY, mgr.requestRoleFor(DEV_MASTER));
+        assertEquals("wrong obtained role:", STANDBY, Futures.getUnchecked(mgr.requestRoleFor(DEV_MASTER)));
 
         //set to master
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
@@ -112,8 +113,8 @@ public class MastershipManagerTest {
         mgr.setRole(NID_OTHER, DEV_OTHER, MASTER);
 
         //local should be master for one but standby for other
-        assertEquals("wrong role:", MASTER, mgr.requestRoleFor(DEV_MASTER));
-        assertEquals("wrong role:", STANDBY, mgr.requestRoleFor(DEV_OTHER));
+        assertEquals("wrong role:", MASTER, Futures.getUnchecked(mgr.requestRoleFor(DEV_MASTER)));
+        assertEquals("wrong role:", STANDBY, Futures.getUnchecked(mgr.requestRoleFor(DEV_OTHER)));
     }
 
     @Test

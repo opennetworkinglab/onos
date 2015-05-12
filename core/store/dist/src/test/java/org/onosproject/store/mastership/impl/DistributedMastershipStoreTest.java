@@ -145,22 +145,22 @@ public class DistributedMastershipStoreTest {
 
         //if already MASTER, nothing should happen
         testStore.put(DID2, N1, true, false, true);
-        assertEquals("wrong role for MASTER:", MASTER, dms.requestRole(DID2));
+        assertEquals("wrong role for MASTER:", MASTER, Futures.getUnchecked(dms.requestRole(DID2)));
 
         //populate maps with DID1, N1 thru NONE case
-        assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
+        assertEquals("wrong role for NONE:", MASTER, Futures.getUnchecked(dms.requestRole(DID1)));
         assertTrue("wrong state for store:", !dms.terms.isEmpty());
         assertEquals("wrong term",
                 MastershipTerm.of(N1, 1), dms.getTermFor(DID1));
 
         //CN2 now local. DID2 has N1 as MASTER so N2 is STANDBY
         testStore.setCurrent(CN2);
-        assertEquals("wrong role for STANDBY:", STANDBY, dms.requestRole(DID2));
+        assertEquals("wrong role for STANDBY:", STANDBY, Futures.getUnchecked(dms.requestRole(DID2)));
         assertEquals("wrong number of entries:", 2, dms.terms.size());
 
         //change term and requestRole() again; should persist
         testStore.increment(DID2);
-        assertEquals("wrong role for STANDBY:", STANDBY, dms.requestRole(DID2));
+        assertEquals("wrong role for STANDBY:", STANDBY, Futures.getUnchecked(dms.requestRole(DID2)));
         assertEquals("wrong term", MastershipTerm.of(N1, 1), dms.getTermFor(DID2));
     }
 
@@ -168,7 +168,7 @@ public class DistributedMastershipStoreTest {
     public void setMaster() {
         //populate maps with DID1, N1 as MASTER thru NONE case
         testStore.setCurrent(CN1);
-        assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
+        assertEquals("wrong role for NONE:", MASTER, Futures.getUnchecked(dms.requestRole(DID1)));
         assertNull("wrong event:", Futures.getUnchecked(dms.setMaster(N1, DID1)));
 
         //switch over to N2
@@ -189,7 +189,7 @@ public class DistributedMastershipStoreTest {
     public void relinquishRole() {
         //populate maps with DID1, N1 as MASTER thru NONE case
         testStore.setCurrent(CN1);
-        assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
+        assertEquals("wrong role for NONE:", MASTER, Futures.getUnchecked(dms.requestRole(DID1)));
         //no backup, no new MASTER/event
         assertNull("wrong event:", Futures.getUnchecked(dms.relinquishRole(N1, DID1)));
 
@@ -197,7 +197,7 @@ public class DistributedMastershipStoreTest {
 
         //add backup CN2, get it elected MASTER by relinquishing
         testStore.setCurrent(CN2);
-        assertEquals("wrong role for NONE:", STANDBY, dms.requestRole(DID1));
+        assertEquals("wrong role for NONE:", STANDBY, Futures.getUnchecked(dms.requestRole(DID1)));
         assertEquals("wrong event:", Type.MASTER_CHANGED, Futures.getUnchecked(dms.relinquishRole(N1, DID1)).type());
         assertEquals("wrong master", N2, dms.getMaster(DID1));
 
@@ -209,9 +209,9 @@ public class DistributedMastershipStoreTest {
                 dms.roleMap.get(DID1).nodesOfRole(NONE).size());
 
         //bring nodes back
-        assertEquals("wrong role for NONE:", MASTER, dms.requestRole(DID1));
+        assertEquals("wrong role for NONE:", MASTER, Futures.getUnchecked(dms.requestRole(DID1)));
         testStore.setCurrent(CN1);
-        assertEquals("wrong role for NONE:", STANDBY, dms.requestRole(DID1));
+        assertEquals("wrong role for NONE:", STANDBY, Futures.getUnchecked(dms.requestRole(DID1)));
         assertEquals("wrong number of backup nodes", 1,
                 dms.roleMap.get(DID1).nodesOfRole(STANDBY).size());
 
