@@ -16,10 +16,10 @@
 package org.onosproject.core;
 
 import java.net.URI;
+import java.util.Set;
+import java.util.Optional;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -34,6 +34,7 @@ public class DefaultApplication implements Application {
     private final Version version;
     private final String description;
     private final String origin;
+    private final ApplicationRole role;
     private final Set<Permission> permissions;
     private final Optional<URI> featuresRepo;
     private final List<String> features;
@@ -45,18 +46,20 @@ public class DefaultApplication implements Application {
      * @param version      application version
      * @param description  application description
      * @param origin       origin company
+     * @param role         application role
      * @param permissions  requested permissions
      * @param featuresRepo optional features repo URI
      * @param features     application features
      */
     public DefaultApplication(ApplicationId appId, Version version,
                               String description, String origin,
-                              Set<Permission> permissions,
+                              ApplicationRole role, Set<Permission> permissions,
                               Optional<URI> featuresRepo, List<String> features) {
         this.appId = checkNotNull(appId, "ID cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
         this.origin = checkNotNull(origin, "Origin cannot be null");
+        this.role = checkNotNull(role, "Role cannot be null");
         this.permissions = checkNotNull(permissions, "Permissions cannot be null");
         this.featuresRepo = checkNotNull(featuresRepo, "Features repo cannot be null");
         this.features = checkNotNull(features, "Features cannot be null");
@@ -84,6 +87,11 @@ public class DefaultApplication implements Application {
     }
 
     @Override
+    public ApplicationRole role() {
+        return role;
+    }
+
+    @Override
     public Set<Permission> permissions() {
         return permissions;
     }
@@ -100,7 +108,7 @@ public class DefaultApplication implements Application {
 
     @Override
     public int hashCode() {
-        return Objects.hash(appId, version, description, origin, permissions,
+        return Objects.hash(appId, version, description, origin, role, permissions,
                             featuresRepo, features);
     }
 
@@ -117,6 +125,7 @@ public class DefaultApplication implements Application {
                 Objects.equals(this.version, other.version) &&
                 Objects.equals(this.description, other.description) &&
                 Objects.equals(this.origin, other.origin) &&
+                Objects.equals(this.role, other.role) &&
                 Objects.equals(this.permissions, other.permissions) &&
                 Objects.equals(this.featuresRepo, other.featuresRepo) &&
                 Objects.equals(this.features, other.features);
@@ -129,6 +138,7 @@ public class DefaultApplication implements Application {
                 .add("version", version)
                 .add("description", description)
                 .add("origin", origin)
+                .add("role", role)
                 .add("permissions", permissions)
                 .add("featuresRepo", featuresRepo)
                 .add("features", features)

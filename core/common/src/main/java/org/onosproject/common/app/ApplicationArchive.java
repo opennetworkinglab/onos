@@ -27,6 +27,8 @@ import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationException;
 import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.app.DefaultApplicationDescription;
+import org.onosproject.core.ApplicationRole;
+import org.onosproject.core.DefaultPermission;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 import org.onosproject.store.AbstractStore;
@@ -42,7 +44,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -73,6 +77,9 @@ public class ApplicationArchive
     private static final String FEATURES_REPO = "[@featuresRepo]";
     private static final String FEATURES = "[@features]";
     private static final String DESCRIPTION = "description";
+
+    private static final String ROLE = "security.role";
+    private static final String PERMISSIONS = "security.permissions.permission";
 
     private static final String OAR = ".oar";
     private static final String APP_XML = "app.xml";
@@ -267,12 +274,13 @@ public class ApplicationArchive
         Version version = Version.version(cfg.getString(VERSION));
         String desc = cfg.getString(DESCRIPTION);
         String origin = cfg.getString(ORIGIN);
-        Set<Permission> perms = ImmutableSet.of();
+        ApplicationRole role = getRole(cfg.getString(ROLE));
+        Set<Permission> perms = getPermissions(cfg);
         String featRepo = cfg.getString(FEATURES_REPO);
         URI featuresRepo = featRepo != null ? URI.create(featRepo) : null;
         List<String> features = ImmutableList.copyOf(cfg.getStringArray(FEATURES));
 
-        return new DefaultApplicationDescription(name, version, desc, origin,
+        return new DefaultApplicationDescription(name, version, desc, origin, role,
                                                  perms, featuresRepo, features);
     }
 
@@ -368,4 +376,34 @@ public class ApplicationArchive
         return new File(new File(appsDir, appName), fileName);
     }
 
+    // Returns the set of Permissions specified in the app.xml file
+    private ImmutableSet<Permission> getPermissions(XMLConfiguration cfg) {
+        List<Permission> perms = new ArrayList();
+        for (Object o : cfg.getList(PERMISSIONS)) {
+            DefaultPermission perm = null;
+            if (o != null) {
+                String permStr = (String) o;
+                perm = new DefaultPermission(permStr);
+            }
+            if (perm != null) {
+                perms.add(perm);
+            }
+        }
+
+        return ImmutableSet.copyOf(perms);
+    }
+
+    // Returns application role type
+    public ApplicationRole getRole(String value) {
+        if (value == null) {
+            return ApplicationRole.UNSPECIFIED;
+        } else {
+            try {
+                return ApplicationRole.valueOf(value.toUpperCase(Locale.ENGLISH));
+            } catch (IllegalArgumentException e) {
+                log.debug("Unknown role value: %s", value);
+                return ApplicationRole.UNSPECIFIED;
+            }
+        }
+    }
 }

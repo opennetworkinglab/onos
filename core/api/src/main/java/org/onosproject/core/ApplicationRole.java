@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.core;
 
-/**
- * Representation of an application permission.
- */
-public interface Permission {
+public enum ApplicationRole {
+    /**
+     * Indicates that an application has an ADMIN role.
+     */
+    ADMIN,
 
     /**
-     * Returns the name of the permission.
-     * @return a string value
+     * Indicates that an application has a REGULAR role.
      */
-    String name();
+    REGULAR,
 
     /**
-     * Returns the actions string of the permission if specified.
-     * @return a string value
+     * Indicates that an application role has not been specified.
      */
-    String actions();
+    UNSPECIFIED,
+
+    /**
+     * More useful roles may be defined.
+     */
 }

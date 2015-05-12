@@ -54,6 +54,13 @@ public interface Application {
     String origin();
 
     /**
+     * Returns the role of the application.
+     *
+     * @return application role
+     */
+    ApplicationRole role();
+
+    /**
      * Returns the permissions requested by the application.
      *
      * @return requested permissions

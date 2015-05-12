@@ -15,6 +15,7 @@
  */
 package org.onosproject.app;
 
+import org.onosproject.core.ApplicationRole;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 
@@ -55,6 +56,13 @@ public interface ApplicationDescription {
      * @return application origin
      */
     String origin();
+
+    /**
+     * Returns the role of the application.
+     *
+     * @return application role
+     */
+    ApplicationRole role();
 
     /**
      * Returns the permissions requested by the application.

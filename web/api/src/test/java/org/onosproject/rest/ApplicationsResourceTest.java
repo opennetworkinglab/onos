@@ -37,6 +37,7 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.codec.impl.MockCodecContext;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.ApplicationRole;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.Version;
@@ -83,19 +84,19 @@ public class ApplicationsResourceTest extends ResourceTest {
 
     private Application app1 =
             new DefaultApplication(id1, VER,
-                                   "app1", "origin1", ImmutableSet.of(), Optional.of(FURL),
+                                   "app1", "origin1", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"));
     private Application app2 =
             new DefaultApplication(id2, VER,
-                                   "app2", "origin2", ImmutableSet.of(), Optional.of(FURL),
+                                   "app2", "origin2", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"));
     private Application app3 =
             new DefaultApplication(id3, VER,
-                                   "app3", "origin3", ImmutableSet.of(), Optional.of(FURL),
+                                   "app3", "origin3", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"));
     private Application app4 =
             new DefaultApplication(id4, VER,
-                                   "app4", "origin4", ImmutableSet.of(), Optional.of(FURL),
+                                   "app4", "origin4", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"));
 
     /**

@@ -18,6 +18,8 @@ package org.onosproject.app;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
+import org.onosproject.core.ApplicationRole;
+import org.onosproject.core.DefaultPermission;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 
@@ -27,6 +29,9 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.core.DefaultPermission.Type.FLOWRULE_WRITE;
+import static org.onosproject.core.DefaultPermission.Type.FLOWRULE_READ;
+
 
 /**
  * Basic tests of the default app description.
@@ -37,7 +42,9 @@ public class DefaultApplicationDescriptionTest {
     public static final Version VER = Version.version(1, 2, "a", null);
     public static final String DESC = "Awesome application from Circus";
     public static final String ORIGIN = "Circus";
-    public static final Set<Permission> PERMS = ImmutableSet.of();
+    public static final ApplicationRole ROLE = ApplicationRole.ADMIN;
+    public static final Set<Permission> PERMS = ImmutableSet.of(new DefaultPermission(FLOWRULE_WRITE),
+                    new DefaultPermission(FLOWRULE_READ));
     public static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
     public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
 
@@ -45,11 +52,12 @@ public class DefaultApplicationDescriptionTest {
     public void basics() {
         ApplicationDescription app =
                 new DefaultApplicationDescription(APP_NAME, VER, DESC, ORIGIN,
-                                                  PERMS, FURL, FEATURES);
+                                                  ROLE, PERMS, FURL, FEATURES);
         assertEquals("incorrect id", APP_NAME, app.name());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect origin", ORIGIN, app.origin());
+        assertEquals("incorect role", ROLE, app.role());
         assertEquals("incorrect permissions", PERMS, app.permissions());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());

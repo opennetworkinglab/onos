@@ -33,12 +33,13 @@ public class DefaultApplicationTest {
 
     @Test
     public void basics() {
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
                                                  PERMS, Optional.of(FURL), FEATURES);
         assertEquals("incorrect id", APP_ID, app.id());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect origin", ORIGIN, app.origin());
+        assertEquals("incorrect role", ROLE, app.role());
         assertEquals("incorrect permissions", PERMS, app.permissions());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());
@@ -47,13 +48,13 @@ public class DefaultApplicationTest {
 
     @Test
     public void testEquality() {
-        Application a1 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application a1 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES);
-        Application a2 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application a2 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES);
-        Application a3 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application a3 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
                                                 PERMS, Optional.empty(), FEATURES);
-        Application a4 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN + "asd",
+        Application a4 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN + "asd", ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES);
         new EqualsTester().addEqualityGroup(a1, a2)
                 .addEqualityGroup(a3).addEqualityGroup(a4).testEquals();

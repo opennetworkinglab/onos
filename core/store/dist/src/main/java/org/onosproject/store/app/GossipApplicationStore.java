@@ -431,7 +431,7 @@ public class GossipApplicationStore extends ApplicationArchive
     private Application registerApp(ApplicationDescription appDesc) {
         ApplicationId appId = idStore.registerApplication(appDesc.name());
         return new DefaultApplication(appId, appDesc.version(), appDesc.description(),
-                                      appDesc.origin(), appDesc.permissions(),
+                                      appDesc.origin(), appDesc.role(), appDesc.permissions(),
                                       appDesc.featuresRepo(), appDesc.features());
     }
 }

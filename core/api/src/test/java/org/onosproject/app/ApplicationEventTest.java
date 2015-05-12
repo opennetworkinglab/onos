@@ -32,7 +32,7 @@ import static org.onosproject.core.DefaultApplicationTest.APP_ID;
 public class ApplicationEventTest extends AbstractEventTest {
 
     private Application createApp() {
-        return new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        return new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
                                       PERMS, Optional.of(FURL), FEATURES);
     }
 

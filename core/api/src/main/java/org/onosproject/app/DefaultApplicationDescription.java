@@ -15,6 +15,7 @@
  */
 package org.onosproject.app;
 
+import org.onosproject.core.ApplicationRole;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 
@@ -36,6 +37,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     private final Version version;
     private final String description;
     private final String origin;
+    private final ApplicationRole role;
     private final Set<Permission> permissions;
     private final Optional<URI> featuresRepo;
     private final List<String> features;
@@ -47,18 +49,20 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      * @param version      application version
      * @param description  application description
      * @param origin       origin company
+     * @param role         application role
      * @param permissions  requested permissions
      * @param featuresRepo optional features repo URI
      * @param features     application features
      */
     public DefaultApplicationDescription(String name, Version version,
                                          String description, String origin,
-                                         Set<Permission> permissions,
+                                         ApplicationRole role, Set<Permission> permissions,
                                          URI featuresRepo, List<String> features) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
         this.origin = checkNotNull(origin, "Origin cannot be null");
+        this.role = checkNotNull(role, "Role cannot be null");
         this.permissions = checkNotNull(permissions, "Permissions cannot be null");
         this.featuresRepo = Optional.ofNullable(featuresRepo);
         this.features = checkNotNull(features, "Features cannot be null");
@@ -86,6 +90,11 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     }
 
     @Override
+    public ApplicationRole role() {
+        return role;
+    }
+
+    @Override
     public Set<Permission> permissions() {
         return permissions;
     }
@@ -107,6 +116,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
                 .add("version", version)
                 .add("description", description)
                 .add("origin", origin)
+                .add("role", role)
                 .add("permissions", permissions)
                 .add("featuresRepo", featuresRepo)
                 .add("features", features)

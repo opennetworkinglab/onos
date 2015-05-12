@@ -56,6 +56,7 @@ public class ApplicationArchiveTest {
         assertEquals("incorrect name", APP_NAME, app.name());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect origin", ORIGIN, app.origin());
+        assertEquals("incorrect role", ROLE, app.role());
 
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect features URI", FURL, app.featuresRepo().get());

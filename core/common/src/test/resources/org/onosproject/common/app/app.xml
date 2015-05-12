@@ -18,4 +18,11 @@
         featuresRepo="mvn:org.foo-features/1.2a/xml/features"
         features="foo,bar">
     <description>Awesome application from Circus, Inc.</description>
+    <security>
+        <role>ADMIN</role>
+        <permissions>
+            <permission>FLOWRULE_WRITE</permission>
+            <permission>FLOWRULE_READ</permission>
+        </permissions>
+    </security>
 </app>

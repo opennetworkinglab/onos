@@ -24,12 +24,18 @@ import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.Permission;
+import org.onosproject.core.DefaultPermission;
 import org.onosproject.core.ApplicationIdStoreAdapter;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.Permission;
 
+import static org.onosproject.core.DefaultPermission.Type.FLOWRULE_WRITE;
 import static org.junit.Assert.assertEquals;
-import static org.onosproject.app.ApplicationEvent.Type.*;
+import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_PERMISSIONS_CHANGED;
 import static org.onosproject.app.ApplicationState.ACTIVE;
 import static org.onosproject.app.ApplicationState.INSTALLED;
 
@@ -100,8 +106,7 @@ public class SimpleApplicationStoreTest {
     @Test
     public void permissions() {
         Application app = createTestApp();
-        ImmutableSet<Permission> permissions = ImmutableSet.of(new Permission() {
-        });
+        ImmutableSet<Permission> permissions = ImmutableSet.of(new DefaultPermission(FLOWRULE_WRITE));
         store.setPermissions(app.id(), permissions);
         assertEquals("incorrect app perms", 1, store.getPermissions(app.id()).size());
         assertEquals("incorrect app state", INSTALLED, store.getState(app.id()));
