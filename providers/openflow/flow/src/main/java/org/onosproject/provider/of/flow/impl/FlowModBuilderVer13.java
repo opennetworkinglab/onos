@@ -245,13 +245,13 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         switch (l0m.subtype()) {
-        case LAMBDA:
-            ModLambdaInstruction ml = (ModLambdaInstruction) i;
-            return factory().actions().circuit(factory().oxms().ochSigidBasic(
-                    new CircuitSignalID((byte) 1, (byte) 2, ml.lambda(), (short) 1)));
-        default:
-            log.warn("Unimplemented action type {}.", l0m.subtype());
-            break;
+            case LAMBDA:
+                ModLambdaInstruction ml = (ModLambdaInstruction) i;
+                return factory().actions().circuit(factory().oxms().ochSigidBasic(
+                        new CircuitSignalID((byte) 1, (byte) 2, ml.lambda(), (short) 1)));
+            default:
+                log.warn("Unimplemented action type {}.", l0m.subtype());
+                break;
         }
         return null;
     }
@@ -319,41 +319,41 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         Ip6Address ip6;
         OFOxm<?> oxm = null;
         switch (l3m.subtype()) {
-        case IPV4_SRC:
-            ip = (ModIPInstruction) i;
-            ip4 = ip.ip().getIp4Address();
-            oxm = factory().oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
-            break;
-        case IPV4_DST:
-            ip = (ModIPInstruction) i;
-            ip4 = ip.ip().getIp4Address();
-            oxm = factory().oxms().ipv4Dst(IPv4Address.of(ip4.toInt()));
-            break;
-        case IPV6_SRC:
-            ip = (ModIPInstruction) i;
-            ip6 = ip.ip().getIp6Address();
-            oxm = factory().oxms().ipv6Src(IPv6Address.of(ip6.toOctets()));
-            break;
-        case IPV6_DST:
-            ip = (ModIPInstruction) i;
-            ip6 = ip.ip().getIp6Address();
-            oxm = factory().oxms().ipv6Dst(IPv6Address.of(ip6.toOctets()));
-            break;
-        case IPV6_FLABEL:
-            ModIPv6FlowLabelInstruction flowLabelInstruction =
-                (ModIPv6FlowLabelInstruction) i;
-            int flowLabel = flowLabelInstruction.flowLabel();
-            oxm = factory().oxms().ipv6Flabel(IPv6FlowLabel.of(flowLabel));
-            break;
-        case DEC_TTL:
-            return factory().actions().decNwTtl();
-        case TTL_IN:
-            return factory().actions().copyTtlIn();
-        case TTL_OUT:
-            return factory().actions().copyTtlOut();
-        default:
-            log.warn("Unimplemented action type {}.", l3m.subtype());
-            break;
+            case IPV4_SRC:
+                ip = (ModIPInstruction) i;
+                ip4 = ip.ip().getIp4Address();
+                oxm = factory().oxms().ipv4Src(IPv4Address.of(ip4.toInt()));
+                break;
+            case IPV4_DST:
+                ip = (ModIPInstruction) i;
+                ip4 = ip.ip().getIp4Address();
+                oxm = factory().oxms().ipv4Dst(IPv4Address.of(ip4.toInt()));
+                break;
+            case IPV6_SRC:
+                ip = (ModIPInstruction) i;
+                ip6 = ip.ip().getIp6Address();
+                oxm = factory().oxms().ipv6Src(IPv6Address.of(ip6.toOctets()));
+                break;
+            case IPV6_DST:
+                ip = (ModIPInstruction) i;
+                ip6 = ip.ip().getIp6Address();
+                oxm = factory().oxms().ipv6Dst(IPv6Address.of(ip6.toOctets()));
+                break;
+            case IPV6_FLABEL:
+                ModIPv6FlowLabelInstruction flowLabelInstruction =
+                        (ModIPv6FlowLabelInstruction) i;
+                int flowLabel = flowLabelInstruction.flowLabel();
+                oxm = factory().oxms().ipv6Flabel(IPv6FlowLabel.of(flowLabel));
+                break;
+            case DEC_TTL:
+                return factory().actions().decNwTtl();
+            case TTL_IN:
+                return factory().actions().copyTtlIn();
+            case TTL_OUT:
+                return factory().actions().copyTtlOut();
+            default:
+                log.warn("Unimplemented action type {}.", l3m.subtype());
+                break;
         }
 
         if (oxm != null) {
