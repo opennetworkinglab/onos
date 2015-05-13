@@ -38,6 +38,7 @@
         stop: 'stop',
 
         refresh: 'refresh',
+        garbage: 'garbage',
 
         upArrow: 'triangleUp',
         downArrow: 'triangleDown',

@@ -19,7 +19,7 @@
  */
 
 describe('factory: fw/widget/tableBuilder.js', function () {
-    var $log, $rootScope, fs, tbs;
+    var $log, $rootScope, fs, tbs, is;
 
     var mockObj,
         mockWss = {
@@ -28,7 +28,7 @@ describe('factory: fw/widget/tableBuilder.js', function () {
             unbindHandlers: function () {}
         };
 
-    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote'));
+    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg'));
 
     beforeEach(function () {
         module(function ($provide) {
@@ -37,11 +37,12 @@ describe('factory: fw/widget/tableBuilder.js', function () {
     });
 
     beforeEach(inject(function (_$log_, _$rootScope_,
-                                FnService, TableBuilderService) {
+                                FnService, TableBuilderService, IconService) {
         $log = _$log_;
         $rootScope = _$rootScope_;
         fs = FnService;
         tbs = TableBuilderService;
+        is = IconService;
     }));
 
     function mockSelCb(event, sel) {}

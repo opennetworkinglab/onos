@@ -20,7 +20,7 @@
 describe('factory: fw/svg/glyph.js', function() {
     var $log, fs, gs, d3Elem, svg;
 
-    var numBaseGlyphs = 41,
+    var numBaseGlyphs = 42,
         vbBird = '352 224 113 112',
         vbGlyph = '0 0 110 110',
         vbBadge = '0 0 10 10',
@@ -43,6 +43,7 @@ describe('factory: fw/svg/glyph.js', function() {
             lock: 'M79.4,48.6h',
             topo: 'M97.2,76.3H86.6',
             refresh: 'M102.6,40.8L88.4',
+            garbage: 'M94.6,20.2c',
 
             // navigation specific glyphs
             flowTable: tablePrefix + 'M102.2,23.6H7.9v',
@@ -86,6 +87,7 @@ describe('factory: fw/svg/glyph.js', function() {
         glyphIds = [
             'unknown', 'node', 'switch', 'roadm', 'endstation', 'router',
             'bgpSpeaker', 'chain', 'crown', 'lock', 'topo', 'refresh',
+            'garbage',
             'flowTable', 'portTable', 'groupTable',
             'summary', 'details', 'ports', 'map', 'cycleLabels',
             'oblique', 'filters', 'resetZoom', 'relatedIntents', 'nextIntent',

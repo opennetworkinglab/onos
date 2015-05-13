@@ -48,7 +48,7 @@
         document.getElementById('app-form-response').onload = function () {
             document.getElementById('app-form').reset();
             $scope.refresh();
-        }
+        };
 
         function appAction(action) {
             if (selection) {
