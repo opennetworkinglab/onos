@@ -70,6 +70,9 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
+import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -401,6 +404,9 @@ public final class KryoNamespaces {
             .register(OduCltPort.SignalType.class)
             .register(IndexedLambda.class)
             .register(OchSignal.class)
+            .register(OduCltPortDescription.class)
+            .register(OchPortDescription.class)
+            .register(OmsPortDescription.class)
             .register(
                     MplsIntent.class,
                     MplsPathIntent.class,
