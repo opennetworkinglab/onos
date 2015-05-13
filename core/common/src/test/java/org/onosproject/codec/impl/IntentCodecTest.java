@@ -18,12 +18,12 @@ package org.onosproject.codec.impl;
 import java.time.Duration;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.util.Bandwidth;
-import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
@@ -39,6 +39,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentServiceAdapter;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
@@ -71,7 +73,13 @@ public class IntentCodecTest extends AbstractIntentTest {
             DefaultTrafficSelector.emptySelector();
     final TrafficTreatment emptyTreatment =
             DefaultTrafficTreatment.emptyTreatment();
-    private final CodecContext context = new MockCodecContext();
+    private final MockCodecContext context = new MockCodecContext();
+
+    @Before
+    public void setUpIntentService() {
+        final IntentService mockIntentService = new IntentServiceAdapter();
+        context.registerService(IntentService.class, mockIntentService);
+    }
 
     /**
      * Tests the encoding of a host to host intent.
@@ -109,7 +117,6 @@ public class IntentCodecTest extends AbstractIntentTest {
                         .ingressPoint(ingress)
                         .egressPoint(egress).build();
 
-        final CodecContext context = new MockCodecContext();
         final JsonCodec<PointToPointIntent> intentCodec =
                 context.codec(PointToPointIntent.class);
         assertThat(intentCodec, notNullValue());
@@ -165,7 +172,6 @@ public class IntentCodecTest extends AbstractIntentTest {
                         .build();
 
 
-        final CodecContext context = new MockCodecContext();
         final JsonCodec<PointToPointIntent> intentCodec =
                 context.codec(PointToPointIntent.class);
         assertThat(intentCodec, notNullValue());

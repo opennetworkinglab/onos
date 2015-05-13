@@ -54,7 +54,7 @@ public class IntentServiceAdapter implements IntentService {
 
     @Override
     public IntentState getIntentState(Key intentKey) {
-        return null;
+        return IntentState.INSTALLED;
     }
 
     @Override

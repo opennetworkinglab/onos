@@ -19,6 +19,8 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +46,11 @@ public final class IntentCodec extends JsonCodec<Intent> {
         for (final NetworkResource resource : intent.resources()) {
             jsonResources.add(resource.toString());
         }
+
+        IntentService service = context.getService(IntentService.class);
+        IntentState state = service.getIntentState(intent.key());
+        result.put("state", state.toString());
+
         return result;
     }
 }

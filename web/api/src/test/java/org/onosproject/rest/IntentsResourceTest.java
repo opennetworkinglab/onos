@@ -35,6 +35,7 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 
@@ -44,6 +45,7 @@ import com.eclipsesource.json.JsonValue;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -121,6 +123,13 @@ public class IntentsResourceTest extends ResourceTest {
                 return false;
             }
 
+            // check state field
+            final String jsonState = jsonIntent.get("state").asString();
+            if (!jsonState.equals("INSTALLED")) {
+                reason = "state INSTALLED";
+                return false;
+            }
+
             // check resources array
             final JsonArray jsonResources = jsonIntent.get("resources").asArray();
             if (intent.resources() != null) {
@@ -180,7 +189,7 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public boolean matchesSafely(JsonArray json) {
             boolean intentFound = false;
-            final int expectedAttributes = 5;
+            final int expectedAttributes = 6;
             for (int jsonIntentIndex = 0; jsonIntentIndex < json.size();
                  jsonIntentIndex++) {
 
@@ -229,6 +238,9 @@ public class IntentsResourceTest extends ResourceTest {
     @Before
     public void setUpTest() {
         expect(mockIntentService.getIntents()).andReturn(intents).anyTimes();
+        expect(mockIntentService.getIntentState(anyObject()))
+                .andReturn(IntentState.INSTALLED)
+                .anyTimes();
         // Register the services needed for the test
         final CodecManager codecService =  new CodecManager();
         codecService.activate();
