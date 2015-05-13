@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.Path;
 
 import com.google.common.testing.EqualsTester;
@@ -28,6 +29,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.createLambda;
 import static org.onosproject.net.NetTestTools.createPath;
 
 public class OpticalPathIntentTest extends AbstractIntentTest {
@@ -37,6 +39,7 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
     OpticalPathIntent intent1;
     OpticalPathIntent intent2;
     Path defaultPath;
+    OchSignal lambda;
 
     @Before
     public void opticalPathIntentTestSetUp() {
@@ -46,6 +49,7 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
                 .src(connectPoint("one", 1))
                 .dst(connectPoint("two", 2))
                 .path(defaultPath)
+                .lambda(createLambda())
                 .priority(PRIORITY)
                 .build();
 
@@ -54,6 +58,7 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
                 .src(connectPoint("two", 1))
                 .dst(connectPoint("one", 2))
                 .path(defaultPath)
+                .lambda(createLambda())
                 .priority(PRIORITY)
                 .build();
     }

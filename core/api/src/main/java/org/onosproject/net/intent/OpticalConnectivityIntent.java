@@ -24,8 +24,8 @@ import java.util.Collections;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * An optical layer intent for connectivity from one transponder port to another
- * transponder port. No traffic selector or traffic treatment are needed.
+ * An optical layer intent for connectivity between two OCh ports.
+ * No traffic selector or traffic treatment are needed.
  */
 public final class OpticalConnectivityIntent extends Intent {
     private final ConnectPoint src;

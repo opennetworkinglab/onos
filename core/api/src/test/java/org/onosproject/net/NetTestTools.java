@@ -89,6 +89,10 @@ public final class NetTestTools {
         return new DefaultPath(PID, links, ids.length);
     }
 
+    // Creates OCh signal
+    public static OchSignal createLambda() {
+        return new OchSignal(GridType.DWDM, ChannelSpacing.CHL_6P25GHZ, 8, 4);
+    }
 
     /**
      * Verifies that Annotations created by merging {@code annotations} is

@@ -21,15 +21,20 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
+import org.onosproject.net.OduCltPort;
 import org.onosproject.net.Path;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -39,9 +44,15 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.resource.DeviceResourceService;
+import org.onosproject.net.resource.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +65,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -70,11 +80,17 @@ public class OpticalPathProvisioner {
     protected static final Logger log = LoggerFactory
             .getLogger(OpticalPathProvisioner.class);
 
+    private static final Serializer SERIALIZER = Serializer.using(
+            new KryoNamespace.Builder().register(KryoNamespaces.API).build());
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PathService pathService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -88,13 +104,19 @@ public class OpticalPathProvisioner {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    private ApplicationId appId;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
 
-    // TODO use a shared map for distributed operation
-    private final Map<ConnectPoint, OpticalConnectivityIntent> inStatusTportMap =
-            new ConcurrentHashMap<>();
-    private final Map<ConnectPoint, OpticalConnectivityIntent> outStatusTportMap =
-            new ConcurrentHashMap<>();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceResourceService deviceResourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkResourceService linkResourceService;
+
+    private ApplicationId appId;
 
     private final Map<ConnectPoint, Map<ConnectPoint, Intent>> intentMap =
             new ConcurrentHashMap<>();
@@ -105,7 +127,7 @@ public class OpticalPathProvisioner {
     protected void activate() {
         intentService.addListener(pathProvisioner);
         appId = coreService.registerApplication("org.onosproject.optical");
-        initTport();
+        initOpticalPorts();
         log.info("Started");
     }
 
@@ -115,19 +137,12 @@ public class OpticalPathProvisioner {
         log.info("Stopped");
     }
 
-    protected void initTport() {
-        inStatusTportMap.clear();
-        outStatusTportMap.clear();
-        for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.key()) == INSTALLED) {
-                if (intent instanceof OpticalConnectivityIntent) {
-                    inStatusTportMap.put(((OpticalConnectivityIntent) intent).getSrc(),
-                            (OpticalConnectivityIntent) intent);
-                    outStatusTportMap.put(((OpticalConnectivityIntent) intent).getDst(),
-                            (OpticalConnectivityIntent) intent);
-                }
-            }
-        }
+    /**
+     * Initialize availability of optical ports.
+     */
+    private void initOpticalPorts() {
+        // TODO: check for existing optical intents
+        return;
     }
 
     public class InternalOpticalPathProvisioner implements IntentListener {
@@ -137,6 +152,7 @@ public class OpticalPathProvisioner {
                 case INSTALL_REQ:
                     break;
                 case INSTALLED:
+                    // track h2h & p2p intents using our connectivity
                     break;
                 case FAILED:
                     log.info("Intent {} failed, calling optical path provisioning app.", event.subject());
@@ -144,26 +160,10 @@ public class OpticalPathProvisioner {
                     break;
                 case WITHDRAWN:
                     log.info("Intent {} withdrawn.", event.subject());
-                    //FIXME
-                    //teardownLightpath(event.subject());
+                    withdrawIntent(event.subject());
                     break;
                 default:
                     break;
-            }
-        }
-
-        private void reserveTport(Intent intent) {
-            // TODO move to resourceManager
-            if (intent instanceof OpticalConnectivityIntent) {
-                OpticalConnectivityIntent opticalIntent =
-                        (OpticalConnectivityIntent) intent;
-                if (inStatusTportMap.containsKey(opticalIntent.getSrc()) ||
-                        outStatusTportMap.containsKey(opticalIntent.getDst())) {
-                    //TODO throw an exception, perhaps
-                    log.warn("Overlapping reservation: {}", opticalIntent);
-                }
-                inStatusTportMap.put(opticalIntent.getSrc(), opticalIntent);
-                outStatusTportMap.put(opticalIntent.getDst(), opticalIntent);
             }
         }
 
@@ -190,6 +190,8 @@ public class OpticalPathProvisioner {
         }
 
         private void setupLightpath(Intent intent) {
+            checkNotNull(intent);
+
             // TODO change the coordination approach between packet intents and optical intents
             // Low speed LLDP may cause multiple calls which are not expected
 
@@ -197,56 +199,48 @@ public class OpticalPathProvisioner {
                 return;
             }
 
-            NodeId localNode = clusterService.getLocalNode().id();
-
-            List<Intent> intents = Lists.newArrayList();
+            // Get source and destination based on intent type
+            ConnectPoint src;
+            ConnectPoint dst;
             if (intent instanceof HostToHostIntent) {
                 HostToHostIntent hostToHostIntent = (HostToHostIntent) intent;
 
                 Host one = hostService.getHost(hostToHostIntent.one());
                 Host two = hostService.getHost(hostToHostIntent.two());
-                if (one == null || two == null) {
-                    return; //FIXME
-                }
 
-                // Ignore if we're not the master for the intent's origin device
-                NodeId sourceMaster = mastershipService.getMasterFor(one.location().deviceId());
-                if (!localNode.equals(sourceMaster)) {
-                    return;
-                }
+                checkNotNull(one);
+                checkNotNull(two);
 
-                // provision both directions
-                intents.addAll(getOpticalPath(one.location(), two.location()));
-                // note: bi-directional intent is set up
-                // HostToHost Intent requires symmetric path!
-                //intents.addAll(getOpticalPath(two.location(), one.location()));
+                src = one.location();
+                dst = two.location();
             } else if (intent instanceof PointToPointIntent) {
                 PointToPointIntent p2pIntent = (PointToPointIntent) intent;
 
-                // Ignore if we're not the master for the intent's origin device
-                NodeId sourceMaster = mastershipService.getMasterFor(p2pIntent.ingressPoint().deviceId());
-                if (!localNode.equals(sourceMaster)) {
-                    return;
-                }
-
-                intents.addAll(getOpticalPath(p2pIntent.ingressPoint(), p2pIntent.egressPoint()));
+                src = p2pIntent.ingressPoint();
+                dst = p2pIntent.egressPoint();
             } else {
-                log.info("Unsupported intent type: {}", intent.getClass());
+                log.error("Unsupported intent type: {}", intent.getClass());
+                return;
             }
 
-            // Create the intents
+            if (src == null || dst == null) {
+                return;
+            }
+
+            // Ignore if we're not the master for the intent's origin device
+            NodeId localNode = clusterService.getLocalNode().id();
+            NodeId sourceMaster = mastershipService.getMasterFor(src.deviceId());
+            if (!localNode.equals(sourceMaster)) {
+                return;
+            }
+
+            // Generate optical connectivity intents
+            List<Intent> intents = Lists.newArrayList();
+            intents.addAll(getOpticalIntents(src, dst));
+
+            // Submit the intents
             for (Intent i : intents) {
-                // TODO: don't allow duplicate intents between the same points for now
-                //       we may want to allow this carefully in future to increase capacity
-                if (i instanceof OpticalConnectivityIntent) {
-                    OpticalConnectivityIntent oi = (OpticalConnectivityIntent) i;
-                    if (addIntent(oi.getSrc(), oi.getDst(), oi)) {
-                        intentService.submit(i);
-                        reserveTport(i);
-                    }
-                } else {
-                    log.warn("Invalid intent type: {} for {}", i.getClass(), i);
-                }
+                intentService.submit(i);
             }
         }
 
@@ -281,11 +275,10 @@ public class OpticalPathProvisioner {
         }
 
         /**
-         * Checks availability of cross connect points by verifying T port status.
-         * TODO: refactor after rewriting OpticalConnectivityIntentCompiler
+         * Checks if cross connect points are of same type.
          *
          * @param crossConnectPoints list of cross connection points
-         * @return true if all cross connect points are available, false otherwise
+         * @return true if cross connect point pairs are of same type, false otherwise
          */
         private boolean checkCrossConnectPoints(List<ConnectPoint> crossConnectPoints) {
             checkArgument(crossConnectPoints.size() % 2 == 0);
@@ -297,7 +290,12 @@ public class OpticalPathProvisioner {
                 ConnectPoint src = itr.next();
                 ConnectPoint dst = itr.next();
 
-                if (inStatusTportMap.get(src) != null || outStatusTportMap.get(dst) != null) {
+                Device.Type srcType = deviceService.getDevice(src.deviceId()).type();
+                Device.Type dstType = deviceService.getDevice(dst.deviceId()).type();
+
+                // Only support connections between identical port types
+                if (srcType != dstType) {
+                    log.warn("Unsupported mix of cross connect points");
                     return false;
                 }
             }
@@ -306,8 +304,7 @@ public class OpticalPathProvisioner {
         }
 
         /**
-         * Scans the list of cross connection points and returns a list of optical connectivity intents
-         * in both directions.
+         * Scans the list of cross connection points and returns a list of optical connectivity intents.
          *
          * @param crossConnectPoints list of cross connection points
          * @return list of optical connectivity intents
@@ -323,25 +320,34 @@ public class OpticalPathProvisioner {
                 ConnectPoint src = itr.next();
                 ConnectPoint dst = itr.next();
 
-                // TODO: should have option for bidirectional OpticalConnectivityIntent
+                Port srcPort = deviceService.getPort(src.deviceId(), src.port());
+                Port dstPort = deviceService.getPort(dst.deviceId(), dst.port());
+                // Create lightpath
+                // TODO: Ensure src & dst are of type OchPort
                 Intent opticalIntent = OpticalConnectivityIntent.builder()
                         .appId(appId)
                         .src(src)
                         .dst(dst)
                         .build();
-                Intent opticalIntentRev = OpticalConnectivityIntent.builder()
-                        .appId(appId)
-                        .src(dst)
-                        .dst(src)
-                        .build();
                 intents.add(opticalIntent);
-                intents.add(opticalIntentRev);
+                if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
+                    continue;
+                    // also create OTN service
+                }
             }
 
             return intents;
         }
 
-        private List<Intent> getOpticalPath(ConnectPoint ingress, ConnectPoint egress) {
+        /**
+         * Returns list of optical connectivity intents needed to create connectivity
+         * between ingress and egress.
+         *
+         * @param ingress the ingress connect point
+         * @param egress the egress connect point
+         * @return list of optical connectivity intents, empty list if no path was found
+         */
+        private List<Intent> getOpticalIntents(ConnectPoint ingress, ConnectPoint egress) {
             Set<Path> paths = pathService.getPaths(ingress.deviceId(),
                     egress.deviceId(),
                     new OpticalLinkWeight());
@@ -350,16 +356,11 @@ public class OpticalPathProvisioner {
                 return Collections.emptyList();
             }
 
-            List<Intent> connectionList = Lists.newArrayList();
+            // Search path with available cross connect points
+            for (Path path : paths) {
+                List<ConnectPoint> crossConnectPoints = getCrossConnectPoints(path);
 
-            // Iterate over all paths until a suitable one has been found
-            Iterator<Path> itrPath = paths.iterator();
-            while (itrPath.hasNext()) {
-                Path nextPath = itrPath.next();
-
-                List<ConnectPoint> crossConnectPoints = getCrossConnectPoints(nextPath);
-
-                // Skip to next path if not all connect points are available
+                // Skip to next path if cross connect points are mismatched
                 if (!checkCrossConnectPoints(crossConnectPoints)) {
                     continue;
                 }
@@ -370,18 +371,41 @@ public class OpticalPathProvisioner {
             return Collections.emptyList();
         }
 
-        private void teardownLightpath(Intent intent) {
-            /* FIXME this command doesn't make much sense. we need to define the semantics
-            // TODO move to resourceManager
-            if (intent instanceof OpticalConnectivityIntent) {
-                inStatusTportMap.remove(((OpticalConnectivityIntent) intent).getSrc());
-                outStatusTportMap.remove(((OpticalConnectivityIntent) intent).getDst());
-                // TODO tear down the idle lightpath if the utilization is zero.
+        /**
+         * Link weight function that emphasizes re-use of packet links.
+         */
+        private class OpticalLinkWeight implements LinkWeight {
+            @Override
+            public double weight(TopologyEdge edge) {
+                // Ignore inactive links
+                if (edge.link().state() == Link.State.INACTIVE) {
+                    return -1;
+                }
 
+                // TODO: Ignore cross connect links with used ports
+
+                // Transport links have highest weight
+                if (edge.link().type() == Link.Type.OPTICAL) {
+                    return 1000;
+                }
+
+                // Packet links
+                return 1;
             }
-            */ //end-FIXME
         }
 
+        /**
+         * Handle withdrawn intent on each network layer.
+         *
+         * @param intent the withdrawn intent
+         */
+        private void withdrawIntent(Intent intent) {
+            if (intent instanceof OpticalConnectivityIntent) {
+                deviceResourceService.releasePorts(intent.id());
+                linkResourceService.releaseResources(linkResourceService.getAllocations(intent.id()));
+            }
+            // TODO: add other layers
+        }
     }
 
     /**
@@ -403,27 +427,6 @@ public class OpticalPathProvisioner {
         }
 
         return false;
-    }
-
-    /**
-     * Link weight function that emphasizes re-use of packet links.
-     */
-    private static class OpticalLinkWeight implements LinkWeight {
-        @Override
-        public double weight(TopologyEdge edge) {
-            // Ignore inactive links
-            if (edge.link().state() == Link.State.INACTIVE) {
-                return -1;
-            }
-
-            // Transport links have highest weight
-            if (edge.link().type() == Link.Type.OPTICAL) {
-                return 1000;
-            }
-
-            // Packet links
-            return 1;
-        }
     }
 
 }

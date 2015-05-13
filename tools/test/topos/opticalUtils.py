@@ -426,11 +426,15 @@ class LINCSwitch(OpticalSwitch):
             response = json.load(urllib2.urlopen(url))
             devs = response.get('devices')
 
-            # Wait for all devices to be registered & available
-            if (len(devices) == len(devs)):
-                for d in devs:
-                    if not d['available']:
-                        continue
+            # Wait for all devices to be registered
+            if (len(devices) != len(devs)):
+                continue
+
+            # Wait for all devices to available
+            available = True
+            for d in devs:
+                available &= d['available']
+            if available:
                 break
 
             if (time >= TIMEOUT):

@@ -138,6 +138,16 @@ public final class Frequency implements RichComparable<Frequency> {
         return new Frequency(this.frequency * value);
     }
 
+    /**
+     * Returns a Frequency whose value is Math.floorDiv(this, value).
+     *
+     * @param value
+     * @return Math.floorDiv(this, value)
+     */
+    public Frequency floorDivision(long value) {
+        return new Frequency(Math.floorDiv(this.frequency, value));
+    }
+
     @Override
     public int compareTo(Frequency other) {
         return ComparisonChain.start()

@@ -15,8 +15,6 @@
  */
 package org.onosproject.net;
 
-import org.onlab.util.Frequency;
-
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -29,9 +27,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class OchPort extends DefaultPort {
 
-    public static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
-    public static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
-
     private final OduSignalType signalType;
     private final boolean isTunable;
     private final OchSignal lambda;
@@ -43,7 +38,7 @@ public class OchPort extends DefaultPort {
      * @param number      port number
      * @param isEnabled   port enabled state
      * @param signalType  ODU signal type
-     * @param isTunable   maximum frequency in MHz
+     * @param isTunable   tunable wavelength capability
      * @param lambda      OCh signal
      * @param annotations optional key/value annotations
      */

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -23,16 +24,31 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.Frequency;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.GridType;
 import org.onosproject.net.Link;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OmsPort;
 import org.onosproject.net.Path;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.intent.impl.PathNotFoundException;
+import org.onosproject.net.resource.DefaultLinkResourceRequest;
+import org.onosproject.net.resource.DeviceResourceService;
+import org.onosproject.net.resource.LambdaResource;
+import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.LinkResourceRequest;
+import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
@@ -40,17 +56,31 @@ import org.onosproject.net.topology.TopologyService;
 
 import com.google.common.collect.ImmutableList;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
  */
 @Component(immediate = true)
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {
 
+    private static final GridType DEFAULT_OCH_GRIDTYPE = GridType.DWDM;
+    private static final ChannelSpacing DEFAULT_CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkResourceService linkResourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceResourceService deviceResourceService;
 
     @Activate
     public void activate() {
@@ -66,19 +96,152 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     public List<Intent> compile(OpticalConnectivityIntent intent,
                                 List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
-        // TODO: compute multiple paths using the K-shortest path algorithm
-        Path path = calculateOpticalPath(intent.getSrc(), intent.getDst());
-        Intent newIntent = OpticalPathIntent.builder()
-                .appId(intent.appId())
-                .src(intent.getSrc())
-                .dst(intent.getDst())
-                .path(path)
-                .build();
-        return ImmutableList.of(newIntent);
+        // Check if source and destination are optical OCh ports
+        ConnectPoint src = intent.getSrc();
+        ConnectPoint dst = intent.getDst();
+        Port srcPort = deviceService.getPort(src.deviceId(), src.port());
+        Port dstPort = deviceService.getPort(dst.deviceId(), dst.port());
+        checkArgument(srcPort instanceof OchPort);
+        checkArgument(dstPort instanceof OchPort);
+
+        // Calculate available light paths
+        Set<Path> paths = getOpticalPaths(intent);
+
+        // Use first path that can be successfully reserved
+        for (Path path : paths) {
+            // Request and reserve lambda on path
+            LinkResourceAllocations linkAllocs = assignWavelength(intent, path);
+            if (linkAllocs == null) {
+                continue;
+            }
+
+            OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
+
+            // Try to reserve port resources, roll back if unsuccessful
+            Set<Port> portAllocs = deviceResourceService.requestPorts(intent);
+            if (portAllocs == null) {
+                linkResourceService.releaseResources(linkAllocs);
+                continue;
+            }
+
+            // Create installable optical path intent
+            LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
+            OchSignal ochSignal = getOchSignal(lambdaAlloc, omsPort.minFrequency(), omsPort.grid());
+
+            Intent newIntent = OpticalPathIntent.builder()
+                    .appId(intent.appId())
+                    .src(intent.getSrc())
+                    .dst(intent.getDst())
+                    .path(path)
+                    .lambda(ochSignal)
+                    .build();
+
+            return ImmutableList.of(newIntent);
+        }
+
+        return Collections.emptyList();
     }
 
-    private Path calculateOpticalPath(ConnectPoint start, ConnectPoint end) {
-        // TODO: support user policies
+    /**
+     * Find the lambda allocated to the path.
+     *
+     * @param path the path
+     * @param linkAllocs the link allocations
+     * @return
+     */
+    private LambdaResourceAllocation getWavelength(Path path, LinkResourceAllocations linkAllocs) {
+        for (Link link : path.links()) {
+            for (ResourceAllocation alloc : linkAllocs.getResourceAllocation(link)) {
+                if (alloc.type() == ResourceType.LAMBDA) {
+                    return (LambdaResourceAllocation) alloc;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Request and reserve first available wavelength across path.
+     *
+     * @param path path in WDM topology
+     * @return first available lambda resource allocation
+     */
+    private LinkResourceAllocations assignWavelength(Intent intent, Path path) {
+        LinkResourceRequest.Builder request =
+                DefaultLinkResourceRequest.builder(intent.id(), path.links())
+                .addLambdaRequest();
+
+        LinkResourceAllocations allocations = linkResourceService.requestResources(request.build());
+
+        checkWavelengthContinuity(allocations, path);
+
+        return allocations;
+    }
+
+    /**
+     * Checks wavelength continuity constraint across path, i.e., an identical lambda is used on all links.
+     * @return true if wavelength continuity is met, false otherwise
+     */
+    private boolean checkWavelengthContinuity(LinkResourceAllocations allocations, Path path) {
+        if (allocations == null) {
+            return false;
+        }
+
+        LambdaResource lambda = null;
+
+        for (Link link : path.links()) {
+            for (ResourceAllocation alloc : allocations.getResourceAllocation(link)) {
+                if (alloc.type() == ResourceType.LAMBDA) {
+                    LambdaResource nextLambda = ((LambdaResourceAllocation) alloc).lambda();
+                    if (nextLambda == null) {
+                        return false;
+                    }
+                    if (lambda == null) {
+                        lambda = nextLambda;
+                        continue;
+                    }
+                    if (!lambda.equals(nextLambda)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Convert lambda resource allocation in OCh signal.
+     *
+     * @param alloc lambda resource allocation
+     * @param minFrequency minimum frequency
+     * @param grid grid spacing frequency
+     * @return OCh signal
+     */
+    private OchSignal getOchSignal(LambdaResourceAllocation alloc, Frequency minFrequency, Frequency grid) {
+        int channel = alloc.lambda().toInt();
+
+        // Calculate center frequency
+        Frequency centerFrequency = minFrequency.add(grid.multiply(channel)).add(grid.floorDivision(2));
+
+        // Build OCh signal object
+        int spacingMultiplier = (int) (centerFrequency.subtract(OchSignal.CENTER_FREQUENCY).asHz() / grid.asHz());
+        int slotGranularity = (int) (grid.asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
+        OchSignal ochSignal = new OchSignal(DEFAULT_OCH_GRIDTYPE, DEFAULT_CHANNEL_SPACING,
+                spacingMultiplier, slotGranularity);
+
+        return ochSignal;
+    }
+
+    /**
+     * Calculates optical paths in WDM topology.
+     *
+     * @param intent optical connectivity intent
+     * @return set of paths in WDM topology
+     */
+    private Set<Path> getOpticalPaths(OpticalConnectivityIntent intent) {
+        // Route in WDM topology
         Topology topology = topologyService.currentTopology();
         LinkWeight weight = new LinkWeight() {
             @Override
@@ -86,18 +249,18 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 if (edge.link().state() == Link.State.INACTIVE) {
                     return -1;
                 }
-                return edge.link().type() == Link.Type.OPTICAL ? +1 : -1;
+                if (edge.link().type() != Link.Type.OPTICAL) {
+                    return -1;
+                }
+                return edge.link().annotations().value("optical.type").equals("WDM") ? +1 : -1;
             }
         };
 
+        ConnectPoint start = intent.getSrc();
+        ConnectPoint end = intent.getDst();
         Set<Path> paths = topologyService.getPaths(topology, start.deviceId(),
-                                                   end.deviceId(), weight);
-        if (paths.isEmpty()) {
-            throw new PathNotFoundException(start.elementId(), end.elementId());
-        }
+                end.deviceId(), weight);
 
-        // TODO: let's be more intelligent about this eventually
-        return paths.iterator().next();
+        return paths;
     }
-
 }

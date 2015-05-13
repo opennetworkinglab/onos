@@ -17,6 +17,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.onlab.util.Bandwidth;
+import org.onosproject.net.OmsPort;
+import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.PositionalParameterStringFormatter;
@@ -55,7 +57,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.AnnotationKeys.BANDWIDTH;
-import static org.onosproject.net.AnnotationKeys.OPTICAL_WAVES;
 
 /**
  * Store that manages link resources using Copycat-backed TransactionalMaps.
@@ -78,7 +79,7 @@ public class ConsistentLinkResourceStore extends
 
     // table to store current allocations
     /** LinkKey -> List<LinkResourceAllocations>. */
-    private static final String LINK_RESOURCE_ALLOCATIONS = "LinkResourceAllocations";
+    private static final String LINK_RESOURCE_ALLOCATIONS = "o";
 
     /** IntentId -> LinkResourceAllocations. */
     private static final String INTENT_ALLOCATIONS = "IntentAllocations";
@@ -94,6 +95,9 @@ public class ConsistentLinkResourceStore extends
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Activate
     public void activate() {
@@ -136,14 +140,14 @@ public class ConsistentLinkResourceStore extends
 
     private Set<LambdaResourceAllocation> getLambdaResourceCapacity(Link link) {
         Set<LambdaResourceAllocation> allocations = new HashSet<>();
-        try {
-            final int waves = Integer.parseInt(link.annotations().value(OPTICAL_WAVES));
-            for (int i = 1; i <= waves; i++) {
-                allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
-            }
-        } catch (NumberFormatException e) {
-            log.debug("No {} annotation on link {}", OPTICAL_WAVES, link);
+
+        OmsPort port = (OmsPort) deviceService.getPort(link.src().deviceId(), link.src().port());
+
+        // Assume fixed grid for now
+        for (int i = 0; i < port.totalChannels(); i++) {
+            allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
         }
+
         return allocations;
     }
 

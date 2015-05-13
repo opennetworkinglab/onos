@@ -54,12 +54,17 @@ class SmallOpticalTopo( Topo ):
         self.addLink( O9, O10, port1=20, port2=20, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1000, "durable": "true" }, cls=LINCLink )
 
         self.addLink( SFOR10, O1, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
+        self.addLink( SFOR10, O1, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
+        
         self.addLink( LAXR10, O3, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
         # added second tap
         self.addLink( LAXR10, O3, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
         self.addLink( SDGR10, O4, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
         self.addLink( CHGR10, O7, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
+        
         self.addLink( JFKR10, O9, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
+        self.addLink( JFKR10, O9, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
+        
         self.addLink( ATLR10, O10, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
 
         h1 = self.addHost( 'h1' )

@@ -15,11 +15,9 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collection;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Link;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.Path;
 
 import com.google.common.base.MoreObjects;
@@ -32,27 +30,27 @@ public final class OpticalPathIntent extends Intent {
     private final ConnectPoint src;
     private final ConnectPoint dst;
     private final Path path;
-
+    private final OchSignal lambda;
 
     private OpticalPathIntent(ApplicationId appId,
                               Key key,
                               ConnectPoint src,
                               ConnectPoint dst,
                               Path path,
+                              OchSignal lambda,
                               int priority) {
-        super(appId,
-                key,
-                ImmutableSet.copyOf(path.links()),
-                priority);
+        super(appId, key, ImmutableSet.copyOf(path.links()), priority);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.path = checkNotNull(path);
+        this.lambda = checkNotNull(lambda);
     }
 
     protected OpticalPathIntent() {
         this.src = null;
         this.dst = null;
         this.path = null;
+        this.lambda = null;
     }
 
     /**
@@ -72,6 +70,7 @@ public final class OpticalPathIntent extends Intent {
         private ConnectPoint src;
         private ConnectPoint dst;
         private Path path;
+        private OchSignal lambda;
         Key key;
 
         @Override
@@ -123,6 +122,17 @@ public final class OpticalPathIntent extends Intent {
         }
 
         /**
+         * Sets the optical channel (lambda) for the intent that will be built.
+         *
+         * @param lambda the optical channel
+         * @return this builder
+         */
+        public Builder lambda(OchSignal lambda) {
+            this.lambda = lambda;
+            return this;
+        }
+
+        /**
          * Builds an optical path intent from the accumulated parameters.
          *
          * @return optical path intent
@@ -135,6 +145,7 @@ public final class OpticalPathIntent extends Intent {
                     src,
                     dst,
                     path,
+                    lambda,
                     priority
             );
         }
@@ -153,6 +164,10 @@ public final class OpticalPathIntent extends Intent {
         return path;
     }
 
+    public OchSignal lambda() {
+        return lambda;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
@@ -163,11 +178,7 @@ public final class OpticalPathIntent extends Intent {
                 .add("ingressPort", src)
                 .add("egressPort", dst)
                 .add("path", path)
+                .add("lambda", lambda)
                 .toString();
-    }
-
-
-    public Collection<Link> requiredLinks() {
-        return path.links();
     }
 }

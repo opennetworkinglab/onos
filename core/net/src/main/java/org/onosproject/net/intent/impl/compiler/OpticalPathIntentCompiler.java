@@ -30,28 +30,20 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.resource.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.LambdaResource;
-import org.onosproject.net.resource.LambdaResourceAllocation;
 import org.onosproject.net.resource.LinkResourceAllocations;
-import org.onosproject.net.resource.LinkResourceRequest;
 import org.onosproject.net.resource.LinkResourceService;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceType;
-import org.onosproject.net.topology.TopologyService;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 
 @Component(immediate = true)
 public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathIntent> {
@@ -63,14 +55,9 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService resourceService;
 
     private ApplicationId appId;
-
-    static final short SIGNAL_TYPE = (short) 1;
 
     @Activate
     public void activate() {
@@ -86,64 +73,50 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
     @Override
     public List<Intent> compile(OpticalPathIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
-        LinkResourceAllocations allocations = assignWavelength(intent);
-
         return Collections.singletonList(
-                new FlowRuleIntent(appId, createRules(intent, allocations), intent.resources()));
+                new FlowRuleIntent(appId, createRules(intent), intent.resources()));
     }
 
-    private LinkResourceAllocations assignWavelength(OpticalPathIntent intent) {
-        LinkResourceRequest.Builder request = DefaultLinkResourceRequest
-                .builder(intent.id(), intent.path().links())
-                .addLambdaRequest();
-        return resourceService.requestResources(request.build());
-    }
-
-    private List<FlowRule> createRules(OpticalPathIntent intent, LinkResourceAllocations allocations) {
+    private List<FlowRule> createRules(OpticalPathIntent intent) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         selectorBuilder.matchInPort(intent.src().port());
 
         List<FlowRule> rules = new LinkedList<>();
-        ConnectPoint prev = intent.src();
+        ConnectPoint current = intent.src();
 
         for (Link link : intent.path().links()) {
-            ResourceAllocation allocation = allocations.getResourceAllocation(link).stream()
-                    .filter(x -> x.type() == ResourceType.LAMBDA)
-                    .findFirst()
-                    .orElseThrow(() -> new IntentCompilationException("Lambda was not assigned successfully"));
-            LambdaResource la = ((LambdaResourceAllocation) allocation).lambda();
-
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            treatmentBuilder.setLambda((short) la.toInt());
+            treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
             treatmentBuilder.setOutput(link.src().port());
 
-            FlowRule rule = new DefaultFlowRule(prev.deviceId(),
-                    selectorBuilder.build(),
-                    treatmentBuilder.build(),
-                    100,
-                    appId,
-                    100,
-                    true);
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(current.deviceId())
+                    .withSelector(selectorBuilder.build())
+                    .withTreatment(treatmentBuilder.build())
+                    .withPriority(100)
+                    .fromApp(appId)
+                    .makePermanent()
+                    .build();
 
             rules.add(rule);
 
-            prev = link.dst();
+            current = link.dst();
             selectorBuilder.matchInPort(link.dst().port());
-            selectorBuilder.matchOpticalSignalType(SIGNAL_TYPE);
-            selectorBuilder.matchLambda((short) la.toInt());
-
+            selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
         }
 
-        // build the last T port rule
-        TrafficTreatment.Builder treatmentLast = builder();
+        // Build the egress ROADM rule
+        TrafficTreatment.Builder treatmentLast = DefaultTrafficTreatment.builder();
         treatmentLast.setOutput(intent.dst().port());
-        FlowRule rule = new DefaultFlowRule(intent.dst().deviceId(),
-                selectorBuilder.build(),
-                treatmentLast.build(),
-                100,
-                appId,
-                100,
-                true);
+
+        FlowRule rule = new DefaultFlowRule.Builder()
+                .forDevice(intent.dst().deviceId())
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatmentLast.build())
+                .withPriority(100)
+                .fromApp(appId)
+                .makePermanent()
+                .build();
         rules.add(rule);
 
         return rules;

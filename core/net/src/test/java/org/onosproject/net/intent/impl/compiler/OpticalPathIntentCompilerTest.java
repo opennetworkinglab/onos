@@ -52,6 +52,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.PID;
 import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.createLambda;
 
 public class OpticalPathIntentCompilerTest {
 
@@ -93,6 +94,7 @@ public class OpticalPathIntentCompilerTest {
                 .src(d1p1)
                 .dst(d3p1)
                 .path(new DefaultPath(PID, links, hops))
+                .lambda(createLambda())
                 .build();
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(OpticalPathIntent.class, sut);

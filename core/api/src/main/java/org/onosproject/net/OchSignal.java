@@ -30,11 +30,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)".
  * </p>
  */
-// TODO: consider which is better, OchSignal or OpticalChannelSignal
 public class OchSignal implements Lambda {
 
-    private static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
-    private static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
+    public static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
+    public static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
 
     private final GridType gridType;
     private final ChannelSpacing channelSpacing;
@@ -57,10 +56,9 @@ public class OchSignal implements Lambda {
               int spacingMultiplier, int slotGranularity) {
         this.gridType = checkNotNull(gridType);
         this.channelSpacing = checkNotNull(channelSpacing);
-        // TODO: check the precondition for spacingMultiplier. Is negative value permitted?
+        // Negative values are permitted for spacingMultiplier
         this.spacingMultiplier = spacingMultiplier;
-
-        checkArgument(slotGranularity > 0, "slotGranularity must be more than 0, but %s", slotGranularity);
+        checkArgument(slotGranularity > 0, "slotGranularity must be larger than 0, received %s", slotGranularity);
         this.slotGranularity = slotGranularity;
     }
 

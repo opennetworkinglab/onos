@@ -40,7 +40,7 @@ public class OchPortDescription extends DefaultPortDescription {
      * @param isEnabled   port enabled state
      * @param signalType  ODU signal type
      * @param isTunable   tunable wavelength capability
-     * @param lambda      Och signal
+     * @param lambda      OCh signal
      * @param annotations optional key/value annotations map
      */
     public OchPortDescription(PortNumber number, boolean isEnabled, OduSignalType signalType,
