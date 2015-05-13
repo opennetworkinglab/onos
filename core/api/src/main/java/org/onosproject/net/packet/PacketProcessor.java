@@ -22,9 +22,9 @@ package org.onosproject.net.packet;
  */
 public interface PacketProcessor {
 
-    public static final int ADVISOR_MAX = Integer.MAX_VALUE / 3;
-    public static final int DIRECTOR_MAX = (Integer.MAX_VALUE / 3) * 2;
-    public static final int OBSERVER_MAX = Integer.MAX_VALUE;
+    static final int ADVISOR_MAX = Integer.MAX_VALUE / 3;
+    static final int DIRECTOR_MAX = (Integer.MAX_VALUE / 3) * 2;
+    static final int OBSERVER_MAX = Integer.MAX_VALUE;
 
     /**
      * Processes the inbound packet as specified in the given context.

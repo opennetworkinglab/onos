@@ -26,5 +26,5 @@ public interface EventuallyConsistentMapListener<K, V> {
      *
      * @param event the event
      */
-    public void event(EventuallyConsistentMapEvent<K, V> event);
+    void event(EventuallyConsistentMapEvent<K, V> event);
 }

@@ -45,14 +45,14 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @return number of key-value mappings
      */
-    public int size();
+    int size();
 
     /**
      * Returns true if this map is empty.
      *
      * @return true if this map is empty, otherwise false
      */
-    public boolean isEmpty();
+    boolean isEmpty();
 
     /**
      * Returns true if the map contains a mapping for the specified key.
@@ -60,7 +60,7 @@ public interface EventuallyConsistentMap<K, V> {
      * @param key the key to check if this map contains
      * @return true if this map has a mapping for the key, otherwise false
      */
-    public boolean containsKey(K key);
+    boolean containsKey(K key);
 
     /**
      * Returns true if the map contains a mapping from any key to the specified
@@ -69,7 +69,7 @@ public interface EventuallyConsistentMap<K, V> {
      * @param value the value to check if this map has a mapping for
      * @return true if this map has a mapping to this value, otherwise false
      */
-    public boolean containsValue(V value);
+    boolean containsValue(V value);
 
     /**
      * Returns the value mapped to the specified key.
@@ -77,7 +77,7 @@ public interface EventuallyConsistentMap<K, V> {
      * @param key the key to look up in this map
      * @return the value mapped to the key, or null if no mapping is found
      */
-    public V get(K key);
+    V get(K key);
 
     /**
      * Associates the specified value to the specified key in this map.
@@ -94,7 +94,7 @@ public interface EventuallyConsistentMap<K, V> {
      * @param key the key to add a mapping for in this map
      * @param value the value to associate with the key in this map
      */
-    public void put(K key, V value);
+    void put(K key, V value);
 
     /**
      * Removes the mapping associated with the specified key from the map.
@@ -108,7 +108,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @param key the key to remove the mapping for
      */
-    public void remove(K key);
+    void remove(K key);
 
     /**
      * Removes the given key-value mapping from the map, if it exists.
@@ -129,7 +129,7 @@ public interface EventuallyConsistentMap<K, V> {
      * @param key the key to remove the mapping for
      * @param value the value mapped to the key
      */
-    public void remove(K key, V value);
+    void remove(K key, V value);
 
     /**
      * Adds mappings for all key-value pairs in the specified map to this map.
@@ -140,12 +140,12 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @param m a map of values to add to this map
      */
-    public void putAll(Map<? extends K, ? extends V> m);
+    void putAll(Map<? extends K, ? extends V> m);
 
     /**
      * Removes all mappings from this map.
      */
-    public void clear();
+    void clear();
 
     /**
      * Returns a set of the keys in this map. Changes to the set are not
@@ -153,7 +153,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @return set of keys in the map
      */
-    public Set<K> keySet();
+    Set<K> keySet();
 
     /**
      * Returns a collections of values in this map. Changes to the collection
@@ -161,7 +161,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @return collection of values in the map
      */
-    public Collection<V> values();
+    Collection<V> values();
 
     /**
      * Returns a set of mappings contained in this map. Changes to the set are
@@ -169,7 +169,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @return set of key-value mappings in this map
      */
-    public Set<Map.Entry<K, V>> entrySet();
+    Set<Map.Entry<K, V>> entrySet();
 
     /**
      * Adds the specified listener to the map which will be notified whenever
@@ -177,7 +177,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @param listener listener to register for events
      */
-    public void addListener(EventuallyConsistentMapListener<K, V> listener);
+    void addListener(EventuallyConsistentMapListener<K, V> listener);
 
     /**
      * Removes the specified listener from the map such that it will no longer
@@ -185,7 +185,7 @@ public interface EventuallyConsistentMap<K, V> {
      *
      * @param listener listener to deregister for events
      */
-    public void removeListener(EventuallyConsistentMapListener<K, V> listener);
+    void removeListener(EventuallyConsistentMapListener<K, V> listener);
 
     /**
      * Shuts down the map and breaks communication between different instances.
@@ -193,5 +193,5 @@ public interface EventuallyConsistentMap<K, V> {
      * Calls to any methods on the map subsequent to calling destroy() will
      * throw a {@link java.lang.RuntimeException}.
      */
-    public void destroy();
+    void destroy();
 }

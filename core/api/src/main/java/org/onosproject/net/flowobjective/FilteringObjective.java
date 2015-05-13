@@ -45,13 +45,13 @@ public interface FilteringObjective extends Objective {
      *
      * @return a criterion
      */
-    public Criterion key();
+    Criterion key();
 
     /**
      * Obtain this filtering type.
      * @return the type
      */
-    public Type type();
+    Type type();
 
     /**
      * The set of conditions the filter must provision at the device.
@@ -63,7 +63,7 @@ public interface FilteringObjective extends Objective {
     /**
      * Builder of Filtering objective entities.
      */
-    public interface Builder extends Objective.Builder {
+    interface Builder extends Objective.Builder {
 
         /**
          * Specify the key for the filter.
@@ -71,7 +71,7 @@ public interface FilteringObjective extends Objective {
          * @param key a criterion
          * @return a filter objective builder
          */
-        public Builder withKey(Criterion key);
+        Builder withKey(Criterion key);
 
         /**
          * Add a filtering condition.
@@ -79,40 +79,40 @@ public interface FilteringObjective extends Objective {
          * @param criterion new criterion
          * @return a filtering builder
          */
-        public Builder addCondition(Criterion criterion);
+        Builder addCondition(Criterion criterion);
 
         /**
          * Permit this filtering condition set.
          * @return a filtering builder
          */
-        public Builder permit();
+        Builder permit();
 
         /**
          * Deny this filtering condition set.
          * @return a filtering builder
          */
-        public Builder deny();
+        Builder deny();
 
         /**
          * Assigns an application id.
          * @param appId an application id
          * @return a filtering builder
          */
-        public Builder fromApp(ApplicationId appId);
+        Builder fromApp(ApplicationId appId);
 
         /**
          * Builds the filtering objective that will be added.
          *
          * @return a filtering objective
          */
-        public FilteringObjective add();
+        FilteringObjective add();
 
         /**
          * Builds the filtering objective that will be removed.
          *
          * @return a filtering objective.
          */
-        public FilteringObjective remove();
+        FilteringObjective remove();
 
         /**
          * Builds the filtering objective that will be added.
@@ -121,7 +121,7 @@ public interface FilteringObjective extends Objective {
          * @param context an objective context
          * @return a filtering objective
          */
-        public FilteringObjective add(ObjectiveContext context);
+        FilteringObjective add(ObjectiveContext context);
 
         /**
          * Builds the filtering objective that will be removed.
@@ -130,7 +130,7 @@ public interface FilteringObjective extends Objective {
          * @param context an objective context
          * @return a filtering objective
          */
-        public FilteringObjective remove(ObjectiveContext context);
+        FilteringObjective remove(ObjectiveContext context);
 
 
     }

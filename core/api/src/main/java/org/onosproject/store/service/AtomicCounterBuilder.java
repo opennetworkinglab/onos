@@ -17,7 +17,7 @@ public interface AtomicCounterBuilder {
      * @param name name of the atomic counter
      * @return this AtomicCounterBuilder
      */
-    public AtomicCounterBuilder withName(String name);
+    AtomicCounterBuilder withName(String name);
 
     /**
      * Creates this counter on the partition that spans the entire cluster.
@@ -30,7 +30,7 @@ public interface AtomicCounterBuilder {
      * </p>
      * @return this AtomicCounterBuilder
      */
-    public AtomicCounterBuilder withPartitionsDisabled();
+    AtomicCounterBuilder withPartitionsDisabled();
 
     /**
      * Builds a AtomicCounter based on the configuration options
@@ -39,7 +39,7 @@ public interface AtomicCounterBuilder {
      * @return new AtomicCounter
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public AtomicCounter build();
+    AtomicCounter build();
 
     /**
      * Builds a AsyncAtomicCounter based on the configuration options
@@ -48,5 +48,5 @@ public interface AtomicCounterBuilder {
      * @return new AsyncAtomicCounter
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public AsyncAtomicCounter buildAsyncCounter();
+    AsyncAtomicCounter buildAsyncCounter();
 }

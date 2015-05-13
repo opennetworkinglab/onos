@@ -31,7 +31,7 @@ public interface StoreSerializer {
      * @param obj object to be serialized
      * @return serialized bytes
      */
-    public byte[] encode(final Object obj);
+    byte[] encode(final Object obj);
 
     /**
      * Serializes the specified object into bytes.
@@ -39,7 +39,7 @@ public interface StoreSerializer {
      * @param obj object to be serialized
      * @param buffer to write serialized bytes
      */
-    public void encode(final Object obj, ByteBuffer buffer);
+    void encode(final Object obj, ByteBuffer buffer);
 
     /**
      * Serializes the specified object into bytes.
@@ -47,7 +47,7 @@ public interface StoreSerializer {
      * @param obj object to be serialized
      * @param stream to write serialized bytes
      */
-    public void encode(final Object obj, final OutputStream stream);
+    void encode(final Object obj, final OutputStream stream);
 
     /**
      * Deserializes the specified bytes into an object.
@@ -56,7 +56,7 @@ public interface StoreSerializer {
      * @return deserialized object
      * @param <T> decoded type
      */
-    public <T> T decode(final byte[] bytes);
+    <T> T decode(final byte[] bytes);
 
     /**
      * Deserializes the specified bytes into an object.
@@ -65,7 +65,7 @@ public interface StoreSerializer {
      * @return deserialized object
      * @param <T> decoded type
      */
-    public <T> T decode(final ByteBuffer buffer);
+    <T> T decode(final ByteBuffer buffer);
 
     /**
      * Deserializes the specified bytes into an object.
@@ -74,5 +74,5 @@ public interface StoreSerializer {
      * @return deserialized object
      * @param <T> decoded type
      */
-    public <T> T decode(final InputStream stream);
+    <T> T decode(final InputStream stream);
 }

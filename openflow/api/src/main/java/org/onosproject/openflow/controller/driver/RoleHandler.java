@@ -40,7 +40,7 @@ public interface RoleHandler {
      * @throws SwitchStateException If the message is a Nicira role reply
      * but the numeric role value is unknown.
      */
-    public RoleState extractNiciraRoleReply(OFExperimenter experimenterMsg)
+    RoleState extractNiciraRoleReply(OFExperimenter experimenterMsg)
             throws SwitchStateException;
 
     /**
@@ -64,7 +64,7 @@ public interface RoleHandler {
      * @return false if and only if the switch does not support role-request
      * messages, according to the switch driver; true otherwise.
      */
-    public boolean sendRoleRequest(RoleState role, RoleRecvStatus exp)
+    boolean sendRoleRequest(RoleState role, RoleRecvStatus exp)
             throws IOException;
 
     /**
@@ -73,7 +73,7 @@ public interface RoleHandler {
      * @return RoleReplyInfo object
      * @throws SwitchStateException If unknown role encountered
      */
-    public RoleReplyInfo extractOFRoleReply(OFRoleReply rrmsg)
+    RoleReplyInfo extractOFRoleReply(OFRoleReply rrmsg)
             throws SwitchStateException;
 
     /**
@@ -93,7 +93,7 @@ public interface RoleHandler {
      * @return result comparing expected and received reply
      * @throws SwitchStateException if no request is pending
      */
-    public RoleRecvStatus deliverRoleReply(RoleReplyInfo rri)
+    RoleRecvStatus deliverRoleReply(RoleReplyInfo rri)
             throws SwitchStateException;
 
 
@@ -108,7 +108,7 @@ public interface RoleHandler {
      * @return result comparing expected and received reply
      * @throws SwitchStateException if switch did not support requested role
      */
-    public RoleRecvStatus deliverError(OFErrorMsg error)
+    RoleRecvStatus deliverError(OFErrorMsg error)
             throws SwitchStateException;
 
 }

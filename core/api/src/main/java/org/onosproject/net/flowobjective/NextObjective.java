@@ -70,7 +70,7 @@ public interface NextObjective extends Objective {
     /**
      * A next step builder.
      */
-    public interface Builder extends Objective.Builder {
+    interface Builder extends Objective.Builder {
 
         /**
          * Specifies the id for this next objective.
@@ -78,7 +78,7 @@ public interface NextObjective extends Objective {
          * @param nextId an integer
          * @return a next objective builder
          */
-        public Builder withId(int nextId);
+        Builder withId(int nextId);
 
         /**
          * Sets the type of next step.
@@ -86,7 +86,7 @@ public interface NextObjective extends Objective {
          * @param type a type
          * @return a next step builder
          */
-        public Builder withType(Type type);
+        Builder withType(Type type);
 
         /**
          * Adds a treatment to this next step.
@@ -94,24 +94,24 @@ public interface NextObjective extends Objective {
          * @param treatment a traffic treatment
          * @return a next step builder
          */
-        public Builder addTreatment(TrafficTreatment treatment);
+        Builder addTreatment(TrafficTreatment treatment);
 
         @Override
-        public Builder fromApp(ApplicationId appId);
+        Builder fromApp(ApplicationId appId);
 
         /**
          * Builds the next objective that will be added.
          *
          * @return a next objective
          */
-        public NextObjective add();
+        NextObjective add();
 
         /**
          * Builds the next objective that will be removed.
          *
          * @return a next objective.
          */
-        public NextObjective remove();
+        NextObjective remove();
 
         /**
          * Builds the next objective that will be added.
@@ -120,7 +120,7 @@ public interface NextObjective extends Objective {
          * @param context an objective context
          * @return a next objective
          */
-        public NextObjective add(ObjectiveContext context);
+        NextObjective add(ObjectiveContext context);
 
         /**
          * Builds the next objective that will be removed.
@@ -129,7 +129,7 @@ public interface NextObjective extends Objective {
          * @param context an objective context
          * @return a next objective
          */
-        public NextObjective remove(ObjectiveContext context);
+        NextObjective remove(ObjectiveContext context);
 
     }
 

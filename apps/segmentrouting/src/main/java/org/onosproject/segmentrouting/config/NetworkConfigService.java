@@ -23,7 +23,7 @@ public interface NetworkConfigService {
      * Suggests the action to be taken by the caller given the configuration
      * associated with the queried network-object (eg. switch, link etc.).
      */
-    public enum NetworkConfigState {
+    enum NetworkConfigState {
         /**
          * Associated network object has been configured to not be allowed in
          * the network.
@@ -49,7 +49,7 @@ public interface NetworkConfigService {
      * parameters to the caller, in response to a query for the configuration
      * associated with a switch.
      */
-    public class SwitchConfigStatus {
+    class SwitchConfigStatus {
         private NetworkConfigState configState;
         private SwitchConfig switchConfig;
         private String msg;
@@ -107,7 +107,7 @@ public interface NetworkConfigService {
      * parameters to the caller, in response to a query for the configuration
      * associated with a link.
      */
-    public class LinkConfigStatus {
+    class LinkConfigStatus {
         private NetworkConfigState configState;
         private LinkConfig linkConfig;
         private String msg;
@@ -169,7 +169,7 @@ public interface NetworkConfigService {
      * @param dpid device id of the switch to be queried
      * @return SwitchConfigStatus with outcome of check and associated config.
      */
-    public SwitchConfigStatus checkSwitchConfig(DeviceId dpid);
+    SwitchConfigStatus checkSwitchConfig(DeviceId dpid);
 
     /**
      * Reserved for future use.
@@ -193,7 +193,7 @@ public interface NetworkConfigService {
      * @param linkTuple unidirectional link to be queried
      * @return LinkConfigStatus with outcome of check and associated config.
      */
-    public LinkConfigStatus checkLinkConfig(Link linkTuple);
+    LinkConfigStatus checkLinkConfig(Link linkTuple);
 
     /**
      * Retrieves a list of switches that have been configured, and have been
@@ -212,7 +212,7 @@ public interface NetworkConfigService {
      *
      * @return a non-null List of SwitchConfig which may be empty
      */
-    public List<SwitchConfig> getConfiguredAllowedSwitches();
+    List<SwitchConfig> getConfiguredAllowedSwitches();
 
     /**
      * Reserved for future use.
@@ -237,7 +237,7 @@ public interface NetworkConfigService {
      *
      * @return a non-null List of LinkConfig which may be empty
      */
-    public List<LinkConfig> getConfiguredAllowedLinks();
+    List<LinkConfig> getConfiguredAllowedLinks();
 
     /**
      * Retrieves the Dpid associated with a 'name' for a configured switch
@@ -248,6 +248,6 @@ public interface NetworkConfigService {
      * @return the Dpid corresponding to a given 'name', or null if no
      *         configured switch was found for the given 'name'.
      */
-    public DeviceId getDpidForName(String name);
+    DeviceId getDpidForName(String name);
 
 }

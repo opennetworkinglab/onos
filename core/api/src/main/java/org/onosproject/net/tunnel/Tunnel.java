@@ -33,7 +33,7 @@ public interface Tunnel extends Annotated, Provided, NetworkResource {
     /**
      * Coarse representation of the Tunnel types.
      */
-    public enum Type {
+    enum Type {
         /**
          * Signifies that this is a L2 tunnel.
          */
@@ -69,7 +69,7 @@ public interface Tunnel extends Annotated, Provided, NetworkResource {
      * Representation of the tunnel state.
      *
      */
-    public enum State {
+    enum State {
 
         /**
          * Signifies that a tunnel is currently in a initialized state.

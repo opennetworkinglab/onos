@@ -27,5 +27,5 @@ public interface GroupKey  {
      *
      * @return byte array
      */
-    public byte[] key();
+    byte[] key();
 }

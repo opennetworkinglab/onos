@@ -34,6 +34,6 @@ public interface VbngService {
      * @return the public address if a virtual BGN is successfully created,
      *         otherwise return null
      */
-    public IpAddress createVbng(IpAddress privateIpAddress);
+    IpAddress createVbng(IpAddress privateIpAddress);
 
 }

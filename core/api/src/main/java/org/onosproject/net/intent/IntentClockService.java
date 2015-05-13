@@ -28,5 +28,5 @@ public interface IntentClockService {
      * @param intentId identifier for the intent.
      * @return timestamp
      */
-    public Timestamp getTimestamp(IntentId intentId);
+    Timestamp getTimestamp(IntentId intentId);
 }

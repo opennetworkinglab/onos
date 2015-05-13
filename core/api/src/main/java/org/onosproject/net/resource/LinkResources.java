@@ -32,7 +32,7 @@ public interface LinkResources {
     /**
      * Builder of {@link LinkResources}.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Adds bandwidth resource.
@@ -43,7 +43,7 @@ public interface LinkResources {
          * @param bandwidth bandwidth value to be added
          * @return self
          */
-        public Builder addBandwidth(double bandwidth);
+        Builder addBandwidth(double bandwidth);
 
         /**
          * Adds lambda resource.
@@ -51,13 +51,13 @@ public interface LinkResources {
          * @param lambda lambda value to be added
          * @return self
          */
-        public Builder addLambda(int lambda);
+        Builder addLambda(int lambda);
 
         /**
          * Builds an immutable link resources.
          *
          * @return link resources
          */
-        public LinkResources build();
+        LinkResources build();
     }
 }

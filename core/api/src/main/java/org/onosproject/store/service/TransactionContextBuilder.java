@@ -19,7 +19,7 @@ public interface TransactionContextBuilder {
      *
      * @return this TransactionalContextBuilder
      */
-    public TransactionContextBuilder withPartitionsDisabled();
+    TransactionContextBuilder withPartitionsDisabled();
 
     /**
      * Builds a TransactionContext based on configuration options supplied to this
@@ -28,5 +28,5 @@ public interface TransactionContextBuilder {
      * @return a new TransactionalContext
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public TransactionContext build();
+    TransactionContext build();
 }

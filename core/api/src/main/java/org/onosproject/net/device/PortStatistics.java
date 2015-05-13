@@ -25,76 +25,76 @@ public interface PortStatistics {
      *
      * @return port number
      */
-    public int  port();
+    int  port();
 
     /**
      * Returns the number of packets received.
      *
      * @return the number of packets received
      */
-    public long packetsReceived();
+    long packetsReceived();
 
     /**
      * Returns the number of packets sent.
      *
      * @return the number of packets sent
      */
-    public long packetsSent();
+    long packetsSent();
 
     /**
      * Returns the bytes received.
      *
      * @return the bytes received
      */
-    public long bytesReceived();
+    long bytesReceived();
 
     /**
      * Returns the bytes sent.
      *
      * @return the bytes sent
      */
-    public long bytesSent();
+    long bytesSent();
 
     /**
      * Returns the number of packets dropped by RX.
      *
      * @return the number of packets dropped by RX
      */
-    public long packetsRxDropped();
+    long packetsRxDropped();
 
     /**
      * Returns the number of packets dropped by TX.
      *
      * @return the number of packets dropped by TX
      */
-    public long packetsTxDropped();
+    long packetsTxDropped();
 
     /**
      * Returns the number of transmit errors.
      *
      * @return the number of transmit errors
      */
-    public long packetsRxErrors();
+    long packetsRxErrors();
 
     /**
      * Returns the number of receive errors.
      *
      * @return the number of receive error
      */
-    public long packetsTxErrors();
+    long packetsTxErrors();
 
     /**
      * Returns the time port has been alive in seconds.
      *
      * @return the time port has been alive in seconds
      */
-    public long durationSec();
+    long durationSec();
 
     /**
      * Returns the time port has been alive in nano seconds.
      *
      * @return the time port has been alive in nano seconds
      */
-    public long durationNano();
+    long durationNano();
 
 }

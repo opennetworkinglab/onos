@@ -28,14 +28,14 @@ public interface VbngConfigurationService {
      *
      * @return the IP address of next hop
      */
-    public IpAddress getNextHopIpAddress();
+    IpAddress getNextHopIpAddress();
 
     /**
      * Gets the MAC address configured for all the public IP addresses.
      *
      * @return the MAC address
      */
-    public MacAddress getPublicFacingMac();
+    MacAddress getPublicFacingMac();
 
     /**
      * Evaluates whether an IP address is an assigned public IP address.
@@ -44,7 +44,7 @@ public interface VbngConfigurationService {
      * @return true if the input IP address is an assigned public IP address,
      *         otherwise false
      */
-    public boolean isAssignedPublicIpAddress(IpAddress ipAddress);
+    boolean isAssignedPublicIpAddress(IpAddress ipAddress);
 
     /**
      * Gets an available public IP address from local public IP prefixes.
@@ -52,7 +52,7 @@ public interface VbngConfigurationService {
      * @param privateIpAddress a private IP address
      * @return an available public IP address if it exists, otherwise null
      */
-    public IpAddress getAvailablePublicIpAddress(IpAddress privateIpAddress);
+    IpAddress getAvailablePublicIpAddress(IpAddress privateIpAddress);
 
     /**
      * Gets the public IP address already assigned for a private IP address.
@@ -60,5 +60,5 @@ public interface VbngConfigurationService {
      * @param privateIpAddress a private IP address
      * @return the assigned public IP address if it exists, otherwise null
      */
-    public IpAddress getAssignedPublicIpAddress(IpAddress privateIpAddress);
+    IpAddress getAssignedPublicIpAddress(IpAddress privateIpAddress);
 }

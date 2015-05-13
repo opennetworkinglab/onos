@@ -31,7 +31,7 @@ import org.onosproject.net.Provided;
 public interface Label extends Annotated, Provided, NetworkResource {
 
     /** Represents coarse Label type classification. */
-    public enum Type {
+    enum Type {
         /**
          * Signifies VLAN-based tag.
          */

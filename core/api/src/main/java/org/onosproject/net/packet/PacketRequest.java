@@ -28,24 +28,24 @@ public interface PacketRequest {
      * Obtain the traffic selector.
      * @return a traffic selector
      */
-    public TrafficSelector selector();
+    TrafficSelector selector();
 
     /**
      * Obtain the priority.
      * @return a PacketPriority
      */
-    public PacketPriority priority();
+    PacketPriority priority();
 
     /**
      * Obtain the application id.
      * @return an application id
      */
-    public ApplicationId appId();
+    ApplicationId appId();
 
     /**
      * Obtain the table type.
      * @return a table type
      */
-    public FlowRule.Type tableType();
+    FlowRule.Type tableType();
 
 }

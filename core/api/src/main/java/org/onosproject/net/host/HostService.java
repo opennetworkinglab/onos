@@ -35,7 +35,7 @@ public interface HostService {
      *
      * @return number of end-station hosts
      */
-    public int getHostCount();
+    int getHostCount();
 
     /**
      * Returns a collection of all end-station hosts.

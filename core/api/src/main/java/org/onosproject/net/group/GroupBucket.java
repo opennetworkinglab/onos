@@ -32,21 +32,21 @@ public interface GroupBucket {
      *
      * @return GroupType group type
      */
-    public GroupDescription.Type type();
+    GroupDescription.Type type();
 
     /**
      * Returns list of Traffic instructions that are part of the bucket.
      *
      * @return TrafficTreatment traffic instruction list
      */
-    public TrafficTreatment treatment();
+    TrafficTreatment treatment();
 
     /**
      * Returns weight of select group bucket.
      *
      * @return short weight associated with a bucket
      */
-    public short weight();
+    short weight();
 
     /**
      * Returns port number used for liveness detection for a
@@ -54,7 +54,7 @@ public interface GroupBucket {
      *
      * @return PortNumber port number used for liveness detection
      */
-    public PortNumber watchPort();
+    PortNumber watchPort();
 
     /**
      * Returns group identifier used for liveness detection for a
@@ -62,7 +62,7 @@ public interface GroupBucket {
      *
      * @return GroupId group identifier to be used for liveness detection
      */
-    public GroupId watchGroup();
+    GroupId watchGroup();
 
     /**
      * Returns the number of packets processed by this group bucket.

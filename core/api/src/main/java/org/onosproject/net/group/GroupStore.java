@@ -24,7 +24,7 @@ import org.onosproject.store.Store;
  */
 public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
 
-    public enum UpdateType {
+    enum UpdateType {
         /**
          * Modify existing group entry by adding provided information.
          */

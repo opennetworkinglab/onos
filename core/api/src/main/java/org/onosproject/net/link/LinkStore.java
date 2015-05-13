@@ -91,7 +91,7 @@ public interface LinkStore extends Store<LinkEvent, LinkStoreDelegate> {
      * @param linkDescription link description
      * @return create or update link event, or null if no change resulted
      */
-    public LinkEvent createOrUpdateLink(ProviderId providerId,
+    LinkEvent createOrUpdateLink(ProviderId providerId,
                                         LinkDescription linkDescription);
 
     /**

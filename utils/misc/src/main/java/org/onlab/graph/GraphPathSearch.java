@@ -26,26 +26,26 @@ import java.util.Set;
  */
 public interface GraphPathSearch<V extends Vertex, E extends Edge<V>> {
 
-    public static int ALL_PATHS = -1;
+    static int ALL_PATHS = -1;
 
     /**
      * Abstraction of a path search result.
      */
-    public interface Result<V extends Vertex, E extends Edge<V>> {
+    interface Result<V extends Vertex, E extends Edge<V>> {
 
         /**
          * Returns the search source.
          *
          * @return search source
          */
-        public V src();
+        V src();
 
         /**
          * Returns the search destination, if was was given.
          *
          * @return optional search destination
          */
-        public V dst();
+        V dst();
 
         /**
          * Returns the set of paths produced as a result of the graph search.
@@ -59,14 +59,14 @@ public interface GraphPathSearch<V extends Vertex, E extends Edge<V>> {
          *
          * @return map of vertex to its parent edge bindings
          */
-        public Map<V, Set<E>> parents();
+        Map<V, Set<E>> parents();
 
         /**
          * Return a bindings of each vertex to its cost in the path.
          *
          * @return map of vertex to path cost bindings
          */
-        public Map<V, Double> costs();
+        Map<V, Double> costs();
     }
 
     /**

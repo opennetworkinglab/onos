@@ -26,5 +26,5 @@ public interface RouteListener {
      *
      * @param routeUpdates the collection with updated route information
      */
-    public void update(Collection<RouteUpdate> routeUpdates);
+    void update(Collection<RouteUpdate> routeUpdates);
 }

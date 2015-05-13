@@ -34,14 +34,14 @@ public interface OpenFlowAgent {
      * @param sw the actual switch object.
      * @return true if added, false otherwise.
      */
-    public boolean addConnectedSwitch(Dpid dpid, OpenFlowSwitch sw);
+    boolean addConnectedSwitch(Dpid dpid, OpenFlowSwitch sw);
 
     /**
      * Checks if the activation for this switch is valid.
      * @param dpid the dpid to check
      * @return true if valid, false otherwise
      */
-    public boolean validActivation(Dpid dpid);
+    boolean validActivation(Dpid dpid);
 
     /**
      * Called when a switch is activated, with this controller's role as MASTER.
@@ -49,7 +49,7 @@ public interface OpenFlowAgent {
      * @param sw the actual switch
      * @return true if added, false otherwise.
      */
-    public boolean addActivatedMasterSwitch(Dpid dpid, OpenFlowSwitch sw);
+    boolean addActivatedMasterSwitch(Dpid dpid, OpenFlowSwitch sw);
 
     /**
      * Called when a switch is activated, with this controller's role as EQUAL.
@@ -57,7 +57,7 @@ public interface OpenFlowAgent {
      * @param sw the actual switch
      * @return true if added, false otherwise.
      */
-    public boolean addActivatedEqualSwitch(Dpid dpid, OpenFlowSwitch sw);
+    boolean addActivatedEqualSwitch(Dpid dpid, OpenFlowSwitch sw);
 
     /**
      * Called when this controller's role for a switch transitions from equal
@@ -65,7 +65,7 @@ public interface OpenFlowAgent {
      * 'equal' - so this transition is equivalent to 'addActivatedMasterSwitch'.
      * @param dpid the dpid to transistion.
      */
-    public void transitionToMasterSwitch(Dpid dpid);
+    void transitionToMasterSwitch(Dpid dpid);
 
     /**
      * Called when this controller's role for a switch transitions to equal.
@@ -73,7 +73,7 @@ public interface OpenFlowAgent {
      * 'equal'.
      * @param dpid the dpid to transistion.
      */
-    public void transitionToEqualSwitch(Dpid dpid);
+    void transitionToEqualSwitch(Dpid dpid);
 
     /**
      * Clear all state in controller switch maps for a switch that has
@@ -81,7 +81,7 @@ public interface OpenFlowAgent {
      * that switch from the global repository. Notify switch listeners.
      * @param dpid the dpid to remove.
      */
-    public void removeConnectedSwitch(Dpid dpid);
+    void removeConnectedSwitch(Dpid dpid);
 
     /**
      * Process a message coming from a switch.
@@ -89,7 +89,7 @@ public interface OpenFlowAgent {
      * @param dpid the dpid the message came on.
      * @param m the message to process
      */
-    public void processMessage(Dpid dpid, OFMessage m);
+    void processMessage(Dpid dpid, OFMessage m);
 
     /**
      * Notifies the controller that role assertion has failed.
@@ -98,5 +98,5 @@ public interface OpenFlowAgent {
      * @param requested the role controller requested
      * @param response role reply from the switch
      */
-    public void returnRoleReply(Dpid dpid, RoleState requested, RoleState response);
+    void returnRoleReply(Dpid dpid, RoleState requested, RoleState response);
 }

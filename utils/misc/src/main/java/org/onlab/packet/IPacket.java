@@ -26,32 +26,32 @@ public interface IPacket {
      *
      * @return the payload
      */
-    public IPacket getPayload();
+    IPacket getPayload();
 
     /**
      *
      * @param packet new payload
      * @return self
      */
-    public IPacket setPayload(IPacket packet);
+    IPacket setPayload(IPacket packet);
 
     /**
      *
      * @return parent packet
      */
-    public IPacket getParent();
+    IPacket getParent();
 
     /**
      *
      * @param packet new parent
      * @return self
      */
-    public IPacket setParent(IPacket packet);
+    IPacket setParent(IPacket packet);
 
     /**
      * Reset any checksums as needed, and call resetChecksum on all parents.
      */
-    public void resetChecksum();
+    void resetChecksum();
 
     /**
      * Sets all payloads parent packet if applicable, then serializes this
@@ -59,7 +59,7 @@ public interface IPacket {
      *
      * @return a byte[] containing this packet and payloads
      */
-    public byte[] serialize();
+    byte[] serialize();
 
     /**
      * Deserializes this packet layer and all possible payloads.
@@ -71,12 +71,12 @@ public interface IPacket {
      *            length of the data to deserialize
      * @return the deserialized data
      */
-    public IPacket deserialize(byte[] data, int offset, int length);
+    IPacket deserialize(byte[] data, int offset, int length);
 
     /**
      * Clone this packet and its payload packet but not its parent.
      *
      * @return the clone
      */
-    public Object clone();
+    Object clone();
 }

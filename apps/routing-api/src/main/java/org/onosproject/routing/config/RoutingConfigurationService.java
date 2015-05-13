@@ -33,21 +33,21 @@ public interface RoutingConfigurationService {
      *
      * @return the map of BGP speaker names to BGP speaker objects
      */
-    public Map<String, BgpSpeaker> getBgpSpeakers();
+    Map<String, BgpSpeaker> getBgpSpeakers();
 
     /**
      * Gets the list of configured BGP peers.
      *
      * @return the map from peer IP address to BgpPeer object
      */
-    public Map<IpAddress, BgpPeer> getBgpPeers();
+    Map<IpAddress, BgpPeer> getBgpPeers();
 
     /**
      * Gets the MAC address configured for virtual gateway in SDN network.
      *
      * @return the MAC address of virtual gateway
      */
-    public MacAddress getVirtualGatewayMacAddress();
+    MacAddress getVirtualGatewayMacAddress();
 
     /**
      * Evaluates whether an IP address is a virtual gateway IP address.
@@ -55,7 +55,7 @@ public interface RoutingConfigurationService {
      * @param ipAddress the IP address to evaluate
      * @return true if the IP address is a virtual gateway address, otherwise false
      */
-    public boolean isVirtualGatewayIpAddress(IpAddress ipAddress);
+    boolean isVirtualGatewayIpAddress(IpAddress ipAddress);
 
     /**
      * Evaluates whether an IP address belongs to local SDN network.
@@ -63,7 +63,7 @@ public interface RoutingConfigurationService {
      * @param ipAddress the IP address to evaluate
      * @return true if the IP address belongs to local SDN network, otherwise false
      */
-    public boolean isIpAddressLocal(IpAddress ipAddress);
+    boolean isIpAddressLocal(IpAddress ipAddress);
 
     /**
      * Evaluates whether an IP prefix belongs to local SDN network.
@@ -71,7 +71,7 @@ public interface RoutingConfigurationService {
      * @param ipPrefix the IP prefix to evaluate
      * @return true if the IP prefix belongs to local SDN network, otherwise false
      */
-    public boolean isIpPrefixLocal(IpPrefix ipPrefix);
+    boolean isIpPrefixLocal(IpPrefix ipPrefix);
 
     /**
      * Retrieves the entire set of interfaces in the network.

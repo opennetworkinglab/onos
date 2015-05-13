@@ -27,19 +27,19 @@ public interface BgpInfoService {
      *
      * @return the BGP sessions
      */
-    public Collection<BgpSession> getBgpSessions();
+    Collection<BgpSession> getBgpSessions();
 
     /**
      * Gets the selected IPv4 BGP routes among all BGP sessions.
      *
      * @return the selected IPv4 BGP routes among all BGP sessions
      */
-    public Collection<BgpRouteEntry> getBgpRoutes4();
+    Collection<BgpRouteEntry> getBgpRoutes4();
 
     /**
      * Gets the selected IPv6 BGP routes among all BGP sessions.
      *
      * @return the selected IPv6 BGP routes among all BGP sessions
      */
-    public Collection<BgpRouteEntry> getBgpRoutes6();
+    Collection<BgpRouteEntry> getBgpRoutes6();
 }

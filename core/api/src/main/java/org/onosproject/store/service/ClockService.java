@@ -31,5 +31,5 @@ public interface ClockService<T, U> {
      * @param object2 Second object to use when generating timestamps
      * @return the new timestamp
      */
-    public Timestamp getTimestamp(T object1, U object2);
+    Timestamp getTimestamp(T object1, U object2);
 }

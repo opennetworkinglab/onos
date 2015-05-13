@@ -48,7 +48,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param name name of the map
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withName(String name);
+    EventuallyConsistentMapBuilder<K, V> withName(String name);
 
     /**
      * Sets a serializer builder that can be used to create a serializer that
@@ -62,7 +62,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param serializerBuilder serializer builder
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withSerializer(
+    EventuallyConsistentMapBuilder<K, V> withSerializer(
             KryoNamespace.Builder serializerBuilder);
 
     /**
@@ -83,7 +83,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param clockService clock service
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withClockService(
+    EventuallyConsistentMapBuilder<K, V> withClockService(
             ClockService<K, V> clockService);
 
     /**
@@ -92,7 +92,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param executor event executor
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withEventExecutor(
+    EventuallyConsistentMapBuilder<K, V> withEventExecutor(
             ExecutorService executor);
 
     /**
@@ -101,7 +101,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param executor event executor
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withCommunicationExecutor(
+    EventuallyConsistentMapBuilder<K, V> withCommunicationExecutor(
             ExecutorService executor);
 
     /**
@@ -110,7 +110,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param executor event executor
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withBackgroundExecutor(
+    EventuallyConsistentMapBuilder<K, V> withBackgroundExecutor(
             ScheduledExecutorService executor);
 
     /**
@@ -124,7 +124,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      *                           to
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withPeerUpdateFunction(
+    EventuallyConsistentMapBuilder<K, V> withPeerUpdateFunction(
             BiFunction<K, V, Collection<NodeId>> peerUpdateFunction);
 
     /**
@@ -137,7 +137,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      *
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withTombstonesDisabled();
+    EventuallyConsistentMapBuilder<K, V> withTombstonesDisabled();
 
     /**
      * Configures how often to run the anti-entropy background task.
@@ -149,7 +149,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @param unit time unit for the period
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withAntiEntropyPeriod(
+    EventuallyConsistentMapBuilder<K, V> withAntiEntropyPeriod(
             long period, TimeUnit unit);
 
     /**
@@ -163,7 +163,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      *
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withFasterConvergence();
+    EventuallyConsistentMapBuilder<K, V> withFasterConvergence();
 
     /**
      * Configure the map to persist data to disk.
@@ -173,7 +173,7 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      *
      * @return this EventuallyConsistentMapBuilder
      */
-    public EventuallyConsistentMapBuilder<K, V> withPersistence();
+    EventuallyConsistentMapBuilder<K, V> withPersistence();
 
     /**
      * Builds an eventually consistent map based on the configuration options
@@ -182,5 +182,5 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * @return new eventually consistent map
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public EventuallyConsistentMap<K, V> build();
+    EventuallyConsistentMap<K, V> build();
 }

@@ -96,21 +96,21 @@ public interface Objective {
     /**
      * An objective builder.
      */
-    public interface Builder {
+    interface Builder {
         /**
          * Makes the filtering objective temporary.
          *
          * @param timeout a timeout
          * @return an objective builder
          */
-        public Builder makeTemporary(int timeout);
+        Builder makeTemporary(int timeout);
 
         /**
          * Makes the filtering objective permanent.
          *
          * @return an objective builder
          */
-        public Builder makePermanent();
+        Builder makePermanent();
 
         /**
          * Specifies the application which applied the filter.
@@ -118,7 +118,7 @@ public interface Objective {
          * @param appId an application id
          * @return an objective builder
          */
-        public Builder fromApp(ApplicationId appId);
+        Builder fromApp(ApplicationId appId);
 
         /**
          * Sets the priority for this objective.
@@ -126,7 +126,7 @@ public interface Objective {
          * @param priority an integer
          * @return an objective builder
          */
-        public Builder withPriority(int priority);
+        Builder withPriority(int priority);
     }
 
 }

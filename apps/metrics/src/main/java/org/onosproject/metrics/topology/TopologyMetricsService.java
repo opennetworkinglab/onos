@@ -28,40 +28,40 @@ public interface TopologyMetricsService {
      *
      * @return the last saved topology events
      */
-    public List<Event> getEvents();
+    List<Event> getEvents();
 
     /**
      * Gets the Event Metric for the Device Events.
      *
      * @return the Event Metric for the Device Events
      */
-    public EventMetric topologyDeviceEventMetric();
+    EventMetric topologyDeviceEventMetric();
 
     /**
      * Gets the Event Metric for the Host Events.
      *
      * @return the Event Metric for the Host Events
      */
-    public EventMetric topologyHostEventMetric();
+    EventMetric topologyHostEventMetric();
 
     /**
      * Gets the Event Metric for the Link Events.
      *
      * @return the Event Metric for the Link Events
      */
-    public EventMetric topologyLinkEventMetric();
+    EventMetric topologyLinkEventMetric();
 
     /**
      * Gets the Event Metric for the Topology Graph Events.
      *
      * @return the Event Metric for the Topology Graph Events
      */
-    public EventMetric topologyGraphEventMetric();
+    EventMetric topologyGraphEventMetric();
 
     /**
      * Gets the Event Metric for the Topology Graph Reasons Events.
      *
      * @return the Event Metric for the Topology Graph Reasons Events
      */
-    public EventMetric topologyGraphReasonsEventMetric();
+    EventMetric topologyGraphReasonsEventMetric();
 }

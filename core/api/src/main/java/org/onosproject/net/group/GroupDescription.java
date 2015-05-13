@@ -27,7 +27,7 @@ public interface GroupDescription {
     /**
      * Types of the group supported by ONOS.
      */
-    public enum Type {
+    enum Type {
         /**
          * Load-balancing among different buckets in a group.
          */
@@ -51,28 +51,28 @@ public interface GroupDescription {
      *
      * @return GroupType group type
      */
-    public Type type();
+    Type type();
 
     /**
      * Returns device identifier on which this group object is created.
      *
      * @return DeviceId device identifier
      */
-    public DeviceId deviceId();
+    DeviceId deviceId();
 
     /**
      * Returns application identifier that has created this group object.
      *
      * @return ApplicationId application identifier
      */
-    public ApplicationId appId();
+    ApplicationId appId();
 
     /**
      * Returns application cookie associated with a group object.
      *
      * @return GroupKey application cookie
      */
-    public GroupKey appCookie();
+    GroupKey appCookie();
 
     /**
      * Returns groupId passed in by caller.
@@ -80,12 +80,12 @@ public interface GroupDescription {
      * @return Integer group id passed in by caller. May be null if caller
      *                 passed in null to let groupService determin the group id.
      */
-    public Integer givenGroupId();
+    Integer givenGroupId();
 
     /**
      * Returns group buckets of a group.
      *
      * @return GroupBuckets immutable list of group bucket
      */
-    public GroupBuckets buckets();
+    GroupBuckets buckets();
 }

@@ -27,7 +27,7 @@ public interface MutableAnnotations extends Annotations {
      * @param value annotation value
      * @return self
      */
-    public MutableAnnotations set(String key, String value);
+    MutableAnnotations set(String key, String value);
 
     /**
      * Clears the specified keys or the all keys if none were specified.
@@ -35,6 +35,6 @@ public interface MutableAnnotations extends Annotations {
      * @param keys keys to be cleared
      * @return self
      */
-    public MutableAnnotations clear(String... keys);
+    MutableAnnotations clear(String... keys);
 
 }

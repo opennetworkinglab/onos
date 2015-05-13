@@ -30,7 +30,7 @@ public interface DeviceClockProviderService {
      * @param deviceId device identifier.
      * @return true if timestamp can be issued for specified device
      */
-    public boolean isTimestampAvailable(DeviceId deviceId);
+    boolean isTimestampAvailable(DeviceId deviceId);
 
     /**
      * Updates the mastership term for the specified deviceId.
@@ -38,5 +38,5 @@ public interface DeviceClockProviderService {
      * @param deviceId device identifier.
      * @param term mastership term.
      */
-    public void setMastershipTerm(DeviceId deviceId, MastershipTerm term);
+    void setMastershipTerm(DeviceId deviceId, MastershipTerm term);
 }

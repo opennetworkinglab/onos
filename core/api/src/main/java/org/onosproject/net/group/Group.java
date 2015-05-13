@@ -24,7 +24,7 @@ public interface Group extends GroupDescription {
     /**
      * State of the group object in ONOS.
      */
-    public enum GroupState {
+    enum GroupState {
         /**
          * Group create request is queued as group AUDIT is in progress.
          */

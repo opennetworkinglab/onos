@@ -36,7 +36,7 @@ public interface SetBuilder<E> {
      * @param name name of the set
      * @return this SetBuilder
      */
-    public SetBuilder<E> withName(String name);
+    SetBuilder<E> withName(String name);
 
     /**
      * Sets a serializer that can be used to serialize
@@ -50,7 +50,7 @@ public interface SetBuilder<E> {
      * @param serializer serializer
      * @return this SetBuilder
      */
-    public SetBuilder<E> withSerializer(Serializer serializer);
+    SetBuilder<E> withSerializer(Serializer serializer);
 
     /**
      * Disables set updates.
@@ -68,5 +68,5 @@ public interface SetBuilder<E> {
      * @return new set
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public Set<E> build();
+    Set<E> build();
 }

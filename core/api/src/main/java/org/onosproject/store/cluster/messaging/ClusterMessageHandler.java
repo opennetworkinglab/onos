@@ -24,5 +24,5 @@ public interface ClusterMessageHandler {
      * Handles/Processes the cluster message.
      * @param message cluster message.
      */
-    public void handle(ClusterMessage message);
+    void handle(ClusterMessage message);
 }

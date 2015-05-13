@@ -28,47 +28,47 @@ public interface IntentMetricsService {
      *
      * @return the last saved intent events
      */
-    public List<IntentEvent> getEvents();
+    List<IntentEvent> getEvents();
 
     /**
      * Gets the Event Metric for the intent INSTALL_REQ events.
      *
      * @return the Event Metric for the intent INSTALL_REQ events
      */
-    public EventMetric intentSubmittedEventMetric();
+    EventMetric intentSubmittedEventMetric();
 
     /**
      * Gets the Event Metric for the intent INSTALLED events.
      *
      * @return the Event Metric for the intent INSTALLED events
      */
-    public EventMetric intentInstalledEventMetric();
+    EventMetric intentInstalledEventMetric();
 
     /**
      * Gets the Event Metric for the intent FAILED events.
      *
      * @return the Event Metric for the intent FAILED events
      */
-    public EventMetric intentFailedEventMetric();
+    EventMetric intentFailedEventMetric();
 
     /**
      * Gets the Event Metric for the intent WITHDRAW_REQ events.
      *
      * @return the Event Metric for the intent WITHDRAW_REQ events
      */
-    public EventMetric intentWithdrawRequestedEventMetric();
+    EventMetric intentWithdrawRequestedEventMetric();
 
     /**
      * Gets the Event Metric for the intent WITHDRAWN events.
      *
      * @return the Event Metric for the intent WITHDRAWN events
      */
-    public EventMetric intentWithdrawnEventMetric();
+    EventMetric intentWithdrawnEventMetric();
 
     /**
      * Gets the Event Metric for the intent PURGED events.
      *
      * @return the Event Metric for the intent PURGED events
      */
-    public EventMetric intentPurgedEventMetric();
+    EventMetric intentPurgedEventMetric();
 }

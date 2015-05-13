@@ -27,7 +27,7 @@ public interface Annotations {
      *
      * @return annotation keys
      */
-    public Set<String> keys();
+    Set<String> keys();
 
     /**
      * Returns the value of the specified annotation.
@@ -35,6 +35,6 @@ public interface Annotations {
      * @param key annotation key
      * @return annotation value
      */
-    public String value(String key);
+    String value(String key);
 
 }

@@ -23,7 +23,7 @@ package org.onosproject.net.flow;
 public interface FlowEntry extends FlowRule {
 
 
-    public enum FlowEntryState {
+    enum FlowEntryState {
 
         /**
          * Indicates that this rule has been submitted for addition.

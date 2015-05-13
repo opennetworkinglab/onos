@@ -74,7 +74,7 @@ public interface ForwardingObjective extends Objective {
     /**
      * A forwarding objective builder.
      */
-    public interface Builder extends Objective.Builder {
+    interface Builder extends Objective.Builder {
 
         /**
          * Assigns a selector to the forwarding objective.
@@ -82,7 +82,7 @@ public interface ForwardingObjective extends Objective {
          * @param selector a traffic selector
          * @return a forwarding objective builder
          */
-        public Builder withSelector(TrafficSelector selector);
+        Builder withSelector(TrafficSelector selector);
 
         /**
          * Assigns a next step to the forwarding objective.
@@ -90,7 +90,7 @@ public interface ForwardingObjective extends Objective {
          * @param nextId a next objective id.
          * @return a forwarding objective builder
          */
-        public Builder nextStep(int nextId);
+        Builder nextStep(int nextId);
 
         /**
          * Assigns the treatment for this forwarding objective.
@@ -98,7 +98,7 @@ public interface ForwardingObjective extends Objective {
          * @param treatment a traffic treatment
          * @return a forwarding objective
          */
-        public Builder withTreatment(TrafficTreatment treatment);
+        Builder withTreatment(TrafficTreatment treatment);
 
         /**
          * Assigns the flag to the forwarding objective.
@@ -106,21 +106,21 @@ public interface ForwardingObjective extends Objective {
          * @param flag a flag
          * @return a forwarding objective builder
          */
-        public Builder withFlag(Flag flag);
+        Builder withFlag(Flag flag);
 
         /**
          * Builds the forwarding objective that will be added.
          *
          * @return a forwarding objective
          */
-        public ForwardingObjective add();
+        ForwardingObjective add();
 
         /**
          * Builds the forwarding objective that will be removed.
          *
          * @return a forwarding objective.
          */
-        public ForwardingObjective remove();
+        ForwardingObjective remove();
 
         /**
          * Builds the forwarding objective that will be added.
@@ -129,7 +129,7 @@ public interface ForwardingObjective extends Objective {
          * @param context an objective context
          * @return a forwarding objective
          */
-        public ForwardingObjective add(ObjectiveContext context);
+        ForwardingObjective add(ObjectiveContext context);
 
         /**
          * Builds the forwarding objective that will be removed.
@@ -138,6 +138,6 @@ public interface ForwardingObjective extends Objective {
          * @param context an objective context
          * @return a forwarding objective
          */
-        public ForwardingObjective remove(ObjectiveContext context);
+        ForwardingObjective remove(ObjectiveContext context);
     }
 }

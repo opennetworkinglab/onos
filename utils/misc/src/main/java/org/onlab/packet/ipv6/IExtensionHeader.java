@@ -25,7 +25,7 @@ public interface IExtensionHeader {
      *
      * @return next header
      */
-    public byte getNextHeader();
+    byte getNextHeader();
 
     /**
      * Sets the type of next header.
@@ -33,5 +33,5 @@ public interface IExtensionHeader {
      * @param nextHeader the next header to set
      * @return this
      */
-    public IExtensionHeader setNextHeader(final byte nextHeader);
+    IExtensionHeader setNextHeader(final byte nextHeader);
 }

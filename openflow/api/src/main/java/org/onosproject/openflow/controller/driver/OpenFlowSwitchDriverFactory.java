@@ -34,6 +34,6 @@ public interface OpenFlowSwitchDriverFactory {
      * @param ofv the OF version in use
      * @return the openflow switch representation.
      */
-    public OpenFlowSwitchDriver getOFSwitchImpl(Dpid dpid,
+    OpenFlowSwitchDriver getOFSwitchImpl(Dpid dpid,
             OFDescStatsReply desc, OFVersion ofv);
 }

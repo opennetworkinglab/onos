@@ -47,7 +47,7 @@ public interface ObjectiveTrackerService {
      * @param resources resources to track
      */
     // TODO consider using the IntentData here rather than just the key
-    public void addTrackedResources(Key intentKey,
+    void addTrackedResources(Key intentKey,
                                     Collection<NetworkResource> resources);
 
     /**
@@ -56,7 +56,7 @@ public interface ObjectiveTrackerService {
      * @param intentKey  intent identity on whose behalf the path is being tracked
      * @param resources resources to stop tracking
      */
-    public void removeTrackedResources(Key intentKey,
+    void removeTrackedResources(Key intentKey,
                                        Collection<NetworkResource> resources);
 
 }

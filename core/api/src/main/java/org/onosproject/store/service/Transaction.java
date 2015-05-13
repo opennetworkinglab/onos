@@ -22,7 +22,7 @@ import java.util.List;
  */
 public interface Transaction {
 
-    public enum State {
+    enum State {
         /**
          * Indicates a new transaction that is about to be prepared. All transactions
          * start their life in this state.
@@ -81,7 +81,7 @@ public interface Transaction {
      *
      * @return true is yes, false otherwise
      */
-    public default boolean isDone() {
+    default boolean isDone() {
         return state() == State.COMMITTED || state() == State.ROLLEDBACK;
     }
 
@@ -98,5 +98,5 @@ public interface Transaction {
      *
      * @return last update time
      */
-    public long lastUpdated();
+    long lastUpdated();
 }

@@ -26,7 +26,7 @@ public interface GraphSearch<V extends Vertex, E extends Edge<V>> {
     /**
      * Notion of a graph search result.
      */
-    public interface Result<V extends Vertex, E extends Edge<V>> {
+    interface Result<V extends Vertex, E extends Edge<V>> {
     }
 
     /**

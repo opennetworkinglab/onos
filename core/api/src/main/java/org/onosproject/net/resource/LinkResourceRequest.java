@@ -57,14 +57,14 @@ public interface LinkResourceRequest extends ResourceRequest {
          *
          * @return self
          */
-        public Builder addLambdaRequest();
+        Builder addLambdaRequest();
 
         /**
         * Adds MPLS request.
         *
         * @return self
         */
-       public Builder addMplsRequest();
+       Builder addMplsRequest();
 
         /**
          * Adds bandwidth request with bandwidth value.
@@ -72,7 +72,7 @@ public interface LinkResourceRequest extends ResourceRequest {
          * @param bandwidth bandwidth value to be requested
          * @return self
          */
-        public Builder addBandwidthRequest(double bandwidth);
+        Builder addBandwidthRequest(double bandwidth);
 
         /**
          * Adds the resources required for a constraint.
@@ -80,13 +80,13 @@ public interface LinkResourceRequest extends ResourceRequest {
          * @param constraint the constraint
          * @return self
          */
-        public Builder addConstraint(Constraint constraint);
+        Builder addConstraint(Constraint constraint);
 
         /**
          * Returns link resource request.
          *
          * @return link resource request
          */
-        public LinkResourceRequest build();
+        LinkResourceRequest build();
     }
 }

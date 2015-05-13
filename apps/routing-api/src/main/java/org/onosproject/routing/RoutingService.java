@@ -29,7 +29,7 @@ public interface RoutingService {
     /**
      * Specifies the type of an IP address or an IP prefix location.
      */
-    public static enum LocationType {
+    static enum LocationType {
         /**
          * The location of an IP address or an IP prefix is in local SDN network.
          */
@@ -50,7 +50,7 @@ public interface RoutingService {
      * We classify traffic by the first packet of each traffic.
      * </p>
      */
-    public enum TrafficType {
+    enum TrafficType {
         /**
          * Traffic from a host located in local SDN network wants to
          * communicate with destination host located in Internet (outside
@@ -86,14 +86,14 @@ public interface RoutingService {
     /**
      * Starts the routing service.
      */
-    public void start();
+    void start();
 
     /**
      * Adds FIB listener.
      *
      * @param fibListener listener to send FIB updates to
      */
-    public void addFibListener(FibListener fibListener);
+    void addFibListener(FibListener fibListener);
 
     /**
      * Adds intent creation and submission listener.
@@ -101,27 +101,27 @@ public interface RoutingService {
      * @param intentRequestListener listener to send intent creation and
      *        submission request to
      */
-    public void addIntentRequestListener(IntentRequestListener
+    void addIntentRequestListener(IntentRequestListener
                                          intentRequestListener);
 
     /**
      * Stops the routing service.
      */
-    public void stop();
+    void stop();
 
     /**
      * Gets all IPv4 routes known to SDN-IP.
      *
      * @return the SDN-IP IPv4 routes
      */
-    public Collection<RouteEntry> getRoutes4();
+    Collection<RouteEntry> getRoutes4();
 
     /**
      * Gets all IPv6 routes known to SDN-IP.
      *
      * @return the SDN-IP IPv6 routes
      */
-    public Collection<RouteEntry> getRoutes6();
+    Collection<RouteEntry> getRoutes6();
 
     /**
      * Evaluates the location of an IP address and returns the location type.
@@ -129,7 +129,7 @@ public interface RoutingService {
      * @param ipAddress the IP address to evaluate
      * @return the IP address location type
      */
-    public LocationType getLocationType(IpAddress ipAddress);
+    LocationType getLocationType(IpAddress ipAddress);
 
     /**
      * Finds out the route entry which has the longest matchable IP prefix.
@@ -138,7 +138,7 @@ public interface RoutingService {
      * @return a route entry which has the longest matchable IP prefix if
      * found, otherwise null
      */
-    public RouteEntry getLongestMatchableRouteEntry(IpAddress ipAddress);
+    RouteEntry getLongestMatchableRouteEntry(IpAddress ipAddress);
 
     /**
      * Finds out the egress connect point where to emit the first packet
@@ -147,7 +147,7 @@ public interface RoutingService {
      * @param dstIpAddress the destination IP address
      * @return the egress connect point if found, otherwise null
      */
-    public ConnectPoint getEgressConnectPoint(IpAddress dstIpAddress);
+    ConnectPoint getEgressConnectPoint(IpAddress dstIpAddress);
 
     /**
      * Routes packet reactively.
@@ -157,7 +157,7 @@ public interface RoutingService {
      * @param srcConnectPoint the connect point where a packet comes from
      * @param srcMacAddress the source MAC address of a packet
      */
-    public void packetReactiveProcessor(IpAddress dstIpAddress,
+    void packetReactiveProcessor(IpAddress dstIpAddress,
                                         IpAddress srcIpAddress,
                                         ConnectPoint srcConnectPoint,
                                         MacAddress srcMacAddress);

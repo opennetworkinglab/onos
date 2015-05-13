@@ -23,7 +23,7 @@ public interface Link extends Annotated, Provided, NetworkResource {
     /**
      * Coarse representation of the link type.
      */
-    public enum Type {
+    enum Type {
         /**
          * Signifies that this is a direct single-segment link.
          */
@@ -59,7 +59,7 @@ public interface Link extends Annotated, Provided, NetworkResource {
      * configured durable links, i.e. those that need to remain present,
      * but instead be marked as inactive.
      */
-    public enum State {
+    enum State {
         /**
          * Signifies that a link is currently active.
          */

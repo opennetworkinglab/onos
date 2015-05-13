@@ -34,7 +34,7 @@ public interface FlowRule {
      * Default is used.
      */
     @Deprecated
-    public static enum Type {
+    static enum Type {
         /*
          * Default type - used in flow rule for single table switch NOTE: this
          * setting should not be used as Table 0 in a multi-table pipeline
@@ -138,7 +138,7 @@ public interface FlowRule {
     /**
      * A flowrule builder.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Assigns a cookie value to this flowrule. Mutually exclusive with the

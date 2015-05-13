@@ -26,6 +26,6 @@ public interface SdnIpService {
      *
      * @param isPrimary true if the instance is primary, false if it is not
      */
-    public void modifyPrimary(boolean isPrimary);
+    void modifyPrimary(boolean isPrimary);
 
 }

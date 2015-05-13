@@ -21,7 +21,7 @@ public interface ConsistentMapBuilder<K, V> {
      * @param name name of the consistent map
      * @return this ConsistentMapBuilder
      */
-    public ConsistentMapBuilder<K, V> withName(String name);
+    ConsistentMapBuilder<K, V> withName(String name);
 
     /**
      * Sets a serializer that can be used to serialize
@@ -35,7 +35,7 @@ public interface ConsistentMapBuilder<K, V> {
      * @param serializer serializer
      * @return this ConsistentMapBuilder
      */
-    public ConsistentMapBuilder<K, V> withSerializer(Serializer serializer);
+    ConsistentMapBuilder<K, V> withSerializer(Serializer serializer);
 
     /**
      * Disables distribution of map entries across multiple database partitions.
@@ -53,7 +53,7 @@ public interface ConsistentMapBuilder<K, V> {
      * </p>
      * @return this ConsistentMapBuilder
      */
-    public ConsistentMapBuilder<K, V> withPartitionsDisabled();
+    ConsistentMapBuilder<K, V> withPartitionsDisabled();
 
     /**
      * Disables map updates.
@@ -62,7 +62,7 @@ public interface ConsistentMapBuilder<K, V> {
      *
      * @return this ConsistentMapBuilder
      */
-    public ConsistentMapBuilder<K, V> withUpdatesDisabled();
+    ConsistentMapBuilder<K, V> withUpdatesDisabled();
 
     /**
      * Builds an consistent map based on the configuration options
@@ -71,7 +71,7 @@ public interface ConsistentMapBuilder<K, V> {
      * @return new consistent map
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public ConsistentMap<K, V> build();
+    ConsistentMap<K, V> build();
 
     /**
      * Builds an async consistent map based on the configuration options
@@ -80,5 +80,5 @@ public interface ConsistentMapBuilder<K, V> {
      * @return new async consistent map
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    public AsyncConsistentMap<K, V> buildAsyncMap();
+    AsyncConsistentMap<K, V> buildAsyncMap();
 }

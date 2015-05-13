@@ -22,7 +22,7 @@ package org.onosproject.net;
 public interface Port extends Annotated {
 
     /** Represents coarse port type classification. */
-    public enum Type {
+    enum Type {
         /**
          * Signifies copper-based connectivity.
          */

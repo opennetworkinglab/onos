@@ -30,7 +30,7 @@ public interface SparseAnnotations extends Annotations {
      * </p>
      */
     @Override
-    public Set<String> keys();
+    Set<String> keys();
 
     /**
      * Indicates whether the specified key has been tagged as removed. This is
@@ -39,6 +39,6 @@ public interface SparseAnnotations extends Annotations {
      * @param key annotation key
      * @return true if the previous annotation has been tagged for removal
      */
-    public boolean isRemoved(String key);
+    boolean isRemoved(String key);
 
 }

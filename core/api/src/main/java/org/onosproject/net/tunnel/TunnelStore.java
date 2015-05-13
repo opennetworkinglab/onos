@@ -88,7 +88,7 @@ public interface TunnelStore extends Store<TunnelEvent, TunnelStoreDelegate> {
      * @param tunnel tunnel information
      * @return create tunnel event
      */
-    public TunnelEvent addTunnel(ProviderId providerId,
+    TunnelEvent addTunnel(ProviderId providerId,
                                         Tunnel tunnel);
 
     /**
@@ -98,7 +98,7 @@ public interface TunnelStore extends Store<TunnelEvent, TunnelStoreDelegate> {
      * @param tunnel tunnel
      * @return update tunnel event
      */
-    public TunnelEvent updateTunnel(ProviderId providerId,
+    TunnelEvent updateTunnel(ProviderId providerId,
                                         Tunnel tunnel);
 
     /**

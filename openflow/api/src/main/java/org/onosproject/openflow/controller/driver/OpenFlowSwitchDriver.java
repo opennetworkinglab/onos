@@ -40,28 +40,28 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
      * can only be called once.
      * @param agent the agent to set.
      */
-    public void setAgent(OpenFlowAgent agent);
+    void setAgent(OpenFlowAgent agent);
 
     /**
      * Sets the Role handler object.
      * This method can only be called once.
      * @param roleHandler the roleHandler class
      */
-    public void setRoleHandler(RoleHandler roleHandler);
+    void setRoleHandler(RoleHandler roleHandler);
 
     /**
      * Reasserts this controllers role to the switch.
      * Useful in cases where the switch no longer agrees
      * that this controller has the role it claims.
      */
-    public void reassertRole();
+    void reassertRole();
 
     /**
      * Handle the situation where the role request triggers an error.
      * @param error the error to handle.
      * @return true if handled, false if not.
      */
-    public boolean handleRoleError(OFErrorMsg error);
+    boolean handleRoleError(OFErrorMsg error);
 
     /**
      * If this driver know of Nicira style role messages, these should
@@ -70,7 +70,7 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
      * @throws SwitchStateException if the message received was
      *  not a nicira role or was malformed.
      */
-    public void handleNiciraRole(OFMessage m) throws SwitchStateException;
+    void handleNiciraRole(OFMessage m) throws SwitchStateException;
 
     /**
      * Handle OF 1.x (where x &gt; 0) role messages.
@@ -78,98 +78,98 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
      * @throws SwitchStateException if the message received was
      *  not a nicira role or was malformed.
      */
-    public void handleRole(OFMessage m) throws SwitchStateException;
+    void handleRole(OFMessage m) throws SwitchStateException;
 
     /**
      * Announce to the OpenFlow agent that this switch has connected.
      * @return true if successful, false if duplicate switch.
      */
-    public boolean connectSwitch();
+    boolean connectSwitch();
 
     /**
      * Activate this MASTER switch-controller relationship in the OF agent.
      * @return true is successful, false is switch has not
      * connected or is unknown to the system.
      */
-    public boolean activateMasterSwitch();
+    boolean activateMasterSwitch();
 
     /**
      * Activate this EQUAL switch-controller relationship in the OF agent.
      * @return true is successful, false is switch has not
      * connected or is unknown to the system.
      */
-    public boolean activateEqualSwitch();
+    boolean activateEqualSwitch();
 
     /**
      * Transition this switch-controller relationship to an EQUAL state.
      */
-    public void transitionToEqualSwitch();
+    void transitionToEqualSwitch();
 
     /**
      * Transition this switch-controller relationship to an Master state.
      */
-    public void transitionToMasterSwitch();
+    void transitionToMasterSwitch();
 
     /**
      * Remove this switch from the openflow agent.
      */
-    public void removeConnectedSwitch();
+    void removeConnectedSwitch();
 
     /**
      * Sets the ports on this switch.
      * @param portDescReply the port set and descriptions
      */
-    public void setPortDescReply(OFPortDescStatsReply portDescReply);
+    void setPortDescReply(OFPortDescStatsReply portDescReply);
 
     /**
      * Sets the ports on this switch.
      * @param portDescReplies list of port set and descriptions
      */
-    public void setPortDescReplies(List<OFPortDescStatsReply> portDescReplies);
+    void setPortDescReplies(List<OFPortDescStatsReply> portDescReplies);
 
     /**
      * Sets the features reply for this switch.
      * @param featuresReply the features to set.
      */
-    public void setFeaturesReply(OFFeaturesReply featuresReply);
+    void setFeaturesReply(OFFeaturesReply featuresReply);
 
     /**
      * Sets the switch description.
      * @param desc the descriptions
      */
-    public void setSwitchDescription(OFDescStatsReply desc);
+    void setSwitchDescription(OFDescStatsReply desc);
 
     /**
      * Gets the next transaction id to use.
      * @return the xid
      */
-    public int getNextTransactionId();
+    int getNextTransactionId();
 
 
     /**
      * Sets the OF version for this switch.
      * @param ofV the version to set.
      */
-    public void setOFVersion(OFVersion ofV);
+    void setOFVersion(OFVersion ofV);
 
     /**
      * Sets this switch has having a full flowtable.
      * @param full true if full, false otherswise.
      */
-    public void setTableFull(boolean full);
+    void setTableFull(boolean full);
 
     /**
      * Sets the associated Netty channel for this switch.
      * @param channel the Netty channel
      */
-    public void setChannel(Channel channel);
+    void setChannel(Channel channel);
 
     /**
      * Sets whether the switch is connected.
      *
      * @param connected whether the switch is connected
      */
-    public void setConnected(boolean connected);
+    void setConnected(boolean connected);
 
     /**
      * Initialises the behaviour.

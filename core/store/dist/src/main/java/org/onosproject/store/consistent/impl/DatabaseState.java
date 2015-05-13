@@ -41,7 +41,7 @@ public interface DatabaseState<K, V> {
    * @param context The map state context.
    */
   @Initializer
-  public void init(StateContext<DatabaseState<K, V>> context);
+  void init(StateContext<DatabaseState<K, V>> context);
 
   @Query
   Set<String> tableNames();

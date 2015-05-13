@@ -13,11 +13,11 @@ public interface LabelResource extends Annotated, Provided, NetworkResource {
      * Returns device id.
      * @return DeviceId
      */
-    public DeviceId deviceId();
+    DeviceId deviceId();
 
     /**
      * Returns labelResource Id.
      * @return LabelResourceId
      */
-    public LabelResourceId labelResourceId();
+    LabelResourceId labelResourceId();
 }

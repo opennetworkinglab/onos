@@ -25,7 +25,7 @@ public interface Criterion {
      * Types of fields to which the selection criterion may apply.
      */
     // From page 75 of OpenFlow 1.5.0 spec
-    public enum Type {
+    enum Type {
         /** Switch input port. */
         IN_PORT,
         /** Switch physical input port. */
@@ -137,13 +137,13 @@ public interface Criterion {
      *
      * @return type of criterion
      */
-    public Type type();
+    Type type();
 
     /**
      * Bit definitions for IPv6 Extension Header pseudo-field.
      * From page 79 of OpenFlow 1.5.0 spec.
      */
-    public enum IPv6ExthdrFlags {
+    enum IPv6ExthdrFlags {
         /** "No next header" encountered. */
         NONEXT((short) (1 << 0)),
         /** Encrypted Sec Payload header present. */

@@ -44,7 +44,7 @@ public interface Serializer {
      * @param kryo kryo namespace
      * @return Serializer instance
      */
-    public static Serializer using(KryoNamespace kryo) {
+    static Serializer using(KryoNamespace kryo) {
         return new Serializer() {
             @Override
             public <T> byte[] encode(T object) {

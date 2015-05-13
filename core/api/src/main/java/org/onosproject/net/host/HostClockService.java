@@ -28,5 +28,5 @@ public interface HostClockService {
      * @param hostId identifier for the host.
      * @return timestamp.
      */
-    public Timestamp getTimestamp(HostId hostId);
+    Timestamp getTimestamp(HostId hostId);
 }
