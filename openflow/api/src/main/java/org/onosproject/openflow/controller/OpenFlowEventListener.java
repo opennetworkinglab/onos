@@ -29,5 +29,5 @@ public interface OpenFlowEventListener {
      * @param dpid switch data path identifier
      * @param msg the message
      */
-    public void handleMessage(Dpid dpid, OFMessage msg);
+    void handleMessage(Dpid dpid, OFMessage msg);
 }

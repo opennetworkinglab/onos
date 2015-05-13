@@ -26,26 +26,26 @@ public interface OpenFlowSwitchListener {
      * Notify that the switch was added.
      * @param dpid the switch where the event occurred
      */
-    public void switchAdded(Dpid dpid);
+    void switchAdded(Dpid dpid);
 
     /**
      * Notify that the switch was removed.
      * @param dpid the switch where the event occurred.
      */
-    public void switchRemoved(Dpid dpid);
+    void switchRemoved(Dpid dpid);
 
     /**
      * Notify that the switch has changed in some way.
      * @param dpid the switch that changed
      */
-    public void switchChanged(Dpid dpid);
+    void switchChanged(Dpid dpid);
 
     /**
      * Notify that a port has changed.
      * @param dpid the switch on which the change happened.
      * @param status the new state of the port.
      */
-    public void portChanged(Dpid dpid, OFPortStatus status);
+    void portChanged(Dpid dpid, OFPortStatus status);
 
     /**
      * Notify that a role imposed on a switch failed to take hold.
@@ -54,5 +54,5 @@ public interface OpenFlowSwitchListener {
      * @param requested the role controller requested
      * @param response role reply from the switch
      */
-    public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response);
+    void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response);
 }
