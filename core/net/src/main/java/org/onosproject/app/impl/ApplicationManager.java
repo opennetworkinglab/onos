@@ -170,21 +170,24 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
             Application app = event.subject();
             try {
                 if (type == APP_ACTIVATED) {
-                    installAppFeatures(app);
-                    log.info("Application {} has been activated", app.id().name());
+                    if (installAppFeatures(app)) {
+                        log.info("Application {} has been activated", app.id().name());
+                    }
 
                 } else if (type == APP_DEACTIVATED) {
-                    uninstallAppFeatures(app);
-                    log.info("Application {} has been deactivated", app.id().name());
+                    if (uninstallAppFeatures(app)) {
+                        log.info("Application {} has been deactivated", app.id().name());
+                    }
 
                 } else if (type == APP_INSTALLED) {
-                    installAppArtifacts(app);
-                    log.info("Application {} has been installed", app.id().name());
+                    if (installAppArtifacts(app)) {
+                        log.info("Application {} has been installed", app.id().name());
+                    }
 
                 } else if (type == APP_UNINSTALLED) {
-                    uninstallAppFeatures(app);
-                    uninstallAppArtifacts(app);
-                    log.info("Application {} has been uninstalled", app.id().name());
+                    if (uninstallAppFeatures(app) || uninstallAppArtifacts(app)) {
+                        log.info("Application {} has been uninstalled", app.id().name());
+                    }
 
                 }
                 eventDispatcher.post(event);
@@ -198,40 +201,52 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     // The following methods are fully synchronized to guard against remote vs.
     // locally induced feature service interactions.
 
-    private synchronized void installAppArtifacts(Application app) throws Exception {
-        if (app.featuresRepo().isPresent()) {
+    private synchronized boolean installAppArtifacts(Application app) throws Exception {
+        if (app.featuresRepo().isPresent() &&
+                featuresService.getRepository(app.featuresRepo().get()) == null) {
             featuresService.addRepository(app.featuresRepo().get());
+            return true;
         }
+        return false;
     }
 
-    private synchronized void uninstallAppArtifacts(Application app) throws Exception {
-        if (app.featuresRepo().isPresent()) {
+    private synchronized boolean uninstallAppArtifacts(Application app) throws Exception {
+        if (app.featuresRepo().isPresent() &&
+                featuresService.getRepository(app.featuresRepo().get()) != null) {
             featuresService.removeRepository(app.featuresRepo().get());
+            return true;
         }
+        return false;
     }
 
-    private synchronized void installAppFeatures(Application app) throws Exception {
+    private synchronized boolean installAppFeatures(Application app) throws Exception {
+        boolean changed = false;
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (feature != null && !featuresService.isInstalled(feature)) {
                 featuresService.installFeature(name);
+                changed = true;
             } else if (feature == null && !initializing) {
                 // Suppress feature-not-found reporting during startup since these
                 // can arise naturally from the staggered cluster install.
                 log.warn("Feature {} not found", name);
             }
         }
+        return changed;
     }
 
-    private synchronized void uninstallAppFeatures(Application app) throws Exception {
+    private synchronized boolean uninstallAppFeatures(Application app) throws Exception {
+        boolean changed = false;
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (feature != null && featuresService.isInstalled(feature)) {
                 featuresService.uninstallFeature(name);
+                changed = true;
             } else if (feature == null) {
                 log.warn("Feature {} not found", name);
             }
         }
+        return changed;
     }
 
 }
