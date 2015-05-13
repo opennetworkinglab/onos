@@ -365,7 +365,7 @@ public class DeviceManager
                 MastershipTerm term = termService.getMastershipTerm(deviceId);
                 final NodeId myNodeId = clusterService.getLocalNode().id();
                 // TODO: Move this type of check inside device clock manager, etc.
-                if (myNodeId.equals(term.master())) {
+                if (term != null && myNodeId.equals(term.master())) {
                     log.info("Retry marking {} offline", deviceId);
                     deviceClockProviderService.setMastershipTerm(deviceId, term);
                     event = store.markOffline(deviceId);
@@ -604,7 +604,7 @@ public class DeviceManager
             if (myNodeId.equals(event.roleInfo().master())) {
                 // confirm latest info
                 MastershipTerm term = termService.getMastershipTerm(did);
-                final boolean iHaveControl = myNodeId.equals(term.master());
+                final boolean iHaveControl = term != null && myNodeId.equals(term.master());
                 if (iHaveControl) {
                     deviceClockProviderService.setMastershipTerm(did, term);
                     myNextRole = MASTER;

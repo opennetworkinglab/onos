@@ -859,7 +859,7 @@ public class GossipDeviceStore
             log.debug("Temporarily requesting role for {} to remove", deviceId);
             mastershipService.requestRoleFor(deviceId);
             MastershipTerm term = termService.getMastershipTerm(deviceId);
-            if (myId.equals(term.master())) {
+            if (term != null && myId.equals(term.master())) {
                 master = myId;
             }
         }
