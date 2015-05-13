@@ -41,7 +41,7 @@ public class UiWebSocket
 
     private static final Logger log = LoggerFactory.getLogger(UiWebSocket.class);
 
-    private static final long MAX_AGE_MS = 15000;
+    private static final long MAX_AGE_MS = 15_000;
 
     private static final byte PING = 0x9;
     private static final byte PONG = 0xA;
@@ -83,8 +83,10 @@ public class UiWebSocket
      * @return true if idle or closed
      */
     synchronized boolean isIdle() {
-        boolean idle = (System.currentTimeMillis() - lastActive) > MAX_AGE_MS;
+        long quietFor = System.currentTimeMillis() - lastActive;
+        boolean idle = quietFor > MAX_AGE_MS;
         if (idle || (connection != null && !connection.isOpen())) {
+            log.debug("IDLE (or closed) websocket [{} ms]", quietFor);
             return true;
         } else if (connection != null) {
             try {
@@ -108,7 +110,8 @@ public class UiWebSocket
     @Override
     public synchronized void onClose(int closeCode, String message) {
         destroyHandlers();
-        log.info("GUI client disconnected");
+        log.info("GUI client disconnected [close-code={}, message={}]",
+                 closeCode, message);
     }
 
     @Override

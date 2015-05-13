@@ -83,6 +83,7 @@ public abstract class RequestHandler {
      * @param sid       message sequence identifier
      * @param payload   message payload
      */
+    // TODO: remove sid from signature
     protected void sendMessage(String eventType, long sid, ObjectNode payload) {
         parent.connection().sendMessage(eventType, sid, payload);
     }
@@ -107,6 +108,7 @@ public abstract class RequestHandler {
      * @param sid       sequence identifier
      * @param payload   message payload
      */
+    // TODO: remove sid from signature
     protected void chain(String eventType, long sid, ObjectNode payload) {
         parent.exec(eventType, sid, payload);
     }
@@ -114,11 +116,25 @@ public abstract class RequestHandler {
     // ===================================================================
 
 
-    // FIXME : Javadocs
+    /**
+     * Returns the specified node property as a string.
+     *
+     * @param node message event
+     * @param key property name
+     * @return property as a string
+     */
     protected String string(ObjectNode node, String key) {
         return JsonUtils.string(node, key);
     }
 
+    /**
+     * Returns the specified node property as a string, with a default fallback.
+     *
+     * @param node         object node
+     * @param key          property name
+     * @param defValue     fallback value if property is absent
+     * @return property as a string
+     */
     protected String string(ObjectNode node, String key, String defValue) {
         return JsonUtils.string(node, key, defValue);
     }

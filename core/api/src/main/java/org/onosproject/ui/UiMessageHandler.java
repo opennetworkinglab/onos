@@ -16,6 +16,7 @@
 package org.onosproject.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
 import org.slf4j.Logger;
@@ -31,41 +32,47 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Abstraction of an entity capable of processing a JSON message from the user
+ * Abstraction of an entity capable of processing JSON messages from the user
  * interface client.
  * <p>
- * The message is a JSON object with the following structure:
+ * The message structure is:
  * </p>
  * <pre>
  * {
  *     "type": "<em>event-type</em>",
- *     "sid": "<em>sequence-number</em>",
  *     "payload": {
  *         <em>arbitrary JSON object structure</em>
  *     }
  * }
  * </pre>
+ * On {@link #init initialization} the handler will create and cache
+ * {@link RequestHandler} instances, each of which are bound to a particular
+ * <em>event-type</em>. On {@link #process arrival} of a new message,
+ * the <em>event-type</em> is determined, and the message dispatched to the
+ * corresponding <em>RequestHandler</em>'s
+ * {@link RequestHandler#process process} method.
  */
 public abstract class UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Map<String, RequestHandler> handlerMap = new HashMap<>();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private UiConnection connection;
     private ServiceDirectory directory;
 
-    /**
-     * Mapper for creating ObjectNodes and ArrayNodes etc.
-     */
-    protected final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * Subclasses must return the collection of handlers for the
-     * message types they handle.
+     * Subclasses must create and return the collection of request handlers
+     * for the message types they handle.
+     * <p>
+     * Note that request handlers should be stateless. When we are
+     * {@link #destroy destroyed}, we will simply drop our references to them
+     * and allow them to be garbage collected.
      *
      * @return the message handler instances
      */
-    protected abstract Collection<RequestHandler> getHandlers();
+    protected abstract Collection<RequestHandler> createRequestHandlers();
 
     /**
      * Returns the set of message types which this handler is capable of
@@ -84,10 +91,9 @@ public abstract class UiMessageHandler {
      */
     public void process(ObjectNode message) {
         String type = JsonUtils.eventType(message);
-        // TODO: remove sid
-        long sid = JsonUtils.sid(message);
         ObjectNode payload = JsonUtils.payload(message);
-        exec(type, sid, payload);
+        // TODO: remove sid
+        exec(type, 0, payload);
     }
 
     /**
@@ -99,21 +105,10 @@ public abstract class UiMessageHandler {
      */
     // TODO: remove sid from signature
     void exec(String eventType, long sid, ObjectNode payload) {
-        RequestHandler handler = handlerMap.get(eventType);
-        if (handler != null) {
+        RequestHandler requestHandler = handlerMap.get(eventType);
+        if (requestHandler != null) {
             log.debug("process {} event...", eventType);
-            handler.process(sid, payload);
-        }
-    }
-
-    private void bindHandlers() {
-        Collection<RequestHandler> handlers = getHandlers();
-        checkNotNull(handlers, "Handlers cannot be null");
-        checkArgument(!handlers.isEmpty(), "Handlers cannot be empty");
-
-        for (RequestHandler h : handlers) {
-            h.setParent(this);
-            handlerMap.put(h.eventType(), h);
+            requestHandler.process(sid, payload);
         }
     }
 
@@ -127,7 +122,15 @@ public abstract class UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
         this.connection = connection;
         this.directory = directory;
-        bindHandlers();
+
+        Collection<RequestHandler> handlers = createRequestHandlers();
+        checkNotNull(handlers, "Handlers cannot be null");
+        checkArgument(!handlers.isEmpty(), "Handlers cannot be empty");
+
+        for (RequestHandler h : handlers) {
+            h.setParent(this);
+            handlerMap.put(h.eventType(), h);
+        }
     }
 
     /**
@@ -136,6 +139,7 @@ public abstract class UiMessageHandler {
     public void destroy() {
         this.connection = null;
         this.directory = null;
+        handlerMap.clear();
     }
 
     /**
@@ -168,4 +172,21 @@ public abstract class UiMessageHandler {
         return directory.get(serviceClass);
     }
 
+    /**
+     * Returns a freshly minted object node.
+     *
+     * @return new object node
+     */
+    protected ObjectNode objectNode() {
+        return mapper.createObjectNode();
+    }
+
+    /**
+     * Returns a freshly minted array node.
+     *
+     * @return new array node
+     */
+    protected ArrayNode arrayNode() {
+        return mapper.createArrayNode();
+    }
 }

@@ -108,7 +108,7 @@ public class IntentPerfUi {
         private boolean streamingEnabled = false;
 
         @Override
-        protected Collection<RequestHandler> getHandlers() {
+        protected Collection<RequestHandler> createRequestHandlers() {
             return ImmutableSet.of(
                     new IntentPerfStart(),
                     new IntentPerfStop()
@@ -135,8 +135,8 @@ public class IntentPerfUi {
 
 
         private ObjectNode sampleNode(Sample sample) {
-            ObjectNode sampleNode = mapper.createObjectNode();
-            ArrayNode an = mapper.createArrayNode();
+            ObjectNode sampleNode = objectNode();
+            ArrayNode an = arrayNode();
             sampleNode.put("time", sample.time);
             sampleNode.set("data", an);
 

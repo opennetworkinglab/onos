@@ -84,7 +84,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String ICON_ID_OFFLINE = "inactive";
 
     @Override
-    protected Collection<RequestHandler> getHandlers() {
+    protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new DataRequestHandler(),
                 new DetailRequestHandler()

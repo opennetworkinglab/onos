@@ -167,7 +167,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     @Override
-    protected Collection<RequestHandler> getHandlers() {
+    protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new TopoStart(),
                 new TopoStop(),
@@ -254,8 +254,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            ObjectNode root = mapper.createObjectNode();
-            ArrayNode names = mapper.createArrayNode();
+            ObjectNode root = objectNode();
+            ArrayNode names = arrayNode();
             get(SpriteService.class).getNames().forEach(names::add);
             root.set("names", names);
             sendMessage("spriteListResponse", sid, root);
@@ -270,7 +270,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             String name = string(payload, "name");
-            ObjectNode root = mapper.createObjectNode();
+            ObjectNode root = objectNode();
             root.set("data", get(SpriteService.class).get(name));
             sendMessage("spriteDataResponse", sid, root);
         }

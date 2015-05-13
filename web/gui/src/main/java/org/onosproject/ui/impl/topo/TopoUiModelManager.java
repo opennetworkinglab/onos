@@ -50,6 +50,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
@@ -66,6 +68,9 @@ import static org.onosproject.ui.impl.topo.TopoUiEvent.Type.SUMMARY_UPDATE;
 @Component(immediate = true)
 @Service
 public class TopoUiModelManager implements TopoUiModelService {
+
+    // TODO: put back to 30,000 ms for production
+    private static final long SUMMARY_PERIOD = 15_000;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -105,6 +110,11 @@ public class TopoUiModelManager implements TopoUiModelService {
     private final TopoMessageFactory messageFactory = new TopoMessageFactory();
     private final MetaDb metaDb = new MetaDb();
 
+    private final Timer timer = new Timer("topology-view");
+
+    private TimerTask summaryTask = null;
+    private boolean summaryRunning = false;
+
 
     @Activate
     public void activate() {
@@ -135,7 +145,8 @@ public class TopoUiModelManager implements TopoUiModelService {
     //  causes the listener (for an AltTopoViewMessageHandler instance) to
     //  be removed.
     // ==== Somehow need to tie this in to the GUI-disconnected event.
-
+    //  This probably requires client-generated heartbeat messages to
+    //  Keep the connection alive.
 
 
     @Override
@@ -159,16 +170,32 @@ public class TopoUiModelManager implements TopoUiModelService {
     }
 
     @Override
-    public void startSummaryMonitoring() {
-        // TODO: set up periodic monitoring task
-        // send a summary now, and periodically...
-        post(new TopoUiEvent(SUMMARY_UPDATE, null));
+    public synchronized void startSummaryMonitoring() {
+        // first, cancel previous task if not canceled already
+        stopSummaryMonitoring();
+
+        // create and start a summary task, to execute with no delay, and
+        // every SUMMARY_PERIOD milliseconds thereafter.
+        summaryTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (summaryRunning) {
+                    post(new TopoUiEvent(SUMMARY_UPDATE, null));
+                }
+            }
+        };
+
+        timer.schedule(summaryTask, 0, SUMMARY_PERIOD);
+        summaryRunning = true;
     }
 
     @Override
-    public void stopSummaryMonitoring() {
-        // TODO: cancel monitoring task
-
+    public synchronized void stopSummaryMonitoring() {
+        if (summaryTask != null) {
+            summaryTask.cancel();
+            summaryTask = null;
+        }
+        summaryRunning = false;
     }
 
     @Override

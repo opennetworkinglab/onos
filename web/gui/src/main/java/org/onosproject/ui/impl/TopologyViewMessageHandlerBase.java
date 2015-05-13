@@ -171,7 +171,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces JSON structure from annotations.
     private JsonNode props(Annotations annotations) {
-        ObjectNode props = mapper.createObjectNode();
+        ObjectNode props = objectNode();
         if (annotations != null) {
             for (String key : annotations.keys()) {
                 props.put(key, annotations.value(key));
@@ -197,7 +197,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces a log message event bound to the client.
     private ObjectNode message(String severity, long id, String message) {
-        ObjectNode payload = mapper.createObjectNode()
+        ObjectNode payload = objectNode()
                 .put("severity", severity)
                 .put("message", message);
 
@@ -266,14 +266,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected ObjectNode instanceMessage(ClusterEvent event, String messageType) {
         ControllerNode node = event.subject();
         int switchCount = mastershipService.getDevicesOf(node.id()).size();
-        ObjectNode payload = mapper.createObjectNode()
+        ObjectNode payload = objectNode()
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
                 .put("online", clusterService.getState(node.id()) == ACTIVE)
                 .put("uiAttached", node.equals(clusterService.getLocalNode()))
                 .put("switches", switchCount);
 
-        ArrayNode labels = mapper.createArrayNode();
+        ArrayNode labels = arrayNode();
         labels.add(node.id().toString());
         labels.add(node.ip().toString());
 
@@ -291,7 +291,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Produces a device event message to the client.
     protected ObjectNode deviceMessage(DeviceEvent event) {
         Device device = event.subject();
-        ObjectNode payload = mapper.createObjectNode()
+        ObjectNode payload = objectNode()
                 .put("id", device.id().toString())
                 .put("type", device.type().toString().toLowerCase())
                 .put("online", deviceService.isAvailable(device.id()))
@@ -299,7 +299,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         // Generate labels: id, chassis id, no-label, optional-name
         String name = device.annotations().value(AnnotationKeys.NAME);
-        ArrayNode labels = mapper.createArrayNode();
+        ArrayNode labels = arrayNode();
         labels.add("");
         labels.add(isNullOrEmpty(name) ? device.id().toString() : name);
         labels.add(device.id().toString());
@@ -318,7 +318,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Produces a link event message to the client.
     protected ObjectNode linkMessage(LinkEvent event) {
         Link link = event.subject();
-        ObjectNode payload = mapper.createObjectNode()
+        ObjectNode payload = objectNode()
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
                 .put("online", link.state() == Link.State.ACTIVE)
@@ -336,13 +336,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
         String hostType = host.annotations().value(AnnotationKeys.TYPE);
-        ObjectNode payload = mapper.createObjectNode()
+        ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
                 .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
-        payload.set("cp", hostConnect(mapper, host.location()));
-        payload.set("labels", labels(mapper, ip(host.ipAddresses()),
+        payload.set("cp", hostConnect(host.location()));
+        payload.set("labels", labels(ip(host.ipAddresses()),
                                      host.mac().toString()));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
@@ -354,15 +354,15 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Encodes the specified host location into a JSON object.
-    private ObjectNode hostConnect(ObjectMapper mapper, HostLocation location) {
-        return mapper.createObjectNode()
+    private ObjectNode hostConnect(HostLocation location) {
+        return objectNode()
                 .put("device", location.deviceId().toString())
                 .put("port", location.port().toLong());
     }
 
     // Encodes the specified list of labels a JSON array.
-    private ArrayNode labels(ObjectMapper mapper, String... labels) {
-        ArrayNode json = mapper.createArrayNode();
+    private ArrayNode labels(String... labels) {
+        ArrayNode json = arrayNode();
         for (String label : labels) {
             json.add(label);
         }
@@ -402,7 +402,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             if (slat != null && slng != null && !slat.isEmpty() && !slng.isEmpty()) {
                 double lat = Double.parseDouble(slat);
                 double lng = Double.parseDouble(slng);
-                ObjectNode loc = mapper.createObjectNode()
+                ObjectNode loc = objectNode()
                         .put("type", "latlng").put("lat", lat).put("lng", lng);
                 payload.set("location", loc);
             }
@@ -531,22 +531,22 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces JSON message to trigger traffic overview visualization
     protected ObjectNode trafficSummaryMessage() {
-        ObjectNode payload = mapper.createObjectNode();
-        ArrayNode paths = mapper.createArrayNode();
+        ObjectNode payload = objectNode();
+        ArrayNode paths = arrayNode();
         payload.set("paths", paths);
 
-        ObjectNode pathNodeN = mapper.createObjectNode();
-        ArrayNode linksNodeN = mapper.createArrayNode();
-        ArrayNode labelsN = mapper.createArrayNode();
+        ObjectNode pathNodeN = objectNode();
+        ArrayNode linksNodeN = arrayNode();
+        ArrayNode labelsN = arrayNode();
 
         pathNodeN.put("class", "plain").put("traffic", false);
         pathNodeN.set("links", linksNodeN);
         pathNodeN.set("labels", labelsN);
         paths.add(pathNodeN);
 
-        ObjectNode pathNodeT = mapper.createObjectNode();
-        ArrayNode linksNodeT = mapper.createArrayNode();
-        ArrayNode labelsT = mapper.createArrayNode();
+        ObjectNode pathNodeT = objectNode();
+        ArrayNode linksNodeT = arrayNode();
+        ArrayNode labelsT = arrayNode();
 
         pathNodeT.put("class", "secondary").put("traffic", true);
         pathNodeT.set("links", linksNodeT);
@@ -581,8 +581,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces JSON message to trigger flow overview visualization
     protected ObjectNode flowSummaryMessage(Set<Device> devices) {
-        ObjectNode payload = mapper.createObjectNode();
-        ArrayNode paths = mapper.createArrayNode();
+        ObjectNode payload = objectNode();
+        ArrayNode paths = arrayNode();
         payload.set("paths", paths);
 
         for (Device device : devices) {
@@ -595,9 +595,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     private void addLinkFlows(Link link, ArrayNode paths, Integer count) {
-        ObjectNode pathNode = mapper.createObjectNode();
-        ArrayNode linksNode = mapper.createArrayNode();
-        ArrayNode labels = mapper.createArrayNode();
+        ObjectNode pathNode = objectNode();
+        ArrayNode linksNode = arrayNode();
+        ArrayNode labels = arrayNode();
         boolean noFlows = count == null || count == 0;
         pathNode.put("class", noFlows ? "secondary" : "primary");
         pathNode.put("traffic", false);
@@ -610,8 +610,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces JSON message to trigger traffic visualization
     protected ObjectNode trafficMessage(TrafficClass... trafficClasses) {
-        ObjectNode payload = mapper.createObjectNode();
-        ArrayNode paths = mapper.createArrayNode();
+        ObjectNode payload = objectNode();
+        ArrayNode paths = arrayNode();
         payload.set("paths", paths);
 
         // Classify links based on their traffic traffic first...
@@ -624,10 +624,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             String tc = (biLink.classes() + (hasTraffic ? " animated" : "")).trim();
             ObjectNode pathNode = pathNodes.get(tc);
             if (pathNode == null) {
-                pathNode = mapper.createObjectNode()
+                pathNode = objectNode()
                         .put("class", tc).put("traffic", hasTraffic);
-                pathNode.set("links", mapper.createArrayNode());
-                pathNode.set("labels", mapper.createArrayNode());
+                pathNode.set("links", arrayNode());
+                pathNode.set("labels", arrayNode());
                 pathNodes.put(tc, pathNode);
                 paths.add(pathNode);
             }
@@ -701,11 +701,11 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // connectivity intent
     protected void addPathTraffic(ArrayNode paths, String type, String trafficType,
                                   Iterable<Link> links) {
-        ObjectNode pathNode = mapper.createObjectNode();
-        ArrayNode linksNode = mapper.createArrayNode();
+        ObjectNode pathNode = objectNode();
+        ArrayNode linksNode = arrayNode();
 
         if (links != null) {
-            ArrayNode labels = mapper.createArrayNode();
+            ArrayNode labels = arrayNode();
             boolean hasTraffic = false;
             for (Link link : links) {
                 if (isInfrastructureEgress(link)) {
@@ -767,10 +767,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Produces JSON property details.
     private ObjectNode json(String id, String type, Prop... props) {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode result = mapper.createObjectNode()
+        ObjectNode result = objectNode()
                 .put("id", id).put("type", type);
-        ObjectNode pnode = mapper.createObjectNode();
-        ArrayNode porder = mapper.createArrayNode();
+        ObjectNode pnode = objectNode();
+        ArrayNode porder = arrayNode();
         for (Prop p : props) {
             porder.add(p.key);
             pnode.put(p.key, p.value);

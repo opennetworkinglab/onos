@@ -53,6 +53,7 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
     private static final String TOPO_START = "topoStart";
     private static final String TOPO_STOP = "topoStop";
     private static final String REQ_SUMMARY = "requestSummary";
+    private static final String CANCEL_SUMMARY = "cancelSummary";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -80,6 +81,13 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
         currentSummaryGenerator = defaultSummaryGenerator;
     }
 
+    @Override
+    public void destroy() {
+//        cancelAllMonitoring();
+//        stopListeningToModel();
+        super.destroy();
+    }
+
 
     private String getVersion() {
         String ver = directory.get(CoreService.class).version().toString();
@@ -88,11 +96,12 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
 
 
     @Override
-    protected Collection<RequestHandler> getHandlers() {
+    protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new TopoStart(),
                 new TopoStop(),
-                new ReqSummary()
+                new ReqSummary(),
+                new CancelSummary()
                 // TODO: add more handlers here.....
         );
     }
@@ -154,6 +163,17 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
         public void process(long sid, ObjectNode payload) {
             modelService.startSummaryMonitoring();
             // NOTE: showSummary messages forwarded through the model listener
+        }
+    }
+
+    private final class CancelSummary extends RequestHandler {
+        private CancelSummary() {
+            super(CANCEL_SUMMARY);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            modelService.stopSummaryMonitoring();
         }
     }
 

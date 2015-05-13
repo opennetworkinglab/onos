@@ -57,7 +57,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     };
 
     @Override
-    protected Collection<RequestHandler> getHandlers() {
+    protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new AppDataRequest(),
                 new AppMgmtRequest()

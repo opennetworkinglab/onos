@@ -36,6 +36,7 @@ public interface UiConnection {
      * @param sid     message sequence number
      * @param payload message payload
      */
+    // TODO: remove sid parameter
     void sendMessage(String type, long sid, ObjectNode payload);
 
 }
