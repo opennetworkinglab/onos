@@ -27,7 +27,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
-import org.onosproject.net.tunnel.OchSignalType;
+import org.onosproject.net.OchSignalType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

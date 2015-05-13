@@ -25,7 +25,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.tunnel.OchSignalType;
+import org.onosproject.net.OchSignalType;
 
 /**
  * Factory class to create various traffic selection criteria.

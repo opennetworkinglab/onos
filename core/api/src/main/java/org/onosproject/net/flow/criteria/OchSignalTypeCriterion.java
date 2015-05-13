@@ -16,7 +16,7 @@
 package org.onosproject.net.flow.criteria;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.net.tunnel.OchSignalType;
+import org.onosproject.net.OchSignalType;
 
 import java.util.Objects;
 
