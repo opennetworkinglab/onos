@@ -11,8 +11,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
@@ -53,8 +53,8 @@ public class LabelResourceManager
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
-    private final AbstractListenerRegistry<LabelResourceEvent, LabelResourceListener> listenerRegistry
-                            = new AbstractListenerRegistry<>();
+    private final ListenerRegistry<LabelResourceEvent, LabelResourceListener> listenerRegistry
+                            = new ListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LabelResourceStore store;
