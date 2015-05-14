@@ -15,10 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import static com.google.common.collect.Lists.newArrayList;
-
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -33,6 +32,11 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.Group.GroupState;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupService;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Lists all groups in the system.
@@ -54,6 +58,16 @@ public class GroupsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String state;
 
+    private JsonNode json(Map<Device, List<Group>> sortedGroups) {
+        ArrayNode result = mapper().createArrayNode();
+
+        sortedGroups.forEach((device, groups) ->
+                groups.forEach(group ->
+                        result.add(jsonForEntity(group, Group.class))));
+
+        return result;
+    }
+
     @Override
     protected void execute() {
         DeviceService deviceService = get(DeviceService.class);
@@ -61,7 +75,11 @@ public class GroupsListCommand extends AbstractShellCommand {
         SortedMap<Device, List<Group>> sortedGroups =
                 getSortedGroups(deviceService, groupService);
 
-        sortedGroups.forEach((device, groups) -> printGroups(device.id(), groups));
+        if (outputJson()) {
+            print("%s", json(sortedGroups));
+        } else {
+            sortedGroups.forEach((device, groups) -> printGroups(device.id(), groups));
+        }
     }
 
     /**

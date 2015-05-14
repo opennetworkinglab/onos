@@ -15,11 +15,15 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.Set;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverAdminService;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
  * Lists device drivers.
@@ -43,17 +47,35 @@ public class DriversListCommand extends AbstractShellCommand {
         if (driverName != null) {
             printDriver(service.getDriver(driverName));
         } else {
-            service.getDrivers().forEach(this::printDriver);
+            if (outputJson()) {
+                json(service.getDrivers());
+            } else {
+                service.getDrivers().forEach(this::printDriver);
+            }
         }
     }
 
+    private void json(Driver driver) {
+        print("%s", jsonForEntity(driver, Driver.class));
+    }
+
+    private void json(Set<Driver> drivers) {
+        ArrayNode result = mapper().createArrayNode();
+        drivers.forEach(driver -> result.add(jsonForEntity(driver, Driver.class)));
+        print("%s", result.toString());
+    }
+
     private void printDriver(Driver driver) {
-        Driver parent = driver.parent();
-        print(FMT, driver.name(), parent != null ? parent.name() : "none",
-              driver.manufacturer(), driver.hwVersion(), driver.swVersion());
-        driver.behaviours().forEach(b -> print(FMT_B, b.getCanonicalName(),
-                                               driver.implementation(b).getCanonicalName()));
-        driver.properties().forEach((k, v) -> print(FMT_P, k, v));
+        if (outputJson()) {
+            json(driver);
+        } else {
+            Driver parent = driver.parent();
+            print(FMT, driver.name(), parent != null ? parent.name() : "none",
+                    driver.manufacturer(), driver.hwVersion(), driver.swVersion());
+            driver.behaviours().forEach(b -> print(FMT_B, b.getCanonicalName(),
+                    driver.implementation(b).getCanonicalName()));
+            driver.properties().forEach((k, v) -> print(FMT_P, k, v));
+        }
     }
 
 }

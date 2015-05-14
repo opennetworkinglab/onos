@@ -33,11 +33,14 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -89,6 +92,9 @@ public class CodecManager implements CodecService {
         registerCodec(Topology.class, new TopologyCodec());
         registerCodec(TopologyCluster.class, new TopologyClusterCodec());
         registerCodec(Path.class, new PathCodec());
+        registerCodec(Group.class, new GroupCodec());
+        registerCodec(Driver.class, new DriverCodec());
+        registerCodec(GroupBucket.class, new GroupBucketCodec());
         log.info("Started");
     }
 
