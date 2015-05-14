@@ -15,9 +15,7 @@
  */
 package org.onosproject.store.flow.impl;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,8 +38,6 @@ import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
@@ -67,8 +63,6 @@ public class ReplicaInfoManager implements ReplicaInfoService {
     protected final ListenerRegistry<ReplicaInfoEvent, ReplicaInfoEventListener>
         listenerRegistry = new ListenerRegistry<>();
 
-    private final Map<DeviceId, ReplicaInfo> deviceReplicaInfoMap = Maps.newConcurrentMap();
-
     @Activate
     public void activate() {
         eventDispatcher.addSink(ReplicaInfoEvent.class, listenerRegistry);
@@ -85,9 +79,7 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
     @Override
     public ReplicaInfo getReplicaInfoFor(DeviceId deviceId) {
-        return deviceReplicaInfoMap.computeIfAbsent(
-                    deviceId,
-                    id -> buildFromRoleInfo(mastershipService.getNodesFor(deviceId)));
+        return buildFromRoleInfo(mastershipService.getNodesFor(deviceId));
     }
 
     @Override
@@ -110,12 +102,7 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
         @Override
         public void event(MastershipEvent event) {
-            final DeviceId deviceId = event.subject();
             final ReplicaInfo replicaInfo = buildFromRoleInfo(event.roleInfo());
-            ReplicaInfo oldReplicaInfo = deviceReplicaInfoMap.put(deviceId, replicaInfo);
-            if (Objects.equal(oldReplicaInfo, replicaInfo)) {
-                return;
-            }
             switch (event.type()) {
             case MASTER_CHANGED:
                 eventDispatcher.post(new ReplicaInfoEvent(MASTER_CHANGED,

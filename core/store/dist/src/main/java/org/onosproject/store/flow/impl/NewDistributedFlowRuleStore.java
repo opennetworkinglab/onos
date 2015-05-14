@@ -61,7 +61,6 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
-import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoEvent;
 import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
@@ -320,9 +319,7 @@ public class NewDistributedFlowRuleStore
 
     @Override
     public FlowEntry getFlowEntry(FlowRule rule) {
-
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
-        NodeId master = replicaInfo.master().orNull();
+        NodeId master = mastershipService.getMasterFor(rule.deviceId());
 
         if (master == null) {
             log.warn("Failed to getFlowEntry: No master for {}", rule.deviceId());
@@ -348,9 +345,7 @@ public class NewDistributedFlowRuleStore
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-        NodeId master = replicaInfo.master().orNull();
+        NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (master == null) {
             log.warn("Failed to getFlowEntries: No master for {}", deviceId);
@@ -391,9 +386,7 @@ public class NewDistributedFlowRuleStore
         }
 
         DeviceId deviceId = operation.deviceId();
-
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-        NodeId master = replicaInfo.master().orNull();
+        NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (master == null) {
             log.warn("No master for {} : flows will be marked for removal", deviceId);
@@ -418,7 +411,7 @@ public class NewDistributedFlowRuleStore
                                          APPLY_BATCH_FLOWS,
                                          SERIALIZER::encode,
                                          master)) {
-            log.warn("Failed to storeBatch: {} to {}", operation, replicaInfo.master());
+            log.warn("Failed to storeBatch: {} to {}", operation, master);
 
             Set<FlowRule> allFailures = operation.getOperations().stream()
                     .map(op -> op.target())
@@ -491,8 +484,8 @@ public class NewDistributedFlowRuleStore
 
     @Override
     public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(rule.deviceId());
-        if (Objects.equal(local, replicaInfo.master().orNull())) {
+        NodeId master = mastershipService.getMasterFor(rule.deviceId());
+        if (Objects.equal(local, master)) {
             return addOrUpdateFlowRuleInternal(rule);
         }
 
@@ -524,8 +517,7 @@ public class NewDistributedFlowRuleStore
     @Override
     public FlowRuleEvent removeFlowRule(FlowEntry rule) {
         final DeviceId deviceId = rule.deviceId();
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-        NodeId master = replicaInfo.master().orNull();
+        NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (Objects.equal(local, master)) {
             // bypass and handle it locally
@@ -580,9 +572,8 @@ public class NewDistributedFlowRuleStore
             log.debug("received batch request {}", operation);
 
             final DeviceId deviceId = operation.deviceId();
-            ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-            if (!local.equals(replicaInfo.master().orNull())) {
-
+            NodeId master = mastershipService.getMasterFor(deviceId);
+            if (!Objects.equal(local, master)) {
                 Set<FlowRule> failures = new HashSet<>(operation.size());
                 for (FlowRuleBatchEntry op : operation.getOperations()) {
                     failures.add(op.target());
@@ -618,7 +609,8 @@ public class NewDistributedFlowRuleStore
         public void event(ReplicaInfoEvent event) {
             if (event.type() == ReplicaInfoEvent.Type.BACKUPS_CHANGED) {
                 DeviceId deviceId = event.subject();
-                if (!Objects.equal(local, replicaInfoManager.getReplicaInfoFor(deviceId).master())) {
+                NodeId master = mastershipService.getMasterFor(deviceId);
+                if (!Objects.equal(local, master)) {
                  // ignore since this event is for a device this node does not manage.
                     return;
                 }
