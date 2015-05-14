@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
@@ -103,9 +102,8 @@ public class TopoUiModelManager implements TopoUiModelService {
     protected EventDeliveryService eventDispatcher;
 
 
-    private AbstractListenerRegistry<TopoUiEvent, TopoUiListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
-
+    private final ModelListenerRegistry listenerRegistry =
+            new ModelListenerRegistry();
 
     private final TopoMessageFactory messageFactory = new TopoMessageFactory();
     private final MetaDb metaDb = new MetaDb();
@@ -138,17 +136,6 @@ public class TopoUiModelManager implements TopoUiModelService {
     }
 
 
-    // TODO: figure out how to cull zombie listeners
-    // The problem is when one refreshes the GUI (topology view)
-    //  a new instance of AltTopoViewMessageHandler is created and added
-    //  as a listener, but we never got a TopoStop event, which is what
-    //  causes the listener (for an AltTopoViewMessageHandler instance) to
-    //  be removed.
-    // ==== Somehow need to tie this in to the GUI-disconnected event.
-    //  This probably requires client-generated heartbeat messages to
-    //  Keep the connection alive.
-
-
     @Override
     public void addListener(TopoUiListener listener) {
         listenerRegistry.addListener(listener);
@@ -156,7 +143,12 @@ public class TopoUiModelManager implements TopoUiModelService {
 
     @Override
     public void removeListener(TopoUiListener listener) {
-        listenerRegistry.removeListener(listener);
+        // we don't really care if the listener is not listed...
+        try {
+            listenerRegistry.removeListener(listener);
+        } catch (IllegalArgumentException e) {
+            log.debug("Oops, listener not registered: {}", listener);
+        }
     }
 
     @Override

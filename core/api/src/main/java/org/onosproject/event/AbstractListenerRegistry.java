@@ -33,7 +33,7 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
 
     private final Logger log = getLogger(getClass());
 
-    private final Set<L> listeners = new CopyOnWriteArraySet<>();
+    protected final Set<L> listeners = new CopyOnWriteArraySet<>();
     private volatile boolean shutdown = false;
 
     /**
@@ -92,6 +92,5 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
     public void deactivate() {
         shutdown = true;
     }
-
 
 }

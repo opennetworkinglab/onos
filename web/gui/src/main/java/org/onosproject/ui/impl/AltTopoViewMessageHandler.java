@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.System.currentTimeMillis;
 import static org.onosproject.ui.impl.topo.TopoUiEvent.Type.SUMMARY_UPDATE;
 
 /**
@@ -51,6 +52,7 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
             implements OverlayService {
 
     private static final String TOPO_START = "topoStart";
+    private static final String TOPO_HEARTBEAT = "topoHeartbeat";
     private static final String TOPO_STOP = "topoStop";
     private static final String REQ_SUMMARY = "requestSummary";
     private static final String CANCEL_SUMMARY = "cancelSummary";
@@ -60,7 +62,7 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
     protected ServiceDirectory directory;
     protected TopoUiModelService modelService;
 
-    private TopoUiListener modelListener;
+    private ModelListener modelListener;
     private String version;
     private SummaryGenerator defaultSummaryGenerator;
     private SummaryGenerator currentSummaryGenerator;
@@ -83,15 +85,9 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
 
     @Override
     public void destroy() {
-//        cancelAllMonitoring();
-//        stopListeningToModel();
+        cancelAllMonitoring();
+        stopListeningToModel();
         super.destroy();
-    }
-
-
-    private String getVersion() {
-        String ver = directory.get(CoreService.class).version().toString();
-        return ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
     }
 
 
@@ -99,11 +95,33 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new TopoStart(),
+                new TopoHeartbeat(),
                 new TopoStop(),
                 new ReqSummary(),
                 new CancelSummary()
                 // TODO: add more handlers here.....
         );
+    }
+
+    // =====================================================================
+
+    private void cancelAllMonitoring() {
+        // TODO:
+    }
+
+    private void startListeningToModel() {
+        topoActive = true;
+        modelService.addListener(modelListener);
+    }
+
+    private void stopListeningToModel() {
+        topoActive = false;
+        modelService.removeListener(modelListener);
+    }
+
+    private String getVersion() {
+        String ver = directory.get(CoreService.class).version().toString();
+        return ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
     }
 
     // =====================================================================
@@ -136,9 +154,18 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            topoActive = true;
-            modelService.addListener(modelListener);
+            startListeningToModel();
             sendMessages(modelService.getInitialState());
+        }
+    }
+
+    private final class TopoHeartbeat extends RequestHandler {
+        private TopoHeartbeat() {
+            super(TOPO_HEARTBEAT);
+        }
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            modelListener.nudge();
         }
     }
 
@@ -149,8 +176,7 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            topoActive = false;
-            modelService.removeListener(modelListener);
+            stopListeningToModel();
         }
     }
 
@@ -227,6 +253,10 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
     // Our listener for model events so we can push changes out to the UI...
 
     private class ModelListener implements TopoUiListener {
+        private static final long AWAKE_THRESHOLD_MS = 6000;
+
+        private long lastNudged = currentTimeMillis();
+
         @Override
         public void event(TopoUiEvent event) {
             log.debug("Handle Event: {}", event);
@@ -237,6 +267,15 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
                 handler = passThruHandler;
             }
             handler.handleEvent(event);
+        }
+
+        @Override
+        public boolean isAwake() {
+            return currentTimeMillis() - lastNudged < AWAKE_THRESHOLD_MS;
+        }
+
+        public void nudge() {
+            lastNudged = currentTimeMillis();
         }
     }
 
@@ -271,5 +310,4 @@ public class AltTopoViewMessageHandler extends UiMessageHandler
         eventHandlerBinding.put(SUMMARY_UPDATE, summaryHandler);
         // NOTE: no need to bind pass-thru handlers
     }
-
 }

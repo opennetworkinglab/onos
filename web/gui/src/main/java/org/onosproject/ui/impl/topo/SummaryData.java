@@ -20,6 +20,7 @@ package org.onosproject.ui.impl.topo;
 /**
  * Provides basic summary data for the topology.
  */
+// TODO: review -- move to core-api module?
 public interface SummaryData {
 
     /**

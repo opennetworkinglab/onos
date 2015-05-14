@@ -27,11 +27,14 @@
     'use strict';
 
     // injected refs
-    var $log, wss, tps, tis, tfs, tss, tts, tspr;
+    var $log, $interval, wss, tps, tis, tfs, tss, tts, tspr;
 
     // internal state
     var handlerMap,
-        openListener;
+        openListener,
+        heartbeatTimer;
+
+    var heartbeatPeriod = 5000; // 5 seconds
 
     // ==========================
 
@@ -68,14 +71,31 @@
         wss.sendEvent('topoStart');
     }
 
+    function cancelHeartbeat() {
+        if (heartbeatTimer) {
+            $interval.cancel(heartbeatTimer);
+        }
+        heartbeatTimer = null;
+    }
+
+    function scheduleHeartbeat() {
+        cancelHeartbeat();
+        heartbeatTimer = $interval(function () {
+            wss.sendEvent('topoHeartbeat');
+        }, heartbeatPeriod);
+    }
+
+
     angular.module('ovTopo')
     .factory('TopoEventService',
-        ['$log', '$location', 'WebSocketService',
+        ['$log', '$interval', 'WebSocketService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
             'TopoSelectService', 'TopoTrafficService', 'TopoSpriteService',
 
-        function (_$log_, $loc, _wss_, _tps_, _tis_, _tfs_, _tss_, _tts_, _tspr_) {
+        function (_$log_,  _$interval_, _wss_,
+                  _tps_, _tis_, _tfs_, _tss_, _tts_, _tspr_) {
             $log = _$log_;
+            $interval = _$interval_;
             wss = _wss_;
             tps = _tps_;
             tis = _tis_;
@@ -90,10 +110,12 @@
                 openListener = wss.addOpenListener(wsOpen);
                 wss.bindHandlers(handlerMap);
                 wss.sendEvent('topoStart');
+                scheduleHeartbeat();
                 $log.debug('topo comms started');
             }
 
             function stop() {
+                cancelHeartbeat();
                 wss.sendEvent('topoStop');
                 wss.unbindHandlers(handlerMap);
                 wss.removeOpenListener(openListener);

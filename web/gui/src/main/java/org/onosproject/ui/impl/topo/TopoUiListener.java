@@ -24,4 +24,10 @@ import org.onosproject.event.EventListener;
  */
 public interface TopoUiListener extends EventListener<TopoUiEvent> {
 
+    /**
+     * Returns true if the listener really is listening.
+     *
+     * @return true if awake
+     */
+    boolean isAwake();
 }

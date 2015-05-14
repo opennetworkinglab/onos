@@ -22,6 +22,7 @@ import org.onosproject.ui.impl.topo.overlay.SummaryGenerator;
 /**
  * Provides the API for external agents to inject topology overlay behavior.
  */
+// TODO: move to core-api module
 public interface OverlayService {
 
     /**
