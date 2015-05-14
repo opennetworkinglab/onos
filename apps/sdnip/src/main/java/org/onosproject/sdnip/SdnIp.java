@@ -35,6 +35,8 @@ import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
+import java.util.Objects;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -152,8 +154,7 @@ public class SdnIp implements SdnIpService {
             if (!event.subject().topic().equals(appId.name())) {
                 return;         // Not our topic: ignore
             }
-            if (!event.subject().leader().equals(
-                        localControllerNode.id())) {
+            if (Objects.equals(event.subject().leader(), localControllerNode.id())) {
                 return;         // The event is not about this instance: ignore
             }
 
