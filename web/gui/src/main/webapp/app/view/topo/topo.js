@@ -29,7 +29,7 @@
     ];
 
     // references to injected services etc.
-    var $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps,
+    var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps,
         tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip;
 
     // DOM elements
@@ -336,12 +336,11 @@
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
             'TopoToolbarService', 'TopoSpriteService', 'TooltipService',
 
-        function ($scope, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
+        function (_$scope_, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tes_, _tfs_,
                   _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr,
                   _ttip_) {
-            var self = this,
-                projection,
+            var projection,
                 dim,
                 uplink = {
                     // provides function calls back into this space
@@ -352,6 +351,7 @@
                     opacifyMap: opacifyMap
                 };
 
+            $scope = _$scope_;
             $log = _$log_;
             $cookies = _$cookies_;
             fs = _fs_;
@@ -378,7 +378,7 @@
             ttbs = _ttbs_;
             ttip = _ttip_;
 
-            self.notifyResize = function () {
+            $scope.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
             };
 

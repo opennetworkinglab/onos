@@ -25,32 +25,39 @@
 
         // Create a resize directive, that we can apply to elements
         // so that they can respond to window resize events.
-        .directive('resize', ['$window', function ($window) {
-            return function (scope, element, attrs) {
-                var w = angular.element($window);
-                scope.$watch(function () {
-                    return {
-                        h: window.innerHeight,
-                        w: window.innerWidth
-                    };
-                }, function (newVal, oldVal) {
-                    scope.windowHeight = newVal.h;
-                    scope.windowWidth = newVal.w;
-
-                    scope.resizeWithOffset = function (offH, offW) {
-                        var oh = offH || 0,
-                            ow = offW || 0;
-                        scope.$eval(attrs.notifier);
+        .directive('resize', ['$window', 'FnService', function ($window, fs) {
+            return {
+                scope: {
+                    offsetHeight: '@',
+                    offsetWidth: '@',
+                    notifier: '&'
+                },
+                link: function (scope, element) {
+                    var elem = d3.select(element[0]);
+                    scope.$watchCollection(function () {
                         return {
-                            height: (newVal.h - oh) + 'px',
-                            width: (newVal.w - ow) + 'px'
+                            h: $window.innerHeight,
+                            w: $window.innerWidth
                         };
-                    };
-                }, true);
+                    }, function () {
+                        var offH = scope.offsetHeight || 0,
+                            offW = scope.offsetWidth || 0,
+                            wsz = fs.windowSize(offH, offW);
 
-                w.bind('resize', function () {
-                    scope.$apply();
-                });
+                        elem.style({
+                            height: wsz.height + 'px',
+                            width: wsz.width + 'px'
+                        });
+
+                        if (fs.isF(scope.notifier)) {
+                            scope.notifier();
+                        }
+                    });
+
+                    angular.element($window).bind('resize', function () {
+                        scope.$apply();
+                    });
+                }
             };
         }])
 
@@ -69,15 +76,14 @@
                                         scope.iconId, scope.iconSize);
                 }
             };
-
         }])
 
         // create a general ng-repeat complete notifier directive
         .directive('ngRepeatDone', [function () {
-            return function (scope, element, attrs) {
-                if(scope.$last) {
+            return function (scope) {
+                if (scope.$last) {
                     scope.$emit('LastElement');
                 }
-            }
+            };
         }]);
 }());

@@ -155,11 +155,10 @@
                 fs = _fs_;
                 mast = _mast_;
 
-                var w = angular.element($window),
-                    table = d3.select(element[0]),
+                var table = d3.select(element[0]),
                     canAdjust = false;
 
-                scope.$watch(function () {
+                scope.$watchCollection(function () {
                     return {
                         h: $window.innerHeight,
                         w: $window.innerWidth
@@ -182,10 +181,6 @@
                     if (canAdjust) {
                         adjustTable(table, wWidth, wHeight);
                     }
-                }, true);
-
-                w.bind('onos-fixed-header', function () {
-                    scope.$apply();
                 });
             };
         }])

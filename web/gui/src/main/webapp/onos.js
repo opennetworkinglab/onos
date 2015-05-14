@@ -70,11 +70,12 @@
 
         .controller('OnosCtrl', [
             '$log', '$route', '$routeParams', '$location',
-            'KeyService', 'ThemeService', 'GlyphService', 'PanelService',
-            'FlashService', 'QuickHelpService', 'WebSocketService',
+            'KeyService', 'ThemeService', 'GlyphService', 'VeilService',
+            'PanelService', 'FlashService', 'QuickHelpService',
+            'WebSocketService',
 
             function ($log, $route, $routeParams, $location,
-                      ks, ts, gs, ps, flash, qhs, wss) {
+                      ks, ts, gs, vs, ps, flash, qhs, wss) {
                 var self = this;
 
                 self.$route = $route;
@@ -87,6 +88,7 @@
                 ks.installOn(d3.select('body'));
                 ks.bindQhs(qhs);
                 gs.init();
+                vs.init();
                 ps.init();
                 flash.initFlash();
                 qhs.initQuickHelp();

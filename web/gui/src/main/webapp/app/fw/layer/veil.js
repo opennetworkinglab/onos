@@ -24,13 +24,33 @@
     'use strict';
 
     // injected references
-    var $log, $route, fs, ks;
+    var $log, $route, fs, ks, gs;
 
-    var veil, pdiv, svg;
+    var veil;
+
+    function init() {
+        var wSize = fs.windowSize(),
+            ww = wSize.width,
+            wh = wSize.height,
+            shrink = wh * 0.3,
+            birdDim = wh - shrink,
+            birdCenter = (ww - birdDim) / 2,
+            svg;
+
+        veil = d3.select('#veil');
+
+        svg = veil.select('svg').attr({
+            width: ww,
+            height: wh
+        }).style('opacity', 0.2);
+
+        gs.addGlyph(svg, 'bird', birdDim, false, [birdCenter, shrink/2]);
+    }
 
     // msg should be an array of strings
     function show(msg) {
-        var msgs = fs.isA(msg) || [msg];
+        var msgs = fs.isA(msg) || [msg],
+            pdiv = veil.select('.msg');
         pdiv.selectAll('p').remove();
 
         msgs.forEach(function (line) {
@@ -60,32 +80,15 @@
     .factory('VeilService',
         ['$log', '$route', 'FnService', 'KeyService', 'GlyphService',
 
-        function (_$log_, _$route_, _fs_, _ks_, gs) {
+        function (_$log_, _$route_, _fs_, _ks_, _gs_) {
             $log = _$log_;
             $route = _$route_;
             fs = _fs_;
             ks = _ks_;
-
-            var wSize = fs.windowSize(),
-                ww = wSize.width,
-                wh = wSize.height,
-                vbox = '0 0 ' + ww + ' ' +  wh,
-                shrink = wh * 0.3,
-                birdDim = wh - shrink,
-                birdCenter = (ww - birdDim) / 2;
-
-            veil = d3.select('#veil');
-            pdiv = veil.append('div').classed('msg', true);
-
-            svg = veil.append('svg').attr({
-                width: ww,
-                height: wh,
-                viewBox: vbox
-            }).style('opacity', 0.2);
-
-            gs.addGlyph(svg, 'bird', birdDim, false, [birdCenter, shrink/2]);
+            gs = _gs_;
 
             return {
+                init: init,
                 show: show,
                 hide: hide,
                 lostServer: lostServer
