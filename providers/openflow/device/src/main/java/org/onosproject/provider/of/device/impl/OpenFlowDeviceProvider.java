@@ -17,6 +17,7 @@ package org.onosproject.provider.of.device.impl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,8 +45,10 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
+import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
 import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
@@ -53,6 +56,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
+import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
@@ -262,7 +266,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                                                  sw.serialNumber(),
                                                  cId, annotations);
             providerService.deviceConnected(did, description);
-            providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
+            providerService.updatePorts(did, buildPortDescriptions(sw));
 
             PortStatsCollector psc = new PortStatsCollector(
                         controller.getSwitch(dpid), POLL_INTERVAL);
@@ -290,7 +294,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
-            providerService.updatePorts(did, buildPortDescriptions(sw.getPorts()));
+            providerService.updatePorts(did, buildPortDescriptions(sw));
         }
 
         @Override
@@ -333,10 +337,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @param ports the list of ports
          * @return list of portdescriptions
          */
-        private List<PortDescription> buildPortDescriptions(List<OFPortDesc> ports) {
-            final List<PortDescription> portDescs = new ArrayList<>(ports.size());
-            for (OFPortDesc port : ports) {
-                portDescs.add(buildPortDescription(port));
+        private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {
+            final List<PortDescription> portDescs = new ArrayList<>(sw.getPorts().size());
+            sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
+            if (sw.isOptical()) {
+                OpenFlowOpticalSwitch opsw = (OpenFlowOpticalSwitch) sw;
+                opsw.getPortTypes().forEach(type -> {
+                    LOG.info("ports: {}", opsw.getPortsOf(type));
+                    opsw.getPortsOf(type).forEach(
+                        op -> {
+                            portDescs.add(buildPortDescription(type, (OFPortOptical) op));
+                        }
+                    );
+                });
             }
             return portDescs;
         }
@@ -348,9 +361,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @return annotation containing the port name if one is found,
          *         null otherwise
          */
-        private SparseAnnotations makePortNameAnnotation(OFPortDesc port) {
+        private SparseAnnotations makePortNameAnnotation(String port) {
             SparseAnnotations annotations = null;
-            String portName = Strings.emptyToNull(port.getName());
+            String portName = Strings.emptyToNull(port);
             if (portName != null) {
                 annotations = DefaultAnnotations.builder()
                         .set(AnnotationKeys.PORT_NAME, portName).build();
@@ -359,7 +372,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         }
 
         /**
-         * Build a portDescription from a given port.
+         * Build a portDescription from a given Ethernet port description.
          *
          * @param port the port to build from.
          * @return portDescription for the port.
@@ -370,9 +383,36 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     !port.getState().contains(OFPortState.LINK_DOWN) &&
                             !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
-            SparseAnnotations annotations = makePortNameAnnotation(port);
+            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
             return new DefaultPortDescription(portNo, enabled, type,
                                               portSpeed(port), annotations);
+        }
+
+        /**
+         * Build a portDescription from a given a port description describing some
+         * Optical port.
+         *
+         * @param port description property type.
+         * @param port the port to build from.
+         * @return portDescription for the port.
+         */
+        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFPortOptical port) {
+            // Minimally functional fixture. This needs to be fixed as we add better support.
+            PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+            boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
+                    && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+            Port.Type type = FIBER;
+
+            if (port.getVersion() == OFVersion.OF_13
+                    && ptype == PortDescPropertyType.OPTICAL_TRANSPORT) {
+                // At this point, not much is carried in the optical port message.
+                LOG.info("Optical transport port message {}", port.toString());
+            } else {
+                // removable once 1.4+ support complete.
+                LOG.warn("Unsupported optical port properties");
+            }
+            return new DefaultPortDescription(portNo, enabled, type, 0, annotations);
         }
 
         private PortDescription buildPortDescription(OFPortStatus status) {
@@ -382,7 +422,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             } else {
                 PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
                 Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
-                SparseAnnotations annotations = makePortNameAnnotation(port);
+                SparseAnnotations annotations = makePortNameAnnotation(port.getName());
                 return new DefaultPortDescription(portNo, false, type,
                                                   portSpeed(port), annotations);
             }

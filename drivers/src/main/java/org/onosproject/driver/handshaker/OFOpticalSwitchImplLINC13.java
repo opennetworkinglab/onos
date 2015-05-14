@@ -15,6 +15,8 @@
  */
 package org.onosproject.driver.handshaker;
 
+import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
+import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
@@ -23,28 +25,29 @@ import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * LINC-OE Optical Emulator switch class.
  */
-public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
+public class OFOpticalSwitchImplLINC13
+ extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
 
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private long barrierXidToWaitFor = -1;
 
-    private OFPortDescStatsReply wPorts;
+    private OFCircuitPortsReply wPorts;
 
     @Override
     public void startDriverHandshake() {
@@ -105,8 +108,7 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
                 OFStatsReply stats = (OFStatsReply) m;
                 if (stats.getStatsType() == OFStatsType.EXPERIMENTER) {
                     log.warn("LINC-OE : Received stats reply message {}", m);
-                    processHandshakeOFExperimenterPortDescRequest(
-                            (OFCircuitPortsReply) m);
+                    wPorts = (OFCircuitPortsReply) m;
                     driverHandshakeComplete.set(true);
                 }
                 break;
@@ -124,30 +126,6 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
 
     }
 
-    private void processHandshakeOFExperimenterPortDescRequest(
-            OFCircuitPortsReply sr) {
-        Collection<OFPortOptical> entries = sr.getEntries();
-        List<OFPortDesc> ofPortDescList = new ArrayList<>(entries.size());
-        for (OFPortOptical entry : entries) {
-            log.warn("LINC:OE port message {}", entry.toString());
-            ofPortDescList.add(factory().buildPortDesc().
-                    setPortNo(entry.getPortNo())
-                                           .setConfig(entry.getConfig())
-                                           .setState(entry.getState())
-                                           .setHwAddr(entry.getHwAddr())
-                                           .setName(entry.getName())
-                                           .build());
-
-        }
-        setExperimenterPortDescReply(factory().buildPortDescStatsReply().
-                setEntries(ofPortDescList).build());
-    }
-
-    private void setExperimenterPortDescReply(OFPortDescStatsReply reply) {
-        wPorts = reply;
-    }
-
-
     private void sendHandshakeOFExperimenterPortDescRequest() throws
             IOException {
         // send multi part message for port description for optical switches
@@ -162,13 +140,13 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     }
 
     @Override
+    /**
+     * Returns a list of standard (Ethernet) ports.
+     *
+     * @return List of ports
+     */
     public List<OFPortDesc> getPorts() {
-        List<OFPortDesc> portEntries = new ArrayList<>();
-        portEntries.addAll(super.getPorts());
-        if (wPorts != null) {
-            portEntries.addAll(wPorts.getEntries());
-        }
-        return Collections.unmodifiableList(portEntries);
+        return ImmutableList.copyOf(super.getPorts());
     }
 
 
@@ -180,6 +158,16 @@ public class OFOpticalSwitchImplLINC13 extends AbstractOpenFlowSwitch {
     @Override
     public boolean isOptical() {
         return true;
+    }
+
+    @Override
+    public List<? extends OFObject> getPortsOf(PortDescPropertyType type) {
+        return ImmutableList.copyOf(wPorts.getEntries());
+    }
+
+    @Override
+    public Set<PortDescPropertyType> getPortTypes() {
+        return ImmutableSet.of(PortDescPropertyType.OPTICAL_TRANSPORT);
     }
 
 }
