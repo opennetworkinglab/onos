@@ -28,7 +28,6 @@ import org.onosproject.app.ApplicationException;
 import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.app.DefaultApplicationDescription;
 import org.onosproject.core.ApplicationRole;
-import org.onosproject.core.DefaultPermission;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 import org.onosproject.store.AbstractStore;
@@ -378,21 +377,20 @@ public class ApplicationArchive
 
     // Returns the set of Permissions specified in the app.xml file
     private ImmutableSet<Permission> getPermissions(XMLConfiguration cfg) {
-        List<Permission> perms = new ArrayList();
+        List<Permission> permissionList = new ArrayList();
         for (Object o : cfg.getList(PERMISSIONS)) {
-            DefaultPermission perm = null;
-            if (o != null) {
-                String permStr = (String) o;
-                perm = new DefaultPermission(permStr);
-            }
-            if (perm != null) {
-                perms.add(perm);
+            String name = (String) o;
+            try {
+                Permission perm = Permission.valueOf(name);
+                permissionList.add(perm);
+            } catch (IllegalArgumentException e) {
+                log.debug("Unknown permission specified: %s", name);
             }
         }
-
-        return ImmutableSet.copyOf(perms);
+        return ImmutableSet.copyOf(permissionList);
     }
 
+    //
     // Returns application role type
     public ApplicationRole getRole(String value) {
         if (value == null) {

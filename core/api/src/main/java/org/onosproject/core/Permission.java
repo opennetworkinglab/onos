@@ -18,17 +18,41 @@ package org.onosproject.core;
 /**
  * Representation of an application permission.
  */
-public interface Permission {
-
-    /**
-     * Returns the name of the permission.
-     * @return a string value
-     */
-    String name();
-
-    /**
-     * Returns the actions string of the permission if specified.
-     * @return a string value
-     */
-    String actions();
+public enum Permission {
+    APP_READ,
+    APP_EVENT,
+    CONFIG_READ,
+    CONFIG_WRITE,
+    CLUSTER_READ,
+    CLUSTER_WRITE,
+    CLUSTER_EVENT,
+    DEVICE_READ,
+    DEVICE_EVENT,
+    DRIVER_READ,
+    DRIVER_WRITE,
+    FLOWRULE_READ,
+    FLOWRULE_WRITE,
+    FLOWRULE_EVENT,
+    GROUP_READ,
+    GROUP_WRITE,
+    GROUP_EVENT,
+    HOST_READ,
+    HOST_WRITE,
+    HOST_EVENT,
+    INTENT_READ,
+    INTENT_WRITE,
+    INTENT_EVENT,
+    LINK_READ,
+    LINK_WRITE,
+    LINK_EVENT,
+    PACKET_READ,
+    PACKET_WRITE,
+    PACKET_EVENT,
+    STATISTIC_READ,
+    TOPOLOGY_READ,
+    TOPOLOGY_EVENT,
+    TUNNEL_READ,
+    TUNNEL_WRITE,
+    TUNNEL_EVENT,
+    STORAGE_WRITE
 }

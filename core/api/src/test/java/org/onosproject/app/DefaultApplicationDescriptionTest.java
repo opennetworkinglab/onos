@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.onosproject.core.ApplicationRole;
-import org.onosproject.core.DefaultPermission;
 import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 
@@ -29,8 +28,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.core.DefaultPermission.Type.FLOWRULE_WRITE;
-import static org.onosproject.core.DefaultPermission.Type.FLOWRULE_READ;
 
 
 /**
@@ -43,8 +40,7 @@ public class DefaultApplicationDescriptionTest {
     public static final String DESC = "Awesome application from Circus";
     public static final String ORIGIN = "Circus";
     public static final ApplicationRole ROLE = ApplicationRole.ADMIN;
-    public static final Set<Permission> PERMS = ImmutableSet.of(new DefaultPermission(FLOWRULE_WRITE),
-                    new DefaultPermission(FLOWRULE_READ));
+    public static final Set<Permission> PERMS = ImmutableSet.of(Permission.FLOWRULE_WRITE, Permission.FLOWRULE_READ);
     public static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
     public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
 
