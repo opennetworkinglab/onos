@@ -35,7 +35,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -97,8 +97,8 @@ public class FlowRuleManager
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<FlowRuleEvent, FlowRuleListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    private final ListenerRegistry<FlowRuleEvent, FlowRuleListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 

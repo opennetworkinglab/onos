@@ -22,7 +22,7 @@ import java.util.List;
  * Test event listener manager fixture.
  */
 public class TestListenerRegistry
-        extends AbstractListenerRegistry<TestEvent, TestListener> {
+        extends ListenerRegistry<TestEvent, TestListener> {
 
     public final List<Throwable> errors = new ArrayList<>();
 

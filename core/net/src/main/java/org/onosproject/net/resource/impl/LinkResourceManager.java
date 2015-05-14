@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.IntentId;
@@ -66,8 +66,8 @@ public class LinkResourceManager implements LinkResourceService {
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<LinkResourceEvent, LinkResourceListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<LinkResourceEvent, LinkResourceListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private LinkResourceStore store;

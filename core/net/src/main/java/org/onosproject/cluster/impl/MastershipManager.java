@@ -30,7 +30,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.MetricsHelper;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
@@ -73,8 +73,8 @@ public class MastershipManager
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<MastershipEvent, MastershipListener>
-    listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<MastershipEvent, MastershipListener>
+    listenerRegistry = new ListenerRegistry<>();
 
     private final MastershipStoreDelegate delegate = new InternalDelegate();
 

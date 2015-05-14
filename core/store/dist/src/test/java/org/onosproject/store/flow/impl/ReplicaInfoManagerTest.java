@@ -15,25 +15,18 @@
  */
 package org.onosproject.store.flow.impl;
 
-import static com.google.common.base.Preconditions.checkState;
-import static org.junit.Assert.*;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.LinkedList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Optional;
+import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.DefaultEventSinkRegistry;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.EventSink;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipEvent.Type;
 import org.onosproject.mastership.MastershipListener;
@@ -45,8 +38,15 @@ import org.onosproject.store.flow.ReplicaInfoEvent;
 import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkState;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ReplicaInfoManagerTest {
 
@@ -58,14 +58,14 @@ public class ReplicaInfoManagerTest {
     private ReplicaInfoManager mgr;
     private ReplicaInfoService service;
 
-    private AbstractListenerRegistry<MastershipEvent, MastershipListener>
+    private ListenerRegistry<MastershipEvent, MastershipListener>
         mastershipListenerRegistry;
     private TestEventDispatcher eventDispatcher;
 
 
     @Before
     public void setUp() throws Exception {
-        mastershipListenerRegistry = new AbstractListenerRegistry<>();
+        mastershipListenerRegistry = new ListenerRegistry<>();
 
         mgr = new ReplicaInfoManager();
         service = mgr;

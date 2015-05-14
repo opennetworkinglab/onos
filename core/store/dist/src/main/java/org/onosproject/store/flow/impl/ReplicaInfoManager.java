@@ -15,15 +15,9 @@
  */
 package org.onosproject.store.flow.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
-import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,8 +26,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -44,9 +38,14 @@ import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.slf4j.Logger;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
+import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages replica placement information.
@@ -65,8 +64,8 @@ public class ReplicaInfoManager implements ReplicaInfoService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
-    protected final AbstractListenerRegistry<ReplicaInfoEvent, ReplicaInfoEventListener>
-        listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<ReplicaInfoEvent, ReplicaInfoEventListener>
+        listenerRegistry = new ListenerRegistry<>();
 
     private final Map<DeviceId, ReplicaInfo> deviceReplicaInfoMap = Maps.newConcurrentMap();
 

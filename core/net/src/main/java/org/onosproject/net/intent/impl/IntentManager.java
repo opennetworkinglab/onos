@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -83,8 +83,8 @@ public class IntentManager
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
 
-    private final AbstractListenerRegistry<IntentEvent, IntentListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    private final ListenerRegistry<IntentEvent, IntentListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;

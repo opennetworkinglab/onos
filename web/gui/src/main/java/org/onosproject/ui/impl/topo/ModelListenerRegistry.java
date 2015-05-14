@@ -17,7 +17,7 @@
 
 package org.onosproject.ui.impl.topo;
 
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -31,7 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 // package private
 class ModelListenerRegistry
-        extends AbstractListenerRegistry<TopoUiEvent, TopoUiListener> {
+        extends ListenerRegistry<TopoUiEvent, TopoUiListener> {
 
     private final Logger log = getLogger(getClass());
 
@@ -57,5 +57,10 @@ class ModelListenerRegistry
             log.debug("Removing zombie model listener: {}", z);
             removeListener(z);
         }
+    }
+
+    @Override
+    protected boolean checkForNonRegistrant() {
+        return false;
     }
 }

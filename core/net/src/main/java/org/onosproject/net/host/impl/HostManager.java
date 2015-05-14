@@ -15,19 +15,17 @@
  */
 package org.onosproject.net.host.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -47,10 +45,12 @@ import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
+
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -64,8 +64,8 @@ public class HostManager
     public static final String HOST_ID_NULL = "Host ID cannot be null";
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<HostEvent, HostListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    private final ListenerRegistry<HostEvent, HostListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     private HostStoreDelegate delegate = new InternalStoreDelegate();
 

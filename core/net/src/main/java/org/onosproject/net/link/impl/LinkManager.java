@@ -15,16 +15,17 @@
  */
 package org.onosproject.net.link.impl;
 
-import java.util.Set;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -47,9 +48,7 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Sets;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -69,8 +68,8 @@ public class LinkManager
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<LinkEvent, LinkListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<LinkEvent, LinkListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     private final LinkStoreDelegate delegate = new InternalStoreDelegate();
 

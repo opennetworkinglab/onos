@@ -33,7 +33,7 @@ import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
@@ -109,7 +109,7 @@ public class HazelcastLeadershipService implements LeadershipService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
-    private AbstractListenerRegistry<LeadershipEvent, LeadershipEventListener>
+    private ListenerRegistry<LeadershipEvent, LeadershipEventListener>
         listenerRegistry;
     private final Map<String, Topic> topics = Maps.newConcurrentMap();
     private NodeId localNodeId;
@@ -122,7 +122,7 @@ public class HazelcastLeadershipService implements LeadershipService {
     @Activate
     protected void activate() {
         localNodeId = clusterService.getLocalNode().id();
-        listenerRegistry = new AbstractListenerRegistry<>();
+        listenerRegistry = new ListenerRegistry<>();
         eventDispatcher.addSink(LeadershipEvent.class, listenerRegistry);
 
         TopicConfig topicConfig = new TopicConfig();

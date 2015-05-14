@@ -33,7 +33,7 @@ import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.Permission;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
 
@@ -55,8 +55,8 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
 
     private static final String APP_ID_NULL = "Application ID cannot be null";
 
-    protected final AbstractListenerRegistry<ApplicationEvent, ApplicationListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<ApplicationEvent, ApplicationListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     private final ApplicationStoreDelegate delegate = new InternalStoreDelegate();
 

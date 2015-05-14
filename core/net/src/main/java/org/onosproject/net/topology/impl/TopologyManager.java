@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.ConnectPoint;
@@ -69,8 +69,8 @@ public class TopologyManager
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<TopologyEvent, TopologyListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    private final ListenerRegistry<TopologyEvent, TopologyListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     private TopologyStoreDelegate delegate = new InternalStoreDelegate();
 

@@ -19,7 +19,7 @@ import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
@@ -85,7 +85,7 @@ public class DistributedLeadershipManager implements LeadershipService {
     private ConsistentMap<String, NodeId> leaderMap;
     private ConsistentMap<String, List<NodeId>> candidateMap;
 
-    private AbstractListenerRegistry<LeadershipEvent, LeadershipEventListener>
+    private ListenerRegistry<LeadershipEvent, LeadershipEventListener>
         listenerRegistry;
     private final Map<String, Leadership> leaderBoard = Maps.newConcurrentMap();
     private final Map<String, Leadership> candidateBoard = Maps.newConcurrentMap();
@@ -135,7 +135,7 @@ public class DistributedLeadershipManager implements LeadershipService {
         leadershipStatusBroadcaster.scheduleWithFixedDelay(
                 this::sendLeadershipStatus, 0, LEADERSHIP_STATUS_UPDATE_INTERVAL_SEC, TimeUnit.SECONDS);
 
-        listenerRegistry = new AbstractListenerRegistry<>();
+        listenerRegistry = new ListenerRegistry<>();
         eventDispatcher.addSink(LeadershipEvent.class, listenerRegistry);
 
         log.info("Started");

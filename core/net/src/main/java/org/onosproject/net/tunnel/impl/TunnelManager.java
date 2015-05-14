@@ -15,12 +15,6 @@
  */
 package org.onosproject.net.tunnel.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,8 +22,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Path;
@@ -41,6 +35,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.BandwidthResource;
 import org.onosproject.net.tunnel.Label;
 import org.onosproject.net.tunnel.Tunnel;
+import org.onosproject.net.tunnel.Tunnel.Type;
 import org.onosproject.net.tunnel.TunnelAdminService;
 import org.onosproject.net.tunnel.TunnelDescription;
 import org.onosproject.net.tunnel.TunnelEvent;
@@ -52,8 +47,13 @@ import org.onosproject.net.tunnel.TunnelProviderService;
 import org.onosproject.net.tunnel.TunnelService;
 import org.onosproject.net.tunnel.TunnelStore;
 import org.onosproject.net.tunnel.TunnelStoreDelegate;
-import org.onosproject.net.tunnel.Tunnel.Type;
 import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the tunnel NB/SB APIs.
@@ -67,8 +67,8 @@ public class TunnelManager extends AbstractProviderRegistry<TunnelProvider, Tunn
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<TunnelEvent, TunnelListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<TunnelEvent, TunnelListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     private final TunnelStoreDelegate delegate = new InternalStoreDelegate();
     private final InternalTunnelListener tunnelListener = new InternalTunnelListener();

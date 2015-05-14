@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
@@ -83,8 +83,8 @@ public class DeviceManager
 
     private final Logger log = getLogger(getClass());
 
-    protected final AbstractListenerRegistry<DeviceEvent, DeviceListener> listenerRegistry =
-            new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<DeviceEvent, DeviceListener> listenerRegistry =
+            new ListenerRegistry<>();
 
     private final DeviceStoreDelegate delegate = new InternalStoreDelegate();
 

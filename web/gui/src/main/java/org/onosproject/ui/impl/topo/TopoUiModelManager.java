@@ -143,12 +143,7 @@ public class TopoUiModelManager implements TopoUiModelService {
 
     @Override
     public void removeListener(TopoUiListener listener) {
-        // we don't really care if the listener is not listed...
-        try {
-            listenerRegistry.removeListener(listener);
-        } catch (IllegalArgumentException e) {
-            log.debug("Oops, listener not registered: {}", listener);
-        }
+        listenerRegistry.removeListener(listener);
     }
 
     @Override

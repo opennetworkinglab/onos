@@ -32,7 +32,7 @@ import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.event.AbstractListenerRegistry;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
 
@@ -54,8 +54,8 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     private ClusterStoreDelegate delegate = new InternalStoreDelegate();
 
-    protected final AbstractListenerRegistry<ClusterEvent, ClusterEventListener>
-            listenerRegistry = new AbstractListenerRegistry<>();
+    protected final ListenerRegistry<ClusterEvent, ClusterEventListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterStore store;

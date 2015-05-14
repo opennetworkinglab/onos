@@ -15,13 +15,7 @@
  */
 package org.onosproject.net.group.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,8 +23,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.event.AbstractListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -54,7 +48,12 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the group service APIs.
@@ -67,8 +66,8 @@ public class GroupManager
 
     private final Logger log = getLogger(getClass());
 
-    private final AbstractListenerRegistry<GroupEvent, GroupListener>
-                listenerRegistry = new AbstractListenerRegistry<>();
+    private final ListenerRegistry<GroupEvent, GroupListener>
+                listenerRegistry = new ListenerRegistry<>();
     private final GroupStoreDelegate delegate = new InternalGroupStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
 

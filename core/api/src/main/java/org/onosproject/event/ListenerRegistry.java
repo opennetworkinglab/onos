@@ -28,13 +28,18 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Base implementation of an event sink and a registry capable of tracking
  * listeners and dispatching events to them as part of event sink processing.
  */
-public class AbstractListenerRegistry<E extends Event, L extends EventListener<E>>
+public class ListenerRegistry<E extends Event, L extends EventListener<E>>
         implements EventSink<E> {
 
     private final Logger log = getLogger(getClass());
 
-    protected final Set<L> listeners = new CopyOnWriteArraySet<>();
     private volatile boolean shutdown = false;
+
+    /**
+     * Set of listeners that have registered.
+     */
+    protected final Set<L> listeners = new CopyOnWriteArraySet<>();
+
 
     /**
      * Adds the specified listener.
@@ -53,7 +58,9 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
      */
     public void removeListener(L listener) {
         checkNotNull(listener, "Listener cannot be null");
-        checkArgument(listeners.remove(listener), "Listener not registered");
+        if (checkForNonRegistrant()) {
+            checkArgument(listeners.remove(listener), "Listener not registered");
+        }
     }
 
     @Override
@@ -65,6 +72,19 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
                 reportProblem(event, error);
             }
         }
+    }
+
+    /**
+     * Predicate indicating whether we should throw an exception if the
+     * argument to {@link #removeListener} is not in the current set of
+     * listeners.
+     * <p>
+     * This default implementation returns <code>true</code>.
+     *
+     * @return true if non-listed listeners should cause exception on remove
+     */
+    protected boolean checkForNonRegistrant() {
+        return true;
     }
 
     /**
@@ -92,5 +112,4 @@ public class AbstractListenerRegistry<E extends Event, L extends EventListener<E
     public void deactivate() {
         shutdown = true;
     }
-
 }
