@@ -38,6 +38,7 @@ import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.core.ApplicationRole;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
@@ -249,6 +250,7 @@ public final class KryoNamespaces {
                     Version.class,
                     ControllerNode.State.class,
                     ApplicationState.class,
+                    ApplicationRole.class,
                     DefaultApplication.class,
                     Device.Type.class,
                     Port.Type.class,
