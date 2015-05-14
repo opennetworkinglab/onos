@@ -1,5 +1,6 @@
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
@@ -44,6 +45,7 @@ public class DeviceConfiguration implements DeviceProperties {
         boolean isEdge;
         HashMap<PortNumber, Ip4Address> gatewayIps;
         HashMap<PortNumber, Ip4Prefix> subnets;
+        List<SegmentRouterConfig.AdjacencySid> adjacencySids;
     }
 
     /**
@@ -80,8 +82,10 @@ public class DeviceConfiguration implements DeviceProperties {
                 info.gatewayIps.put(PortNumber.portNumber(s.getPortNo()),
                                     Ip4Address.valueOf(gatewayIp));
             }
+            info.adjacencySids = ((SegmentRouterConfig) cfg).getAdjacencySids();
             this.deviceConfigMap.put(info.deviceId, info);
             this.allSegmentIds.add(info.nodeSid);
+
         }
     }
 
@@ -347,6 +351,51 @@ public class DeviceConfiguration implements DeviceProperties {
         for (Ip4Prefix subnet: subnets) {
             if (subnet.contains(hostIp)) {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns the ports corresponding to the adjacency Sid given.
+     *
+     * @param deviceId device identification of the router
+     * @param sid adjacency Sid
+     * @return list of port numbers
+     */
+    public List<Integer> getPortsForAdjacencySid(DeviceId deviceId, int sid) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            for (SegmentRouterConfig.AdjacencySid asid : deviceConfigMap.get(deviceId).adjacencySids) {
+                if (asid.getAdjSid() == sid) {
+                    return asid.getPorts();
+                }
+            }
+        }
+
+        return Lists.newArrayList();
+    }
+
+    /**
+     * Check if the Sid given is whether adjacency Sid of the router device or not.
+     *
+     * @param deviceId device identification of the router
+     * @param sid Sid to check
+     * @return true if the Sid given is the adjacency Sid of the device,
+     * otherwise false
+     */
+    public boolean isAdjacencySid(DeviceId deviceId, int sid) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            if (deviceConfigMap.get(deviceId).adjacencySids.isEmpty()) {
+                return false;
+            } else {
+                for (SegmentRouterConfig.AdjacencySid asid:
+                        deviceConfigMap.get(deviceId).adjacencySids) {
+                    if (asid.getAdjSid() == sid) {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
 

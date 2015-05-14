@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -418,7 +419,12 @@ public class DefaultGroupHandler {
         return nsSegmentIds;
     }
 
-    protected void createGroupsFromNeighborsets(Set<NeighborSet> nsSet) {
+    /**
+     * Creates Groups from a set of NeighborSet given.
+     *
+     * @param nsSet a set of NeighborSet
+     */
+    public void createGroupsFromNeighborsets(Set<NeighborSet> nsSet) {
         for (NeighborSet ns : nsSet) {
             int nextId = flowObjectiveService.allocateNextId();
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
@@ -451,7 +457,7 @@ public class DefaultGroupHandler {
             NextObjective nextObj = nextObjBuilder.add();
             flowObjectiveService.next(deviceId, nextObj);
             log.debug("createGroupsFromNeighborsets: Submited "
-                    + "next objective {} in device {}",
+                            + "next objective {} in device {}",
                     nextId, deviceId);
             nsNextObjStore.put(new NeighborSetNextObjectiveStoreKey(deviceId, ns),
                                nextId);
@@ -462,4 +468,29 @@ public class DefaultGroupHandler {
         return new DefaultGroupKey(kryo.build().serialize(obj));
     }
 
+    /**
+     * Removes groups for the next objective ID given.
+     *
+     * @param objectiveId next objective ID to remove
+     * @return true if succeeds, false otherwise
+     */
+    public boolean removeGroup(int objectiveId) {
+
+        if (nsNextObjStore.containsValue(objectiveId)) {
+            NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                    .builder().withId(objectiveId)
+                    .withType(NextObjective.Type.HASHED).fromApp(appId);
+            NextObjective nextObjective = nextObjBuilder.remove();
+            flowObjectiveService.next(deviceId, nextObjective);
+
+            for (Map.Entry<NeighborSetNextObjectiveStoreKey, Integer> entry: nsNextObjStore.entrySet()) {
+                if (entry.getValue().equals(objectiveId)) {
+                    nsNextObjStore.remove(entry.getKey());
+                    break;
+                }
+            }
+        }
+
+        return false;
+    }
 }

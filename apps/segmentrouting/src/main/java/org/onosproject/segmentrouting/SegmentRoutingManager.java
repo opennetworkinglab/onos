@@ -20,6 +20,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.util.KryoNamespace;
@@ -60,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -69,8 +71,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("ALL")
+@Service
 @Component(immediate = true)
-public class SegmentRoutingManager {
+public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static Logger log = LoggerFactory
             .getLogger(SegmentRoutingManager.class);
@@ -101,6 +104,7 @@ public class SegmentRoutingManager {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
+
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
     protected IpHandler ipHandler = null;
@@ -108,7 +112,10 @@ public class SegmentRoutingManager {
     protected ApplicationId appId;
     protected DeviceConfiguration deviceConfiguration = null;
 
+
     private DefaultRoutingHandler defaultRoutingHandler = null;
+    private TunnelHandler tunnelHandler = null;
+    private PolicyHandler policyHandler = null;
     private InternalPacketProcessor processor = new InternalPacketProcessor();
     private InternalEventHandler eventHandler = new InternalEventHandler();
 
@@ -165,6 +172,8 @@ public class SegmentRoutingManager {
         ipHandler = new IpHandler(this);
         routingRulePopulator = new RoutingRulePopulator(this);
         defaultRoutingHandler = new DefaultRoutingHandler(this);
+        tunnelHandler = new TunnelHandler();
+        policyHandler = new PolicyHandler();
 
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         linkService.addListener(new InternalLinkListener());
@@ -187,6 +196,7 @@ public class SegmentRoutingManager {
 
         defaultRoutingHandler.startPopulationProcess();
         log.info("Started");
+
     }
 
     @Deactivate
@@ -194,6 +204,51 @@ public class SegmentRoutingManager {
         packetService.removeProcessor(processor);
         processor = null;
         log.info("Stopped");
+    }
+
+
+    @Override
+    public List<Tunnel> getTunnels() {
+        return tunnelHandler.getTunnels();
+    }
+
+    @Override
+    public void createTunnel(Tunnel tunnel) {
+        tunnelHandler.createTunnel(tunnel);
+    }
+
+    @Override
+    public void removeTunnel(Tunnel tunnel) {
+        for (Policy policy: policyHandler.getPolicies()) {
+            if (policy.type() == Policy.Type.TUNNEL_FLOW) {
+                TunnelPolicy tunnelPolicy = (TunnelPolicy) policy;
+                if (tunnelPolicy.tunnelId().equals(tunnel.id())) {
+                    log.warn("Cannot remove the tunnel used by a policy");
+                    return;
+                }
+            }
+        }
+        tunnelHandler.removeTunnel(tunnel);
+    }
+
+    @Override
+    public void removePolicy(Policy policy) {
+        policyHandler.removePolicy(policy);
+
+    }
+
+    @Override
+    public void createPolicy(Policy policy) {
+        policyHandler.createPolicy(policy);
+    }
+
+    @Override
+    public List<Policy> getPolicies() {
+        return policyHandler.getPolicies();
+    }
+
+    public Tunnel getTunnel(String tunnelId) {
+        return tunnelHandler.getTunnel(tunnelId);
     }
 
     /**
@@ -211,6 +266,12 @@ public class SegmentRoutingManager {
         return null;
     }
 
+    /**
+     *
+     * @param deviceId
+     * @param ns
+     * @return
+     */
     public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
 
         if (groupHandlerMap.get(deviceId) != null) {
@@ -221,6 +282,16 @@ public class SegmentRoutingManager {
             log.warn("getNextObjectiveId query in device {} not found", deviceId);
             return -1;
         }
+    }
+
+    /**
+     *
+     * @param deviceId
+     * @param objectiveId
+     * @return
+     */
+    public boolean removeNextObjective(DeviceId deviceId, int objectiveId) {
+        return groupHandlerMap.get(deviceId).removeGroup(objectiveId);
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
@@ -295,7 +366,7 @@ public class SegmentRoutingManager {
         }
 
         log.trace("numOfEvents {}, numOfEventHanlderScheduled {}", numOfEvents,
-                  numOfHandlerScheduled);
+                numOfHandlerScheduled);
 
     }
 
@@ -403,4 +474,7 @@ public class SegmentRoutingManager {
             groupHandler.portDown(port.number());
         }
     }
+
+
+
 }

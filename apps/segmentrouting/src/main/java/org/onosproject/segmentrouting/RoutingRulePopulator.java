@@ -98,7 +98,8 @@ public class RoutingRulePopulator {
         sbuilder.matchIPDst(IpPrefix.valueOf(hostIp, 32));
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
 
-        tbuilder.setEthDst(hostMac)
+        tbuilder.deferred()
+                .setEthDst(hostMac)
                 .setEthSrc(config.getDeviceMac(deviceId))
                 .setOutput(outPort);
 
@@ -163,10 +164,10 @@ public class RoutingRulePopulator {
         // If the next hop is the same as the final destination, then MPLS label
         // is not set.
         if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
-            tbuilder.decNwTtl();
+            tbuilder.deferred().decNwTtl();
             ns = new NeighborSet(nextHops);
         } else {
-            tbuilder.copyTtlOut();
+            tbuilder.deferred().copyTtlOut();
             ns = new NeighborSet(nextHops, config.getSegmentId(destSw));
         }
 
@@ -295,15 +296,15 @@ public class RoutingRulePopulator {
 
         if (phpRequired) {
             log.debug("getMplsForwardingObjective: php required");
-            tbuilder.copyTtlIn();
+            tbuilder.deferred().copyTtlIn();
             if (isBos) {
-                tbuilder.popMpls(Ethernet.TYPE_IPV4).decNwTtl();
+                tbuilder.deferred().popMpls(Ethernet.TYPE_IPV4).decNwTtl();
             } else {
-                tbuilder.popMpls(Ethernet.MPLS_UNICAST).decMplsTtl();
+                tbuilder.deferred().popMpls(Ethernet.MPLS_UNICAST).decMplsTtl();
             }
         } else {
             log.debug("getMplsForwardingObjective: php not required");
-            tbuilder.decMplsTtl();
+            tbuilder.deferred().decMplsTtl();
         }
 
         if (!isECMPSupportedInTransitRouter() && !config.isEdgeDevice(deviceId)) {
@@ -313,7 +314,8 @@ public class RoutingRulePopulator {
                 log.warn("No link from {} to {}", deviceId, nextHops);
                 return null;
             }
-            tbuilder.setEthSrc(config.getDeviceMac(deviceId))
+            tbuilder.deferred()
+                    .setEthSrc(config.getDeviceMac(deviceId))
                     .setEthDst(config.getDeviceMac(nextHop))
                     .setOutput(port);
             fwdBuilder.withTreatment(tbuilder.build());

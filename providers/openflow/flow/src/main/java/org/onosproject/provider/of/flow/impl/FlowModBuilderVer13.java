@@ -104,11 +104,11 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         List<OFInstruction> instructions = Lists.newLinkedList();
 
 
-        if (immediateActions.size() > 0) {
-            instructions.add(factory().instructions().applyActions(immediateActions));
-        }
         if (treatment.clearedDeferred()) {
             instructions.add(factory().instructions().clearActions());
+        }
+        if (immediateActions.size() > 0) {
+            instructions.add(factory().instructions().applyActions(immediateActions));
         }
         if (deferredActions.size() > 0) {
             instructions.add(factory().instructions().writeActions(deferredActions));

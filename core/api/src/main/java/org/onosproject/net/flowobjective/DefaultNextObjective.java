@@ -195,7 +195,6 @@ public final class DefaultNextObjective implements NextObjective {
             checkNotNull(appId, "Must supply an application id");
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
-            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
 
             return new DefaultNextObjective(id, treatments, appId, type, Operation.REMOVE);
         }
