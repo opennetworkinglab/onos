@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.onosproject.cluster.NodeId;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 
 /**
@@ -59,6 +60,21 @@ public final class ReplicaInfo {
      */
     public List<NodeId> backups() {
         return backups;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(master, backups);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof ReplicaInfo))  {
+            return false;
+        }
+        ReplicaInfo that = (ReplicaInfo) other;
+        return Objects.equal(this.master, that.master) &&
+                Objects.equal(this.backups, that.backups);
     }
 
     // for Serializer

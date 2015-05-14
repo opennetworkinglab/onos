@@ -22,6 +22,7 @@ import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -43,6 +44,10 @@ import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.slf4j.Logger;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+
 /**
  * Manages replica placement information.
  */
@@ -63,6 +68,8 @@ public class ReplicaInfoManager implements ReplicaInfoService {
     protected final AbstractListenerRegistry<ReplicaInfoEvent, ReplicaInfoEventListener>
         listenerRegistry = new AbstractListenerRegistry<>();
 
+    private final Map<DeviceId, ReplicaInfo> deviceReplicaInfoMap = Maps.newConcurrentMap();
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(ReplicaInfoEvent.class, listenerRegistry);
@@ -79,7 +86,9 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
     @Override
     public ReplicaInfo getReplicaInfoFor(DeviceId deviceId) {
-        return buildFromRoleInfo(mastershipService.getNodesFor(deviceId));
+        return deviceReplicaInfoMap.computeIfAbsent(
+                    deviceId,
+                    id -> buildFromRoleInfo(mastershipService.getNodesFor(deviceId)));
     }
 
     @Override
@@ -94,7 +103,7 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
     private static ReplicaInfo buildFromRoleInfo(RoleInfo roles) {
         List<NodeId> backups = roles.backups() == null ?
-                Collections.emptyList() : roles.backups();
+                Collections.emptyList() : ImmutableList.copyOf(roles.backups());
         return new ReplicaInfo(roles.master(), backups);
     }
 
@@ -102,8 +111,12 @@ public class ReplicaInfoManager implements ReplicaInfoService {
 
         @Override
         public void event(MastershipEvent event) {
+            final DeviceId deviceId = event.subject();
             final ReplicaInfo replicaInfo = buildFromRoleInfo(event.roleInfo());
-
+            ReplicaInfo oldReplicaInfo = deviceReplicaInfoMap.put(deviceId, replicaInfo);
+            if (Objects.equal(oldReplicaInfo, replicaInfo)) {
+                return;
+            }
             switch (event.type()) {
             case MASTER_CHANGED:
                 eventDispatcher.post(new ReplicaInfoEvent(MASTER_CHANGED,
