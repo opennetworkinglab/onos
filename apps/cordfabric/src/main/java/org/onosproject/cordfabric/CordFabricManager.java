@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -70,11 +72,22 @@ public class CordFabricManager implements FabricService {
 
     private static final int PRIORITY = 1000;
 
+    private short openflowPort = 6633;
+
+    private DeviceId fabricDeviceId = DeviceId.deviceId("of:5e3e486e73000187");
+
+    private ConnectPoint oltConnectPoint =
+            new ConnectPoint(fabricDeviceId, PortNumber.portNumber(2));
+    private ConnectPoint oltControllerConnectPoint =
+            new ConnectPoint(fabricDeviceId, PortNumber.portNumber(1));
+
     private final Multimap<VlanId, ConnectPoint> vlans = HashMultimap.create();
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.cordfabric");
+
+        setupDefaultFlows();
 
         log.info("Started");
     }
@@ -82,6 +95,49 @@ public class CordFabricManager implements FabricService {
     @Deactivate
     public void deactivate() {
         log.info("Stopped");
+    }
+
+    private void setupDefaultFlows() {
+        TrafficSelector toControllerS = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_TCP)
+                .matchTcpDst(openflowPort)
+                .build();
+
+        TrafficSelector fromControllerS = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_TCP)
+                .matchTcpSrc(openflowPort)
+                .build();
+
+        TrafficTreatment forwardToController = DefaultTrafficTreatment.builder()
+                .setOutput(oltControllerConnectPoint.port())
+                .build();
+
+        TrafficTreatment forwardFromController = DefaultTrafficTreatment.builder()
+                .setOutput(oltConnectPoint.port())
+                .build();
+
+        ForwardingObjective ofToController = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(toControllerS)
+                .withTreatment(forwardToController)
+                .add();
+
+        ForwardingObjective ofFromController = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(fromControllerS)
+                .withTreatment(forwardFromController)
+                .add();
+
+        flowObjectiveService.forward(fabricDeviceId, ofToController);
+        flowObjectiveService.forward(fabricDeviceId, ofFromController);
     }
 
     @Override
