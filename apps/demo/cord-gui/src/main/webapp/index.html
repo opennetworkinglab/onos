@@ -20,10 +20,26 @@
     <meta charset="utf-8">
 
     <title>CORD Subscriber Portal</title>
-</head>
-<body>
-  <h1> CORD Subscriber Portal </h1>
 
-  <p>(Content to go here)</p>
+    <script src="tp/angular.js"></script>
+    <script src="tp/angular-route.js"></script>
+    <script src="tp/jquery-2.1.4.js"></script>
+
+    <script src="cord.js"></script>
+    <link rel="stylesheet" href="common.css">
+
+    <script src="app/view/login/login.js"></script>
+
+    <script src="app/view/home/home.js"></script>
+
+    <script src="app/view/user/user.js"></script>
+
+    <script src="app/view/sub/sub.js"></script>
+</head>
+<body ng-app="cordGui">
+<div id="frame" ng-controller="CordCtrl as cordCtrl"></div>
+
+<div id="view" ng-view></div>
+
 </body>
 </html>
