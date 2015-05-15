@@ -15,13 +15,8 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,8 +36,12 @@ import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.LinkResourceAllocations;
 import org.onosproject.net.topology.PathService;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An intent compiler for
@@ -74,6 +73,9 @@ public class MultiPointToSinglePointIntentCompiler
         Map<DeviceId, Link> links = new HashMap<>();
 
         for (ConnectPoint ingressPoint : intent.ingressPoints()) {
+            if (ingressPoint.deviceId().equals(intent.egressPoint().deviceId())) {
+                continue;
+            }
             Path path = getPath(ingressPoint, intent.egressPoint());
             for (Link link : path.links()) {
                 if (links.containsKey(link.src().deviceId())) {
