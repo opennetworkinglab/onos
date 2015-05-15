@@ -135,7 +135,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
     private GroupService groupService;
     private FlowObjectiveStore flowObjectiveStore;
     private DeviceId deviceId;
-    private ApplicationId appId;
+    private ApplicationId driverId;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
         .register(GroupKey.class)
@@ -175,7 +175,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         groupService.addListener(new InnerGroupListener());
 
-        appId = coreService.registerApplication(
+        driverId = coreService.registerApplication(
                 "org.onosproject.driver.OFDPA1Pipeline");
 
         initializePipeline();
@@ -307,7 +307,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .withSelector(selector.build())
                 .withTreatment(treatment.build())
                 .withPriority(DEFAULT_PRIORITY)
-                .fromApp(appId)
+                .fromApp(applicationId)
                 .makePermanent()
                 .forTable(VLAN_TABLE).build();
         ops =  ops.add(rule);
@@ -325,7 +325,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .withSelector(selector.build())
                 .withTreatment(treatment.build())
                 .withPriority(DEFAULT_PRIORITY)
-                .fromApp(appId)
+                .fromApp(applicationId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
         ops = ops.add(rule);
@@ -341,8 +341,8 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     .forDevice(deviceId)
                     .withSelector(selector.build())
                     .withTreatment(treatment.build())
-                    .withPriority(DEFAULT_PRIORITY)
-                    .fromApp(appId)
+                    .withPriority(HIGHEST_PRIORITY)
+                    .fromApp(applicationId)
                     .makePermanent()
                     .forTable(ACL_TABLE).build();
             ops =  ops.add(rule);
@@ -632,7 +632,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .withSelector(selector.build())
                 .withTreatment(treatment.build())
                 .withPriority(LOWEST_PRIORITY)
-                .fromApp(appId)
+                .fromApp(driverId)
                 .makePermanent()
                 .forTable(PORT_TABLE).build();
         ops = ops.add(tmisse);
@@ -714,7 +714,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .withSelector(selector.build())
                 .withTreatment(treatment.build())
                 .withPriority(LOWEST_PRIORITY)
-                .fromApp(appId)
+                .fromApp(driverId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
         ops =  ops.add(rule); // XXX bug in ofdpa
@@ -744,7 +744,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .withSelector(selector.build())
                 .withTreatment(treatment.build())
                 .withPriority(LOWEST_PRIORITY)
-                .fromApp(appId)
+                .fromApp(driverId)
                 .makePermanent()
                 .forTable(UNICAST_ROUTING_TABLE).build();
         ops =  ops.add(rule);

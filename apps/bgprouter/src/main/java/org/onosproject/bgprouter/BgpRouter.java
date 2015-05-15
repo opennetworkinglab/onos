@@ -358,7 +358,8 @@ public class BgpRouter {
                .addCondition(Criteria.matchVlanId(intf.vlan()));
             intf.ipAddresses().stream()
                 .forEach(ipaddr -> fob.addCondition(
-                                   Criteria.matchIPDst(ipaddr.subnetAddress())));
+                                   Criteria.matchIPDst(
+                                        IpPrefix.valueOf(ipaddr.ipAddress(), 32))));
             fob.permit().fromApp(appId);
             flowObjectiveService.filter(
                   deviceId,
@@ -366,7 +367,7 @@ public class BgpRouter {
                       @Override
                       public void onSuccess(Objective objective) {
                           log.info("Successfully installed interface based "
-                                  + "filtering objcetives for intf {}", intf);
+                                  + "filtering objectives for intf {}", intf);
                       }
 
                       @Override
