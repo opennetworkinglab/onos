@@ -40,9 +40,10 @@
   "load": {
     "alpha": 0.9,
     "sprites": [
-      { "id": "rack", "pos":[300,600], "class":"blue1" },
-      { "id": "rack", "pos":[500,600], "class":"blue1" },
-      { "id": "rack", "pos":[700,600], "class":"blue1" }
+      { "id": "rack", "pos":[200,600], "class":"blue1" },
+      { "id": "rack", "pos":[400,600], "class":"blue1" },
+      { "id": "rack", "pos":[600,600], "class":"blue1" },
+      { "id": "rack", "pos":[800,600], "class":"blue1" }
     ],
     "labels": [
       { "pos":[550,80], "text":"Segment Routing Demo", "class":"blue1", "size":1.4 }

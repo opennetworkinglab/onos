@@ -215,6 +215,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     @Override
     public void next(NextObjective nextObjective) {
 
+        log.debug("Processing NextObjective id{} op{}", nextObjective.id(),
+                  nextObjective.op());
         if (nextObjective.op() == Objective.Operation.REMOVE) {
             if (nextObjective.next().isEmpty()) {
                 removeGroup(nextObjective);
@@ -243,6 +245,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     }
 
     private void addGroup(NextObjective nextObjective) {
+        log.debug("addGroup with type{} for nextObjective id {}",
+                  nextObjective.type(), nextObjective.id());
         switch (nextObjective.type()) {
             case SIMPLE:
                 log.debug("processing SIMPLE next objective");
@@ -262,6 +266,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             key,
                             null,
                             nextObjective.appId());
+                    log.debug("Creating SIMPLE group for next objective id {}",
+                              nextObjective.id());
                     groupService.addGroup(groupDescription);
                     pendingGroups.put(key, nextObjective);
                 }
@@ -285,6 +291,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             key,
                             null,
                             nextObjective.appId());
+                    log.debug("Creating HASHED group for next objective id {}",
+                              nextObjective.id());
                     groupService.addGroup(groupDescription);
                     pendingGroups.put(key, nextObjective);
                 }
@@ -324,6 +332,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             return;
         }
         GroupBuckets bucketsToAdd = new GroupBuckets(Collections.singletonList(bucket));
+        log.debug("Adding buckets to group id {} of next objective id {} in device {}",
+                  group.id(), nextObjective.id(), deviceId);
         groupService.addBucketsToGroup(deviceId, key, bucketsToAdd, key, appId);
     }
 
@@ -352,6 +362,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                 return;
             }
             GroupBuckets removeBuckets = new GroupBuckets(Collections.singletonList(bucket));
+            log.debug("Removing buckets from group id {} of next objective id {} in device {}",
+                      group.id(), nextObjective.id(), deviceId);
             groupService.removeBucketsFromGroup(deviceId, key, removeBuckets, key, appId);
         }
     }

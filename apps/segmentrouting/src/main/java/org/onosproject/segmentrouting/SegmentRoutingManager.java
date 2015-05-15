@@ -133,7 +133,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private NetworkConfigManager networkConfigService = new NetworkConfigManager();;
 
-    private static int numOfEvents = 0;
+    private Object threadSchedulerLock = new Object();
+    private static int numOfEventsQueued = 0;
+    private static int numOfEventsExecuted = 0;
     private static int numOfHandlerExecution = 0;
     private static int numOfHandlerScheduled = 0;
 
@@ -325,6 +327,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         public void event(LinkEvent event) {
             if (event.type() == LinkEvent.Type.LINK_ADDED
                     || event.type() == LinkEvent.Type.LINK_REMOVED) {
+                log.debug("Event {} received from Link Service", event.type());
                 scheduleEventHandlerIfNotScheduled(event);
             }
         }
@@ -346,6 +349,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             case PORT_REMOVED:
             case DEVICE_UPDATED:
             case DEVICE_AVAILABILITY_CHANGED:
+                log.debug("Event {} received from Device Service", event.type());
                 scheduleEventHandlerIfNotScheduled(event);
                 break;
             default:
@@ -355,19 +359,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void scheduleEventHandlerIfNotScheduled(Event event) {
 
-        synchronized (eventQueue) {
+        synchronized (threadSchedulerLock) {
             eventQueue.add(event);
-            numOfEvents++;
-            if (eventHandlerFuture == null || eventHandlerFuture.isDone()) {
+            numOfEventsQueued++;
+
+            if ((numOfHandlerScheduled - numOfHandlerExecution) == 0) {
+                //No pending scheduled event handling threads. So start a new one.
                 eventHandlerFuture = executorService
                         .schedule(eventHandler, 100, TimeUnit.MILLISECONDS);
                 numOfHandlerScheduled++;
             }
+            log.trace("numOfEventsQueued {}, numOfEventHanlderScheduled {}",
+                      numOfEventsQueued,
+                      numOfHandlerScheduled);
         }
-
-        log.trace("numOfEvents {}, numOfEventHanlderScheduled {}", numOfEvents,
-                numOfHandlerScheduled);
-
     }
 
     private class InternalEventHandler implements Runnable {
@@ -375,32 +380,38 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         @Override
         public void run() {
             try {
-                synchronized (eventQueue) {
-                    numOfHandlerExecution++;
-                    while (!eventQueue.isEmpty()) {
-                        Event event = eventQueue.poll();
-                        if (event.type() == LinkEvent.Type.LINK_ADDED) {
-                            processLinkAdded((Link) event.subject());
-                        } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
-                            processLinkRemoved((Link) event.subject());
-                        //} else if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-                        //    processGroupAdded((Group) event.subject());
-                        } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED ||
-                                event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
-                                event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
-                            if (deviceService.isAvailable(((Device) event.subject()).id())) {
-                                processDeviceAdded((Device) event.subject());
-                            }
-                        } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
-                            processPortRemoved((Device) event.subject(),
-                                               ((DeviceEvent) event).port());
+                while (true) {
+                    Event event = null;
+                    synchronized (threadSchedulerLock) {
+                        if (!eventQueue.isEmpty()) {
+                            event = eventQueue.poll();
+                            numOfEventsExecuted++;
                         } else {
-                            log.warn("Unhandled event type: {}", event.type());
+                            numOfHandlerExecution++;
+                            log.debug("numOfHandlerExecution {} numOfEventsExecuted {}",
+                                      numOfHandlerExecution, numOfEventsExecuted);
+                            break;
                         }
                     }
+                    if (event.type() == LinkEvent.Type.LINK_ADDED) {
+                        processLinkAdded((Link) event.subject());
+                    } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
+                        processLinkRemoved((Link) event.subject());
+                    //} else if (event.type() == GroupEvent.Type.GROUP_ADDED) {
+                    //    processGroupAdded((Group) event.subject());
+                    } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED ||
+                            event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
+                            event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
+                        if (deviceService.isAvailable(((Device) event.subject()).id())) {
+                            processDeviceAdded((Device) event.subject());
+                        }
+                    } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
+                        processPortRemoved((Device) event.subject(),
+                                           ((DeviceEvent) event).port());
+                    } else {
+                        log.warn("Unhandled event type: {}", event.type());
+                    }
                 }
-                log.debug("numOfHandlerExecution {} numOfEventHanlderScheduled {} numOfEvents {}",
-                          numOfHandlerExecution, numOfHandlerScheduled, numOfEvents);
             } catch (Exception e) {
                 log.error("SegmentRouting event handler "
                         + "thread thrown an exception: {}", e);
@@ -433,9 +444,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
 
-        //defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null);
-        log.trace("processLinkAdded: re-starting route population process");
-        defaultRoutingHandler.startPopulationProcess();
+        log.trace("Starting optimized route population process");
+        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null);
+        //log.trace("processLinkAdded: re-starting route population process");
+        //defaultRoutingHandler.startPopulationProcess();
     }
 
     private void processLinkRemoved(Link link) {
@@ -444,9 +456,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (groupHandler != null) {
             groupHandler.portDown(link.src().port());
         }
-        //defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
-        log.trace("processLinkRemoved: re-starting route population process");
-        defaultRoutingHandler.startPopulationProcess();
+        log.trace("Starting optimized route population process");
+        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
+        //log.trace("processLinkRemoved: re-starting route population process");
+        //defaultRoutingHandler.startPopulationProcess();
     }
 
     private void processDeviceAdded(Device device) {

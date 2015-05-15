@@ -35,6 +35,10 @@ public interface Group extends GroupDescription {
          */
         PENDING_ADD,
         /**
+         * Group is missing in data plane and retrying GROUP ADD request.
+         */
+        PENDING_ADD_RETRY,
+        /**
          * Group is created in the data plane.
          */
         ADDED,

@@ -184,21 +184,40 @@ public class DefaultRoutingHandler {
 
     private boolean repopulateRoutingRulesForRoutes(Set<ArrayList<DeviceId>> routes) {
         rulePopulator.resetCounter();
+        HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> routesBydevice =
+                new HashMap<>();
         for (ArrayList<DeviceId> link: routes) {
             // When only the source device is defined, reinstall routes to all other devices
             if (link.size() == 1) {
                 log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
                 ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(link.get(0), srManager);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
+                    log.debug("Populating flow rules from {} to all is successful",
+                              link.get(0));
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
                 } else {
                     log.warn("Failed to populate the flow rules from {} to all", link.get(0));
                     return false;
                 }
             } else {
+                ArrayList<ArrayList<DeviceId>> deviceRoutes =
+                        routesBydevice.get(link.get(1));
+                if (deviceRoutes == null) {
+                    deviceRoutes = new ArrayList<>();
+                    routesBydevice.put(link.get(1), deviceRoutes);
+                }
+                deviceRoutes.add(link);
+            }
+        }
+
+        for (DeviceId impactedDevice : routesBydevice.keySet()) {
+            ArrayList<ArrayList<DeviceId>> deviceRoutes =
+                    routesBydevice.get(impactedDevice);
+            for (ArrayList<DeviceId> link: deviceRoutes) {
+                log.debug("repopulate RoutingRules For Routes {} -> {}",
+                          link.get(0), link.get(1));
                 DeviceId src = link.get(0);
                 DeviceId dst = link.get(1);
-                log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", dst);
                 ECMPShortestPathGraph ecmpSpg = updatedEcmpSpgMap.get(dst);
                 HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
                         ecmpSpg.getAllLearnedSwitchesAndVia();
@@ -220,10 +239,18 @@ public class DefaultRoutingHandler {
                         if (!populateEcmpRoutingRulePartial(targetSw, dst, nextHops)) {
                             return false;
                         }
+                        log.debug("Populating flow rules from {} to {} is successful",
+                                  targetSw, dst);
                     }
                 }
-                currentEcmpSpgMap.put(dst, ecmpSpg);
+                //currentEcmpSpgMap.put(dst, ecmpSpg);
             }
+            //Only if all the flows for all impacted routes to a
+            //specific target are pushed successfully, update the
+            //ECMP graph for that target. (Or else the next event
+            //would not see any changes in the ECMP graphs)
+            currentEcmpSpgMap.put(impactedDevice,
+                                  updatedEcmpSpgMap.get(impactedDevice));
         }
         return true;
     }
@@ -233,13 +260,15 @@ public class DefaultRoutingHandler {
         Set<ArrayList<DeviceId>> routes = new HashSet<>();
 
         for (Device sw : srManager.deviceService.getDevices()) {
+            log.debug("Computing the impacted routes for device {} due to link fail",
+                      sw.id());
             if (srManager.mastershipService.
                     getLocalRole(sw.id()) != MastershipRole.MASTER) {
                 continue;
             }
             ECMPShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
             if (ecmpSpg == null) {
-                log.error("No existing ECMP path for switch {}", sw.id());
+                log.error("No existing ECMP graph for switch {}", sw.id());
                 continue;
             }
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
@@ -252,8 +281,12 @@ public class DefaultRoutingHandler {
                     Set<ArrayList<DeviceId>> subLinks =
                             computeLinks(targetSw, destSw, swViaMap);
                     for (ArrayList<DeviceId> alink: subLinks) {
-                        if (alink.get(0).equals(linkFail.src().deviceId()) &&
-                                alink.get(1).equals(linkFail.dst().deviceId())) {
+                        if ((alink.get(0).equals(linkFail.src().deviceId()) &&
+                                alink.get(1).equals(linkFail.dst().deviceId()))
+                                ||
+                             (alink.get(0).equals(linkFail.dst().deviceId()) &&
+                                     alink.get(1).equals(linkFail.src().deviceId()))) {
+                            log.debug("Impacted route:{}->{}", targetSw, destSw);
                             ArrayList<DeviceId> aRoute = new ArrayList<>();
                             aRoute.add(targetSw);
                             aRoute.add(destSw);
@@ -274,9 +307,12 @@ public class DefaultRoutingHandler {
         Set<ArrayList<DeviceId>> routes = new HashSet<>();
 
         for (Device sw : srManager.deviceService.getDevices()) {
+            log.debug("Computing the impacted routes for device {}",
+                      sw.id());
             if (srManager.mastershipService.
                     getLocalRole(sw.id()) != MastershipRole.MASTER) {
-                log.warn("No mastership for {} and skip route optimization");
+                log.debug("No mastership for {} and skip route optimization",
+                          sw.id());
                 continue;
             }
 
@@ -295,7 +331,7 @@ public class DefaultRoutingHandler {
                 continue;
             }
             ECMPShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(sw.id());
-            currentEcmpSpgMap.put(sw.id(), newEcmpSpg);
+            //currentEcmpSpgMap.put(sw.id(), newEcmpSpg);
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
                     ecmpSpg.getAllLearnedSwitchesAndVia();
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchViaUpdated =
@@ -307,7 +343,8 @@ public class DefaultRoutingHandler {
                 for (DeviceId srcSw : swViaMapUpdated.keySet()) {
                     ArrayList<ArrayList<DeviceId>> viaUpdated = swViaMapUpdated.get(srcSw);
                     ArrayList<ArrayList<DeviceId>> via = getVia(switchVia, srcSw);
-                    if (via.isEmpty() || !viaUpdated.equals(via)) {
+                    if ((via == null) || !viaUpdated.equals(via)) {
+                        log.debug("Impacted route:{}->{}", srcSw, sw.id());
                         ArrayList<DeviceId> route = new ArrayList<>();
                         route.add(srcSw);
                         route.add(sw.id());
@@ -318,7 +355,7 @@ public class DefaultRoutingHandler {
         }
 
         for (ArrayList<DeviceId> link: routes) {
-            log.trace("Link changes - ");
+            log.trace("Route changes - ");
             if (link.size() == 1) {
                 log.trace(" : {} - all", link.get(0));
             } else {
@@ -341,7 +378,7 @@ public class DefaultRoutingHandler {
             }
         }
 
-        return new ArrayList<>();
+        return null;
     }
 
     private Set<ArrayList<DeviceId>> computeLinks(DeviceId src,

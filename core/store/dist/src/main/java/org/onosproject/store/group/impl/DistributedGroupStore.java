@@ -715,11 +715,12 @@ public class DistributedGroupStore
                 existing.setLife(group.life());
                 existing.setPackets(group.packets());
                 existing.setBytes(group.bytes());
-                if (existing.state() == GroupState.PENDING_ADD) {
+                if ((existing.state() == GroupState.PENDING_ADD) ||
+                    (existing.state() == GroupState.PENDING_ADD_RETRY)) {
                     log.debug("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
                             existing.id(),
                             existing.deviceId(),
-                            GroupState.PENDING_ADD);
+                            existing.state());
                     existing.setState(GroupState.ADDED);
                     existing.setIsGroupStateAddedFirstTime(true);
                     event = new GroupEvent(Type.GROUP_ADDED, existing);
@@ -839,15 +840,22 @@ public class DistributedGroupStore
                 existing.deviceId());
         switch (operation.opType()) {
             case ADD:
-                notifyDelegate(new GroupEvent(Type.GROUP_ADD_FAILED, existing));
-                log.warn("groupOperationFailed: cleaningup "
-                        + "group {} from store in device {}....",
-                        existing.id(),
-                        existing.deviceId());
-                //Removal from groupid based map will happen in the
-                //map update listener
-                getGroupStoreKeyMap().remove(new GroupStoreKeyMapKey(existing.deviceId(),
-                                                                     existing.appCookie()));
+                if (existing.state() == GroupState.PENDING_ADD) {
+                    //TODO: Need to add support for passing the group
+                    //operation failure reason from group provider.
+                    //If the error type is anything other than GROUP_EXISTS,
+                    //then the GROUP_ADD_FAILED event should be raised even
+                    //in PENDING_ADD_RETRY state also.
+                    notifyDelegate(new GroupEvent(Type.GROUP_ADD_FAILED, existing));
+                    log.warn("groupOperationFailed: cleaningup "
+                            + "group {} from store in device {}....",
+                            existing.id(),
+                            existing.deviceId());
+                    //Removal from groupid based map will happen in the
+                    //map update listener
+                    getGroupStoreKeyMap().remove(new GroupStoreKeyMapKey(existing.deviceId(),
+                                                                         existing.appCookie()));
+                }
                 break;
             case MODIFY:
                 notifyDelegate(new GroupEvent(Type.GROUP_UPDATE_FAILED, existing));
@@ -1196,16 +1204,17 @@ public class DistributedGroupStore
                 break;
             case ADDED:
             case PENDING_ADD:
+            case PENDING_ADD_RETRY:
             case PENDING_UPDATE:
                 log.debug("Group {} is in store but not on device {}",
                           group, group.deviceId());
                 StoredGroupEntry existing =
                         getStoredGroupEntry(group.deviceId(), group.id());
-                log.debug("groupMissing: group entry {} in device {} moving from {} to PENDING_ADD",
+                log.debug("groupMissing: group entry {} in device {} moving from {} to PENDING_ADD_RETRY",
                         existing.id(),
                         existing.deviceId(),
                         existing.state());
-                existing.setState(Group.GroupState.PENDING_ADD);
+                existing.setState(Group.GroupState.PENDING_ADD_RETRY);
                 //Re-PUT map entries to trigger map update events
                 getGroupStoreKeyMap().
                     put(new GroupStoreKeyMapKey(existing.deviceId(),
