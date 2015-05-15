@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "role": "admin",
+      "name": "mom",
+      "id": 1
+    },
+    {
+      "role": "admin",
+      "name": "dad",
+      "id": 2
+    },
+    {
+      "role": "user",
+      "name": "kid1",
+      "id": 3
+    },
+    {
+      "role": "user",
+      "name": "kid2",
+      "id": 4
+    }
+  ]
+}

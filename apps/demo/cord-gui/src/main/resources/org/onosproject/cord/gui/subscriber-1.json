@@ -1,0 +1,19 @@
+{
+  "humanReadableName": "vOLT on service 16",
+  "id": 1,
+  "service_specific_id": "",
+  "vlan_id": null,
+  "vcpe_id": 2,
+  "sliver": 384,
+  "sliver_name": "onlab_vcpe",
+  "image": 29,
+  "image_name": "Ubuntu 14.04 LTS",
+  "firewall_enable": true,
+  "firewall_rules": "accept all anywhere anywhere",
+  "url_filter_enable": true,
+  "url_filter_rules": "allow all",
+  "url_filter_level": "PG",
+  "cdn_enable": true,
+  "vbng_id": 4,
+  "routeable_subnet": "1.1.1.1/4"
+}
