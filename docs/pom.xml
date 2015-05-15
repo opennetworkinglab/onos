@@ -61,7 +61,7 @@
                         <group>
                             <title>Incubator for Network Model &amp; Services</title>
                             <packages>
-                                org.onosproject.exp:org.onosproject.exp.*
+                                org.onosproject.exp:org.onosproject.incubator.*
                             </packages>
                         </group>
                         <group>
@@ -79,7 +79,7 @@
                         <group>
                             <title>Incubator for Core Subsystems &amp; Distributed Stores</title>
                             <packages>
-                                org.onosproject.exp.net.impl:org.onosproject.exp.store.impl
+                                org.onosproject.incubator.net.impl:org.onosproject.incubator.store.impl
                             </packages>
                         </group>
                         <group>

@@ -48,7 +48,7 @@
         <module>drivers</module>
         <module>openflow</module>
         <module>apps</module>
-        <module>exp</module>
+        <module>incubator</module>
         <module>features</module>
         <module>tools/package/branding</module>
     </modules>

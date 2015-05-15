@@ -68,7 +68,7 @@
                         <group>
                             <title>Incubator for Network Model &amp; Services</title>
                             <packages>
-                                org.onosproject.exp:org.onosproject.exp.*
+                                org.onosproject.exp:org.onosproject.incubator.*
                             </packages>
                         </group>
                     </groups>
