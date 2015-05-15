@@ -107,7 +107,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     protected ClusterCommunicationService clusterCommunicator;
 
     protected String nodeToUri(NodeInfo node) {
-        return String.format("tcp://%s:%d", node.getIp(), COPYCAT_TCP_PORT);
+        return String.format("onos://%s:%d", node.getIp(), node.getTcpPort());
     }
 
     @Activate
@@ -136,9 +136,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                     .toArray(String[]::new);
 
         String localNodeUri = nodeToUri(NodeInfo.of(clusterService.getLocalNode()));
+        Protocol protocol = new CopycatCommunicationProtocol(clusterService, clusterCommunicator);
 
         ClusterConfig clusterConfig = new ClusterConfig()
-            .withProtocol(newNettyProtocol())
+            .withProtocol(protocol)
             .withElectionTimeout(electionTimeoutMillis(activeNodeUris))
             .withHeartbeatInterval(heartbeatTimeoutMillis(activeNodeUris))
             .withMembers(activeNodeUris)
@@ -232,6 +233,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                 .collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unused")
     private Protocol newNettyProtocol() {
         return new NettyTcpProtocol()
             .withSsl(false)

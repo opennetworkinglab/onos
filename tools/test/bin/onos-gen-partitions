@@ -22,7 +22,7 @@ def get_OC_vars():
       vars.append(var)
   return sorted(vars, key=alphanum_key)
 
-def get_nodes(vars, port=7238):
+def get_nodes(vars, port=9876):
   node = lambda k: { 'id': k, 'ip': k, 'tcpPort': port }
   return [ node(environ[v]) for v in vars ]
 

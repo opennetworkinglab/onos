@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -34,9 +35,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
@@ -386,6 +389,37 @@ public abstract class Tools {
         } catch (ExecutionException | TimeoutException e) {
             return defaultValue;
         }
+    }
+
+    /**
+     * Returns a future that is completed exceptionally.
+     * @param t exception
+     * @param <T> future value type
+     * @return future
+     */
+    public static <T> CompletableFuture<T> exceptionalFuture(Throwable t) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        future.completeExceptionally(t);
+        return future;
+    }
+
+    /**
+     * Returns the contents of {@code ByteBuffer} as byte array.
+     * <p>
+     * WARNING: There is a performance cost due to array copy
+     * when using this method.
+     * @param buffer byte buffer
+     * @return byte array containing the byte buffer contents
+     */
+    public static byte[] byteBuffertoArray(ByteBuffer buffer) {
+        int length = buffer.remaining();
+        if (buffer.hasArray()) {
+            int offset = buffer.arrayOffset() + buffer.position();
+            return Arrays.copyOfRange(buffer.array(), offset, offset + length);
+        }
+        byte[] bytes = new byte[length];
+        buffer.duplicate().get(bytes);
+        return bytes;
     }
 
     // Auxiliary path visitor for recursive directory structure copying.

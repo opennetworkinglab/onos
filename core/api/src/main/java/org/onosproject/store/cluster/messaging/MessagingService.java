@@ -62,6 +62,13 @@ public interface MessagingService {
     void registerHandler(String type, Function<byte[], byte[]> handler, Executor executor);
 
     /**
+     * Registers a new message handler for message type.
+     * @param type message type.
+     * @param handler message handler
+     */
+    void registerHandler(String type, Function<byte[], CompletableFuture<byte[]>> handler);
+
+    /**
      * Unregister current handler, if one exists for message type.
      * @param type message type
      */

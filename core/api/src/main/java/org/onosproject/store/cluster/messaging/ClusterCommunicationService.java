@@ -164,7 +164,7 @@ public interface ClusterCommunicationService {
      *
      * @param subject message subject
      * @param decoder decoder for resurrecting incoming message
-     * @param handler handler function that process the incoming message and produces a reply
+     * @param handler handler function that processes the incoming message and produces a reply
      * @param encoder encoder for serializing reply
      * @param executor executor to run this handler on
      * @param <M> incoming message type
@@ -175,6 +175,21 @@ public interface ClusterCommunicationService {
                               Function<M, R> handler,
                               Function<R, byte[]> encoder,
                               Executor executor);
+
+    /**
+     * Adds a new subscriber for the specified message subject.
+     *
+     * @param subject message subject
+     * @param decoder decoder for resurrecting incoming message
+     * @param handler handler function that processes the incoming message and produces a reply
+     * @param encoder encoder for serializing reply
+     * @param <M> incoming message type
+     * @param <R> reply message type
+     */
+    <M, R> void addSubscriber(MessageSubject subject,
+                              Function<byte[], M> decoder,
+                              Function<M, CompletableFuture<R>> handler,
+                              Function<R, byte[]> encoder);
 
     /**
      * Adds a new subscriber for the specified message subject.

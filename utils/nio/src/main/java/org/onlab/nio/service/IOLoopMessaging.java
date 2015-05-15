@@ -212,6 +212,23 @@ public class IOLoopMessaging implements MessagingService {
     }
 
     @Override
+    public void registerHandler(String type, Function<byte[], CompletableFuture<byte[]>> handler) {
+        handlers.put(type, message -> handler.apply(message.payload()).whenComplete((result, error) -> {
+            if (error == null) {
+                DefaultMessage response = new DefaultMessage(message.id(),
+                        localEp,
+                        REPLY_MESSAGE_TYPE,
+                        result);
+                try {
+                    sendAsync(message.sender(), response);
+                } catch (IOException e) {
+                    log.debug("Failed to respond", e);
+                }
+            }
+        }));
+    }
+
+    @Override
     public void unregisterHandler(String type) {
         handlers.remove(type);
     }

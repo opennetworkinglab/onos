@@ -785,6 +785,12 @@ public class EventuallyConsistentMapImplTest {
         }
 
         @Override
+        public <M, R> void addSubscriber(MessageSubject subject,
+                Function<byte[], M> decoder, Function<M, CompletableFuture<R>> handler,
+                Function<R, byte[]> encoder) {
+        }
+
+        @Override
         public <M> void addSubscriber(MessageSubject subject,
                 Function<byte[], M> decoder, Consumer<M> handler,
                 Executor executor) {
