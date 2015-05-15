@@ -519,9 +519,6 @@
         // exiting node specifics:
         exiting.filter('.host').each(td3.hostExit);
         exiting.filter('.device').each(td3.deviceExit);
-
-        // finally, resume the force layout
-        fResume();
     }
 
     // ==========================
