@@ -64,10 +64,8 @@ public class DefaultGroupHandler {
     protected LinkService linkService;
     protected FlowObjectiveService flowObjectiveService;
 
-    protected HashMap<DeviceId, Set<PortNumber>> devicePortMap =
-            new HashMap<DeviceId, Set<PortNumber>>();
-    protected HashMap<PortNumber, DeviceId> portDeviceMap =
-            new HashMap<PortNumber, DeviceId>();
+    protected HashMap<DeviceId, Set<PortNumber>> devicePortMap = new HashMap<>();
+    protected HashMap<PortNumber, DeviceId> portDeviceMap = new HashMap<>();
     //protected HashMap<NeighborSet, Integer> deviceNextObjectiveIds =
     //        new HashMap<NeighborSet, Integer>();
     protected EventuallyConsistentMap<
@@ -113,6 +111,7 @@ public class DefaultGroupHandler {
      * @param config interface to retrieve the device properties
      * @param linkService link service object
      * @param flowObjService flow objective service object
+     * @param nsNextObjStore next objective store map
      * @return default group handler type
      */
     public static DefaultGroupHandler createGroupHandler(DeviceId deviceId,
@@ -120,9 +119,8 @@ public class DefaultGroupHandler {
                                                          DeviceProperties config,
                                                          LinkService linkService,
                                                          FlowObjectiveService flowObjService,
-                                                         EventuallyConsistentMap<
-                                                         NeighborSetNextObjectiveStoreKey,
-                                                         Integer> nsNextObjStore) {
+                                                         EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
+                                                                 Integer> nsNextObjStore) {
         if (config.isEdgeDevice(deviceId)) {
             return new DefaultEdgeGroupHandler(deviceId, appId, config,
                                                linkService,

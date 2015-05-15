@@ -56,7 +56,7 @@
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>
-                                org.onosproject:org.onosproject.*
+                                org.onosproject:org.onosproject.*:org.onosproject.rest
                             </packages>
                         </group>
                         <group>

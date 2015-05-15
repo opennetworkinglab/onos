@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * XOS integration application which relies on XOS REST APIs to manage VMs.
+ * XOS integration application CLI commands.
  */
-package org.onosproject.xosintegration;
+package org.onosproject.xosintegration.cli;
