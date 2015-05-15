@@ -43,7 +43,7 @@
     </driver>
     <driver name="corsa" manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
+                   impl="org.onosproject.driver.pipeline.CorsaPipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFCorsaSwitchDriver"/>
     </driver>

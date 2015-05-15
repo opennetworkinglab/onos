@@ -95,19 +95,19 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     protected static final int LOCAL_TABLE = 9;
 
 
-    private static final int CONTROLLER_PRIORITY = 255;
+    protected static final int CONTROLLER_PRIORITY = 255;
     private static final int DROP_PRIORITY = 0;
     private static final int HIGHEST_PRIORITY = 0xffff;
 
     private final Logger log = getLogger(getClass());
 
     private ServiceDirectory serviceDirectory;
-    private FlowRuleService flowRuleService;
+    protected FlowRuleService flowRuleService;
     private CoreService coreService;
     private GroupService groupService;
     private FlowObjectiveStore flowObjectiveStore;
-    private DeviceId deviceId;
-    private ApplicationId appId;
+    protected DeviceId deviceId;
+    protected ApplicationId appId;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(GroupKey.class)
@@ -521,7 +521,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     }
 
-    private void processVlanMplsTable(boolean install) {
+    protected void processVlanMplsTable(boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                 .builder();
