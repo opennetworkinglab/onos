@@ -179,7 +179,9 @@
     function populateSummary(data) {
         summary.setup();
 
-        var svg = summary.appendHeader('svg'),
+        var svg = summary.appendHeader('div')
+                .classed('icon', true)
+                .append('svg'),
             title = summary.appendHeader('h2'),
             table = summary.appendBody('table'),
             tbody = table.append('tbody');
@@ -197,7 +199,9 @@
     function displaySingle(data) {
         detail.setup();
 
-        var svg = detail.appendHeader('svg'),
+        var svg = detail.appendHeader('div')
+                .classed('icon', true)
+                .append('svg'),
             title = detail.appendHeader('h2'),
             table = detail.appendBody('table'),
             tbody = table.append('tbody');
@@ -268,7 +272,9 @@
     function displayLink(data) {
         detail.setup();
 
-        var svg = detail.appendHeader('svg'),
+        var svg = detail.appendHeader('div')
+                .classed('icon', true)
+                .append('svg'),
             title = detail.appendHeader('h2'),
             table = detail.appendBody('table'),
             tbody = table.append('tbody'),

@@ -95,6 +95,10 @@
 
 /* --- general topo-panel styling --- */
 
+.topo-p div.header div.icon {
+    vertical-align: middle;
+    display: inline-block;
+}
 .topo-p div.body {
     overflow-y: scroll;
 }
@@ -122,12 +126,12 @@
 
 
 .topo-p h2 {
-    position: absolute;
     padding: 0 4px;
     margin: 0;
-    word-wrap: break-word;
-    top: 20px;
-    left: 50px;
+    word-break: break-all;
+    display: inline-block;
+    width: 210px;
+    vertical-align: middle;
 }
 .light .topo-p h2 {
     color: black;
@@ -139,7 +143,7 @@
 .topo-p h3 {
     padding: 0 4px;
     margin: 0;
-    word-wrap: break-word;
+    word-break: break-all;
     top: 20px;
     left: 50px;
 }
@@ -156,7 +160,7 @@
 }
 
 .topo-p td {
-    word-wrap: break-word;
+    word-break: break-all;
 }
 .topo-p td.label {
     font-style: italic;
