@@ -1,0 +1,13 @@
+{
+  "comment": [
+    "This is a sample JSON File",
+    "Which can contain fake data."
+  ],
+  "fake": true,
+  "numbers": [ 1, 2, 3 ],
+  "map": {
+    "x": 100,
+    "y": 200,
+    "z": 32
+  }
+}

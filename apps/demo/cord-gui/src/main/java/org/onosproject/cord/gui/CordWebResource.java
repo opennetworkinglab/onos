@@ -32,4 +32,9 @@ public class CordWebResource {
         return Response.ok("Hello World").build();
     }
 
+    @GET
+    @Path("fake")
+    public Response fake() {
+        return Response.ok(FakeUtils.slurp("sample.json")).build();
+    }
 }
