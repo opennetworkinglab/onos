@@ -121,6 +121,8 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             boolean available = ds.isAvailable(id);
             String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
+            String protocol = dev.annotations().value(PROTOCOL);
+
             row.cell(ID, id)
                 .cell(AVAILABLE, available)
                 .cell(AVAILABLE_IID, iconId)
@@ -128,7 +130,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
                 .cell(MFR, dev.manufacturer())
                 .cell(HW, dev.hwVersion())
                 .cell(SW, dev.swVersion())
-                .cell(PROTOCOL, dev.annotations().value(PROTOCOL))
+                .cell(PROTOCOL, protocol != null ? protocol : "")
                 .cell(NUM_PORTS, ds.getPorts(id).size())
                 .cell(MASTER_ID, ms.getMasterFor(id));
         }

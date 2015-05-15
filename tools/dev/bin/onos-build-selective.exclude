@@ -3,3 +3,4 @@
 .*/build/conf/.*
 .*/docs/.*
 .*/openflow/drivers/.*
+.*/cord-gui/.*

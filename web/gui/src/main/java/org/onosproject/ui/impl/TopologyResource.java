@@ -52,7 +52,7 @@ public class TopologyResource extends BaseResource {
         ArrayNode devices = mapper.createArrayNode();
         ArrayNode hosts = mapper.createArrayNode();
 
-        Map<String, ObjectNode> metaUi = TopologyViewMessages.getMetaUi();
+        Map<String, ObjectNode> metaUi = TopologyViewMessageHandler.getMetaUi();
         for (String id : metaUi.keySet()) {
             ObjectNode memento = metaUi.get(id);
             if (id.charAt(17) == '/') {
