@@ -41,6 +41,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
@@ -304,7 +305,14 @@ public class FlowRuleManager
                     break;
                 case ADDED:
                 case PENDING_ADD:
-                    frp.applyFlowRule(flowRule);
+                    try {
+                        frp.applyFlowRule(flowRule);
+                    } catch (UnsupportedOperationException e) {
+                        log.warn(e.getMessage());
+                        if (flowRule instanceof DefaultFlowEntry) {
+                            ((DefaultFlowEntry) flowRule).setState(FlowEntry.FlowEntryState.FAILED);
+                        }
+                    }
                     break;
                 default:
                     log.debug("Flow {} has not been installed.", flowRule);
