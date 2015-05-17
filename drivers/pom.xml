@@ -52,6 +52,12 @@
             <artifactId>onos-of-api</artifactId>
         </dependency>
 
+         <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
+            <version>1.2.0-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
@@ -62,6 +68,8 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
+
+       
 
     </dependencies>
 

@@ -13,6 +13,10 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.slf4j.Logger;
 
+/**
+ * Driver for Corsa TTP.
+ *
+ */
 public class CorsaPipeline extends OVSCorsaPipeline {
 
     private final Logger log = getLogger(getClass());
@@ -36,7 +40,6 @@ public class CorsaPipeline extends OVSCorsaPipeline {
                 .fromApp(appId)
                 .makePermanent()
                 .forTable(VLAN_MPLS_TABLE).build();
-
 
         ops = install ? ops.add(rule) : ops.remove(rule);
 

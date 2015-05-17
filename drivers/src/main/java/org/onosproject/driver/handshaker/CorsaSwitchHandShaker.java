@@ -29,12 +29,11 @@ import org.projectfloodlight.openflow.types.TableId;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//import java.util.ArrayList;
 
 /**
- * Corsa switch driver for BGP Router deployment.
+ * Corsa switch handshaker.
  */
-public class OFCorsaSwitchDriver extends AbstractOpenFlowSwitch {
+public class CorsaSwitchHandShaker extends AbstractOpenFlowSwitch {
 
     private AtomicBoolean handShakeComplete = new AtomicBoolean(false);
 

@@ -102,7 +102,6 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int ACL_TABLE = 60;
     protected static final int MAC_LEARNING_TABLE = 254;
 
-    @SuppressWarnings("unused")
     private static final int HIGHEST_PRIORITY = 0xffff;
     private static final int DEFAULT_PRIORITY = 0x8000;
     private static final int LOWEST_PRIORITY = 0x0;

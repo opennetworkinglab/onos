@@ -27,17 +27,20 @@
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
     </driver>
     <driver name="spring-open-cpqd" extends="default"
-            manufacturer="Stanford University, Ericsson Research and CPqD Research" hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
+            manufacturer="Stanford University, Ericsson Research and CPqD Research" 
+            hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTP"/>
     </driver>
     <driver name="spring-open" extends="default"
-            manufacturer="Dell " hwVersion="OpenFlow switch HW ver. 1.0" swVersion="OpenFlow switch SW ver. 1.0 and 1.3">
+            manufacturer="Dell " hwVersion="OpenFlow switch HW ver. 1.0" 
+            swVersion="OpenFlow switch SW ver. 1.0 and 1.3">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTPDell"/>
     </driver>
     <driver name="linc-oe" extends="default"
-            manufacturer="FlowForwarding.org" hwVersion="Unknown" swVersion="LINC-OE OpenFlow Software Switch 1.1">
+            manufacturer="FlowForwarding.org" hwVersion="Unknown" 
+            swVersion="LINC-OE OpenFlow Software Switch 1.1">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitchImplLINC13"/>
     </driver>
@@ -45,12 +48,22 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CorsaPipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.OFCorsaSwitchDriver"/>
+                   impl="org.onosproject.driver.handshaker.CorsaSwitchHandShaker"/>
     </driver>
     <driver name="ofdpa" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA 1.0" swVersion="OF-DPA 1.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
+    </driver>
+    <!--  The SoftRouter driver is meant to be used by any software/NPU based
+       ~  switch that wishes to implement a simple 2-table router. ONOS needs to
+       ~  be configured with the dpid of such a device to attach this driver
+       ~  to the device.
+      -->
+    <driver name="softrouter" extends="default"
+            manufacturer="Various" hwVersion="various" swVersion="0.0.0">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.SoftRouterPipeline"/>
     </driver>
 </drivers>
 
