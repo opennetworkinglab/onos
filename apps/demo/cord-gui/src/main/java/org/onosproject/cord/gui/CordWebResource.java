@@ -18,6 +18,9 @@ package org.onosproject.cord.gui;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -26,15 +29,34 @@ import javax.ws.rs.core.Response;
 @Path("")
 public class CordWebResource {
 
-    @GET
-    @Path("hello")
-    public Response hello() {
-        return Response.ok("Hello World").build();
+    private Response fakeData(String which, String suffix) {
+        String path = "local/" + which + "-" + suffix + ".json";
+        String content = FakeUtils.slurp(path);
+        if (content == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(content).build();
     }
 
     @GET
-    @Path("fake")
-    public Response fake() {
-        return Response.ok(FakeUtils.slurp("sample.json")).build();
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("dashboard/{suffix}")
+    public Response dashboard(@PathParam("suffix") String suffix) {
+        return fakeData("dashboard", suffix);
     }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("bundle/{suffix}")
+    public Response bundle(@PathParam("suffix") String suffix) {
+        return fakeData("bundle", suffix);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("users/{suffix}")
+    public Response users(@PathParam("suffix") String suffix) {
+        return fakeData("users", suffix);
+    }
+
 }

@@ -37,12 +37,14 @@ public class FakeUtils {
      * @return contents of file as a string
      */
     public static String slurp(String path) {
-        String result = "";
+        String result = null;
         InputStream is = CL.getResourceAsStream(ROOT_PATH + path);
-        try {
-            result = IOUtils.toString(is, UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (is != null) {
+            try {
+                result = IOUtils.toString(is, UTF_8);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return result;
     }
