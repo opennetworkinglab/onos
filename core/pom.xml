@@ -36,6 +36,7 @@
         <module>common</module>
         <module>net</module>
         <module>store</module>
+        <module>security</module>
     </modules>
 
     <dependencies>

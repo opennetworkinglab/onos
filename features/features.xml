@@ -123,6 +123,13 @@
         <bundle>mvn:org.onosproject/onos-cli/@ONOS-VERSION</bundle>
     </feature>
 
+    <feature name="onos-security" version="@FEATURE-VERSION"
+             description="Security-Mode ONOS">
+        <!--<bundle>mvn:org.onosproject/onos-security-felix/2.2.0-ONOS</bundle>-->
+        <bundle>mvn:org.onosproject/onos-security-impl/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-security-util/@ONOS-VERSION</bundle>
+    </feature>
+
     <!-- Deprecated! For standalone testing only. -->
     <feature name="onos-core-trivial" version="@FEATURE-VERSION"
              description="ONOS trivial core components">
