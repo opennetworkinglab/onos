@@ -400,25 +400,22 @@ public class ConsistentDeviceMastershipStore
             if (!isDeviceMastershipTopic(leadership.topic())) {
                 return;
             }
-            NodeId nodeId = leadership.leader();
             DeviceId deviceId = extractDeviceIdFromTopic(leadership.topic());
-            if (Objects.equal(nodeId, localNodeId) && connectedDevices.contains(deviceId)) {
-                switch (event.type()) {
-                case LEADER_ELECTED:
-                    notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
-                    break;
-                case LEADER_REELECTED:
-                    // There is no concept of leader re-election in the new distributed leadership manager.
-                    throw new IllegalStateException("Unexpected event type");
-                case LEADER_BOOTED:
-                    notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
-                    break;
-                case CANDIDATES_CHANGED:
-                    notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, getNodes(deviceId)));
-                    break;
-                default:
-                    return;
-                }
+            switch (event.type()) {
+            case LEADER_ELECTED:
+                notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
+                break;
+            case LEADER_REELECTED:
+                // There is no concept of leader re-election in the new distributed leadership manager.
+                throw new IllegalStateException("Unexpected event type");
+            case LEADER_BOOTED:
+                notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(deviceId)));
+                break;
+            case CANDIDATES_CHANGED:
+                notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, getNodes(deviceId)));
+                break;
+            default:
+                return;
             }
         }
     }
