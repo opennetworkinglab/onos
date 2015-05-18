@@ -16,16 +16,6 @@
 
 package org.onosproject.openflow.controller.driver;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -48,6 +38,15 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 /**
  * An abstract representation of an OpenFlow switch. Can be extended by others
  * to serve as a base for their vendor specific representation of a switch.
@@ -56,8 +55,6 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
         implements OpenFlowSwitchDriver {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String SHUTDOWN_MSG = "Worker has already been shutdown";
 
     private Channel channel;
     protected String channelId;
@@ -100,28 +97,14 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void sendMsg(OFMessage m) {
         if (role == RoleState.MASTER) {
-            try {
-                channel.write(Collections.singletonList(m));
-            } catch (RejectedExecutionException e) {
-                log.warn(e.getMessage());
-                if (!e.getMessage().contains(SHUTDOWN_MSG)) {
-                    throw e;
-                }
-            }
+            channel.write(Collections.singletonList(m));
         }
     }
 
     @Override
     public final void sendMsg(List<OFMessage> msgs) {
         if (role == RoleState.MASTER) {
-            try {
-                channel.write(msgs);
-            } catch (RejectedExecutionException e) {
-                log.warn(e.getMessage());
-                if (!e.getMessage().contains(SHUTDOWN_MSG)) {
-                    throw e;
-                }
-            }
+            channel.write(msgs);
         }
     }
 
@@ -150,7 +133,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void setConnected(boolean connected) {
         this.connected = connected;
-    };
+    }
 
     @Override
     public final void setChannel(Channel channel) {
@@ -165,7 +148,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                 channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();
             }
         }
-    };
+    }
 
     @Override
     public String channelId() {
@@ -180,7 +163,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final long getId() {
         return this.dpid.value();
-    };
+    }
 
     @Override
     public final String getStringId() {
@@ -223,7 +206,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public RoleState getRole() {
         return role;
-    };
+    }
 
     @Override
     public final boolean connectSwitch() {

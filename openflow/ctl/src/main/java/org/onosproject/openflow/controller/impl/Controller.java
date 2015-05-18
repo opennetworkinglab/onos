@@ -232,8 +232,8 @@ public class Controller {
 
     public void stop() {
         log.info("Stopping OpenFlow IO");
-        execFactory.shutdown();
         cg.close();
+        execFactory.shutdown();
     }
 
 }
