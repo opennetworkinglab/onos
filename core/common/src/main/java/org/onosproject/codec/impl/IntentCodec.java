@@ -49,7 +49,9 @@ public final class IntentCodec extends JsonCodec<Intent> {
 
         IntentService service = context.getService(IntentService.class);
         IntentState state = service.getIntentState(intent.key());
-        result.put("state", state.toString());
+        if (state != null) {
+            result.put("state", state.toString());
+        }
 
         return result;
     }
