@@ -82,6 +82,11 @@ echo $ONOS_VERSION > $ONOS_STAGE/VERSION
 cd $ONOS_STAGE_ROOT
 rm -f $ONOS_TAR $ONOS_ZIP
 COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
-which zip >/dev/null && zip -rq $ONOS_ZIP $ONOS_BITS
-which zip >/dev/null && ls -lh $ONOS_TAR $ONOS_ZIP || ls -lh $ONOS_TAR
+
+# Figure out whether we should build ONOS zip file and if so, build it.
+which zip >/dev/null && [ -z "$ONOS_TAR_ONLY" ] && buildZip=true || unset buildZip
+[ -n "$buildZip" ] && zip -rq $ONOS_ZIP $ONOS_BITS
+
+# Report on the archives that were built and clean-up
+[ -n "$buildZip" ] && ls -lh $ONOS_TAR $ONOS_ZIP || ls -lh $ONOS_TAR
 rm -r $ONOS_STAGE
