@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-(function () {
-    'use strict';
+head, body, footer, h1, h2, h3, h4, h5, h6, p, div, a {
+    padding: 0;
+    margin: 0;
+}
 
-    angular.module('cordUser', [])
-        .controller('CordUserCtrl', ['$log', function ($log) {
-            $log.debug('Cord User Ctrl has been created.');
-        }]);
+h1, h2, h3, h4, h5, h6, p, a {
+    font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
+}
 
-    // can have a directive here that uses templateUrl for editable and readonly
-}());
+#view h2 {
+    text-align: center;
+}

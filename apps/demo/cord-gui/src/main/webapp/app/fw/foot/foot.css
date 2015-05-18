@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-(function () {
-    'use strict';
+div.foot {
+    width: 100%;
+    height: 20px;
+    background-color: gray;
+    position: absolute;
+    bottom: 0;
+}
 
-    angular.module('cordSub', [])
-        .controller('CordSubCtrl', ['$log', function ($log) {
-            $log.debug('Cord Sub Ctrl has been created.');
-        }]);
-}());
+.foot div {
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+.foot div.left {
+    left: 25px;
+}
+
+.foot div.right {
+    right: 25px;
+}

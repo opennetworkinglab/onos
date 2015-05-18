@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-(function () {
-    'use strict';
-
-    angular.module('cordUser', [])
-        .controller('CordUserCtrl', ['$log', function ($log) {
-            $log.debug('Cord User Ctrl has been created.');
-        }]);
-
-    // can have a directive here that uses templateUrl for editable and readonly
-}());
+angular.module('cordMast', [])
+    .directive('mast', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'app/fw/mast/mast.html'
+        };
+    });

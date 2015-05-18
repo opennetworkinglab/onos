@@ -18,13 +18,15 @@
     'use strict';
 
     var modules = [
-            'ngRoute'
+            'ngRoute',
+            'cordMast',
+            'cordFoot'
         ],
         viewIds = [
             'login',
             'home',
             'user',
-            'sub'
+            'bundle'
         ],
         viewDependencies = [],
         dependencies;

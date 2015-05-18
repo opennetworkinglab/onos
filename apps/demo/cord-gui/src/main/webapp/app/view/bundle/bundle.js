@@ -17,9 +17,9 @@
 (function () {
     'use strict';
 
-    angular.module('cordUser', [])
-        .controller('CordUserCtrl', ['$log', function ($log) {
-            $log.debug('Cord User Ctrl has been created.');
+    angular.module('cordBundle', [])
+        .controller('CordBundleCtrl', ['$log', function ($log) {
+            $log.debug('Cord Bundle Ctrl has been created.');
         }]);
 
     // can have a directive here that uses templateUrl for editable and readonly

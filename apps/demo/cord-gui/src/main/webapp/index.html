@@ -23,23 +23,32 @@
 
     <script src="tp/angular.js"></script>
     <script src="tp/angular-route.js"></script>
+    <script src="tp/angular-animate.js"></script>
     <script src="tp/jquery-2.1.4.js"></script>
 
     <script src="cord.js"></script>
-    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="app/view/common/common.css">
+
+    <script src="app/fw/mast/mast.js"></script>
+    <link rel="stylesheet" href="app/fw/mast/mast.css">
+    <script src="app/fw/foot/foot.js"></script>
+    <link rel="stylesheet" href="app/fw/foot/foot.css">
 
     <script src="app/view/login/login.js"></script>
+    <link rel="stylesheet" href="app/view/login/login.css">
 
     <script src="app/view/home/home.js"></script>
 
     <script src="app/view/user/user.js"></script>
 
-    <script src="app/view/sub/sub.js"></script>
+    <script src="app/view/bundle/bundle.js"></script>
 </head>
 <body ng-app="cordGui">
 <div id="frame" ng-controller="CordCtrl as cordCtrl"></div>
 
+<mast></mast>
 <div id="view" ng-view></div>
+<foot></foot>
 
 </body>
 </html>

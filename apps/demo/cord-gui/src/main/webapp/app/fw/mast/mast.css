@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-h1, h2, h3, h4, h5, h6, p, div, a {
-    padding: 0;
-    margin: 0;
+div.mast {
+    width: 100%;
+    height: 50px;
+    background-color: gray;
+    position: relative;
+    margin-bottom: 2%;
 }
 
-h1, h2, h3, h4, h5, h6, p, a {
-    font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
+.mast div {
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+.mast div.left {
+    left: 25px;
+}
+
+.mast div.right {
+    right: 25px;
 }
