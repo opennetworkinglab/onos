@@ -56,24 +56,39 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class OnosXOSIntegrationManager implements VoltTenantService {
+    private static final String XOS_SERVER_ADDRESS_PROPERTY_NAME =
+            "xosServerAddress";
+    private static final String XOS_SERVER_PORT_PROPERTY_NAME =
+            "xosServerPort";
+    private static final String XOS_PROVIDER_SERVICE_PROPERTY_NAME =
+            "xosProviderService";
 
     private static final String TEST_XOS_SERVER_ADDRESS = "10.254.1.22";
     private static final int TEST_XOS_SERVER_PORT = 8000;
     private static final String XOS_TENANT_BASE_URI = "/xoslib/volttenant/";
+    private static final int TEST_XOS_PROVIDER_SERVICE = 1;
 
     private final Logger log = getLogger(getClass());
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
-    @Property(name = "XOSServerAddress",
+
+    @Property(name = XOS_SERVER_ADDRESS_PROPERTY_NAME,
               value = TEST_XOS_SERVER_ADDRESS,
               label = "XOS Server address")
     protected String xosServerAddress = TEST_XOS_SERVER_ADDRESS;
-    @Property(name = "XOSServerPort",
+
+    @Property(name = XOS_SERVER_PORT_PROPERTY_NAME,
               intValue = TEST_XOS_SERVER_PORT,
               label = "XOS Server port")
     protected int xosServerPort = TEST_XOS_SERVER_PORT;
+
+    @Property(name = XOS_PROVIDER_SERVICE_PROPERTY_NAME,
+            intValue = TEST_XOS_PROVIDER_SERVICE,
+            label = "XOS Provider Service")
+    protected int xosProviderService = TEST_XOS_PROVIDER_SERVICE;
+
     private ApplicationId appId;
 
     @Activate
@@ -244,7 +259,16 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
     @Override
     public VoltTenant addTenant(VoltTenant newTenant) {
-        String json = tenantToJson(newTenant);
+        long providerServiceId = newTenant.providerService();
+        if (providerServiceId == -1) {
+            providerServiceId = xosProviderService;
+        }
+        VoltTenant tenantToCreate = VoltTenant.builder()
+                .withProviderService(providerServiceId)
+                .withServiceSpecificId(newTenant.serviceSpecificId())
+                .withVlanId(newTenant.vlanId())
+                .build();
+        String json = tenantToJson(tenantToCreate);
         postRest(json);
         return newTenant;
     }
@@ -268,16 +292,23 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String newXosServerAddress = Tools.get(properties, "XOSServerAddress");
+        String newXosServerAddress =
+                Tools.get(properties, XOS_SERVER_ADDRESS_PROPERTY_NAME);
         if (!isNullOrEmpty(newXosServerAddress)) {
             xosServerAddress = newXosServerAddress;
         }
 
-        String newXosServerPortString = Tools.get(properties, "XOSServerPort");
+        String newXosServerPortString =
+                Tools.get(properties, XOS_SERVER_PORT_PROPERTY_NAME);
         if (!isNullOrEmpty(newXosServerPortString)) {
             xosServerPort = Integer.parseInt(newXosServerPortString);
         }
-        log.info("XOS URL is now http://{}:{}", xosServerAddress, xosServerPort);
+
+        String newXosProviderServiceString =
+                Tools.get(properties, XOS_PROVIDER_SERVICE_PROPERTY_NAME);
+        if (!isNullOrEmpty(newXosProviderServiceString)) {
+            xosProviderService = Integer.parseInt(newXosProviderServiceString);
+        }
     }
 }
 

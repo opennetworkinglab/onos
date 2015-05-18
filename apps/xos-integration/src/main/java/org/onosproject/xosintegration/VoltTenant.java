@@ -15,7 +15,6 @@
  */
 package org.onosproject.xosintegration;
 
-
 import com.google.common.base.MoreObjects;
 
 public final class VoltTenant {
@@ -26,6 +25,15 @@ public final class VoltTenant {
     private final String serviceSpecificId;
     private final String vlanId;
 
+    /**
+     * Constructs a vOLT tenant object.
+     *
+     * @param humanReadableName name string
+     * @param id identifier for the tenant
+     * @param providerService provider service ID
+     * @param serviceSpecificId id for the user
+     * @param vlanId vlan id for the user
+     */
     private VoltTenant(String humanReadableName, long id, long providerService,
                        String serviceSpecificId, String vlanId) {
         this.humanReadableName = humanReadableName;
@@ -35,62 +43,131 @@ public final class VoltTenant {
         this.vlanId = vlanId;
     }
 
+    /**
+     * Fetches a builder to make a tenant.
+     *
+     * @return tenant builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Fetches the name of the tenant.
+     *
+     * @return human readable name
+     */
     public String humanReadableName() {
         return humanReadableName;
     }
 
+    /**
+     * Fetches the ID of the tenant object.
+     *
+     * @return ID of tenant object.
+     */
     public long id() {
         return id;
     }
 
+    /**
+     * Fetches the identifier for the provider service.
+     *
+     * @return provider service ID
+     */
     public long providerService() {
         return providerService;
     }
 
+    /**
+     * Fetches the server specific ID (user id).
+     *
+     * @return server specific ID
+     */
     public String serviceSpecificId() {
         return serviceSpecificId;
     }
 
+    /**
+     * Fetches the vlan id for this tenant.
+     *
+     * @return VLAN ID
+     */
     public String vlanId() {
         return vlanId;
     }
 
+    /**
+     * Builder class to allow callers to assemble tenants.
+     */
+
     public static final class Builder {
         private String humanReadableName = "unknown";
         private long id = 0;
-        private long providerService = 0;
+        private long providerService = -1;
         private String serviceSpecificId = "unknown";
         private String vlanId = "unknown";
 
+        /**
+         * Sets the name string for the tenant.
+         *
+         * @param humanReadableName name
+         * @return self
+         */
         public Builder withHumanReadableName(String humanReadableName) {
             this.humanReadableName = humanReadableName;
             return this;
         }
 
+        /**
+         * Sets the identifier for the tenant.
+         *
+         * @param id identifier for the tenant
+         * @return self
+         */
         public Builder withId(long id) {
             this.id = id;
             return this;
         }
 
-        public Builder withProviderService(long providerService) {
-            this.providerService = providerService;
-            return this;
-        }
-
+        /**
+         * Sets the server specific id (user id) for the tenant.
+         *
+         * @param serviceSpecificId server specific (user) id
+         * @return self
+         */
         public Builder withServiceSpecificId(String serviceSpecificId) {
             this.serviceSpecificId = serviceSpecificId;
             return this;
         }
 
+        /**
+         * Sets the VLAN ID for the tenant.
+         *
+         * @param vlanId VLAN ID
+         * @return self
+         */
         public Builder withVlanId(String vlanId) {
             this.vlanId = vlanId;
             return this;
         }
 
+        /**
+         * Sets the provider service ID.
+         *
+         * @param providerService provider service ID
+         * @return self
+         */
+        public Builder withProviderService(long providerService) {
+            this.providerService = providerService;
+            return this;
+        }
+
+        /**
+         * Constructs a VoltTenant from the assembled data.
+         *
+         * @return constructed tenant object
+         */
         public VoltTenant build() {
             return new VoltTenant(humanReadableName, id, providerService,
                     serviceSpecificId, vlanId);

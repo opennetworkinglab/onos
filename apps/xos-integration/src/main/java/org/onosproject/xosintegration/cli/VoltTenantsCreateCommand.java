@@ -27,17 +27,13 @@ import org.onosproject.xosintegration.VoltTenantService;
 @Command(scope = "onos", name = "add-tenant",
         description = "Lists the inventory of VOLT tenants and their contents")
 public class VoltTenantsCreateCommand extends AbstractShellCommand {
-    @Argument(index = 0, name = "provider service",
-            description = "Tenant ID",
-            required = true, multiValued = false)
-    long providerService;
 
-    @Argument(index = 1, name = "service specific ID",
+    @Argument(index = 0, name = "service specific ID",
             description = "service specific ID",
             required = true, multiValued = false)
     String serviceSpecificId;
 
-    @Argument(index = 2, name = "vlan ID",
+    @Argument(index = 1, name = "vlan ID",
             description = "vlan ID",
             required = true, multiValued = false)
     String vlanId;
@@ -47,7 +43,6 @@ public class VoltTenantsCreateCommand extends AbstractShellCommand {
         VoltTenantService service = get(VoltTenantService.class);
 
         VoltTenant newTenant = VoltTenant.builder()
-                .withProviderService(providerService)
                 .withServiceSpecificId(serviceSpecificId)
                 .withVlanId(vlanId)
                 .build();
