@@ -72,8 +72,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 
@@ -344,10 +343,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             HostId two = hostId(string(payload, "two"));
 
             HostToHostIntent intent = HostToHostIntent.builder()
-                            .appId(appId)
-                            .one(one)
-                            .two(two)
-                            .build();
+                    .appId(appId)
+                    .one(one)
+                    .two(two)
+                    .build();
 
             intentService.submit(intent);
             startMonitoringIntent(intent);
@@ -774,8 +773,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            sendMessage(deviceMessage(event));
-            eventAccummulator.add(event);
+            if (event.type() != PORT_STATS_UPDATED) {
+                sendMessage(deviceMessage(event));
+                eventAccummulator.add(event);
+            }
         }
     }
 

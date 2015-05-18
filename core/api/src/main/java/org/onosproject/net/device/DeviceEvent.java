@@ -74,7 +74,7 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
          */
         PORT_REMOVED,
 
-        /*
+        /**
          * Signifies that port statistics has been updated.
          */
         PORT_STATS_UPDATED

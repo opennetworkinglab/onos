@@ -263,17 +263,19 @@
             online = ldata.online(),
             delay = immediate ? 0 : 1000;
 
-        // TODO: understand why el is sometimes undefined on addLink events...
-        el.classed('link', true);
-        el.classed('inactive', !online);
-        el.classed(allLinkTypes, false);
-        if (type) {
-            el.classed(type, true);
+        // FIXME: understand why el is sometimes undefined on addLink events...
+        if (el) {
+            el.classed('link', true);
+            el.classed('inactive', !online);
+            el.classed(allLinkTypes, false);
+            if (type) {
+                el.classed(type, true);
+            }
+            el.transition()
+                .duration(delay)
+                .attr('stroke-width', linkScale(lw))
+                .attr('stroke', linkConfig[th].baseColor);
         }
-        el.transition()
-            .duration(delay)
-            .attr('stroke-width', linkScale(lw))
-            .attr('stroke', linkConfig[th].baseColor);
     }
 
     function removeLinkElement(d) {
