@@ -1,0 +1,16 @@
+{
+  "bundle": {
+    "name": "Family Bundle",
+    "services": [
+      "Internet",
+      "Firewall",
+      "URL Filtering"
+    ]
+  },
+  "users": [
+    { "name": "Dad", "role": "Admin" },
+    { "name": "Mom", "role": "Admin" },
+    { "name": "Dick", "role": "User" },
+    { "name": "Jane", "role": "User" }
+  ]
+}
