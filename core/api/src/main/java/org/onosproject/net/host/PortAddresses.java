@@ -29,7 +29,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Represents address information bound to a port.
  */
-public class PortAddresses {
+public final class PortAddresses {
 
     private final ConnectPoint connectPoint;
     private final Set<InterfaceIpAddress> ipAddresses;
