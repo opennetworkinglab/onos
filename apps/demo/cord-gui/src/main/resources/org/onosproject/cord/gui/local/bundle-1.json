@@ -5,25 +5,23 @@
       {
         "id": "internet",
         "name": "Internet",
-        "active": true
+        "active": true,
+        "editable": false
       },
       {
         "id": "firewall",
         "name": "Firewall",
-        "active": true
+        "active": true,
+        "editable": true
       },
       {
         "id": "url_filter",
         "name": "Parental Control",
         "level": "PG",
-        "active": true
+        "levels": [ "PG", "PG-13", "R" ],
+        "active": true,
+        "editable": true
       }
     ]
-  },
-  "users": [
-    { "id": 1, "name": "Mom", "role": "Admin" },
-    { "id": 2, "name": "Dad", "role": "Admin" },
-    { "id": 3, "name": "Dick", "role": "User" },
-    { "id": 4, "name": "Jane", "role": "User" }
-  ]
+  }
 }

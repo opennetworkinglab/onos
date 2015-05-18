@@ -1,0 +1,19 @@
+{
+  "bundle": {
+    "name": "Basic Bundle",
+    "functions": [
+      {
+        "id": "internet",
+        "name": "Internet",
+        "active": true,
+        "editable": false
+      },
+      {
+        "id": "firewall",
+        "name": "Firewall",
+        "active": true,
+        "editable": true
+      }
+    ]
+  }
+}

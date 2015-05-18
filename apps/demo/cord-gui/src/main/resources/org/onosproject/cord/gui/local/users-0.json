@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Mom",
+      "role": { "id": "admin", "name": "Admin"},
+      "profile": { }
+    },
+    {
+      "id": 2,
+      "name": "Dad",
+      "role": { "id": "admin", "name": "Admin"}
+      "profile": { }
+    },
+    {
+      "id": 3,
+      "name": "Dick",
+      "role": { "id": "user", "name": "User"}
+      "profile": { }
+    },
+    {
+      "id": 4,
+      "name": "Jane",
+      "role": { "id": "user", "name": "User"}
+      "profile": { }
+    }
+  ]
+}

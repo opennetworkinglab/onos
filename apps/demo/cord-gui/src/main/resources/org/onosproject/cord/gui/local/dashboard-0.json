@@ -1,6 +1,6 @@
 {
   "bundle": {
-    "name": "Family Bundle",
+    "name": "Basic Bundle",
     "functions": [
       {
         "id": "internet",
@@ -10,12 +10,6 @@
       {
         "id": "firewall",
         "name": "Firewall",
-        "active": true
-      },
-      {
-        "id": "url_filter",
-        "name": "Parental Control",
-        "level": "PG",
         "active": true
       }
     ]
