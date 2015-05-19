@@ -45,7 +45,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.store.cluster.impl.DistributedClusterStore;
+import org.onosproject.store.cluster.impl.ClusterDefinitionManager;
 import org.onosproject.store.cluster.impl.NodeInfo;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
@@ -193,7 +193,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     private void createDefaultDatabaseDefinition(DatabaseDefinitionStore store) {
         // Assumes IPv4 is returned.
-        String ip = DistributedClusterStore.getSiteLocalAddress();
+        String ip = ClusterDefinitionManager.getSiteLocalAddress();
         NodeInfo node = NodeInfo.from(ip, ip, COPYCAT_TCP_PORT);
         try {
             store.write(DatabaseDefinition.from(ImmutableSet.of(node)));

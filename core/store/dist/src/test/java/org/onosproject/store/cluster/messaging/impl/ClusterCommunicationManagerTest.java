@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.cluster.impl.ClusterNodesDelegate;
-import org.onlab.netty.NettyMessagingManager;
 import org.onlab.packet.IpAddress;
 
 import java.util.concurrent.CountDownLatch;

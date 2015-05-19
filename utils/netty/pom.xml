@@ -80,5 +80,4 @@
           <version>${netty4.version}</version>
         </dependency>
     </dependencies>
-
 </project>

@@ -130,11 +130,6 @@ public class HazelcastClusterStore
     }
 
     @Override
-    public void formCluster(Set<ControllerNode> nodes, String ipPrefix) {
-        throw new UnsupportedOperationException("formCluster not implemented");
-    }
-
-    @Override
     public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return addNode(new DefaultControllerNode(nodeId, ip, tcpPort));
     }

@@ -140,7 +140,7 @@ public class ConsistentDeviceMastershipStore
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.addListener(leadershipEventListener);
 
-        log.info("Started.");
+        log.info("Started");
     }
 
     @Deactivate
@@ -151,7 +151,7 @@ public class ConsistentDeviceMastershipStore
         transferExecutor.shutdown();
         leadershipService.removeListener(leadershipEventListener);
 
-        log.info("Stoppped.");
+        log.info("Stopped");
     }
 
     @Override

@@ -65,16 +65,6 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
     DateTime getLastUpdated(NodeId nodeId);
 
     /**
-     * Forms cluster configuration based on the specified set of node
-     * information. Assumes subsequent restart for the new configuration to
-     * take hold.
-     *
-     * @param nodes    set of nodes that form the cluster
-     * @param ipPrefix IP address prefix, e.g. 10.0.1.*
-     */
-    void formCluster(Set<ControllerNode> nodes, String ipPrefix);
-
-    /**
      * Adds a new controller node to the cluster.
      *
      * @param nodeId  controller node identifier

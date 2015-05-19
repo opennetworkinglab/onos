@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.store.cluster.impl.DistributedClusterStore;
+import org.onosproject.store.cluster.impl.ClusterDefinitionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class StoreManager implements StoreService {
     }
 
     private void createDefaultHazelcastFile(File hazelcastFile) {
-        String ip = DistributedClusterStore.getSiteLocalAddress();
+        String ip = ClusterDefinitionManager.getSiteLocalAddress();
         String ipPrefix = ip.replaceFirst("\\.[0-9]*$", ".*");
         InputStream his = getClass().getResourceAsStream("/hazelcast.xml");
         try {

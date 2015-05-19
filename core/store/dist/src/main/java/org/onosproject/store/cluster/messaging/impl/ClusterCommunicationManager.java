@@ -21,8 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.netty.NettyMessagingManager;
-import org.onlab.nio.service.IOLoopMessagingManager;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -60,47 +58,16 @@ public class ClusterCommunicationManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
 
-    // TODO: This probably should not be a OSGi service.
-    private MessagingService messagingService;
-
-    private final boolean useNetty = true;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MessagingService messagingService;
 
     @Activate
     public void activate() {
-        ControllerNode localNode = clusterService.getLocalNode();
-        if (useNetty) {
-            NettyMessagingManager netty = new NettyMessagingManager(localNode.ip(), localNode.tcpPort());
-            try {
-                netty.activate();
-                messagingService = netty;
-            } catch (Exception e) {
-                log.error("NettyMessagingService#activate", e);
-            }
-        } else {
-            IOLoopMessagingManager ioLoop = new IOLoopMessagingManager(localNode.ip(), localNode.tcpPort());
-            try {
-                ioLoop.activate();
-                messagingService = ioLoop;
-            } catch (Exception e) {
-                log.error("IOLoopMessagingService#activate", e);
-            }
-        }
-        log.info("Started on {}:{}", localNode.ip(), localNode.tcpPort());
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        // TODO: cleanup messageingService if needed.
-        // FIXME: workaround until it becomes a service.
-        try {
-            if (useNetty) {
-                ((NettyMessagingManager) messagingService).deactivate();
-            } else {
-                ((IOLoopMessagingManager) messagingService).deactivate();
-            }
-        } catch (Exception e) {
-            log.error("MessagingService#deactivate", e);
-        }
         log.info("Stopped");
     }
 

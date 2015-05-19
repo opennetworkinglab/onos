@@ -93,11 +93,6 @@ public class SimpleClusterStore
     }
 
     @Override
-    public void formCluster(Set<ControllerNode> nodes, String ipPrefix) {
-
-    }
-
-    @Override
     public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         return null;
     }

@@ -31,6 +31,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,7 +40,6 @@ import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.onlab.nio.AcceptorLoop;
 import org.onlab.nio.SelectorLoop;
-import org.onlab.packet.IpAddress;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 import org.slf4j.Logger;
@@ -54,13 +54,12 @@ import com.google.common.collect.Lists;
 /**
  * MessagingService implementation based on IOLoop.
  */
-public class IOLoopMessagingManager implements MessagingService {
+public class IOLoopMessaging implements MessagingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String REPLY_MESSAGE_TYPE = "ONOS_REQUEST_REPLY";
 
-    static final int PORT = 9876;
     static final long TIMEOUT = 1000;
 
     static final boolean SO_NO_DELAY = false;
@@ -79,7 +78,8 @@ public class IOLoopMessagingManager implements MessagingService {
 
     private int lastWorker = -1;
 
-    private final Endpoint localEp;
+    private final AtomicBoolean started = new AtomicBoolean(false);
+    private Endpoint localEp;
 
     private GenericKeyedObjectPool<Endpoint, DefaultMessageStream> streams =
             new GenericKeyedObjectPool<>(new DefaultMessageStreamFactory());
@@ -97,34 +97,17 @@ public class IOLoopMessagingManager implements MessagingService {
             })
             .build();
 
-
-    public IOLoopMessagingManager(int port) {
-        this(new Endpoint(IpAddress.valueOf("127.0.0.1"), port));
-    }
-
-    public IOLoopMessagingManager(IpAddress ip, int port) {
-        this(new Endpoint(ip, port));
-    }
-
-    public IOLoopMessagingManager(Endpoint localEp) {
-        this.localEp = localEp;
-    }
-
-    /**
-     * Returns the local endpoint.
-     *
-     * @return local endpoint
-     */
-    public Endpoint localEp() {
-        return localEp;
-    }
-
     /**
      * Activates IO Loops.
      *
      * @throws IOException is activation fails
      */
-    public void activate() throws IOException {
+    public void start(Endpoint localEp) throws IOException {
+        if (started.get()) {
+            log.warn("IOMessaging is already running at {}", localEp);
+            return;
+        }
+        this.localEp = localEp;
         streams.setLifo(false);
         this.acceptorLoop = new DefaultAcceptorLoop(new InetSocketAddress(localEp.host().toString(), localEp.port()));
 
@@ -136,16 +119,20 @@ public class IOLoopMessagingManager implements MessagingService {
         acceptorThreadPool.execute(acceptorLoop);
         ioLoops.forEach(loop -> loop.awaitStart(TIMEOUT));
         acceptorLoop.awaitStart(TIMEOUT);
+        started.set(true);
     }
 
     /**
      * Shuts down IO loops.
      */
-    public void deactivate() {
-        ioLoops.forEach(SelectorLoop::shutdown);
-        acceptorLoop.shutdown();
-        ioThreadPool.shutdown();
-        acceptorThreadPool.shutdown();
+    public void stop() {
+        if (started.get()) {
+            ioLoops.forEach(SelectorLoop::shutdown);
+            acceptorLoop.shutdown();
+            ioThreadPool.shutdown();
+            acceptorThreadPool.shutdown();
+            started.set(false);
+        }
     }
 
 

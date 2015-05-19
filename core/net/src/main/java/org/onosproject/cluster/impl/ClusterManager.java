@@ -25,6 +25,7 @@ import org.apache.karaf.system.SystemService;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterAdminService;
+import org.onosproject.cluster.ClusterDefinitionService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -58,6 +59,9 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
             listenerRegistry = new ListenerRegistry<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterDefinitionService clusterDefinitionService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -70,6 +74,8 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(ClusterEvent.class, listenerRegistry);
+        clusterDefinitionService.seedNodes()
+                                .forEach(node -> store.addNode(node.id(), node.ip(), node.tcpPort()));
         log.info("Started");
     }
 
@@ -113,7 +119,7 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
         checkNotNull(nodes, "Nodes cannot be null");
         checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
         checkNotNull(ipPrefix, "IP prefix cannot be null");
-        store.formCluster(nodes, ipPrefix);
+        clusterDefinitionService.formCluster(nodes, ipPrefix);
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
             systemService.reboot("now", SystemService.Swipe.NONE);
