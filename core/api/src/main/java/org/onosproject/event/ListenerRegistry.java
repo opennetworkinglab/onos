@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -32,8 +31,6 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
         implements EventSink<E> {
 
     private final Logger log = getLogger(getClass());
-
-    private volatile boolean shutdown = false;
 
     private long lastStart;
     private L lastListener;
@@ -61,8 +58,8 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
      */
     public void removeListener(L listener) {
         checkNotNull(listener, "Listener cannot be null");
-        if (checkForNonRegistrant()) {
-            checkArgument(listeners.remove(listener), "Listener not registered");
+        if (!listeners.remove(listener)) {
+            log.warn("Listener {} not registered", listener);
         }
     }
 
@@ -91,41 +88,13 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
     }
 
     /**
-     * Predicate indicating whether we should throw an exception if the
-     * argument to {@link #removeListener} is not in the current set of
-     * listeners.
-     * <p>
-     * This default implementation returns <code>true</code>.
-     *
-     * @return true if non-listed listeners should cause exception on remove
-     */
-    protected boolean checkForNonRegistrant() {
-        return true;
-    }
-
-    /**
      * Reports a problem encountered while processing an event.
      *
      * @param event event being processed
      * @param error error encountered while processing
      */
     protected void reportProblem(E event, Throwable error) {
-        if (!shutdown) {
-            log.warn("Exception encountered while processing event " + event, error);
-        }
+        log.warn("Exception encountered while processing event " + event, error);
     }
 
-    /**
-     * Prepares the registry for normal operation.
-     */
-    public void activate() {
-        shutdown = false;
-    }
-
-    /**
-     * Prepares the registry for shutdown.
-     */
-    public void deactivate() {
-        shutdown = true;
-    }
 }

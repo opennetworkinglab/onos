@@ -59,8 +59,4 @@ class ModelListenerRegistry
         }
     }
 
-    @Override
-    protected boolean checkForNonRegistrant() {
-        return false;
-    }
 }

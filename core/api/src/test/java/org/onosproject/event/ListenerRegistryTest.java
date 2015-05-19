@@ -26,13 +26,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class ListenerRegistryTest {
 
-    private static class RelaxedRegistry extends TestListenerRegistry {
-        @Override
-        protected boolean checkForNonRegistrant() {
-            return false;
-        }
-    }
-
     private static final TestEvent FOO_EVENT =
             new TestEvent(TestEvent.Type.FOO, "foo");
     private static final TestEvent BAR_EVENT =
@@ -76,18 +69,6 @@ public class ListenerRegistryTest {
         assertFalse("BAR processed", listener.events.contains(BAR_EVENT));
         assertFalse("error not reported", manager.errors.isEmpty());
         assertTrue("BAR not processed", secondListener.events.contains(BAR_EVENT));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void removeNonListenerCausesException() {
-        manager.removeListener(listener);
-    }
-
-    @Test
-    public void removeNonListenerIgnored() {
-        manager = new RelaxedRegistry();
-        manager.removeListener(listener);
-        assertTrue("what?", manager.listeners.isEmpty());
     }
 
 }
