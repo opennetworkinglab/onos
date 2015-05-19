@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, ps, gs, flash, wss, bns;
+    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns;
 
     // constants
     var pCls = 'topo-p',
@@ -31,7 +31,9 @@
         idDet = 'topo-p-detail',
         panelOpts = {
             width: 260
-        };
+        },
+        sumFromTop = 64,
+        sumMax = 226;
 
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
@@ -171,6 +173,20 @@
                 addProp(tbody, p, data.props[p]);
             }
         });
+    }
+
+    function watchWindow() {
+        $rootScope.$watchCollection(
+            function () {
+                return {
+                    h: $window.innerHeight,
+                    w: $window.innerWidth
+                };
+            }, function () {
+                summary.adjustHeight(sumFromTop, sumMax);
+                detail.adjustHeight(detail.ypos.current);
+            }
+        );
     }
 
     // === -----------------------------------------------------
@@ -350,7 +366,7 @@
     function showSummaryPanel() {
         function _show() {
             summary.panel().show();
-            summary.adjustHeight(64, 226);
+            summary.adjustHeight(sumFromTop, sumMax);
         }
         if (detail.panel().isVisible()) {
             detail.down(_show);
@@ -371,7 +387,6 @@
         } else {
             detail.up(detail.panel().show);
         }
-        detail.adjustHeight(detail.ypos.current);
     }
 
     function hideDetailPanel() {
@@ -380,15 +395,24 @@
 
     // ==========================
 
-    function noop () {}
-
     function augmentDetailPanel() {
         var d = detail;
         d.ypos = { up: 64, down: 310, current: 310};
 
         d._move = function (y, cb) {
-            var endCb = fs.isF(cb) || noop,
-                yp = d.ypos;
+            var yp = d.ypos,
+                endCb;
+
+            if (fs.isF(cb)) {
+                endCb = function () {
+                    cb();
+                    d.adjustHeight(d.ypos.current);
+                }
+            } else {
+                endCb = function () {
+                    d.adjustHeight(d.ypos.current);
+                }
+            }
             if (yp.current !== y) {
                 yp.current = y;
                 d.panel().el().transition().duration(300)
@@ -428,6 +452,7 @@
         detail = createTopoPanel(idDet, panelOpts);
 
         augmentDetailPanel();
+        watchWindow();
     }
 
     function destroyPanels() {
@@ -443,11 +468,14 @@
 
     angular.module('ovTopo')
     .factory('TopoPanelService',
-        ['$log', 'FnService', 'PanelService', 'GlyphService',
+        ['$log', '$window', '$rootScope', 'FnService', 'PanelService', 'GlyphService',
             'FlashService', 'WebSocketService', 'ButtonService',
 
-        function (_$log_, _fs_, _ps_, _gs_, _flash_, _wss_, _bns_) {
+        function (_$log_, _$window_, _$rootScope_,
+                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_) {
             $log = _$log_;
+            $window = _$window_;
+            $rootScope = _$rootScope_;
             fs = _fs_;
             ps = _ps_;
             gs = _gs_;
