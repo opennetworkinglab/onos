@@ -51,6 +51,7 @@ public class DefaultEventSinkRegistry implements EventSinkRegistry {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends Event> EventSink<E> getSink(Class<E> eventClass) {
+        checkNotNull(eventClass, "Event class cannot be null");
         return (EventSink<E>) sinks.get(eventClass);
     }
 

@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -423,8 +424,8 @@ public class DeviceManager
         }
 
         @Override
-        public void receivedRoleReply(
-                DeviceId deviceId, MastershipRole requested, MastershipRole response) {
+        public void receivedRoleReply(DeviceId deviceId, MastershipRole requested,
+                                      MastershipRole response) {
             // Several things can happen here:
             // 1. request and response match
             // 2. request and response don't match
@@ -436,7 +437,7 @@ public class DeviceManager
             // FIXME: implement response to this notification
 
             log.info("got reply to a role request for {}: asked for {}, and got {}",
-                    deviceId, requested, response);
+                     deviceId, requested, response);
 
             if (requested == null && response == null) {
                 // something was off with DeviceProvider, maybe check channel too?
@@ -445,9 +446,8 @@ public class DeviceManager
                 return;
             }
 
-            if (requested.equals(response)) {
-                if (requested.equals(mastershipService.getLocalRole(deviceId))) {
-
+            if (Objects.equals(requested, response)) {
+                if (Objects.equals(requested, mastershipService.getLocalRole(deviceId))) {
                     return;
                 } else {
                     return;
@@ -464,19 +464,16 @@ public class DeviceManager
                     //post(new DeviceEvent(DEVICE_MASTERSHIP_CHANGED, device));
                 }
             }
-
         }
 
         @Override
         public void updatePortStatistics(DeviceId deviceId, Collection<PortStatistics> portStatistics) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
-            checkNotNull(portStatistics,
-                    "Port statistics list cannot be null");
+            checkNotNull(portStatistics, "Port statistics list cannot be null");
             checkValidity();
 
             DeviceEvent event = store.updatePortStatistics(this.provider().id(),
-                    deviceId, portStatistics);
-
+                                                           deviceId, portStatistics);
             post(event);
         }
     }
@@ -634,8 +631,7 @@ public class DeviceManager
     }
 
     // Store delegate to re-post events emitted from the store.
-    private class InternalStoreDelegate
-            implements DeviceStoreDelegate {
+    private class InternalStoreDelegate implements DeviceStoreDelegate {
         @Override
         public void notify(DeviceEvent event) {
             post(event);

@@ -27,4 +27,10 @@ public interface EventSink<E extends Event> {
      */
     void process(E event);
 
+    /**
+     * Handles notification that event processing time limit has been exceeded.
+     */
+    default void onProcessLimit() {
+    }
+
 }

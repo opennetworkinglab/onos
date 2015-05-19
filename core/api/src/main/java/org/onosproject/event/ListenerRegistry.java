@@ -35,6 +35,9 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
 
     private volatile boolean shutdown = false;
 
+    private long lastStart;
+    private L lastListener;
+
     /**
      * Set of listeners that have registered.
      */
@@ -67,10 +70,23 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
     public void process(E event) {
         for (L listener : listeners) {
             try {
+                lastListener = listener;
+                lastStart = System.currentTimeMillis();
                 listener.event(event);
+                lastStart = 0;
             } catch (Exception error) {
                 reportProblem(event, error);
             }
+        }
+    }
+
+    @Override
+    public void onProcessLimit() {
+        if (lastStart > 0) {
+            log.error("Listener {} exceeded execution time limit: {} ms; ejected",
+                      lastListener.getClass().getName(),
+                      System.currentTimeMillis() - lastStart);
+            removeListener(lastListener);
         }
     }
 
