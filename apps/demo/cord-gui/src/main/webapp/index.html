@@ -24,6 +24,7 @@
     <script src="tp/angular.js"></script>
     <script src="tp/angular-route.js"></script>
     <script src="tp/angular-animate.js"></script>
+    <script src="tp/angular-resource.js"></script>
     <script src="tp/jquery-2.1.4.js"></script>
 
     <script src="cord.js"></script>
@@ -34,10 +35,16 @@
     <script src="app/fw/foot/foot.js"></script>
     <link rel="stylesheet" href="app/fw/foot/foot.css">
 
+    <script src="app/fw/nav/nav.js"></script>
+    <link rel="stylesheet" href="app/fw/nav/nav.css">
+
+    <script src="app/fw/icon/icon.js"></script>
+
     <script src="app/view/login/login.js"></script>
     <link rel="stylesheet" href="app/view/login/login.css">
 
     <script src="app/view/home/home.js"></script>
+    <link rel="stylesheet" href="app/view/home/home.css">
 
     <script src="app/view/user/user.js"></script>
 
@@ -49,6 +56,24 @@
 <mast></mast>
 <div id="view" ng-view></div>
 <foot></foot>
+
+<svg id="icon-defs">
+    <defs>
+        <symbol id="checkMark" viewBox="0 0 10 10">
+            <path d="M2.6,4.5c0,0,0.7-0.4,1.2,0.3l1.0,1.8c0,0,2.7-5.4,2.8-5.7c
+            0,0,0.5-0.9,1.4-0.1c0,0,0.5,0.5,0,1.3S6.8,7.3,5.6,9.2c0,0-0.4,0.5
+            -1.2,0.1S2.2,5.4,2.2,5.4S2.2,4.7,2.6,4.5z"></path>
+        </symbol>
+        <symbol id="xMark" viewBox="0 0 10 10">
+            <path d="M9.0,7.2C8.2,6.9,7.4,6.1,6.7,5.2c0.4-0.5,0.7-0.8,0.8-1.0C
+            7.8,3.5,9.4,1.6,8.1,1.1C6.8,0.6,6.6,1.7,6.6,1.7C6.4,2.1,6.0,2.7,
+            5.4,3.4C4.9,2.5,4.5,1.9,4.5,1.9S3.8,0.2,2.9,0.7C1.9,1.1,2.3,2.3,
+            2.3,2.3c0.3,1.1,0.8,2.1,1.4,2.9C2.5,6.4,1.3,7.4,1.3,7.4S0.8,7.8,
+            0.8,8.1C0.9,8.3,0.9,9.6,2.4,9.1C3.1,8.8,4.1,7.9,5.1,7.0c1.3,1.3,
+            2.5,1.9,2.5,1.9s0.5,0.5,1.4-0.2C9.8,7.9,9.0,7.2,9.0,7.2z"></path>
+        </symbol>
+    </defs>
+</svg>
 
 </body>
 </html>

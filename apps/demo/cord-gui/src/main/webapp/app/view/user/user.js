@@ -18,7 +18,9 @@
     'use strict';
 
     angular.module('cordUser', [])
-        .controller('CordUserCtrl', ['$log', function ($log) {
+        .controller('CordUserCtrl', ['$log', '$scope', function ($log, $scope) {
+            $scope.page = 'user';
+
             $log.debug('Cord User Ctrl has been created.');
         }]);
 

@@ -14,14 +14,16 @@
   ~ limitations under the License.
   -->
 
-<!--Mast HTML-->
-
-<div class="mast">
-    <div class="left">
-        <a href="#/home" class="logo"><h1>CORD</h1></a>
-    </div>
-
-    <div class="right">
-
-    </div>
+<div class="nav">
+    <ul>
+        <a href="#/home">
+            <li ng-class="{selected: page === 'dashboard'}">Dashboard</li>
+        </a>
+        <a href="#/user">
+            <li ng-class="{selected: page === 'user'}">Users</li>
+        </a>
+        <a href="#/bundle">
+            <li ng-class="{selected: page === 'bundle'}">Bundles</li>
+        </a>
+    </ul>
 </div>

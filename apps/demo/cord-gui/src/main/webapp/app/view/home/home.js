@@ -17,8 +17,28 @@
 (function () {
     'use strict';
 
+    var before = 'http://localhost:8080/rs/dashboard/0',
+        after = 'http://localhost:8080/rs/dashboard/1';
+
     angular.module('cordHome', [])
-        .controller('CordHomeCtrl', ['$log', function ($log) {
-            $log.debug('Cord Home Ctrl has been created.');
+        .controller('CordHomeCtrl', ['$log', '$scope', '$resource',
+            function ($log, $scope, $resource) {
+                var DashboardData, resource;
+                $scope.page = 'dashboard';
+
+                DashboardData = $resource(before);
+                resource = DashboardData.get({},
+                    // success
+                    function () {
+                        $scope.bundle = resource.bundle;
+                        $scope.users = resource.users;
+                    },
+                    // error
+                    function () {
+                        $log.error('Problem with resource', resource);
+                    });
+                $log.debug('Resource received:', resource);
+
+                $log.debug('Cord Home Ctrl has been created.');
         }]);
 }());

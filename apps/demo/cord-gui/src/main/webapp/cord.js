@@ -19,8 +19,10 @@
 
     var modules = [
             'ngRoute',
+            'ngResource',
             'cordMast',
-            'cordFoot'
+            'cordFoot',
+            'cordNav'
         ],
         viewIds = [
             'login',

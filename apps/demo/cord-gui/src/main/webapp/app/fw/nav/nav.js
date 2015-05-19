@@ -14,28 +14,10 @@
  * limitations under the License.
  */
 
-head, body, footer,
-h1, h2, h3, h4, h5, h6, p,
-a, ul, li, div,
-table, tr, td, th, thead, tbody {
-    padding: 0;
-    margin: 0;
-}
-
-h1, h2, h3, h4, h5, h6,
-p, a, li, th, td {
-    font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
-}
-
-#view h2 {
-    text-align: center;
-}
-
-#view div.container {
-    width: 960px;
-    margin: 0 auto;
-}
-
-svg#icon-defs {
-    display: none;
-}
+angular.module('cordNav', [])
+    .directive('nav', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'app/fw/nav/nav.html'
+        };
+    });
