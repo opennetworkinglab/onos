@@ -82,6 +82,8 @@ public class CordFabricManager implements FabricService {
             new ConnectPoint(fabricDeviceId, PortNumber.portNumber(2));
     private ConnectPoint oltControllerConnectPoint =
             new ConnectPoint(fabricDeviceId, PortNumber.portNumber(1));
+    private ConnectPoint radiusConnectPoint =
+            new ConnectPoint(fabricDeviceId, PortNumber.portNumber(5));
 
     private final Multimap<VlanId, ConnectPoint> vlans = HashMultimap.create();
 
@@ -112,16 +114,16 @@ public class CordFabricManager implements FabricService {
                 .matchTcpSrc(openflowPort)
                 .build();
 
-        TrafficSelector toControllerRadius = DefaultTrafficSelector.builder()
+        TrafficSelector toRadius = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchInPort(oltConnectPoint.port())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(radiusPort)
                 .build();
 
-        TrafficSelector fromControllerRadius = DefaultTrafficSelector.builder()
+        TrafficSelector fromRadius = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchInPort(oltControllerConnectPoint.port())
+                .matchInPort(radiusConnectPoint.port())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(radiusPort)
                 .build();
@@ -131,9 +133,14 @@ public class CordFabricManager implements FabricService {
                 .setOutput(oltControllerConnectPoint.port())
                 .build();
 
-        TrafficTreatment forwardFromController = DefaultTrafficTreatment.builder()
+        TrafficTreatment forwardToOLT = DefaultTrafficTreatment.builder()
                 .setOutput(oltConnectPoint.port())
                 .build();
+
+        TrafficTreatment forwardToRadius = DefaultTrafficTreatment.builder()
+                .setOutput(radiusConnectPoint.port())
+                .build();
+
 
         ForwardingObjective ofToController = DefaultForwardingObjective.builder()
                 .fromApp(appId)
@@ -150,31 +157,31 @@ public class CordFabricManager implements FabricService {
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withPriority(PRIORITY)
                 .withSelector(fromControllerOF)
-                .withTreatment(forwardFromController)
+                .withTreatment(forwardToOLT)
                 .add();
 
-        ForwardingObjective radiusToController = DefaultForwardingObjective.builder()
+        ForwardingObjective gotoRadius = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withPriority(PRIORITY)
-                .withSelector(toControllerRadius)
-                .withTreatment(forwardToController)
+                .withSelector(toRadius)
+                .withTreatment(forwardToRadius)
                 .add();
 
-        ForwardingObjective radiusFromController = DefaultForwardingObjective.builder()
+        ForwardingObjective cameFromRadius = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withPriority(PRIORITY)
-                .withSelector(fromControllerRadius)
-                .withTreatment(forwardFromController)
+                .withSelector(fromRadius)
+                .withTreatment(forwardToOLT)
                 .add();
 
         flowObjectiveService.forward(fabricDeviceId, ofToController);
         flowObjectiveService.forward(fabricDeviceId, ofFromController);
-        flowObjectiveService.forward(fabricDeviceId, radiusToController);
-        flowObjectiveService.forward(fabricDeviceId, radiusFromController);
+        flowObjectiveService.forward(fabricDeviceId, gotoRadius);
+        flowObjectiveService.forward(fabricDeviceId, cameFromRadius);
     }
 
     @Override
