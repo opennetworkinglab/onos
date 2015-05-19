@@ -43,6 +43,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -301,7 +302,11 @@ public class NettyMessagingManager implements MessagingService {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, InternalMessage message) throws Exception {
-            dispatchLocally(message);
+            try {
+                dispatchLocally(message);
+            } catch (RejectedExecutionException e) {
+                log.warn("Unable to dispatch message due to {}", e.getMessage());
+            }
         }
 
         @Override

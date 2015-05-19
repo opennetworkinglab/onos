@@ -73,6 +73,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
+    private static final String PROVIDER_NAME = "org.onosproject.provider.lldp";
+
     private static final String PROP_USE_BDDP = "useBDDP";
     private static final String PROP_DISABLE_LD = "disableLinkDiscovery";
     private static final String PROP_LLDP_SUPPRESSION = "lldpSuppression";
@@ -132,13 +134,13 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
      * Creates an OpenFlow link provider.
      */
     public LLDPLinkProvider() {
-        super(new ProviderId("lldp", "org.onosproject.provider.lldp"));
+        super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
     @Activate
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
-        appId = coreService.registerApplication("org.onosproject.provider.lldp");
+        appId = coreService.registerApplication(PROVIDER_NAME);
 
         // to load configuration at startup
         modified(context);
@@ -188,14 +190,14 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         if (disableLinkDiscovery) {
             return;
         }
-        executor.shutdownNow();
-        for (LinkDiscovery ld : discoverers.values()) {
-            ld.stop();
-        }
         providerRegistry.unregister(this);
         deviceService.removeListener(listener);
         packetService.removeProcessor(listener);
         masterService.removeListener(roleListener);
+
+        executor.shutdownNow();
+        discoverers.values().forEach(LinkDiscovery::stop);
+        discoverers.clear();
         providerService = null;
 
         log.info("Stopped");

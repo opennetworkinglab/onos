@@ -45,8 +45,7 @@ public class PortStatsCollector implements TimerTask {
     private final AtomicLong xidAtomic = new AtomicLong(1);
 
     private Timeout timeout;
-
-    private boolean stopTimer = false;
+    private volatile boolean stopped;
 
     /**
      * Creates a GroupStatsCollector object.
@@ -60,23 +59,22 @@ public class PortStatsCollector implements TimerTask {
     }
 
     @Override
-    public void run(Timeout timeout) throws Exception {
+    public void run(Timeout to) throws Exception {
+        if (stopped || timeout.isCancelled()) {
+            return;
+        }
         log.trace("Collecting stats for {}", sw.getStringId());
 
         sendPortStatistic();
 
-        if (!this.stopTimer) {
+        if (!stopped && !timeout.isCancelled()) {
             log.trace("Scheduling stats collection in {} seconds for {}",
                     this.refreshInterval, this.sw.getStringId());
-            timeout.getTimer().newTimeout(this, refreshInterval,
-                    TimeUnit.SECONDS);
+            timeout.getTimer().newTimeout(this, refreshInterval, TimeUnit.SECONDS);
         }
     }
 
     private void sendPortStatistic() {
-        if (log.isTraceEnabled()) {
-            log.trace("sendGroupStatistics {}:{}", sw.getStringId(), sw.getRole());
-        }
         if (sw.getRole() != RoleState.MASTER) {
             return;
         }
@@ -91,17 +89,18 @@ public class PortStatsCollector implements TimerTask {
     /**
      * Starts the collector.
      */
-    public void start() {
+    public synchronized void start() {
         log.info("Starting Port Stats collection thread for {}", sw.getStringId());
+        stopped = false;
         timeout = timer.newTimeout(this, 1, TimeUnit.SECONDS);
     }
 
     /**
      * Stops the collector.
      */
-    public void stop() {
+    public synchronized void stop() {
         log.info("Stopping Port Stats collection thread for {}", sw.getStringId());
-        this.stopTimer = true;
+        stopped = true;
         timeout.cancel();
     }
 }

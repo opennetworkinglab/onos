@@ -104,8 +104,8 @@ public class LinkDiscovery implements TimerTask {
         this.pktService = pktService;
 
         this.mastershipService = checkNotNull(masterService, "WTF!");
-        this.slowPorts = Collections.synchronizedSet(new HashSet<Long>());
-        this.fastPorts = Collections.synchronizedSet(new HashSet<Long>());
+        this.slowPorts = Collections.synchronizedSet(new HashSet<>());
+        this.fastPorts = Collections.synchronizedSet(new HashSet<>());
         this.portProbeCount = new HashMap<>();
         this.lldpPacket = new ONOSLLDP();
         this.lldpPacket.setChassisId(device.chassisId());
@@ -296,14 +296,14 @@ public class LinkDiscovery implements TimerTask {
     }
 
     public synchronized void stop() {
-        timeout.cancel();
         isStopped = true;
+        timeout.cancel();
     }
 
     public synchronized void start() {
         if (isStopped) {
-            timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
             isStopped = false;
+            timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
         } else {
             log.warn("LinkDiscovery started multiple times?");
         }
@@ -361,8 +361,8 @@ public class LinkDiscovery implements TimerTask {
         return slowPorts.contains(portNumber) || fastPorts.contains(portNumber);
     }
 
-    public boolean isStopped() {
-        return isStopped;
+    public synchronized boolean isStopped() {
+        return isStopped || timeout.isCancelled();
     }
 
 }

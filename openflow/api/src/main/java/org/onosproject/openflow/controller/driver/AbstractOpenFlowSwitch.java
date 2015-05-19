@@ -96,14 +96,14 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     @Override
     public final void sendMsg(OFMessage m) {
-        if (role == RoleState.MASTER) {
+        if (role == RoleState.MASTER && channel.isWritable()) {
             channel.write(Collections.singletonList(m));
         }
     }
 
     @Override
     public final void sendMsg(List<OFMessage> msgs) {
-        if (role == RoleState.MASTER) {
+        if (role == RoleState.MASTER && channel.isWritable()) {
             channel.write(msgs);
         }
     }

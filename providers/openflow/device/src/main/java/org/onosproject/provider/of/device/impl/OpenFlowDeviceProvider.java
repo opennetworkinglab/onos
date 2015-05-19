@@ -268,8 +268,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
-            PortStatsCollector psc = new PortStatsCollector(
-                        controller.getSwitch(dpid), POLL_INTERVAL);
+            PortStatsCollector psc =
+                    new PortStatsCollector(controller.getSwitch(dpid), POLL_INTERVAL);
             psc.start();
             collectors.put(dpid, psc);
         }
@@ -314,7 +314,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         /**
          * Translates a RoleState to the corresponding MastershipRole.
          *
-         * @param response
+         * @param response role state
          * @return a MastershipRole
          */
         private MastershipRole roleOf(RoleState response) {
@@ -334,7 +334,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         /**
          * Builds a list of port descriptions for a given list of ports.
          *
-         * @param ports the list of ports
          * @return list of portdescriptions
          */
         private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {

@@ -114,11 +114,8 @@ public class ComponentConfigManager implements ComponentConfigService {
         String componentName = componentClass.getName();
         checkNotNull(componentName, COMPONENT_NULL);
         Map<String, ConfigProperty> cps = properties.remove(componentName);
-        if (cps != null) {
+        if (clear && cps != null) {
             cps.keySet().forEach(name -> store.unsetProperty(componentName, name));
-        }
-
-        if (clear) {
             clearExistingValues(componentName);
         }
     }

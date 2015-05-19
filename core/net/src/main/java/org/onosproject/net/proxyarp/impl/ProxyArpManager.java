@@ -95,11 +95,11 @@ public class ProxyArpManager implements ProxyArpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    private final Multimap<Device, PortNumber> internalPorts =
-            HashMultimap.<Device, PortNumber>create();
+    private final Multimap<Device, PortNumber> internalPorts = HashMultimap.create();
+    private final Multimap<Device, PortNumber> externalPorts = HashMultimap.create();
 
-    private final Multimap<Device, PortNumber> externalPorts =
-            HashMultimap.<Device, PortNumber>create();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+    private final InternalLinkListener linkListener = new InternalLinkListener();
 
     /**
      * Listens to both device service and link service to determine
@@ -107,16 +107,17 @@ public class ProxyArpManager implements ProxyArpService {
      */
     @Activate
     public void activate() {
-        deviceService.addListener(new InternalDeviceListener());
-        linkService.addListener(new InternalLinkListener());
+        deviceService.addListener(deviceListener);
+        linkService.addListener(linkListener);
         determinePortLocations();
-
         log.info("Started");
     }
 
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
         log.info("Stopped");
     }
 

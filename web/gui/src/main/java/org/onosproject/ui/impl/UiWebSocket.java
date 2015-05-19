@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.ui.UiConnection;
@@ -100,11 +101,19 @@ public class UiWebSocket
 
     @Override
     public void onOpen(Connection connection) {
-        log.info("GUI client connected");
         this.connection = connection;
         this.control = (FrameConnection) connection;
-        createHandlers();
-        sendInstanceData();
+        try {
+            createHandlers();
+            sendInstanceData();
+            log.info("GUI client connected");
+
+        } catch (ServiceNotFoundException e) {
+            log.warn("Unable to open GUI connection; services have been shut-down");
+            this.connection.close();
+            this.connection = null;
+            this.control = null;
+        }
     }
 
     @Override
