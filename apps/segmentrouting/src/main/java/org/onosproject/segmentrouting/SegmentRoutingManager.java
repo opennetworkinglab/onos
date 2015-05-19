@@ -249,6 +249,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return policyHandler.getPolicies();
     }
 
+    /**
+     * Returns the tunnel object with the tunnel ID.
+     *
+     * @param tunnelId Tunnel ID
+     * @return Tunnel reference
+     */
     public Tunnel getTunnel(String tunnelId) {
         return tunnelHandler.getTunnel(tunnelId);
     }
@@ -269,10 +275,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
+     * Returns the next objective ID for the NeighborSet given. If the nextObjectiveID does not exist,
+     * a new one is created and returned.
      *
-     * @param deviceId
-     * @param ns
-     * @return
+     * @param deviceId Device ID
+     * @param ns NegighborSet
+     * @return next objective ID
      */
     public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
 
@@ -287,10 +295,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
+     * Removes the next objective ID.
      *
-     * @param deviceId
-     * @param objectiveId
-     * @return
+     * @param deviceId Device ID
+     * @param objectiveId next objective ID to remove
+     * @return true, if succeeds, false otherwise
      */
     public boolean removeNextObjective(DeviceId deviceId, int objectiveId) {
         return groupHandlerMap.get(deviceId).removeGroup(objectiveId);

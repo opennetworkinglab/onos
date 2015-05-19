@@ -26,6 +26,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.segmentrouting.Policy;
 import org.onosproject.segmentrouting.TunnelPolicy;
 
@@ -39,6 +41,8 @@ public final class PolicyCodec extends JsonCodec<Policy> {
     private static final String DST_IP = "dst_ip";
     private static final String SRC_IP = "src_ip";
     private static final String PROTO_TYPE = "proto_type";
+    private static final String SRC_PORT = "src_tp_port";
+    private static final String DST_PORT = "dst_tp_port";
 
     @Override
     public ObjectNode encode(Policy policy, CodecContext context) {
@@ -57,6 +61,29 @@ public final class PolicyCodec extends JsonCodec<Policy> {
             IPCriterion criterion = (IPCriterion) policy.selector().getCriterion(
                     Criterion.Type.IPV4_SRC);
             result.put(SRC_IP, criterion.ip().toString());
+        }
+        if (policy.selector().getCriterion(Criterion.Type.IP_PROTO) != null) {
+            IPProtocolCriterion protocolCriterion =
+                    (IPProtocolCriterion) policy.selector().getCriterion(Criterion.Type.IP_PROTO);
+            result.put(PROTO_TYPE, protocolCriterion.protocol());
+        }
+        if (policy.selector().getCriterion(Criterion.Type.TCP_SRC) != null) {
+            TcpPortCriterion tcpPortCriterion =
+                    (TcpPortCriterion) policy.selector().getCriterion(Criterion.Type.TCP_SRC);
+            result.put(SRC_PORT, tcpPortCriterion.toString());
+        } else if (policy.selector().getCriterion(Criterion.Type.UDP_SRC) != null) {
+            UdpPortCriterion udpPortCriterion =
+                    (UdpPortCriterion) policy.selector().getCriterion(Criterion.Type.UDP_SRC);
+            result.put(SRC_PORT, udpPortCriterion.toString());
+        }
+        if (policy.selector().getCriterion(Criterion.Type.TCP_DST) != null) {
+            TcpPortCriterion tcpPortCriterion =
+                    (TcpPortCriterion) policy.selector().getCriterion(Criterion.Type.TCP_DST);
+            result.put(DST_PORT, tcpPortCriterion.toString());
+        } else if (policy.selector().getCriterion(Criterion.Type.UDP_DST) != null) {
+            UdpPortCriterion udpPortCriterion =
+                    (UdpPortCriterion) policy.selector().getCriterion(Criterion.Type.UDP_DST);
+            result.put(DST_PORT, udpPortCriterion.toString());
         }
         if (policy.selector().getCriterion(Criterion.Type.IP_PROTO) != null) {
             IPProtocolCriterion protocolCriterion =
@@ -81,6 +108,8 @@ public final class PolicyCodec extends JsonCodec<Policy> {
         String srcIp = json.path(SRC_IP).asText();
         String tunnelId = json.path(TUNNEL_ID).asText();
         String protoType = json.path(PROTO_TYPE).asText();
+        short srcPort = json.path(SRC_PORT).shortValue();
+        short dstPort = json.path(DST_PORT).shortValue();
 
         if (tunnelId != null) {
             TrafficSelector.Builder tsb = DefaultTrafficSelector.builder();
@@ -94,8 +123,22 @@ public final class PolicyCodec extends JsonCodec<Policy> {
             if (protoType != null && !protoType.isEmpty()) {
                 Short ipProto = Short.valueOf(IpProtocol.valueOf(protoType).value());
                 tsb.matchIPProtocol(ipProto.byteValue());
+                if (IpProtocol.valueOf(protoType).equals(IpProtocol.TCP)) {
+                    if (srcPort != 0) {
+                        tsb.matchTcpSrc(srcPort);
+                    }
+                    if (dstPort != 0) {
+                        tsb.matchTcpDst(dstPort);
+                    }
+                } else if (IpProtocol.valueOf(protoType).equals(IpProtocol.UDP)) {
+                    if (srcPort != 0) {
+                        tsb.matchUdpSrc(srcPort);
+                    }
+                    if (dstPort != 0) {
+                        tsb.matchUdpDst(dstPort);
+                    }
+                }
             }
-
             TunnelPolicy.Builder tpb = TunnelPolicy.builder().setPolicyId(pid);
             if (tunnelId != null) {
                 tpb.setTunnelId(tunnelId);

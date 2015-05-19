@@ -49,7 +49,6 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
@@ -393,37 +392,6 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             return Collections.emptySet();
         }
 
-        TrafficSelector.Builder filteredSelectorBuilder =
-                DefaultTrafficSelector.builder();
-        if (ethType.ethType() == Ethernet.TYPE_IPV4) {
-            IPCriterion ipSrc = (IPCriterion) selector
-                    .getCriterion(Criterion.Type.IPV4_SRC);
-            IPCriterion ipDst = (IPCriterion) selector
-                    .getCriterion(Criterion.Type.IPV4_DST);
-            IPProtocolCriterion ipProto = (IPProtocolCriterion) selector
-                    .getCriterion(Criterion.Type.IP_PROTO);
-
-            filteredSelectorBuilder
-                    .matchEthType(Ethernet.TYPE_IPV4);
-
-            if (ipSrc != null) {
-                filteredSelectorBuilder.matchIPSrc(ipSrc.ip());
-            }
-            if (ipDst != null) {
-                filteredSelectorBuilder.matchIPDst(ipDst.ip());
-            }
-            if (ipProto != null) {
-                filteredSelectorBuilder.matchIPProtocol(
-                        Short.valueOf(ipProto.protocol()).byteValue());
-            }
-
-            log.debug("processing IPv4 specific forwarding objective");
-        } else {
-            log.warn("VERSATILE forwarding objective does not support {} yet.",
-                    ethType.ethType());
-            return Collections.emptySet();
-        }
-
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
                 .builder();
         treatmentBuilder.wipeDeferred();
@@ -449,12 +417,11 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             return Collections.emptySet();
         }
 
-        TrafficSelector filteredSelector = filteredSelectorBuilder.build();
         TrafficTreatment treatment = treatmentBuilder.build();
 
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId()).withPriority(fwd.priority())
-                .forDevice(deviceId).withSelector(filteredSelector)
+                .forDevice(deviceId).withSelector(fwd.selector())
                 .withTreatment(treatment);
 
         if (fwd.permanent()) {
