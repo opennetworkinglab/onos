@@ -26,7 +26,7 @@ import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipStore;
 import org.onosproject.mastership.MastershipTermService;

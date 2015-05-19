@@ -36,7 +36,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.Event;
-import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;

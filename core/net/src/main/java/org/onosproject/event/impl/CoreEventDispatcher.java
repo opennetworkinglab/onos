@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -45,11 +46,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class CoreEventDispatcher extends DefaultEventSinkRegistry
         implements EventDeliveryService {
 
-    // Maximum number of millis a sink can take to process an event.
-    private static final long MAX_EXECUTE_MS = 1_000;
-    private static final long WATCHDOG_MS = MAX_EXECUTE_MS / 4;
-
     private final Logger log = getLogger(getClass());
+
+    // Default number of millis a sink can take to process an event.
+    private static final long DEFAULT_EXECUTE_MS = 2_000; // ms
+    private static final long WATCHDOG_MS = 250; // ms
 
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
@@ -61,6 +62,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     };
 
     private DispatchLoop dispatchLoop;
+    private long maxProcessMillis = DEFAULT_EXECUTE_MS;
 
     // Means to detect long-running sinks
     private TimerTask watchdog;
@@ -90,6 +92,18 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
         watchdog.cancel();
         post(KILL_PILL);
         log.info("Stopped");
+    }
+
+    @Override
+    public void setDispatchTimeLimit(long millis) {
+        checkArgument(millis >= WATCHDOG_MS,
+                      "Time limit must be greater than %s", WATCHDOG_MS);
+        maxProcessMillis = millis;
+    }
+
+    @Override
+    public long getDispatchTimeLimit() {
+        return maxProcessMillis;
     }
 
     // Auxiliary event dispatching loop that feeds off the events queue.
@@ -126,7 +140,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
                 lastStart = 0;
             } else {
                 log.warn("No sink registered for event class {}",
-                         event.getClass());
+                         event.getClass().getName());
             }
         }
 
@@ -140,7 +154,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
         @Override
         public void run() {
             long delta = System.currentTimeMillis() - lastStart;
-            if (lastStart > 0 && delta > MAX_EXECUTE_MS) {
+            if (lastStart > 0 && delta > maxProcessMillis) {
                 log.error("Event sink {} exceeded execution time limit: {} ms",
                           lastSink.getClass().getName(), delta);
 

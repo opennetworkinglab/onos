@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.event.impl;
+package org.onosproject.common.event.impl;
 
 import org.onosproject.event.DefaultEventSinkRegistry;
 import org.onosproject.event.Event;
@@ -37,4 +37,12 @@ public class TestEventDispatcher extends DefaultEventSinkRegistry
         sink.process(event);
     }
 
+    @Override
+    public void setDispatchTimeLimit(long millis) {
+    }
+
+    @Override
+    public long getDispatchTimeLimit() {
+        return 0;
+    }
 }

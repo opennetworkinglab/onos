@@ -22,10 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
-import org.onosproject.event.DefaultEventSinkRegistry;
-import org.onosproject.event.Event;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.EventSink;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipEvent.Type;
@@ -44,7 +41,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -168,21 +164,4 @@ public class ReplicaInfoManagerTest {
         }
     }
 
-
-    // code clone
-    /**
-     * Implements event delivery system that delivers events synchronously, or
-     * in-line with the post method invocation.
-     */
-    private static class TestEventDispatcher extends DefaultEventSinkRegistry
-            implements EventDeliveryService {
-
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        @Override
-        public void post(Event event) {
-            EventSink sink = getSink(event.getClass());
-            checkState(sink != null, "No sink for event %s", event);
-            sink.process(event);
-        }
-    }
 }

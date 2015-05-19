@@ -20,4 +20,19 @@ package org.onosproject.event;
  * then dispatching them to the appropriate event sink.
  */
 public interface EventDeliveryService extends EventDispatcher, EventSinkRegistry {
+
+    /**
+     * Sets the number of millis that an event sink has to process an event.
+     *
+     * @param millis number of millis allowed per sink per event
+     */
+    void setDispatchTimeLimit(long millis);
+
+    /**
+     * Returns the number of millis that an event sink has to process an event.
+     *
+     * @return number of millis allowed per sink per event
+     */
+    long getDispatchTimeLimit();
+
 }

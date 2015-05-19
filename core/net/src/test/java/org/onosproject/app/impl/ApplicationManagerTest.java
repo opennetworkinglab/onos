@@ -28,7 +28,7 @@ import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.event.impl.TestEventDispatcher;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 
 import java.io.InputStream;
 import java.net.URI;

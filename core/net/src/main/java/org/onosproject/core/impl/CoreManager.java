@@ -17,12 +17,12 @@ package org.onosproject.core.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
 import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -32,9 +32,11 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.IdBlockStore;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Version;
+import org.onosproject.event.EventDeliveryService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.Dictionary;
 import java.util.List;
@@ -64,9 +66,18 @@ public class CoreManager implements CoreService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "sharedThreadPoolSize", intValue = 30,
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDeliveryService;
+
+    private static final int DEFAULT_POOL_SIZE = 30;
+    @Property(name = "sharedThreadPoolSize", intValue = DEFAULT_POOL_SIZE,
             label = "Configure shared pool maximum size ")
-    private int sharedThreadPoolSize = 30;
+    private int sharedThreadPoolSize = DEFAULT_POOL_SIZE;
+
+    private static final int DEFAULT_EVENT_TIME = 2000;
+    @Property(name = "maxEventTimeLimit", intValue = DEFAULT_EVENT_TIME,
+            label = "Maximum number of millis an event sink has to process an event")
+    private int maxEventTimeLimit = DEFAULT_EVENT_TIME;
 
     @Activate
     public void activate() {
@@ -121,30 +132,33 @@ public class CoreManager implements CoreService {
     @Modified
     public void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
-        Integer sharedThreadPoolSizeConfig =
-                getIntegerProperty(properties, "sharedThreadPoolSize");
-        if (sharedThreadPoolSizeConfig == null) {
-            log.info("Shared Pool Size is not configured, default value is {}",
-                    sharedThreadPoolSize);
-        } else {
-            if (sharedThreadPoolSizeConfig > 0) {
-                sharedThreadPoolSize = sharedThreadPoolSizeConfig;
-                SharedExecutors.setPoolSize(sharedThreadPoolSize);
-                log.info("Configured. Shared Pool Size is configured to {}",
-                        sharedThreadPoolSize);
-            } else {
-                log.warn("Shared Pool Size size must be greater than 0");
-            }
-        }
-    }
+        Integer poolSize = getIntegerProperty(properties, "sharedThreadPoolSize");
 
+        if (poolSize != null && poolSize > 1) {
+            sharedThreadPoolSize = poolSize;
+            SharedExecutors.setPoolSize(sharedThreadPoolSize);
+        } else if (poolSize != null) {
+            log.warn("sharedThreadPoolSize must be greater than 1");
+        }
+
+        Integer timeLimit = getIntegerProperty(properties, "maxEventTimeLimit");
+        if (timeLimit != null && timeLimit > 1) {
+            maxEventTimeLimit = timeLimit;
+            eventDeliveryService.setDispatchTimeLimit(maxEventTimeLimit);
+        } else if (timeLimit != null) {
+            log.warn("maxEventTimeLimit must be greater than 1");
+        }
+
+        log.info("Settings: sharedThreadPoolSize={}, maxEventTimeLimit={}",
+                 sharedThreadPoolSize, maxEventTimeLimit);
+    }
 
 
     /**
      * Get Integer property from the propertyName
      * Return null if propertyName is not found.
      *
-     * @param properties properties to be looked up
+     * @param properties   properties to be looked up
      * @param propertyName the name of the property to look up
      * @return value when the propertyName is defined or return null
      */
