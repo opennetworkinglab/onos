@@ -342,7 +342,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (sw.isOptical()) {
                 OpenFlowOpticalSwitch opsw = (OpenFlowOpticalSwitch) sw;
                 opsw.getPortTypes().forEach(type -> {
-                    LOG.info("ports: {}", opsw.getPortsOf(type));
+                    LOG.debug("ports: {}", opsw.getPortsOf(type));
                     opsw.getPortsOf(type).forEach(
                         op -> {
                             portDescs.add(buildPortDescription(type, (OFPortOptical) op));
@@ -406,10 +406,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (port.getVersion() == OFVersion.OF_13
                     && ptype == PortDescPropertyType.OPTICAL_TRANSPORT) {
                 // At this point, not much is carried in the optical port message.
-                LOG.info("Optical transport port message {}", port.toString());
+                LOG.debug("Optical transport port message {}", port.toString());
             } else {
                 // removable once 1.4+ support complete.
-                LOG.warn("Unsupported optical port properties");
+                LOG.debug("Unsupported optical port properties");
             }
             return new DefaultPortDescription(portNo, enabled, type, 0, annotations);
         }

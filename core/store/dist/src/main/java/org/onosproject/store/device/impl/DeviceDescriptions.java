@@ -28,6 +28,9 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
+import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.Timestamped;
@@ -97,9 +100,34 @@ class DeviceDescriptions {
         if (oldOne != null) {
             SparseAnnotations merged = union(oldOne.value().annotations(),
                                              newDesc.value().annotations());
-            newOne = new Timestamped<PortDescription>(
-                    new DefaultPortDescription(newDesc.value(), merged),
-                    newDesc.timestamp());
+            newOne = null;
+            switch (newDesc.value().type()) {
+                case OMS:
+                    OmsPortDescription omsDesc = (OmsPortDescription) (newDesc.value());
+                    newOne = new Timestamped<PortDescription>(
+                            new OmsPortDescription(
+                                    omsDesc, omsDesc.minFrequency(), omsDesc.maxFrequency(), omsDesc.grid(), merged),
+                            newDesc.timestamp());
+                    break;
+                case OCH:
+                    OchPortDescription ochDesc = (OchPortDescription) (newDesc.value());
+                    newOne = new Timestamped<PortDescription>(
+                            new OchPortDescription(
+                                    ochDesc, ochDesc.signalType(), ochDesc.isTunable(), ochDesc.lambda(), merged),
+                            newDesc.timestamp());
+                    break;
+                case ODUCLT:
+                    OduCltPortDescription ocDesc = (OduCltPortDescription) (newDesc.value());
+                    newOne = new Timestamped<PortDescription>(
+                            new OduCltPortDescription(
+                                    ocDesc, ocDesc.signalType(), merged),
+                            newDesc.timestamp());
+                    break;
+                default:
+                    newOne = new Timestamped<PortDescription>(
+                            new DefaultPortDescription(newDesc.value(), merged),
+                            newDesc.timestamp());
+            }
         }
         portDescs.put(newOne.value().portNumber(), newOne);
     }

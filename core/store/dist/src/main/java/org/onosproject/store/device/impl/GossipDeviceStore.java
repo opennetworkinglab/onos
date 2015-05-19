@@ -717,7 +717,6 @@ public class GossipDeviceStore
     public synchronized DeviceEvent updatePortStatus(ProviderId providerId,
                                                      DeviceId deviceId,
                                                      PortDescription portDescription) {
-
         final Timestamp newTimestamp;
         try {
             newTimestamp = deviceClockService.getTimestamp(deviceId);
@@ -1000,13 +999,14 @@ public class GossipDeviceStore
         // if no primary, assume not enabled
         boolean isEnabled = false;
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
-
+        Timestamp newest = null;
         final Timestamped<PortDescription> portDesc = primDescs.getPortDesc(number);
         if (portDesc != null) {
             isEnabled = portDesc.value().isEnabled();
             annotations = merge(annotations, portDesc.value().annotations());
+            newest = portDesc.timestamp();
         }
-
+        Port updated = null;
         for (Entry<ProviderId, DeviceDescriptions> e : descsMap.entrySet()) {
             if (e.getKey().equals(primary)) {
                 continue;
@@ -1019,30 +1019,35 @@ public class GossipDeviceStore
             // annotation merging. not so efficient, should revisit later
             final Timestamped<PortDescription> otherPortDesc = e.getValue().getPortDesc(number);
             if (otherPortDesc != null) {
+                if (newest != null && newest.isNewerThan(otherPortDesc.timestamp())) {
+                    continue;
+                }
                 annotations = merge(annotations, otherPortDesc.value().annotations());
+                switch (otherPortDesc.value().type()) {
+                    case OMS:
+                        OmsPortDescription omsPortDesc = (OmsPortDescription) otherPortDesc.value();
+                        updated = new OmsPort(device, number, isEnabled, omsPortDesc.minFrequency(),
+                                omsPortDesc.maxFrequency(), omsPortDesc.grid());
+                        break;
+                    case OCH:
+                        OchPortDescription ochPortDesc = (OchPortDescription) otherPortDesc.value();
+                        updated = new OchPort(device, number, isEnabled, ochPortDesc.signalType(),
+                                ochPortDesc.isTunable(), ochPortDesc.lambda(), annotations);
+                        break;
+                    case ODUCLT:
+                        OduCltPortDescription oduCltPortDesc = (OduCltPortDescription) otherPortDesc.value();
+                        updated = new OduCltPort(device, number, isEnabled, oduCltPortDesc.signalType(), annotations);
+                        break;
+                    default:
+                        updated = new DefaultPort(device, number, isEnabled, annotations);
+                }
+                newest = otherPortDesc.timestamp();
             }
         }
-
         if (portDesc == null) {
-            return new DefaultPort(device, number, false, annotations);
+            return updated == null ? new DefaultPort(device, number, false, annotations) : updated;
         }
-
-        switch (portDesc.value().type()) {
-            case OMS:
-                OmsPortDescription omsPortDesc = (OmsPortDescription) portDesc.value();
-                return new OmsPort(device, number, isEnabled, omsPortDesc.minFrequency(),
-                        omsPortDesc.maxFrequency(), omsPortDesc.grid());
-            case OCH:
-                OchPortDescription ochPortDesc = (OchPortDescription) portDesc.value();
-                return new OchPort(device, number, isEnabled, ochPortDesc.signalType(),
-                        ochPortDesc.isTunable(), ochPortDesc.lambda(), annotations);
-            case ODUCLT:
-                OduCltPortDescription oduCltPortDesc = (OduCltPortDescription) portDesc.value();
-                return new OduCltPort(device, number, isEnabled, oduCltPortDesc.signalType(), annotations);
-            default:
-                return new DefaultPort(device, number, isEnabled, portDesc.value().type(),
-                        portDesc.value().portSpeed(), annotations);
-        }
+        return updated == null ? new DefaultPort(device, number, isEnabled, annotations) : updated;
     }
 
     /**

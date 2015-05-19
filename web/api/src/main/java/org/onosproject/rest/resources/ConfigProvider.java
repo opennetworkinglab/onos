@@ -17,19 +17,28 @@ package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Frequency;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -41,6 +50,9 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
+import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -81,6 +93,10 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             new ProviderId("cfg", "org.onosproject.rest", true);
 
     private static final String UNKNOWN = "unknown";
+
+    private static final Frequency CENTER = Frequency.ofTHz(193.1);
+    // C-band has 4.4 THz (4,400 GHz) total bandwidth
+    private static final Frequency TOTAL = Frequency.ofTHz(4.4);
 
     private CountDownLatch deviceLatch;
 
@@ -200,6 +216,21 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     // Parses the given node with port information.
     private PortDescription parsePort(JsonNode node) {
         Port.Type type = Port.Type.valueOf(node.path("type").asText("COPPER"));
+        switch (type) {
+            case COPPER:
+                return new DefaultPortDescription(portNumber(node.path("port").asLong(0)),
+                        node.path("enabled").asBoolean(true),
+                        type, node.path("speed").asLong(1_000));
+            case FIBER:
+                // Currently, assume OMS when FIBER. Provide sane defaults.
+                return new OmsPortDescription(portNumber(node.path("port").asLong(0)),
+                        node.path("enabled").asBoolean(true),
+                        CENTER,
+                        CENTER.add(TOTAL),
+                        Frequency.ofGHz(100));
+            default:
+                log.warn("{}: Unsupported Port Type");
+        }
         return new DefaultPortDescription(portNumber(node.path("port").asLong(0)),
                                           node.path("enabled").asBoolean(true),
                                           type, node.path("speed").asLong(1_000));
@@ -224,7 +255,8 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         ConnectPoint dst = connectPoint(get(node, "dst"));
         Link.Type type = Link.Type.valueOf(get(node, "type", "DIRECT"));
         SparseAnnotations annotations = annotations(node.get("annotations"));
-
+        // take annotations to update optical ports with correct attributes.
+        updatePorts(src, dst, annotations);
         DefaultLinkDescription desc = reverse ?
                 new DefaultLinkDescription(dst, src, type, annotations) :
                 new DefaultLinkDescription(src, dst, type, annotations);
@@ -232,6 +264,98 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
         connectPoints.add(src);
         connectPoints.add(dst);
+    }
+
+    private void updatePorts(ConnectPoint src, ConnectPoint dst, SparseAnnotations annotations) {
+        DeviceId srcId = src.deviceId();
+        DeviceId dstId = dst.deviceId();
+        Port srcPort = deviceService.getPort(srcId, src.port());
+        Port dstPort = deviceService.getPort(dstId, dst.port());
+
+        final String linkType = annotations.value("optical.type");
+        if ("cross-connect".equals(linkType)) {
+            String value = annotations.value("bandwidth").trim();
+            try {
+                double bw = Double.parseDouble(value);
+                updateOchPort(bw, srcPort, dstPort, srcId, dstId);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid bandwidth ({}), can't configure port(s)", value);
+                return;
+            }
+        } else if ("WDM".equals(linkType)) {
+            String value = annotations.value("optical.waves").trim();
+            try {
+                int numChls = Integer.parseInt(value);
+                updateOMSPorts(numChls, srcPort, dstPort, srcId, dstId);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid channel ({}), can't configure port(s)", value);
+                return;
+            }
+        }
+    }
+
+    // uses 'bandwidth' annotation to determine the channel spacing.
+    private void updateOchPort(double bw, Port srcPort, Port dstPort, DeviceId srcId, DeviceId dstId) {
+        Device src = deviceService.getDevice(srcId);
+        Device dst = deviceService.getDevice(dstId);
+        // bandwidth in MHz (assuming Hz - linc is not clear if Hz or b).
+        Frequency spacing = Frequency.ofMHz(bw);
+        // channel bandwidth is smaller than smallest standard channel spacing.
+        ChannelSpacing chsp = null;
+        if (spacing.compareTo(ChannelSpacing.CHL_6P25GHZ.frequency()) <= 0) {
+            chsp = ChannelSpacing.CHL_6P25GHZ;
+        }
+        for (int i = 1; i < ChannelSpacing.values().length; i++) {
+            Frequency val = ChannelSpacing.values()[i].frequency();
+            // pick the next highest or equal channel interval.
+            if (val.isLessThan(spacing)) {
+                chsp = ChannelSpacing.values()[i - 1];
+                break;
+            }
+        }
+        if (chsp == null) {
+            log.warn("Invalid channel spacing ({}), can't configure port(s)", spacing);
+            return;
+        }
+        OchSignal signal = new OchSignal(GridType.DWDM, chsp, 1, 1);
+        if (src.type() == Device.Type.ROADM) {
+            PortDescription portDesc = new OchPortDescription(srcPort.number(), srcPort.isEnabled(),
+                    OduSignalType.ODU4, true, signal);
+            deviceProviderService.portStatusChanged(srcId, portDesc);
+        }
+        if (dst.type() == Device.Type.ROADM) {
+            PortDescription portDesc = new OchPortDescription(dstPort.number(), dstPort.isEnabled(),
+                    OduSignalType.ODU4, true, signal);
+            deviceProviderService.portStatusChanged(dstId, portDesc);
+        }
+    }
+
+    private void updateOMSPorts(int numChls, Port srcPort, Port dstPort, DeviceId srcId, DeviceId dstId) {
+        // round down to largest slot that allows numChl channels to fit into C
+        // band range
+        ChannelSpacing chl = null;
+        Frequency perChl = TOTAL.floorDivision(numChls);
+        for (int i = 0; i < ChannelSpacing.values().length; i++) {
+            Frequency val = ChannelSpacing.values()[i].frequency();
+            if (val.isLessThan(perChl)) {
+                chl = ChannelSpacing.values()[i];
+                break;
+            }
+        }
+        if (chl == null) {
+            chl = ChannelSpacing.CHL_6P25GHZ;
+        }
+
+        // if true, there was less channels than can be tightly packed.
+        Frequency grid = (chl == null) ? Frequency.ofGHz(100) : chl.frequency();
+        // say Linc's 1st slot starts at CENTER and goes up from there.
+        Frequency min = CENTER.add(grid);
+        Frequency max = CENTER.add(grid.multiply(numChls));
+
+        PortDescription srcPortDesc = new OmsPortDescription(srcPort.number(), srcPort.isEnabled(), min, max, grid);
+        PortDescription dstPortDesc = new OmsPortDescription(dstPort.number(), dstPort.isEnabled(), min, max, grid);
+        deviceProviderService.portStatusChanged(srcId, srcPortDesc);
+        deviceProviderService.portStatusChanged(dstId, dstPortDesc);
     }
 
     // Parses the given JSON and provides hosts as configured.
@@ -298,14 +422,32 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
     // Creates a port description from the specified port.
     private PortDescription description(Port p) {
-        return new DefaultPortDescription(p.number(), p.isEnabled(), p.type(), p.portSpeed());
+        switch (p.type()) {
+            case OMS:
+                OmsPort op = (OmsPort) p;
+                return new OmsPortDescription(
+                        op.number(), op.isEnabled(), op.minFrequency(), op.maxFrequency(), op.grid());
+            case OCH:
+                OchPort ochp = (OchPort) p;
+                return new OchPortDescription(
+                        ochp.number(), ochp.isEnabled(), ochp.signalType(), ochp.isTunable(), ochp.lambda());
+            case ODUCLT:
+                OduCltPort odup = (OduCltPort) p;
+                return new OduCltPortDescription(
+                        odup.number(), odup.isEnabled(), odup.signalType());
+            default:
+                return new DefaultPortDescription(p.number(), p.isEnabled(), p.type(), p.portSpeed());
+        }
     }
 
     // Creates a port description from the specified connection point.
     private PortDescription description(ConnectPoint cp) {
-        return new DefaultPortDescription(cp.port(), true);
+        Port p = deviceService.getPort(cp.deviceId(), cp.port());
+        if (p == null) {
+            return new DefaultPortDescription(cp.port(), true);
+        }
+        return description(p);
     }
-
 
     // Produces set of annotations from the given JSON node.
     private SparseAnnotations annotations(JsonNode node) {
