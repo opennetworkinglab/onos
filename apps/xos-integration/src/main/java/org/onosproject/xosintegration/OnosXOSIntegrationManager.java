@@ -15,11 +15,12 @@
  */
 package org.onosproject.xosintegration;
 
-import java.util.Dictionary;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,19 +29,28 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import java.util.Dictionary;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.JSON_UTF_8;
@@ -68,11 +78,25 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     private static final String XOS_TENANT_BASE_URI = "/xoslib/volttenant/";
     private static final int TEST_XOS_PROVIDER_SERVICE = 1;
 
+    private static final DeviceId FABRIC_DEVICE_ID = DeviceId.deviceId("of:5e3e486e73000187");
+    private static final PortNumber FABRIC_OLT_CONNECT_POINT = PortNumber.portNumber(2);
+    private static final PortNumber FABRIC_VCPE_CONNECT_POINT = PortNumber.portNumber(3);
+    private static final String FABRIC_CONTROLLER_ADDRESS = "10.0.3.136";
+    private static final int FABRIC_SERVER_PORT = 8181;
+    private static final String FABRIC_BASE_URI = "/onos/cordfabric/vlans/add";
+
+    private static final ConnectPoint FABRIC_PORT = new ConnectPoint(
+            DeviceId.deviceId("of:000090e2ba82f974"),
+            PortNumber.portNumber(2));
+
     private final Logger log = getLogger(getClass());
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
 
     @Property(name = XOS_SERVER_ADDRESS_PROPERTY_NAME,
               value = TEST_XOS_SERVER_ADDRESS,
@@ -267,9 +291,16 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
                 .withProviderService(providerServiceId)
                 .withServiceSpecificId(newTenant.serviceSpecificId())
                 .withVlanId(newTenant.vlanId())
+                .withPort(newTenant.port())
                 .build();
         String json = tenantToJson(tenantToCreate);
+
+        provisionDataPlane(tenantToCreate);
+
         postRest(json);
+
+        provisionFabric(VlanId.vlanId(Short.parseShort(newTenant.vlanId())));
+
         return newTenant;
     }
 
@@ -282,6 +313,72 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         } else {
             return null;
         }
+    }
+
+    private void provisionDataPlane(VoltTenant tenant) {
+        VlanId vlan = VlanId.vlanId(Short.parseShort(tenant.vlanId()));
+
+        TrafficSelector fromGateway = DefaultTrafficSelector.builder()
+                .matchInPhyPort(tenant.port().port())
+                .build();
+
+        TrafficSelector fromFabric = DefaultTrafficSelector.builder()
+                .matchInPhyPort(FABRIC_PORT.port())
+                .matchVlanId(vlan)
+                .build();
+
+        TrafficTreatment toFabric = DefaultTrafficTreatment.builder()
+                .pushVlan()
+                .setVlanId(vlan)
+                .setOutput(FABRIC_PORT.port())
+                .build();
+
+        TrafficTreatment toGateway = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .setOutput(tenant.port().port())
+                .build();
+
+        ForwardingObjective forwardToFabric = DefaultForwardingObjective.builder()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(1000)
+                .makePermanent()
+                .fromApp(appId)
+                .withSelector(fromGateway)
+                .withTreatment(toFabric)
+                .add();
+
+        ForwardingObjective forwardToGateway = DefaultForwardingObjective.builder()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(1000)
+                .makePermanent()
+                .fromApp(appId)
+                .withSelector(fromFabric)
+                .withTreatment(toGateway)
+                .add();
+
+        flowObjectiveService.forward(FABRIC_PORT.deviceId(), forwardToFabric);
+        flowObjectiveService.forward(FABRIC_PORT.deviceId(), forwardToGateway);
+    }
+
+    private void provisionFabric(VlanId vlanId) {
+        String json = "{\"vlan\":" + vlanId + ",\"ports\":[";
+        json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
+                + FABRIC_OLT_CONNECT_POINT.toString() + "\"},";
+        json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
+                + FABRIC_VCPE_CONNECT_POINT.toString() + "\"}";
+        json += "]}";
+
+        String baseUrl = "http://" + FABRIC_CONTROLLER_ADDRESS + ":"
+                + Integer.toString(FABRIC_SERVER_PORT);
+        Client client = Client.create();
+        client.addFilter(new HTTPBasicAuthFilter("padmin@vicci.org", "letmein"));
+        WebResource resource = client.resource(baseUrl
+                                                       + FABRIC_BASE_URI);
+        WebResource.Builder builder = resource.accept(JSON_UTF_8.toString())
+                .type(JSON_UTF_8.toString());
+
+        ClientResponse response = builder.post(ClientResponse.class, json);
+
     }
 
     /**

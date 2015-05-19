@@ -16,6 +16,7 @@
 package org.onosproject.xosintegration;
 
 import com.google.common.base.MoreObjects;
+import org.onosproject.net.ConnectPoint;
 
 public final class VoltTenant {
 
@@ -24,6 +25,7 @@ public final class VoltTenant {
     private final long providerService;
     private final String serviceSpecificId;
     private final String vlanId;
+    private final ConnectPoint port;
 
     /**
      * Constructs a vOLT tenant object.
@@ -35,12 +37,13 @@ public final class VoltTenant {
      * @param vlanId vlan id for the user
      */
     private VoltTenant(String humanReadableName, long id, long providerService,
-                       String serviceSpecificId, String vlanId) {
+                       String serviceSpecificId, String vlanId, ConnectPoint port) {
         this.humanReadableName = humanReadableName;
         this.id = id;
         this.providerService = providerService;
         this.serviceSpecificId = serviceSpecificId;
         this.vlanId = vlanId;
+        this.port = port;
     }
 
     /**
@@ -97,6 +100,10 @@ public final class VoltTenant {
         return vlanId;
     }
 
+    public ConnectPoint port() {
+        return port;
+    }
+
     /**
      * Builder class to allow callers to assemble tenants.
      */
@@ -107,6 +114,7 @@ public final class VoltTenant {
         private long providerService = -1;
         private String serviceSpecificId = "unknown";
         private String vlanId = "unknown";
+        private ConnectPoint port;
 
         /**
          * Sets the name string for the tenant.
@@ -163,6 +171,11 @@ public final class VoltTenant {
             return this;
         }
 
+        public Builder withPort(ConnectPoint port) {
+            this.port = port;
+            return this;
+        }
+
         /**
          * Constructs a VoltTenant from the assembled data.
          *
@@ -170,7 +183,7 @@ public final class VoltTenant {
          */
         public VoltTenant build() {
             return new VoltTenant(humanReadableName, id, providerService,
-                    serviceSpecificId, vlanId);
+                    serviceSpecificId, vlanId, port);
         }
     }
 
@@ -182,6 +195,7 @@ public final class VoltTenant {
                 .add("providerService", providerService())
                 .add("serviceSpecificId", serviceSpecificId())
                 .add("vlanId", vlanId())
+                .add("port", port())
                 .toString();
     }
 

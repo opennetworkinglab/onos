@@ -18,6 +18,7 @@ package org.onosproject.xosintegration.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.xosintegration.VoltTenant;
 import org.onosproject.xosintegration.VoltTenantService;
 
@@ -38,6 +39,11 @@ public class VoltTenantsCreateCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String vlanId;
 
+    @Argument(index = 2, name = "port",
+            description = "Port",
+            required = true, multiValued = false)
+    String port;
+
     @Override
     protected void execute() {
         VoltTenantService service = get(VoltTenantService.class);
@@ -45,7 +51,9 @@ public class VoltTenantsCreateCommand extends AbstractShellCommand {
         VoltTenant newTenant = VoltTenant.builder()
                 .withServiceSpecificId(serviceSpecificId)
                 .withVlanId(vlanId)
+                .withPort(ConnectPoint.deviceConnectPoint(port))
                 .build();
+
         service.addTenant(newTenant);
     }
 }

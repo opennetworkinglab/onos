@@ -29,9 +29,13 @@
             <action class="org.onosproject.xosintegration.cli.VoltRemoveTenantCommand"/>
             <completers>
                 <ref component-id="tenantIdCompleter"/>
+                <ref component-id="placeholderCompleter"/>
+                <ref component-id="connectPointCompleter"/>
                 <null/>
             </completers>
         </command>
     </command-bundle>
     <bean id="tenantIdCompleter" class="org.onosproject.xosintegration.cli.TenantIdCompleter"/>
+    <bean id="placeholderCompleter" class="org.onosproject.cli.PlaceholderCompleter"/>
+    <bean id="connectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
 </blueprint>
