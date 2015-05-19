@@ -19,7 +19,6 @@ div.mast {
     height: 50px;
     background-color: gray;
     position: relative;
-    margin-bottom: 2%;
 }
 
 .mast div {
@@ -34,4 +33,12 @@ div.mast {
 
 .mast div.right {
     right: 25px;
+}
+
+.mast a {
+    text-decoration: none;
+    color: white;
+}
+.mast a:visited {
+    color: white;
 }

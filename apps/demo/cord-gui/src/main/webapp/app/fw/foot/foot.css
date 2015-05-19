@@ -15,11 +15,15 @@
  */
 
 div.foot {
-    width: 100%;
+    width: 960px;
     height: 20px;
     background-color: gray;
     position: absolute;
+    left: 0;
+    right: 0;
     bottom: 0;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .foot div {

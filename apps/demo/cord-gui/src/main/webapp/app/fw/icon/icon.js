@@ -27,7 +27,7 @@
                         '<svg class="embedded-icon" width="' + attrs.size + '" ' +
                         'height="' + attrs.size + '" viewBox="0 0 50 50">' +
                             '<g class="icon">' +
-                                '<rect width="50" height="50"></rect>' +
+                                '<circle cx="25" cy="25" r="25"></circle>' +
                                 '<use width="50" height="50" class="glyph '
                                 + attrs.id + '" xlink:href="#' + attrs.id +
                                 '"></use>' +

@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-div#db-bundle, div#db-users {
-    float: left;
+#home table {
+    width: 100%;
 }
 
-svg.embedded-icon g.icon rect {
-    fill: none;
-}
-
-svg.embedded-icon g.icon .glyph.checkMark {
-    fill: #3eff7d;
-}
-svg.embedded-icon g.icon .glyph.xMark {
-    fill: #a81c22;
+#home td, #home th {
+    text-align: center;
 }

@@ -27,13 +27,18 @@ p, a, li, th, td {
     font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
 }
 
-#view h2 {
-    text-align: center;
-}
-
-#view div.container {
-    width: 960px;
+div.container {
+    width: 75%;
     margin: 0 auto;
+}
+div.main-left, div.main-right {
+    float: left;
+}
+div.main-left {
+    width: 38%;
+}
+div.main-right {
+    width: 62%;
 }
 
 svg#icon-defs {

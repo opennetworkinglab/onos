@@ -15,10 +15,19 @@
  */
 
 .nav ul {
+    display: table;
+    table-layout: fixed;
     list-style-type: none;
     width: 100%;
+    margin-bottom: 2%;
+    padding: 1% 0;
 }
 
 .nav li {
-    display: inline;
+
+}
+
+.nav a {
+    display: table-cell;
+    text-align: center;
 }

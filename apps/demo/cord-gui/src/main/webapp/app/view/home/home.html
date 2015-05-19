@@ -1,37 +1,13 @@
 <!-- Home page partial html -->
-<div class="container">
+<div id="home" class="container">
     <nav></nav>
-    <h2>Dashboard</h2>
-    <div id="db-bundle">
-        <table class="title">
-            <tr>
-                <th>{{bundle.name}}</th>
-            </tr>
-        </table>
-        <table class="content">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Active</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="func in bundle.functions">
-                    <td>{{func.id}}</td>
-                    <td>{{func.name}}</td>
-                    <td ng-if="func.active">
-                        <icon size="20" id="checkMark"></icon>
-                    </td>
-                    <td ng-if="!func.active">
-                        <icon size="20" id="xMark"></icon>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="main-left">
+        <h2>Dashboard</h2>
+        <h4>You are subscribed to the</h4>
+        <h3>{{bundle}}</h3>
     </div>
 
-    <div id="db-users">
+    <div class="main-right">
         <table class="title">
             <tr>
                 <th>Users</th>
@@ -40,16 +16,14 @@
         <table class="content">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Name</th>
-                    <th>Role</th>
+                    <th>MAC Address</th>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="user in users">
-                    <td>{{user.id}}</td>
                     <td>{{user.name}}</td>
-                    <td>{{user.role}}</td>
+                    <td>{{user.mac}}</td>
                 </tr>
             </tbody>
         </table>
