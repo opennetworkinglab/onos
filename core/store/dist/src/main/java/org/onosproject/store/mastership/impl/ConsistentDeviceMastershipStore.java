@@ -90,8 +90,6 @@ public class ConsistentDeviceMastershipStore
     private NodeId localNodeId;
     private final Set<DeviceId> connectedDevices = Sets.newHashSet();
 
-    private static final MessageSubject ROLE_QUERY_SUBJECT =
-            new MessageSubject("mastership-store-device-role-query");
     private static final MessageSubject ROLE_RELINQUISH_SUBJECT =
             new MessageSubject("mastership-store-device-role-relinquish");
     private static final MessageSubject TRANSITION_FROM_MASTER_TO_STANDBY_SUBJECT =
@@ -129,11 +127,6 @@ public class ConsistentDeviceMastershipStore
         transferExecutor =
                 Executors.newSingleThreadScheduledExecutor(
                         groupedThreads("onos/store/device/mastership", "mastership-transfer-executor"));
-        clusterCommunicator.<DeviceId, MastershipRole>addSubscriber(ROLE_QUERY_SUBJECT,
-                SERIALIZER::decode,
-                deviceId -> getRole(localNodeId, deviceId),
-                SERIALIZER::encode,
-                messageHandlingExecutor);
         clusterCommunicator.<DeviceId, MastershipEvent>addSubscriber(ROLE_RELINQUISH_SUBJECT,
                 SERIALIZER::decode,
                 this::relinquishLocalRole,
@@ -152,7 +145,6 @@ public class ConsistentDeviceMastershipStore
 
     @Deactivate
     public void deactivate() {
-        clusterCommunicator.removeSubscriber(ROLE_QUERY_SUBJECT);
         clusterCommunicator.removeSubscriber(ROLE_RELINQUISH_SUBJECT);
         clusterCommunicator.removeSubscriber(TRANSITION_FROM_MASTER_TO_STANDBY_SUBJECT);
         messageHandlingExecutor.shutdown();
@@ -193,21 +185,8 @@ public class ConsistentDeviceMastershipStore
         if (leadership != null && nodeId.equals(leadership.leader())) {
             return MastershipRole.MASTER;
         }
-
-        if (localNodeId.equals(nodeId)) {
-            if (connectedDevices.contains(deviceId)) {
-                return MastershipRole.STANDBY;
-            } else {
-                return MastershipRole.NONE;
-            }
-        }
-        MastershipRole role = futureGetOrElse(clusterCommunicator.sendAndReceive(
-                deviceId,
-                ROLE_QUERY_SUBJECT,
-                SERIALIZER::encode,
-                SERIALIZER::decode,
-                nodeId), null);
-        return role == null ? MastershipRole.NONE : role;
+        return leadershipService.getCandidates(leadershipTopic).contains(nodeId) ?
+                MastershipRole.STANDBY : MastershipRole.NONE;
     }
 
     @Override
