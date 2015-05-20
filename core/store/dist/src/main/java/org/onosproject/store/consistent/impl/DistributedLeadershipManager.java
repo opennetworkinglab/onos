@@ -546,7 +546,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                                     new Leadership(path, nodeId, epoch, creationTime)));
                         }
                     } catch (Exception e) {
-                        log.warn("Failed to purge stale lock held by {} for {}", nodeId, path, e);
+                        log.debug("Failed to purge stale lock held by {} for {}", nodeId, path, e);
                         rerunPurge.set(true);
                     }
                 });
@@ -579,19 +579,19 @@ public class DistributedLeadershipManager implements LeadershipService {
                                                 updatedCandidates.creationTime())));
                             }
                         } catch (Exception e) {
-                            log.warn("Failed to evict inactive candidates {} from "
+                            log.debug("Failed to evict inactive candidates {} from "
                                     + "candidate list for {}", removedCandidates, path, e);
                             rerunPurge.set(true);
                         }
                     }
                 });
         } catch (Exception e) {
-            log.warn("Failure purging state leadership.", e);
+            log.debug("Failure purging state leadership.", e);
             rerunPurge.set(true);
         }
 
         if (rerunPurge.get()) {
-            log.info("Rescheduling stale leadership purge due to errors encountered in previous run");
+            log.debug("Rescheduling stale leadership purge due to errors encountered in previous run");
             scheduleStaleLeadershipPurge(DELAY_BETWEEN_STALE_LEADERSHIP_PURGE_ATTEMPTS_SEC);
         }
     }
