@@ -172,16 +172,12 @@ public class PartitionManagerTest {
     /**
      * Tests sending in LeadershipServiceEvents in the case when we have
      * too many partitions. The event will trigger the partition manager to
-     * reassess how many partitions it has and relinquish some.
+     * schedule a rebalancing activity.
      */
     @Test
-    public void testRelinquish() {
+    public void testRebalanceScheduling() {
         // We have all the partitions so we'll need to relinquish some
         setUpLeadershipService(PartitionManager.NUM_PARTITIONS);
-
-        expect(leadershipService.withdraw(anyString()))
-                                .andReturn(CompletableFuture.completedFuture(null))
-                                .times(7);
 
         replay(leadershipService);
 
@@ -189,24 +185,47 @@ public class PartitionManagerTest {
         // Send in the event
         leaderListener.event(event);
 
+        assertTrue(partitionManager.rebalanceScheduled.get());
+
         verify(leadershipService);
     }
 
     /**
-     * Tests sending in LeadershipServiceEvents in the case when we have the
-     * right amount or too many partitions. These events will not trigger any
-     * partition reassignments.
+     * Tests rebalance will trigger the right now of leadership withdraw calls.
      */
     @Test
-    public void testNoRelinquish() {
+    public void testRebalance() {
+        // We have all the partitions so we'll need to relinquish some
+        setUpLeadershipService(PartitionManager.NUM_PARTITIONS);
+
+        expect(leadershipService.withdraw(anyString()))
+                                 .andReturn(CompletableFuture.completedFuture(null))
+                                 .times(7);
+
+        replay(leadershipService);
+
+        partitionManager.activate();
+
+        // trigger rebalance
+        partitionManager.doRebalance();
+
+        verify(leadershipService);
+    }
+
+    /**
+     * Tests that attempts to rebalance when the paritions are already
+     * evenly distributed does not result in any relinquish attempts.
+     */
+    @Test
+    public void testNoRebalance() {
         // Partitions are already perfectly balanced among the two active instances
         setUpLeadershipService(PartitionManager.NUM_PARTITIONS / 2);
         replay(leadershipService);
 
         partitionManager.activate();
 
-        // Send in the event
-        leaderListener.event(event);
+        // trigger rebalance
+        partitionManager.doRebalance();
 
         verify(leadershipService);
 
@@ -215,8 +234,8 @@ public class PartitionManagerTest {
         setUpLeadershipService(PartitionManager.NUM_PARTITIONS / 2 - 1);
         replay(leadershipService);
 
-        // Send in the event
-        leaderListener.event(event);
+        // trigger rebalance
+        partitionManager.doRebalance();
 
         verify(leadershipService);
     }
