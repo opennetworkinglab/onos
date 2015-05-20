@@ -127,7 +127,7 @@ public class ConsistentDeviceMastershipStore
         transferExecutor =
                 Executors.newSingleThreadScheduledExecutor(
                         groupedThreads("onos/store/device/mastership", "mastership-transfer-executor"));
-        clusterCommunicator.<DeviceId, MastershipEvent>addSubscriber(ROLE_RELINQUISH_SUBJECT,
+        clusterCommunicator.addSubscriber(ROLE_RELINQUISH_SUBJECT,
                 SERIALIZER::decode,
                 this::relinquishLocalRole,
                 SERIALIZER::encode,
@@ -310,25 +310,26 @@ public class ConsistentDeviceMastershipStore
         checkArgument(nodeId != null, NODE_ID_NULL);
         checkArgument(deviceId != null, DEVICE_ID_NULL);
 
-        if (!nodeId.equals(localNodeId)) {
-            log.debug("Forwarding request to relinquish "
-                    + "role for device {} to {}", deviceId, nodeId);
-            return clusterCommunicator.sendAndReceive(
-                    deviceId,
-                    ROLE_RELINQUISH_SUBJECT,
-                    SERIALIZER::encode,
-                    SERIALIZER::decode,
-                    nodeId);
+        if (nodeId.equals(localNodeId)) {
+            return relinquishLocalRole(deviceId);
         }
-        return CompletableFuture.completedFuture(relinquishLocalRole(deviceId));
+
+        log.debug("Forwarding request to relinquish "
+                + "role for device {} to {}", deviceId, nodeId);
+        return clusterCommunicator.sendAndReceive(
+                deviceId,
+                ROLE_RELINQUISH_SUBJECT,
+                SERIALIZER::encode,
+                SERIALIZER::decode,
+                nodeId);
     }
 
-    private MastershipEvent relinquishLocalRole(DeviceId deviceId) {
+    private CompletableFuture<MastershipEvent> relinquishLocalRole(DeviceId deviceId) {
         checkArgument(deviceId != null, DEVICE_ID_NULL);
 
         // Check if this node is can be managed by this node.
         if (!connectedDevices.contains(deviceId)) {
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
@@ -339,9 +340,8 @@ public class ConsistentDeviceMastershipStore
             : MastershipEvent.Type.BACKUPS_CHANGED;
 
         connectedDevices.remove(deviceId);
-        leadershipService.withdraw(leadershipTopic);
-
-        return new MastershipEvent(eventType, deviceId, getNodes(deviceId));
+        return leadershipService.withdraw(leadershipTopic)
+                                .thenApply(v -> new MastershipEvent(eventType, deviceId, getNodes(deviceId)));
     }
 
     private MastershipEvent transitionFromMasterToStandby(DeviceId deviceId) {
