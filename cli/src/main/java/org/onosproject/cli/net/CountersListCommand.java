@@ -64,14 +64,44 @@ public class CountersListCommand extends AbstractShellCommand {
         return jsonCounters;
     }
 
+    /**
+     * Converts info for counters from different databases into a JSON object.
+     *
+     * @param partitionedDbCounters counters info
+     * @param inMemoryDbCounters counters info
+     */
+    private JsonNode jsonAllCounters(Map<String, Long> partitionedDbCounters,
+                                     Map<String, Long> inMemoryDbCounters) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode jsonCounters = mapper.createArrayNode();
+
+        // Create a JSON node for partitioned database counter
+        ObjectNode jsonPartitionedDatabaseCounters = mapper.createObjectNode();
+        jsonPartitionedDatabaseCounters.put("partitionedDatabaseCounters",
+                                            partitionedDbCounters.toString());
+        jsonCounters.add(jsonPartitionedDatabaseCounters);
+        // Create a JSON node for in-memory database counter
+        ObjectNode jsonInMemoryDatabseCounters = mapper.createObjectNode();
+        jsonInMemoryDatabseCounters.put("inMemoryDatabaseCounters",
+                                        inMemoryDbCounters.toString());
+        jsonCounters.add(jsonInMemoryDatabseCounters);
+
+        return jsonCounters;
+    }
+
+
     @Override
     protected void execute() {
         StorageAdminService storageAdminService = get(StorageAdminService.class);
-        Map<String, Long> counters = storageAdminService.getCounters();
+        Map<String, Long> partitionedDatabaseCounters = storageAdminService.getPartitionedDatabaseCounters();
+        Map<String, Long> inMemoryDatabaseCounters = storageAdminService.getInMemoryDatabaseCounters();
         if (outputJson()) {
-            print("%s", json(counters));
+            print("%s", jsonAllCounters(partitionedDatabaseCounters, inMemoryDatabaseCounters));
         } else {
-            displayCounters(counters);
+            print("Partitioned database counters:");
+            displayCounters(partitionedDatabaseCounters);
+            print("In-memory database counters:");
+            displayCounters(inMemoryDatabaseCounters);
         }
     }
 }

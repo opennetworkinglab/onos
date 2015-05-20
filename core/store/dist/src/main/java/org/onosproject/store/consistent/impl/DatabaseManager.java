@@ -349,6 +349,20 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     @Override
+    public Map<String, Long> getPartitionedDatabaseCounters() {
+        Map<String, Long> counters = Maps.newHashMap();
+        counters.putAll(complete(partitionedDatabase.counters()));
+        return counters;
+    }
+
+    @Override
+    public Map<String, Long> getInMemoryDatabaseCounters() {
+        Map<String, Long> counters = Maps.newHashMap();
+        counters.putAll(complete(inMemoryDatabase.counters()));
+        return counters;
+    }
+
+    @Override
     public Collection<Transaction> getTransactions() {
         return complete(transactionManager.getTransactions());
     }

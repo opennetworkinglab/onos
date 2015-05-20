@@ -40,10 +40,26 @@ public interface StorageAdminService {
 
     /**
      * Returns information about all the atomic counters in the system.
+     * If 2 counters belonging to 2 different databases have the same name,
+     * then only one counter from one database is returned.
      *
      * @return mapping from counter name to that counter's next value
      */
     Map<String, Long> getCounters();
+
+    /**
+     * Returns information about all the atomic partitioned database counters in the system.
+     *
+     * @return mapping from counter name to that counter's next value
+     */
+    Map<String, Long> getPartitionedDatabaseCounters();
+
+    /**
+     * Returns information about all the atomic in-memory database counters in the system.
+     *
+     * @return mapping from counter name to that counter's next value
+     */
+    Map<String, Long> getInMemoryDatabaseCounters();
 
     /**
      * Returns all the transactions in the system.
