@@ -207,7 +207,7 @@ public class Controller {
         Driver driver = driverService
                 .getDriver(desc.getMfrDesc(), desc.getHwDesc(), desc.getSwDesc());
 
-        if (driver.hasBehaviour(OpenFlowSwitchDriver.class)) {
+        if (driver != null && driver.hasBehaviour(OpenFlowSwitchDriver.class)) {
             OpenFlowSwitchDriver ofSwitchDriver = driver.createBehaviour(new DefaultDriverHandler(
                     new DefaultDriverData(driver)), OpenFlowSwitchDriver.class);
             ofSwitchDriver.init(new Dpid(dpid), desc, ofv);

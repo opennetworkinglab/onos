@@ -51,6 +51,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.ThirdPartyMessage;
 import org.osgi.service.component.ComponentContext;
+import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
@@ -61,6 +62,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFFlowModFailedErrorMsg;
 import org.slf4j.Logger;
 
@@ -327,8 +329,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     break;
                 case BARRIER_REPLY:
                     try {
-                        InternalCacheEntry entry = pendingBatches.getIfPresent(msg
-                                                                                       .getXid());
+                        InternalCacheEntry entry = pendingBatches.getIfPresent(msg.getXid());
                         if (entry != null) {
                             providerService
                                     .batchOperationCompleted(msg.getXid(),
@@ -342,32 +343,32 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     }
                     break;
                 case ERROR:
-                    log.warn("received Error message {} from {}", msg, dpid);
+                    // TODO: This needs to get suppressed in a better way.
+                    if (msg instanceof OFBadRequestErrorMsg &&
+                            ((OFBadRequestErrorMsg) msg).getCode() == OFBadRequestCode.BAD_TYPE) {
+                        log.debug("Received error message {} from {}", msg, dpid);
+                    } else {
+                        log.warn("Received error message {} from {}", msg, dpid);
+                    }
 
                     OFErrorMsg error = (OFErrorMsg) msg;
                     if (error.getErrType() == OFErrorType.FLOW_MOD_FAILED) {
                         OFFlowModFailedErrorMsg fmFailed = (OFFlowModFailedErrorMsg) error;
                         if (fmFailed.getData().getParsedMessage().isPresent()) {
-                            OFMessage m = fmFailed.getData().getParsedMessage()
-                                    .get();
+                            OFMessage m = fmFailed.getData().getParsedMessage().get();
                             OFFlowMod fm = (OFFlowMod) m;
-                            InternalCacheEntry entry = pendingBatches
-                                    .getIfPresent(msg.getXid());
+                            InternalCacheEntry entry =
+                                    pendingBatches.getIfPresent(msg.getXid());
                             if (entry != null) {
-                                entry.appendFailure(new FlowEntryBuilder(dpid, fm)
-                                                            .build());
+                                entry.appendFailure(new FlowEntryBuilder(dpid, fm).build());
                             } else {
-                                log.error("No matching batch for this error: {}",
-                                          error);
+                                log.error("No matching batch for this error: {}", error);
                             }
                         } else {
-                            // FIXME: Potentially add flowtracking to avoid this
-                            // message.
+                            // FIXME: Potentially add flowtracking to avoid this message.
                             log.error("Flow installation failed but switch didn't"
                                               + " tell us which one.");
                         }
-                    } else {
-                        log.warn("Received error {}", error);
                     }
 
                 default:

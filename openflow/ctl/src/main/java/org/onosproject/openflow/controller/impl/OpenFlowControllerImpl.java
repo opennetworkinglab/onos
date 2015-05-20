@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
@@ -80,6 +81,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+
+    // References exists merely for sequencing purpose to assure drivers are loaded
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DefaultDriverProviderService defaultDriverProviderService;
 
     private final ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d"));
@@ -507,11 +512,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             connectedSwitches.remove(dpid);
             OpenFlowSwitch sw = activeMasterSwitches.remove(dpid);
             if (sw == null) {
-                log.warn("sw was null for {}", dpid);
+                log.debug("sw was null for {}", dpid);
                 sw = activeEqualSwitches.remove(dpid);
             }
             for (OpenFlowSwitchListener l : ofSwitchListener) {
-                log.warn("removal for {}", dpid);
                 l.switchRemoved(dpid);
             }
         }

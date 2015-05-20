@@ -266,7 +266,6 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void event(MastershipEvent event) {
-
             if (MastershipEvent.Type.BACKUPS_CHANGED.equals(event.type())) {
                 // only need new master events
                 return;
@@ -275,7 +274,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             DeviceId deviceId = event.subject();
             Device device = deviceService.getDevice(deviceId);
             if (device == null) {
-                log.warn("Device {} doesn't exist, or isn't there yet", deviceId);
+                log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
                 return;
             }
             if (rules.isSuppressed(device)) {

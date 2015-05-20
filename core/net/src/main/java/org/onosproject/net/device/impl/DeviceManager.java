@@ -581,7 +581,6 @@ public class DeviceManager
 
         @Override
         public void event(MastershipEvent event) {
-
             if (event.type() != MastershipEvent.Type.MASTER_CHANGED) {
                 // Don't care if backup list changed.
                 return;
@@ -625,7 +624,7 @@ public class DeviceManager
             if (store.getDevice(did) != null) {
                 reassertRole(did, myNextRole);
             } else {
-                log.warn("Device is not yet/no longer in the store: {}", did);
+                log.debug("Device is not yet/no longer in the store: {}", did);
             }
         }
     }
