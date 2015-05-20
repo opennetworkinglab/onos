@@ -171,6 +171,7 @@ public final class GroupOperation {
        if (obj instanceof GroupOperation) {
            GroupOperation that = (GroupOperation) obj;
            return Objects.equals(groupId, that.groupId) &&
+                   Objects.equals(groupType, that.groupType) &&
                    Objects.equals(opType, that.opType) &&
                    Objects.equals(buckets, that.buckets);
 
