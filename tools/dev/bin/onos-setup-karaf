@@ -100,8 +100,8 @@ cat > $STAGE/config/cluster.json <<EOF
 EOF
 
 cat > $STAGE/config/tablets.json <<EOF
-    { "nodes": [ { "ip": "$IP", "id": "$IP", "tcpPort": 7238 }],
-      "partitions": { "p1": [ { "ip": "$IP", "id": "$IP", "tcpPort": 7238 }]}}
+    { "nodes": [ { "ip": "$IP", "id": "$IP", "tcpPort": 9876 }],
+      "partitions": { "p1": [ { "ip": "$IP", "id": "$IP", "tcpPort": 9876 }]}}
 EOF
 
 echo "Setting up hazelcast.xml for subnet $SUBNET.*..."
