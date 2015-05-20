@@ -7,10 +7,54 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 remote=$ONOS_USER@${1:-$OCI}
-instance=$2
 
-[ -n "$instance" ] && \
-    LOG=$ONOS_INSTALL_DIR/$KARAF_DIST/instances/$instance/data/log/karaf.log* || \
-    LOG=$ONOS_INSTALL_DIR/log/karaf.log*
+LOG=$ONOS_INSTALL_DIR/log/karaf.log*
 
-ssh $remote "egrep 'ERROR|Exception' $LOG"
+aux=/tmp/log.$$
+
+if [ "$2" = "old" ]; then
+    ssh $remote "egrep 'ERROR|Exception|Error' $LOG"
+
+else
+    ssh $remote "
+        tac $LOG | awk '
+            BEGIN { off = 0; fail = 0; }
+            / org.apache.karaf.main.lock.SimpleFileLock lock/ {
+                off = 1;
+                exit fail;
+            }
+
+            / ERROR / {
+                if (!off) {
+                    print \$0;
+                    exc = 0;
+                    fail = 1;
+                }
+            }
+            / WARN / {
+                if (!off && exc) {
+                    print \$0;
+                    exc = 0;
+                }
+            }
+
+            /^[a-zA-Z0-9.]*(Exception|Error)/ {
+                if (!off) {
+                    print \$0;
+                    exc = 1;
+                    fail = 1;
+                }
+            }
+
+            /	at / {
+                if (!off) {
+                    print \$0;
+                }
+            }
+        END { exit fail; }
+        ' > $aux
+        status=\$?
+        tac $aux && rm $aux
+        exit \$status
+    "
+fi
