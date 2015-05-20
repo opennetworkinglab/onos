@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-.nav ul {
-    display: table;
-    table-layout: fixed;
-    list-style-type: none;
+div#bundle div.main-left {
+    width: 62%;
+}
+div#bundle div.main-right {
+    width: 38%;
+}
+
+#bundle table {
     width: 100%;
-    margin-bottom: 2%;
 }
 
-.nav li {
-    background-color: lightgray;
-    padding: 1% 0;
-}
-.nav li.selected {
-    font-weight: bold;
-    background-color: darkgray;
-}
-
-.nav a {
-    display: table-cell;
+#bundle td {
     text-align: center;
-    text-decoration: none;
-    color: black;
 }
-.nav a:visited {
-    color: black;
+#bundle td.icon {
+    width: 50px;
+    height: 50px;
+}
+#bundle td.desc {
+    width: 50%;
+    text-align: left;
+}
+
+#available button {
+    float: right;
 }

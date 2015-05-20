@@ -1,5 +1,20 @@
 <!-- Bundle page partial html -->
-<div class="container">
+<div id="bundle" class="container">
     <nav></nav>
-    <h2>Subscriber Bundles</h2>
+    <div class="main-left">
+        <h3>You are subscribed to the</h3>
+        <h2>{{name}}</h2>
+        <table>
+            <tr ng-repeat="func in funcs">
+                <td class="icon">icon of function</td>
+                <td>{{func.name}}</td>
+                <td class="desc">{{func.desc}}</td>
+                <td>{{func.params.level && "Level: " + func.params.level}}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="main-right">
+        <h2>Available Bundles</h2>
+        <div bundle-available></div>
+    </div>
 </div>
