@@ -620,7 +620,9 @@ public class NewDistributedFlowRuleStore
                     // ignore since backup location hasn't changed.
                     return;
                 }
-                backupFlowEntries(latestBackupNode, Sets.newHashSet(deviceId));
+                backupSenderExecutor.schedule(() -> backupFlowEntries(latestBackupNode, Sets.newHashSet(deviceId)),
+                        0,
+                        TimeUnit.SECONDS);
             }
         }
 
