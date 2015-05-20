@@ -97,7 +97,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void sendMsg(OFMessage m) {
         if (role == RoleState.MASTER && channel.isWritable()) {
-            channel.write(Collections.singletonList(m));
+            channel.write(Collections.singletonList(prepareMessage(m)));
         }
     }
 
@@ -119,6 +119,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                                                    "a non role request message");
     }
 
+    @Override
     public final void sendHandshakeMessage(OFMessage message) {
         if (!this.isDriverHandshakeComplete()) {
             channel.write(Collections.singletonList(message));
@@ -154,7 +155,6 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     public String channelId() {
         return channelId;
     }
-
 
     //************************
     // Switch features related

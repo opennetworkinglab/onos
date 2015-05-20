@@ -24,30 +24,61 @@ import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotSta
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
+import org.projectfloodlight.openflow.protocol.OFFactories;
+import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
+import org.projectfloodlight.openflow.protocol.OFFlowModCommand;
+import org.projectfloodlight.openflow.protocol.OFInstructionType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.OFActionType;
+import org.projectfloodlight.openflow.types.CircuitSignalID;
+import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.U8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.BitSet;
+import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.projectfloodlight.openflow.protocol.OFFlowMod.Builder;
 
 /**
  * LINC-OE Optical Emulator switch class.
  */
 public class OFOpticalSwitchImplLINC13
  extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
+    // default number of lambdas, assuming 50GHz channels.
+    private static final int NUM_CHLS = 80;
+    private final OFFactory factory = OFFactories.getFactory(OFVersion.OF_13);
 
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private long barrierXidToWaitFor = -1;
 
     private OFCircuitPortsReply wPorts;
+    // book-keeping maps for allocated Linc-OE lambdas
+    protected final ConcurrentMap<OFPort, BitSet> portChannelMap = new ConcurrentHashMap<>();
+    protected final ConcurrentMap<Match, Integer> matchMap = new ConcurrentHashMap<>();
 
     @Override
     public void startDriverHandshake() {
@@ -170,4 +201,136 @@ public class OFOpticalSwitchImplLINC13
         return ImmutableSet.of(PortDescPropertyType.OPTICAL_TRANSPORT);
     }
 
+    @Override
+    public OFMessage prepareMessage(OFMessage msg) {
+        if (OFVersion.OF_13 != msg.getVersion() || msg.getType() != OFType.FLOW_MOD) {
+            return msg;
+        }
+        OFFlowMod fm = (OFFlowMod) msg;
+        Match match = fm.getMatch();
+        // Don't touch FlowMods that aren't Optical-related.
+        if (match.get(MatchField.OCH_SIGTYPE) == null) {
+            return msg;
+        }
+
+        OFMessage newFM;
+        Builder builder = null;
+        List<OFAction> actions = new ArrayList<>();
+        if (fm.getCommand() == OFFlowModCommand.ADD) {
+            builder = factory.buildFlowAdd();
+            int lambda = allocateLambda(match.get(MatchField.IN_PORT), match);
+            CircuitSignalID sigid = new CircuitSignalID((byte) 1, (byte) 2, (short) lambda, (short) 1);
+            List<OFInstruction> instructions = fm.getInstructions();
+
+            newFM = buildFlowMod(builder, fm, buildMatch(match, sigid), buildActions(instructions, sigid));
+        } else if (fm.getCommand() == OFFlowModCommand.DELETE) {
+            builder = factory.buildFlowDelete();
+            int lambda = freeLambda(match.get(MatchField.IN_PORT), match);
+            CircuitSignalID sigid = new CircuitSignalID((byte) 1, (byte) 2, (short) lambda, (short) 1);
+
+            newFM = buildFlowMod(builder, fm, buildMatch(match, sigid), actions);
+        } else {
+            newFM = msg;
+        }
+        log.debug("new FM = {}", newFM);
+        return newFM;
+    }
+
+    // fetch the next available channel as the flat lambda value, or the lambda
+    // associated with a port/match combination
+    private int allocateLambda(OFPort port, Match match) {
+        Integer lambda = null;
+        synchronized (this) {
+            BitSet channels = portChannelMap.getOrDefault(port, new BitSet(NUM_CHLS + 1));
+            lambda = matchMap.get(match);
+            if (lambda == null) {
+                // TODO : double check behavior when bitset is full
+                // Linc lambdas start at 1.
+                lambda = channels.nextClearBit(1);
+                channels.set(lambda);
+                portChannelMap.put(port, channels);
+                matchMap.put(match, lambda);
+            }
+        }
+        return lambda;
+    }
+
+    // free lambda that was mapped to Port/Match combination and return its
+    // value to caller.
+    private int freeLambda(OFPort port, Match match) {
+        synchronized (this) {
+            Integer lambda = matchMap.get(match);
+            if (lambda != null) {
+                portChannelMap.get(port).clear(lambda);
+                return lambda;
+            }
+            // 1 is a sane-ish default for Linc.
+            return 1;
+        }
+    }
+
+    // build matches - *tons of assumptions are made here based on Linc-OE's behavior.*
+    // gridType = 1 (DWDM)
+    // channelSpacing = 2 (50GHz)
+    // spectralWidth = 1 (fixed grid default value)
+    private Match buildMatch(Match original, CircuitSignalID sigid) {
+        Match.Builder mBuilder = factory.buildMatch();
+
+        original.getMatchFields().forEach(mf -> {
+            String name = mf.getName();
+            if (MatchField.OCH_SIGID.getName().equals(name)) {
+                mBuilder.setExact(MatchField.OCH_SIGID, sigid);
+            } else if (MatchField.OCH_SIGTYPE.getName().equals(name)) {
+                mBuilder.setExact(MatchField.OCH_SIGTYPE, U8.of((short) 1));
+            } else if (MatchField.IN_PORT.getName().equals(name)) {
+                mBuilder.setExact(MatchField.IN_PORT, original.get(MatchField.IN_PORT));
+            }
+        });
+
+        return mBuilder.build();
+    }
+
+    private List<OFAction> buildActions(List<OFInstruction> iList, CircuitSignalID sigid) {
+        List<OFAction> actions = new ArrayList<>();
+        Map<OFInstructionType, OFInstruction> instructions = iList.stream()
+                .collect(Collectors.toMap(OFInstruction::getType, inst -> inst));
+
+        OFInstruction inst = instructions.get(OFInstructionType.APPLY_ACTIONS);
+        if (inst != null) {
+            OFInstructionApplyActions iaa = (OFInstructionApplyActions) inst;
+            if (iaa.getActions() == null) {
+                return actions;
+            }
+            iaa.getActions().forEach(action -> {
+                if (OFActionType.EXPERIMENTER == action.getType()) {
+                    OFActionCircuit.Builder cBuilder = factory.actions().buildCircuit()
+                            .setField(factory.oxms()
+                                    .buildOchSigid()
+                                    .setValue(sigid)
+                                    .build());
+                    actions.add(cBuilder.build());
+                } else {
+                    actions.add(action);
+                }
+            });
+        }
+        return actions;
+    }
+
+    private OFMessage buildFlowMod(Builder builder, OFFlowMod fm, Match m, List<OFAction> act) {
+        return builder
+                .setXid(fm.getXid())
+                .setCookie(fm.getCookie())
+                .setCookieMask(fm.getCookieMask())
+                .setTableId(fm.getTableId())
+                .setIdleTimeout(fm.getIdleTimeout())
+                .setHardTimeout(fm.getHardTimeout())
+                .setBufferId(fm.getBufferId())
+                .setOutPort(fm.getOutPort())
+                .setOutGroup(fm.getOutGroup())
+                .setFlags(fm.getFlags())
+                .setMatch(m)
+                .setActions(act)
+                .build();
+    }
 }
