@@ -27,7 +27,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Serializer for RoleValues used by {@link DistributedMastershipStore}.
+ * Serializer for RoleValues used by {@link org.onosproject.mastership.MastershipStore}.
  */
 public class RoleValueSerializer extends Serializer<RoleValue> {
 

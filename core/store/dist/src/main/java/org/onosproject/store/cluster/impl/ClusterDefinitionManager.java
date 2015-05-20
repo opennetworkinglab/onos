@@ -1,6 +1,5 @@
 package org.onosproject.store.cluster.impl;
 
-import static com.hazelcast.util.AddressUtil.matchInterface;
 import static java.net.NetworkInterface.getNetworkInterfaces;
 import static java.util.Collections.list;
 import static org.onosproject.cluster.DefaultControllerNode.DEFAULT_PORT;
@@ -31,7 +30,6 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.hazelcast.util.AddressUtil;
 
 /**
  * Implementation of ClusterDefinitionService.
@@ -115,7 +113,7 @@ public class ClusterDefinitionManager implements ClusterDefinitionService {
             Enumeration<InetAddress> inetAddresses = iface.getInetAddresses();
             while (inetAddresses.hasMoreElements()) {
                 IpAddress ip = IpAddress.valueOf(inetAddresses.nextElement());
-                if (AddressUtil.matchInterface(ip.toString(), clusterDefinition.getIpPrefix())) {
+                if (matchInterface(ip.toString(), clusterDefinition.getIpPrefix())) {
                     return ip;
                 }
             }
@@ -168,5 +166,12 @@ public class ClusterDefinitionManager implements ClusterDefinitionService {
         }
 
         return IpAddress.valueOf(InetAddress.getLoopbackAddress()).toString();
+    }
+
+    // Indicates whether the specified interface address matches the given prefix.
+    // FIXME: Add a facility to IpPrefix to make this more robust
+    private static boolean matchInterface(String ip, String ipPrefix) {
+        String s = ipPrefix.replaceAll("\\.\\*", "");
+        return ip.startsWith(s);
     }
 }

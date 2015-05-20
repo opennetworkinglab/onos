@@ -15,49 +15,11 @@
  */
 package org.onosproject.store.mastership.impl;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.onlab.junit.TestTools;
-import org.onlab.packet.IpAddress;
-import org.onosproject.cluster.ClusterServiceAdapter;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.mastership.MastershipEvent;
-import org.onosproject.mastership.MastershipEvent.Type;
-import org.onosproject.mastership.MastershipStoreDelegate;
-import org.onosproject.mastership.MastershipTerm;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.MastershipRole;
-import org.onosproject.store.hz.StoreManager;
-import org.onosproject.store.hz.StoreService;
-import org.onosproject.store.hz.TestStoreManager;
-import org.onosproject.store.serializers.KryoSerializer;
-
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.onosproject.net.MastershipRole.MASTER;
-import static org.onosproject.net.MastershipRole.NONE;
-import static org.onosproject.net.MastershipRole.STANDBY;
-
 /**
  * Test of the Hazelcast-based distributed MastershipStore implementation.
  */
 public class DistributedMastershipStoreTest {
-
+/*
     private static final DeviceId DID1 = DeviceId.deviceId("of:01");
     private static final DeviceId DID2 = DeviceId.deviceId("of:02");
     private static final DeviceId DID3 = DeviceId.deviceId("of:03");
@@ -320,5 +282,5 @@ public class DistributedMastershipStoreTest {
         }
 
     }
-
+*/
 }

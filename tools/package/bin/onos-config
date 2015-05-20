@@ -1,14 +1,2 @@
 #!/bin/bash
-# -----------------------------------------------------------------------------
-# Configures ONOS to multicast on the specified IP prefix/subnet.
-# -----------------------------------------------------------------------------
-
-[ $# -lt 2 ] && echo "usage: $(basename $0) name ipPrefix" && exit 1
-
-name=$1
-ipPrefix=$2
-
-hzXml=$(dirname $0)/../apache-karaf-*/etc/hazelcast.xml
-
-perl -pi.bak -e "s/^            <interface>[^<]*/            <interface>$ipPrefix/g" $hzXml
-perl -pi -e "s/        <name>[^<]*/        <name>$name/g" $hzXml
+echo "This command has been deprecated as this step is no longer required."

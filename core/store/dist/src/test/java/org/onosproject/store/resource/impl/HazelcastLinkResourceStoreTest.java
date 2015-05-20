@@ -15,50 +15,11 @@
  */
 package org.onosproject.store.resource.impl;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.onlab.util.Bandwidth;
-import org.onosproject.net.AnnotationKeys;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.DefaultLink;
-import org.onosproject.net.Link;
-import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.BandwidthResource;
-import org.onosproject.net.resource.BandwidthResourceAllocation;
-import org.onosproject.net.resource.DefaultLinkResourceAllocations;
-import org.onosproject.net.resource.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.LambdaResource;
-import org.onosproject.net.resource.LambdaResourceAllocation;
-import org.onosproject.net.resource.LinkResourceAllocations;
-import org.onosproject.net.resource.LinkResourceRequest;
-import org.onosproject.net.resource.LinkResourceStore;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceAllocationException;
-import org.onosproject.net.resource.ResourceType;
-import org.onosproject.store.hz.StoreService;
-import org.onosproject.store.hz.TestStoreManager;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.PortNumber.portNumber;
-
 /**
  * Test of the simple LinkResourceStore implementation.
  */
 public class HazelcastLinkResourceStoreTest {
-
+/*
     private LinkResourceStore store;
     private HazelcastLinkResourceStore storeImpl;
     private Link link1;
@@ -74,7 +35,7 @@ public class HazelcastLinkResourceStoreTest {
      * @param dev2 destination device
      * @param port2 destination port
      * @return created {@link Link} object
-     */
+     * /
     private Link newLink(String dev1, int port1, String dev2, int port2) {
         Annotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.OPTICAL_WAVES, "80")
@@ -112,9 +73,6 @@ public class HazelcastLinkResourceStoreTest {
         storeMgr.deactivate();
     }
 
-    /**
-     * Tests constructor and activate method.
-     */
     @Test
     public void testConstructorAndActivate() {
         final Iterable<LinkResourceAllocations> allAllocations = store.getAllocations();
@@ -130,13 +88,6 @@ public class HazelcastLinkResourceStoreTest {
         assertNotNull(res);
     }
 
-    /**
-     * Picks up and returns one of bandwidth allocations from a given set.
-     *
-     * @param resources the set of {@link ResourceAllocation}s
-     * @return {@link BandwidthResourceAllocation} object if found, null
-     *         otherwise
-     */
     private BandwidthResourceAllocation getBandwidthObj(Set<ResourceAllocation> resources) {
         for (ResourceAllocation res : resources) {
             if (res.type() == ResourceType.BANDWIDTH) {
@@ -146,12 +97,6 @@ public class HazelcastLinkResourceStoreTest {
         return null;
     }
 
-    /**
-     * Returns all lambda allocations from a given set.
-     *
-     * @param resources the set of {@link ResourceAllocation}s
-     * @return a set of {@link LambdaResourceAllocation} objects
-     */
     private Set<LambdaResourceAllocation> getLambdaObjs(Set<ResourceAllocation> resources) {
         Set<LambdaResourceAllocation> lambdaResources = new HashSet<>();
         for (ResourceAllocation res : resources) {
@@ -162,9 +107,6 @@ public class HazelcastLinkResourceStoreTest {
         return lambdaResources;
     }
 
-    /**
-     * Tests initial free bandwidth for a link.
-     */
     @Test
     public void testInitialBandwidth() {
         final Set<ResourceAllocation> freeRes = store.getFreeResources(link1);
@@ -176,9 +118,6 @@ public class HazelcastLinkResourceStoreTest {
         assertEquals(new BandwidthResource(Bandwidth.mbps(1000.0)), alloc.bandwidth());
     }
 
-    /**
-     * Tests initial free lambda for a link.
-     */
     @Test
     public void testInitialLambdas() {
         final Set<ResourceAllocation> freeRes = store.getFreeResources(link3);
@@ -198,9 +137,6 @@ public class HazelcastLinkResourceStoreTest {
 
     }
 
-    /**
-     * Tests a successful bandwidth allocation.
-     */
     @Test
     public void testSuccessfulBandwidthAllocation() {
         final Link link = newLink("of:1", 1, "of:2", 2);
@@ -219,9 +155,6 @@ public class HazelcastLinkResourceStoreTest {
         store.allocateResources(allocations);
     }
 
-    /**
-     * Tests a unsuccessful bandwidth allocation.
-     */
     @Test
     public void testUnsuccessfulBandwidthAllocation() {
         final Link link = newLink("of:1", 1, "of:2", 2);
@@ -247,9 +180,6 @@ public class HazelcastLinkResourceStoreTest {
         assertEquals(true, gotException);
     }
 
-    /**
-     * Tests a successful bandwidth allocation.
-     */
     @Test
     public void testSuccessfulLambdaAllocation() {
         final Link link = newLink("of:1", 1, "of:2", 2);
@@ -268,9 +198,6 @@ public class HazelcastLinkResourceStoreTest {
         store.allocateResources(allocations);
     }
 
-    /**
-     * Tests a unsuccessful bandwidth allocation.
-     */
     @Test
     public void testUnsuccessfulLambdaAllocation() {
         final Link link = newLink("of:1", 1, "of:2", 2);
@@ -296,4 +223,5 @@ public class HazelcastLinkResourceStoreTest {
         }
         assertEquals(true, gotException);
     }
+    */
 }
