@@ -15,9 +15,12 @@
  */
 package org.onosproject.incubator.net.config;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Delegate for notification when configuration changes have been applied.
  */
+@Beta
 public interface ConfigApplyDelegate<S> {
 
     /**

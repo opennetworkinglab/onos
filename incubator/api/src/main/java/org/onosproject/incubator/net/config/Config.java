@@ -17,6 +17,7 @@ package org.onosproject.incubator.net.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.Beta;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -26,6 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @param <S> type of subject
  */
+@Beta
 public abstract class Config<S> {
 
     protected ObjectMapper mapper;

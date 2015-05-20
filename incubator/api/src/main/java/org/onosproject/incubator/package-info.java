@@ -15,6 +15,7 @@
  */
 
 /**
- * Incubating abstractions and APIs.
+ * Incubating abstractions and APIs.&nbsp; This subsystem is
+ * experimental and its interfaces will change in the upcoming release.
  */
 package org.onosproject.incubator;

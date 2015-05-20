@@ -15,11 +15,14 @@
  */
 package org.onosproject.incubator.net.config;
 
+import com.google.common.annotations.Beta;
+
 import java.util.Set;
 
 /**
  * Service for tracking network configuration factories.
  */
+@Beta
 public interface NetworkConfigRegistry {
 
     /**

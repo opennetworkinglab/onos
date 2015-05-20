@@ -16,11 +16,14 @@
 package org.onosproject.incubator.net.config;
 
 
+import com.google.common.annotations.Beta;
+
 /**
  * Base abstract factory for creating configurations for the specified subject type.
  *
  * @param <S> subject class
  */
+@Beta
 public abstract class ConfigFactory<S> {
 
     private final Class<S> subjectClass;

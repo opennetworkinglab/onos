@@ -15,13 +15,16 @@
  */
 package org.onosproject.incubator.net.config;
 
+import com.google.common.annotations.Beta;
+
 import java.util.Set;
 
 /**
  * Service for tracking network configurations which specify how the discovered
- * network information should be interpretted and how the network should be
+ * network information should be interpreted and how the network should be
  * configured.
  */
+@Beta
 public interface NetworkConfigService {
 
     /**
