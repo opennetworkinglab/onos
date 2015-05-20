@@ -1,23 +1,9 @@
 {
-  "bundle": {
-    "name": "Basic Bundle",
-    "functions": [
-      {
-        "id": "internet",
-        "name": "Internet",
-        "active": true
-      },
-      {
-        "id": "firewall",
-        "name": "Firewall",
-        "active": true
-      }
-    ]
-  },
+  "bundle": "Basic Bundle",
   "users": [
-    { "id": 1, "name": "Mom", "role": "Admin" },
-    { "id": 2, "name": "Dad", "role": "Admin" },
-    { "id": 3, "name": "Dick", "role": "User" },
-    { "id": 4, "name": "Jane", "role": "User" }
+    { "id": 1, "name": "Mom's MacBook", "mac": "00:11:22:33:44:55" },
+    { "id": 1, "name": "Dad's iPad", "mac": "00:11:22:33:44:66" },
+    { "id": 1, "name": "Dick's laptop", "mac": "00:11:22:33:44:77" },
+    { "id": 1, "name": "Jane's laptop", "mac": "00:11:22:33:44:88" }
   ]
 }

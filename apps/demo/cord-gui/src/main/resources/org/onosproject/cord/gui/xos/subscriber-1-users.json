@@ -1,24 +1,24 @@
 {
   "users": [
     {
-      "role": "admin",
-      "name": "mom",
-      "id": 1
+      "id": 1,
+      "name": "Mom's MacBook",
+      "mac": "01:02:03:04:05:06"
     },
     {
-      "role": "admin",
-      "name": "dad",
-      "id": 2
+      "id": 2,
+      "name": "Dad's iPad",
+      "mac": "01:02:03:04:05:77"
     },
     {
-      "role": "user",
-      "name": "kid1",
-      "id": 3
+      "id": 3,
+      "name": "Dick's laptop",
+      "mac": "01:02:03:04:05:88"
     },
     {
-      "role": "user",
-      "name": "kid2",
-      "id": 4
+      "id": 4,
+      "name": "Jane's laptop",
+      "mac": "01:02:03:04:05:99"
     }
   ]
 }

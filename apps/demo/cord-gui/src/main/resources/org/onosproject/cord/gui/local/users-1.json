@@ -2,41 +2,40 @@
   "users": [
     {
       "id": 1,
-      "name": "Mom",
-      "role": { "id": "admin", "name": "Admin"},
+      "name": "Mom's MacBook",
+      "mac": "01:02:03:04:05:06",
       "profile": {
-        "url_filter": {
-          "enabled": false
+        "url_filtering": {
+          "level": "R"
         }
       }
     },
     {
       "id": 2,
-      "name": "Dad",
-      "role": { "id": "admin", "name": "Admin"},
+      "name": "Dad's iPad",
+      "mac": "01:02:03:04:05:77",
       "profile": {
-        "url_filter": {
-          "enabled": false
+        "url_filtering": {
+          "level": "R"
         }
       }
     },
     {
       "id": 3,
-      "name": "Dick",
-      "role": { "id": "user", "name": "User"},
+      "name": "Dick's laptop",
+      "mac": "01:02:03:04:05:88",
       "profile": {
-        "url_filter": {
-          "enabled": false
+        "url_filtering": {
+          "level": "PG-13"
         }
       }
     },
     {
       "id": 4,
-      "name": "Jane",
-      "role": { "id": "user", "name": "User"},
+      "name": "Jane's laptop",
+      "mac": "01:02:03:04:05:99",
       "profile": {
-        "url_filter": {
-          "enabled": false,
+        "url_filtering": {
           "level": "PG"
         }
       }

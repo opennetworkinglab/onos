@@ -5,14 +5,14 @@
       {
         "id": "internet",
         "name": "Internet",
-        "active": true,
-        "editable": false
+        "desc": "Basic internet connectivity",
+        "params": {}
       },
       {
         "id": "firewall",
         "name": "Firewall",
-        "active": true,
-        "editable": true
+        "desc": "Normal firewall protection",
+        "params": {}
       }
     ]
   }
