@@ -407,21 +407,22 @@ public class NewDistributedFlowRuleStore
         log.trace("Forwarding storeBatch to {}, which is the primary (master) for device {}",
                   master, deviceId);
 
-        if (!clusterCommunicator.unicast(operation,
-                                         APPLY_BATCH_FLOWS,
-                                         SERIALIZER::encode,
-                                         master)) {
-            log.warn("Failed to storeBatch: {} to {}", operation, master);
+        clusterCommunicator.unicast(operation,
+                                    APPLY_BATCH_FLOWS,
+                                    SERIALIZER::encode,
+                                    master)
+                           .whenComplete((result, error) -> {
+                               log.warn("Failed to storeBatch: {} to {}", operation, master);
 
-            Set<FlowRule> allFailures = operation.getOperations().stream()
-                    .map(op -> op.target())
-                    .collect(Collectors.toSet());
+                               Set<FlowRule> allFailures = operation.getOperations()
+                                                                    .stream()
+                                                                    .map(op -> op.target())
+                                                                    .collect(Collectors.toSet());
 
-            notifyDelegate(FlowRuleBatchEvent.completed(
-                    new FlowRuleBatchRequest(operation.id(), Collections.emptySet()),
-                    new CompletedBatchOperation(false, allFailures, deviceId)));
-            return;
-        }
+                               notifyDelegate(FlowRuleBatchEvent.completed(
+                                       new FlowRuleBatchRequest(operation.id(), Collections.emptySet()),
+                                       new CompletedBatchOperation(false, allFailures, deviceId)));
+                           });
     }
 
     private void storeBatchInternal(FlowRuleBatchOperation operation) {

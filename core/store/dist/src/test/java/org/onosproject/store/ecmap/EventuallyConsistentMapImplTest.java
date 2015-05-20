@@ -18,7 +18,6 @@ package org.onosproject.store.ecmap;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import org.junit.After;
@@ -145,7 +144,7 @@ public class EventuallyConsistentMapImplTest {
                 .register(KryoNamespaces.API)
                 .register(TestTimestamp.class);
 
-        ecMap = new EventuallyConsistentMapBuilderImpl<>(
+        ecMap = new EventuallyConsistentMapBuilderImpl<String, String>(
                         clusterService, clusterCommunicator)
                 .withName(MAP_NAME)
                 .withSerializer(serializer)
@@ -702,7 +701,7 @@ public class EventuallyConsistentMapImplTest {
                     anyObject(MessageSubject.class),
                     anyObject(Function.class),
                     anyObject(NodeId.class)))
-                .andReturn(true)
+                .andReturn(CompletableFuture.completedFuture(null))
                 .anyTimes();
         replay(clusterCommunicator);
     }
@@ -761,9 +760,9 @@ public class EventuallyConsistentMapImplTest {
         }
 
         @Override
-        public <M> boolean unicast(M message, MessageSubject subject,
+        public <M> CompletableFuture<Void> unicast(M message, MessageSubject subject,
                 Function<M, byte[]> encoder, NodeId toNodeId) {
-            return false;
+            return null;
         }
 
         @Override
@@ -794,33 +793,6 @@ public class EventuallyConsistentMapImplTest {
         public <M> void addSubscriber(MessageSubject subject,
                 Function<byte[], M> decoder, Consumer<M> handler,
                 Executor executor) {
-        }
-
-        @Override
-        public boolean broadcast(ClusterMessage message) {
-            return false;
-        }
-
-        @Override
-        public boolean broadcastIncludeSelf(ClusterMessage message) {
-            return false;
-        }
-
-        @Override
-        public boolean unicast(ClusterMessage message, NodeId toNodeId) {
-            return false;
-        }
-
-        @Override
-        public boolean multicast(ClusterMessage message,
-                Iterable<NodeId> nodeIds) {
-            return false;
-        }
-
-        @Override
-        public ListenableFuture<byte[]> sendAndReceive(ClusterMessage message,
-                NodeId toNodeId) {
-            return null;
         }
     }
 

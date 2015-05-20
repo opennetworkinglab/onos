@@ -395,8 +395,7 @@ public class DistributedGroupStore
         }
 
         // Check if group to be created by a remote instance
-        if (mastershipService.getLocalRole(
-                     groupDesc.deviceId()) != MastershipRole.MASTER) {
+        if (mastershipService.getLocalRole(groupDesc.deviceId()) != MastershipRole.MASTER) {
             log.debug("storeGroupDescription: Device {} local role is not MASTER",
                       groupDesc.deviceId());
             if (mastershipService.getMasterFor(groupDesc.deviceId()) == null) {
@@ -410,19 +409,22 @@ public class DistributedGroupStore
                     createGroupAddRequestMsg(groupDesc.deviceId(),
                                              groupDesc);
 
-            if (!clusterCommunicator.unicast(groupOp,
+            clusterCommunicator.unicast(groupOp,
                     GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
                     m -> kryoBuilder.build().serialize(m),
-                    mastershipService.getMasterFor(groupDesc.deviceId()))) {
-                log.warn("Failed to send request to master: {} to {}",
-                         groupOp,
-                         mastershipService.getMasterFor(groupDesc.deviceId()));
-                //TODO: Send Group operation failure event
-                return;
-            }
-            log.debug("Sent Group operation request for device {} to remote MASTER {}",
-                      groupDesc.deviceId(),
-                      mastershipService.getMasterFor(groupDesc.deviceId()));
+                    mastershipService.getMasterFor(groupDesc.deviceId())).whenComplete((result, error) -> {
+                        if (error != null) {
+                            log.warn("Failed to send request to master: {} to {}",
+                                    groupOp,
+                                    mastershipService.getMasterFor(groupDesc.deviceId()));
+                            //TODO: Send Group operation failure event
+                        } else {
+                            log.debug("Sent Group operation request for device {} "
+                                    + "to remote MASTER {}",
+                                    groupDesc.deviceId(),
+                                    mastershipService.getMasterFor(groupDesc.deviceId()));
+                        }
+                    });
             return;
         }
 
@@ -512,15 +514,17 @@ public class DistributedGroupStore
                                                 newBuckets,
                                                 newAppCookie);
 
-            if (!clusterCommunicator.unicast(groupOp,
-                        GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
-                        m -> kryoBuilder.build().serialize(m),
-                        mastershipService.getMasterFor(deviceId))) {
-                log.warn("Failed to send request to master: {} to {}",
-                         groupOp,
-                         mastershipService.getMasterFor(deviceId));
-                //TODO: Send Group operation failure event
-            }
+            clusterCommunicator.unicast(groupOp,
+                    GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
+                    m -> kryoBuilder.build().serialize(m),
+                    mastershipService.getMasterFor(deviceId)).whenComplete((result, error) -> {
+                        if (error !=  null) {
+                            log.warn("Failed to send request to master: {} to {}",
+                                    groupOp,
+                                    mastershipService.getMasterFor(deviceId), error);
+                        }
+                        //TODO: Send Group operation failure event
+                    });
             return;
         }
         log.debug("updateGroupDescription for device {} is getting handled locally",
@@ -643,15 +647,17 @@ public class DistributedGroupStore
                     createGroupDeleteRequestMsg(deviceId,
                                                 appCookie);
 
-            if (!clusterCommunicator.unicast(groupOp,
+            clusterCommunicator.unicast(groupOp,
                     GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
                     m -> kryoBuilder.build().serialize(m),
-                    mastershipService.getMasterFor(deviceId))) {
-                log.warn("Failed to send request to master: {} to {}",
-                         groupOp,
-                         mastershipService.getMasterFor(deviceId));
-                //TODO: Send Group operation failure event
-            }
+                    mastershipService.getMasterFor(deviceId)).whenComplete((result, error) -> {
+                        if (error != null) {
+                            log.warn("Failed to send request to master: {} to {}",
+                                    groupOp,
+                                    mastershipService.getMasterFor(deviceId), error);
+                        }
+                        //TODO: Send Group operation failure event
+                    });
             return;
         }
         log.debug("deleteGroupDescription in device {} is getting handled locally",

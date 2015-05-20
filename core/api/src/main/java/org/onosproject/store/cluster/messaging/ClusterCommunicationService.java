@@ -24,59 +24,10 @@ import java.util.function.Function;
 
 import org.onosproject.cluster.NodeId;
 
-import com.google.common.util.concurrent.ListenableFuture;
-
 /**
  * Service for assisting communications between controller cluster nodes.
  */
 public interface ClusterCommunicationService {
-
-    /**
-     * Broadcast a message to all controller nodes.
-     *
-     * @param message  message to send
-     * @return true if the message was sent successfully to all nodes; false otherwise.
-     */
-    @Deprecated
-    boolean broadcast(ClusterMessage message);
-
-    /**
-     * Broadcast a message to all controller nodes including self.
-     *
-     * @param message  message to send
-     * @return true if the message was sent successfully to all nodes; false otherwise.
-     */
-    @Deprecated
-    boolean broadcastIncludeSelf(ClusterMessage message);
-
-    /**
-     * Sends a message to the specified controller node.
-     *
-     * @param message  message to send
-     * @param toNodeId node identifier
-     * @return true if the message was sent successfully; false otherwise.
-     */
-    @Deprecated
-    boolean unicast(ClusterMessage message, NodeId toNodeId);
-
-    /**
-     * Multicast a message to a set of controller nodes.
-     *
-     * @param message  message to send
-     * @param nodeIds  recipient node identifiers
-     * @return true if the message was sent successfully to all nodes in the group; false otherwise.
-     */
-    @Deprecated
-    boolean multicast(ClusterMessage message, Iterable<NodeId> nodeIds);
-
-    /**
-     * Sends a message synchronously.
-     * @param message message to send
-     * @param toNodeId recipient node identifier
-     * @return reply future.
-     */
-    @Deprecated
-    ListenableFuture<byte[]> sendAndReceive(ClusterMessage message, NodeId toNodeId);
 
     /**
      * Adds a new subscriber for the specified message subject.
@@ -120,9 +71,9 @@ public interface ClusterCommunicationService {
      * @param encoder function for encoding message to byte[]
      * @param toNodeId destination node identifier
      * @param <M> message type
-     * @return true if the message was sent successfully; false otherwise
+     * @return future that is completed when the message is sent
      */
-    <M> boolean unicast(M message,
+    <M> CompletableFuture<Void> unicast(M message,
                         MessageSubject subject,
                         Function<M, byte[]> encoder,
                         NodeId toNodeId);

@@ -66,27 +66,27 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     }
 
     @Override
-    public EventuallyConsistentMapBuilder withName(String name) {
+    public EventuallyConsistentMapBuilder<K, V> withName(String name) {
         this.name = checkNotNull(name);
         return this;
     }
 
     @Override
-    public EventuallyConsistentMapBuilder withSerializer(
+    public EventuallyConsistentMapBuilder<K, V> withSerializer(
             KryoNamespace.Builder serializerBuilder) {
         this.serializerBuilder = checkNotNull(serializerBuilder);
         return this;
     }
 
     @Override
-    public EventuallyConsistentMapBuilder withClockService(
+    public EventuallyConsistentMapBuilder<K, V> withClockService(
             ClockService<K, V> clockService) {
         this.clockService = checkNotNull(clockService);
         return this;
     }
 
     @Override
-    public EventuallyConsistentMapBuilder withEventExecutor(ExecutorService executor) {
+    public EventuallyConsistentMapBuilder<K, V> withEventExecutor(ExecutorService executor) {
         this.eventExecutor = checkNotNull(executor);
         return this;
     }
@@ -99,13 +99,13 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     }
 
     @Override
-    public EventuallyConsistentMapBuilder withBackgroundExecutor(ScheduledExecutorService executor) {
+    public EventuallyConsistentMapBuilder<K, V> withBackgroundExecutor(ScheduledExecutorService executor) {
         this.backgroundExecutor = checkNotNull(executor);
         return this;
     }
 
     @Override
-    public EventuallyConsistentMapBuilder withPeerUpdateFunction(
+    public EventuallyConsistentMapBuilder<K, V> withPeerUpdateFunction(
             BiFunction<K, V, Collection<NodeId>> peerUpdateFunction) {
         this.peerUpdateFunction = checkNotNull(peerUpdateFunction);
         return this;

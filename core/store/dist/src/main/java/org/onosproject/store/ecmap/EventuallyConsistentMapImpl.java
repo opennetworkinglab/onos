@@ -509,12 +509,6 @@ public class EventuallyConsistentMapImpl<K, V>
         );
     }
 
-    private boolean unicastMessage(NodeId peer, MessageSubject subject, Object event) {
-        return clusterCommunicator.unicast(event, subject, serializer::encode, peer);
-        // Note: we had this flipped before...
-//        communicationExecutor.execute(() -> clusterCommunicator.unicast(message, peer));
-    }
-
     private boolean underHighLoad() {
         return counter.get(LOAD_WINDOW) > HIGH_LOAD_THRESHOLD;
     }
@@ -556,10 +550,14 @@ public class EventuallyConsistentMapImpl<K, V>
                 }
 
                 AntiEntropyAdvertisement<K> ad = createAdvertisement();
+                NodeId destination = peer;
+                clusterCommunicator.unicast(ad, antiEntropyAdvertisementSubject, serializer::encode, peer)
+                                   .whenComplete((result, error) -> {
+                                       if (error != null) {
+                                           log.debug("Failed to send anti-entropy advertisement to {}", destination);
+                                       }
+                                   });
 
-                if (!unicastMessage(peer, antiEntropyAdvertisementSubject, ad)) {
-                    log.debug("Failed to send anti-entropy advertisement to {}", peer);
-                }
             } catch (Exception e) {
                 // Catch all exceptions to avoid scheduled task being suppressed.
                 log.error("Exception thrown while sending advertisement", e);
@@ -595,9 +593,14 @@ public class EventuallyConsistentMapImpl<K, V>
                     // Send the advertisement back if this peer is out-of-sync
                     final NodeId sender = ad.sender();
                     AntiEntropyAdvertisement<K> myAd = createAdvertisement();
-                    if (!unicastMessage(sender, antiEntropyAdvertisementSubject, myAd)) {
-                        log.debug("Failed to send reactive anti-entropy advertisement to {}", sender);
-                    }
+
+                    clusterCommunicator.unicast(myAd, antiEntropyAdvertisementSubject, serializer::encode, sender)
+                                       .whenComplete((result, error) -> {
+                                           if (error != null) {
+                                               log.debug("Failed to send reactive "
+                                                       + "anti-entropy advertisement to {}", sender);
+                                           }
+                                       });
                     break;
                 }
             }
@@ -801,11 +804,15 @@ public class EventuallyConsistentMapImpl<K, V>
                   )
             );
             communicationExecutor.submit(() -> {
-                try {
-                    unicastMessage(peer, updateMessageSubject, Lists.newArrayList(map.values()));
-                } catch (Exception e) {
-                    log.warn("broadcast error", e);
-                }
+                clusterCommunicator.unicast(Lists.newArrayList(map.values()),
+                                            updateMessageSubject,
+                                            serializer::encode,
+                                            peer)
+                                   .whenComplete((result, error) -> {
+                                       if (error != null) {
+                                           log.debug("Failed to send to {}", peer);
+                                       }
+                                   });
             });
         }
     }

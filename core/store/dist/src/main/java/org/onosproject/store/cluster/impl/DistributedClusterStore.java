@@ -42,7 +42,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -237,11 +236,11 @@ public class DistributedClusterStore
 
     private void heartbeatToPeer(byte[] messagePayload, ControllerNode peer) {
         Endpoint remoteEp = new Endpoint(peer.ip(), peer.tcpPort());
-        try {
-            messagingService.sendAsync(remoteEp, HEARTBEAT_MESSAGE, messagePayload);
-        } catch (IOException e) {
-            log.trace("Sending heartbeat to {} failed", remoteEp, e);
-        }
+        messagingService.sendAsync(remoteEp, HEARTBEAT_MESSAGE, messagePayload).whenComplete((result, error) -> {
+            if (error != null) {
+                log.trace("Sending heartbeat to {} failed", remoteEp, error);
+            }
+        });
     }
 
     private class HeartbeatMessageHandler implements Consumer<byte[]> {

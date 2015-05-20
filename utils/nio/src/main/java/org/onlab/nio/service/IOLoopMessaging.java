@@ -138,29 +138,30 @@ public class IOLoopMessaging implements MessagingService {
 
 
     @Override
-    public void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException {
+    public CompletableFuture<Void> sendAsync(Endpoint ep, String type, byte[] payload) {
         DefaultMessage message = new DefaultMessage(
                 messageIdGenerator.incrementAndGet(),
                 localEp,
                 type,
                 payload);
-        sendAsync(ep, message);
+        return sendAsync(ep, message);
     }
 
-    protected void sendAsync(Endpoint ep, DefaultMessage message) throws IOException {
+    protected CompletableFuture<Void> sendAsync(Endpoint ep, DefaultMessage message) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         if (ep.equals(localEp)) {
             dispatchLocally(message);
-            return;
+            future.complete(null);
+            return future;
         }
 
         DefaultMessageStream stream = null;
         try {
             stream = streams.borrowObject(ep);
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-        try {
             stream.write(message);
+            future.complete(null);
+        } catch (Exception e) {
+            future.completeExceptionally(e);
         } finally {
             try {
                 streams.returnObject(ep, stream);
@@ -168,6 +169,7 @@ public class IOLoopMessaging implements MessagingService {
                 log.warn("Failed to return stream to pool");
             }
         }
+        return future;
     }
 
     @Override
@@ -202,30 +204,30 @@ public class IOLoopMessaging implements MessagingService {
                         localEp,
                         REPLY_MESSAGE_TYPE,
                         responsePayload);
-                try {
-                    sendAsync(message.sender(), response);
-                } catch (IOException e) {
-                    log.debug("Failed to respond", e);
-                }
+                sendAsync(message.sender(), response).whenComplete((result, error) -> {
+                    log.debug("Failed to respond", error);
+                });
             }
         }));
     }
 
     @Override
     public void registerHandler(String type, Function<byte[], CompletableFuture<byte[]>> handler) {
-        handlers.put(type, message -> handler.apply(message.payload()).whenComplete((result, error) -> {
-            if (error == null) {
-                DefaultMessage response = new DefaultMessage(message.id(),
+        handlers.put(type, message -> {
+            handler.apply(message.payload()).whenComplete((result, error) -> {
+                if (error == null) {
+                    DefaultMessage response = new DefaultMessage(message.id(),
                         localEp,
                         REPLY_MESSAGE_TYPE,
                         result);
-                try {
-                    sendAsync(message.sender(), response);
-                } catch (IOException e) {
-                    log.debug("Failed to respond", e);
+                    sendAsync(message.sender(), response).whenComplete((r, e) -> {
+                        if (e != null) {
+                            log.debug("Failed to respond", e);
+                        }
+                    });
                 }
-            }
-        }));
+            });
+        });
     }
 
     @Override

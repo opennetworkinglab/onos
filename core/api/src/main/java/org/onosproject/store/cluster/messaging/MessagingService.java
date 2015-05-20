@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.cluster.messaging;
 
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -32,9 +31,9 @@ public interface MessagingService {
      * @param ep end point to send the message to.
      * @param type type of message.
      * @param payload message payload bytes.
-     * @throws IOException when I/O exception of some sort has occurred
+     * @return future that is completed when the message is sent
      */
-    void sendAsync(Endpoint ep, String type, byte[] payload) throws IOException;
+    CompletableFuture<Void> sendAsync(Endpoint ep, String type, byte[] payload);
 
     /**
      * Sends a message synchronously and waits for a response.
