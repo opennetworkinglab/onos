@@ -100,6 +100,7 @@ public class IOLoopMessaging implements MessagingService {
     /**
      * Activates IO Loops.
      *
+     * @param localEp local end-point
      * @throws IOException is activation fails
      */
     public void start(Endpoint localEp) throws IOException {

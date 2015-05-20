@@ -27,6 +27,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class TunnelPolicy implements Policy {
 
+    // FIXME: We should avoid passing around references to implementation objects
+    // Instead, if some operational context is required, we should abstract it to
+    // a bare minimum.
     private final SegmentRoutingManager srManager;
     private final Type type;
     private final String id;
@@ -61,6 +64,7 @@ public final class TunnelPolicy implements Policy {
     /**
      * Creates a TunnelPolicy reference.
      *
+     * @param srm reference to the segment routing component
      * @param p TunnelPolicy reference
      */
     public TunnelPolicy(SegmentRoutingManager srm, TunnelPolicy p) {
