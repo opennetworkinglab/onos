@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -28,6 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of a forwarding objective.
  */
+@Beta
 public final class DefaultForwardingObjective implements ForwardingObjective {
 
     private final TrafficSelector selector;

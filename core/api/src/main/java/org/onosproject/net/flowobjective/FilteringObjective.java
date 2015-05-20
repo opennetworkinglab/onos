@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.criteria.Criterion;
 
@@ -26,6 +27,7 @@ import java.util.Collection;
  * be used by a device driver to construct the actual flow rules to
  * be installed on the device.
  */
+@Beta
 public interface FilteringObjective extends Objective {
 
     enum Type {

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -23,6 +24,7 @@ import org.onosproject.net.flow.TrafficTreatment;
  * be forwarded through the device. A forwarding objective may
  * in multiple rules at the device.
  */
+@Beta
 public interface ForwardingObjective extends Objective {
 
     /**

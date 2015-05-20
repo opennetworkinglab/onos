@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -29,6 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of a next objective.
  */
+@Beta
 public final class DefaultNextObjective implements NextObjective {
 
     private final List<TrafficTreatment> treatments;

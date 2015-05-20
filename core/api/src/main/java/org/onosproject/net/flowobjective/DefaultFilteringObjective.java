@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of a filtering objective.
  */
+@Beta
 public final class DefaultFilteringObjective implements FilteringObjective {
 
 

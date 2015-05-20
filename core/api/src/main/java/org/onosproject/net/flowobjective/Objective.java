@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 
 import java.util.Optional;
@@ -22,6 +23,7 @@ import java.util.Optional;
 /**
  * Base representation of an flow description.
  */
+@Beta
 public interface Objective {
 
     static final boolean DEFAULT_PERMANENT = true;

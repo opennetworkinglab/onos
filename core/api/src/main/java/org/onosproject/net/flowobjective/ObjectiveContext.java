@@ -15,12 +15,15 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
+
 /**
  * The context of a objective that will become the subject of
  * the notification.
  *
  * Implementations of this class must be serializable.
  */
+@Beta
 public interface ObjectiveContext {
 
     default void onSuccess(Objective objective) {}

@@ -15,12 +15,14 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
 /**
  * Service for programming data plane flow rules in manner independent of
  * specific device table pipeline configuration.
  */
+@Beta
 public interface FlowObjectiveService {
 
     /**

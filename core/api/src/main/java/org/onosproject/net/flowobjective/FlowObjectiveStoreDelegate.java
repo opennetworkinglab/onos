@@ -15,10 +15,12 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.store.StoreDelegate;
 
 /**
  * Flow Objective store delegate abstraction.
  */
+@Beta
 public interface FlowObjectiveStoreDelegate extends StoreDelegate<ObjectiveEvent> {
 }

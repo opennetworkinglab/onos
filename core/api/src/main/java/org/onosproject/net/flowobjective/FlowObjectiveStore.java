@@ -15,12 +15,14 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.store.Store;
 
 /**
  * The flow objective store.
  */
+@Beta
 public interface FlowObjectiveStore
         extends Store<ObjectiveEvent, FlowObjectiveStoreDelegate> {
 

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -25,6 +26,7 @@ import java.util.Collection;
  * into the appropriate group or actions needed to implement
  * the function.
  */
+@Beta
 public interface NextObjective extends Objective {
 
     /**

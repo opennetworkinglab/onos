@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes a objective event.
  */
+@Beta
 public class ObjectiveEvent extends AbstractEvent<ObjectiveEvent.Type, Integer> {
 
     /**

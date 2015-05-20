@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.flowobjective;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Represents the set of errors possible when processing an objective.
  */
+@Beta
 public enum ObjectiveError {
 
     /**

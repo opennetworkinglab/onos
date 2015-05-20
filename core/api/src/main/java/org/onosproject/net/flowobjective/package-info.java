@@ -16,6 +16,7 @@
 
 /**
  * Abstractions for objective-based flow programming of data plane without
- * requiring device pipeline structure awareness.
+ * requiring device pipeline structure awareness.&nbsp; This subsystem is
+ * experimental and its interfaces will change in the upcoming release.
  */
 package org.onosproject.net.flowobjective;
