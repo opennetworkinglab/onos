@@ -70,7 +70,7 @@ public class CordFabricManager implements FabricService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
-    private static final int PRIORITY = 1000;
+    private static final int PRIORITY = 50000;
 
     private short openflowPort = 6633;
 

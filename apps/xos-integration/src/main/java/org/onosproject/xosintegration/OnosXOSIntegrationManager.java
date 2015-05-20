@@ -18,6 +18,7 @@ package org.onosproject.xosintegration;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -78,6 +79,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     private static final String XOS_TENANT_BASE_URI = "/xoslib/volttenant/";
     private static final int TEST_XOS_PROVIDER_SERVICE = 1;
 
+    private static final int PRIORITY = 50000;
     private static final DeviceId FABRIC_DEVICE_ID = DeviceId.deviceId("of:5e3e486e73000187");
     private static final PortNumber FABRIC_OLT_CONNECT_POINT = PortNumber.portNumber(2);
     private static final PortNumber FABRIC_VCPE_CONNECT_POINT = PortNumber.portNumber(3);
@@ -232,7 +234,14 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      */
     private void postRest(String json) {
         WebResource.Builder builder = getClientBuilder();
-        ClientResponse response = builder.post(ClientResponse.class, json);
+        ClientResponse response;
+
+        try {
+            response = builder.post(ClientResponse.class, json);
+        } catch (ClientHandlerException e) {
+            log.warn("Unable to contact REST server: {}", e.getMessage());
+            return;
+        }
 
         if (response.getStatus() != HTTP_CREATED) {
             log.info("REST POST request returned error code {}",
@@ -340,7 +349,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
         ForwardingObjective forwardToFabric = DefaultForwardingObjective.builder()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(1000)
+                .withPriority(PRIORITY)
                 .makePermanent()
                 .fromApp(appId)
                 .withSelector(fromGateway)
@@ -349,7 +358,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
         ForwardingObjective forwardToGateway = DefaultForwardingObjective.builder()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(1000)
+                .withPriority(PRIORITY)
                 .makePermanent()
                 .fromApp(appId)
                 .withSelector(fromFabric)
@@ -371,14 +380,16 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         String baseUrl = "http://" + FABRIC_CONTROLLER_ADDRESS + ":"
                 + Integer.toString(FABRIC_SERVER_PORT);
         Client client = Client.create();
-        client.addFilter(new HTTPBasicAuthFilter("padmin@vicci.org", "letmein"));
-        WebResource resource = client.resource(baseUrl
-                                                       + FABRIC_BASE_URI);
+        WebResource resource = client.resource(baseUrl + FABRIC_BASE_URI);
         WebResource.Builder builder = resource.accept(JSON_UTF_8.toString())
                 .type(JSON_UTF_8.toString());
 
-        ClientResponse response = builder.post(ClientResponse.class, json);
-
+        try {
+            builder.post(ClientResponse.class, json);
+        } catch (ClientHandlerException e) {
+            log.warn("Unable to contact fabric REST server:", e.getMessage());
+            return;
+        }
     }
 
     /**
