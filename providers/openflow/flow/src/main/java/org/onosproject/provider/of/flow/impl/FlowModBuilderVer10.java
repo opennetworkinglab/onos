@@ -135,6 +135,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
 
     private List<OFAction> buildActions() {
         List<OFAction> acts = new LinkedList<>();
+        OFAction act;
         if (treatment == null) {
             return acts;
         }
@@ -144,10 +145,16 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 log.warn("Saw drop action; assigning drop action");
                 return Collections.emptyList();
             case L2MODIFICATION:
-                acts.add(buildL2Modification(i));
+                act = buildL2Modification(i);
+                if (act != null) {
+                    acts.add(buildL2Modification(i));
+                }
                 break;
             case L3MODIFICATION:
-                acts.add(buildL3Modification(i));
+                act = buildL3Modification(i);
+                if (act != null) {
+                    acts.add(buildL3Modification(i));
+                }
                 break;
             case OUTPUT:
                 OutputInstruction out = (OutputInstruction) i;
@@ -209,6 +216,8 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
             return factory().actions().setVlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
         case VLAN_POP:
             return factory().actions().stripVlan();
+        case VLAN_PUSH:
+            return null;
         default:
             log.warn("Unimplemented action type {}.", l2m.subtype());
             break;
