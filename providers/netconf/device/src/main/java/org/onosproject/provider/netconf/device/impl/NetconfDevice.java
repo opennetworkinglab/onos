@@ -58,6 +58,7 @@ public class NetconfDevice {
     }
 
     private static final int DEFAULT_SSH_PORT = 22;
+    private static final int DEFAULT_CON_TIMEOUT = 0;
     private static final String XML_CAPABILITY_KEY = "capability";
     private static final int EVENTINTERVAL = 2000;
     private static final int CONNECTION_CHECK_INTERVAL = 3;
@@ -69,6 +70,7 @@ public class NetconfDevice {
 
     private String sshHost;
     private int sshPort = DEFAULT_SSH_PORT;
+    private int connectTimeout = DEFAULT_CON_TIMEOUT;
     private String username;
     private String password;
     private boolean reachable = false;
@@ -97,7 +99,7 @@ public class NetconfDevice {
     public void init() throws Exception {
         try {
             if (sshConnection == null) {
-                sshConnection = new SSHConnection(sshHost, sshPort);
+                sshConnection = new SSHConnection(sshHost, sshPort, connectTimeout);
                 sshConnection.authenticateWithPassword(username, password);
             }
             // Send hello message to retrieve capabilities.
@@ -292,5 +294,9 @@ public class NetconfDevice {
      */
     public boolean isActive() {
         return deviceState == DeviceState.ACTIVE ? true : false;
+    }
+
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
     }
 }

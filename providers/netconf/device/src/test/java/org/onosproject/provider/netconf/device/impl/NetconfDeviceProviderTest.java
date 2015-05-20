@@ -22,6 +22,7 @@ import static org.onlab.util.Tools.delay;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -34,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -179,15 +179,12 @@ public class NetconfDeviceProviderTest {
         return dictionary;
     }
 
-    @Ignore
-    @Test(expected = IOException.class)
-    public void testSSHAuthentication() throws IOException, JNCException {
-        TestDeviceCreator objForTestDev = new TestDeviceCreator(
-                                                                new NetconfDevice(
-                                                                                  "10.18.14.19",
-                                                                                  22,
-                                                                                  "cisco",
-                                                                                  "cisco"),
+    @Test(expected = SocketTimeoutException.class)
+    public void testSSHAuthentication() throws JNCException, IOException {
+        NetconfDevice netconfDevice = new NetconfDevice("10.18.14.19", 22,
+                                                        "cisco", "cisco");
+        netconfDevice.setConnectTimeout(1000);
+        TestDeviceCreator objForTestDev = new TestDeviceCreator(netconfDevice,
                                                                 true);
         objForTestDev.run();
     }
@@ -344,7 +341,8 @@ public class NetconfDeviceProviderTest {
          * Initialize Netconf Device object, and notify core saying device
          * connected.
          */
-        private void advertiseDevices() throws JNCException, IOException {
+        private void advertiseDevices()
+                throws JNCException, IOException, SocketTimeoutException {
             try {
                 if (device == null) {
                     log.warn("The Request Netconf Device is null, cannot proceed further");
@@ -371,6 +369,8 @@ public class NetconfDeviceProviderTest {
                         + device.deviceInfo()
                         + " couldn't persist the device onto the store", e);
             } catch (JNCException e) {
+                throw e;
+            } catch (SocketTimeoutException e) {
                 throw e;
             } catch (IOException e) {
                 throw e;

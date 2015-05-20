@@ -21,6 +21,8 @@ import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Dictionary;
@@ -329,6 +331,12 @@ public class NetconfDeviceProvider extends AbstractProvider
                 log.error("Syntax Error while creating URI for the device: "
                         + device.deviceInfo()
                         + " couldn't persist the device onto the store", e);
+            } catch (SocketTimeoutException e) {
+                log.error("Error while setting connection for the device: "
+                        + device.deviceInfo(), e);
+            } catch (IOException e) {
+                log.error("Error while setting connection for the device: "
+                        + device.deviceInfo(), e);
             } catch (Exception e) {
                 log.error("Error while initializing session for the device: "
                         + device.deviceInfo(), e);
