@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "mac": "010203040506",
+      "name": "Moms laptop",
+      "id": 0
+    },
+    {
+      "mac": "010203040507",
+      "name": "Dads desktop",
+      "id": 1
+    },
+    {
+      "id": 2,
+      "mac": "010203040507",
+      "name": "Jacks iPad",
+      "level": "PG"
+    },
+    {
+      "mac": "010203040508",
+      "name": "Jills iPad",
+      "id": 3
+    }
+  ]
+}

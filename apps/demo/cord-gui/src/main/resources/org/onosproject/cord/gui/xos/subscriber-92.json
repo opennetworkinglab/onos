@@ -1,0 +1,23 @@
+{
+  "humanReadableName": "vOLT on service 1",
+  "id": 92,
+  "service_specific_id": "33445573",
+  "vlan_id": "77889908",
+  "vcpe_id": 93,
+  "sliver": 108,
+  "sliver_name": "mysite_vcpe",
+  "image": 1,
+  "image_name": "Ubuntu-14.04-LTS",
+  "firewall_enable": false,
+  "firewall_rules": "accept all anywhere anywhere",
+  "url_filter_enable": false,
+  "url_filter_rules": "allow all",
+  "url_filter_level": "R",
+  "cdn_enable": false,
+  "vbng_id": 94,
+  "routeable_subnet": "",
+  "nat_ip": "172.16.0.106",
+  "lan_ip": "12.0.0.16",
+  "wan_ip": "11.0.0.16",
+  "private_ip": "10.0.6.43"
+}
