@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
@@ -40,6 +41,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceService;
@@ -50,6 +52,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.LinkCollectionIntent;
@@ -651,6 +654,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                         if (installable instanceof PathIntent) {
                             classifyLinks(type, biLinks, trafficClass.showTraffic,
                                           ((PathIntent) installable).path().links());
+                        } else if (installable instanceof FlowRuleIntent) {
+                            classifyLinks(type, biLinks, trafficClass.showTraffic,
+                                          linkResources(installable));
                         } else if (installable instanceof LinkCollectionIntent) {
                             classifyLinks(type, biLinks, trafficClass.showTraffic,
                                           ((LinkCollectionIntent) installable).links());
@@ -663,6 +669,17 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             }
         }
         return biLinks;
+    }
+
+    // Extracts links from the specified flow rule intent resources
+    private Collection<Link> linkResources(Intent installable) {
+        ImmutableList.Builder<Link> builder = ImmutableList.builder();
+        for (NetworkResource r : installable.resources()) {
+            if (r instanceof Link) {
+                builder.add((Link) r);
+            }
+        }
+        return builder.build();
     }
 
 

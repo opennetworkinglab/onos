@@ -108,12 +108,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final long SUMMARY_FREQUENCY = 30000;
 
     private static final Comparator<? super ControllerNode> NODE_COMPARATOR =
-            new Comparator<ControllerNode>() {
-                @Override
-                public int compare(ControllerNode o1, ControllerNode o2) {
-                    return o1.id().toString().compareTo(o2.id().toString());
-                }
-            };
+            (o1, o2) -> o1.id().toString().compareTo(o2.id().toString());
 
 
     private final Timer timer = new Timer("topology-view");
