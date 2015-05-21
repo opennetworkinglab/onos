@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.serializers.impl.MastershipBasedTimestampSerializer;
+import org.onosproject.store.serializers.custom.MastershipBasedTimestampSerializer;
 import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;

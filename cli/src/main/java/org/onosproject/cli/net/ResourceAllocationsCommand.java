@@ -21,7 +21,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 /**
  * Lists allocations by link. Lists all allocations if link is unspecified.

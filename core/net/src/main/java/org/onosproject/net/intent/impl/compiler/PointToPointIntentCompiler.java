@@ -26,7 +26,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.List;

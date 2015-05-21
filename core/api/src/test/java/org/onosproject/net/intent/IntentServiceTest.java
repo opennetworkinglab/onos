@@ -19,7 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;

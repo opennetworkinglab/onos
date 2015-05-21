@@ -24,7 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.Matchers.closeTo;

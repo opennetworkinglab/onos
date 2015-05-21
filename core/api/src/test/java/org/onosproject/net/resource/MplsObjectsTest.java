@@ -18,6 +18,8 @@ package org.onosproject.net.resource;
 import org.junit.Test;
 
 import com.google.common.testing.EqualsTester;
+import org.onosproject.net.resource.link.MplsLabel;
+import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

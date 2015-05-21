@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.intent;
 
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.List;
 import java.util.Set;

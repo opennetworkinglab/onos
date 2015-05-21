@@ -16,8 +16,8 @@
 package org.onosproject.net.intent.constraint;
 
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.LambdaResource;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LambdaResource;
+import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
 

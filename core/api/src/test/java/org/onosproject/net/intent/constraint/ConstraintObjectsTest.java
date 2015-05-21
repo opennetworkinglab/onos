@@ -18,8 +18,8 @@ package org.onosproject.net.intent.constraint;
 import org.junit.Test;
 import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.BandwidthResource;
-import org.onosproject.net.resource.LambdaResource;
+import org.onosproject.net.resource.link.BandwidthResource;
+import org.onosproject.net.resource.link.LambdaResource;
 
 import com.google.common.testing.EqualsTester;
 

@@ -37,7 +37,7 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.topology.PathService;
 
 import com.google.common.collect.ImmutableSet;

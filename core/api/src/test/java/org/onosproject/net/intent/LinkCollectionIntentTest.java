@@ -26,7 +26,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
-import org.onosproject.net.resource.LambdaResource;
+import org.onosproject.net.resource.link.LambdaResource;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;

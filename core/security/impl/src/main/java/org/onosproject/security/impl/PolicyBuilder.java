@@ -36,9 +36,7 @@ import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
-import org.onosproject.net.resource.LabelResourceAdminService;
-import org.onosproject.net.resource.LinkResourceService;
-import org.onosproject.net.resource.LabelResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
@@ -107,8 +105,8 @@ public final class PolicyBuilder {
                         DriverAdminService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         StorageAdminService.class.getName(), ServicePermission.GET),
-                new PermissionInfo(ServicePermission.class.getName(),
-                        LabelResourceAdminService.class.getName(), ServicePermission.GET),
+//                new PermissionInfo(ServicePermission.class.getName(),
+//                        LabelResourceAdminService.class.getName(), ServicePermission.GET),
 //                new PermissionInfo(ServicePermission.class.getName(),
 //                        TunnelAdminService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
@@ -151,8 +149,8 @@ public final class PolicyBuilder {
                         LinkService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         LinkResourceService.class.getName(), ServicePermission.GET),
-                new PermissionInfo(ServicePermission.class.getName(),
-                        LabelResourceService.class.getName(), ServicePermission.GET),
+//                new PermissionInfo(ServicePermission.class.getName(),
+//                        LabelResourceService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         PacketService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
@@ -224,14 +222,14 @@ public final class PolicyBuilder {
                 IntentService.class.getName()));
         serviceDirectory.put(Permission.INTENT_EVENT, ImmutableSet.of(
                 IntentService.class.getName()));
-        serviceDirectory.put(Permission.LINK_READ, ImmutableSet.of(
-                LinkService.class.getName(), LinkResourceService.class.getName(),
-                LabelResourceService.class.getName()));
-        serviceDirectory.put(Permission.LINK_WRITE, ImmutableSet.of(
-                LinkResourceService.class.getName(), LabelResourceService.class.getName()));
-        serviceDirectory.put(Permission.LINK_EVENT, ImmutableSet.of(
-                LinkService.class.getName(), LinkResourceService.class.getName(),
-                LabelResourceService.class.getName()));
+//        serviceDirectory.put(Permission.LINK_READ, ImmutableSet.of(
+//                LinkService.class.getName(), LinkResourceService.class.getName(),
+//                LabelResourceService.class.getName()));
+//        serviceDirectory.put(Permission.LINK_WRITE, ImmutableSet.of(
+//                LinkResourceService.class.getName(), LabelResourceService.class.getName()));
+//        serviceDirectory.put(Permission.LINK_EVENT, ImmutableSet.of(
+//                LinkService.class.getName(), LinkResourceService.class.getName(),
+//                LabelResourceService.class.getName()));
         serviceDirectory.put(Permission.PACKET_READ, ImmutableSet.of(
                 PacketService.class.getName(), ProxyArpService.class.getName()));
         serviceDirectory.put(Permission.PACKET_WRITE, ImmutableSet.of(

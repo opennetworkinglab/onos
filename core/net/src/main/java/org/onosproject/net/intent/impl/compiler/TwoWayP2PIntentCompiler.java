@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.TwoWayP2PIntent;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.List;
 import java.util.Set;

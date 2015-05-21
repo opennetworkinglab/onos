@@ -19,7 +19,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Collections;
 import java.util.Objects;

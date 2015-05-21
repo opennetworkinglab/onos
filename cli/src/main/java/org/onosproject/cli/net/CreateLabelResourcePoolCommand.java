@@ -4,8 +4,8 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.resource.LabelResourceAdminService;
-import org.onosproject.net.resource.LabelResourceId;
+import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
+import org.onosproject.incubator.net.resource.label.LabelResourceId;
 
 /**
  * create label resource pool by specific device id.

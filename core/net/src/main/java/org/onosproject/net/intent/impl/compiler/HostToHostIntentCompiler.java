@@ -31,7 +31,7 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;

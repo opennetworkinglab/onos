@@ -4,7 +4,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.resource.LabelResourceAdminService;
+import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 
 @Command(scope = "onos", name = "destroy-label-resource-pool",
     description = "Destroys label resource pool by a specific device id")

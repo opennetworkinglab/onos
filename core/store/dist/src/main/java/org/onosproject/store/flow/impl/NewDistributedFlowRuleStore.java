@@ -66,7 +66,7 @@ import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
-import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
+import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 

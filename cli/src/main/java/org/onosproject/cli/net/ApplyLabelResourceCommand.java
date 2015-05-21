@@ -7,9 +7,9 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.resource.DefaultLabelResource;
-import org.onosproject.net.resource.LabelResource;
-import org.onosproject.net.resource.LabelResourceService;
+import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
 @Command(scope = "onos", name = "apply-label-resource-pool",
       description = "Apply label resource from device pool by specific device id")

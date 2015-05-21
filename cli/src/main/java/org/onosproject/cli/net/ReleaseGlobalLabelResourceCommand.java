@@ -6,8 +6,8 @@ import java.util.Set;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.resource.LabelResourceId;
-import org.onosproject.net.resource.LabelResourceService;
+import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
 @Command(scope = "onos", name = "release-global-label-resource-pool",
 description = "Releases labels to global label resource pool.")

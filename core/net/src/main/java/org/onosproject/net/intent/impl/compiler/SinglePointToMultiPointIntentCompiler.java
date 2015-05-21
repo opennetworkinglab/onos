@@ -30,7 +30,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import com.google.common.collect.ImmutableSet;
 

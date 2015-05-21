@@ -25,7 +25,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Arrays;
 

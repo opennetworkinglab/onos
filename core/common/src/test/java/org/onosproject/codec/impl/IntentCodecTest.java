@@ -49,8 +49,8 @@ import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
-import org.onosproject.net.resource.BandwidthResource;
-import org.onosproject.net.resource.LambdaResource;
+import org.onosproject.net.resource.link.BandwidthResource;
+import org.onosproject.net.resource.link.LambdaResource;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;

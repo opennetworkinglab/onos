@@ -25,8 +25,8 @@ import org.onosproject.net.Port;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
-import org.onosproject.net.resource.DeviceResourceService;
-import org.onosproject.net.resource.DeviceResourceStore;
+import org.onosproject.net.resource.device.DeviceResourceService;
+import org.onosproject.net.resource.device.DeviceResourceStore;
 import org.slf4j.Logger;
 
 import java.util.Arrays;

@@ -39,7 +39,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
-import org.onosproject.net.resource.BandwidthResource;
+import org.onosproject.net.resource.link.BandwidthResource;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 

@@ -2,8 +2,8 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.resource.LabelResourcePool;
-import org.onosproject.net.resource.LabelResourceService;
+import org.onosproject.incubator.net.resource.label.LabelResourcePool;
+import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
 @Command(scope = "onos", name = "get-global-label-resource-pool",
       description = "Gets global label resource pool information.")

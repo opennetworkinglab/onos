@@ -4,10 +4,10 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.resource.DefaultLabelResource;
-import org.onosproject.net.resource.LabelResource;
-import org.onosproject.net.resource.LabelResourceId;
-import org.onosproject.net.resource.LabelResourceService;
+import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;

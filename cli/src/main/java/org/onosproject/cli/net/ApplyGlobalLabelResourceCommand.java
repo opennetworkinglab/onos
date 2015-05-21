@@ -6,9 +6,9 @@ import java.util.Iterator;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.resource.DefaultLabelResource;
-import org.onosproject.net.resource.LabelResource;
-import org.onosproject.net.resource.LabelResourceService;
+import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
 @Command(scope = "onos", name = "apply-global-label-resource-pool",
       description = "Apply global labels from global resource pool")

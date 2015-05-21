@@ -58,7 +58,7 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.serializers.KryoSerializer;
-import org.onosproject.store.serializers.impl.DistributedStoreSerializers;
+import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
 import java.io.IOException;

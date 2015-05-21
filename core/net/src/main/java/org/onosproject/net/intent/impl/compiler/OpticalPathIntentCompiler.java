@@ -37,8 +37,8 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.resource.LinkResourceAllocations;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Collections;
 import java.util.LinkedList;

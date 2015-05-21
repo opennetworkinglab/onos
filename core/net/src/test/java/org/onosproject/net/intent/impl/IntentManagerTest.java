@@ -43,7 +43,7 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.store.trivial.impl.SimpleIntentStore;
 
 import java.util.Collection;

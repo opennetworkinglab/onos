@@ -19,7 +19,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.MplsIntent;
 import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.LinkResourceAllocations;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 
 @Component(immediate = true)

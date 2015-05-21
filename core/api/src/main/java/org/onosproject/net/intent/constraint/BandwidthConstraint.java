@@ -16,9 +16,9 @@
 package org.onosproject.net.intent.constraint;
 
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.BandwidthResource;
-import org.onosproject.net.resource.BandwidthResourceRequest;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.BandwidthResource;
+import org.onosproject.net.resource.link.BandwidthResourceRequest;
+import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
 

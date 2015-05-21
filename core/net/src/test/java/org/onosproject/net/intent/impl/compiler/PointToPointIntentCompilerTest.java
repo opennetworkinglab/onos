@@ -34,9 +34,9 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.resource.BandwidthResource;
-import org.onosproject.net.resource.LambdaResource;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.BandwidthResource;
+import org.onosproject.net.resource.link.LambdaResource;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Collections;
 import java.util.List;

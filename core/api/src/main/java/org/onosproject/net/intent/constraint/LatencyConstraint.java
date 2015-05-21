@@ -19,7 +19,7 @@ import com.google.common.base.MoreObjects;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;

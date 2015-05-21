@@ -16,7 +16,7 @@
 package org.onosproject.net.resource;
 
 /**
- * Representation of ID for allocated resource.
+ * Resource identifier.
  */
 public interface ResourceId {
 

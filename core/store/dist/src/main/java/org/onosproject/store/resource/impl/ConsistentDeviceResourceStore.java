@@ -26,7 +26,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.resource.DeviceResourceStore;
+import org.onosproject.net.resource.device.DeviceResourceStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;

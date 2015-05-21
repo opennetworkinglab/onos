@@ -17,7 +17,7 @@ package org.onosproject.net.intent;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.resource.LinkResourceService;
+import org.onosproject.net.resource.link.LinkResourceService;
 
 /**
  * Representation of a connectivity constraint capable of evaluating a link
