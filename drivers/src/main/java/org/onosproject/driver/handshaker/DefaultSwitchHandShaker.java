@@ -34,9 +34,6 @@ public class DefaultSwitchHandShaker extends AbstractOpenFlowSwitch {
 
     @Override
     public Boolean supportNxRole() {
-        if (this.factory().getVersion() == OFVersion.OF_10) {
-            return true;
-        }
         return false;
     }
 

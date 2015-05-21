@@ -21,7 +21,11 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.DefaultSwitchHandShaker"/>
     </driver>
-    <driver name="ovs-corsa" extends="default"
+    <driver name="ovs" extends="default" manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.NiciraSwitchHandShaker"/>
+    </driver>
+    <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
