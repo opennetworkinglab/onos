@@ -38,9 +38,9 @@ public enum XosFunctionDescriptor {
     /**
      * URL Filtering function (parental controls).
      */
-    URL_FILTERING("url_filtering",
-                  "Parental Control",
-                  "Variable levels of URL filtering.");
+    URL_FILTER("url_filter",
+               "Parental Control",
+               "Variable levels of URL filtering.");
 
     private final String id;
     private final String displayName;

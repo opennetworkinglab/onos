@@ -43,7 +43,7 @@ public class BundleFactoryTest {
         Set<XosFunctionDescriptor> funcs = bundle.functions();
         assertTrue("missing internet", funcs.contains(INTERNET));
         assertTrue("missing firewall", funcs.contains(FIREWALL));
-        assertFalse("unexpected url-f", funcs.contains(URL_FILTERING));
+        assertFalse("unexpected url-f", funcs.contains(URL_FILTER));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class BundleFactoryTest {
         Set<XosFunctionDescriptor> funcs = bundle.functions();
         assertTrue("missing internet", funcs.contains(INTERNET));
         assertTrue("missing firewall", funcs.contains(FIREWALL));
-        assertTrue("missing url-f", funcs.contains(URL_FILTERING));
+        assertTrue("missing url-f", funcs.contains(URL_FILTER));
     }
 
 }

@@ -16,7 +16,7 @@
         "params": {}
       },
       {
-        "id": "url_filtering",
+        "id": "url_filter",
         "name": "Parental Control",
         "desc": "Variable levels of URL filtering",
         "params": {
@@ -25,5 +25,9 @@
         }
       }
     ]
-  }
+  },
+  "bundles": [
+    { "id": "basic", "name": "Basic Bundle" },
+    { "id": "family", "name": "Family Bundle" }
+  ]
 }

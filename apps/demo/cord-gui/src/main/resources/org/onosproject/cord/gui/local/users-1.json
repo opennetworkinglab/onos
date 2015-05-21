@@ -5,7 +5,7 @@
       "name": "Mom's MacBook",
       "mac": "01:02:03:04:05:06",
       "profile": {
-        "url_filtering": {
+        "url_filter": {
           "level": "R"
         }
       }
@@ -15,7 +15,7 @@
       "name": "Dad's iPad",
       "mac": "01:02:03:04:05:77",
       "profile": {
-        "url_filtering": {
+        "url_filter": {
           "level": "R"
         }
       }
@@ -25,7 +25,7 @@
       "name": "Dick's laptop",
       "mac": "01:02:03:04:05:88",
       "profile": {
-        "url_filtering": {
+        "url_filter": {
           "level": "PG-13"
         }
       }
@@ -35,7 +35,7 @@
       "name": "Jane's laptop",
       "mac": "01:02:03:04:05:99",
       "profile": {
-        "url_filtering": {
+        "url_filter": {
           "level": "PG"
         }
       }

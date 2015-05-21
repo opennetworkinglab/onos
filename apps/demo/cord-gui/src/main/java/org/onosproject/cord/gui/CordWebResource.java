@@ -59,4 +59,12 @@ public class CordWebResource {
         return fakeData("users", suffix);
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("dashboard")
+    public Response dashboard() {
+        // TODO:
+        return Response.ok().build();
+    }
+
 }

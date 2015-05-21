@@ -44,7 +44,7 @@ public class BundleFactory {
             new DefaultBundleDescriptor(FAMILY_ID, FAMILY_DISPLAY_NAME,
                                         XosFunctionDescriptor.INTERNET,
                                         XosFunctionDescriptor.FIREWALL,
-                                        XosFunctionDescriptor.URL_FILTERING);
+                                        XosFunctionDescriptor.URL_FILTER);
 
     /**
      * Returns the list of available bundles.

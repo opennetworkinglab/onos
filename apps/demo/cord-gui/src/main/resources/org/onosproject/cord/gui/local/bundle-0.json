@@ -16,5 +16,9 @@
         "params": {}
       }
     ]
-  }
+  },
+  "bundles": [
+    { "id": "basic", "name": "Basic Bundle" },
+    { "id": "family", "name": "Family Bundle" }
+  ]
 }
