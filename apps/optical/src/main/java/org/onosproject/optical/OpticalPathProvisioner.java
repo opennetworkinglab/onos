@@ -409,11 +409,7 @@ public class OpticalPathProvisioner {
         checkNotNull(link.annotations());
         checkNotNull(link.annotations().value("optical.type"));
 
-        if (link.annotations().value("optical.type").equals("cross-connect")) {
-            return true;
-        }
-
-        return false;
+        return link.annotations().value("optical.type").equals("cross-connect");
     }
 
 }
