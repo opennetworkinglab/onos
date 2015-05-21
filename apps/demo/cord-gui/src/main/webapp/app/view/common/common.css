@@ -27,6 +27,10 @@ p, a, li, th, td {
     font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
 }
 
+body {
+    background-color: #efefef;
+}
+
 div.container {
     width: 75%;
     margin: 0 auto;

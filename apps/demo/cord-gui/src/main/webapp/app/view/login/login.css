@@ -14,15 +14,94 @@
  * limitations under the License.
  */
 
-#login-header h2 {
+div#login-wrapper {
+    text-align: center;
+}
+
+#login h2 {
     margin: 1%;
+    color: rgb(115, 115, 115);
+    font-size: 100%;
+    font-style: italic;
+    text-align: left;
+    position: absolute;
+    top: -140px;
+}
+
+div#login-logo {
+    margin-top: 7%;
+    width: 217px;
+}
+div#login-logo, div#login-form {
+    display: inline-block;
+}
+
+#login-logo use.glyph.bird {
+    fill: #800;
+}
+#login-logo circle {
+    fill: none;
 }
 
 div#login-form {
-    width: 135px;
-    margin: 0 auto;
+    margin-left: 2.5%;
+    position: relative;
+    width: 240px;
 }
 
 #login-form form {
-    line-height: 150%;
+    line-height: 250%;
+
+}
+#login-form input {
+    display: block;
+    height: 40px;
+    width: 230px;
+    font-size: 19px;
+    padding: 0 5px;
+    margin-bottom: 3.5%;
+    border-radius: 3px;
+    position: absolute;
+}
+#login-form input[type="text"] {
+    top: -110px;
+}
+#login-form input[type="password"] {
+    top: -60px;
+}
+
+#login-form input[type="text"],
+#login-form input[type="password"] {
+    box-shadow: none;
+    border: none;
+    transition: border 0.1s;
+}
+#login-form input[type="text"]:focus,
+#login-form input[type="password"]:focus,
+#login-form input[type="button"]:focus {
+    outline: none;
+    border: solid 2px rgba(122, 188, 229, 0.5);
+}
+
+#login-form a {
+    text-decoration: none;
+}
+
+#login-form input[type="button"] {
+    top: -5px;
+    width: 240px;
+    height: 30px;
+    box-shadow: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    font-size: 14px;
+    background-color: lightgray;
+    transition: background-color 0.4s;
+}
+
+#login-form input[type="button"]:hover {
+    color: white;
+    background-color: #CE5650;
 }
