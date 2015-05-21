@@ -79,7 +79,7 @@
                         <group>
                             <title>Incubator for Core Subsystems &amp; Distributed Stores</title>
                             <packages>
-                                org.onosproject.incubator.net.impl:org.onosproject.incubator.store.impl
+                                org.onosproject.incubator.net.impl:org.onosproject.incubator.store.impl:org.onosproject.incubator.net.resource.label.impl:org.onosproject.incubator.store.resource.impl:org.onosproject.incubator.net.tunnel.impl:org.onosproject.incubator.store.tunnel.impl
                             </packages>
                         </group>
                         <group>

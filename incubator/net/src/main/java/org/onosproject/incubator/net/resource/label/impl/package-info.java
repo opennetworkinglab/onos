@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Abstractions for reserving network resources.
+ * Implementation of the label resource subsystem.
  */
-package org.onosproject.net.resource;
+package org.onosproject.incubator.net.resource.label.impl;

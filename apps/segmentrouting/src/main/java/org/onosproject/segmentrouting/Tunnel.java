@@ -47,6 +47,7 @@ public interface Tunnel {
     /**
      * Sets group ID for the tunnel.
      *
+     * @param groupId group identifier
      */
     void setGroupId(int groupId);
 

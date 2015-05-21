@@ -39,12 +39,15 @@ public class PolicyHandler {
 
     protected final Logger log = getLogger(getClass());
 
+    // FIXME: references to manager components should be avoided
     private final SegmentRoutingManager srManager;
     private final EventuallyConsistentMap<String, Policy> policyStore;
 
     /**
      * Creates a reference.
-     * @param policyStore
+     *
+     * @param srManager segment routing manager
+     * @param policyStore policy store
      */
     public PolicyHandler(SegmentRoutingManager srManager,
                          EventuallyConsistentMap<String, Policy> policyStore) {

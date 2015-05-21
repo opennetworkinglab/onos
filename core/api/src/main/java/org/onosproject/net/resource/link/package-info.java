@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 /**
- * Abstractions for reserving network resources.
+ * Services for reserving links and their capacity as network resources,
+ * e.g.&nbsp;bandwidth, lambdas.
  */
-package org.onosproject.net.resource;
+package org.onosproject.net.resource.link;

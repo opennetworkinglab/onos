@@ -50,6 +50,7 @@ public class TunnelHandler {
      * Creates a tunnel.
      *
      * @param tunnel tunnel reference to create a tunnel
+     * @return true if creation succeeded
      */
     public boolean createTunnel(Tunnel tunnel) {
 
