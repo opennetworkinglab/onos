@@ -100,7 +100,7 @@ function cell {
     if [ -n "$1" ]; then
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
-        unset ONOS_CELL ONOS_NIC ONOS_APPS ONOS_BOOT_FEATURES ONOS_USER ONOS_GROUP
+        unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES ONOS_USER ONOS_GROUP
         unset OCI OCN OCT
         unset ONOS_FEATURES # deprecated
         unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
