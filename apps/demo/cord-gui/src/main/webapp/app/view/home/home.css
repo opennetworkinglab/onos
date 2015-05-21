@@ -15,9 +15,59 @@
  */
 
 #home table {
-    width: 100%;
+    width: 94%;
+    table-layout: fixed;
+    margin-left: 6%;
+}
+#home table.title {
+    background: linear-gradient(lightgray, darkgray);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+#home table.title th {
+    text-align: center;
+}
+
+#home table.content {
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+#home table.content th,
+#home table.content td {
+    font-size: 90%;
+}
+#home table.content th {
+    background-color: rgba(173, 216, 230, 0.75);
+}
+
+#home table.content tbody tr:nth-of-type(even) {
+    background-color: rgba(173, 216, 230, 0.25);
+}
+#home table.content tbody tr:nth-of-type(odd) {
+    background-color: rgba(173, 216, 230, 0.5);
 }
 
 #home td, #home th {
-    text-align: center;
+    text-align: left;
+    padding: 2%;
+}
+
+#home h3 {
+    font-weight: normal;
+    margin-bottom: 4%;
+}
+
+#home h4 {
+    color: rgb(107, 107, 107);
+    font-style: italic;
+    font-weight: normal;
+    font-size: 90%;
+    margin-bottom: 1%;
+}
+
+#home p {
+    font-size: 70%;
+    color: rgba(0,0,0, 0.8);
+    text-indent: 20px;
+    text-align: justify;
 }

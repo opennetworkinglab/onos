@@ -1,11 +1,5 @@
 <div id="available" ng-controller="CordAvailable as ctrl">
-    <h2>{{name}}</h2>
-    <table>
-        <tr ng-repeat="func in funcs">
-            <td class="icon">icon of function</td>
-            <td>{{func.name}}</td>
-            <td class="desc">{{func.desc}}</td>
-        </tr>
-    </table>
+    <h2>{{available.name}}</h2>
+    <p>{{available.desc}}</p>
     <button type="button">Apply</button>
 </div>

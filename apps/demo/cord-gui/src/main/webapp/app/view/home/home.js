@@ -17,8 +17,7 @@
 (function () {
     'use strict';
 
-    var before = 'http://localhost:8080/rs/dashboard/0',
-        after = 'http://localhost:8080/rs/dashboard/1';
+    var url = 'http://localhost:8080/rs/dashboard';
 
     angular.module('cordHome', [])
         .controller('CordHomeCtrl', ['$log', '$scope', '$resource',
@@ -26,7 +25,7 @@
                 var DashboardData, resource;
                 $scope.page = 'dashboard';
 
-                DashboardData = $resource(before);
+                DashboardData = $resource(url);
                 resource = DashboardData.get({},
                     // success
                     function () {

@@ -24,11 +24,18 @@
 
 .nav li {
     background-color: lightgray;
-    padding: 1% 0;
+    padding: 2.5% 0;
+    transition: background-color 0.4s;
+}
+.nav li:hover {
+    background-color: #CE5650;
+
 }
 .nav li.selected {
     font-weight: bold;
-    background-color: darkgray;
+    color: white;
+    background: linear-gradient(#CE5650, #ce3630);
+    letter-spacing: 0.03em;
 }
 
 .nav a {

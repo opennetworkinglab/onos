@@ -19,30 +19,12 @@
 
     var $log, $resource;
 
-    var before = 'http://localhost:8080/rs/bundle/0',
-        after = 'http://localhost:8080/rs/bundle/1';
+    var url = 'http://localhost:8080/rs/bundle';
 
-    var basic = 'Basic Bundle',
-        family = 'Family Bundle',
-        current, which,
-        avScope;
-
-    function getAvailable(scope) {
-        var AvailableData, resource;
-
-        AvailableData = $resource(which);
-        resource = AvailableData.get({},
-            // success
-            function () {
-                scope.name = resource.bundle.name;
-                scope.funcs = resource.bundle.functions;
-            },
-            // error
-            function () {
-                $log.error('Problem with resource', resource);
-            });
-        $log.debug('Resource received:', resource);
-    }
+    var basic = 'basic',
+        family = 'family',
+        current,
+        avCb;
 
     angular.module('cordBundle', [])
         .controller('CordBundleCtrl', ['$log', '$scope', '$resource',
@@ -52,29 +34,36 @@
                 $log = _$log_;
                 $resource = _$resource_;
 
-                BundleData = $resource(after);
+                BundleData = $resource(url);
                 resource = BundleData.get({},
                     // success
                     function () {
+                        current = resource.bundle.id;
                         $scope.name = resource.bundle.name;
-                        current = $scope.name;
+                        $scope.desc = resource.bundle.desc;
                         $scope.funcs = resource.bundle.functions;
-
-                        which = (current === basic) ? after : before;
-                        getAvailable(avScope);
+                        avCb(resource);
                     },
                     // error
                     function () {
                         $log.error('Problem with resource', resource);
                     });
-                $log.debug('Resource received:', resource);
 
                 $log.debug('Cord Bundle Ctrl has been created.');
         }])
 
         .controller('CordAvailable', ['$scope',
             function ($scope) {
-                avScope = $scope;
+                avCb = function (resource) {
+                    $scope.id = (current === basic) ? family : basic;
+                    $scope.bundles = resource.bundles;
+
+                    $scope.bundles.forEach(function (bundle) {
+                        if (bundle.id === $scope.id) {
+                            $scope.available = bundle;
+                        }
+                    });
+                };
 
                 $log.debug('Cord Available Ctrl has been created.');
         }])

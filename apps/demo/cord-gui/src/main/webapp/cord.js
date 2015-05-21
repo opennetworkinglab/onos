@@ -20,6 +20,7 @@
     var modules = [
             'ngRoute',
             'ngResource',
+            'ngAnimate',
             'cordMast',
             'cordFoot',
             'cordNav'

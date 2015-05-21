@@ -30,6 +30,9 @@ p, a, li, th, td {
 body {
     background-color: #efefef;
 }
+th, td {
+    color: rgba(0, 0, 0, 0.8);
+}
 
 div.container {
     width: 75%;
