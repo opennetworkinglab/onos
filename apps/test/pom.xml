@@ -36,7 +36,6 @@
         <module>intent-perf</module>
         <module>messaging-perf</module>
         <module>demo</module>
-        <module>samples</module>
         <module>distributed-primitives</module>
     </modules>
 
