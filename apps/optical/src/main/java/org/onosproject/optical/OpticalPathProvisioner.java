@@ -15,7 +15,6 @@
  */
 package org.onosproject.optical;
 
-import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -221,8 +220,7 @@ public class OpticalPathProvisioner {
             }
 
             // Generate optical connectivity intents
-            List<Intent> intents = Lists.newArrayList();
-            intents.addAll(getOpticalIntents(src, dst));
+            List<Intent> intents = getOpticalIntents(src, dst);
 
             // Submit the intents
             for (Intent i : intents) {
