@@ -39,6 +39,13 @@ public interface BundleDescriptor {
     String displayName();
 
     /**
+     * Textual description of this bundle.
+     *
+     * @return description
+     */
+    String description();
+
+    /**
      * The set of functions in this bundle instance.
      *
      * @return the functions

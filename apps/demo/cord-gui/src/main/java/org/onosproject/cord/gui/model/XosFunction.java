@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Designates a specific instance of an XOS function.
  */
-public interface XosFunction extends JsonBlob {
+public interface XosFunction {
 
     /**
      * Returns the descriptor for this function.

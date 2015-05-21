@@ -29,6 +29,7 @@ public class DefaultBundleDescriptor implements BundleDescriptor {
 
     private final String id;
     private final String displayName;
+    private final String description;
     private final Set<XosFunctionDescriptor> functions;
 
     /**
@@ -38,10 +39,11 @@ public class DefaultBundleDescriptor implements BundleDescriptor {
      * @param displayName bundle display name
      * @param functions functions that make up this bundle
      */
-    DefaultBundleDescriptor(String id, String displayName,
+    DefaultBundleDescriptor(String id, String displayName, String description,
                             XosFunctionDescriptor... functions) {
         this.id = id;
         this.displayName = displayName;
+        this.description = description;
         this.functions = ImmutableSet.copyOf(functions);
     }
 
@@ -52,6 +54,10 @@ public class DefaultBundleDescriptor implements BundleDescriptor {
 
     public String displayName() {
         return displayName;
+    }
+
+    public String description() {
+        return description;
     }
 
     public Set<XosFunctionDescriptor> functions() {

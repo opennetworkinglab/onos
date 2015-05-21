@@ -12,7 +12,6 @@ import java.util.Map;
  */
 public class XosFunctionFactory extends JsonFactory {
 
-    private static final String DESC = "desc";
     private static final String PARAMS = "params";
 
     private static final String LEVEL = "level";

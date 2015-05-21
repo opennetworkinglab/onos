@@ -29,42 +29,35 @@ import javax.ws.rs.core.Response;
 @Path("")
 public class CordWebResource {
 
-    private Response fakeData(String which, String suffix) {
-        String path = "local/" + which + "-" + suffix + ".json";
-        String content = FakeUtils.slurp(path);
-        if (content == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(content).build();
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("dashboard/{suffix}")
-    public Response dashboard(@PathParam("suffix") String suffix) {
-        return fakeData("dashboard", suffix);
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("bundle/{suffix}")
-    public Response bundle(@PathParam("suffix") String suffix) {
-        return fakeData("bundle", suffix);
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("users/{suffix}")
-    public Response users(@PathParam("suffix") String suffix) {
-        return fakeData("users", suffix);
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("dashboard")
     public Response dashboard() {
-        // TODO:
-        return Response.ok().build();
+        return Response.ok(CordModelCache.INSTANCE.jsonDashboard()).build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("bundle")
+    public Response bundle() {
+        return Response.ok(CordModelCache.INSTANCE.jsonBundle()).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("users")
+    public Response users() {
+        return Response.ok(CordModelCache.INSTANCE.jsonUsers()).build();
+    }
+
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("bundle/{id}")
+    @Deprecated
+    public Response bundle(@PathParam("id") String bundleId) {
+        CordModelCache.INSTANCE.setCurrentBundle(bundleId);
+        return bundle();
+    }
 }

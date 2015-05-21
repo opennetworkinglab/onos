@@ -30,6 +30,7 @@ public abstract class JsonFactory {
 
     protected static final String ID = "id";
     protected static final String NAME = "name";
+    protected static final String DESC = "desc";
 
     /**
      * Returns a freshly minted object node.

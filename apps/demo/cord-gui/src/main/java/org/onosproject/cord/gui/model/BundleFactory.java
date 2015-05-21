@@ -34,9 +34,14 @@ public class BundleFactory extends JsonFactory {
 
     private static final String BASIC_ID = "basic";
     private static final String BASIC_DISPLAY_NAME = "Basic Bundle";
+    private static final String BASIC_DESCRIPTION =
+            "Provides basic internet and firewall functions.";
 
     private static final String FAMILY_ID = "family";
     private static final String FAMILY_DISPLAY_NAME = "Family Bundle";
+    private static final String FAMILY_DESCRIPTION =
+            "Provides internet, firewall and parental control functions.";
+
 
     // no instantiation
     private BundleFactory() {}
@@ -46,6 +51,7 @@ public class BundleFactory extends JsonFactory {
      */
     public static final BundleDescriptor BASIC_BUNDLE =
             new DefaultBundleDescriptor(BASIC_ID, BASIC_DISPLAY_NAME,
+                                        BASIC_DESCRIPTION,
                                         XosFunctionDescriptor.INTERNET,
                                         XosFunctionDescriptor.FIREWALL);
 
@@ -54,6 +60,7 @@ public class BundleFactory extends JsonFactory {
      */
     public static final BundleDescriptor FAMILY_BUNDLE =
             new DefaultBundleDescriptor(FAMILY_ID, FAMILY_DISPLAY_NAME,
+                                        FAMILY_DESCRIPTION,
                                         XosFunctionDescriptor.INTERNET,
                                         XosFunctionDescriptor.FIREWALL,
                                         XosFunctionDescriptor.URL_FILTER);
@@ -97,10 +104,12 @@ public class BundleFactory extends JsonFactory {
      */
     public static String toJson(Bundle bundle) {
         ObjectNode root = objectNode();
+        BundleDescriptor descriptor = bundle.descriptor();
 
         ObjectNode bnode = objectNode()
-                .put(ID, bundle.descriptor().id())
-                .put(NAME, bundle.descriptor().displayName());
+                .put(ID, descriptor.id())
+                .put(NAME, descriptor.displayName())
+                .put(DESC, descriptor.description());
 
         ArrayNode funcs = arrayNode();
         for (XosFunctionDescriptor xfd: bundle.descriptor().functions()) {
@@ -113,11 +122,11 @@ public class BundleFactory extends JsonFactory {
         for (BundleDescriptor bd: BundleFactory.availableBundles()) {
             ObjectNode bdnode = objectNode()
                     .put(ID, bd.id())
-                    .put(NAME, bd.displayName());
+                    .put(NAME, bd.displayName())
+                    .put(DESC, bd.description());
             bundles.add(bdnode);
         }
         root.set(BUNDLES, bundles);
         return root.toString();
-
     }
 }

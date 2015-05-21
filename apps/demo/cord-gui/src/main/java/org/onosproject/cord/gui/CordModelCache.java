@@ -17,11 +17,15 @@
 
 package org.onosproject.cord.gui;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.cord.gui.model.Bundle;
 import org.onosproject.cord.gui.model.BundleDescriptor;
 import org.onosproject.cord.gui.model.BundleFactory;
+import org.onosproject.cord.gui.model.JsonFactory;
 import org.onosproject.cord.gui.model.SubscriberUser;
+import org.onosproject.cord.gui.model.UserFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +33,11 @@ import java.util.List;
 /**
  * In memory cache of the model of the subscriber's account.
  */
-public class CordModelCache {
+public class CordModelCache extends JsonFactory {
+
+    private static final String BUNDLE = "bundle";
+    private static final String USERS = "users";
+
 
     // faked for the demo
     private static final int SUBSCRIBER_ID = 92;
@@ -44,7 +52,7 @@ public class CordModelCache {
     /**
      * Constructs a model cache, initializing it with basic bundle.
      */
-    public CordModelCache() {
+    CordModelCache() {
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
         users = new ArrayList<SubscriberUser>();
         initUsers();
@@ -88,4 +96,51 @@ public class CordModelCache {
     public List<SubscriberUser> getUsers() {
         return ImmutableList.copyOf(users);
     }
+
+    private ArrayNode userJsonArray() {
+        ArrayNode userList = arrayNode();
+        for (SubscriberUser user: users) {
+            userList.add(UserFactory.toObjectNode(user));
+        }
+        return userList;
+    }
+
+    // ============= generate JSON for GUI rest calls..
+
+    /**
+     * Returns the dashboard page data as JSON.
+     *
+     * @return dashboard page JSON data
+     */
+    public String jsonDashboard() {
+        ObjectNode root = objectNode();
+        root.put(BUNDLE, currentBundle.descriptor().displayName());
+        root.set(USERS, userJsonArray());
+        return root.toString();
+    }
+
+    /**
+     * Returns the bundle page data as JSON.
+     *
+     * @return bundle page JSON data
+     */
+    public String jsonBundle() {
+        return BundleFactory.toJson(currentBundle);
+    }
+
+    /**
+     * Returns the users page data as JSON.
+     *
+     * @return users page JSON data
+     */
+    public String jsonUsers() {
+        ObjectNode root = objectNode();
+        root.set(USERS, userJsonArray());
+        return root.toString();
+    }
+
+    /**
+     * Singleton instance.
+     */
+    public static final CordModelCache INSTANCE = new CordModelCache();
 }
