@@ -312,7 +312,7 @@ public class OpticalPathProvisioner {
         private List<Intent> getIntents(List<ConnectPoint> crossConnectPoints) {
             checkArgument(crossConnectPoints.size() % 2 == 0);
 
-            List<Intent> intents = new LinkedList<Intent>();
+            List<Intent> intents = new LinkedList<>();
             Iterator<ConnectPoint> itr = crossConnectPoints.iterator();
 
             while (itr.hasNext()) {
