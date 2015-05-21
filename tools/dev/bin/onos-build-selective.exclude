@@ -4,3 +4,4 @@
 .*/docs/.*
 .*/openflow/drivers/.*
 .*/cord-gui/.*
+.*/jdvue/.*
