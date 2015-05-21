@@ -227,6 +227,7 @@ public class OpticalPathProvisioner {
             // Submit the intents
             for (Intent i : intents) {
                 intentService.submit(i);
+                log.debug("Submitted an intent: {}", i);
             }
         }
 
