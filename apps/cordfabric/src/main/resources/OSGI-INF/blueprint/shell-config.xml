@@ -26,6 +26,9 @@
                 <ref component-id="connectPointCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.cordfabric.cli.FabricRemoveCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="connectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
