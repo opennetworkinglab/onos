@@ -614,13 +614,28 @@ public class NewDistributedFlowRuleStore
                  // ignore since this event is for a device this node does not manage.
                     return;
                 }
-                NodeId latestBackupNode = getBackupNode(deviceId);
-                NodeId existingBackupNode = lastBackupNodes.get(deviceId);
-                if (Objects.equal(latestBackupNode, existingBackupNode)) {
+                NodeId newBackupNode = getBackupNode(deviceId);
+                NodeId currentBackupNode = lastBackupNodes.get(deviceId);
+                if (Objects.equal(newBackupNode, currentBackupNode)) {
                     // ignore since backup location hasn't changed.
                     return;
                 }
-                backupSenderExecutor.schedule(() -> backupFlowEntries(latestBackupNode, Sets.newHashSet(deviceId)),
+                if (currentBackupNode != null && newBackupNode == null) {
+                    // Current backup node is most likely down and no alternate backup node
+                    // has been chosen. Clear current backup location so that we can resume
+                    // backups when either current backup comes online or a different backup node
+                    // is chosen.
+                    log.warn("Lost backup location {} for deviceId {} and no alternate backup node exists. "
+                            + "Flows can be lost if the master goes down", currentBackupNode, deviceId);
+                    lastBackupNodes.remove(deviceId);
+                    lastBackupTimes.remove(deviceId);
+                    return;
+                    // TODO: Pick any available node as backup and ensure hand-off occurs when
+                    // a new master is elected.
+                }
+                log.info("Backup location for {} has changed from {} to {}.",
+                        deviceId, currentBackupNode, newBackupNode);
+                backupSenderExecutor.schedule(() -> backupFlowEntries(newBackupNode, Sets.newHashSet(deviceId)),
                         0,
                         TimeUnit.SECONDS);
             }
@@ -712,8 +727,9 @@ public class NewDistributedFlowRuleStore
                                 Long lastBackupTime = lastBackupTimes.get(deviceId);
                                 Long lastUpdateTime = lastUpdateTimes.get(deviceId);
                                 NodeId lastBackupNode = lastBackupNodes.get(deviceId);
+                                NodeId newBackupNode = getBackupNode(deviceId);
                                 return lastBackupTime == null
-                                        ||  !Objects.equal(lastBackupNode, getBackupNode(deviceId))
+                                        ||  !Objects.equal(lastBackupNode, newBackupNode)
                                         || (lastUpdateTime != null && lastUpdateTime > lastBackupTime);
                             })
                             .collect(Collectors.toSet());
@@ -735,7 +751,7 @@ public class NewDistributedFlowRuleStore
         }
 
         private void onBackupReceipt(Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>> flowTables) {
-            log.debug("Received flows for {} to backup", flowTables.keySet());
+            log.debug("Received flowEntries for {} to backup", flowTables.keySet());
             Set<DeviceId> managedDevices = mastershipService.getDevicesOf(local);
             // Only process those devices are that not managed by the local node.
             Maps.filterKeys(flowTables, deviceId -> !managedDevices.contains(deviceId))
