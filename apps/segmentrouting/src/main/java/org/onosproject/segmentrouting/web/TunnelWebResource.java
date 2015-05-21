@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.onosproject.rest.AbstractWebResource;
-import org.onosproject.segmentrouting.DefaultTunnel;
-import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.Tunnel;
 
@@ -59,9 +57,7 @@ public class TunnelWebResource extends AbstractWebResource {
         ObjectNode tunnelJson = (ObjectNode) mapper.readTree(input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Tunnel tunnelInfo = TUNNEL_CODEC.decode(tunnelJson, this);
-        Tunnel tunnel = new DefaultTunnel((SegmentRoutingManager) srService,
-                tunnelInfo.id(), tunnelInfo.labelIds());
-        srService.createTunnel(tunnel);
+        srService.createTunnel(tunnelInfo);
 
         return Response.ok().build();
     }

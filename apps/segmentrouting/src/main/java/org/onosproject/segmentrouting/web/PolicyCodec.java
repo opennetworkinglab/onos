@@ -15,19 +15,9 @@
  */
 package org.onosproject.segmentrouting.web;
 
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpPrefix;
-import org.onosproject.cli.net.IpProtocol;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.IPProtocolCriterion;
-import org.onosproject.net.flow.criteria.TcpPortCriterion;
-import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.segmentrouting.Policy;
 import org.onosproject.segmentrouting.TunnelPolicy;
 
@@ -52,45 +42,24 @@ public final class PolicyCodec extends JsonCodec<Policy> {
         result.put(PRIORITY, policy.priority());
         result.put(TYPE, policy.type().toString());
 
-        if (policy.selector().getCriterion(Criterion.Type.IPV4_DST) != null) {
-            IPCriterion criterion = (IPCriterion) policy.selector().getCriterion(
-                    Criterion.Type.IPV4_DST);
-            result.put(DST_IP, criterion.ip().toString());
+        if (policy.dstIp() != null) {
+            result.put(DST_IP, policy.dstIp());
         }
-        if (policy.selector().getCriterion(Criterion.Type.IPV4_SRC) != null) {
-            IPCriterion criterion = (IPCriterion) policy.selector().getCriterion(
-                    Criterion.Type.IPV4_SRC);
-            result.put(SRC_IP, criterion.ip().toString());
+        if (policy.srcIp() != null) {
+            result.put(SRC_IP, policy.srcIp());
         }
-        if (policy.selector().getCriterion(Criterion.Type.IP_PROTO) != null) {
-            IPProtocolCriterion protocolCriterion =
-                    (IPProtocolCriterion) policy.selector().getCriterion(Criterion.Type.IP_PROTO);
-            result.put(PROTO_TYPE, protocolCriterion.protocol());
-        }
-        if (policy.selector().getCriterion(Criterion.Type.TCP_SRC) != null) {
-            TcpPortCriterion tcpPortCriterion =
-                    (TcpPortCriterion) policy.selector().getCriterion(Criterion.Type.TCP_SRC);
-            result.put(SRC_PORT, tcpPortCriterion.toString());
-        } else if (policy.selector().getCriterion(Criterion.Type.UDP_SRC) != null) {
-            UdpPortCriterion udpPortCriterion =
-                    (UdpPortCriterion) policy.selector().getCriterion(Criterion.Type.UDP_SRC);
-            result.put(SRC_PORT, udpPortCriterion.toString());
-        }
-        if (policy.selector().getCriterion(Criterion.Type.TCP_DST) != null) {
-            TcpPortCriterion tcpPortCriterion =
-                    (TcpPortCriterion) policy.selector().getCriterion(Criterion.Type.TCP_DST);
-            result.put(DST_PORT, tcpPortCriterion.toString());
-        } else if (policy.selector().getCriterion(Criterion.Type.UDP_DST) != null) {
-            UdpPortCriterion udpPortCriterion =
-                    (UdpPortCriterion) policy.selector().getCriterion(Criterion.Type.UDP_DST);
-            result.put(DST_PORT, udpPortCriterion.toString());
-        }
-        if (policy.selector().getCriterion(Criterion.Type.IP_PROTO) != null) {
-            IPProtocolCriterion protocolCriterion =
-                    (IPProtocolCriterion) policy.selector().getCriterion(Criterion.Type.IP_PROTO);
-            result.put(PROTO_TYPE, protocolCriterion.toString());
+        if (policy.ipProto() != null) {
+            result.put(PROTO_TYPE, policy.ipProto());
         }
 
+        int srcPort = policy.srcPort() & 0xffff;
+        if (policy.srcPort() != 0) {
+            result.put(SRC_PORT, srcPort);
+        }
+        int dstPort = policy.dstPort() & 0xffff;
+        if (policy.dstPort() != 0) {
+            result.put(DST_PORT, dstPort);
+        }
         if (policy.type() == Policy.Type.TUNNEL_FLOW) {
             result.put(TUNNEL_ID, ((TunnelPolicy) policy).tunnelId());
         }
@@ -111,53 +80,43 @@ public final class PolicyCodec extends JsonCodec<Policy> {
         short srcPort = json.path(SRC_PORT).shortValue();
         short dstPort = json.path(DST_PORT).shortValue();
 
-        if (tunnelId != null) {
-            TrafficSelector.Builder tsb = DefaultTrafficSelector.builder();
-            tsb.matchEthType(Ethernet.TYPE_IPV4);
-            if (dstIp != null && !dstIp.isEmpty()) {
-                tsb.matchIPDst(IpPrefix.valueOf(dstIp));
-            }
-            if (srcIp != null && !srcIp.isEmpty()) {
-                tsb.matchIPSrc(IpPrefix.valueOf(srcIp));
-            }
-            if (protoType != null && !protoType.isEmpty()) {
-                Short ipProto = Short.valueOf(IpProtocol.valueOf(protoType).value());
-                tsb.matchIPProtocol(ipProto.byteValue());
-                if (IpProtocol.valueOf(protoType).equals(IpProtocol.TCP)) {
-                    if (srcPort != 0) {
-                        tsb.matchTcpSrc(srcPort);
-                    }
-                    if (dstPort != 0) {
-                        tsb.matchTcpDst(dstPort);
-                    }
-                } else if (IpProtocol.valueOf(protoType).equals(IpProtocol.UDP)) {
-                    if (srcPort != 0) {
-                        tsb.matchUdpSrc(srcPort);
-                    }
-                    if (dstPort != 0) {
-                        tsb.matchUdpDst(dstPort);
-                    }
-                }
-            }
-            TunnelPolicy.Builder tpb = TunnelPolicy.builder().setPolicyId(pid);
-            if (tunnelId != null) {
-                tpb.setTunnelId(tunnelId);
-            }
-            if (!json.path(PRIORITY).isMissingNode()) {
-                tpb.setPriority(priority);
-            }
-            if (!json.path(TYPE).isMissingNode()) {
-                tpb.setType(Policy.Type.valueOf(type));
-            }
-            tpb.setSelector(tsb.build());
-
-            return tpb.build();
-        } else {
-            // TODO: handle more policy types
+        if (json.path(POLICY_ID).isMissingNode() || pid == null) {
+            // TODO: handle errors
             return null;
         }
 
+        TunnelPolicy.Builder tpb = TunnelPolicy.builder().setPolicyId(pid);
+        if (!json.path(TYPE).isMissingNode() && type != null &&
+                Policy.Type.valueOf(type).equals(Policy.Type.TUNNEL_FLOW)) {
 
+            if (json.path(TUNNEL_ID).isMissingNode() || tunnelId == null) {
+                return null;
+            }
+
+            tpb.setTunnelId(tunnelId);
+            tpb.setType(Policy.Type.valueOf(type));
+
+            if (!json.path(PRIORITY).isMissingNode()) {
+                tpb.setPriority(priority);
+            }
+            if (dstIp != null) {
+                tpb.setDstIp(dstIp);
+            }
+            if (srcIp != null) {
+                tpb.setSrcIp(srcIp);
+            }
+            if (protoType != null) {
+                tpb.setIpProto(protoType);
+            }
+            if (dstPort != 0) {
+                tpb.setDstPort(dstPort);
+            }
+            if (srcPort != 0) {
+                tpb.setSrcPort(srcPort);
+            }
+        }
+
+        return tpb.build();
     }
 
 }

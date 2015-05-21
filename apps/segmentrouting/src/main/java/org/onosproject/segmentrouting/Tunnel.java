@@ -16,8 +16,6 @@
 
 package org.onosproject.segmentrouting;
 
-import org.onosproject.net.DeviceId;
-
 import java.util.List;
 
 /**
@@ -40,20 +38,6 @@ public interface Tunnel {
     List<Integer> labelIds();
 
     /**
-     * Creates a tunnel.
-     *
-     * @return true if succeeds, false otherwise
-     */
-    boolean create();
-
-    /**
-     * Removes the tunnel.
-     *
-     * @return true if succeeds, false otherwise.
-     */
-    boolean remove();
-
-    /**
      * Returns the group ID for the tunnel.
      *
      * @return group ID
@@ -61,9 +45,22 @@ public interface Tunnel {
     int groupId();
 
     /**
-     * Returns the source device Id of the tunnel.
+     * Sets group ID for the tunnel.
      *
-     * @return source device Id
      */
-    DeviceId source();
+    void setGroupId(int groupId);
+
+    /**
+     * Sets the flag to allow to remove the group or not.
+     *
+     * @param ok the flag; true - allow to remove
+     */
+    void allowToRemoveGroup(boolean ok);
+
+    /**
+     * Checks if it is allowed to remove the group for the tunnel.
+     *
+     * @return true if allowed, false otherwise
+     */
+    boolean isAllowedToRemoveGroup();
 }

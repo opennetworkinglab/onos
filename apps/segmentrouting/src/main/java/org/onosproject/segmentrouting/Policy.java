@@ -16,8 +16,6 @@
 
 package org.onosproject.segmentrouting;
 
-import org.onosproject.net.flow.TrafficSelector;
-
 /**
  * Interface for Segment Routing Policy.
  */
@@ -47,13 +45,6 @@ public interface Policy {
     String id();
 
     /**
-     * Returns the traffic selector object.
-     *
-     * @return TrafficSelector object
-     */
-    TrafficSelector selector();
-
-    /**
      * Returns the priority of the policy.
      *
      * @return priority
@@ -68,16 +59,38 @@ public interface Policy {
     Type type();
 
     /**
-     * Creates a policy.
+     * Returns the source IP address of the policy.
      *
-     * @return true if succeeds, false otherwise
+     * @return source IP address
      */
-    boolean create();
+    String srcIp();
 
     /**
-     * Removes the policy.
+     * Returns the destination IP address of the policy.
      *
-     * @return true if succeeds, false otherwise
+     * @return destination IP address
      */
-    boolean remove();
+    String dstIp();
+
+    /**
+     * Returns the IP protocol of the policy.
+     *
+     * @return IP protocol
+     */
+    String ipProto();
+
+    /**
+     * Returns the source port of the policy.
+     *
+     * @return source port
+     */
+    short srcPort();
+
+    /**
+     * Returns the destination of the policy.
+     *
+     * @return destination port
+     */
+    short dstPort();
+
 }

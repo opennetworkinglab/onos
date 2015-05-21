@@ -16,16 +16,8 @@
 
 package org.onosproject.segmentrouting;
 
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,31 +26,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DefaultTunnel implements Tunnel {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(DefaultTunnel.class);
-
-    private final String tunnelId;
+    private final String id;
     private final List<Integer> labelIds;
-    private final SegmentRoutingManager srManager;
-    private final DeviceConfiguration config;
 
     private int groupId;
-
-    /**
-     * Creates a Tunnel reference.
-     *
-     * @param srm SegmentRoutingManager object
-     * @param tid  Tunnel ID
-     * @param labelIds Label stack of the tunnel
-     */
-    public DefaultTunnel(SegmentRoutingManager srm, String tid,
-                         List<Integer> labelIds) {
-        this.srManager = checkNotNull(srm);
-        this.tunnelId = checkNotNull(tid);
-        this.labelIds = Collections.unmodifiableList(labelIds);
-        this.config = srManager.deviceConfiguration;
-        this.groupId = -1;
-    }
+    private boolean allowedToRemoveGroup;
 
     /**
      * Creates a Tunnel reference.
@@ -67,10 +39,10 @@ public class DefaultTunnel implements Tunnel {
      * @param labelIds Label stack of the tunnel
      */
     public DefaultTunnel(String tid, List<Integer> labelIds) {
-        this.srManager = null;
-        this.tunnelId = checkNotNull(tid);
-        this.labelIds = Collections.unmodifiableList(labelIds);
-        this.config = null;
+        this.id = checkNotNull(tid);
+        this.labelIds = labelIds;
+        //TODO: need to register the class in Kryo for this
+        //this.labelIds = Collections.unmodifiableList(labelIds);
         this.groupId = -1;
     }
 
@@ -80,16 +52,14 @@ public class DefaultTunnel implements Tunnel {
      * @param tunnel DefaultTunnel reference
      */
     public DefaultTunnel(DefaultTunnel tunnel) {
-        this.srManager = tunnel.srManager;
-        this.tunnelId = tunnel.tunnelId;
+        this.id = tunnel.id;
         this.labelIds = tunnel.labelIds;
-        this.config = tunnel.config;
         this.groupId = tunnel.groupId;
     }
 
     @Override
     public String id() {
-        return this.tunnelId;
+        return this.id;
     }
 
     @Override
@@ -98,71 +68,44 @@ public class DefaultTunnel implements Tunnel {
     }
 
     @Override
-    public boolean create() {
-
-        if (labelIds.isEmpty() || labelIds.size() < 3) {
-            log.error("More than one router needs to specified to created a tunnel");
-            return false;
-        }
-
-        groupId = createGroupsForTunnel();
-        if (groupId < 0) {
-            log.error("Failed to create groups for the tunnel");
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean remove() {
-
-        DeviceId deviceId = config.getDeviceId(labelIds.get(0));
-        srManager.removeNextObjective(deviceId, groupId);
-
-        return true;
-    }
-
-    @Override
     public int groupId() {
         return this.groupId;
     }
 
     @Override
-    public DeviceId source() {
-        return config.getDeviceId(labelIds.get(0));
+    public void setGroupId(int id) {
+        this.groupId = id;
     }
 
-    private int createGroupsForTunnel() {
-
-        List<Integer> portNumbers;
-
-        int groupId;
-
-        DeviceId deviceId = config.getDeviceId(labelIds.get(0));
-        if (deviceId == null) {
-            log.warn("No device found for SID {}", labelIds.get(0));
-            return -1;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-        Set<DeviceId> deviceIds = new HashSet<>();
-        int sid = labelIds.get(1);
-        if (config.isAdjacencySid(deviceId, sid)) {
-            portNumbers = config.getPortsForAdjacencySid(deviceId, sid);
-            for (Link link: srManager.linkService.getDeviceEgressLinks(deviceId)) {
-                for (Integer port: portNumbers) {
-                    if (link.src().port().toLong() == port) {
-                        deviceIds.add(link.dst().deviceId());
-                    }
-                }
+
+        if (o instanceof DefaultTunnel) {
+            DefaultTunnel tunnel = (DefaultTunnel) o;
+            // We compare only the tunnel paths.
+            if (tunnel.labelIds.equals(this.labelIds)) {
+                return true;
             }
-        } else {
-            deviceIds.add(config.getDeviceId(sid));
         }
 
-        NeighborSet ns = new NeighborSet(deviceIds, labelIds.get(2));
-        groupId = srManager.getNextObjectiveId(deviceId, ns);
-
-        return groupId;
+        return false;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(labelIds);
+    }
+
+    @Override
+    public boolean isAllowedToRemoveGroup() {
+        return this.allowedToRemoveGroup;
+    }
+
+    @Override
+    public void allowToRemoveGroup(boolean b) {
+        this.allowedToRemoveGroup = b;
+    }
 }

@@ -181,8 +181,8 @@ public class DefaultGroupHandler {
                         .contains(newLink.dst().deviceId())))
                 .collect(Collectors.toSet());
         log.trace("linkUp: nsNextObjStore contents for device {}:",
-                  deviceId,
-                  nsSet);
+                deviceId,
+                nsSet);
         for (NeighborSet ns : nsSet) {
             // Create the new bucket to be updated
             TrafficTreatment.Builder tBuilder =
@@ -315,6 +315,22 @@ public class DefaultGroupHandler {
                     + "found for {}", deviceId, nextId.intValue(), ns);
         }
         return nextId.intValue();
+    }
+
+    /**
+     * Checks if the next objective ID (group) for the neighbor set exists or not.
+     *
+     * @param ns neighbor set to check
+     * @return true if it exists, false otherwise
+     */
+    public boolean hasNextObjectiveId(NeighborSet ns) {
+        Integer nextId = nsNextObjStore.
+                get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
+        if (nextId == null) {
+            return false;
+        }
+
+        return true;
     }
 
     // Empty implementation
@@ -489,6 +505,7 @@ public class DefaultGroupHandler {
                     break;
                 }
             }
+            return true;
         }
 
         return false;

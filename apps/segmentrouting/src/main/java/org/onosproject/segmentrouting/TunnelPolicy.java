@@ -16,9 +16,7 @@
 
 package org.onosproject.segmentrouting;
 
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.ForwardingObjective;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -27,24 +25,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class TunnelPolicy implements Policy {
 
-    // FIXME: We should avoid passing around references to implementation objects
-    // Instead, if some operational context is required, we should abstract it to
-    // a bare minimum.
-    private final SegmentRoutingManager srManager;
     private final Type type;
     private final String id;
-    private final TrafficSelector selector;
     private final int priority;
     private final String tunnelId;
+    private String dstIp;
+    private String srcIp;
+    private String ipProto;
+    private short srcPort;
+    private short dstPort;
 
-    private TunnelPolicy(SegmentRoutingManager srm, String policyId, Type type,
-                         TrafficSelector selector, int priority, String tunnelId) {
-        this.srManager = srm;
+    private TunnelPolicy(String policyId, Type type, int priority, String tunnelId, String srcIp,
+                         String dstIp, String ipProto, short srcPort, short dstPort) {
         this.id = checkNotNull(policyId);
         this.type = type;
         this.tunnelId = tunnelId;
         this.priority = priority;
-        this.selector = selector;
+        this.dstIp = dstIp;
+        this.srcIp = srcIp;
+        this.ipProto = ipProto;
+        this.srcPort = srcPort;
+        this.dstPort = dstPort;
+
     }
 
     /**
@@ -53,27 +55,15 @@ public final class TunnelPolicy implements Policy {
      * @param p TunnelPolicy reference
      */
     public TunnelPolicy(TunnelPolicy p) {
-        this.srManager = p.srManager;
         this.id = p.id;
         this.type = p.type;
         this.tunnelId = p.tunnelId;
         this.priority = p.priority;
-        this.selector = p.selector;
-    }
-
-    /**
-     * Creates a TunnelPolicy reference.
-     *
-     * @param srm reference to the segment routing component
-     * @param p TunnelPolicy reference
-     */
-    public TunnelPolicy(SegmentRoutingManager srm, TunnelPolicy p) {
-        this.srManager = srm;
-        this.id = p.id;
-        this.type = p.type;
-        this.tunnelId = p.tunnelId;
-        this.priority = p.priority;
-        this.selector = p.selector;
+        this.srcIp = p.srcIp;
+        this.dstIp = p.dstIp;
+        this.ipProto = p.ipProto;
+        this.srcPort = p.srcPort;
+        this.dstPort = p.dstPort;
     }
 
     /**
@@ -91,11 +81,6 @@ public final class TunnelPolicy implements Policy {
     }
 
     @Override
-    public TrafficSelector selector() {
-        return selector;
-    }
-
-    @Override
     public int priority() {
         return priority;
     }
@@ -106,41 +91,58 @@ public final class TunnelPolicy implements Policy {
     }
 
     @Override
-    public boolean create() {
-
-        Tunnel tunnel = srManager.getTunnel(tunnelId);
-
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
-                .builder()
-                .fromApp(srManager.appId)
-                .makePermanent()
-                .nextStep(tunnel.groupId())
-                .withPriority(priority)
-                .withSelector(selector)
-                .withFlag(ForwardingObjective.Flag.VERSATILE);
-
-        srManager.flowObjectiveService.forward(tunnel.source(), fwdBuilder.add());
-
-        return true;
+    public String srcIp() {
+        return srcIp;
     }
 
     @Override
-    public boolean remove() {
+    public String dstIp() {
+        return dstIp;
+    }
 
-        Tunnel tunnel = srManager.getTunnel(tunnelId);
+    @Override
+    public String ipProto() {
+        return ipProto;
+    }
 
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
-                .builder()
-                .fromApp(srManager.appId)
-                .makePermanent()
-                .withSelector(selector)
-                .withPriority(priority)
-                .nextStep(tunnel.groupId())
-                .withFlag(ForwardingObjective.Flag.VERSATILE);
+    @Override
+    public short srcPort() {
+        return srcPort;
+    }
 
-        srManager.flowObjectiveService.forward(tunnel.source(), fwdBuilder.remove());
+    @Override
+    public short dstPort() {
+        return dstPort;
+    }
 
-        return true;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o instanceof TunnelPolicy) {
+            TunnelPolicy that = (TunnelPolicy) o;
+            // We do not compare the policy ID
+            if (this.type.equals(that.type) &&
+                    this.tunnelId.equals(that.tunnelId) &&
+                    this.priority == that.priority &&
+                    this.srcIp.equals(that.srcIp) &&
+                    this.dstIp.equals(that.dstIp) &&
+                    this.srcPort == that.srcPort &&
+                    this.dstPort == that.dstPort &&
+                    this.ipProto.equals(that.ipProto)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, tunnelId, srcIp, dstIp, ipProto,
+                srcPort, dstPort, priority);
     }
 
     /**
@@ -152,17 +154,21 @@ public final class TunnelPolicy implements Policy {
         return this.tunnelId;
     }
 
+
     /**
      * Tunnel Policy Builder.
      */
     public static final class Builder {
 
-        private SegmentRoutingManager srManager;
         private String id;
         private Type type;
-        private TrafficSelector selector;
         private int priority;
         private String tunnelId;
+        private String dstIp;
+        private String srcIp;
+        private String ipProto;
+        private short srcPort;
+        private short dstPort;
 
         /**
          * Sets the policy Id.
@@ -189,13 +195,61 @@ public final class TunnelPolicy implements Policy {
         }
 
         /**
-         * Sets the TrafficSelector.
+         * Sets the source IP address.
          *
-         * @param selector TrafficSelector
+         * @param srcIp source IP address
          * @return Builder object
          */
-        public Builder setSelector(TrafficSelector selector) {
-            this.selector = selector;
+        public Builder setSrcIp(String srcIp) {
+            this.srcIp = srcIp;
+
+            return this;
+        }
+
+        /**
+         * Sets the destination IP address.
+         *
+         * @param dstIp destination IP address
+         * @return Builder object
+         */
+        public Builder setDstIp(String dstIp) {
+            this.dstIp = dstIp;
+
+            return this;
+        }
+
+        /**
+         * Sets the IP protocol.
+         *
+         * @param proto IP protocol
+         * @return Builder object
+         */
+        public Builder setIpProto(String proto) {
+            this.ipProto = proto;
+
+            return this;
+        }
+
+        /**
+         * Sets the source port.
+         *
+         * @param srcPort source port
+         * @return Builder object
+         */
+        public Builder setSrcPort(short srcPort) {
+            this.srcPort = srcPort;
+
+            return this;
+        }
+
+        /**
+         * Sets the destination port.
+         *
+         * @param dstPort destination port
+         * @return Builder object
+         */
+        public Builder setDstPort(short dstPort) {
+            this.dstPort = dstPort;
 
             return this;
         }
@@ -225,24 +279,13 @@ public final class TunnelPolicy implements Policy {
         }
 
         /**
-         * Sets the Segment Routing Manager reference.
-         *
-         * @param srm Segment Routing Manager reference
-         * @return Builder object
-         */
-        public Builder setManager(SegmentRoutingManager srm) {
-            this.srManager = srm;
-
-            return this;
-        }
-
-        /**
          * Builds the policy.
          *
          * @return Tunnel Policy reference
          */
         public Policy build() {
-            return new TunnelPolicy(srManager, id, type, selector, priority, tunnelId);
+            return new TunnelPolicy(id, type, priority, tunnelId, srcIp, dstIp,
+                    ipProto, srcPort, dstPort);
         }
     }
 }

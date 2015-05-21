@@ -20,9 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.segmentrouting.Policy;
-import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.SegmentRoutingService;
-import org.onosproject.segmentrouting.TunnelPolicy;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -59,10 +57,9 @@ public class PolicyWebResource extends AbstractWebResource {
         ObjectNode policyJson = (ObjectNode) mapper.readTree(input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Policy policyInfo = POLICY_CODEC.decode(policyJson, this);
-        if (policyInfo.type() == Policy.Type.TUNNEL_FLOW) {
-            TunnelPolicy policy = new TunnelPolicy((SegmentRoutingManager) srService, (TunnelPolicy) policyInfo);
-            srService.createPolicy(policy);
 
+        if (policyInfo.type() == Policy.Type.TUNNEL_FLOW) {
+            srService.createPolicy(policyInfo);
             return Response.ok().build();
         } else {
             return Response.serverError().build();
@@ -78,6 +75,7 @@ public class PolicyWebResource extends AbstractWebResource {
         Policy policyInfo = POLICY_CODEC.decode(policyJson, this);
         // TODO: Check the result
         srService.removePolicy(policyInfo);
+
         return Response.ok().build();
 
     }

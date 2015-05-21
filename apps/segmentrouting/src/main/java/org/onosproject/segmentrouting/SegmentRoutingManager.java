@@ -128,6 +128,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     // Per device next objective ID store with (device id + neighbor set) as key
     private EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
         Integer> nsNextObjStore = null;
+    private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
+    private EventuallyConsistentMap<String, Policy> policyStore = null;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
@@ -148,13 +151,18 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         kryoBuilder = new KryoNamespace.Builder()
             .register(NeighborSetNextObjectiveStoreKey.class,
-                  NeighborSet.class,
-                  DeviceId.class,
-                  URI.class,
-                  WallClockTimestamp.class,
-                  org.onosproject.cluster.NodeId.class,
-                  HashSet.class
-                );
+                    NeighborSet.class,
+                    DeviceId.class,
+                    URI.class,
+                    WallClockTimestamp.class,
+                    org.onosproject.cluster.NodeId.class,
+                    HashSet.class,
+                    Tunnel.class,
+                    DefaultTunnel.class,
+                    Policy.class,
+                    TunnelPolicy.class,
+                    Policy.Type.class
+            );
 
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<NeighborSetNextObjectiveStoreKey, Integer>
@@ -167,6 +175,24 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .build();
         log.trace("Current size {}", nsNextObjStore.size());
 
+        EventuallyConsistentMapBuilder<String, Tunnel> tunnelMapBuilder =
+                storageService.eventuallyConsistentMapBuilder();
+
+        tunnelStore = tunnelMapBuilder
+                .withName("tunnelstore")
+                .withSerializer(kryoBuilder)
+                .withClockService(new WallclockClockManager<>())
+                .build();
+
+        EventuallyConsistentMapBuilder<String, Policy> policyMapBuilder =
+                storageService.eventuallyConsistentMapBuilder();
+
+        policyStore = policyMapBuilder
+                .withName("policystore")
+                .withSerializer(kryoBuilder)
+                .withClockService(new WallclockClockManager<>())
+                .build();
+
         networkConfigService.init();
         deviceConfiguration = new DeviceConfiguration(networkConfigService);
         arpHandler = new ArpHandler(this);
@@ -174,8 +200,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         ipHandler = new IpHandler(this);
         routingRulePopulator = new RoutingRulePopulator(this);
         defaultRoutingHandler = new DefaultRoutingHandler(this);
-        tunnelHandler = new TunnelHandler();
-        policyHandler = new PolicyHandler();
+        tunnelHandler = new TunnelHandler(this, tunnelStore);
+        policyHandler = new PolicyHandler(this, policyStore);
 
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         linkService.addListener(new InternalLinkListener());
@@ -291,6 +317,24 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         } else {
             log.warn("getNextObjectiveId query in device {} not found", deviceId);
             return -1;
+        }
+    }
+
+    /**
+     * Checks if the next objective ID (group) for the neighbor set exists or not in the device.
+     *
+     * @param deviceId Device ID to check
+     * @param ns neighbor set to check
+     * @return true if it exists, false otherwise
+     */
+    public boolean hasNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
+        if (groupHandlerMap.get(deviceId) != null) {
+            log.trace("getNextObjectiveId query in device {}", deviceId);
+            return groupHandlerMap
+                    .get(deviceId).hasNextObjectiveId(ns);
+        } else {
+            log.warn("getNextObjectiveId query in device {} not found", deviceId);
+            return false;
         }
     }
 
