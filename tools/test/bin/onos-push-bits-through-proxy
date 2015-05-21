@@ -6,6 +6,7 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+OCT=${OCT:-$OCI}
 node=${1:-$OCT}
 remote=$ONOS_USER@$node
 shift
@@ -13,7 +14,7 @@ shift
 echo "Pushing to proxy $node..."
 onos-push-bits $node
 
-others=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+others=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2 | grep -v $OCT)
 
 for other in $others; do
     echo "Pushing to $other..."
