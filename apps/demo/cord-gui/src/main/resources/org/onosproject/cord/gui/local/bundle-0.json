@@ -1,5 +1,6 @@
 {
   "bundle": {
+    "id": "basic",
     "name": "Basic Bundle",
     "functions": [
       {

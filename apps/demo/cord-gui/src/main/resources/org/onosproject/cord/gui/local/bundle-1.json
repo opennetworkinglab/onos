@@ -1,5 +1,6 @@
 {
   "bundle": {
+    "id": "family",
     "name": "Family Bundle",
     "functions": [
       {
