@@ -6,13 +6,13 @@
       {
         "id": "internet",
         "name": "Internet",
-        "desc": "Basic internet connectivity",
+        "desc": "Basic internet connectivity.",
         "params": {}
       },
       {
         "id": "firewall",
         "name": "Firewall",
-        "desc": "Normal firewall protection",
+        "desc": "Normal firewall protection.",
         "params": {}
       }
     ]

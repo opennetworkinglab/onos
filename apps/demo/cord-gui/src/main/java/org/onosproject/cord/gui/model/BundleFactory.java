@@ -17,14 +17,20 @@
 
 package org.onosproject.cord.gui.model;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
 /**
- * Utility factory for creating bundles and functions etc.
+ * Utility factory for creating and/or operating on bundles.
  */
-public class BundleFactory {
+public class BundleFactory extends JsonFactory {
+
+    private static final String BUNDLE = "bundle";
+    private static final String BUNDLES = "bundles";
+    private static final String FUNCTIONS = "functions";
 
     private static final String BASIC_ID = "basic";
     private static final String BASIC_DISPLAY_NAME = "Basic Bundle";
@@ -35,16 +41,28 @@ public class BundleFactory {
     // no instantiation
     private BundleFactory() {}
 
-    private static final BundleDescriptor BASIC =
+    /**
+     * Designates the BASIC bundle.
+     */
+    public static final BundleDescriptor BASIC_BUNDLE =
             new DefaultBundleDescriptor(BASIC_ID, BASIC_DISPLAY_NAME,
                                         XosFunctionDescriptor.INTERNET,
                                         XosFunctionDescriptor.FIREWALL);
 
-    private static final BundleDescriptor FAMILY =
+    /**
+     * Designates the FAMILY bundle.
+     */
+    public static final BundleDescriptor FAMILY_BUNDLE =
             new DefaultBundleDescriptor(FAMILY_ID, FAMILY_DISPLAY_NAME,
                                         XosFunctionDescriptor.INTERNET,
                                         XosFunctionDescriptor.FIREWALL,
                                         XosFunctionDescriptor.URL_FILTER);
+
+    // all bundles, in the order they should be listed in the GUI
+    private static final List<BundleDescriptor> ALL_BUNDLES = ImmutableList.of(
+            BASIC_BUNDLE,
+            FAMILY_BUNDLE
+    );
 
     /**
      * Returns the list of available bundles.
@@ -52,6 +70,54 @@ public class BundleFactory {
      * @return available bundles
      */
     public static List<BundleDescriptor> availableBundles() {
-        return ImmutableList.of(BASIC, FAMILY);
+        return ALL_BUNDLES;
+    }
+
+    /**
+     * Returns the bundle descriptor for the given identifier.
+     *
+     * @param bundleId bundle identifier
+     * @return bundle descriptor
+     * @throws IllegalArgumentException if bundle ID is unknown
+     */
+    public static BundleDescriptor bundleFromId(String bundleId) {
+        for (BundleDescriptor bd : ALL_BUNDLES) {
+            if (bd.id().equals(bundleId)) {
+                return bd;
+            }
+        }
+        throw new IllegalArgumentException("unknown bundle: " + bundleId);
+    }
+
+    /**
+     * Returns a JSON string representation of the given bundle.
+     *
+     * @param bundle the bundle
+     * @return JSON string
+     */
+    public static String toJson(Bundle bundle) {
+        ObjectNode root = objectNode();
+
+        ObjectNode bnode = objectNode()
+                .put(ID, bundle.descriptor().id())
+                .put(NAME, bundle.descriptor().displayName());
+
+        ArrayNode funcs = arrayNode();
+        for (XosFunctionDescriptor xfd: bundle.descriptor().functions()) {
+            funcs.add(XosFunctionFactory.toObjectNode(xfd));
+        }
+        bnode.set(FUNCTIONS, funcs);
+        root.set(BUNDLE, bnode);
+
+        ArrayNode bundles = arrayNode();
+        for (BundleDescriptor bd: BundleFactory.availableBundles()) {
+            ObjectNode bdnode = objectNode()
+                    .put(ID, bd.id())
+                    .put(NAME, bd.displayName());
+            bundles.add(bdnode);
+        }
+        root.set(BUNDLES, bundles);
+        return root.toString();
+
     }
 }

@@ -22,7 +22,7 @@ import org.junit.Test;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.onosproject.cord.gui.model.BundleFactory.availableBundles;
+import static org.onosproject.cord.gui.model.BundleFactory.*;
 import static org.onosproject.cord.gui.model.XosFunctionDescriptor.*;
 
 /**
@@ -33,11 +33,13 @@ public class BundleFactoryTest {
     @Test
     public void bundleCount() {
         assertEquals("wrong count", 2, availableBundles().size());
+        assertTrue("missing basic", availableBundles().contains(BASIC_BUNDLE));
+        assertTrue("missing family", availableBundles().contains(FAMILY_BUNDLE));
     }
 
     @Test
     public void basicBundle() {
-        BundleDescriptor bundle = availableBundles().get(0);
+        BundleDescriptor bundle = BundleFactory.BASIC_BUNDLE;
         assertEquals("wrong id", "basic", bundle.id());
         assertEquals("wrong id", "Basic Bundle", bundle.displayName());
         Set<XosFunctionDescriptor> funcs = bundle.functions();
@@ -48,7 +50,7 @@ public class BundleFactoryTest {
 
     @Test
     public void familyBundle() {
-        BundleDescriptor bundle = availableBundles().get(1);
+        BundleDescriptor bundle = BundleFactory.FAMILY_BUNDLE;
         assertEquals("wrong id", "family", bundle.id());
         assertEquals("wrong id", "Family Bundle", bundle.displayName());
         Set<XosFunctionDescriptor> funcs = bundle.functions();
@@ -57,5 +59,19 @@ public class BundleFactoryTest {
         assertTrue("missing url-f", funcs.contains(URL_FILTER));
     }
 
+    @Test
+    public void bundleFromIdBasic() {
+        assertEquals("wrong bundle", BASIC_BUNDLE, bundleFromId("basic"));
+    }
+
+    @Test
+    public void bundleFromIdFamily() {
+        assertEquals("wrong bundle", FAMILY_BUNDLE, bundleFromId("family"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void bundleFromIdUnknown() {
+        bundleFromId("unknown");
+    }
 }
 

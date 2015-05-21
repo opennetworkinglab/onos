@@ -57,4 +57,27 @@ public class DefaultBundleDescriptor implements BundleDescriptor {
     public Set<XosFunctionDescriptor> functions() {
         return functions;
     }
+
+    @Override
+    public String toString() {
+        return "{BundleDescriptor: " + displayName + "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultBundleDescriptor that = (DefaultBundleDescriptor) o;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

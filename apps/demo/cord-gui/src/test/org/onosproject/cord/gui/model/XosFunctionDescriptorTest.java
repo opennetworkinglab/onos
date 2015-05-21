@@ -49,7 +49,7 @@ public class XosFunctionDescriptorTest {
 
     @Test
     public void urlFiltering() {
-        assertEquals("wrong id", "url_filtering", URL_FILTER.id());
+        assertEquals("wrong id", "url_filter", URL_FILTER.id());
         assertEquals("wrong display", "Parental Control", URL_FILTER.displayName());
         assertTrue("wrong desc", URL_FILTER.description().startsWith("Variable"));
     }
