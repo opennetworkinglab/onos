@@ -61,7 +61,7 @@ public class AppUiComponent {
                     new AppUiMessageHandler()
             );
 
-    // Application UI exctension
+    // Application UI extension
     protected UiExtension extension = new UiExtension(uiViews, messageHandlerFactory,
                                                       getClass().getClassLoader());
 
@@ -81,7 +81,7 @@ public class AppUiComponent {
     private class AppUiMessageHandler extends UiMessageHandler {
 
         @Override
-        protected Collection<RequestHandler> getHandlers() {
+        protected Collection<RequestHandler> createRequestHandlers() {
             return ImmutableSet.of(new SampleRequest());
         }
 
