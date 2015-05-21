@@ -9,7 +9,7 @@
 remote=$ONOS_USER@${1:-$OCI}
 
 # ONOS boot features
-export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,onos-cli,onos-rest,onos-gui}"
+export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui}"
 
 # ONOS builtin apps and providers ignited by default
 export ONOS_APPS="${ONOS_APPS:-drivers,openflow}"
