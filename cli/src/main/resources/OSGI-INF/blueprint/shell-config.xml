@@ -369,19 +369,19 @@
         </command>
         <!-- tunnel commands -->
         <command>
-            <action class="org.onosproject.cli.net.DeleteTunnelCommand"/>
+            <action class="org.onosproject.cli.net.TunnelDeleteCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.BorrowTunnelCommand"/>
+            <action class="org.onosproject.cli.net.TunnelBorrowCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.ReturnTunnelCommand"/>
+            <action class="org.onosproject.cli.net.TunnelReturnCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.QueryTunnelCommand"/>
+            <action class="org.onosproject.cli.net.TunnelQueryCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.QueryTunnelSubscriptionCommand"/>
+            <action class="org.onosproject.cli.net.TunnelQuerySubscriptionCommand"/>
         </command>
     </command-bundle>
 

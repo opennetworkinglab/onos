@@ -29,17 +29,17 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.tunnel.DefaultOpticalTunnelEndPoint;
-import org.onosproject.net.tunnel.DefaultTunnelDescription;
-import org.onosproject.net.tunnel.IpTunnelEndPoint;
-import org.onosproject.net.tunnel.OpticalLogicId;
-import org.onosproject.net.tunnel.OpticalTunnelEndPoint;
-import org.onosproject.net.tunnel.Tunnel;
-import org.onosproject.net.tunnel.TunnelDescription;
-import org.onosproject.net.tunnel.TunnelEndPoint;
-import org.onosproject.net.tunnel.TunnelId;
-import org.onosproject.net.tunnel.TunnelName;
-import org.onosproject.net.tunnel.TunnelProvider;
+import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
+import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.OpticalLogicId;
+import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelDescription;
+import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.incubator.net.tunnel.TunnelProvider;
 
 /**
  * Supports for creating a tunnel by using IP address and optical as tunnel end

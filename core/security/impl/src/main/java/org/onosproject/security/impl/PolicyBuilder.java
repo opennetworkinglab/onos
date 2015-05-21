@@ -42,8 +42,6 @@ import org.onosproject.net.resource.LabelResourceService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
-import org.onosproject.net.tunnel.TunnelAdminService;
-import org.onosproject.net.tunnel.TunnelService;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.osgi.framework.ServicePermission;
@@ -111,8 +109,8 @@ public final class PolicyBuilder {
                         StorageAdminService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         LabelResourceAdminService.class.getName(), ServicePermission.GET),
-                new PermissionInfo(ServicePermission.class.getName(),
-                        TunnelAdminService.class.getName(), ServicePermission.GET),
+//                new PermissionInfo(ServicePermission.class.getName(),
+//                        TunnelAdminService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         ApplicationService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
@@ -165,8 +163,8 @@ public final class PolicyBuilder {
                         PathService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         TopologyService.class.getName(), ServicePermission.GET),
-                new PermissionInfo(ServicePermission.class.getName(),
-                        TunnelService.class.getName(), ServicePermission.GET),
+//                new PermissionInfo(ServicePermission.class.getName(),
+//                        TunnelService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         StorageService.class.getName(), ServicePermission.GET),
         };
@@ -246,12 +244,12 @@ public final class PolicyBuilder {
                 TopologyService.class.getName(), PathService.class.getName()));
         serviceDirectory.put(Permission.TOPOLOGY_EVENT, ImmutableSet.of(
                 TopologyService.class.getName()));
-        serviceDirectory.put(Permission.TUNNEL_READ, ImmutableSet.of(
-                TunnelService.class.getName()));
-        serviceDirectory.put(Permission.TUNNEL_WRITE, ImmutableSet.of(
-                TunnelService.class.getName()));
-        serviceDirectory.put(Permission.TUNNEL_EVENT, ImmutableSet.of(
-                TunnelService.class.getName()));
+//        serviceDirectory.put(Permission.TUNNEL_READ, ImmutableSet.of(
+//                TunnelService.class.getName()));
+//        serviceDirectory.put(Permission.TUNNEL_WRITE, ImmutableSet.of(
+//                TunnelService.class.getName()));
+//        serviceDirectory.put(Permission.TUNNEL_EVENT, ImmutableSet.of(
+//                TunnelService.class.getName()));
         serviceDirectory.put(Permission.STORAGE_WRITE, ImmutableSet.of(
                 StorageService.class.getName()));
 

@@ -28,12 +28,12 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.tunnel.Tunnel;
-import org.onosproject.net.tunnel.TunnelDescription;
-import org.onosproject.net.tunnel.TunnelId;
-import org.onosproject.net.tunnel.TunnelProvider;
-import org.onosproject.net.tunnel.TunnelProviderRegistry;
-import org.onosproject.net.tunnel.TunnelProviderService;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelDescription;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.tunnel.TunnelProvider;
+import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
+import org.onosproject.incubator.net.tunnel.TunnelProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 

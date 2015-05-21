@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.tunnel.cli;
+package org.onosproject.cli.net;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.apache.karaf.shell.commands.Argument;
@@ -25,22 +26,21 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
-import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.OpticalLogicId;
 import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
-import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
-import org.onosproject.incubator.net.tunnel.TunnelProvider;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 
 /**
- * Supports for removing all tunnels by using IP address and optical as tunnel
- * end point now. It's used by producers.
+ * Supports for querying all tunnels by using IP address and optical as tunnel
+ * end point now. It's used by consumers.
  */
-@Command(scope = "onos", name = "remove-tunnels", description = "Supports for removing all tunnels by using IP address"
-        + " and optical as tunnel end point now. It's used by producers.")
-public class RemoveTunnelCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "query-tunnels", description = "Supports for querying all tunnels by using IP address"
+        + " and optical as tunnel end point now."
+        + " It's used by consumers.")
+public class TunnelQueryCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "src", description = "Source tunnel point."
             + " Only supports for IpTunnelEndPoint and OpticalTunnelEndPoint as end point now."
             + " If deletess a ODUK or OCH type tunnel, the formatter of this argument is DeviceId-PortNumber."
@@ -56,58 +56,22 @@ public class RemoveTunnelCommand extends AbstractShellCommand {
             + " It includes MPLS, VLAN, VXLAN, GRE, ODUK, OCH", required = true, multiValued = false)
     String type = null;
 
+    private static final String FMT = "src=%s, dst=%s,"
+            + "type=%s, state=%s, producerName=%s, tunnelName=%s,"
+            + "groupId=%s";
+
     @Override
     protected void execute() {
-        TunnelProvider service = get(TunnelProvider.class);
+        TunnelService service = get(TunnelService.class);
         ProviderId producerName = new ProviderId("default",
                                                  "org.onosproject.provider.tunnel.default");
         TunnelEndPoint srcPoint = null;
         TunnelEndPoint dstPoint = null;
-        Tunnel.Type trueType = null;
-        if ("MPLS".equals(type)) {
-            trueType = Tunnel.Type.MPLS;
+        if ("MPLS".equals(type) || "VLAN".equals(type) || "VXLAN".equals(type)
+                || "GRE".equals(type)) {
             srcPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(src));
             dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
-        } else if ("VLAN".equals(type)) {
-            trueType = Tunnel.Type.VLAN;
-            srcPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(src));
-            dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
-        } else if ("VXLAN".equals(type)) {
-            trueType = Tunnel.Type.VXLAN;
-            srcPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(src));
-            dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
-        } else if ("GRE".equals(type)) {
-            trueType = Tunnel.Type.GRE;
-            srcPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(src));
-            dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
-        } else if ("ODUK".equals(type)) {
-            trueType = Tunnel.Type.ODUK;
-            String[] srcArray = src.split("-");
-            String[] dstArray = dst.split("-");
-            srcPoint = new DefaultOpticalTunnelEndPoint(
-                                                        producerName,
-                                                        Optional.of(DeviceId
-                                                                .deviceId(srcArray[0])),
-                                                        Optional.of(PortNumber
-                                                                .portNumber(srcArray[1])),
-                                                        null,
-                                                        OpticalTunnelEndPoint.Type.LAMBDA,
-                                                        OpticalLogicId
-                                                                .logicId(0),
-                                                        true);
-            dstPoint = new DefaultOpticalTunnelEndPoint(
-                                                        producerName,
-                                                        Optional.of(DeviceId
-                                                                .deviceId(dstArray[0])),
-                                                        Optional.of(PortNumber
-                                                                .portNumber(dstArray[1])),
-                                                        null,
-                                                        OpticalTunnelEndPoint.Type.LAMBDA,
-                                                        OpticalLogicId
-                                                                .logicId(0),
-                                                        true);
-        } else if ("OCH".equals(type)) {
-            trueType = Tunnel.Type.OCH;
+        } else if ("ODUK".equals(type) || "OCH".equals(type)) {
             String[] srcArray = src.split("-");
             String[] dstArray = dst.split("-");
             srcPoint = new DefaultOpticalTunnelEndPoint(
@@ -136,12 +100,12 @@ public class RemoveTunnelCommand extends AbstractShellCommand {
             print("Illegal tunnel type. Please input MPLS, VLAN, VXLAN, GRE, ODUK or OCH.");
             return;
         }
-        TunnelDescription tunnel = new DefaultTunnelDescription(null, srcPoint,
-                                                                dstPoint,
-                                                                trueType, null,
-                                                                producerName,
-                                                                null);
-        service.tunnelRemoved(tunnel);
+        Collection<Tunnel> tunnelSet = service.queryTunnel(srcPoint, dstPoint);
+        for (Tunnel tunnel : tunnelSet) {
+            print(FMT, tunnel.src().toString(), tunnel.dst().toString(), tunnel.type(),
+                  tunnel.state(), tunnel.providerId(), tunnel.tunnelName(),
+                  tunnel.groupId());
+        }
     }
 
 }

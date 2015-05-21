@@ -1,0 +1,358 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onosproject.incubator.net.tunnel.impl;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.Set;
+
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.Path;
+import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.incubator.net.tunnel.DefaultTunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel.Type;
+import org.onosproject.incubator.net.tunnel.TunnelAdminService;
+import org.onosproject.incubator.net.tunnel.TunnelDescription;
+import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.TunnelEvent;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.tunnel.TunnelListener;
+import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.incubator.net.tunnel.TunnelProvider;
+import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
+import org.onosproject.incubator.net.tunnel.TunnelProviderService;
+import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.incubator.net.tunnel.TunnelStore;
+import org.onosproject.incubator.net.tunnel.TunnelStoreDelegate;
+import org.onosproject.incubator.net.tunnel.TunnelSubscription;
+import org.slf4j.Logger;
+
+/**
+ * Provides implementation of the tunnel NB/SB APIs.
+ */
+@Component(immediate = true, enabled = true)
+@Service
+public class TunnelManager
+        extends AbstractProviderRegistry<TunnelProvider, TunnelProviderService>
+        implements TunnelService, TunnelAdminService, TunnelProviderRegistry {
+
+    private static final String TUNNNEL_ID_NULL = "Tunnel ID cannot be null";
+
+    private final Logger log = getLogger(getClass());
+
+    protected final ListenerRegistry<TunnelEvent, TunnelListener>
+            listenerRegistry = new ListenerRegistry<>();
+
+    private final TunnelStoreDelegate delegate = new InternalStoreDelegate();
+
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TunnelStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
+
+    @Activate
+    public void activate() {
+        store.setDelegate(delegate);
+        eventDispatcher.addSink(TunnelEvent.class, listenerRegistry);
+        log.info("Started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        store.unsetDelegate(delegate);
+        eventDispatcher.removeSink(TunnelEvent.class);
+        log.info("Stopped");
+    }
+
+    @Override
+    public void removeTunnel(TunnelId tunnelId) {
+        checkNotNull(tunnelId, TUNNNEL_ID_NULL);
+        store.deleteTunnel(tunnelId);
+        Tunnel tunnel = store.queryTunnel(tunnelId);
+        if (tunnel.providerId() != null) {
+            TunnelProvider provider = getProvider(tunnel.providerId());
+            if (provider != null) {
+                provider.releaseTunnel(tunnel);
+            }
+        } else {
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.releaseTunnel(tunnel);
+            }
+        }
+    }
+
+    @Override
+    public void updateTunnel(Tunnel tunnel, Path path) {
+        store.createOrUpdateTunnel(tunnel);
+        if (tunnel.providerId() != null) {
+            TunnelProvider provider = getProvider(tunnel.providerId());
+            if (provider != null) {
+                provider.updateTunnel(tunnel, path);
+            }
+        } else {
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.updateTunnel(tunnel, path);
+            }
+        }
+    }
+
+    @Override
+    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
+                              ProviderId producerName) {
+        store.deleteTunnel(src, dst, producerName);
+        Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
+        for (Tunnel tunnel : setTunnels) {
+            if (producerName != null
+                    && !tunnel.providerId().equals(producerName)) {
+                continue;
+            }
+            if (tunnel.providerId() != null) {
+                TunnelProvider provider = getProvider(tunnel.providerId());
+                if (provider != null) {
+                    provider.releaseTunnel(tunnel);
+                }
+            } else {
+                Set<ProviderId> ids = getProviders();
+                for (ProviderId providerId : ids) {
+                    TunnelProvider provider = getProvider(providerId);
+                    provider.releaseTunnel(tunnel);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst, Type type,
+                              ProviderId producerName) {
+        store.deleteTunnel(src, dst, type, producerName);
+        Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
+        for (Tunnel tunnel : setTunnels) {
+            if (producerName != null
+                    && !tunnel.providerId().equals(producerName)
+                    || !type.equals(tunnel.type())) {
+                continue;
+            }
+            if (tunnel.providerId() != null) {
+                TunnelProvider provider = getProvider(tunnel.providerId());
+                if (provider != null) {
+                    provider.releaseTunnel(tunnel);
+                }
+            } else {
+                Set<ProviderId> ids = getProviders();
+                for (ProviderId providerId : ids) {
+                    TunnelProvider provider = getProvider(providerId);
+                    provider.releaseTunnel(tunnel);
+                }
+            }
+        }
+    }
+
+    @Override
+    public Tunnel borrowTunnel(ApplicationId consumerId, TunnelId tunnelId,
+                                  Annotations... annotations) {
+        return store.borrowTunnel(consumerId, tunnelId, annotations);
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                              TunnelName tunnelName,
+                                              Annotations... annotations) {
+        return store.borrowTunnel(consumerId, tunnelName, annotations);
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                              TunnelEndPoint src, TunnelEndPoint dst,
+                                              Annotations... annotations) {
+        Collection<Tunnel> tunnels = store.borrowTunnel(consumerId, src,
+                                                           dst, annotations);
+        if (tunnels == null || tunnels.size() == 0) {
+            Tunnel tunnel = new DefaultTunnel(null, src, dst, null, null, null,
+                                              null, null, annotations);
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.setupTunnel(tunnel, null);
+            }
+        }
+        return tunnels;
+    }
+
+    @Override
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId,
+                                              TunnelEndPoint src, TunnelEndPoint dst,
+                                              Type type, Annotations... annotations) {
+        Collection<Tunnel> tunnels = store.borrowTunnel(consumerId, src,
+                                                           dst, type,
+                                                           annotations);
+        if (tunnels == null || tunnels.size() == 0) {
+            Tunnel tunnel = new DefaultTunnel(null, src, dst, type, null, null,
+                                              null, null, annotations);
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.setupTunnel(tunnel, null);
+            }
+        }
+        return tunnels;
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId,
+                                     TunnelId tunnelId, Annotations... annotations) {
+        return store.returnTunnel(consumerId, tunnelId, annotations);
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId,
+                                     TunnelName tunnelName,
+                                     Annotations... annotations) {
+        return store.returnTunnel(consumerId, tunnelName, annotations);
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
+                                     TunnelEndPoint dst, Type type,
+                                     Annotations... annotations) {
+        return store.returnTunnel(consumerId, src, dst, type, annotations);
+    }
+
+    @Override
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
+                                     TunnelEndPoint dst, Annotations... annotations) {
+        return store.returnTunnel(consumerId, src, dst, annotations);
+    }
+
+    @Override
+    public Tunnel queryTunnel(TunnelId tunnelId) {
+        return store.queryTunnel(tunnelId);
+    }
+
+    @Override
+    public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
+        return store.queryTunnelSubscription(consumerId);
+    }
+
+    @Override
+    public Collection<Tunnel> queryTunnel(Type type) {
+        return store.queryTunnel(type);
+    }
+
+    @Override
+    public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
+        return store.queryTunnel(src, dst);
+    }
+
+    @Override
+    public int tunnelCount() {
+        return store.tunnelCount();
+    }
+
+    @Override
+    protected TunnelProviderService createProviderService(TunnelProvider provider) {
+        return new InternalTunnelProviderService(provider);
+    }
+
+    @Override
+    public void addListener(TunnelListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(TunnelListener listener) {
+        listenerRegistry.removeListener(listener);
+    }
+
+    private class InternalTunnelProviderService
+            extends AbstractProviderService<TunnelProvider>
+            implements TunnelProviderService {
+        protected InternalTunnelProviderService(TunnelProvider provider) {
+            super(provider);
+        }
+
+
+        @Override
+        public TunnelId tunnelAdded(TunnelDescription tunnel) {
+            Tunnel storedTunnel = new DefaultTunnel(provider().id(),
+                                                    tunnel.src(), tunnel.dst(),
+                                                    tunnel.type(),
+                                                    tunnel.groupId(),
+                                                    tunnel.id(),
+                                                    tunnel.tunnelName(),
+                                                    tunnel.annotations());
+            return store.createOrUpdateTunnel(storedTunnel);
+        }
+
+        @Override
+        public void tunnelUpdated(TunnelDescription tunnel) {
+            Tunnel storedTunnel = new DefaultTunnel(provider().id(),
+                                                    tunnel.src(), tunnel.dst(),
+                                                    tunnel.type(),
+                                                    tunnel.groupId(),
+                                                    tunnel.id(),
+                                                    tunnel.tunnelName(),
+                                                    tunnel.annotations());
+            store.createOrUpdateTunnel(storedTunnel);
+        }
+
+        @Override
+        public void tunnelRemoved(TunnelDescription tunnel) {
+            if (tunnel.id() != null) {
+                store.deleteTunnel(tunnel.id());
+            }
+            if (tunnel.src() != null && tunnel.dst() != null
+                    && tunnel.type() != null) {
+                store.deleteTunnel(tunnel.src(), tunnel.dst(), tunnel.type(),
+                                   provider().id());
+            }
+            if (tunnel.src() != null && tunnel.dst() != null
+                    && tunnel.type() == null) {
+                store.deleteTunnel(tunnel.src(), tunnel.dst(), provider().id());
+            }
+        }
+
+    }
+
+    private class InternalStoreDelegate implements TunnelStoreDelegate {
+        @Override
+        public void notify(TunnelEvent event) {
+            if (event != null) {
+                eventDispatcher.post(event);
+            }
+        }
+    }
+}
