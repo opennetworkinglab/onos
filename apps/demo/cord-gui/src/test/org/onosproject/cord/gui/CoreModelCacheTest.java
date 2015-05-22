@@ -51,6 +51,7 @@ public class CoreModelCacheTest {
     @Test
     public void basicBundleJson() {
         String json = BundleFactory.toJson(cache.getCurrentBundle());
+        System.out.println(json);
         assertTrue("bad basic json", sameJson(BASIC_BUNDLE_JSON, json));
     }
 
@@ -75,6 +76,21 @@ public class CoreModelCacheTest {
         assertEquals("wrong # users", 4, users.size());
     }
 
+    @Test
+    public void usersBasicJson() {
+        String json = cache.jsonUsers();
+        System.out.println(json);
+        assertTrue("bad users basic json", sameJson(USERS_BASIC, json));
+    }
+
+    @Test
+    public void usersFamilyJson() {
+        cache.setCurrentBundle("family");
+        String json = cache.jsonUsers();
+        System.out.println(json);
+        assertTrue("bad users family json", sameJson(USERS_FAMILY, json));
+    }
+
     // =============
 
     private boolean sameJson(String s1, String s2) {
@@ -91,61 +107,157 @@ public class CoreModelCacheTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final String BASIC_BUNDLE_JSON = "{\n" +
-            "  \"bundle\": {\n" +
-            "    \"id\": \"basic\",\n" +
-            "    \"name\": \"Basic Bundle\",\n" +
-            "    \"functions\": [\n" +
-            "      {\n" +
-            "        \"id\": \"internet\",\n" +
-            "        \"name\": \"Internet\",\n" +
-            "        \"desc\": \"Basic internet connectivity.\",\n" +
-            "        \"params\": {}\n" +
-            "      },\n" +
-            "      {\n" +
-            "        \"id\": \"firewall\",\n" +
-            "        \"name\": \"Firewall\",\n" +
-            "        \"desc\": \"Normal firewall protection.\",\n" +
-            "        \"params\": {}\n" +
-            "      }\n" +
+            "    \"bundle\": {\n" +
+            "        \"id\": \"basic\",\n" +
+            "        \"name\": \"Basic Bundle\",\n" +
+            "        \"desc\": \"Provides basic internet and firewall functions.\",\n" +
+            "        \"functions\": [\n" +
+            "            {\n" +
+            "                \"id\": \"internet\",\n" +
+            "                \"name\": \"Internet\",\n" +
+            "                \"desc\": \"Basic internet connectivity.\",\n" +
+            "                \"params\": {}\n" +
+            "            },\n" +
+            "            {\n" +
+            "                \"id\": \"firewall\",\n" +
+            "                \"name\": \"Firewall\",\n" +
+            "                \"desc\": \"Normal firewall protection.\",\n" +
+            "                \"params\": {}\n" +
+            "            }\n" +
+            "        ]\n" +
+            "    },\n" +
+            "    \"bundles\": [\n" +
+            "        {\n" +
+            "            \"id\": \"basic\",\n" +
+            "            \"name\": \"Basic Bundle\",\n" +
+            "            \"desc\": \"Provides basic internet and firewall functions.\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"id\": \"family\",\n" +
+            "            \"name\": \"Family Bundle\",\n" +
+            "            \"desc\": \"Provides internet, firewall and parental control functions.\"\n" +
+            "        }\n" +
             "    ]\n" +
-            "  },\n" +
-            "  \"bundles\": [\n" +
-            "    { \"id\": \"basic\", \"name\": \"Basic Bundle\" },\n" +
-            "    { \"id\": \"family\", \"name\": \"Family Bundle\" }\n" +
-            "  ]\n" +
             "}\n";
 
     private static final String FAMILY_BUNDLE_JSON = "{\n" +
-            "  \"bundle\": {\n" +
-            "    \"id\": \"family\",\n" +
-            "    \"name\": \"Family Bundle\",\n" +
-            "    \"functions\": [\n" +
-            "      {\n" +
-            "        \"id\": \"internet\",\n" +
-            "        \"name\": \"Internet\",\n" +
-            "        \"desc\": \"Basic internet connectivity.\",\n" +
-            "        \"params\": {}\n" +
-            "      },\n" +
-            "      {\n" +
-            "        \"id\": \"firewall\",\n" +
-            "        \"name\": \"Firewall\",\n" +
-            "        \"desc\": \"Normal firewall protection.\",\n" +
-            "        \"params\": {}\n" +
-            "      },\n" +
-            "      {\n" +
-            "        \"id\": \"url_filter\",\n" +
-            "        \"name\": \"Parental Control\",\n" +
-            "        \"desc\": \"Variable levels of URL filtering.\",\n" +
-            "        \"params\": {\n" +
-            "          \"level\": \"PG\",\n" +
-            "          \"levels\": [ \"PG\", \"PG-13\", \"R\" ]\n" +
+            "    \"bundle\": {\n" +
+            "        \"id\": \"family\",\n" +
+            "        \"name\": \"Family Bundle\",\n" +
+            "        \"desc\": \"Provides internet, firewall and parental control functions.\",\n" +
+            "        \"functions\": [\n" +
+            "            {\n" +
+            "                \"id\": \"internet\",\n" +
+            "                \"name\": \"Internet\",\n" +
+            "                \"desc\": \"Basic internet connectivity.\",\n" +
+            "                \"params\": {}\n" +
+            "            },\n" +
+            "            {\n" +
+            "                \"id\": \"firewall\",\n" +
+            "                \"name\": \"Firewall\",\n" +
+            "                \"desc\": \"Normal firewall protection.\",\n" +
+            "                \"params\": {}\n" +
+            "            },\n" +
+            "            {\n" +
+            "                \"id\": \"url_filter\",\n" +
+            "                \"name\": \"Parental Control\",\n" +
+            "                \"desc\": \"Variable levels of URL filtering.\",\n" +
+            "                \"params\": {\n" +
+            "                    \"level\": \"PG\",\n" +
+            "                    \"levels\": [\n" +
+            "                        \"PG\",\n" +
+            "                        \"PG_13\",\n" +
+            "                        \"R\"\n" +
+            "                    ]\n" +
+            "                }\n" +
+            "            }\n" +
+            "        ]\n" +
+            "    },\n" +
+            "    \"bundles\": [\n" +
+            "        {\n" +
+            "            \"id\": \"basic\",\n" +
+            "            \"name\": \"Basic Bundle\",\n" +
+            "            \"desc\": \"Provides basic internet and firewall functions.\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"id\": \"family\",\n" +
+            "            \"name\": \"Family Bundle\",\n" +
+            "            \"desc\": \"Provides internet, firewall and parental control functions.\"\n" +
+            "        }\n" +
+            "    ]\n" +
+            "}\n";
+
+    private static final String USERS_BASIC = "{\n" +
+            "  \"users\": [\n" +
+            "    {\n" +
+            "      \"id\": 1,\n" +
+            "      \"name\": \"Mom's MacBook\",\n" +
+            "      \"mac\": \"010203040506\",\n" +
+            "      \"profile\": { }\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": 2,\n" +
+            "      \"name\": \"Dad's iPad\",\n" +
+            "      \"mac\": \"010203040507\",\n" +
+            "      \"profile\": { }\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": 3,\n" +
+            "      \"name\": \"Dick's laptop\",\n" +
+            "      \"mac\": \"010203040508\",\n" +
+            "      \"profile\": { }\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": 4,\n" +
+            "      \"name\": \"Jane's laptop\",\n" +
+            "      \"mac\": \"010203040509\",\n" +
+            "      \"profile\": { }\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}\n";
+
+    private static final String USERS_FAMILY = "{\n" +
+            "  \"users\": [\n" +
+            "    {\n" +
+            "      \"id\": 1,\n" +
+            "      \"name\": \"Mom's MacBook\",\n" +
+            "      \"mac\": \"010203040506\",\n" +
+            "      \"profile\": {\n" +
+            "        \"url_filter\": {\n" +
+            "          \"level\": \"PG\"\n" +
             "        }\n" +
             "      }\n" +
-            "    ]\n" +
-            "  },\n" +
-            "  \"bundles\": [\n" +
-            "    { \"id\": \"basic\", \"name\": \"Basic Bundle\" },\n" +
-            "    { \"id\": \"family\", \"name\": \"Family Bundle\" }\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": 2,\n" +
+            "      \"name\": \"Dad's iPad\",\n" +
+            "      \"mac\": \"010203040507\",\n" +
+            "      \"profile\": {\n" +
+            "        \"url_filter\": {\n" +
+            "          \"level\": \"PG\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": 3,\n" +
+            "      \"name\": \"Dick's laptop\",\n" +
+            "      \"mac\": \"010203040508\",\n" +
+            "      \"profile\": {\n" +
+            "        \"url_filter\": {\n" +
+            "          \"level\": \"PG\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"id\": 4,\n" +
+            "      \"name\": \"Jane's laptop\",\n" +
+            "      \"mac\": \"010203040509\",\n" +
+            "      \"profile\": {\n" +
+            "        \"url_filter\": {\n" +
+            "          \"level\": \"PG\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
             "  ]\n" +
             "}\n";
 }

@@ -17,11 +17,17 @@
 
 package org.onosproject.cord.gui.model;
 
+import com.google.common.collect.ImmutableSet;
+
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Encapsulates a bundle, including current state.
  */
 public class Bundle {
     private final BundleDescriptor bundleDescriptor;
+    private final Set<XosFunction> functions;
 
     /**
      * Constructs a new bundle instance.
@@ -30,6 +36,7 @@ public class Bundle {
      */
     public Bundle(BundleDescriptor bundleDescriptor) {
         this.bundleDescriptor = bundleDescriptor;
+        this.functions = initFunctions();
     }
 
     /**
@@ -41,4 +48,39 @@ public class Bundle {
         return bundleDescriptor;
     }
 
+    /**
+     * Returns the set of function instances for this bundle.
+     *
+     * @return the functions
+     */
+    public Set<XosFunction> functions() {
+        return ImmutableSet.copyOf(functions);
+    }
+
+    /**
+     * Creates an initial set of function instances.
+     *
+     * @return initial function instances
+     */
+    private Set<XosFunction> initFunctions() {
+        Set<XosFunction> funcs = new HashSet<XosFunction>();
+        for (XosFunctionDescriptor xfd: bundleDescriptor.functions()) {
+            funcs.add(createFunction(xfd));
+        }
+        return funcs;
+    }
+
+    private XosFunction createFunction(XosFunctionDescriptor xfd) {
+        XosFunction func;
+        switch (xfd) {
+            case URL_FILTER:
+                func = new UrlFilterFunction(xfd);
+                break;
+
+            default:
+                func = new DefaultXosFunction(xfd);
+                break;
+        }
+        return func;
+    }
 }

@@ -41,7 +41,7 @@ public class UserFactory extends JsonFactory {
                 .put(ID, user.id())
                 .put(NAME, user.name())
                 .put(MAC, user.mac());
-        // TODO: add profile data
+        root.set(PROFILE, XosFunctionFactory.profileForUser(user));
         return root;
     }
 

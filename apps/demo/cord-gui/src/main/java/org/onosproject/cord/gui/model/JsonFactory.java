@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public abstract class JsonFactory {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     protected static final String ID = "id";
     protected static final String NAME = "name";
@@ -38,7 +38,7 @@ public abstract class JsonFactory {
      * @return empty object node
      */
     protected static ObjectNode objectNode() {
-        return mapper.createObjectNode();
+        return MAPPER.createObjectNode();
     }
 
     /**
@@ -47,6 +47,6 @@ public abstract class JsonFactory {
      * @return empty array node
      */
     protected static ArrayNode arrayNode() {
-        return mapper.createArrayNode();
+        return MAPPER.createArrayNode();
     }
 }

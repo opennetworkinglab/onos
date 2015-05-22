@@ -26,6 +26,9 @@ import org.onosproject.cord.gui.model.BundleFactory;
 import org.onosproject.cord.gui.model.JsonFactory;
 import org.onosproject.cord.gui.model.SubscriberUser;
 import org.onosproject.cord.gui.model.UserFactory;
+import org.onosproject.cord.gui.model.XosFunction;
+import org.onosproject.cord.gui.model.XosFunctionDescriptor;
+import org.onosproject.cord.gui.model.XosFunctionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,11 +65,20 @@ public class CordModelCache extends JsonFactory {
      * Used to initialize users for the demo. These are currently fake.
      */
     public void initUsers() {
-        users.add(new SubscriberUser(1, "Mom's MacBook", MAC_1));
-        users.add(new SubscriberUser(2, "Dad's iPad", MAC_2));
-        users.add(new SubscriberUser(3, "Dick's laptop", MAC_3));
-        users.add(new SubscriberUser(4, "Jane's laptop", MAC_4));
+        users.add(createUser(1, "Mom's MacBook", MAC_1));
+        users.add(createUser(2, "Dad's iPad", MAC_2));
+        users.add(createUser(3, "Dick's laptop", MAC_3));
+        users.add(createUser(4, "Jane's laptop", MAC_4));
     }
+
+    private SubscriberUser createUser(int uid, String name, String mac) {
+        SubscriberUser user = new SubscriberUser(uid, name, mac);
+        for (XosFunction f: currentBundle.functions()) {
+            user.setMemento(f.descriptor(), f.createMemento());
+        }
+        return user;
+    }
+
 
     /**
      * Returns the currently selected bundle.
@@ -84,9 +96,19 @@ public class CordModelCache extends JsonFactory {
      * @throws IllegalArgumentException if bundle ID is unknown
      */
     public void setCurrentBundle(String bundleId) {
-        BundleDescriptor bdesc = BundleFactory.bundleFromId(bundleId);
-        currentBundle = new Bundle(bdesc);
+        BundleDescriptor bd = BundleFactory.bundleFromId(bundleId);
+        currentBundle = new Bundle(bd);
+        // update the user mementos
+        for (SubscriberUser user: users) {
+            user.clearMementos();
+            for (XosFunction f: currentBundle.functions()) {
+                user.setMemento(f.descriptor(), f.createMemento());
+            }
+        }
+
+        // TODO: tell XOS which functions are enabled / disabled
     }
+
 
     /**
      * Returns the list of current users for this subscriber account.
@@ -96,6 +118,25 @@ public class CordModelCache extends JsonFactory {
     public List<SubscriberUser> getUsers() {
         return ImmutableList.copyOf(users);
     }
+
+    /**
+     * Applies a function parameter change for a user.
+     *
+     * @param userId user identifier
+     * @param funcId function identifier
+     * @param param function parameter to change
+     * @param value new value for function parameter
+     */
+    public void applyPerUserParam(String userId, String funcId,
+                                  String param, String value) {
+        // FIXME: this is not right yet...
+        int uid = Integer.parseInt(userId);
+        XosFunctionDescriptor xfd =
+                XosFunctionDescriptor.valueOf(funcId.toUpperCase());
+        XosFunctionFactory.apply(xfd, uid, param, value);
+    }
+
+    // =============
 
     private ArrayNode userJsonArray() {
         ArrayNode userList = arrayNode();

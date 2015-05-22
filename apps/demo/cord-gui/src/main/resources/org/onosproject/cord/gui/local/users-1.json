@@ -3,7 +3,7 @@
     {
       "id": 1,
       "name": "Mom's MacBook",
-      "mac": "01:02:03:04:05:06",
+      "mac": "010203040506",
       "profile": {
         "url_filter": {
           "level": "R"
@@ -13,7 +13,7 @@
     {
       "id": 2,
       "name": "Dad's iPad",
-      "mac": "01:02:03:04:05:77",
+      "mac": "010203040507",
       "profile": {
         "url_filter": {
           "level": "R"
@@ -23,17 +23,17 @@
     {
       "id": 3,
       "name": "Dick's laptop",
-      "mac": "01:02:03:04:05:88",
+      "mac": "010203040508",
       "profile": {
         "url_filter": {
-          "level": "PG-13"
+          "level": "PG_13"
         }
       }
     },
     {
       "id": 4,
       "name": "Jane's laptop",
-      "mac": "01:02:03:04:05:99",
+      "mac": "010203040509",
       "profile": {
         "url_filter": {
           "level": "PG"

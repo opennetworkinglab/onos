@@ -55,9 +55,19 @@ public class CordWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("bundle/{id}")
-    @Deprecated
     public Response bundle(@PathParam("id") String bundleId) {
         CordModelCache.INSTANCE.setCurrentBundle(bundleId);
         return bundle();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("users/{id}/apply/{func}/{param}/{value}")
+    public Response bundle(@PathParam("id") String userId,
+                           @PathParam("func") String funcId,
+                           @PathParam("param") String param,
+                           @PathParam("value") String value) {
+        CordModelCache.INSTANCE.applyPerUserParam(userId, funcId, param, value);
+        return users();
     }
 }

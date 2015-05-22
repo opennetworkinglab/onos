@@ -28,16 +28,37 @@ public interface XosFunction {
     /**
      * Returns the descriptor for this function.
      *
-     * @return function identifier
+     * @return function descriptor
      */
     XosFunctionDescriptor descriptor();
 
     /**
-     * Returns the current state of this function, encapsulated
-     * as a JSON node.
+     * Applies a parameter change for the given user.
      *
-     * @return parameters for the function
+     * @param user user to apply change to
+     * @param param parameter name
+     * @param value new parameter value
      */
-    ObjectNode params();
+    void applyParam(SubscriberUser user, String param, String value);
+
+    /**
+     * Create an initialized memento.
+     * If the function maintains no state per user, return null.
+     *
+     * @return a new memento
+     */
+    Memento createMemento();
+
+    /**
+     * Internal state memento.
+     */
+    interface Memento {
+        /**
+         * Returns a JSON representation of this memento.
+         *
+         * @return memento state as object node
+         */
+        ObjectNode toObjectNode();
+    }
 }
 

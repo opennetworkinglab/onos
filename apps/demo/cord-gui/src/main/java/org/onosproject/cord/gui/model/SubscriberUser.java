@@ -17,6 +17,9 @@
 
 package org.onosproject.cord.gui.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Designates a user of a subscriber's account.
  */
@@ -24,6 +27,9 @@ public class SubscriberUser {
     private final int id;
     private final String name;
     private final String mac;
+
+    private final Map<XosFunctionDescriptor, XosFunction.Memento> mementos =
+            new HashMap<XosFunctionDescriptor, XosFunction.Memento>();
 
     /**
      * Constructs a subscriber user from the given parameters.
@@ -63,5 +69,34 @@ public class SubscriberUser {
      */
     public String mac() {
         return mac;
+    }
+
+    /**
+     * Stores a memento for the given XOS function.
+     *
+     * @param f XOS function
+     * @param m memento
+     */
+    public void setMemento(XosFunctionDescriptor f, XosFunction.Memento m) {
+        if (m != null) {
+            mementos.put(f, m);
+        }
+    }
+
+    /**
+     * Returns the memento stored on this user, for the given XOS function.
+     *
+     * @param f XOS function
+     * @return memento
+     */
+    public XosFunction.Memento getMemento(XosFunctionDescriptor f) {
+        return mementos.get(f);
+    }
+
+    /**
+     * Clears the memento map.
+     */
+    public void clearMementos() {
+        mementos.clear();
     }
 }
