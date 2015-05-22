@@ -117,9 +117,11 @@ public class NettyMessaging implements MessagingService {
             return;
         }
         this.localEp = localEp;
-        channels.setLifo(false);
+        channels.setLifo(true);
         channels.setTestOnBorrow(true);
         channels.setTestOnReturn(true);
+        channels.setMinEvictableIdleTimeMillis(60_000L);
+        channels.setTimeBetweenEvictionRunsMillis(30_000L);
         initEventLoopGroup();
         startAcceptingConnections();
         started.set(true);
@@ -265,6 +267,7 @@ public class NettyMessaging implements MessagingService {
 
         @Override
         public void destroyObject(Endpoint ep, Channel channel) throws Exception {
+            log.info("Closing connection to {}", ep);
             channel.close();
         }
 
