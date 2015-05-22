@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.store.tunnel.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -37,8 +36,6 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.provider.ProviderId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
@@ -49,6 +46,10 @@ import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelStore;
 import org.onosproject.incubator.net.tunnel.TunnelStoreDelegate;
 import org.onosproject.incubator.net.tunnel.TunnelSubscription;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.app.GossipApplicationStore.InternalState;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
@@ -126,6 +127,10 @@ public class DistributedTunnelStore
                 .<Tunnel.Type, Set<TunnelId>>eventuallyConsistentMapBuilder()
                 .withName("type_tunnel").withSerializer(serializer)
                 .withClockService(new WallclockClockManager<>()).build();
+        orderRelationship = storageService
+                .<ApplicationId, Set<TunnelSubscription>>eventuallyConsistentMapBuilder()
+                .withName("type_tunnel").withSerializer(serializer)
+                .withClockService(new WallclockClockManager<>()).build();
         idGenerator = coreService.getIdGenerator(runnelOpTopoic);
         log.info("Started");
     }
@@ -148,13 +153,15 @@ public class DistributedTunnelStore
                 log.info("This tunnel[" + tunnel.tunnelId() + "] is not available.");
                 return tunnel.tunnelId();
             }
-            Tunnel newT = new DefaultTunnel(tunnel.providerId(), tunnel.src(),
-                                            tunnel.dst(), tunnel.type(),
-                                            tunnel.state(), tunnel.groupId(),
+            DefaultAnnotations oldAnno = (DefaultAnnotations) old.annotations();
+            SparseAnnotations newAnno = (SparseAnnotations) tunnel.annotations();
+            Tunnel newT = new DefaultTunnel(old.providerId(), old.src(),
+                                            old.dst(), old.type(),
+                                            old.state(), old.groupId(),
                                             old.tunnelId(),
-                                            tunnel.tunnelName(),
-                                            tunnel.annotations());
-            tunnelIdAsKeyStore.remove(tunnel.tunnelId());
+                                            old.tunnelName(),
+                                            old.path(),
+                                            DefaultAnnotations.merge(oldAnno, newAnno));
             tunnelIdAsKeyStore.put(tunnel.tunnelId(), newT);
             TunnelEvent event = new TunnelEvent(
                                                 TunnelEvent.Type.TUNNEL_UPDATED,
@@ -168,6 +175,7 @@ public class DistributedTunnelStore
                                             tunnel.state(), tunnel.groupId(),
                                             tunnelId,
                                             tunnel.tunnelName(),
+                                            tunnel.path(),
                                             tunnel.annotations());
             TunnelKey key = TunnelKey.tunnelKey(tunnel.src(), tunnel.dst());
             tunnelIdAsKeyStore.put(tunnelId, newT);
@@ -463,6 +471,11 @@ public class DistributedTunnelStore
     }
 
     @Override
+    public Collection<Tunnel> queryAllTunnels() {
+        return tunnelIdAsKeyStore.values();
+    }
+
+    @Override
     public int tunnelCount() {
         return tunnelIdAsKeyStore.size();
     }
@@ -515,5 +528,4 @@ public class DistributedTunnelStore
                     .add("dst", dst).toString();
         }
     }
-
 }

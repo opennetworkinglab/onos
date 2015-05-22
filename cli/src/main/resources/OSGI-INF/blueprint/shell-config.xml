@@ -338,39 +338,36 @@
         </command>
         
         <command>
-            <action class="org.onosproject.cli.net.GetGlobalLabelResourceCommand"/>
+            <action class="org.onosproject.cli.net.GlobalLabelCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.GetLabelResourceCommand"/>
+            <action class="org.onosproject.cli.net.LabelResourceCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.CreateGlobalLabelResourcePoolCommand"/>
+            <action class="org.onosproject.cli.net.GlobalLabelPoolCreateCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.CreateLabelResourcePoolCommand"/>
+            <action class="org.onosproject.cli.net.LabelPoolCreateCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.DestroyGlobalLabelResourcePoolCommand"/>
+            <action class="org.onosproject.cli.net.GlobalLabelPoolDestoryCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.DestroyGlobalLabelResourcePoolCommand"/>
+            <action class="org.onosproject.cli.net.LabelPoolDestroyCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.ReleaseGlobalLabelResourceCommand"/>
+            <action class="org.onosproject.cli.net.GlobalLabelReleaseCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.ReleaseLabelResourceCommand"/>
+            <action class="org.onosproject.cli.net.LabelReleaseCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.ApplyGlobalLabelResourceCommand"/>
+            <action class="org.onosproject.cli.net.GlobalLabelApplyCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.ApplyLabelResourceCommand"/>
+            <action class="org.onosproject.cli.net.LabelApplyCommand"/>
         </command>
         <!-- tunnel commands -->
-        <command>
-            <action class="org.onosproject.cli.net.TunnelDeleteCommand"/>
-        </command>
         <command>
             <action class="org.onosproject.cli.net.TunnelBorrowCommand"/>
         </command>

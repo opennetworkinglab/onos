@@ -15,7 +15,6 @@
  */
 package org.onosproject.incubator.net.tunnel;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
@@ -55,9 +54,6 @@ public class DefaultOpticalTunnelEndPoint extends AbstractModel implements Optic
                         Optional<PortNumber> number, Optional<OpticalTunnelEndPoint> parentPoint,
                         Type type, OpticalLogicId id, boolean isGlobal, Annotations... annotations) {
         super(providerId, annotations);
-        checkNotNull(type, "type cannot be null");
-        checkNotNull(id, "id cannot be null");
-        checkNotNull(isGlobal, "isGlobal cannot be null");
         this.elementId = elementId;
         this.portNumber = number;
         this.parentPoint = parentPoint;

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.net.tunnel;
 
 import java.util.Collection;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.store.Store;
 
 /**
@@ -212,6 +211,13 @@ public interface TunnelStore extends Store<TunnelEvent, TunnelStoreDelegate> {
      * @return Collection of tunnels
      */
     Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst);
+
+    /**
+     * Returns all tunnels.
+     *
+     * @return Collection of tunnels
+     */
+    Collection<Tunnel> queryAllTunnels();
 
     /**
      * Returns all tunnels.

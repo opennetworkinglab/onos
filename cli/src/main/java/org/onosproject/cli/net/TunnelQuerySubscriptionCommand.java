@@ -29,7 +29,7 @@ import org.onosproject.incubator.net.tunnel.TunnelSubscription;
  * Query all tunnel subscriptions of consumer by consumer id.
  * It's used by consumers.
  */
-@Command(scope = "onos", name = "query-tunnel-subscriptions",
+@Command(scope = "onos", name = "tunnel-subscriptions",
       description = "Query all request orders of consumer by consumer id. It's used by consumers.")
 public class TunnelQuerySubscriptionCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "consumerId",

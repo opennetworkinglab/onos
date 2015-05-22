@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.net.tunnel;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.AbstractDescription;
+import org.onosproject.net.Path;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.provider.ProviderId;
 
@@ -39,6 +38,7 @@ public class DefaultTunnelDescription extends AbstractDescription
     // tunnel producer
     private final ProviderId producerName; // tunnel producer name
     private final TunnelName tunnelName; // name of a tunnel
+    private final Path path;
 
     /**
      * Creates a tunnel description using the supplied information.
@@ -50,6 +50,7 @@ public class DefaultTunnelDescription extends AbstractDescription
      * @param groupId groupId
      * @param producerName tunnel producer
      * @param tunnelName tunnel name
+     * @param path the path of tunnel
      * @param annotations optional key/value annotations
      */
     public DefaultTunnelDescription(TunnelId id, TunnelEndPoint src,
@@ -57,12 +58,9 @@ public class DefaultTunnelDescription extends AbstractDescription
                                     DefaultGroupId groupId,
                                     ProviderId producerName,
                                     TunnelName tunnelName,
+                                    Path path,
                                     SparseAnnotations... annotations) {
         super(annotations);
-        checkNotNull(producerName, "producerName cannot be null");
-        checkNotNull(src, "src cannot be null");
-        checkNotNull(dst, "dst cannot be null");
-        checkNotNull(type, "type cannot be null");
         this.tunnelId = id;
         this.src = src;
         this.dst = dst;
@@ -70,6 +68,7 @@ public class DefaultTunnelDescription extends AbstractDescription
         this.groupId = groupId;
         this.producerName = producerName;
         this.tunnelName = tunnelName;
+        this.path = path;
     }
 
     @Override
@@ -107,6 +106,12 @@ public class DefaultTunnelDescription extends AbstractDescription
         return tunnelName;
     }
 
+
+    @Override
+    public Path path() {
+        return path;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -117,7 +122,7 @@ public class DefaultTunnelDescription extends AbstractDescription
                 .add("tunnelName", tunnelName())
                 .add("producerName", producerName())
                 .add("groupId", groupId())
+                .add("path", path)
                 .toString();
     }
-
 }

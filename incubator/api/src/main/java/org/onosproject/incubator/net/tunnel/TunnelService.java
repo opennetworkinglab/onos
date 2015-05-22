@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.net.tunnel;
 
 import java.util.Collection;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
 
 /**
@@ -83,7 +83,7 @@ public interface TunnelService {
      * @return collection of available Tunnels
      */
     Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelEndPoint src,
-                                       TunnelEndPoint dst, Tunnel.Type type,
+                                       TunnelEndPoint dst, Type type,
                                        Annotations... annotations);
 
     /**
@@ -122,7 +122,7 @@ public interface TunnelService {
      * @return success or fail
      */
     boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src,
-                              TunnelEndPoint dst, Tunnel.Type type,
+                              TunnelEndPoint dst, Type type,
                               Annotations... annotations);
 
     /**
@@ -160,7 +160,7 @@ public interface TunnelService {
      * @param type tunnel type
      * @return Collection of tunnels
      */
-    Collection<Tunnel> queryTunnel(Tunnel.Type type);
+    Collection<Tunnel> queryTunnel(Type type);
 
     /**
      * Returns all tunnels between source point and destination point.
@@ -170,6 +170,13 @@ public interface TunnelService {
      * @return Collection of tunnels
      */
     Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst);
+
+    /**
+     * Returns all tunnels.
+     *
+     * @return Collection of tunnels
+     */
+    Collection<Tunnel> queryAllTunnels();
 
     /**
      * Returns all tunnels.

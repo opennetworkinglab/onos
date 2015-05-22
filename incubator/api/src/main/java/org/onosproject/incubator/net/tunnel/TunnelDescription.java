@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.net.tunnel;
 
 import org.onosproject.core.DefaultGroupId;
+import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Description;
+import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 
 /**
  * Describes a tunnel.
@@ -75,4 +75,11 @@ public interface TunnelDescription extends Description, Annotated {
      * @return Tunnel Name
      */
     TunnelName tunnelName();
+
+    /**
+     * Returns the path of the tunnel.
+     *
+     * @return the path of the tunnel
+     */
+    Path path();
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.net.tunnel.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,14 +30,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.Path;
-import org.onosproject.net.provider.AbstractProviderRegistry;
-import org.onosproject.net.provider.AbstractProviderService;
-import org.onosproject.net.provider.ProviderId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
-import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
+import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelAdminService;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
@@ -53,6 +47,11 @@ import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.incubator.net.tunnel.TunnelStore;
 import org.onosproject.incubator.net.tunnel.TunnelStoreDelegate;
 import org.onosproject.incubator.net.tunnel.TunnelSubscription;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.Path;
+import org.onosproject.net.provider.AbstractProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
 /**
@@ -277,6 +276,12 @@ public class TunnelManager
         return store.queryTunnel(src, dst);
     }
 
+
+    @Override
+    public Collection<Tunnel> queryAllTunnels() {
+        return store.queryAllTunnels();
+    }
+
     @Override
     public int tunnelCount() {
         return store.tunnelCount();
@@ -313,6 +318,7 @@ public class TunnelManager
                                                     tunnel.groupId(),
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),
+                                                    tunnel.path(),
                                                     tunnel.annotations());
             return store.createOrUpdateTunnel(storedTunnel);
         }
@@ -325,6 +331,7 @@ public class TunnelManager
                                                     tunnel.groupId(),
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),
+                                                    tunnel.path(),
                                                     tunnel.annotations());
             store.createOrUpdateTunnel(storedTunnel);
         }
@@ -333,17 +340,27 @@ public class TunnelManager
         public void tunnelRemoved(TunnelDescription tunnel) {
             if (tunnel.id() != null) {
                 store.deleteTunnel(tunnel.id());
+                return;
             }
             if (tunnel.src() != null && tunnel.dst() != null
                     && tunnel.type() != null) {
                 store.deleteTunnel(tunnel.src(), tunnel.dst(), tunnel.type(),
                                    provider().id());
+                return;
             }
             if (tunnel.src() != null && tunnel.dst() != null
                     && tunnel.type() == null) {
                 store.deleteTunnel(tunnel.src(), tunnel.dst(), provider().id());
+                return;
             }
         }
+
+
+        @Override
+        public Tunnel tunnelQueryById(TunnelId tunnelId) {
+            return store.queryTunnel(tunnelId);
+        }
+
 
     }
 
@@ -355,4 +372,5 @@ public class TunnelManager
             }
         }
     }
+
 }

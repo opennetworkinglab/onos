@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,10 @@ import java.util.Optional;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.provider.ProviderId;
+import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
@@ -32,29 +31,50 @@ import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.provider.ProviderId;
 
 /**
- * Supports for removing all tunnels by using IP address and optical as tunnel
- * end point now. It's used by producers.
+ * Supports for creating a tunnel by using IP address and optical as tunnel end
+ * point.
  */
-@Command(scope = "onos", name = "remove-tunnels", description = "Supports for removing all tunnels by using IP address"
-        + " and optical as tunnel end point now. It's used by producers.")
-public class RemoveTunnelCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "tunnel-create",
+description = "Supports for creating a tunnel by using IP address and optical as tunnel end point now.")
+public class TunnelCreateCommand extends AbstractShellCommand {
+
     @Argument(index = 0, name = "src", description = "Source tunnel point."
             + " Only supports for IpTunnelEndPoint and OpticalTunnelEndPoint as end point now."
-            + " If deletess a ODUK or OCH type tunnel, the formatter of this argument is DeviceId-PortNumber."
+            + " If creates a ODUK or OCH or VLAN type tunnel, the formatter of this argument is DeviceId-PortNumber."
             + " Otherwise src means IP address.", required = true, multiValued = false)
     String src = null;
+
     @Argument(index = 1, name = "dst", description = "Destination tunnel point."
             + " Only supports for IpTunnelEndPoint and OpticalTunnelEndPoint as end point now."
-            + " If deletess a ODUK or OCH type tunnel, the formatter of this argument is DeviceId-PortNumber."
+            + " If creates a ODUK or OCH or VLAN type tunnel, the formatter of this argument is DeviceId-PortNumber."
             + " Otherwise dst means IP address.", required = true, multiValued = false)
     String dst = null;
-
     @Argument(index = 2, name = "type", description = "The type of tunnels,"
             + " It includes MPLS, VLAN, VXLAN, GRE, ODUK, OCH", required = true, multiValued = false)
     String type = null;
+    @Option(name = "-g", aliases = "--groupId",
+            description = "Group flow table id which a tunnel match up", required = false, multiValued = false)
+    String groupId = null;
+
+    @Option(name = "-n", aliases = "--tunnelName",
+            description = "The name of tunnels", required = false, multiValued = false)
+    String tunnelName = null;
+
+    @Option(name = "-b", aliases = "--bandwidth",
+            description = "The bandwidth attribute of tunnel", required = false, multiValued = false)
+    String bandwidth = null;
+
+    private static final String FMT = "The tunnel identity is %s";
 
     @Override
     protected void execute() {
@@ -70,8 +90,30 @@ public class RemoveTunnelCommand extends AbstractShellCommand {
             dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
         } else if ("VLAN".equals(type)) {
             trueType = Tunnel.Type.VLAN;
-            srcPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(src));
-            dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
+            String[] srcArray = src.split("-");
+            String[] dstArray = dst.split("-");
+            srcPoint = new DefaultOpticalTunnelEndPoint(
+                                                        producerName,
+                                                        Optional.of(DeviceId
+                                                                .deviceId(srcArray[0])),
+                                                        Optional.of(PortNumber
+                                                                .portNumber(srcArray[1])),
+                                                        null,
+                                                        null,
+                                                        OpticalLogicId
+                                                                .logicId(0),
+                                                        true);
+            dstPoint = new DefaultOpticalTunnelEndPoint(
+                                                        producerName,
+                                                        Optional.of(DeviceId
+                                                                .deviceId(dstArray[0])),
+                                                        Optional.of(PortNumber
+                                                                .portNumber(dstArray[1])),
+                                                        null,
+                                                        null,
+                                                        OpticalLogicId
+                                                                .logicId(0),
+                                                        true);
         } else if ("VXLAN".equals(type)) {
             trueType = Tunnel.Type.VXLAN;
             srcPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(src));
@@ -117,7 +159,7 @@ public class RemoveTunnelCommand extends AbstractShellCommand {
                                                         Optional.of(PortNumber
                                                                 .portNumber(srcArray[1])),
                                                         null,
-                                                        OpticalTunnelEndPoint.Type.LAMBDA,
+                                                        OpticalTunnelEndPoint.Type.TIMESLOT,
                                                         OpticalLogicId
                                                                 .logicId(0),
                                                         true);
@@ -128,7 +170,7 @@ public class RemoveTunnelCommand extends AbstractShellCommand {
                                                         Optional.of(PortNumber
                                                                 .portNumber(dstArray[1])),
                                                         null,
-                                                        OpticalTunnelEndPoint.Type.LAMBDA,
+                                                        OpticalTunnelEndPoint.Type.TIMESLOT,
                                                         OpticalLogicId
                                                                 .logicId(0),
                                                         true);
@@ -136,12 +178,26 @@ public class RemoveTunnelCommand extends AbstractShellCommand {
             print("Illegal tunnel type. Please input MPLS, VLAN, VXLAN, GRE, ODUK or OCH.");
             return;
         }
-        TunnelDescription tunnel = new DefaultTunnelDescription(null, srcPoint,
+
+        SparseAnnotations annotations = DefaultAnnotations
+                .builder()
+                .set("bandwidth", bandwidth == null && "".equals(bandwidth) ? "0" : bandwidth)
+                .build();
+        TunnelDescription tunnel = new DefaultTunnelDescription(
+                                                                null,
+                                                                srcPoint,
                                                                 dstPoint,
-                                                                trueType, null,
+                                                                trueType,
+                                                                new DefaultGroupId(
+                                                                                   Integer.valueOf(groupId)
+                                                                                           .intValue()),
                                                                 producerName,
-                                                                null);
-        service.tunnelRemoved(tunnel);
+                                                                TunnelName
+                                                                        .tunnelName(tunnelName),
+                                                                        null,
+                                                                annotations);
+        TunnelId tunnelId = service.tunnelAdded(tunnel);
+        print(FMT, tunnelId.id());
     }
 
 }

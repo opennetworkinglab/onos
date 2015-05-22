@@ -16,7 +16,6 @@
 
 package org.onosproject.incubator.net.tunnel;
 
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Representation of a Tunnel Id.
@@ -35,8 +34,7 @@ public final class TunnelId {
     }
 
     public static TunnelId valueOf(String value) {
-        checkArgument(value.startsWith("0x"));
-         return new TunnelId(Long.parseLong(value.substring("0x".length()), 16));
+         return new TunnelId(Long.parseLong(value));
     }
 
     /**

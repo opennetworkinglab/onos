@@ -45,4 +45,12 @@ public interface TunnelProviderService extends ProviderService<TunnelProvider> {
      */
     void tunnelUpdated(TunnelDescription tunnel);
 
+    /**
+     * Signals that the a tunnel was queried.
+     *
+     * @param tunnelId tunnel identity
+     * @return tunnel entity
+     */
+    Tunnel tunnelQueryById(TunnelId tunnelId);
+
 }

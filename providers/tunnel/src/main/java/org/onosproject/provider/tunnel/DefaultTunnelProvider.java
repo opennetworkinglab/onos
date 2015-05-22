@@ -67,14 +67,12 @@ public class DefaultTunnelProvider extends AbstractProvider
 
     @Activate
     public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
         service = tunnelProviderRegistry.register(this);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
-        cfgService.unregisterProperties(getClass(), false);
         tunnelProviderRegistry.unregister(this);
         log.info("Stopped");
     }
@@ -128,6 +126,11 @@ public class DefaultTunnelProvider extends AbstractProvider
     @Override
     public void tunnelUpdated(TunnelDescription tunnel) {
         service.tunnelUpdated(tunnel);
+    }
+
+    @Override
+    public Tunnel tunnelQueryById(TunnelId tunnelId) {
+        return service.tunnelQueryById(tunnelId);
     }
 
 }

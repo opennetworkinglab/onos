@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.incubator.net.tunnel;
 
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.Path;
 import org.onosproject.net.Provided;
 
 /**
@@ -144,4 +144,10 @@ public interface Tunnel extends Annotated, Provided, NetworkResource {
      */
     NetworkResource resource();
 
+    /**
+     * Returns the path of the tunnel.
+     *
+     * @return the path of the tunnel
+     */
+    Path path();
 }

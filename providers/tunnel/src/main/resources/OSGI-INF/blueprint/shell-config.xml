@@ -17,10 +17,13 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.provider.tunnel.cli.CreateTunnelCommand"/>
+            <action class="org.onosproject.provider.tunnel.cli.TunnelCreateCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.provider.tunnel.cli.RemoveTunnelCommand"/>
+            <action class="org.onosproject.provider.tunnel.cli.TunnelRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.provider.tunnel.cli.TunnelUpdateCommand"/>
         </command>
     </command-bundle>
 </blueprint>

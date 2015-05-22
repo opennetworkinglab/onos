@@ -102,4 +102,12 @@ public interface TunnelProvider extends Provider {
      * @param tunnel tunnel information
      */
     void tunnelUpdated(TunnelDescription tunnel);
+
+    /**
+     * Signals that the a tunnel was queried.
+     * It's used by producers.
+     * @param tunnelId tunnel identity
+     * @return tunnel entity
+     */
+    Tunnel tunnelQueryById(TunnelId tunnelId);
 }

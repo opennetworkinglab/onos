@@ -15,7 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -25,9 +24,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceDelegate;
@@ -37,6 +33,9 @@ import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourcePool;
 import org.onosproject.incubator.net.resource.label.LabelResourceRequest;
 import org.onosproject.incubator.net.resource.label.LabelResourceStore;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
@@ -44,11 +43,10 @@ import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
-import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableSet;
@@ -67,9 +65,6 @@ public class DistributedLabelResourceStore
     private static final String POOL_MAP_NAME = "labelresourcepool";
 
     private static final String GLOBAL_RESOURCE_POOL_DEVICE_ID = "global_resource_pool_device_id";
-    // primary data:
-    // read/write needs to be locked
-    private final ReentrantReadWriteLock resourcePoolLock = new ReentrantReadWriteLock();
 
     private ConsistentMap<DeviceId, LabelResourcePool> resourcePool = null;
 
@@ -92,41 +87,24 @@ public class DistributedLabelResourceStore
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 8;
     private static final long PEER_REQUEST_TIMEOUT_MS = 5000;
 
-    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
-                    .register(DistributedStoreSerializers.STORE_COMMON)
-                    .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
+    private static final Serializer SERIALIZER = Serializer
+            .using(new KryoNamespace.Builder().register(KryoNamespaces.API)
                     .register(LabelResourceEvent.class)
                     .register(LabelResourcePool.class).register(DeviceId.class)
                     .register(LabelResourceRequest.class)
                     .register(LabelResourceRequest.Type.class)
                     .register(LabelResourceEvent.Type.class)
                     .register(DefaultLabelResource.class)
-                    .register(LabelResourceId.class).build();
-        }
-    };
+                    .register(LabelResourceId.class)
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID).build());
 
     @Activate
     public void activate() {
 
         resourcePool = storageService
                 .<DeviceId, LabelResourcePool>consistentMapBuilder()
-                .withName(POOL_MAP_NAME).withSerializer(new Serializer() {
-                    KryoNamespace kryo = new KryoNamespace.Builder()
-                            .register(KryoNamespaces.API).build();
-
-                    @Override
-                    public <T> byte[] encode(T object) {
-                        return kryo.serialize(object);
-                    }
-
-                    @Override
-                    public <T> T decode(byte[] bytes) {
-                        return kryo.deserialize(bytes);
-                    }
-                }).withPartitionsDisabled().build();
+                .withName(POOL_MAP_NAME).withSerializer(SERIALIZER)
+                .withPartitionsDisabled().build();
         messageHandlingExecutor = Executors
                 .newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
                                     groupedThreads("onos/store/flow",
@@ -142,7 +120,7 @@ public class DistributedLabelResourceStore
                                        log.trace("received get flow entry request for {}",
                                                  operation);
                                        boolean b = internalCreate(operation);
-                                           message.respond(SERIALIZER.encode(b));
+                                       message.respond(SERIALIZER.encode(b));
                                    }
                                }, messageHandlingExecutor);
         clusterCommunicator
@@ -156,7 +134,7 @@ public class DistributedLabelResourceStore
                                        log.trace("received get flow entry request for {}",
                                                  deviceId);
                                        boolean b = internalDestroy(deviceId);
-                                           message.respond(SERIALIZER.encode(b));
+                                       message.respond(SERIALIZER.encode(b));
                                    }
                                }, messageHandlingExecutor);
         clusterCommunicator
@@ -170,8 +148,8 @@ public class DistributedLabelResourceStore
                                        log.trace("received get flow entry request for {}",
                                                  request);
                                        final Collection<LabelResource> resource = internalApply(request);
-                                           message.respond(SERIALIZER
-                                                   .encode(resource));
+                                       message.respond(SERIALIZER
+                                               .encode(resource));
                                    }
                                }, messageHandlingExecutor);
         clusterCommunicator
@@ -185,8 +163,8 @@ public class DistributedLabelResourceStore
                                        log.trace("received get flow entry request for {}",
                                                  request);
                                        final boolean isSuccess = internalRelease(request);
-                                           message.respond(SERIALIZER
-                                                   .encode(isSuccess));
+                                       message.respond(SERIALIZER
+                                               .encode(isSuccess));
                                    }
                                }, messageHandlingExecutor);
         log.info("Started");
@@ -256,18 +234,16 @@ public class DistributedLabelResourceStore
     }
 
     private boolean internalCreate(LabelResourcePool pool) {
-        resourcePoolLock.writeLock().lock();
-        LabelResourcePool poolOld = resourcePool.get(pool.deviceId()).value();
+        Versioned<LabelResourcePool> poolOld = resourcePool
+                .get(pool.deviceId());
         if (poolOld == null) {
             resourcePool.put(pool.deviceId(), pool);
-            resourcePoolLock.writeLock().unlock();
             LabelResourceEvent event = new LabelResourceEvent(
                                                               Type.POOL_CREATED,
                                                               pool);
             notifyDelegate(event);
             return true;
         }
-        resourcePoolLock.writeLock().unlock();
         return false;
     }
 
@@ -301,12 +277,12 @@ public class DistributedLabelResourceStore
     }
 
     private boolean internalDestroy(DeviceId deviceId) {
-        LabelResourcePool poolOld = resourcePool.get(deviceId).value();
+        Versioned<LabelResourcePool> poolOld = resourcePool.get(deviceId);
         if (poolOld != null) {
             resourcePool.remove(deviceId);
             LabelResourceEvent event = new LabelResourceEvent(
                                                               Type.POOL_CREATED,
-                                                              poolOld);
+                                                              poolOld.value());
             notifyDelegate(event);
         }
         log.info("success to destroy the label resource pool of device id {}",
@@ -349,15 +325,14 @@ public class DistributedLabelResourceStore
     }
 
     private Collection<LabelResource> internalApply(LabelResourceRequest request) {
-        resourcePoolLock.writeLock().lock();
         DeviceId deviceId = request.deviceId();
         long applyNum = request.applyNum();
-        LabelResourcePool pool = resourcePool.get(deviceId).value();
+        Versioned<LabelResourcePool> poolOld = resourcePool.get(deviceId);
+        LabelResourcePool pool = poolOld.value();
         Collection<LabelResource> result = new HashSet<LabelResource>();
         long freeNum = this.getFreeNumOfDevicePool(deviceId);
         if (applyNum > freeNum) {
             log.info("the free number of the label resource pool of deviceId {} is not enough.");
-            resourcePoolLock.writeLock().unlock();
             return Collections.emptyList();
         }
         Set<LabelResource> releaseLabels = new HashSet<LabelResource>(
@@ -393,7 +368,6 @@ public class DistributedLabelResourceStore
                                                           current, freeLabel);
         resourcePool.put(deviceId, newPool);
         log.info("success to apply label resource");
-        resourcePoolLock.writeLock().unlock();
         return result;
     }
 
@@ -440,12 +414,11 @@ public class DistributedLabelResourceStore
     }
 
     private boolean internalRelease(LabelResourceRequest request) {
-        resourcePoolLock.writeLock().lock();
         DeviceId deviceId = request.deviceId();
         Collection<LabelResource> release = request.releaseCollection();
-        LabelResourcePool pool = resourcePool.get(deviceId).value();
+        Versioned<LabelResourcePool> poolOld = resourcePool.get(deviceId);
+        LabelResourcePool pool = poolOld.value();
         if (pool == null) {
-            resourcePoolLock.writeLock().unlock();
             log.info("the label resource pool of device id {} does not exist");
             return false;
         }
@@ -480,34 +453,34 @@ public class DistributedLabelResourceStore
                                                           current, s);
         resourcePool.put(deviceId, newPool);
         log.info("success to release label resource");
-        resourcePoolLock.writeLock().unlock();
         return true;
     }
 
     @Override
     public boolean isDevicePoolFull(DeviceId deviceId) {
-        LabelResourcePool pool = resourcePool.get(deviceId).value();
+        Versioned<LabelResourcePool> pool = resourcePool.get(deviceId);
         if (pool == null) {
             return true;
         }
-        return pool.currentUsedMaxLabelId() == pool.endLabel()
-                && pool.releaseLabelId().size() == 0 ? true : false;
+        return pool.value().currentUsedMaxLabelId() == pool.value().endLabel()
+                && pool.value().releaseLabelId().size() == 0 ? true : false;
     }
 
     @Override
     public long getFreeNumOfDevicePool(DeviceId deviceId) {
-        LabelResourcePool pool = resourcePool.get(deviceId).value();
+        Versioned<LabelResourcePool> pool = resourcePool.get(deviceId);
         if (pool == null) {
             return 0;
         }
-        return pool.endLabel().labelId()
-                - pool.currentUsedMaxLabelId().labelId()
-                + pool.releaseLabelId().size();
+        return pool.value().endLabel().labelId()
+                - pool.value().currentUsedMaxLabelId().labelId()
+                + pool.value().releaseLabelId().size();
     }
 
     @Override
     public LabelResourcePool getDeviceLabelResourcePool(DeviceId deviceId) {
-        return resourcePool.get(deviceId).value();
+        Versioned<LabelResourcePool> pool = resourcePool.get(deviceId);
+        return pool == null ? null : pool.value();
     }
 
     @Override
@@ -564,8 +537,7 @@ public class DistributedLabelResourceStore
 
     private <T> T complete(Future<T> future) {
         try {
-            return future.get(PEER_REQUEST_TIMEOUT_MS,
-                                                TimeUnit.MILLISECONDS);
+            return future.get(PEER_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Interrupted while waiting for operation to complete.", e);

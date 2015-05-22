@@ -91,9 +91,9 @@ public class LabelResourceManager
         checkNotNull(deviceId, "deviceId is not null");
         checkNotNull(beginLabel, "beginLabel is not null");
         checkNotNull(endLabel, "beginLabel is not null");
-        checkArgument(beginLabel.labelId() < 0 || endLabel.labelId() < 0,
+        checkArgument(beginLabel.labelId() >= 0 || endLabel.labelId() >= 0,
                       "The value of beginLabel and the value of endLabel must be both positive number.");
-        checkArgument(beginLabel.labelId() > endLabel.labelId(),
+        checkArgument(beginLabel.labelId() <= endLabel.labelId(),
                       "The value of endLabel must be greater than the value of endLabel.");
         return store.createDevicePool(deviceId, beginLabel, endLabel);
     }
@@ -103,10 +103,10 @@ public class LabelResourceManager
                                     LabelResourceId endLabel) {
         checkNotNull(beginLabel, "beginLabel is not null");
         checkNotNull(endLabel, "beginLabel is not null");
-        checkArgument(beginLabel.labelId() < 0 || endLabel.labelId() < 0,
-                      "The value of beginLabel and the value of endLabel must be both positive number.");
-        checkArgument(beginLabel.labelId() > endLabel.labelId(),
-                      "The value of endLabel must be greater than the value of endLabel.");
+        checkArgument(beginLabel.labelId() >= 0 && endLabel.labelId() >= 0,
+                "The value of beginLabel and the value of endLabel must be both positive number.");
+        checkArgument(beginLabel.labelId() <= endLabel.labelId(),
+                "The value of endLabel must be greater than the value of endLabel.");
         return store.createGlobalPool(beginLabel, endLabel);
     }
 
