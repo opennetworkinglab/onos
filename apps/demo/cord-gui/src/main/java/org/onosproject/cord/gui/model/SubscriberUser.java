@@ -99,4 +99,9 @@ public class SubscriberUser {
     public void clearMementos() {
         mementos.clear();
     }
+
+    @Override
+    public String toString() {
+        return "{User: " + name + "}";
+    }
 }

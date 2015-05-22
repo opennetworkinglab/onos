@@ -109,7 +109,7 @@ public class CordModelCache extends JsonFactory {
             }
         }
 
-        // TODO: tell XOS which functions are enabled / disabled
+        XosManager.INSTANCE.setNewBundle(SUBSCRIBER_ID, currentBundle);
     }
 
 
@@ -144,6 +144,7 @@ public class CordModelCache extends JsonFactory {
         checkNotNull(func, "function not part of bundle: " + funcId);
 
         func.applyParam(user, param, value);
+        XosManager.INSTANCE.apply(SUBSCRIBER_ID, func, user);
     }
 
     // =============

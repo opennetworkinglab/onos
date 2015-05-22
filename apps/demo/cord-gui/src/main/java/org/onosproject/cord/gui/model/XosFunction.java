@@ -50,6 +50,15 @@ public interface XosFunction {
     Memento createMemento();
 
     /**
+     * Create the XOS specific URL suffix for applying state change for
+     * the given user.
+     *
+     * @param user the user
+     * @return URL suffix
+     */
+    String xosUrlApply(SubscriberUser user);
+
+    /**
      * Internal state memento.
      */
     interface Memento {

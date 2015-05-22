@@ -71,5 +71,16 @@ public class UrlFilterFunction extends DefaultXosFunction {
         public void setLevel(Level level) {
             this.level = level;
         }
+
+        public String level() {
+            return level.toString();
+        }
+    }
+
+    @Override
+    public String xosUrlApply(SubscriberUser user) {
+        XosFunctionDescriptor xfd = XosFunctionDescriptor.URL_FILTER;
+        UrlFilterMemento memo = (UrlFilterMemento) user.getMemento(xfd);
+        return xfd.id() + "/" + memo.level();
     }
 }

@@ -55,4 +55,12 @@ public class DefaultXosFunction implements XosFunction {
         return null;
     }
 
+    public String xosUrlApply(SubscriberUser user) {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "{XosFunction: " + xfd + "}";
+    }
 }
