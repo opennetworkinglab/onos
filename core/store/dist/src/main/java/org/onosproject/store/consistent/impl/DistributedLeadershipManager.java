@@ -577,6 +577,10 @@ public class DistributedLeadershipManager implements LeadershipService {
                                                 updatedCandidates.value(),
                                                 updatedCandidates.version(),
                                                 updatedCandidates.creationTime())));
+                            } else {
+                                // Conflicting update detected. Rerun purge to make sure
+                                // inactive candidates are evicted.
+                                rerunPurge.set(true);
                             }
                         } catch (Exception e) {
                             log.debug("Failed to evict inactive candidates {} from "
