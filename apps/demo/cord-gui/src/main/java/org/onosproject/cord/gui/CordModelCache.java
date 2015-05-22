@@ -28,10 +28,12 @@ import org.onosproject.cord.gui.model.SubscriberUser;
 import org.onosproject.cord.gui.model.UserFactory;
 import org.onosproject.cord.gui.model.XosFunction;
 import org.onosproject.cord.gui.model.XosFunctionDescriptor;
-import org.onosproject.cord.gui.model.XosFunctionFactory;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * In memory cache of the model of the subscriber's account.
@@ -50,14 +52,16 @@ public class CordModelCache extends JsonFactory {
     private static final String MAC_4 = "010203040509";
 
     private Bundle currentBundle;
-    private final List<SubscriberUser> users;
+
+    // NOTE: use a tree map to maintain sorted order by user ID
+    private final Map<Integer, SubscriberUser> userMap =
+            new TreeMap<Integer, SubscriberUser>();
 
     /**
      * Constructs a model cache, initializing it with basic bundle.
      */
     CordModelCache() {
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
-        users = new ArrayList<SubscriberUser>();
         initUsers();
     }
 
@@ -65,10 +69,10 @@ public class CordModelCache extends JsonFactory {
      * Used to initialize users for the demo. These are currently fake.
      */
     public void initUsers() {
-        users.add(createUser(1, "Mom's MacBook", MAC_1));
-        users.add(createUser(2, "Dad's iPad", MAC_2));
-        users.add(createUser(3, "Dick's laptop", MAC_3));
-        users.add(createUser(4, "Jane's laptop", MAC_4));
+        userMap.put(1, createUser(1, "Mom's MacBook", MAC_1));
+        userMap.put(2, createUser(2, "Dad's iPad", MAC_2));
+        userMap.put(3, createUser(3, "Dick's laptop", MAC_3));
+        userMap.put(4, createUser(4, "Jane's laptop", MAC_4));
     }
 
     private SubscriberUser createUser(int uid, String name, String mac) {
@@ -78,7 +82,6 @@ public class CordModelCache extends JsonFactory {
         }
         return user;
     }
-
 
     /**
      * Returns the currently selected bundle.
@@ -99,7 +102,7 @@ public class CordModelCache extends JsonFactory {
         BundleDescriptor bd = BundleFactory.bundleFromId(bundleId);
         currentBundle = new Bundle(bd);
         // update the user mementos
-        for (SubscriberUser user: users) {
+        for (SubscriberUser user: userMap.values()) {
             user.clearMementos();
             for (XosFunction f: currentBundle.functions()) {
                 user.setMemento(f.descriptor(), f.createMemento());
@@ -116,7 +119,7 @@ public class CordModelCache extends JsonFactory {
      * @return the list of users
      */
     public List<SubscriberUser> getUsers() {
-        return ImmutableList.copyOf(users);
+        return ImmutableList.copyOf(userMap.values());
     }
 
     /**
@@ -129,18 +132,25 @@ public class CordModelCache extends JsonFactory {
      */
     public void applyPerUserParam(String userId, String funcId,
                                   String param, String value) {
-        // FIXME: this is not right yet...
+
         int uid = Integer.parseInt(userId);
+        SubscriberUser user = userMap.get(uid);
+        checkNotNull(user, "unknown user id: " + uid);
+
         XosFunctionDescriptor xfd =
                 XosFunctionDescriptor.valueOf(funcId.toUpperCase());
-        XosFunctionFactory.apply(xfd, uid, param, value);
+
+        XosFunction func = currentBundle.findFunction(xfd);
+        checkNotNull(func, "function not part of bundle: " + funcId);
+
+        func.applyParam(user, param, value);
     }
 
     // =============
 
     private ArrayNode userJsonArray() {
         ArrayNode userList = arrayNode();
-        for (SubscriberUser user: users) {
+        for (SubscriberUser user: userMap.values()) {
             userList.add(UserFactory.toObjectNode(user));
         }
         return userList;

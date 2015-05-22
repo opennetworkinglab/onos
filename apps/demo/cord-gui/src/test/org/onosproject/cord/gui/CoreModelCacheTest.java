@@ -91,7 +91,35 @@ public class CoreModelCacheTest {
         assertTrue("bad users family json", sameJson(USERS_FAMILY, json));
     }
 
+    @Test
+    public void setNewLevel() {
+        cache.setCurrentBundle("family");
+        JsonNode node = fromString(cache.jsonUsers());
+        assertEquals("wrong level", "PG", getMomsLevel(node));
+
+        cache.applyPerUserParam("1", "url_filter", "level", "R");
+
+        node = fromString(cache.jsonUsers());
+        assertEquals("wrong level", "R", getMomsLevel(node));
+    }
+
+    private String getMomsLevel(JsonNode node) {
+        JsonNode mom = node.get("users").elements().next();
+        assertEquals("wrong ID", 1, mom.get("id").asInt());
+        return mom.get("profile").get("url_filter").get("level").asText();
+    }
+
+
     // =============
+
+    private JsonNode fromString(String s) {
+        try {
+            return MAPPER.readTree(s);
+        } catch (IOException e) {
+            System.out.println("Exception: " + e);
+        }
+        return null;
+    }
 
     private boolean sameJson(String s1, String s2) {
         try {

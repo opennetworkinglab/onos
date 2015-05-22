@@ -58,20 +58,6 @@ public class XosFunctionFactory extends JsonFactory {
     }
 
     /**
-     * Applies a parameter change for the given function, in the context of
-     * the specified user.
-     *
-     * @param xfd function context
-     * @param userId user identifier
-     * @param param parameter name
-     * @param value value to apply
-     */
-    public static void apply(XosFunctionDescriptor xfd, int userId,
-                             String param, String value) {
-        // TODO:
-    }
-
-    /**
      * Creates an object node representation of the profile for the
      * specified user.
      *

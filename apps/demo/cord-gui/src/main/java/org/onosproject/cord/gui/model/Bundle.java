@@ -19,7 +19,8 @@ package org.onosproject.cord.gui.model;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,7 +28,8 @@ import java.util.Set;
  */
 public class Bundle {
     private final BundleDescriptor bundleDescriptor;
-    private final Set<XosFunction> functions;
+    private final Map<XosFunctionDescriptor, XosFunction> functionMap =
+        new HashMap<XosFunctionDescriptor, XosFunction>();
 
     /**
      * Constructs a new bundle instance.
@@ -36,7 +38,7 @@ public class Bundle {
      */
     public Bundle(BundleDescriptor bundleDescriptor) {
         this.bundleDescriptor = bundleDescriptor;
-        this.functions = initFunctions();
+        initFunctions();
     }
 
     /**
@@ -54,20 +56,16 @@ public class Bundle {
      * @return the functions
      */
     public Set<XosFunction> functions() {
-        return ImmutableSet.copyOf(functions);
+        return ImmutableSet.copyOf(functionMap.values());
     }
 
     /**
      * Creates an initial set of function instances.
-     *
-     * @return initial function instances
      */
-    private Set<XosFunction> initFunctions() {
-        Set<XosFunction> funcs = new HashSet<XosFunction>();
+    private void initFunctions() {
         for (XosFunctionDescriptor xfd: bundleDescriptor.functions()) {
-            funcs.add(createFunction(xfd));
+            functionMap.put(xfd, createFunction(xfd));
         }
-        return funcs;
     }
 
     private XosFunction createFunction(XosFunctionDescriptor xfd) {
@@ -82,5 +80,16 @@ public class Bundle {
                 break;
         }
         return func;
+    }
+
+    /**
+     * Returns the function instance for the specified descriptor, or returns
+     * null if function is not part of this bundle.
+     *
+     * @param xfd function descrriptor
+     * @return function instance
+     */
+    public XosFunction findFunction(XosFunctionDescriptor xfd) {
+        return functionMap.get(xfd);
     }
 }

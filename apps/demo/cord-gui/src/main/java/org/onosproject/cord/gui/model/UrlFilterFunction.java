@@ -19,6 +19,8 @@ package org.onosproject.cord.gui.model;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Specialization of XosFunction for URL filtering.
  */
@@ -38,6 +40,18 @@ public class UrlFilterFunction extends DefaultXosFunction {
 
     public UrlFilterFunction(XosFunctionDescriptor xfd) {
         super(xfd);
+    }
+
+    @Override
+    public void applyParam(SubscriberUser user, String param, String value) {
+        Memento memo = user.getMemento(descriptor());
+        checkNotNull(memo, "missing memento for " + descriptor());
+        UrlFilterMemento ufMemo = (UrlFilterMemento) memo;
+
+        if (LEVEL.equals(param)) {
+            Level newLevel = Level.valueOf(value.toUpperCase());
+            ufMemo.setLevel(newLevel);
+        }
     }
 
     @Override
