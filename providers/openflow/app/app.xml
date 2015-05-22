@@ -20,7 +20,6 @@
     <description>${project.description}</description>
 
     <artifact>mvn:${project.groupId}/onos-of-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-of-drivers/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-ctl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-drivers/${project.version}</artifact>
 
