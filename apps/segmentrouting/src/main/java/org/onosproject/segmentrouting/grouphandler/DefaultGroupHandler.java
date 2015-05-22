@@ -41,6 +41,9 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.link.LinkService;
@@ -53,7 +56,7 @@ import org.slf4j.Logger;
  * whether the current device is an edge device or a transit device.
  */
 public class DefaultGroupHandler {
-    protected final Logger log = getLogger(getClass());
+    protected static final Logger log = getLogger(DefaultGroupHandler.class);
 
     protected final DeviceId deviceId;
     protected final ApplicationId appId;
@@ -211,7 +214,8 @@ public class DefaultGroupHandler {
                         deviceId,
                         newLink.src().port(),
                         nextId);
-                NextObjective nextObjective = nextObjBuilder.add();
+                NextObjective nextObjective = nextObjBuilder.
+                        add(new SRNextObjectiveContext(deviceId));
                 flowObjectiveService.next(deviceId, nextObjective);
             }
         }
@@ -268,7 +272,8 @@ public class DefaultGroupHandler {
                         deviceId,
                         port,
                         nextId);
-                NextObjective nextObjective = nextObjBuilder.remove();
+                NextObjective nextObjective = nextObjBuilder.
+                        remove(new SRNextObjectiveContext(deviceId));
 
                 flowObjectiveService.next(deviceId, nextObjective);
             }
@@ -470,7 +475,8 @@ public class DefaultGroupHandler {
                 }
             }
 
-            NextObjective nextObj = nextObjBuilder.add();
+            NextObjective nextObj = nextObjBuilder.
+                    add(new SRNextObjectiveContext(deviceId));
             flowObjectiveService.next(deviceId, nextObj);
             log.debug("createGroupsFromNeighborsets: Submited "
                             + "next objective {} in device {}",
@@ -496,7 +502,8 @@ public class DefaultGroupHandler {
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
                     .builder().withId(objectiveId)
                     .withType(NextObjective.Type.HASHED).fromApp(appId);
-            NextObjective nextObjective = nextObjBuilder.remove();
+            NextObjective nextObjective = nextObjBuilder.
+                    remove(new SRNextObjectiveContext(deviceId));
             flowObjectiveService.next(deviceId, nextObjective);
 
             for (Map.Entry<NeighborSetNextObjectiveStoreKey, Integer> entry: nsNextObjStore.entrySet()) {
@@ -509,5 +516,24 @@ public class DefaultGroupHandler {
         }
 
         return false;
+    }
+
+    protected static class SRNextObjectiveContext implements ObjectiveContext {
+        final DeviceId deviceId;
+
+        SRNextObjectiveContext(DeviceId deviceId) {
+            this.deviceId = deviceId;
+        }
+        @Override
+        public void onSuccess(Objective objective) {
+            log.debug("Next objective operation successful in device {}",
+                      deviceId);
+        }
+
+        @Override
+        public void onError(Objective objective, ObjectiveError error) {
+            log.warn("Next objective {} operation failed with error: {} in device {}",
+                     objective, error, deviceId);
+        }
     }
 }

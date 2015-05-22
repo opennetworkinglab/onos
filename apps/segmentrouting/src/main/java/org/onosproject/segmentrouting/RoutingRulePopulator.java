@@ -35,7 +35,10 @@ import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.flowobjective.ForwardingObjective.Builder;
+import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +116,11 @@ public class RoutingRulePopulator {
 
         log.debug("Installing IPv4 forwarding objective "
                 + "for host {} in switch {}", hostIp, deviceId);
-        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add());
+        srManager.flowObjectiveService.
+            forward(deviceId,
+                    fwdBuilder.
+                    add(new SRObjectiveContext(deviceId,
+                                           SRObjectiveContext.ObjectiveType.FORWARDING)));
         rulePopulationCounter.incrementAndGet();
     }
 
@@ -192,7 +199,11 @@ public class RoutingRulePopulator {
                         + "for router IP/subnet {} in switch {}",
                 ipPrefix,
                 deviceId);
-        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add());
+        srManager.flowObjectiveService.
+            forward(deviceId,
+                    fwdBuilder.
+                    add(new SRObjectiveContext(deviceId,
+                                               SRObjectiveContext.ObjectiveType.FORWARDING)));
         rulePopulationCounter.incrementAndGet();
 
         return true;
@@ -275,8 +286,11 @@ public class RoutingRulePopulator {
                     .makePermanent()).withSelector(selector)
                     .withPriority(100))
                     .withFlag(ForwardingObjective.Flag.SPECIFIC);
-            srManager.flowObjectiveService.forward(deviceId,
-                                                   fwdObjBuilder.add());
+            srManager.flowObjectiveService.
+                forward(deviceId,
+                        fwdObjBuilder.
+                        add(new SRObjectiveContext(deviceId,
+                                                   SRObjectiveContext.ObjectiveType.FORWARDING)));
             rulePopulationCounter.incrementAndGet();
         }
 
@@ -346,7 +360,10 @@ public class RoutingRulePopulator {
                 .addCondition(Criteria.matchVlanId(VlanId.NONE));
         fob.permit().fromApp(srManager.appId);
         log.debug("populateTableVlan: Installing filtering objective for untagged packets");
-        srManager.flowObjectiveService.filter(deviceId, fob.add());
+        srManager.flowObjectiveService.
+            filter(deviceId,
+                   fob.add(new SRObjectiveContext(deviceId,
+                                                  SRObjectiveContext.ObjectiveType.FILTER)));
     }
 
     /**
@@ -363,7 +380,10 @@ public class RoutingRulePopulator {
                                       .getDeviceMac(deviceId)));
         fob.permit().fromApp(srManager.appId);
         log.debug("populateTableVlan: Installing filtering objective for router mac");
-        srManager.flowObjectiveService.filter(deviceId, fob.add());
+        srManager.flowObjectiveService.
+            filter(deviceId,
+                   fob.add(new SRObjectiveContext(deviceId,
+                                                  SRObjectiveContext.ObjectiveType.FILTER)));
     }
 
     private PortNumber selectOnePort(DeviceId srcId, Set<DeviceId> destIds) {
@@ -380,6 +400,31 @@ public class RoutingRulePopulator {
         }
 
         return null;
+    }
+
+    private static class SRObjectiveContext implements ObjectiveContext {
+        enum ObjectiveType {
+            FILTER,
+            FORWARDING
+        }
+        final DeviceId deviceId;
+        final ObjectiveType type;
+
+        SRObjectiveContext(DeviceId deviceId, ObjectiveType type) {
+            this.deviceId = deviceId;
+            this.type = type;
+        }
+        @Override
+        public void onSuccess(Objective objective) {
+            log.debug("{} objective operation successful in device {}",
+                      type.name(), deviceId);
+        }
+
+        @Override
+        public void onError(Objective objective, ObjectiveError error) {
+            log.warn("{} objective {} operation failed with error: {} in device {}",
+                     type.name(), objective, error, deviceId);
+        }
     }
 
 }
