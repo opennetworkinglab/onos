@@ -2,20 +2,20 @@
 <div id="bundle" class="container">
     <nav></nav>
     <div class="main-left">
-        <h3>You are subscribed to the</h3>
-        <h2>{{name}}</h2>
+        <h4>You are subscribed to the</h4>
+        <h3>{{name}}</h3>
         <p>{{desc}}</p>
         <table>
             <tr ng-repeat="func in funcs">
                 <td class="icon">icon of function</td>
-                <td>{{func.name}}</td>
+                <td class="name">{{func.name}}</td>
                 <td class="desc">{{func.desc}}</td>
-                <td>{{func.params.level && "Level: " + func.params.level}}</td>
             </tr>
         </table>
     </div>
     <div class="main-right">
         <h2>Available Bundles</h2>
         <div bundle-available></div>
+        <!--Can use ng-repeat on the above div for how many bundles are available-->
     </div>
 </div>

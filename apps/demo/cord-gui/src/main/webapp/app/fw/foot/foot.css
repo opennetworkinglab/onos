@@ -26,6 +26,7 @@ div.foot {
     margin-right: auto;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
+    z-index: 100;
 }
 
 .foot div {

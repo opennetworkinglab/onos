@@ -19,24 +19,58 @@ div#bundle div.main-left {
 }
 div#bundle div.main-right {
     width: 38%;
+    height: 85vh;
+    background-color: rgba(173, 216, 230, 0.25);
+    border-radius: 5px;
 }
 
 #bundle table {
-    width: 100%;
+    width: 95%;
+    margin-top: 5%;
+    margin-left: 2%;
+    border-radius: 3px;
 }
 
 #bundle td {
-    text-align: center;
+    font-size: 90%;
 }
 #bundle td.icon {
+    text-align: center;
     width: 50px;
     height: 50px;
+    padding: 4%;
+}
+#bundle td.name {
+    border-left: solid 1px rgba(136, 0, 0, 0.25);
+    padding-left: 3%;
 }
 #bundle td.desc {
     width: 50%;
     text-align: left;
+    font-style: italic;
+}
+
+#bundle h2 {
+    text-align: center;
+    padding: 3%;
+    background-color: rgba(173, 216, 230, 0.75);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: white;
+    font-weight: normal;
+}
+
+div#available {
+    padding: 5%;
+}
+
+#available p {
+    text-indent: initial;
+    text-align: initial;
 }
 
 #available button {
     float: right;
+    width: 33%;
+    margin-top: 5%;
 }

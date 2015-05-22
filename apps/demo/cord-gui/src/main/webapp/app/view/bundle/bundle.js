@@ -24,13 +24,48 @@
     var basic = 'basic',
         family = 'family',
         current,
+        bundleScope,
+        avScope,
         avCb;
 
+    function setInfo(resource, scope) {
+        current = resource.bundle.id;
+        scope.name = resource.bundle.name;
+        scope.desc = resource.bundle.desc;
+        scope.funcs = resource.bundle.functions;
+        avCb(resource);
+    }
+
     angular.module('cordBundle', [])
+        .directive('bundleAvailable', ['$resource', function ($resource) {
+            return {
+                templateUrl: 'app/view/bundle/available.html',
+                link: function (scope, elem) {
+                    var button = $(elem).find('button'),
+                        ApplyData, resource;
+
+                    button.click(function () {
+                        ApplyData = $resource(url + '/' + avScope.available.id);
+                        resource = ApplyData.get({},
+                            // success
+                            function () {
+                                setInfo(resource, bundleScope);
+                            },
+                            // error
+                            function () {
+                                $log.error('Problem with resource', resource);
+                            }
+                        );
+                    });
+                }
+            };
+        }])
+
         .controller('CordBundleCtrl', ['$log', '$scope', '$resource',
             function (_$log_, $scope, _$resource_) {
                 var BundleData, resource;
                 $scope.page = 'bundle';
+                bundleScope = $scope;
                 $log = _$log_;
                 $resource = _$resource_;
 
@@ -38,11 +73,7 @@
                 resource = BundleData.get({},
                     // success
                     function () {
-                        current = resource.bundle.id;
-                        $scope.name = resource.bundle.name;
-                        $scope.desc = resource.bundle.desc;
-                        $scope.funcs = resource.bundle.functions;
-                        avCb(resource);
+                        setInfo(resource, $scope);
                     },
                     // error
                     function () {
@@ -54,6 +85,7 @@
 
         .controller('CordAvailable', ['$scope',
             function ($scope) {
+                avScope = $scope;
                 avCb = function (resource) {
                     $scope.id = (current === basic) ? family : basic;
                     $scope.bundles = resource.bundles;
@@ -66,11 +98,5 @@
                 };
 
                 $log.debug('Cord Available Ctrl has been created.');
-        }])
-
-        .directive('bundleAvailable', function () {
-            return {
-                templateUrl: 'app/view/bundle/available.html'
-            };
-        });
+        }]);
 }());

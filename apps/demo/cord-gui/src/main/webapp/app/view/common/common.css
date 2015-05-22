@@ -30,8 +30,45 @@ p, a, li, th, td {
 body {
     background-color: #efefef;
 }
+table {
+    border-spacing: 0;
+    border-collapse: collapse;
+}
 th, td {
     color: rgba(0, 0, 0, 0.8);
+}
+h3 {
+    font-weight: normal;
+    margin-bottom: 4%;
+}
+h4 {
+    color: rgb(107, 107, 107);
+    font-style: italic;
+    font-weight: normal;
+    font-size: 90%;
+    margin-bottom: 1%;
+}
+p {
+    font-size: 70%;
+    color: rgba(0,0,0, 0.8);
+    text-indent: 20px;
+    text-align: justify;
+}
+
+button {
+    height: 30px;
+    box-shadow: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    font-size: 14px;
+    background-color: lightgray;
+    transition: background-color 0.4s;
+}
+button:hover {
+    color: white;
+    background-color: #CE5650;
 }
 
 div.container {
@@ -50,4 +87,19 @@ div.main-right {
 
 svg#icon-defs {
     display: none;
+}
+
+/* animation */
+.fadein {
+    transition: all linear 0.5s;
+}
+.fadein.ng-enter {
+    opacity: 0;
+}
+.fadein.ng-enter-stagger {
+    transition-delay: 0.2s;
+    animation-delay: 0.2s;
+}
+.fadein.ng-enter.ng-enter-active {
+    opacity: 1;
 }
