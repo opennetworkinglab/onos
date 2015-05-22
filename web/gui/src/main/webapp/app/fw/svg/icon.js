@@ -53,6 +53,7 @@
         hostIcon_bgpSpeaker: 'bgpSpeaker',
 
         nav_apps: 'bird',
+        nav_settings: 'chain',
         nav_cluster: 'node',
         nav_topo: 'topo',
         nav_devs: 'switch',

@@ -71,6 +71,7 @@ public class UiExtensionManager
     private UiExtension createCoreExtension() {
         List<UiView> coreViews = of(
                 new UiView(PLATFORM, "app", "Applications", "nav_apps"),
+                new UiView(PLATFORM, "settings", "Settings", "nav_settings"),
                 new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
                 new UiView(NETWORK, "topo", "Topology", "nav_topo"),
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
@@ -94,6 +95,7 @@ public class UiExtensionManager
                         new GroupViewMessageHandler(),
                         new IntentViewMessageHandler(),
                         new ApplicationViewMessageHandler(),
+                        new SettingsViewMessageHandler(),
                         new ClusterViewMessageHandler()
                 );
 
