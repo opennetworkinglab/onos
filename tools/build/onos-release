@@ -6,6 +6,8 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+set -e
+
 export NEW_VERSION=$1
 [ -z "$NEW_VERSION" ] && echo "New ONOS version not specified" && exit 1
 
