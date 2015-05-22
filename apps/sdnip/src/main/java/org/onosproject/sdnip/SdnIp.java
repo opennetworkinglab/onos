@@ -154,7 +154,7 @@ public class SdnIp implements SdnIpService {
             if (!event.subject().topic().equals(appId.name())) {
                 return;         // Not our topic: ignore
             }
-            if (Objects.equals(event.subject().leader(), localControllerNode.id())) {
+            if (!Objects.equals(event.subject().leader(), localControllerNode.id())) {
                 return;         // The event is not about this instance: ignore
             }
 
