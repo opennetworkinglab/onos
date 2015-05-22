@@ -8,4 +8,4 @@
 #FIXME need to export s3Creds
 #TODO we could verify that ONOS_VERSION is set, and only upload that version
 
-python onosUploadBits.py
+onosUploadBits.py

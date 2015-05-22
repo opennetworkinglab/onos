@@ -30,7 +30,7 @@ def findBits( path ):
             version = match.group(1)
             build = match.group(2)
             if build:
-                if 'NIGHTLY' in build:
+                if 'NIGHTLY' in build or 'rc' in build:
                     uploadFile(filePath, dest='nightly/')
             else:
                 #no build; this is a release
