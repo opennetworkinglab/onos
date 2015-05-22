@@ -20,11 +20,6 @@ cd $ONOS_ROOT
 onos-change-version $NEW_VERSION
 export ONOS_VERSION=$NEW_VERSION
 
-# Build the maven-plugin
-pushd tools/package/maven-plugin
-mvn clean install && mvn -Prelease clean deploy
-popd
-
 # Build ONOS & deploy to staging repo using the release profile.
 onos-build && onos-package && mvn -Prelease clean deploy -DskipTests
 
