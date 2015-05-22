@@ -65,7 +65,7 @@ function filterLocalLog {
     tl | grep --colour=always -E -e "${1-org.onlab|org.onosproject}"
 }
 alias tlo='filterLocalLog'
-alias tle='olo "ERROR|WARN|Exception|Error"'
+alias tle='tlo "ERROR|WARN|Exception|Error"'
 
 function filterLog {
     ol | grep --colour=always -E -e "${1-org.onlab|org.onosproject}"
