@@ -51,6 +51,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
@@ -291,29 +292,31 @@ public class OFOpticalSwitchImplLINC13
     }
 
     private List<OFAction> buildActions(List<OFInstruction> iList, CircuitSignalID sigid) {
-        List<OFAction> actions = new ArrayList<>();
         Map<OFInstructionType, OFInstruction> instructions = iList.stream()
                 .collect(Collectors.toMap(OFInstruction::getType, inst -> inst));
 
         OFInstruction inst = instructions.get(OFInstructionType.APPLY_ACTIONS);
-        if (inst != null) {
-            OFInstructionApplyActions iaa = (OFInstructionApplyActions) inst;
-            if (iaa.getActions() == null) {
-                return actions;
-            }
-            iaa.getActions().forEach(action -> {
-                if (OFActionType.EXPERIMENTER == action.getType()) {
-                    OFActionCircuit.Builder cBuilder = factory.actions().buildCircuit()
-                            .setField(factory.oxms()
-                                    .buildOchSigid()
-                                    .setValue(sigid)
-                                    .build());
-                    actions.add(cBuilder.build());
-                } else {
-                    actions.add(action);
-                }
-            });
+        if (inst == null) {
+            return Collections.emptyList();
         }
+
+        List<OFAction> actions = new ArrayList<>();
+        OFInstructionApplyActions iaa = (OFInstructionApplyActions) inst;
+        if (iaa.getActions() == null) {
+            return actions;
+        }
+        iaa.getActions().forEach(action -> {
+            if (OFActionType.EXPERIMENTER == action.getType()) {
+                OFActionCircuit.Builder cBuilder = factory.actions().buildCircuit()
+                        .setField(factory.oxms()
+                                .buildOchSigid()
+                                .setValue(sigid)
+                                .build());
+                actions.add(cBuilder.build());
+            } else {
+                actions.add(action);
+            }
+        });
         return actions;
     }
 
