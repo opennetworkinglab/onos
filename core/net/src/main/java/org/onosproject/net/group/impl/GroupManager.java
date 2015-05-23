@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.Permission;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.DeviceId;
@@ -51,6 +52,9 @@ import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
+
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides implementation of the group service APIs.
@@ -100,6 +104,8 @@ public class GroupManager
      */
     @Override
     public void addGroup(GroupDescription groupDesc) {
+        checkPermission(Permission.GROUP_WRITE);
+
         log.trace("In addGroup API");
         store.storeGroupDescription(groupDesc);
     }
@@ -119,6 +125,8 @@ public class GroupManager
      */
     @Override
     public Group getGroup(DeviceId deviceId, GroupKey appCookie) {
+        checkPermission(Permission.GROUP_READ);
+
         log.trace("In getGroup API");
         return store.getGroup(deviceId, appCookie);
     }
@@ -141,6 +149,8 @@ public class GroupManager
                            GroupBuckets buckets,
                            GroupKey newCookie,
                            ApplicationId appId) {
+        checkPermission(Permission.GROUP_WRITE);
+
         log.trace("In addBucketsToGroup API");
         store.updateGroupDescription(deviceId,
                                      oldCookie,
@@ -167,6 +177,8 @@ public class GroupManager
                                 GroupBuckets buckets,
                                 GroupKey newCookie,
                                 ApplicationId appId) {
+        checkPermission(Permission.GROUP_WRITE);
+
         log.trace("In removeBucketsFromGroup API");
         store.updateGroupDescription(deviceId,
                                      oldCookie,
@@ -189,6 +201,8 @@ public class GroupManager
     public void removeGroup(DeviceId deviceId,
                             GroupKey appCookie,
                             ApplicationId appId) {
+        checkPermission(Permission.GROUP_WRITE);
+
         log.trace("In removeGroup API");
         store.deleteGroupDescription(deviceId, appCookie);
     }
@@ -204,12 +218,16 @@ public class GroupManager
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId,
                                      ApplicationId appId) {
+        checkPermission(Permission.GROUP_READ);
+
         log.trace("In getGroups API");
         return store.getGroups(deviceId);
     }
 
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
+        checkPermission(Permission.GROUP_READ);
+
         log.trace("In getGroups API");
         return store.getGroups(deviceId);
     }
@@ -221,6 +239,8 @@ public class GroupManager
      */
     @Override
     public void addListener(GroupListener listener) {
+        checkPermission(Permission.GROUP_EVENT);
+
         log.trace("In addListener API");
         listenerRegistry.addListener(listener);
     }
@@ -232,6 +252,8 @@ public class GroupManager
      */
     @Override
     public void removeListener(GroupListener listener) {
+        checkPermission(Permission.GROUP_EVENT);
+
         log.trace("In removeListener API");
         listenerRegistry.removeListener(listener);
     }

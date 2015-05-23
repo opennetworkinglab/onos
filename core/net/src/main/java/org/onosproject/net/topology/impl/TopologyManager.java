@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
@@ -51,6 +52,7 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
 
 /**
  * Provides basic implementation of the topology SB &amp; NB APIs.
@@ -97,23 +99,31 @@ public class TopologyManager
 
     @Override
     public Topology currentTopology() {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         return store.currentTopology();
     }
 
     @Override
     public boolean isLatest(Topology topology) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.isLatest(topology);
     }
 
     @Override
     public Set<TopologyCluster> getClusters(Topology topology) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.getClusters(topology);
     }
 
     @Override
     public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_ID_NULL);
         return store.getCluster(topology, clusterId);
@@ -121,6 +131,8 @@ public class TopologyManager
 
     @Override
     public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_NULL);
         return store.getClusterDevices(topology, cluster);
@@ -128,6 +140,8 @@ public class TopologyManager
 
     @Override
     public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_NULL);
         return store.getClusterLinks(topology, cluster);
@@ -135,12 +149,16 @@ public class TopologyManager
 
     @Override
     public TopologyGraph getGraph(Topology topology) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.getGraph(topology);
     }
 
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
@@ -149,6 +167,8 @@ public class TopologyManager
 
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
@@ -158,6 +178,8 @@ public class TopologyManager
 
     @Override
     public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
         return store.isInfrastructure(topology, connectPoint);
@@ -165,6 +187,8 @@ public class TopologyManager
 
     @Override
     public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
         return store.isBroadcastPoint(topology, connectPoint);
@@ -172,11 +196,15 @@ public class TopologyManager
 
     @Override
     public void addListener(TopologyListener listener) {
+        checkPermission(Permission.TOPOLOGY_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(TopologyListener listener) {
+        checkPermission(Permission.TOPOLOGY_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 

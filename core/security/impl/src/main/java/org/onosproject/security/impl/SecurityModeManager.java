@@ -17,7 +17,7 @@ import org.onosproject.app.ApplicationState;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.Permission;
-import org.onosproject.security.util.AppPermission;
+import org.onosproject.security.AppPermission;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -109,7 +109,6 @@ public class SecurityModeManager {
 
         permissionAdmin.setPermissions(bundle.getLocation(), allPerm);
         log.warn("Security-Mode Started");
-
     }
 
 

@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.Permission;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.ConnectPoint;
@@ -52,6 +53,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides basic implementation of the link SB &amp; NB APIs.
@@ -102,16 +105,22 @@ public class LinkManager
 
     @Override
     public int getLinkCount() {
+        checkPermission(Permission.LINK_READ);
+
         return store.getLinkCount();
     }
 
     @Override
     public Iterable<Link> getLinks() {
+        checkPermission(Permission.LINK_READ);
+
         return store.getLinks();
     }
 
     @Override
     public Iterable<Link> getActiveLinks() {
+        checkPermission(Permission.LINK_READ);
+
         return FluentIterable.from(getLinks())
                 .filter(new Predicate<Link>() {
 
@@ -124,6 +133,8 @@ public class LinkManager
 
     @Override
     public Set<Link> getDeviceLinks(DeviceId deviceId) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return Sets.union(store.getDeviceEgressLinks(deviceId),
                           store.getDeviceIngressLinks(deviceId));
@@ -131,18 +142,24 @@ public class LinkManager
 
     @Override
     public Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDeviceEgressLinks(deviceId);
     }
 
     @Override
     public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDeviceIngressLinks(deviceId);
     }
 
     @Override
     public Set<Link> getLinks(ConnectPoint connectPoint) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return Sets.union(store.getEgressLinks(connectPoint),
                           store.getIngressLinks(connectPoint));
@@ -150,18 +167,24 @@ public class LinkManager
 
     @Override
     public Set<Link> getEgressLinks(ConnectPoint connectPoint) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return store.getEgressLinks(connectPoint);
     }
 
     @Override
     public Set<Link> getIngressLinks(ConnectPoint connectPoint) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return store.getIngressLinks(connectPoint);
     }
 
     @Override
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
+        checkPermission(Permission.LINK_READ);
+
         checkNotNull(src, CONNECT_POINT_NULL);
         checkNotNull(dst, CONNECT_POINT_NULL);
         return store.getLink(src, dst);
@@ -185,11 +208,15 @@ public class LinkManager
 
     @Override
     public void addListener(LinkListener listener) {
+        checkPermission(Permission.LINK_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(LinkListener listener) {
+        checkPermission(Permission.LINK_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 

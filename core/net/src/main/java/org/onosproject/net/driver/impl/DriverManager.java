@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.Permission;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -45,6 +46,8 @@ import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.AnnotationKeys.DRIVER;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Manages inventory of device drivers.
@@ -105,6 +108,8 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public Set<Driver> getDrivers() {
+        checkPermission(Permission.DRIVER_READ);
+
         ImmutableSet.Builder<Driver> builder = ImmutableSet.builder();
         drivers.values().forEach(builder::add);
         return builder.build();
@@ -112,6 +117,8 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour) {
+        checkPermission(Permission.DRIVER_READ);
+
         return drivers.values().stream()
                 .filter(d -> d.hasBehaviour(withBehaviour))
                 .collect(Collectors.toSet());
@@ -119,11 +126,15 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public Driver getDriver(String driverName) {
+        checkPermission(Permission.DRIVER_READ);
+
         return nullIsNotFound(drivers.get(driverName), NO_DRIVER);
     }
 
     @Override
     public Driver getDriver(String mfr, String hw, String sw) {
+        checkPermission(Permission.DRIVER_READ);
+
         // First attempt a literal search.
         Driver driver = driverByKey.get(key(mfr, hw, sw));
         if (driver != null) {
@@ -149,6 +160,8 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public Driver getDriver(DeviceId deviceId) {
+        checkPermission(Permission.DRIVER_READ);
+
         Device device = nullIsNotFound(deviceService.getDevice(deviceId), NO_DEVICE);
         String driverName = device.annotations().value(DRIVER);
         if (driverName != null) {
@@ -161,6 +174,8 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Override
     public DriverHandler createHandler(DeviceId deviceId, String... credentials) {
+        checkPermission(Permission.DRIVER_WRITE);
+
         Driver driver = getDriver(deviceId);
         return new DefaultDriverHandler(new DefaultDriverData(driver));
     }

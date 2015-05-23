@@ -33,6 +33,7 @@ import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
@@ -42,6 +43,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Implementation of the cluster service.
@@ -88,22 +91,30 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     @Override
     public ControllerNode getLocalNode() {
+        checkPermission(Permission.CLUSTER_READ);
+
         return store.getLocalNode();
     }
 
     @Override
     public Set<ControllerNode> getNodes() {
+        checkPermission(Permission.CLUSTER_READ);
+
         return store.getNodes();
     }
 
     @Override
     public ControllerNode getNode(NodeId nodeId) {
+        checkPermission(Permission.CLUSTER_READ);
+
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getNode(nodeId);
     }
 
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
+        checkPermission(Permission.CLUSTER_READ);
+
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getState(nodeId);
     }
@@ -111,6 +122,8 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
+        checkPermission(Permission.CLUSTER_READ);
+
         return store.getLastUpdated(nodeId);
     }
 
@@ -144,11 +157,15 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
 
     @Override
     public void addListener(ClusterEventListener listener) {
+        checkPermission(Permission.CLUSTER_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(ClusterEventListener listener) {
+        checkPermission(Permission.CLUSTER_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 

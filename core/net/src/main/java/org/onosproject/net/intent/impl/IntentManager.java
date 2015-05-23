@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.flow.FlowRule;
@@ -65,6 +66,8 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * An implementation of Intent Manager.
@@ -139,6 +142,8 @@ public class IntentManager
 
     @Override
     public void submit(Intent intent) {
+        checkPermission(Permission.INTENT_WRITE);
+
         checkNotNull(intent, INTENT_NULL);
         IntentData data = new IntentData(intent, IntentState.INSTALL_REQ, null);
         store.addPending(data);
@@ -146,6 +151,8 @@ public class IntentManager
 
     @Override
     public void withdraw(Intent intent) {
+        checkPermission(Permission.INTENT_WRITE);
+
         checkNotNull(intent, INTENT_NULL);
         IntentData data = new IntentData(intent, IntentState.WITHDRAW_REQ, null);
         store.addPending(data);
@@ -153,6 +160,8 @@ public class IntentManager
 
     @Override
     public void purge(Intent intent) {
+        checkPermission(Permission.INTENT_WRITE);
+
         checkNotNull(intent, INTENT_NULL);
         IntentData data = new IntentData(intent, IntentState.PURGE_REQ, null);
         store.addPending(data);
@@ -160,43 +169,59 @@ public class IntentManager
 
     @Override
     public Intent getIntent(Key key) {
+        checkPermission(Permission.INTENT_READ);
+
         return store.getIntent(key);
     }
 
     @Override
     public Iterable<Intent> getIntents() {
+        checkPermission(Permission.INTENT_READ);
+
         return store.getIntents();
     }
 
     @Override
     public long getIntentCount() {
+        checkPermission(Permission.INTENT_READ);
+
         return store.getIntentCount();
     }
 
     @Override
     public IntentState getIntentState(Key intentKey) {
+        checkPermission(Permission.INTENT_READ);
+
         checkNotNull(intentKey, INTENT_ID_NULL);
         return store.getIntentState(intentKey);
     }
 
     @Override
     public List<Intent> getInstallableIntents(Key intentKey) {
+        checkPermission(Permission.INTENT_READ);
+
         checkNotNull(intentKey, INTENT_ID_NULL);
         return store.getInstallableIntents(intentKey);
     }
 
     @Override
     public boolean isLocal(Key intentKey) {
+        checkPermission(Permission.INTENT_READ);
+
         return store.isMaster(intentKey);
     }
 
     @Override
     public void addListener(IntentListener listener) {
+        checkPermission(Permission.INTENT_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(IntentListener listener) {
+        checkPermission(Permission.INTENT_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 
@@ -217,6 +242,8 @@ public class IntentManager
 
     @Override
     public Iterable<Intent> getPending() {
+        checkPermission(Permission.INTENT_READ);
+
         return store.getPending();
     }
 

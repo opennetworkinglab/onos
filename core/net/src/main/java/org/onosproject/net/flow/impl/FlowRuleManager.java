@@ -35,6 +35,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.Device;
@@ -77,6 +78,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
@@ -167,16 +170,22 @@ public class FlowRuleManager
 
     @Override
     public int getFlowRuleCount() {
+        checkPermission(Permission.FLOWRULE_READ);
+
         return store.getFlowRuleCount();
     }
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
+        checkPermission(Permission.FLOWRULE_READ);
+
         return store.getFlowEntries(deviceId);
     }
 
     @Override
     public void applyFlowRules(FlowRule... flowRules) {
+        checkPermission(Permission.FLOWRULE_WRITE);
+
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         for (int i = 0; i < flowRules.length; i++) {
             builder.add(flowRules[i]);
@@ -186,6 +195,8 @@ public class FlowRuleManager
 
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
+        checkPermission(Permission.FLOWRULE_WRITE);
+
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         for (int i = 0; i < flowRules.length; i++) {
             builder.remove(flowRules[i]);
@@ -195,11 +206,15 @@ public class FlowRuleManager
 
     @Override
     public void removeFlowRulesById(ApplicationId id) {
+        checkPermission(Permission.FLOWRULE_WRITE);
+
         removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
     }
 
     @Override
     public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
+        checkPermission(Permission.FLOWRULE_READ);
+
         Set<FlowRule> flowEntries = Sets.newHashSet();
         for (Device d : deviceService.getDevices()) {
             for (FlowEntry flowEntry : store.getFlowEntries(d.id())) {
@@ -213,6 +228,8 @@ public class FlowRuleManager
 
     @Override
     public Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId) {
+        checkPermission(Permission.FLOWRULE_READ);
+
         Set<FlowRule> matches = Sets.newHashSet();
         long toLookUp = ((long) appId.id() << 16) | groupId;
         for (Device d : deviceService.getDevices()) {
@@ -227,16 +244,22 @@ public class FlowRuleManager
 
     @Override
     public void apply(FlowRuleOperations ops) {
+        checkPermission(Permission.FLOWRULE_WRITE);
+
         operationsService.submit(new FlowOperationsProcessor(ops));
     }
 
     @Override
     public void addListener(FlowRuleListener listener) {
+        checkPermission(Permission.FLOWRULE_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(FlowRuleListener listener) {
+        checkPermission(Permission.FLOWRULE_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 

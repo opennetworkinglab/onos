@@ -14,7 +14,26 @@
  * limitations under the License.
  */
 
+package org.onosproject.security;
+
+import org.onosproject.core.Permission;
+
 /**
- * Security mode utilities.
+ * Aids SM-ONOS to perform API-level permission checking.
  */
-package org.onosproject.security.util;
+public final class AppGuard {
+
+    private AppGuard() {
+    }
+
+    /**
+     * Checks if the caller has the required permission only when security-mode is enabled.
+     * @param permission permission to be checked
+     */
+    public static void checkPermission(Permission permission) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            System.getSecurityManager().checkPermission(new AppPermission(permission.name()));
+        }
+    }
+}

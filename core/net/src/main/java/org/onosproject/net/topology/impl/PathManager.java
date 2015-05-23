@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.Permission;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.DefaultPath;
@@ -49,6 +50,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides implementation of a path selection service atop the current
@@ -85,11 +88,15 @@ public class PathManager implements PathService {
 
     @Override
     public Set<Path> getPaths(ElementId src, ElementId dst) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         return getPaths(src, dst, null);
     }
 
     @Override
     public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        checkPermission(Permission.TOPOLOGY_READ);
+
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
 

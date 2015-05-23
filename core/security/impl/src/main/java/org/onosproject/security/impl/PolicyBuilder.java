@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.FastHashMap;
 import org.onosproject.core.Permission;
-import org.onosproject.security.util.AppPermission;
+import org.onosproject.security.AppPermission;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.onosproject.app.ApplicationAdminService;

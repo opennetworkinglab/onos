@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipEvent;
@@ -68,6 +69,8 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.MastershipRole.*;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -148,45 +151,61 @@ public class DeviceManager
 
     @Override
     public int getDeviceCount() {
+        checkPermission(Permission.DEVICE_READ);
+
         return store.getDeviceCount();
     }
 
     @Override
     public Iterable<Device> getDevices() {
+        checkPermission(Permission.DEVICE_READ);
+
         return store.getDevices();
     }
 
     @Override
     public Iterable<Device> getAvailableDevices() {
+        checkPermission(Permission.DEVICE_READ);
+
         return store.getAvailableDevices();
     }
 
     @Override
     public Device getDevice(DeviceId deviceId) {
+        checkPermission(Permission.DEVICE_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDevice(deviceId);
     }
 
     @Override
     public MastershipRole getRole(DeviceId deviceId) {
+        checkPermission(Permission.DEVICE_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return mastershipService.getLocalRole(deviceId);
     }
 
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
+        checkPermission(Permission.DEVICE_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPorts(deviceId);
     }
 
     @Override
     public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
+        checkPermission(Permission.DEVICE_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPortStatistics(deviceId);
     }
 
     @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
+        checkPermission(Permission.DEVICE_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(portNumber, PORT_NUMBER_NULL);
         return store.getPort(deviceId, portNumber);
@@ -194,6 +213,8 @@ public class DeviceManager
 
     @Override
     public boolean isAvailable(DeviceId deviceId) {
+        checkPermission(Permission.DEVICE_READ);
+
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.isAvailable(deviceId);
     }
@@ -224,11 +245,15 @@ public class DeviceManager
 
     @Override
     public void addListener(DeviceListener listener) {
+        checkPermission(Permission.DEVICE_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(DeviceListener listener) {
+        checkPermission(Permission.DEVICE_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 

@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
+import org.onosproject.core.Permission;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
@@ -49,6 +50,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides an implementation of the Statistic Service.
@@ -83,11 +86,15 @@ public class StatisticManager implements StatisticService {
 
     @Override
     public Load load(Link link) {
-       return load(link.src());
+        checkPermission(Permission.STATISTIC_READ);
+
+        return load(link.src());
     }
 
     @Override
     public Load load(Link link, ApplicationId appId, Optional<GroupId> groupId) {
+        checkPermission(Permission.STATISTIC_READ);
+
         Statistics stats = getStatistics(link.src());
         if (!stats.isValid()) {
             return new DefaultLoad();
@@ -107,11 +114,15 @@ public class StatisticManager implements StatisticService {
 
     @Override
     public Load load(ConnectPoint connectPoint) {
+        checkPermission(Permission.STATISTIC_READ);
+
         return loadInternal(connectPoint);
     }
 
     @Override
     public Link max(Path path) {
+        checkPermission(Permission.STATISTIC_READ);
+
         if (path.links().isEmpty()) {
             return null;
         }
@@ -129,6 +140,8 @@ public class StatisticManager implements StatisticService {
 
     @Override
     public Link min(Path path) {
+        checkPermission(Permission.STATISTIC_READ);
+
         if (path.links().isEmpty()) {
             return null;
         }
@@ -146,6 +159,8 @@ public class StatisticManager implements StatisticService {
 
     @Override
     public FlowRule highestHitter(ConnectPoint connectPoint) {
+        checkPermission(Permission.STATISTIC_READ);
+
         Set<FlowEntry> hitters = statisticStore.getCurrentStatistic(connectPoint);
         if (hitters.isEmpty()) {
             return null;

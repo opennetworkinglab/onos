@@ -28,6 +28,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ComponentConfigStore;
 import org.onosproject.cfg.ComponentConfigStoreDelegate;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.core.Permission;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.slf4j.Logger;
@@ -43,6 +44,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Implementation of the centralized component configuration service.
@@ -84,11 +87,15 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public Set<String> getComponentNames() {
+        checkPermission(Permission.CONFIG_READ);
+
         return ImmutableSet.copyOf(properties.keySet());
     }
 
     @Override
     public void registerProperties(Class<?> componentClass) {
+        checkPermission(Permission.CONFIG_WRITE);
+
         String componentName = componentClass.getName();
         String resourceName = componentClass.getSimpleName() + RESOURCE_EXT;
         try (InputStream ris = componentClass.getResourceAsStream(resourceName)) {
@@ -111,6 +118,8 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void unregisterProperties(Class<?> componentClass, boolean clear) {
+        checkPermission(Permission.CONFIG_WRITE);
+
         String componentName = componentClass.getName();
         checkNotNull(componentName, COMPONENT_NULL);
         Map<String, ConfigProperty> cps = properties.remove(componentName);
@@ -127,12 +136,16 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public Set<ConfigProperty> getProperties(String componentName) {
+        checkPermission(Permission.CONFIG_READ);
+
         Map<String, ConfigProperty> map = properties.get(componentName);
         return map != null ? ImmutableSet.copyOf(map.values()) : null;
     }
 
     @Override
     public void setProperty(String componentName, String name, String value) {
+        checkPermission(Permission.CONFIG_WRITE);
+
         checkNotNull(componentName, COMPONENT_NULL);
         checkNotNull(name, PROPERTY_NULL);
         store.setProperty(componentName, name, value);
@@ -140,6 +153,8 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void unsetProperty(String componentName, String name) {
+        checkPermission(Permission.CONFIG_WRITE);
+
         checkNotNull(componentName, COMPONENT_NULL);
         checkNotNull(name, PROPERTY_NULL);
         store.unsetProperty(componentName, name);

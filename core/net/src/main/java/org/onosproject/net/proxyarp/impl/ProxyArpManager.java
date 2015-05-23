@@ -36,6 +36,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborDiscoveryOptions;
 import org.onlab.packet.ndp.NeighborSolicitation;
+import org.onosproject.core.Permission;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
@@ -70,6 +71,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 @Component(immediate = true)
 @Service
@@ -123,6 +126,8 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public boolean isKnown(IpAddress addr) {
+        checkPermission(Permission.PACKET_READ);
+
         checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
@@ -130,6 +135,8 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public void reply(Ethernet eth, ConnectPoint inPort) {
+        checkPermission(Permission.PACKET_WRITE);
+
         checkNotNull(eth, REQUEST_NULL);
 
         if (eth.getEtherType() == Ethernet.TYPE_ARP) {
@@ -353,6 +360,8 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public void forward(Ethernet eth, ConnectPoint inPort) {
+        checkPermission(Permission.PACKET_WRITE);
+
         checkNotNull(eth, REQUEST_NULL);
 
         Host h = hostService.getHost(HostId.hostId(eth.getDestinationMAC(),
@@ -371,6 +380,8 @@ public class ProxyArpManager implements ProxyArpService {
 
     @Override
     public boolean handlePacket(PacketContext context) {
+        checkPermission(Permission.PACKET_WRITE);
+
         InboundPacket pkt = context.inPacket();
         Ethernet ethPkt = pkt.parsed();
 

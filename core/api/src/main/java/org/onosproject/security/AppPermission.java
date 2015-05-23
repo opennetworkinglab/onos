@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.security.util;
+package org.onosproject.security;
 
 import java.security.BasicPermission;
 
@@ -23,10 +23,19 @@ import java.security.BasicPermission;
  */
 public class AppPermission extends BasicPermission {
 
+    /**
+     * Creates new application permission using the supplied data.
+     * @param name permission name
+     */
     public AppPermission(String name) {
         super(name.toUpperCase(), "");
     }
 
+    /**
+     * Creates new application permission using the supplied data.
+     * @param name permission name
+     * @param actions permission action
+     */
     public AppPermission(String name, String actions) {
         super(name.toUpperCase(), actions);
     }

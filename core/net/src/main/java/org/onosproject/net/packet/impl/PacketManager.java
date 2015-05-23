@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.Permission;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -60,6 +61,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides a basic implementation of the packet SB &amp; NB APIs.
@@ -113,12 +116,16 @@ public class PacketManager
 
     @Override
     public void addProcessor(PacketProcessor processor, int priority) {
+        checkPermission(Permission.PACKET_EVENT);
+
         checkNotNull(processor, "Processor cannot be null");
         processors.put(priority, processor);
     }
 
     @Override
     public void removeProcessor(PacketProcessor processor) {
+        checkPermission(Permission.PACKET_EVENT);
+
         checkNotNull(processor, "Processor cannot be null");
         processors.values().remove(processor);
     }
@@ -126,6 +133,8 @@ public class PacketManager
     @Override
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId) {
+        checkPermission(Permission.PACKET_READ);
+
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
 
@@ -140,6 +149,8 @@ public class PacketManager
     @Override
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId, FlowRule.Type tableType) {
+        checkPermission(Permission.PACKET_READ);
+
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
         checkNotNull(tableType, "Table Type cannot be null. For requesting packets +"
@@ -205,6 +216,8 @@ public class PacketManager
 
     @Override
     public void emit(OutboundPacket packet) {
+        checkPermission(Permission.PACKET_WRITE);
+
         checkNotNull(packet, "Packet cannot be null");
 
         store.emit(packet);

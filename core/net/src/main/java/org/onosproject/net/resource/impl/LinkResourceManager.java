@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.Link;
@@ -56,6 +57,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+
 
 /**
  * Provides basic implementation of link resources allocation.
@@ -150,6 +153,8 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
+        checkPermission(Permission.LINK_WRITE);
+
         // TODO Concatenate multiple bandwidth requests.
         // TODO Support multiple lambda resource requests.
         // TODO Throw appropriate exception.
@@ -211,6 +216,8 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public void releaseResources(LinkResourceAllocations allocations) {
+        checkPermission(Permission.LINK_WRITE);
+
         final LinkResourceEvent event = store.releaseResources(allocations);
         if (event != null) {
             post(event);
@@ -220,27 +227,37 @@ public class LinkResourceManager implements LinkResourceService {
     @Override
     public LinkResourceAllocations updateResources(LinkResourceRequest req,
             LinkResourceAllocations oldAllocations) {
-         releaseResources(oldAllocations);
+        checkPermission(Permission.LINK_WRITE);
+
+        releaseResources(oldAllocations);
          return requestResources(req);
     }
 
     @Override
     public Iterable<LinkResourceAllocations> getAllocations() {
+        checkPermission(Permission.LINK_READ);
+
         return store.getAllocations();
     }
 
     @Override
     public Iterable<LinkResourceAllocations> getAllocations(Link link) {
+        checkPermission(Permission.LINK_READ);
+
         return store.getAllocations(link);
     }
 
     @Override
     public LinkResourceAllocations getAllocations(IntentId intentId) {
+        checkPermission(Permission.LINK_READ);
+
         return store.getAllocations(intentId);
     }
 
     @Override
     public Iterable<ResourceRequest> getAvailableResources(Link link) {
+        checkPermission(Permission.LINK_READ);
+
         Set<ResourceAllocation> freeRes = store.getFreeResources(link);
         Set<ResourceRequest> result = new HashSet<>();
         for (ResourceAllocation alloc : freeRes) {
@@ -265,6 +282,8 @@ public class LinkResourceManager implements LinkResourceService {
     @Override
     public Iterable<ResourceRequest> getAvailableResources(Link link,
             LinkResourceAllocations allocations) {
+        checkPermission(Permission.LINK_READ);
+
         Set<ResourceRequest> result = new HashSet<>();
         Set<ResourceAllocation> allocatedRes = allocations.getResourceAllocation(link);
         result = (Set<ResourceRequest>) getAvailableResources(link);
@@ -274,11 +293,15 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Override
     public void addListener(LinkResourceListener listener) {
+        checkPermission(Permission.LINK_EVENT);
+
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(LinkResourceListener listener) {
+        checkPermission(Permission.LINK_EVENT);
+
         listenerRegistry.removeListener(listener);
     }
 
