@@ -23,8 +23,6 @@ import com.google.common.cache.RemovalNotification;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -81,38 +79,33 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * OpenvSwitch emulation of the Corsa pipeline handler.
+ * Pica pipeline handler.
  */
-public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeliner {
+public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
-    protected static final int MAC_TABLE = 0;
-    protected static final int VLAN_MPLS_TABLE = 1;
-    protected static final int VLAN_TABLE = 2;
-    //protected static final int MPLS_TABLE = 3;
-    protected static final int ETHER_TABLE = 4;
-    protected static final int COS_MAP_TABLE = 5;
-    protected static final int FIB_TABLE = 6;
-    protected static final int LOCAL_TABLE = 9;
+    protected static final int VLAN_TABLE = 252;
+    protected static final int ETHTYPE_TABLE = 252;
+    protected static final int IP_UNICAST_TABLE = 251;
+    protected static final int ACL_TABLE = 251;
 
-
-    protected static final int CONTROLLER_PRIORITY = 255;
+    private static final int CONTROLLER_PRIORITY = 255;
     private static final int DROP_PRIORITY = 0;
     private static final int HIGHEST_PRIORITY = 0xffff;
 
     private final Logger log = getLogger(getClass());
 
     private ServiceDirectory serviceDirectory;
-    protected FlowRuleService flowRuleService;
+    private FlowRuleService flowRuleService;
     private CoreService coreService;
     private GroupService groupService;
     private FlowObjectiveStore flowObjectiveStore;
-    protected DeviceId deviceId;
-    protected ApplicationId appId;
+    private DeviceId deviceId;
+    private ApplicationId appId;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(GroupKey.class)
             .register(DefaultGroupKey.class)
-            .register(CorsaGroup.class)
+            .register(PicaGroup.class)
             .register(byte[].class)
             .build();
 
@@ -120,7 +113,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner",
-                                                               "ovs-corsa-%d"));
+                                                               "ovs-pica-%d"));
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -145,7 +138,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         groupService.addListener(new InnerGroupListener());
 
         appId = coreService.registerApplication(
-                "org.onosproject.driver.OVSCorsaPipeline");
+                "org.onosproject.driver.OVSPicaPipeline");
 
         initializePipeline();
     }
@@ -343,7 +336,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
             ruleBuilder.makeTemporary(fwd.timeout());
         }
 
-        ruleBuilder.forTable(FIB_TABLE);
+        ruleBuilder.forTable(IP_UNICAST_TABLE);
 
 
         return Collections.singletonList(ruleBuilder.build());
@@ -373,7 +366,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
                 selector.matchEthDst(e.mac());
-                treatment.transition(VLAN_MPLS_TABLE);
+                treatment.transition(IP_UNICAST_TABLE);
                 FlowRule rule = DefaultFlowRule.builder()
                         .forDevice(deviceId)
                         .withSelector(selector.build())
@@ -381,7 +374,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                         .withPriority(CONTROLLER_PRIORITY)
                         .fromApp(applicationId)
                         .makePermanent()
-                        .forTable(MAC_TABLE).build();
+                        .forTable(ETHTYPE_TABLE).build();
                 ops =  install ? ops.add(rule) : ops.remove(rule);
             } else if (c.type() == Criterion.Type.VLAN_VID) {
                 VlanIdCriterion v = (VlanIdCriterion) c;
@@ -390,7 +383,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
                 selector.matchVlanId(v.vlanId());
                 selector.matchInPort(p.port());
-                treatment.transition(ETHER_TABLE);
+                treatment.transition(ETHTYPE_TABLE);
                 treatment.deferred().popVlan();
                 FlowRule rule = DefaultFlowRule.builder()
                         .forDevice(deviceId)
@@ -408,7 +401,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
                 selector.matchEthType(Ethernet.TYPE_IPV4);
                 selector.matchIPDst(ip.ip());
-                treatment.transition(LOCAL_TABLE);
+                treatment.transition(ACL_TABLE);
                 FlowRule rule = DefaultFlowRule.builder()
                         .forDevice(deviceId)
                         .withSelector(selector.build())
@@ -416,7 +409,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                         .withPriority(HIGHEST_PRIORITY)
                         .fromApp(applicationId)
                         .makePermanent()
-                        .forTable(FIB_TABLE).build();
+                        .forTable(IP_UNICAST_TABLE).build();
 
                 ops = install ? ops.add(rule) : ops.remove(rule);
             } else {
@@ -454,108 +447,10 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     }
 
     private void initializePipeline() {
-        processMacTable(true);
-        processVlanMplsTable(true);
         processVlanTable(true);
         processEtherTable(true);
-        processCosTable(true);
-        processFibTable(true);
-        processLocalTable(true);
-    }
-
-    private void processMacTable(boolean install) {
-        TrafficSelector.Builder selector;
-        TrafficTreatment.Builder treatment;
-
-        // Bcast rule
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-
-        selector.matchEthDst(MacAddress.BROADCAST);
-        treatment.transition(VLAN_MPLS_TABLE);
-
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(CONTROLLER_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(MAC_TABLE).build();
-
-
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-
-        //Drop rule
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-
-        treatment.drop();
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(MAC_TABLE).build();
-
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned mac table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision mac table");
-            }
-        }));
-
-    }
-
-    protected void processVlanMplsTable(boolean install) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                .builder();
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        FlowRule rule;
-
-        selector.matchVlanId(VlanId.ANY);
-        treatment.transition(VLAN_TABLE);
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(CONTROLLER_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(VLAN_MPLS_TABLE).build();
-
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned vlan/mpls table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info(
-                        "Failed to provision vlan/mpls table");
-            }
-        }));
-
+        processIpUnicastTable(true);
+        //processACLTable(true);
     }
 
     private void processVlanTable(boolean install) {
@@ -612,7 +507,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withPriority(CONTROLLER_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(ETHER_TABLE).build();
+                .forTable(ETHTYPE_TABLE).build();
 
         ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -620,7 +515,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         treatment = DefaultTrafficTreatment.builder();
 
         selector.matchEthType(Ethernet.TYPE_IPV4);
-        treatment.transition(COS_MAP_TABLE);
+        treatment.transition(IP_UNICAST_TABLE);
 
         rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -629,7 +524,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withTreatment(treatment.build())
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(ETHER_TABLE).build();
+                .forTable(ETHTYPE_TABLE).build();
 
         ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -646,7 +541,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withPriority(DROP_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(ETHER_TABLE).build();
+                .forTable(ETHTYPE_TABLE).build();
 
 
         ops = install ? ops.add(rule) : ops.remove(rule);
@@ -665,41 +560,8 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     }
 
-    private void processCosTable(boolean install) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                .builder();
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        FlowRule rule;
 
-        treatment.transition(FIB_TABLE);
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(COS_MAP_TABLE).build();
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned cos table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision cos table");
-            }
-        }));
-
-    }
-
-    private void processFibTable(boolean install) {
+    private void processIpUnicastTable(boolean install) {
         TrafficSelector.Builder selector;
         TrafficTreatment.Builder treatment;
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -718,7 +580,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withPriority(DROP_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(FIB_TABLE).build();
+                .forTable(IP_UNICAST_TABLE).build();
 
         ops = install ? ops.add(rule) : ops.remove(rule);
 
@@ -735,38 +597,6 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         }));
     }
 
-    private void processLocalTable(boolean install) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                .builder();
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        FlowRule rule;
-
-        treatment.punt();
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(CONTROLLER_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(LOCAL_TABLE).build();
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned Local table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision Local table");
-            }
-        }));
-    }
 
     private class InnerGroupListener implements GroupListener {
         @Override
@@ -776,7 +606,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
                 NextObjective obj = pendingGroups.getIfPresent(key);
                 if (obj != null) {
-                    flowObjectiveStore.putNextGroup(obj.id(), new CorsaGroup(key));
+                    flowObjectiveStore.putNextGroup(obj.id(), new PicaGroup(key));
                     pass(obj);
                     pendingGroups.invalidate(key);
                 }
@@ -802,16 +632,16 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 pendingGroups.invalidate(key);
                 log.info("Heard back from group service for group {}. "
                         + "Applying pending forwarding objectives", obj.id());
-                flowObjectiveStore.putNextGroup(obj.id(), new CorsaGroup(key));
+                flowObjectiveStore.putNextGroup(obj.id(), new PicaGroup(key));
             });
         }
     }
 
-    private class CorsaGroup implements NextGroup {
+    private class PicaGroup implements NextGroup {
 
         private final GroupKey key;
 
-        public CorsaGroup(GroupKey key) {
+        public PicaGroup(GroupKey key) {
             this.key = key;
         }
 

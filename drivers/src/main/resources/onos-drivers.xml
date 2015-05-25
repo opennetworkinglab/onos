@@ -15,13 +15,15 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="default" manufacturer="ON.Lab" hwVersion="0.0.1" swVersion="0.0.1">
+    <driver name="default"
+            manufacturer="ON.Lab" hwVersion="0.0.1" swVersion="0.0.1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.DefaultSwitchHandShaker"/>
     </driver>
-    <driver name="ovs" extends="default" manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
+    <driver name="ovs" extends="default"
+            manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandShaker"/>
     </driver>
@@ -48,7 +50,8 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitchImplLINC13"/>
     </driver>
-    <driver name="corsa" manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
+    <driver name="corsa"
+            manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CorsaPipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
@@ -68,6 +71,16 @@
             manufacturer="Various" hwVersion="various" swVersion="0.0.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SoftRouterPipeline"/>
+    </driver>
+    <driver name="centec-V350" extends="default"
+            manufacturer=".*Centec.*" hwVersion=".*" swVersion="3.1.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.CentecV350Pipeline"/>
+    </driver>
+    <driver name="pica" extends="default"
+            manufacturer="Pica8, Inc." hwVersion="ly2" swVersion="PicOS 2.6">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.PicaPipeline"/>
     </driver>
 </drivers>
 
