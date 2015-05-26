@@ -18,8 +18,6 @@ package org.onosproject.provider.of.flow.impl;
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
@@ -72,6 +70,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertChannelSpacing;
+import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertGridType;
 
 /**
  * Flow mod builder for OpenFlow 1.3+.
@@ -279,48 +280,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 new CircuitSignalID(gridType, channelSpacing,
                         (short) signal.spacingMultiplier(), (short) signal.slotGranularity())
         ));
-    }
-
-    private byte convertGridType(GridType type) {
-        // See ONF "Optical Transport Protocol Extensions Version 1.0"
-        // for the following values
-        switch (type) {
-            case DWDM:
-                // OFPGRIDT_DWDM of enum ofp_grid_type
-                return 1;
-            case CWDM:
-                // OFPGRIDT_CWDM of enum ofp_grid_type
-                return 2;
-            case FLEX:
-                // OFPGRIDT_FLEX of enum ofp_grid_type
-                return 3;
-            default:
-                throw new UnsupportedGridTypeException(type);
-        }
-    }
-
-    private byte convertChannelSpacing(ChannelSpacing spacing) {
-        // See ONF "Optical Transport Protocol Extensions Version 1.0"
-        // for the following values
-        switch (spacing) {
-            case CHL_100GHZ:
-                // OFPCS_100GHZ of enum ofp_chl_spacing
-                return 1;
-            case CHL_50GHZ:
-                // OFPCS_50GHZ of enum ofp_chl_spacing
-                return 2;
-            case CHL_25GHZ:
-                // OFPCS_25GHZ of enum ofp_chl_spacing
-                return 3;
-            case CHL_12P5GHZ:
-                // OFPCS_12P5GHZ of enum ofp_chl_spacing
-                return 4;
-            case CHL_6P25GHZ:
-                // OFPCS_6P25GHZ of enum ofp_chl_spacing
-                return 5;
-            default:
-                throw new UnsupportedChannelSpacingException(spacing);
-        }
     }
 
     private OFAction buildL2Modification(Instruction i) {

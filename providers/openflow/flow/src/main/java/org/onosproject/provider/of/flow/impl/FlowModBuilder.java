@@ -20,6 +20,7 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.EthCriterion;
@@ -36,9 +37,9 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
@@ -374,10 +375,17 @@ public abstract class FlowModBuilder {
                                   U16.of(exthdrFlagsCriterion.exthdrFlags()));
                 break;
             case OCH_SIGID:
-                LambdaCriterion lc = (LambdaCriterion) c;
-                mBuilder.setExact(MatchField.OCH_SIGID,
-                        new CircuitSignalID((byte) 1, (byte) 2,
-                                            (short) lc.lambda(), (short) 1));
+                try {
+                    OchSignalCriterion ochSignalCriterion = (OchSignalCriterion) c;
+                    OchSignal signal = ochSignalCriterion.lambda();
+                    byte gridType = FlowModBuilderHelper.convertGridType(signal.gridType());
+                    byte channelSpacing = FlowModBuilderHelper.convertChannelSpacing(signal.channelSpacing());
+                    mBuilder.setExact(MatchField.OCH_SIGID,
+                            new CircuitSignalID(gridType, channelSpacing,
+                                    (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
+                } catch (UnsupportedGridTypeException | UnsupportedChannelSpacingException e) {
+                    log.warn(e.getMessage());
+                }
                 break;
             case OCH_SIGTYPE:
                 OpticalSignalTypeCriterion sc =
