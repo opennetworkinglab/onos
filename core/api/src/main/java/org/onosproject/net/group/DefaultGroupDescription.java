@@ -181,7 +181,7 @@ public class DefaultGroupDescription implements GroupDescription {
         if (this == obj) {
             return true;
         }
-       if (obj instanceof DefaultGroupDescription) {
+        if (obj instanceof DefaultGroupDescription) {
             DefaultGroupDescription that = (DefaultGroupDescription) obj;
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(type, that.type) &&
