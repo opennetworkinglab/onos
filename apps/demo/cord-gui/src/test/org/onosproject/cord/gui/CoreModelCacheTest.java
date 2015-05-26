@@ -95,7 +95,7 @@ public class CoreModelCacheTest {
     public void setNewLevel() {
         cache.setCurrentBundle("family");
         JsonNode node = fromString(cache.jsonUsers());
-        assertEquals("wrong level", "PG", getMomsLevel(node));
+        assertEquals("wrong level", "G", getMomsLevel(node));
 
         cache.applyPerUserParam("1", "url_filter", "level", "R");
 
@@ -191,11 +191,14 @@ public class CoreModelCacheTest {
             "                \"name\": \"Parental Control\",\n" +
             "                \"desc\": \"Variable levels of URL filtering.\",\n" +
             "                \"params\": {\n" +
-            "                    \"level\": \"PG\",\n" +
+            "                    \"level\": \"G\",\n" +
             "                    \"levels\": [\n" +
+            "                        \"OFF\",\n" +
+            "                        \"G\",\n" +
             "                        \"PG\",\n" +
             "                        \"PG_13\",\n" +
-            "                        \"R\"\n" +
+            "                        \"R\",\n" +
+            "                        \"NONE\"\n" +
             "                    ]\n" +
             "                }\n" +
             "            }\n" +
@@ -252,7 +255,7 @@ public class CoreModelCacheTest {
             "      \"mac\": \"010203040506\",\n" +
             "      \"profile\": {\n" +
             "        \"url_filter\": {\n" +
-            "          \"level\": \"PG\"\n" +
+            "          \"level\": \"G\"\n" +
             "        }\n" +
             "      }\n" +
             "    },\n" +
@@ -262,7 +265,7 @@ public class CoreModelCacheTest {
             "      \"mac\": \"010203040507\",\n" +
             "      \"profile\": {\n" +
             "        \"url_filter\": {\n" +
-            "          \"level\": \"PG\"\n" +
+            "          \"level\": \"G\"\n" +
             "        }\n" +
             "      }\n" +
             "    },\n" +
@@ -272,7 +275,7 @@ public class CoreModelCacheTest {
             "      \"mac\": \"010203040508\",\n" +
             "      \"profile\": {\n" +
             "        \"url_filter\": {\n" +
-            "          \"level\": \"PG\"\n" +
+            "          \"level\": \"G\"\n" +
             "        }\n" +
             "      }\n" +
             "    },\n" +
@@ -282,7 +285,7 @@ public class CoreModelCacheTest {
             "      \"mac\": \"010203040509\",\n" +
             "      \"profile\": {\n" +
             "        \"url_filter\": {\n" +
-            "          \"level\": \"PG\"\n" +
+            "          \"level\": \"G\"\n" +
             "        }\n" +
             "      }\n" +
             "    }\n" +

@@ -72,7 +72,7 @@ public class Bundle {
         XosFunction func;
         switch (xfd) {
             case URL_FILTER:
-                func = new UrlFilterFunction(xfd);
+                func = new UrlFilterFunction();
                 break;
 
             default:

@@ -17,9 +17,6 @@ public class XosFunctionFactory extends JsonFactory {
     private static final String LEVEL = "level";
     private static final String LEVELS = "levels";
 
-    private static final UrlFilterFunction.Level DEFAULT_FILTER_LEVEL =
-        UrlFilterFunction.Level.PG;
-
 
     // no instantiation
     private XosFunctionFactory() {}
@@ -91,7 +88,7 @@ public class XosFunctionFactory extends JsonFactory {
         @Override
         ObjectNode params() {
             ObjectNode result = objectNode();
-            result.put(LEVEL, DEFAULT_FILTER_LEVEL.name());
+            result.put(LEVEL, UrlFilterFunction.DEFAULT_LEVEL.name());
             ArrayNode levels = arrayNode();
             for (UrlFilterFunction.Level lvl: UrlFilterFunction.Level.values()) {
                 levels.add(lvl.name());

@@ -29,17 +29,19 @@ public class UrlFilterFunction extends DefaultXosFunction {
     private static final String LEVEL = "level";
 
     /**
-     * Denotes the URL filtering levels available.
+     * Denotes the URL filtering levels available. From most restrictive
+     * to least restrictive. Note: <em>OFF</em> denies everything;
+     * <em>NONE</em> allows everything.
      */
-    public enum Level { PG, PG_13, R }
+    public enum Level { OFF, G, PG, PG_13, R, NONE }
 
     /**
      * The default URL filtering level
      */
-    public static final Level DEFAULT_LEVEL = Level.PG;
+    public static final Level DEFAULT_LEVEL = Level.G;
 
-    public UrlFilterFunction(XosFunctionDescriptor xfd) {
-        super(xfd);
+    public UrlFilterFunction() {
+        super(XosFunctionDescriptor.URL_FILTER);
     }
 
     @Override
