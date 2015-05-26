@@ -275,7 +275,7 @@ public class DistributedLeadershipManager implements LeadershipService {
             Versioned<NodeId> leader = leaderMap.get(path);
             if (leader != null && Objects.equals(leader.value(), localNodeId)) {
                 if (leaderMap.remove(path, leader.version())) {
-                    log.info("Gave up leadership for {}", path);
+                    log.debug("Gave up leadership for {}", path);
                     future.complete(null);
                     publish(new LeadershipEvent(
                             LeadershipEvent.Type.LEADER_BOOTED,
@@ -323,7 +323,7 @@ public class DistributedLeadershipManager implements LeadershipService {
             Versioned<NodeId> leader = leaderMap.get(path);
             if (leader != null && Objects.equals(leader.value(), localNodeId)) {
                 if (leaderMap.remove(path, leader.version())) {
-                    log.info("Stepped down from leadership for {}", path);
+                    log.debug("Stepped down from leadership for {}", path);
                     publish(new LeadershipEvent(
                             LeadershipEvent.Type.LEADER_BOOTED,
                             new Leadership(path,
@@ -406,7 +406,7 @@ public class DistributedLeadershipManager implements LeadershipService {
             Versioned<NodeId> currentLeader = leaderMap.get(path);
             if (currentLeader != null) {
                 if (localNodeId.equals(currentLeader.value())) {
-                    log.info("Already has leadership for {}", path);
+                    log.debug("Already has leadership for {}", path);
                     // FIXME: candidates can get out of sync.
                     Leadership leadership = new Leadership(path,
                             localNodeId,
@@ -422,7 +422,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                 }
             } else {
                 if (leaderMap.putIfAbsent(path, localNodeId) == null) {
-                    log.info("Assumed leadership for {}", path);
+                    log.debug("Assumed leadership for {}", path);
                     // do a get again to get the version (epoch)
                     Versioned<NodeId> newLeader = leaderMap.get(path);
                     // FIXME: candidates can get out of sync
@@ -540,7 +540,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                     long creationTime = entry.getValue().creationTime();
                     try {
                         if (leaderMap.remove(path, epoch)) {
-                            log.info("Purged stale lock held by {} for {}", nodeId, path);
+                            log.debug("Purged stale lock held by {} for {}", nodeId, path);
                             publish(new LeadershipEvent(
                                     LeadershipEvent.Type.LEADER_BOOTED,
                                     new Leadership(path, nodeId, epoch, creationTime)));
