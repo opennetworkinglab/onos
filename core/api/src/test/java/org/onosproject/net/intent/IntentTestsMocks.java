@@ -36,6 +36,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
@@ -117,6 +118,11 @@ public class IntentTestsMocks {
         @Override
         public boolean clearedDeferred() {
             return false;
+        }
+
+        @Override
+        public MetadataInstruction writeMetadata() {
+            return null;
         }
     }
 

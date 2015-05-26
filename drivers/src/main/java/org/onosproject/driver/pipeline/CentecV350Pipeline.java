@@ -78,6 +78,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
     protected static final int ROUTE_TABLE = 3;
 
     private static final long DEFAULT_METADATA = 100;
+    private static final long DEFAULT_METADATA_MASK = 0xff;
 
     // Priority used in PORT_VLAN Table, the only priority accepted is PORT_VLAN_TABLE_PRIORITY.
     // The packet passed PORT+VLAN check will goto FILTER Table.
@@ -408,10 +409,10 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
                 selector.matchInPort(p.port());
                 // Although the accepted packets will be sent to filter table, we must
                 // explicitly set goto_table instruction here.
+                treatment.writeMetadata(DEFAULT_METADATA, DEFAULT_METADATA_MASK);
+                // set default metadata written by PORT_VLAN Table.
                 treatment.transition(FILTER_TABLE);
                 // We do not support strip vlan here, treatment.deferred().popVlan();
-                // XXX: write_metadata seems not supported by ONOS now, use the switch CLI to
-                // set default metadata written by PORT_VLAN Table.
                 // PORT_VLAN table only accept 0xffff priority since it does exact match only.
                 FlowRule rule = DefaultFlowRule.builder()
                         .forDevice(deviceId)

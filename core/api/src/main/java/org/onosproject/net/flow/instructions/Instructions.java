@@ -323,6 +323,17 @@ public final class Instructions {
     }
 
     /**
+     * Writes metadata to associate with a packet.
+     *
+     * @param metadata the metadata value to write
+     * @param metadataMask the bits to mask for the metadata value
+     * @return metadata instruction
+     */
+    public static Instruction writeMetadata(long metadata, long metadataMask) {
+        return new MetadataInstruction(metadata, metadataMask);
+    }
+
+    /**
      *  Drop instruction.
      */
     public static final class DropInstruction implements Instruction {
@@ -443,7 +454,9 @@ public final class Instructions {
         }
     }
 
-
+    /**
+     *  Transition instruction.
+     */
     public static class TableTypeTransition implements Instruction {
         private final Integer tableId;
 
@@ -483,7 +496,59 @@ public final class Instructions {
             }
             return false;
         }
+    }
 
+    /**
+     *  Metadata instruction.
+     */
+    public static class MetadataInstruction implements Instruction {
+        private final long metadata;
+        private final long metadataMask;
+
+        MetadataInstruction(long metadata, long metadataMask) {
+            this.metadata = metadata;
+            this.metadataMask = metadataMask;
+        }
+
+        @Override
+        public Type type() {
+            return Type.METADATA;
+        }
+
+        public long metadata() {
+            return this.metadata;
+        }
+
+        public long metadataMask() {
+            return this.metadataMask;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("metadata", Long.toHexString(this.metadata))
+                    .add("metadata mask", Long.toHexString(this.metadataMask))
+                    .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), metadata, metadataMask);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof MetadataInstruction) {
+                MetadataInstruction that = (MetadataInstruction) obj;
+                return Objects.equals(metadata, that.metadata) &&
+                        Objects.equals(metadataMask, that.metadataMask);
+
+            }
+            return false;
+        }
     }
 }
 

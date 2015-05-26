@@ -67,6 +67,13 @@ public interface TrafficTreatment {
     boolean clearedDeferred();
 
     /**
+     * Returns the metadata instruction if there is one.
+     *
+     * @return a metadata instruction that may be null
+     */
+    Instructions.MetadataInstruction writeMetadata();
+
+    /**
      * Builder of traffic treatment entities.
      */
     interface Builder {
@@ -276,6 +283,20 @@ public interface TrafficTreatment {
         Builder wipeDeferred();
 
         /**
+         * Writes metadata to associate with a packet.
+         * <pre>
+         * {@code
+         * new_metadata = (old_metadata &  ̃mask) | (value & mask)
+         * }
+         * </pre>
+         *
+         * @param value the metadata to write
+         * @param mask  the masked bits for the value
+         * @return a treatment builder
+         */
+        Builder writeMetadata(long value, long mask);
+
+        /**
          * Builds an immutable traffic treatment descriptor.
          * <p>
          * If the treatment is empty when build() is called, it will add a default
@@ -286,5 +307,7 @@ public interface TrafficTreatment {
          * @return traffic treatment
          */
         TrafficTreatment build();
+
     }
+
 }

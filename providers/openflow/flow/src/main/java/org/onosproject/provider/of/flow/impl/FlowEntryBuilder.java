@@ -16,6 +16,7 @@
 package org.onosproject.provider.of.flow.impl;
 
 import com.google.common.collect.Lists;
+
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
@@ -56,6 +57,7 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionGotoTable;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteActions;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteMetadata;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
@@ -219,6 +221,9 @@ public class FlowEntryBuilder {
                             .getTableId().getValue()));
                     break;
                 case WRITE_METADATA:
+                    OFInstructionWriteMetadata m = (OFInstructionWriteMetadata) in;
+                    builder.writeMetadata(m.getMetadata().getValue(),
+                                          m.getMetadataMask().getValue());
                     break;
                 case WRITE_ACTIONS:
                     builder.deferred();

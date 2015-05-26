@@ -117,6 +117,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (treatment.tableTransition() != null) {
             instructions.add(buildTableGoto(treatment.tableTransition()));
         }
+        if (treatment.writeMetadata() != null) {
+            instructions.add(buildMetadata(treatment.writeMetadata()));
+        }
 
         long cookie = flowRule().id().value();
 
@@ -153,6 +156,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         }
         if (treatment.tableTransition() != null) {
             instructions.add(buildTableGoto(treatment.tableTransition()));
+        }
+        if (treatment.writeMetadata() != null) {
+            instructions.add(buildMetadata(treatment.writeMetadata()));
         }
 
         long cookie = flowRule().id().value();
@@ -244,6 +250,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     private OFInstruction buildTableGoto(Instructions.TableTypeTransition i) {
         OFInstruction instruction = factory().instructions().gotoTable(
                 TableId.of(i.tableId()));
+        return instruction;
+    }
+
+    private OFInstruction buildMetadata(Instructions.MetadataInstruction m) {
+        OFInstruction instruction = factory().instructions().writeMetadata(
+                U64.of(m.metadata()), U64.of(m.metadataMask()));
         return instruction;
     }
 

@@ -43,6 +43,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     private final List<Instruction> deferred;
     private final List<Instruction> all;
     private final Instructions.TableTypeTransition table;
+    private final Instructions.MetadataInstruction meta;
 
     private final boolean hasClear;
 
@@ -60,6 +61,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.all = this.immediate;
         this.hasClear = false;
         this.table = null;
+        this.meta = null;
     }
 
     /**
@@ -73,13 +75,14 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     private DefaultTrafficTreatment(List<Instruction> deferred,
                                    List<Instruction> immediate,
                                    Instructions.TableTypeTransition table,
-                                   boolean clear) {
+                                   boolean clear,
+                                   Instructions.MetadataInstruction meta) {
         this.immediate = ImmutableList.copyOf(checkNotNull(immediate));
         this.deferred = ImmutableList.copyOf(checkNotNull(deferred));
         this.all = ListUtils.union(this.immediate, this.deferred);
         this.table = table;
+        this.meta = meta;
         this.hasClear = clear;
-
     }
 
     @Override
@@ -105,6 +108,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     @Override
     public boolean clearedDeferred() {
         return hasClear;
+    }
+
+    @Override
+    public Instructions.MetadataInstruction writeMetadata() {
+        return meta;
     }
 
     /**
@@ -139,7 +147,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     //FIXME: Order of instructions may affect hashcode
     @Override
     public int hashCode() {
-        return Objects.hash(immediate, deferred, table);
+        return Objects.hash(immediate, deferred, table, meta);
     }
 
     @Override
@@ -151,7 +159,8 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             DefaultTrafficTreatment that = (DefaultTrafficTreatment) obj;
             return Objects.equals(immediate, that.immediate) &&
                     Objects.equals(deferred, that.deferred) &&
-                    Objects.equals(table, that.table);
+                    Objects.equals(table, that.table) &&
+                    Objects.equals(meta, that.meta);
 
         }
         return false;
@@ -164,6 +173,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 .add("deferred", deferred)
                 .add("transition", table == null ? "None" : table.toString())
                 .add("cleared", hasClear)
+                .add("metadata", meta)
                 .toString();
     }
 
@@ -176,6 +186,8 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         boolean clear = false;
 
         Instructions.TableTypeTransition table;
+
+        Instructions.MetadataInstruction meta;
 
         List<Instruction> deferred = Lists.newLinkedList();
 
@@ -212,6 +224,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     break;
                 case TABLE:
                     table = (Instructions.TableTypeTransition) instruction;
+                    break;
+                case METADATA:
+                    meta = (Instructions.MetadataInstruction) instruction;
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
@@ -355,6 +370,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder writeMetadata(long metadata, long metadataMask) {
+            return add(Instructions.writeMetadata(metadata, metadataMask));
+        }
+
+        @Override
         public TrafficTreatment build() {
             //Don't add DROP instruction by default when instruction
             //set is empty. This will be handled in DefaultSingleTablePipeline
@@ -364,7 +384,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             //        && table == null && !clear) {
             //    drop();
             //}
-            return new DefaultTrafficTreatment(deferred, immediate, table, clear);
+            return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta);
         }
 
     }

@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +59,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.impl.SimpleFlowRuleStore;
@@ -593,6 +595,11 @@ public class FlowRuleManagerTest {
                 return this.testval == ((TestTreatment) o).testval;
             }
             return false;
+        }
+
+        @Override
+        public MetadataInstruction writeMetadata() {
+            return null;
         }
 
     }

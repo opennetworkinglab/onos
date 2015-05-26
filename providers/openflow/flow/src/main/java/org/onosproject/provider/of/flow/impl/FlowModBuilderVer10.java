@@ -167,6 +167,8 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 break;
             case L0MODIFICATION:
             case GROUP:
+            case TABLE:
+            case METADATA:
                 log.warn("Instruction type {} not supported with protocol version {}",
                         i.type(), factory().getVersion());
                 break;

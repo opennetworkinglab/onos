@@ -35,7 +35,7 @@ public interface Instruction {
         OUTPUT,
 
         /**
-         * Signifies that.... (do we need this?)
+         * Signifies that traffic should be sent out of a group.
          */
         GROUP,
 
@@ -57,7 +57,12 @@ public interface Instruction {
         /**
          * Signifies that the traffic should be modified in L3 way.
          */
-        L3MODIFICATION
+        L3MODIFICATION,
+
+        /**
+         * Signifies that metadata be attached to traffic.
+         */
+        METADATA
     }
 
     /**
