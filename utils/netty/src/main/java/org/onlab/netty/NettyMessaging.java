@@ -267,7 +267,7 @@ public class NettyMessaging implements MessagingService {
 
         @Override
         public void destroyObject(Endpoint ep, Channel channel) throws Exception {
-            log.info("Closing connection to {}", ep);
+            log.debug("Closing connection to {}", ep);
             channel.close();
         }
 
@@ -286,7 +286,7 @@ public class NettyMessaging implements MessagingService {
             bootstrap.handler(new OnosCommunicationChannelInitializer());
             // Start the client.
             ChannelFuture f = bootstrap.connect(ep.host().toString(), ep.port()).sync();
-            log.info("Established a new connection to {}", ep);
+            log.debug("Established a new connection to {}", ep);
             return f.channel();
         }
 
