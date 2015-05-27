@@ -176,6 +176,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      *
      * @return web resource builder
      */
+    @Deprecated
     private WebResource.Builder getClientBuilder() {
         return getClientBuilder("");
     }
@@ -186,6 +187,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      *
      * @return web resource builder
      */
+    @Deprecated
     private WebResource.Builder getClientBuilder(String uri) {
         String baseUrl = "http://" + xosServerAddress + ":"
                 + Integer.toString(xosServerPort);
@@ -202,6 +204,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      *
      * @return JSON string fetched by the GET operation
      */
+    @Deprecated
     private String getRest() {
         return getRest("");
     }
@@ -212,6 +215,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      *
      * @return JSON string fetched by the GET operation
      */
+    @Deprecated
     private String getRest(String uri) {
         WebResource.Builder builder = getClientBuilder(uri);
         ClientResponse response = builder.get(ClientResponse.class);
@@ -232,6 +236,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      *
      * @param json JSON string to post
      */
+    @Deprecated
     private void postRest(String json) {
         WebResource.Builder builder = getClientBuilder();
         ClientResponse response;
@@ -255,6 +260,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      *
      * @param uri optional additional URI
      */
+    @Deprecated
     private void deleteRest(String uri) {
         WebResource.Builder builder = getClientBuilder(uri);
         ClientResponse response = builder.delete(ClientResponse.class);

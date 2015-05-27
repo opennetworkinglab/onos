@@ -21,6 +21,8 @@ import org.onosproject.cord.gui.model.Bundle;
 import org.onosproject.cord.gui.model.SubscriberUser;
 import org.onosproject.cord.gui.model.XosFunction;
 import org.onosproject.cord.gui.model.XosFunctionDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -29,19 +31,20 @@ import java.util.Set;
  */
 public class XosManager {
 
-    private static final String XOS_HOST = "10.254.1.22";
-    private static final String XOS_PORT = "8000";
+    private static final String URI_BASE = "/rs/subscriber/";
 
-    private static final String URL_FMT = "http://%s:%s/xoslib/rs/subscriber/";
-
-    private static final String BASE_URL =
-            String.format(URL_FMT, XOS_HOST, XOS_PORT);
-
+    private final XosManagerRestUtils xosUtils = new XosManagerRestUtils(URI_BASE);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * No instantiation (except via unit test).
      */
     XosManager() {}
+
+
+    private String subId(int subscriberId) {
+        return String.format("%d/", subscriberId);
+    }
 
     /**
      * Configure XOS to enable the functions that compose the given bundle,
@@ -51,12 +54,14 @@ public class XosManager {
      * @param bundle new bundle to set
      */
     public void setNewBundle(int subscriberId, Bundle bundle) {
-        System.out.println("\n>> Set New Bundle : " + bundle.descriptor().id());
+        log.info("\n>> Set New Bundle : " + bundle.descriptor().id());
 
-        String urlFmt = xosUrl(subscriberId) + "services/%s/%s";
+        String uriFmt = subId(subscriberId) + "services/%s/%s";
         Set<XosFunctionDescriptor> inBundle = bundle.descriptor().functions();
         for (XosFunctionDescriptor xfd: XosFunctionDescriptor.values()) {
-            xosEnableFunction(urlFmt, xfd, inBundle.contains(xfd));
+            String uri = String.format(uriFmt, xfd.id(), inBundle.contains(xfd));
+            String result = xosUtils.putRest(uri);
+            // TODO: convert JSON result to object and check (if we care)
         }
     }
 
@@ -69,32 +74,14 @@ public class XosManager {
      * @param user user (containing function state)
      */
     public void apply(int subscriberId, XosFunction func, SubscriberUser user) {
-        System.out.println("\n>> Apply : " + func + " for " + user);
+        log.info("\n>> Apply : " + func + " for " + user);
 
-        String urlPrefix = xosUrl(subscriberId) + "users/" + user.id() + "/";
-        String url = urlPrefix + func.xosUrlApply(user);
-        restPut(url);
+        String uriPrefix = subId(subscriberId) + "users/" + user.id() + "/";
+        String uri = uriPrefix + func.xosUrlApply(user);
+        String result = xosUtils.putRest(uri);
+        // TODO: convert JSON result to object and check (if we care)
     }
 
-
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-    private String xosUrl(int subscriberId) {
-        return BASE_URL + String.format("%d/", subscriberId);
-    }
-
-    private void xosEnableFunction(String urlFmt, XosFunctionDescriptor xfd,
-                                   boolean enable) {
-        String url = String.format(urlFmt, xfd.id(), enable);
-        restPut(url);
-    }
-
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-    private void restPut(String url) {
-        // TODO: wire up to Jackson client...
-        System.out.println("<<PUT>> " + url);
-    }
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
