@@ -555,7 +555,7 @@ public class FlowRuleManager
 
 
             for (DeviceId deviceId : perDeviceBatches.keySet()) {
-                Long id = idGenerator.getNewId();
+                long id = idGenerator.getNewId();
                 final FlowRuleBatchOperation b = new FlowRuleBatchOperation(perDeviceBatches.get(deviceId),
                                                deviceId, id);
                 pendingFlowOperations.put(id, this);
