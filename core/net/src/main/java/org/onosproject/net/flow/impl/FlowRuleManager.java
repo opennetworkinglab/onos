@@ -513,13 +513,10 @@ public class FlowRuleManager
         private Set<DeviceId> pendingDevices;
 
         public FlowOperationsProcessor(FlowRuleOperations ops) {
-
             this.stages = Lists.newArrayList(ops.stages());
             this.context = ops.callback();
             this.fops = ops;
             pendingDevices = Sets.newConcurrentHashSet();
-
-
         }
 
         @Override
