@@ -2,24 +2,32 @@
 <div class="container">
     <nav></nav>
     <div id="user">
-        <table>
+        <table class="user-info">
             <tr>
                 <th>Name</th>
                 <th>Mac</th>
-                <th ng-if="isFamily">URL Filtering</th>
+                <th ng-if="isFamily">Select Site Rating</th>
             </tr>
             <tr ng-repeat="user in users" class="fadein">
                 <td>{{user.name}}</td>
                 <td>{{user.mac}}</td>
-                <td ng-if="isFamily">
-                    <select ng-model="newLevels[user.id]"
-                            ng-options="l for l in levels">
-                    </select>
-                    <!--How to save the id of the user with what level they want
-                     for the submit button, and also have a default value?
-                     Look into forms or study ng-options syntax a bit more-->
-                </td>
             </tr>
         </table>
+
+        <form ng-if="isFamily"
+                name="changeLevels">
+            <select ng-repeat-start="user in users" class="fadein"
+                    ng-init="newLevels[user.id]=user.profile.url_filter.level"
+                    ng-model="newLevels[user.id]"
+                    ng-options="l for l in levels">
+            </select>
+            <br ng-repeat-end>
+            <input type="reset" value="Cancel"
+                    ng-click="cancelChanges(changeLevels)"
+                    ng-disabled="changeLevels.$pristine">
+            <input type="button" value="Apply"
+                    ng-click="applyChanges()"
+                    ng-disabled="changeLevels.$pristine">
+        </form>
     </div>
 </div>

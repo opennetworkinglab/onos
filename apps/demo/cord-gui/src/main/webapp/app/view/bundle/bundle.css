@@ -15,10 +15,11 @@
  */
 
 div#bundle div.main-left {
-    width: 62%;
+    width: 61%;
+    padding-left: 1%;
 }
 div#bundle div.main-right {
-    width: 38%;
+    width: 37%;
     height: 85vh;
     background-color: rgba(173, 216, 230, 0.25);
     border-radius: 5px;

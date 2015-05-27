@@ -14,3 +14,6 @@
  * limitations under the License.
  */
 
+#user table.user-info {
+    float: left;
+}

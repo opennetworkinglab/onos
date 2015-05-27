@@ -55,7 +55,9 @@ p {
     text-align: justify;
 }
 
-button {
+button,
+input[type="button"],
+input[type="reset"] {
     height: 30px;
     box-shadow: none;
     border: none;
@@ -66,9 +68,18 @@ button {
     background-color: lightgray;
     transition: background-color 0.4s;
 }
-button:hover {
+button:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover {
     color: white;
-    background-color: #CE5650;
+    background-color: rgb(122, 188, 229);
+}
+
+button[disabled]:hover,
+input[type="button"][disabled]:hover,
+input[type="reset"][disabled]:hover {
+    background-color: lightgray;
+    color: graytext;
 }
 
 div.container {
@@ -79,10 +90,11 @@ div.main-left, div.main-right {
     float: left;
 }
 div.main-left {
-    width: 38%;
+    width: 37%;
+    padding-left: 1%;
 }
 div.main-right {
-    width: 62%;
+    width: 61%;
 }
 
 svg#icon-defs {

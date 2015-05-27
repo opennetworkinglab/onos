@@ -25,10 +25,12 @@
     angular.module('cordUser', [])
         .controller('CordUserCtrl', ['$log', '$scope', '$resource',
             function ($log, $scope, $resource) {
-                var BundleData, bundleResource, UserData, userResource;
+                var BundleData, bundleResource;
                 $scope.page = 'user';
                 $scope.isFamily = false;
                 $scope.newLevels = {};
+
+                // === Get data functions ---
 
                 BundleData = $resource(bundleUrl);
                 bundleResource = BundleData.get({},
@@ -52,26 +54,57 @@
                     }
                 );
 
-                UserData = $resource(userUrl);
-                userResource = UserData.get({},
-                    // success
-                    function () {
-                        $scope.users = userResource.users;
-                    },
-                    // error
-                    function () {
-                        $log.error('Problem with resource', userResource);
+                function getUsers(url) {
+                    var UserData, userResource;
+                    UserData = $resource(url);
+                    userResource = UserData.get({},
+                        // success
+                        function () {
+                            $scope.users = userResource.users;
+                        },
+                        // error
+                        function () {
+                            $log.error('Problem with resource', userResource);
+                        }
+                    );
+                }
+
+                getUsers(userUrl);
+
+                // === Form functions ---
+
+                function levelUrl(id, level) {
+                    return userUrl + '/' + id + '/apply/url_filter/level/' + level;
+                }
+
+                $scope.applyChanges = function () {
+                    var requests = [];
+
+                    if ($scope.users) {
+                        $.each($scope.users, function (index, user) {
+                            var id = user.id,
+                                level = user.profile.url_filter.level;
+                            if ($scope.newLevels[id] !== level) {
+                                requests.push(levelUrl(id, $scope.newLevels[id]));
+                            }
+                        });
+
+                        $.each(requests, function (index, req) {
+                            getUsers(req);
+                        });
                     }
-                );
+                };
+
+                $scope.cancelChanges = function (changeLevels) {
+                    if ($scope.users) {
+                        $.each($scope.users, function (index, user) {
+                            $scope.newLevels[user.id] = user.profile.url_filter.level;
+                        });
+                    }
+                    changeLevels.$setPristine();
+                };
 
             $log.debug('Cord User Ctrl has been created.');
-        }])
-        .directive('editUser', [function () {
-            return {
-                link: function (scope, elem) {
-
-                }
-            };
         }]);
 
 }());

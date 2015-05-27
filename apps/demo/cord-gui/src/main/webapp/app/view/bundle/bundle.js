@@ -28,61 +28,20 @@
         avScope,
         avCb;
 
-    function setInfo(resource, scope) {
+    function setAndRefresh(resource, scope) {
         current = resource.bundle.id;
         scope.name = resource.bundle.name;
         scope.desc = resource.bundle.desc;
         scope.funcs = resource.bundle.functions;
+        // emit event will say when avCb should be invoked
         avCb(resource);
     }
 
+    // TODO: figure out timing issues with bundle page
+    // available bundles sometimes is loaded before avCb and avScope is created?
+    // emit event that avCb can be called upon
+
     angular.module('cordBundle', [])
-        .directive('bundleAvailable', ['$resource', function ($resource) {
-            return {
-                templateUrl: 'app/view/bundle/available.html',
-                link: function (scope, elem) {
-                    var button = $(elem).find('button'),
-                        ApplyData, resource;
-
-                    button.click(function () {
-                        ApplyData = $resource(url + '/' + avScope.available.id);
-                        resource = ApplyData.get({},
-                            // success
-                            function () {
-                                setInfo(resource, bundleScope);
-                            },
-                            // error
-                            function () {
-                                $log.error('Problem with resource', resource);
-                            }
-                        );
-                    });
-                }
-            };
-        }])
-
-        .controller('CordBundleCtrl', ['$log', '$scope', '$resource',
-            function (_$log_, $scope, _$resource_) {
-                var BundleData, resource;
-                $scope.page = 'bundle';
-                bundleScope = $scope;
-                $log = _$log_;
-                $resource = _$resource_;
-
-                BundleData = $resource(url);
-                resource = BundleData.get({},
-                    // success
-                    function () {
-                        setInfo(resource, $scope);
-                    },
-                    // error
-                    function () {
-                        $log.error('Problem with resource', resource);
-                    });
-
-                $log.debug('Cord Bundle Ctrl has been created.');
-        }])
-
         .controller('CordAvailable', ['$scope',
             function ($scope) {
                 avScope = $scope;
@@ -98,5 +57,51 @@
                 };
 
                 $log.debug('Cord Available Ctrl has been created.');
+        }])
+
+        .controller('CordBundleCtrl', ['$log', '$scope', '$resource',
+            function (_$log_, $scope, _$resource_) {
+                var BundleData, resource;
+                $scope.page = 'bundle';
+                bundleScope = $scope;
+                $log = _$log_;
+                $resource = _$resource_;
+
+                BundleData = $resource(url);
+                resource = BundleData.get({},
+                    // success
+                    function () {
+                        setAndRefresh(resource, $scope);
+                    },
+                    // error
+                    function () {
+                        $log.error('Problem with resource', resource);
+                    });
+
+                $log.debug('Cord Bundle Ctrl has been created.');
+            }])
+
+        .directive('bundleAvailable', ['$resource', function ($resource) {
+            return {
+                templateUrl: 'app/view/bundle/available.html',
+                link: function (scope, elem) {
+                    var button = $(elem).find('button'),
+                        ApplyData, resource;
+
+                    button.click(function () {
+                        ApplyData = $resource(url + '/' + avScope.available.id);
+                        resource = ApplyData.get({},
+                            // success
+                            function () {
+                                setAndRefresh(resource, bundleScope);
+                            },
+                            // error
+                            function () {
+                                $log.error('Problem with resource', resource);
+                            }
+                        );
+                    });
+                }
+            };
         }]);
 }());

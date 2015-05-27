@@ -103,5 +103,5 @@ div#login-form {
 
 #login-form input[type="button"]:hover {
     color: white;
-    background-color: #CE5650;
+    background-color: rgb(122, 188, 229);
 }
