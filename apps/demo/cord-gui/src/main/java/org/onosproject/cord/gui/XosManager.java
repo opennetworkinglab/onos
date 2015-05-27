@@ -59,9 +59,12 @@ public class XosManager {
         String uriFmt = subId(subscriberId) + "services/%s/%s";
         Set<XosFunctionDescriptor> inBundle = bundle.descriptor().functions();
         for (XosFunctionDescriptor xfd: XosFunctionDescriptor.values()) {
-            String uri = String.format(uriFmt, xfd.id(), inBundle.contains(xfd));
-            String result = xosUtils.putRest(uri);
-            // TODO: convert JSON result to object and check (if we care)
+            // only process the functions that have a real back-end on XOS
+            if (xfd.backend()) {
+                String uri = String.format(uriFmt, xfd.id(), inBundle.contains(xfd));
+                String result = xosUtils.putRest(uri);
+                // TODO: convert JSON result to object and check (if we care)
+            }
         }
     }
 

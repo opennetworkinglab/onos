@@ -19,8 +19,7 @@ package org.onosproject.cord.gui.model;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onosproject.cord.gui.model.XosFunctionDescriptor.*;
 
 /**
@@ -30,7 +29,7 @@ public class XosFunctionDescriptorTest {
 
     @Test
     public void numberOfFunctions() {
-        assertEquals("unexpected constant count", 3, values().length);
+        assertEquals("unexpected constant count", 4, values().length);
     }
 
     @Test
@@ -38,6 +37,7 @@ public class XosFunctionDescriptorTest {
         assertEquals("wrong id", "internet", INTERNET.id());
         assertEquals("wrong display", "Internet", INTERNET.displayName());
         assertTrue("wrong desc", INTERNET.description().startsWith("Basic"));
+        assertFalse("wrong backend", INTERNET.backend());
     }
 
     @Test
@@ -45,12 +45,22 @@ public class XosFunctionDescriptorTest {
         assertEquals("wrong id", "firewall", FIREWALL.id());
         assertEquals("wrong display", "Firewall", FIREWALL.displayName());
         assertTrue("wrong desc", FIREWALL.description().startsWith("Normal"));
+        assertTrue("wrong backend", FIREWALL.backend());
     }
 
     @Test
-    public void urlFiltering() {
+    public void urlFilter() {
         assertEquals("wrong id", "url_filter", URL_FILTER.id());
         assertEquals("wrong display", "Parental Control", URL_FILTER.displayName());
         assertTrue("wrong desc", URL_FILTER.description().startsWith("Variable"));
+        assertTrue("wrong backend", URL_FILTER.backend());
+    }
+
+    @Test
+    public void cdn() {
+        assertEquals("wrong id", "cdn", CDN.id());
+        assertEquals("wrong display", "CDN", CDN.displayName());
+        assertTrue("wrong desc", CDN.description().startsWith("Content"));
+        assertTrue("wrong backend", CDN.backend());
     }
 }

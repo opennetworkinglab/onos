@@ -26,30 +26,45 @@ public enum XosFunctionDescriptor {
      */
     INTERNET("internet",
              "Internet",
-             "Basic internet connectivity."),
+             "Basic internet connectivity.",
+             false),
 
     /**
      * Firewall function.
      */
     FIREWALL("firewall",
              "Firewall",
-             "Normal firewall protection."),
+             "Normal firewall protection.",
+             true),
 
     /**
      * URL Filtering function (parental controls).
      */
     URL_FILTER("url_filter",
                "Parental Control",
-               "Variable levels of URL filtering.");
+               "Variable levels of URL filtering.",
+               true),
+
+    /**
+     * Content Distribution function.
+     */
+    CDN("cdn",
+        "CDN",
+        "Content Distribution Network service.",
+        true);
+
 
     private final String id;
     private final String displayName;
     private final String description;
+    private final boolean backend;
 
-    XosFunctionDescriptor(String id, String displayName, String description) {
+    XosFunctionDescriptor(String id, String displayName, String description,
+                          boolean backend) {
         this.id = id;
         this.displayName = displayName;
         this.description = description;
+        this.backend = backend;
     }
 
     /**
@@ -77,6 +92,15 @@ public enum XosFunctionDescriptor {
      */
     public String description() {
         return description;
+    }
+
+    /**
+     * Returns true if this function is supported by the XOS backend.
+     *
+     * @return true if backend function exists
+     */
+    public boolean backend() {
+        return backend;
     }
 
 }
