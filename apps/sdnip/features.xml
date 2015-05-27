@@ -19,10 +19,11 @@
     <feature name="onos-app-sdnip" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <feature>onos-app-proxyarp</feature>
-        <feature>onos-app-config</feature>
         <bundle>mvn:${project.groupId}/onos-app-sdnip/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-routing-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-routing/${project.version}</bundle>
+	<!-- NOTE: Temporarily the sdnip app will bring the config bundle
+	     until we can specify dependencies between applictions -->
+	<bundle>mvn:${project.groupId}/onos-app-config/${project.version}</bundle>
     </feature>
 </features>
