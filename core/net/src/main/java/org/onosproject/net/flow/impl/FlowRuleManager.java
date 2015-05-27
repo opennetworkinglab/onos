@@ -559,12 +559,7 @@ public class FlowRuleManager
                 final FlowRuleBatchOperation b = new FlowRuleBatchOperation(perDeviceBatches.get(deviceId),
                                                deviceId, id);
                 pendingFlowOperations.put(id, this);
-                deviceInstallers.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        store.storeBatch(b);
-                    }
-                });
+                deviceInstallers.submit(() -> store.storeBatch(b));
             }
         }
 
