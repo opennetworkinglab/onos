@@ -35,6 +35,7 @@
                     <td colId="key" sortable>Key </td>
                     <td colId="type" sortable>Type </td>
                     <td colId="priority" sortable>Priority </td>
+                    <td colId="state" sortable>State </td>
                 </tr>
             </table>
         </div>
@@ -42,7 +43,7 @@
         <div class="table-body">
             <table>
                 <tr ng-hide="tableData.length" class="no-data ignore-width">
-                    <td colspan="4">
+                    <td colspan="5">
                         No Intents found
                     </td>
                 </tr>
@@ -52,12 +53,13 @@
                     <td>{{intent.key}}</td>
                     <td>{{intent.type}}</td>
                     <td>{{intent.priority}}</td>
+                    <td>{{intent.state}}</td>
                 </tr>
                 <tr>
-                    <td class="resources" colspan="4">{{intent.resources}}</td>
+                    <td class="resources" colspan="5">{{intent.resources}}</td>
                 </tr>
                 <tr ng-repeat-end ng-repeat-done>
-                    <td class="details" colspan="4">{{intent.details}}</td>
+                    <td class="details" colspan="5">{{intent.details}}</td>
                 </tr>
             </table>
         </div>

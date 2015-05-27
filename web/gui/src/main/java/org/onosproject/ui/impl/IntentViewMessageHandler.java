@@ -37,6 +37,7 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.AppIdFormatter;
+import org.onosproject.ui.table.cell.EnumFormatter;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,11 +56,12 @@ public class IntentViewMessageHandler extends UiMessageHandler {
     private static final String KEY = "key";
     private static final String TYPE = "type";
     private static final String PRIORITY = "priority";
+    private static final String STATE = "state";
     private static final String RESOURCES = "resources";
     private static final String DETAILS = "details";
 
     private static final String[] COL_IDS = {
-            APP_ID, KEY, TYPE, PRIORITY, RESOURCES, DETAILS
+            APP_ID, KEY, TYPE, PRIORITY, STATE, RESOURCES, DETAILS
     };
 
     @Override
@@ -89,6 +91,7 @@ public class IntentViewMessageHandler extends UiMessageHandler {
             tm.setFormatter(APP_ID, AppIdFormatter.INSTANCE);
             tm.setFormatter(RESOURCES, new ResourcesFormatter());
             tm.setFormatter(DETAILS, new DetailsFormatter());
+            tm.setFormatter(STATE, EnumFormatter.INSTANCE);
             return tm;
         }
 
@@ -96,15 +99,16 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         protected void populateTable(TableModel tm, ObjectNode payload) {
             IntentService is = get(IntentService.class);
             for (Intent intent : is.getIntents()) {
-                populateRow(tm.addRow(), intent);
+                populateRow(tm.addRow(), intent, is);
             }
         }
 
-        private void populateRow(TableModel.Row row, Intent intent) {
+        private void populateRow(TableModel.Row row, Intent intent, IntentService is) {
             row.cell(APP_ID, intent.appId())
                 .cell(KEY, intent.key())
                 .cell(TYPE, intent.getClass().getSimpleName())
                 .cell(PRIORITY, intent.priority())
+                .cell(STATE, is.getIntentState(intent.key()))
                 .cell(RESOURCES, intent)
                 .cell(DETAILS, intent);
         }
