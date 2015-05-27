@@ -87,8 +87,6 @@ public class FlowRuleManager
         extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
-    enum BatchState { STARTED, FINISHED, CANCELLED }
-
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private static final boolean ALLOW_EXTRANEOUS_RULES = false;
 
