@@ -67,7 +67,7 @@ from mininet.link import Link, Intf
 from mininet.cli import CLI
 
 # Sleep time and timeout values in seconds
-SLEEP_TIME = .5
+SLEEP_TIME = 2
 TIMEOUT = 60
 
 class OpticalSwitch(Switch):

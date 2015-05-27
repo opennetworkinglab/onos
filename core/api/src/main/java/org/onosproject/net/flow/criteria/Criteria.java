@@ -389,6 +389,7 @@ public final class Criteria {
      * @param sigType optical signal type (8 bits unsigned integer)
      * @return match criterion
      */
+    @Deprecated
     public static Criterion matchOpticalSignalType(short sigType) {
         return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }

@@ -23,6 +23,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Implementation of optical signal type criterion (8 bits unsigned
  * integer).
  */
+@Deprecated
 public final class OpticalSignalTypeCriterion implements Criterion {
     private static final short MASK = 0xff;
     private final short signalType;         // Signal type value: 8 bits

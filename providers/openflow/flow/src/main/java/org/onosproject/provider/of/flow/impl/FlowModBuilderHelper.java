@@ -17,6 +17,7 @@ package org.onosproject.provider.of.flow.impl;
 
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignalType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +86,24 @@ final class FlowModBuilderHelper {
                 return 5;
             default:
                 throw new UnsupportedChannelSpacingException(spacing);
+        }
+    }
+
+    /**
+     * Converts a {@link OchSignalType} to the corresponding byte value.
+     *
+     * @param signalType optical signal type
+     * @return byte value corresponding to the specified OCh signal type
+     */
+    static byte convertOchSignalType(OchSignalType signalType) {
+        switch (signalType) {
+            case FIXED_GRID:
+                return (byte) 1;
+            case FLEX_GRID:
+                return (byte) 2;
+            default:
+                log.info("OchSignalType {} is not supported", signalType);
+                return (byte) 0;
         }
     }
 }

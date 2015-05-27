@@ -40,7 +40,7 @@ import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
-import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -388,10 +388,9 @@ public abstract class FlowModBuilder {
                 }
                 break;
             case OCH_SIGTYPE:
-                OpticalSignalTypeCriterion sc =
-                        (OpticalSignalTypeCriterion) c;
-                mBuilder.setExact(MatchField.OCH_SIGTYPE,
-                                  U8.of(sc.signalType()));
+                OchSignalTypeCriterion sc = (OchSignalTypeCriterion) c;
+                byte signalType = FlowModBuilderHelper.convertOchSignalType(sc.signalType());
+                mBuilder.setExact(MatchField.OCH_SIGTYPE, U8.of(signalType));
                 break;
             case ARP_OP:
             case ARP_SHA:

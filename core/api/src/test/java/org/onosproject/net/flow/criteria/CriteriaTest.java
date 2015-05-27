@@ -221,8 +221,8 @@ public class CriteriaTest {
     Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
     Criterion matchLambda2 = Criteria.matchLambda(lambda2);
 
-    Criterion matchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIX_GRID);
-    Criterion sameAsMatchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIX_GRID);
+    Criterion matchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
+    Criterion sameAsMatchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
     Criterion matchOchSignalType2 = Criteria.matchOchSignalType(OchSignalType.FLEX_GRID);
 
     Criterion matchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));

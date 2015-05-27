@@ -148,16 +148,4 @@ public interface OpenFlowSwitch {
      * @return string representation of the connection to the device
      */
     String channelId();
-
-    /**
-     * Prepares a message to be sent, if necessary. Default is to do nothing,
-     * since most Devices do not need to pre-process a message that's about to
-     * be sent.
-     *
-     * @param msg The message to prepare for sending
-     * @return the prepared OFMessage
-     */
-    default OFMessage prepareMessage(OFMessage msg) {
-        return msg;
-    }
 }

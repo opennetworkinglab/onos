@@ -18,7 +18,7 @@ package org.onosproject.net.intent;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.Path;
 
 import com.google.common.testing.EqualsTester;
@@ -39,7 +39,6 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
     OpticalPathIntent intent1;
     OpticalPathIntent intent2;
     Path defaultPath;
-    OchSignal lambda;
 
     @Before
     public void opticalPathIntentTestSetUp() {
@@ -50,6 +49,7 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
                 .dst(connectPoint("two", 2))
                 .path(defaultPath)
                 .lambda(createLambda())
+                .signalType(OchSignalType.FIXED_GRID)
                 .priority(PRIORITY)
                 .build();
 
@@ -59,6 +59,7 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
                 .dst(connectPoint("one", 2))
                 .path(defaultPath)
                 .lambda(createLambda())
+                .signalType(OchSignalType.FIXED_GRID)
                 .priority(PRIORITY)
                 .build();
     }
@@ -83,7 +84,7 @@ public class OpticalPathIntentTest extends AbstractIntentTest {
     }
 
     /**
-     * Checks that the optical path ntent objects are created correctly.
+     * Checks that the optical path intent objects are created correctly.
      */
     @Test
     public void testContents() {

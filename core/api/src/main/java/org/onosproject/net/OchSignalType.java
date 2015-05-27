@@ -21,9 +21,9 @@ package org.onosproject.net;
  */
 public enum OchSignalType {
     /**
-     * Represents fix grid.
+     * Represents fixed grid.
      */
-    FIX_GRID,
+    FIXED_GRID,
 
     /**
      * Represents flex grid.

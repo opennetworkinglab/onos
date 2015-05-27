@@ -103,6 +103,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
             current = link.dst();
             selectorBuilder.matchInPort(link.dst().port());
             selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
+            selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
         }
 
         // Build the egress ROADM rule

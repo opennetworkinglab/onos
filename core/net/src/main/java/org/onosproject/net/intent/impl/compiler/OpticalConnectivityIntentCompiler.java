@@ -31,6 +31,7 @@ import org.onosproject.net.GridType;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
@@ -127,6 +128,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             // Create installable optical path intent
             LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
             OchSignal ochSignal = getOchSignal(lambdaAlloc, omsPort.minFrequency(), omsPort.grid());
+            // Only support fixed grid for now
+            OchSignalType signalType = OchSignalType.FIXED_GRID;
 
             Intent newIntent = OpticalPathIntent.builder()
                     .appId(intent.appId())
@@ -134,6 +137,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                     .dst(intent.getDst())
                     .path(path)
                     .lambda(ochSignal)
+                    .signalType(signalType)
                     .build();
 
             return ImmutableList.of(newIntent);

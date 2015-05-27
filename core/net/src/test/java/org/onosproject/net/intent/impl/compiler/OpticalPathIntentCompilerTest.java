@@ -26,6 +26,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Link;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
@@ -95,6 +96,7 @@ public class OpticalPathIntentCompilerTest {
                 .dst(d3p1)
                 .path(new DefaultPath(PID, links, hops))
                 .lambda(createLambda())
+                .signalType(OchSignalType.FIXED_GRID)
                 .build();
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(OpticalPathIntent.class, sut);

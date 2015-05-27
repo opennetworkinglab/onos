@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.Path;
 
 import com.google.common.base.MoreObjects;
@@ -31,6 +32,7 @@ public final class OpticalPathIntent extends Intent {
     private final ConnectPoint dst;
     private final Path path;
     private final OchSignal lambda;
+    private final OchSignalType signalType;
 
     private OpticalPathIntent(ApplicationId appId,
                               Key key,
@@ -38,12 +40,14 @@ public final class OpticalPathIntent extends Intent {
                               ConnectPoint dst,
                               Path path,
                               OchSignal lambda,
+                              OchSignalType signalType,
                               int priority) {
         super(appId, key, ImmutableSet.copyOf(path.links()), priority);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.path = checkNotNull(path);
         this.lambda = checkNotNull(lambda);
+        this.signalType = checkNotNull(signalType);
     }
 
     protected OpticalPathIntent() {
@@ -51,6 +55,7 @@ public final class OpticalPathIntent extends Intent {
         this.dst = null;
         this.path = null;
         this.lambda = null;
+        this.signalType = null;
     }
 
     /**
@@ -71,6 +76,7 @@ public final class OpticalPathIntent extends Intent {
         private ConnectPoint dst;
         private Path path;
         private OchSignal lambda;
+        private OchSignalType signalType;
         Key key;
 
         @Override
@@ -133,6 +139,17 @@ public final class OpticalPathIntent extends Intent {
         }
 
         /**
+         * Sets the optical signal type for the intent that will be built.
+         *
+         * @param signalType the optical signal type
+         * @return this builder
+         */
+        public Builder signalType(OchSignalType signalType) {
+            this.signalType = signalType;
+            return this;
+        }
+
+        /**
          * Builds an optical path intent from the accumulated parameters.
          *
          * @return optical path intent
@@ -146,6 +163,7 @@ public final class OpticalPathIntent extends Intent {
                     dst,
                     path,
                     lambda,
+                    signalType,
                     priority
             );
         }
@@ -168,6 +186,10 @@ public final class OpticalPathIntent extends Intent {
         return lambda;
     }
 
+    public OchSignalType signalType() {
+        return signalType;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
@@ -179,6 +201,7 @@ public final class OpticalPathIntent extends Intent {
                 .add("egressPort", dst)
                 .add("path", path)
                 .add("lambda", lambda)
+                .add("signalType", signalType)
                 .toString();
     }
 }
