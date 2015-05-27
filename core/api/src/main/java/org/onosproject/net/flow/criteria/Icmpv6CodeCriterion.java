@@ -57,7 +57,7 @@ public final class Icmpv6CodeCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), icmpv6Code);
+        return Objects.hash(type().ordinal(), icmpv6Code);
     }
 
     @Override

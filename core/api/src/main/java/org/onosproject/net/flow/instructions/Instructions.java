@@ -352,7 +352,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type());
+            return Objects.hash(type().ordinal());
         }
 
         @Override
@@ -393,7 +393,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), port);
+            return Objects.hash(type().ordinal(), port);
         }
 
         @Override
@@ -437,7 +437,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), groupId);
+            return Objects.hash(type().ordinal(), groupId);
         }
 
         @Override
@@ -481,7 +481,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), tableId);
+            return Objects.hash(type().ordinal(), tableId);
         }
 
         @Override
@@ -533,7 +533,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type(), metadata, metadataMask);
+            return Objects.hash(type().ordinal(), metadata, metadataMask);
         }
 
         @Override

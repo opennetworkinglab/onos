@@ -62,7 +62,7 @@ public final class LambdaCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, lambda);
+        return Objects.hash(type().ordinal(), lambda);
     }
 
     @Override

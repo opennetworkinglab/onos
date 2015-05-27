@@ -58,7 +58,7 @@ public final class IPEcnCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), ipEcn);
+        return Objects.hash(type().ordinal(), ipEcn);
     }
 
     @Override

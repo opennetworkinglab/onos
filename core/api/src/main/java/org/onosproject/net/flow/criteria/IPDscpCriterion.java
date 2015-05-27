@@ -58,7 +58,7 @@ public final class IPDscpCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), ipDscp);
+        return Objects.hash(type().ordinal(), ipDscp);
     }
 
     @Override

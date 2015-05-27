@@ -58,7 +58,7 @@ public final class VlanIdCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), vlanId);
+        return Objects.hash(type().ordinal(), vlanId);
     }
 
     @Override

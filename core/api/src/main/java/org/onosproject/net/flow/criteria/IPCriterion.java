@@ -62,7 +62,7 @@ public final class IPCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, ip);
+        return Objects.hash(type().ordinal(), ip);
     }
 
     @Override

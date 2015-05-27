@@ -57,7 +57,7 @@ public final class OchSignalCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(lambda);
+        return Objects.hash(type().ordinal(), lambda);
     }
 
     @Override

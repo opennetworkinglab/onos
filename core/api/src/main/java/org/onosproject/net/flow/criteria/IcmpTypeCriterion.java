@@ -57,7 +57,7 @@ public final class IcmpTypeCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), icmpType);
+        return Objects.hash(type().ordinal(), icmpType);
     }
 
     @Override

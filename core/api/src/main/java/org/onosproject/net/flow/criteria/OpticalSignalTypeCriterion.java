@@ -62,7 +62,7 @@ public final class OpticalSignalTypeCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, signalType);
+        return Objects.hash(type().ordinal(), signalType);
     }
 
     @Override

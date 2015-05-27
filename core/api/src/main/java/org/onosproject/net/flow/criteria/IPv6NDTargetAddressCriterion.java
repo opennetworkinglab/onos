@@ -58,7 +58,7 @@ public final class IPv6NDTargetAddressCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), targetAddress);
+        return Objects.hash(type().ordinal(), targetAddress);
     }
 
     @Override

@@ -58,7 +58,7 @@ public final class IPv6FlowLabelCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), flowLabel);
+        return Objects.hash(type().ordinal(), flowLabel);
     }
 
     @Override

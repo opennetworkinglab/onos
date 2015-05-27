@@ -61,7 +61,7 @@ public final class UdpPortCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, udpPort);
+        return Objects.hash(type().ordinal(), udpPort);
     }
 
     @Override

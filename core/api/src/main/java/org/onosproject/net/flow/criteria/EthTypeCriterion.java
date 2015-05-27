@@ -59,7 +59,7 @@ public final class EthTypeCriterion implements Criterion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), ethType);
+        return Objects.hash(type().ordinal(), ethType);
     }
 
     @Override
