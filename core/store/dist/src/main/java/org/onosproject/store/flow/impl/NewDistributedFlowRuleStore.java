@@ -412,16 +412,18 @@ public class NewDistributedFlowRuleStore
                                     SERIALIZER::encode,
                                     master)
                            .whenComplete((result, error) -> {
-                               log.warn("Failed to storeBatch: {} to {}", operation, master);
+                               if (error != null) {
+                                   log.warn("Failed to storeBatch: {} to {}", operation, master);
 
-                               Set<FlowRule> allFailures = operation.getOperations()
-                                                                    .stream()
-                                                                    .map(op -> op.target())
-                                                                    .collect(Collectors.toSet());
+                                   Set<FlowRule> allFailures = operation.getOperations()
+                                           .stream()
+                                           .map(op -> op.target())
+                                           .collect(Collectors.toSet());
 
-                               notifyDelegate(FlowRuleBatchEvent.completed(
-                                       new FlowRuleBatchRequest(operation.id(), Collections.emptySet()),
-                                       new CompletedBatchOperation(false, allFailures, deviceId)));
+                                   notifyDelegate(FlowRuleBatchEvent.completed(
+                                           new FlowRuleBatchRequest(operation.id(), Collections.emptySet()),
+                                           new CompletedBatchOperation(false, allFailures, deviceId)));
+                               }
                            });
     }
 
