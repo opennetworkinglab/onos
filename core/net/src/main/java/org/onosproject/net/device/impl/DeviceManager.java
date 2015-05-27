@@ -61,6 +61,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -332,12 +333,23 @@ public class DeviceManager
 
             log.info("Device {} connected", deviceId);
             // check my Role
-            mastershipService.requestRoleFor(deviceId);
+            CompletableFuture<MastershipRole> role = mastershipService.requestRoleFor(deviceId);
+            try {
+                // Device subsystem must wait for role assignment
+                // to avoid losing Device information.
+                // (This node could be the only Node connected to the Device.)
+                role.get();
+            } catch (InterruptedException e) {
+                log.warn("Interrupted while waiting role-assignment for {}", deviceId);
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                log.error("Exception thrown while waiting role-assignment for {}",
+                          deviceId, e);
+            }
+
             final MastershipTerm term = termService.getMastershipTerm(deviceId);
             if (term == null || !localNodeId.equals(term.master())) {
                 log.info("Role of this node is STANDBY for {}", deviceId);
-                // TODO: Do we need to explicitly tell the Provider that
-                // this instance is not the MASTER
                 applyRole(deviceId, MastershipRole.STANDBY);
             } else {
                 log.info("Role of this node is MASTER for {}", deviceId);
@@ -349,8 +361,6 @@ public class DeviceManager
             DeviceEvent event = store.createOrUpdateDevice(provider().id(),
                                                            deviceId, deviceDescription);
 
-            // If there was a change of any kind, tell the provider
-            // that this instance is the master.
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
