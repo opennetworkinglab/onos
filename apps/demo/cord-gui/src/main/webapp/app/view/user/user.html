@@ -1,5 +1,25 @@
 <!-- Users page partial html -->
 <div class="container">
     <nav></nav>
-    <h2>Users</h2>
+    <div id="user">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Mac</th>
+                <th ng-if="isFamily">URL Filtering</th>
+            </tr>
+            <tr ng-repeat="user in users" class="fadein">
+                <td>{{user.name}}</td>
+                <td>{{user.mac}}</td>
+                <td ng-if="isFamily">
+                    <select ng-model="newLevels[user.id]"
+                            ng-options="l for l in levels">
+                    </select>
+                    <!--How to save the id of the user with what level they want
+                     for the submit button, and also have a default value?
+                     Look into forms or study ng-options syntax a bit more-->
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>

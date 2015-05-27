@@ -17,12 +17,61 @@
 (function () {
     'use strict';
 
+    var bundleUrl = 'http://localhost:8080/rs/bundle',
+        userUrl = 'http://localhost:8080/rs/users',
+        family = 'family',
+        url_filter = 'url_filter';
+
     angular.module('cordUser', [])
-        .controller('CordUserCtrl', ['$log', '$scope', function ($log, $scope) {
-            $scope.page = 'user';
+        .controller('CordUserCtrl', ['$log', '$scope', '$resource',
+            function ($log, $scope, $resource) {
+                var BundleData, bundleResource, UserData, userResource;
+                $scope.page = 'user';
+                $scope.isFamily = false;
+                $scope.newLevels = {};
+
+                BundleData = $resource(bundleUrl);
+                bundleResource = BundleData.get({},
+                    // success
+                    function () {
+                        var result;
+                        $scope.isFamily = (bundleResource.bundle.id === family);
+                        if ($scope.isFamily) {
+                            result = $.grep(
+                                bundleResource.bundle.functions,
+                                function (elem) {
+                                    if (elem.id === url_filter) { return true; }
+                                }
+                            );
+                            $scope.levels = result[0].params.levels;
+                        }
+                    },
+                    // error
+                    function () {
+                        $log.error('Problem with resource', bundleResource);
+                    }
+                );
+
+                UserData = $resource(userUrl);
+                userResource = UserData.get({},
+                    // success
+                    function () {
+                        $scope.users = userResource.users;
+                    },
+                    // error
+                    function () {
+                        $log.error('Problem with resource', userResource);
+                    }
+                );
 
             $log.debug('Cord User Ctrl has been created.');
+        }])
+        .directive('editUser', [function () {
+            return {
+                link: function (scope, elem) {
+
+                }
+            };
         }]);
 
-    // can have a directive here that uses templateUrl for editable and readonly
 }());

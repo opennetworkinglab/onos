@@ -93,13 +93,18 @@ svg#icon-defs {
 .fadein {
     transition: all linear 0.5s;
 }
-.fadein.ng-enter {
-    opacity: 0;
-}
-.fadein.ng-enter-stagger {
+.fadein.ng-enter-stagger,
+.fadein.ng-leave-stagger {
     transition-delay: 0.2s;
     animation-delay: 0.2s;
 }
+.fadein.ng-enter {
+    opacity: 0;
+}
 .fadein.ng-enter.ng-enter-active {
     opacity: 1;
+}
+.fadein.ng-leave,
+.fadein.ng-leave-active {
+    opacity: 0;
 }

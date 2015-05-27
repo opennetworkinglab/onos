@@ -49,6 +49,12 @@ div#bundle div.main-right {
     text-align: left;
     font-style: italic;
 }
+/* animation specific */
+#bundle tr.fadein.ng-leave td.name,
+#bundle tr.fadein.ng-leave-active td.name {
+    opacity: 0;
+    border: none;
+}
 
 #bundle h2 {
     text-align: center;
