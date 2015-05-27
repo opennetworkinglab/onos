@@ -27,7 +27,7 @@ public interface FlowEntry extends FlowRule {
 
         /**
          * Indicates that this rule has been submitted for addition.
-         * Not necessarily in  the flow table.
+         * Not necessarily in the flow table.
          */
         PENDING_ADD,
 
