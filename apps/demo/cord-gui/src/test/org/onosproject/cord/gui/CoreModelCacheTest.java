@@ -19,6 +19,7 @@ package org.onosproject.cord.gui;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cord.gui.model.BundleFactory;
@@ -50,7 +51,8 @@ public class CoreModelCacheTest {
 
     @Test
     public void basicBundleJson() {
-        String json = BundleFactory.toJson(cache.getCurrentBundle());
+        ObjectNode node = BundleFactory.toObjectNode(cache.getCurrentBundle());
+        String json = node.toString();
         System.out.println(json);
         assertTrue("bad basic json", sameJson(BASIC_BUNDLE_JSON, json));
     }
@@ -65,7 +67,8 @@ public class CoreModelCacheTest {
     @Test
     public void familyBundleJson() {
         cache.setCurrentBundle("family");
-        String json = BundleFactory.toJson(cache.getCurrentBundle());
+        ObjectNode node = BundleFactory.toObjectNode(cache.getCurrentBundle());
+        String json = node.toString();
         System.out.println(json);
         assertTrue("bad family json", sameJson(FAMILY_BUNDLE_JSON, json));
     }

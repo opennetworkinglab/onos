@@ -32,8 +32,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Utility RESTful methods for dealing with the XOS server.
  */
 public class XosManagerRestUtils {
-    private static final String TEST_XOS_SERVER_ADDRESS = "10.254.1.22";
-    private static final int TEST_XOS_SERVER_PORT = 8000;
     private static final String XOSLIB = "/xoslib";
     private static final String AUTH_USER = "padmin@vicci.org";
     private static final String AUTH_PASS = "letmein";
@@ -46,21 +44,6 @@ public class XosManagerRestUtils {
     private final int xosServerPort;
     private final String baseUri;
 
-    /**
-     * Constructs a utility class for the default server address and port,
-     * using the given base URI.
-     * <p>
-     * Note that the uri should start and end with a slash; for example:
-     * {@code "/volttenant/"}. This example would result in URIs of the form:
-     * <pre>
-     *     "http://10.254.1.22:8000/xoslib/volttenant/"
-     * </pre>
-     *
-     * @param baseUri base URI
-     */
-    public XosManagerRestUtils(String baseUri) {
-        this(TEST_XOS_SERVER_ADDRESS, TEST_XOS_SERVER_PORT, baseUri);
-    }
 
     /**
      * Constructs a utility class, using the supplied server address and port,

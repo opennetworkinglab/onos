@@ -42,15 +42,16 @@ public class CordModelCache extends JsonFactory {
 
     private static final String BUNDLE = "bundle";
     private static final String USERS = "users";
+    private static final String SUB_ID = "subId";
 
 
     // faked for the demo
-    private static final int SUBSCRIBER_ID = 92;
     private static final String MAC_1 = "010203040506";
     private static final String MAC_2 = "010203040507";
     private static final String MAC_3 = "010203040508";
     private static final String MAC_4 = "010203040509";
 
+    private int subscriberId;
     private Bundle currentBundle;
 
     // NOTE: use a tree map to maintain sorted order by user ID
@@ -62,13 +63,14 @@ public class CordModelCache extends JsonFactory {
      */
     CordModelCache() {
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
-        initUsers();
+        subscriberId = XosManager.INSTANCE.getSubscriberId();
     }
 
     /**
      * Used to initialize users for the demo. These are currently fake.
      */
-    public void initUsers() {
+    @Deprecated
+    private void initUsers() {
         userMap.put(1, createUser(1, "Mom's MacBook", MAC_1));
         userMap.put(2, createUser(2, "Dad's iPad", MAC_2));
         userMap.put(3, createUser(3, "Dick's laptop", MAC_3));
@@ -109,7 +111,7 @@ public class CordModelCache extends JsonFactory {
             }
         }
 
-        XosManager.INSTANCE.setNewBundle(SUBSCRIBER_ID, currentBundle);
+        XosManager.INSTANCE.setNewBundle(subscriberId, currentBundle);
     }
 
 
@@ -144,7 +146,7 @@ public class CordModelCache extends JsonFactory {
         checkNotNull(func, "function not part of bundle: " + funcId);
 
         func.applyParam(user, param, value);
-        XosManager.INSTANCE.apply(SUBSCRIBER_ID, func, user);
+        XosManager.INSTANCE.apply(subscriberId, func, user);
     }
 
     // =============
@@ -159,6 +161,10 @@ public class CordModelCache extends JsonFactory {
 
     // ============= generate JSON for GUI rest calls..
 
+    private void addSubId(ObjectNode root) {
+        root.put(SUB_ID, subscriberId);
+    }
+
     /**
      * Returns the dashboard page data as JSON.
      *
@@ -168,6 +174,7 @@ public class CordModelCache extends JsonFactory {
         ObjectNode root = objectNode();
         root.put(BUNDLE, currentBundle.descriptor().displayName());
         root.set(USERS, userJsonArray());
+        addSubId(root);
         return root.toString();
     }
 
@@ -177,7 +184,9 @@ public class CordModelCache extends JsonFactory {
      * @return bundle page JSON data
      */
     public String jsonBundle() {
-        return BundleFactory.toJson(currentBundle);
+        ObjectNode root = BundleFactory.toObjectNode(currentBundle);
+        addSubId(root);
+        return root.toString();
     }
 
     /**
@@ -188,6 +197,7 @@ public class CordModelCache extends JsonFactory {
     public String jsonUsers() {
         ObjectNode root = objectNode();
         root.set(USERS, userJsonArray());
+        addSubId(root);
         return root.toString();
     }
 

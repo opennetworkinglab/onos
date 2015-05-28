@@ -97,12 +97,12 @@ public class BundleFactory extends JsonFactory {
     }
 
     /**
-     * Returns a JSON string representation of the given bundle.
+     * Returns an object node representation of the given bundle.
      *
      * @param bundle the bundle
-     * @return JSON string
+     * @return object node
      */
-    public static String toJson(Bundle bundle) {
+    public static ObjectNode toObjectNode(Bundle bundle) {
         ObjectNode root = objectNode();
         BundleDescriptor descriptor = bundle.descriptor();
 
@@ -127,6 +127,6 @@ public class BundleFactory extends JsonFactory {
             bundles.add(bdnode);
         }
         root.set(BUNDLES, bundles);
-        return root.toString();
+        return root;
     }
 }

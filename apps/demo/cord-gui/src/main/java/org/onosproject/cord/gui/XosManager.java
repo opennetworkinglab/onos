@@ -17,6 +17,10 @@
 
 package org.onosproject.cord.gui;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.cord.gui.model.Bundle;
 import org.onosproject.cord.gui.model.SubscriberUser;
 import org.onosproject.cord.gui.model.XosFunction;
@@ -24,6 +28,7 @@ import org.onosproject.cord.gui.model.XosFunctionDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -31,15 +36,53 @@ import java.util.Set;
  */
 public class XosManager {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private static final String TEST_XOS_SERVER_ADDRESS = "10.254.1.22";
+    private static final int TEST_XOS_SERVER_PORT = 8000;
     private static final String URI_BASE = "/rs/subscriber/";
 
-    private final XosManagerRestUtils xosUtils = new XosManagerRestUtils(URI_BASE);
+    private final XosManagerRestUtils xosUtils =
+            new XosManagerRestUtils(TEST_XOS_SERVER_ADDRESS,
+                                    TEST_XOS_SERVER_PORT, URI_BASE);
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * No instantiation (except via unit test).
      */
     XosManager() {}
+
+    /**
+     * Returns the subscriber ID to use for calls to the XOS backend.
+     * Right now, this is implemented to get a list of all subscribers
+     * in the system and return the first one.
+     *
+     * @return subscriber ID
+     */
+    public int getSubscriberId() {
+        log.info("getSubscriberId() called");
+        String result = xosUtils.getRest();
+        log.info("from XOS: {}", result);
+
+        JsonNode node;
+        try {
+            node = MAPPER.readTree(result);
+        } catch (IOException e) {
+            log.error("failed to read subscriber JSON", e);
+            return 0;
+        }
+
+        ArrayNode subscribers = (ArrayNode) node.get("subscribers");
+        if (subscribers.size() == 0) {
+            log.error("no subscribers found");
+            return 0;
+        }
+
+        ObjectNode first = (ObjectNode) subscribers.get(0);
+        int id = first.get("id").asInt();
+        log.info("Using subscriber id {}.", id);
+        return id;
+    }
 
 
     private String subId(int subscriberId) {
