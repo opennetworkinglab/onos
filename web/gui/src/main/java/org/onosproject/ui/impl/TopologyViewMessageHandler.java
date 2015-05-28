@@ -67,8 +67,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
@@ -111,7 +114,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             (o1, o2) -> o1.id().toString().compareTo(o2.id().toString());
 
 
-    private final Timer timer = new Timer("topology-view");
+    private final Timer timer = new Timer("onos-topology-view");
 
     private static final int MAX_EVENTS = 1000;
     private static final int MAX_BATCH_MS = 5000;
@@ -128,6 +131,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private final FlowRuleListener flowListener = new InternalFlowListener();
 
     private final Accumulator<Event> eventAccummulator = new InternalEventAccummulator();
+    private final ExecutorService msgSender =
+            newSingleThreadExecutor(groupedThreads("onos/gui", "msg-sender"));
 
     private TimerTask trafficTask = null;
     private TrafficEvent trafficEvent = null;
@@ -507,6 +512,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Subscribes for summary messages.
     private synchronized void requestSummary(long sid) {
+
         sendMessage(summmaryMessage(sid));
     }
 
@@ -748,7 +754,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
-            sendMessage(instanceMessage(event, null));
+            msgSender.execute(() -> {
+                sendMessage(instanceMessage(event, null));
+            });
         }
     }
 
@@ -756,11 +764,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-            sendAllInstances("updateInstance");
-            Device device = deviceService.getDevice(event.subject());
-            if (device != null) {
-                sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));
-            }
+            msgSender.execute(() -> {
+                sendAllInstances("updateInstance");
+                Device device = deviceService.getDevice(event.subject());
+                if (device != null) {
+                    sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));
+                }
+            });
         }
     }
 
@@ -769,7 +779,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void event(DeviceEvent event) {
             if (event.type() != PORT_STATS_UPDATED) {
-                sendMessage(deviceMessage(event));
+                msgSender.execute(() -> {
+                    sendMessage(deviceMessage(event));
+                });
                 eventAccummulator.add(event);
             }
         }
@@ -779,7 +791,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            sendMessage(linkMessage(event));
+            msgSender.execute(() -> {
+                sendMessage(linkMessage(event));
+            });
             eventAccummulator.add(event);
         }
     }
@@ -788,7 +802,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            sendMessage(hostMessage(event));
+            msgSender.execute(() -> {
+                sendMessage(hostMessage(event));
+            });
             eventAccummulator.add(event);
         }
     }
@@ -798,7 +814,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void event(IntentEvent event) {
             if (trafficTask != null) {
-                requestSelectedIntentTraffic();
+                msgSender.execute(TopologyViewMessageHandler.this::requestSelectedIntentTraffic);
             }
             eventAccummulator.add(event);
         }

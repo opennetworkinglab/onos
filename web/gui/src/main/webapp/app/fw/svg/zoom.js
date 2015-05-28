@@ -22,7 +22,7 @@
 
     // configuration
     var defaultSettings = {
-        zoomMin: 0.25,
+        zoomMin: 0.05,
         zoomMax: 10,
         zoomEnabled: function (ev) { return true; },
         zoomCallback: function () {}
