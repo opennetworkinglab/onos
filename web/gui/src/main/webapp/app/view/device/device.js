@@ -203,8 +203,7 @@
 
     function respDetailsCb(data) {
         $scope.panelData = data.details;
-        populateDetails($scope.panelData);
-        detailsPanel.show();
+        $scope.$apply();
     }
 
     function createDetailsPane() {
@@ -240,10 +239,6 @@
             ttip = _ttip_;
             var handlers = {};
             $scope.panelData = [];
-            pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
-                                            + mast.mastHeight() + topPdg;
-            wSize = fs.windowSize(pStartY);
-            pHeight = wSize.height;
 
             function selCb($event, row) {
                 selRow = angular.element($event.currentTarget);
@@ -260,17 +255,56 @@
                 tag: 'device',
                 selCb: selCb
             });
-            createDetailsPane();
 
             // details panel handlers
             handlers[detailsResp] = respDetailsCb;
             wss.bindHandlers(handlers);
 
             $scope.$on('$destroy', function () {
-                ps.destroyPanel(pName);
                 wss.unbindHandlers(handlers);
             });
 
             $log.log('OvDeviceCtrl has been created');
+        }])
+
+        .directive('deviceDetailsPanel', ['$rootScope', '$window',
+        function ($rootScope, $window) {
+            return function (scope) {
+
+                function heightCalc() {
+                    pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
+                                            + mast.mastHeight() + topPdg;
+                    wSize = fs.windowSize(pStartY);
+                    pHeight = wSize.height;
+                }
+                heightCalc();
+
+                createDetailsPane();
+
+                scope.$watch('panelData', function () {
+                    if (!fs.isEmptyObject(scope.panelData)) {
+                        populateDetails(scope.panelData);
+                        detailsPanel.show();
+                    }
+                });
+
+                $rootScope.$watchCollection(
+                    function () {
+                        return {
+                            h: $window.innerHeight,
+                            w: $window.innerWidth
+                        }
+                    }, function () {
+                        if (!fs.isEmptyObject(scope.panelData)) {
+                            heightCalc();
+                            populateDetails(scope.panelData);
+                        }
+                    }
+                );
+
+                scope.$on('$destroy', function () {
+                    ps.destroyPanel(pName);
+                });
+            };
         }]);
 }());
