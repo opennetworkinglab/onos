@@ -16,16 +16,16 @@
 package org.onosproject.provider.of.flow.impl;
 
 /**
- * Thrown to indicate that unsupported conversion occurs.
+ * Thrown to indicate that no mapping for the input value is found.
  */
-public class UnsupportedConversionException extends RuntimeException {
+public class NoMappingFoundException extends RuntimeException {
     /**
      * Creates an instance with the specified values.
      *
-     * @param input input value of conversion causing this exception
-     * @param output the desired class which the input value is converted to
+     * @param input input value of mapping causing this exception
+     * @param output the desired class which the input value is mapped to
      */
-    public UnsupportedConversionException(Object input, Class<?> output) {
+    public NoMappingFoundException(Object input, Class<?> output) {
         super(String.format("No mapping found for %s when converting to %s", input, output.getName()));
     }
 }

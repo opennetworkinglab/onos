@@ -71,9 +71,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertChannelSpacing;
-import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertGridType;
-
 /**
  * Flow mod builder for OpenFlow 1.3+.
  */
@@ -267,7 +264,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case OCH:
                 try {
                     return buildModOchSignalInstruction((ModOchSignalInstruction) i);
-                } catch (UnsupportedConversionException e) {
+                } catch (NoMappingFoundException e) {
                     log.warn(e.getMessage());
                     break;
                 }
@@ -285,8 +282,8 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
     private OFAction buildModOchSignalInstruction(ModOchSignalInstruction instruction) {
         OchSignal signal = instruction.lambda();
-        byte gridType = convertGridType(signal.gridType());
-        byte channelSpacing = convertChannelSpacing(signal.channelSpacing());
+        byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
+        byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
 
         return factory().actions().circuit(factory().oxms().ochSigidBasic(
                 new CircuitSignalID(gridType, channelSpacing,

@@ -378,18 +378,18 @@ public abstract class FlowModBuilder {
                 try {
                     OchSignalCriterion ochSignalCriterion = (OchSignalCriterion) c;
                     OchSignal signal = ochSignalCriterion.lambda();
-                    byte gridType = FlowModBuilderHelper.convertGridType(signal.gridType());
-                    byte channelSpacing = FlowModBuilderHelper.convertChannelSpacing(signal.channelSpacing());
+                    byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
+                    byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
                     mBuilder.setExact(MatchField.OCH_SIGID,
                             new CircuitSignalID(gridType, channelSpacing,
                                     (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
-                } catch (UnsupportedConversionException e) {
+                } catch (NoMappingFoundException e) {
                     log.warn(e.getMessage());
                 }
                 break;
             case OCH_SIGTYPE:
                 OchSignalTypeCriterion sc = (OchSignalTypeCriterion) c;
-                byte signalType = FlowModBuilderHelper.convertOchSignalType(sc.signalType());
+                byte signalType = OpenFlowValueMapper.lookupOchSignalType(sc.signalType());
                 mBuilder.setExact(MatchField.OCH_SIGTYPE, U8.of(signalType));
                 break;
             case ARP_OP:

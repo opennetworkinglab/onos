@@ -24,11 +24,10 @@ import org.onosproject.net.OchSignalType;
 /**
  * Collection of helper methods to convert protocol agnostic models to values used in OpenFlow spec.
  */
-// TODO: Rename to a better name
-final class FlowModBuilderHelper {
+final class OpenFlowValueMapper {
 
     // prohibit instantiation
-    private FlowModBuilderHelper() {}
+    private OpenFlowValueMapper() {}
 
     private static final BiMap<GridType, Byte> GRID_TYPES = EnumHashBiMap.create(GridType.class);
     static {
@@ -56,7 +55,7 @@ final class FlowModBuilderHelper {
     }
 
     /**
-     * Converts the specified input value to the corresponding value with the specified map.
+     * Looks up the specified input value to the corresponding value with the specified map.
      *
      * @param map bidirectional mapping
      * @param input input value
@@ -64,83 +63,90 @@ final class FlowModBuilderHelper {
      * @param <I> type of input value
      * @param <O> type of output value
      * @return the corresponding value stored in the specified map
-     * @throws UnsupportedConversionException if no corresponding value is found
+     * @throws NoMappingFoundException if no corresponding value is found
      */
-    private static <I, O> O convert(BiMap<I, O> map, I input, Class<O> cls) {
+    private static <I, O> O lookup(BiMap<I, O> map, I input, Class<O> cls) {
         if (!map.containsKey(input)) {
-            throw new UnsupportedConversionException(input, cls);
+            throw new NoMappingFoundException(input, cls);
         }
 
         return map.get(input);
     }
 
     /**
-     * Converts a {@link GridType} to the corresponding byte value defined in
-     * ONF "Optical Transport Protocol Extensions Version 1.0".
+     * Looks up the corresponding byte value defined in
+     * ONF "Optical Transport Protocol Extensions Version 1.0"
+     * from the specified {@link GridType} instance.
      *
      * @param type grid type
      * @return the byte value corresponding to the specified grid type
-     * @throws UnsupportedConversionException if the specified grid type is not supported
+     * @throws NoMappingFoundException if the specified grid type is not found
      */
-    static byte convertGridType(GridType type) {
-        return convert(GRID_TYPES, type, Byte.class);
+    static byte lookupGridType(GridType type) {
+        return lookup(GRID_TYPES, type, Byte.class);
     }
 
     /**
-     * Converts a byte value for grid type
-     * defined in ONF "Optical Transport Protocol Extensions Version 1.0"
-     * to the corresponding {@link GridType} instance.
+     * Looks up the corresponding {@link GridType} instance
+     * from the specified byte value for grid type
+     * defined in ONF "Optical Transport Protocol Extensions Version 1.0".
      *
      * @param type byte value as grid type defined the spec
      * @return the corresponding GridType instance
      */
-    static GridType convertGridType(byte type) {
-        return convert(GRID_TYPES.inverse(), type, GridType.class);
+    static GridType lookupGridType(byte type) {
+        return lookup(GRID_TYPES.inverse(), type, GridType.class);
     }
 
     /**
-     * Converts a {@link ChannelSpacing} to the corresponding byte value defined in
-     * ONF "Optical Transport Protocol Extensions Version 1.0".
+     * Looks up the corresponding byte value for channel spacing defined in
+     * ONF "Optical Transport Protocol Extensions Version 1.0"
+     * from the specified {@link ChannelSpacing} instance.
      *
      * @param spacing channel spacing
      * @return byte value corresponding to the specified channel spacing
-     * @throws UnsupportedConversionException if the specified channel spacing is not supported
+     * @throws NoMappingFoundException if the specified channel spacing is not found
      */
-    static byte convertChannelSpacing(ChannelSpacing spacing) {
-        return convert(CHANNEL_SPACING, spacing, Byte.class);
+    static byte lookupChannelSpacing(ChannelSpacing spacing) {
+        return lookup(CHANNEL_SPACING, spacing, Byte.class);
     }
 
     /**
-     * Converts a byte value for channel spacing
-     * defined in ONF "Optical Transport Protocol Extensions Version 1.0"
-     * to the corresponding {@link ChannelSpacing} instance.
+     * Looks up the corresponding {@link ChannelSpacing} instance
+     * from the specified byte value for channel spacing
+     * defined in ONF "Optical Transport Protocol Extensions Version 1.0".
      *
      * @param spacing byte value as channel spacing defined the spec
      * @return the corresponding ChannelSpacing instance
+     * @throws NoMappingFoundException if the specified channel spacing is not found
      */
-    static ChannelSpacing convertChannelSpacing(byte spacing) {
-        return convert(CHANNEL_SPACING.inverse(), spacing, ChannelSpacing.class);
+    static ChannelSpacing lookupChannelSpacing(byte spacing) {
+        return lookup(CHANNEL_SPACING.inverse(), spacing, ChannelSpacing.class);
     }
 
     /**
-     * Converts a {@link OchSignalType} to the corresponding byte value.
+     * Looks up the corresponding byte value for Och signal type defined in
+     * ONF "Optical Transport Protocol Extensions Version 1.0"
+     * from the specified {@link OchSignalType} instance.
      *
      * @param signalType optical signal type
      * @return byte value corresponding to the specified OCh signal type
+     * @throws NoMappingFoundException if the specified Och signal type is not found
      */
-    static byte convertOchSignalType(OchSignalType signalType) {
-        return convert(OCH_SIGNAL_TYPES, signalType, Byte.class);
+    static byte lookupOchSignalType(OchSignalType signalType) {
+        return lookup(OCH_SIGNAL_TYPES, signalType, Byte.class);
     }
 
     /**
-     * Converts a byte value for Och signal type
-     * defined in ONF "Optical Transport Protocol Extensions Version 1.0"
-     * to the corresponding {@link OchSignalType} instance.
+     * Looks up the the corresponding {@link OchSignalType} instance
+     * from the specified byte value for Och signal type defined in
+     * ONF "Optical Transport Protocol Extensions Version 1.0".
      *
      * @param signalType byte value as Och singal type defined the spec
      * @return the corresponding OchSignalType instance
+     * @throws NoMappingFoundException if the specified Och signal type is not found
      */
-    static OchSignalType convertOchSignalType(byte signalType) {
-        return convert(OCH_SIGNAL_TYPES.inverse(), signalType, OchSignalType.class);
+    static OchSignalType lookupOchSignalType(byte signalType) {
+        return lookup(OCH_SIGNAL_TYPES.inverse(), signalType, OchSignalType.class);
     }
 }

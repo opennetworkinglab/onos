@@ -79,9 +79,9 @@ import java.util.List;
 
 import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
 import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
-import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertChannelSpacing;
-import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertGridType;
-import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertOchSignalType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class FlowEntryBuilder {
@@ -643,13 +643,13 @@ public class FlowEntryBuilder {
             case OCH_SIGID:
                 CircuitSignalID sigId = match.get(MatchField.OCH_SIGID);
                 builder.add(matchLambda(Lambda.ochSignal(
-                                convertGridType(sigId.getGridType()), convertChannelSpacing(sigId.getChannelSpacing()),
+                                lookupGridType(sigId.getGridType()), lookupChannelSpacing(sigId.getChannelSpacing()),
                                 sigId.getChannelNumber(), sigId.getChannelSpacing())
                 ));
                 break;
             case OCH_SIGTYPE:
                 U8 sigType = match.get(MatchField.OCH_SIGTYPE);
-                builder.add(matchOchSignalType(convertOchSignalType((byte) sigType.getValue())));
+                builder.add(matchOchSignalType(lookupOchSignalType((byte) sigType.getValue())));
                 break;
             case ARP_OP:
             case ARP_SHA:
