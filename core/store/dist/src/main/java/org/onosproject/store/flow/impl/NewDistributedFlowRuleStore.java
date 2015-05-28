@@ -413,7 +413,7 @@ public class NewDistributedFlowRuleStore
                                     master)
                            .whenComplete((result, error) -> {
                                if (error != null) {
-                                   log.warn("Failed to storeBatch: {} to {}", operation, master);
+                                   log.warn("Failed to storeBatch: {} to {}", operation, master, error);
 
                                    Set<FlowRule> allFailures = operation.getOperations()
                                            .stream()
