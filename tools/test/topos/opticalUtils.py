@@ -445,12 +445,12 @@ class LINCSwitch(OpticalSwitch):
             sleep(SLEEP_TIME)
 
         info('*** Pushing Topology.json to ONOS\n')
-        output = quietRun('%s/tools/test/bin/onos-topo-cfg %s Topology.json' % (LINCSwitch.onosDir, LINCSwitch.controllers[ 0 ].ip), shell=True)
-
-        # successful output contains the two characters '{}'
-        # if there is more output than this, there is an issue
-        if output.strip('{}'):
-            warn('***WARNING: Could not push topology file to ONOS: %s\n' % output)
+        for index in range(len(LINCSwitch.controllers)):
+            output = quietRun('%s/tools/test/bin/onos-topo-cfg %s Topology.json &' % (LINCSwitch.onosDir, LINCSwitch.controllers[ index ].ip), shell=True)
+            # successful output contains the two characters '{}'
+            # if there is more output than this, there is an issue
+            if output.strip('{}'):
+                warn('***WARNING: Could not push topology file to ONOS: %s\n' % output)
 
     @staticmethod
     def waitStarted(net, timeout=TIMEOUT):

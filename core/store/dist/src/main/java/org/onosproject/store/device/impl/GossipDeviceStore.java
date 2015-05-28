@@ -1023,11 +1023,12 @@ public class GossipDeviceStore
                     continue;
                 }
                 annotations = merge(annotations, otherPortDesc.value().annotations());
-                switch (otherPortDesc.value().type()) {
+                PortDescription other = otherPortDesc.value();
+                switch (other.type()) {
                     case OMS:
                         OmsPortDescription omsPortDesc = (OmsPortDescription) otherPortDesc.value();
                         updated = new OmsPort(device, number, isEnabled, omsPortDesc.minFrequency(),
-                                omsPortDesc.maxFrequency(), omsPortDesc.grid());
+                                omsPortDesc.maxFrequency(), omsPortDesc.grid(), annotations);
                         break;
                     case OCH:
                         OchPortDescription ochPortDesc = (OchPortDescription) otherPortDesc.value();
@@ -1039,7 +1040,8 @@ public class GossipDeviceStore
                         updated = new OduCltPort(device, number, isEnabled, oduCltPortDesc.signalType(), annotations);
                         break;
                     default:
-                        updated = new DefaultPort(device, number, isEnabled, annotations);
+                        updated = new DefaultPort(
+                                device, number, isEnabled, other.type(), other.portSpeed(), annotations);
                 }
                 newest = otherPortDesc.timestamp();
             }
@@ -1047,7 +1049,10 @@ public class GossipDeviceStore
         if (portDesc == null) {
             return updated == null ? new DefaultPort(device, number, false, annotations) : updated;
         }
-        return updated == null ? new DefaultPort(device, number, isEnabled, annotations) : updated;
+        PortDescription current = portDesc.value();
+        return updated == null
+                ? new DefaultPort(device, number, isEnabled, current.type(), current.portSpeed(), annotations)
+                : updated;
     }
 
     /**

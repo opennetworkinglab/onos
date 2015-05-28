@@ -189,6 +189,11 @@ public final class DefaultAnnotations implements SparseAnnotations {
         throw new IllegalArgumentException("Expecting HashMap instance");
     }
 
+    @Override
+    public String toString() {
+        return (map == null) ? "null" : map.toString();
+    }
+
     /**
      * Facility for gradually building model annotations.
      */

@@ -342,7 +342,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (sw.isOptical()) {
                 OpenFlowOpticalSwitch opsw = (OpenFlowOpticalSwitch) sw;
                 opsw.getPortTypes().forEach(type -> {
-                    LOG.debug("ports: {}", opsw.getPortsOf(type));
                     opsw.getPortsOf(type).forEach(
                         op -> {
                             portDescs.add(buildPortDescription(type, (OFPortOptical) op));
@@ -398,10 +397,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         private PortDescription buildPortDescription(PortDescPropertyType ptype, OFPortOptical port) {
             // Minimally functional fixture. This needs to be fixed as we add better support.
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
                     && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             SparseAnnotations annotations = makePortNameAnnotation(port.getName());
-            Port.Type type = FIBER;
 
             if (port.getVersion() == OFVersion.OF_13
                     && ptype == PortDescPropertyType.OPTICAL_TRANSPORT) {
@@ -411,7 +410,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // removable once 1.4+ support complete.
                 LOG.debug("Unsupported optical port properties");
             }
-            return new DefaultPortDescription(portNo, enabled, type, 0, annotations);
+            return new DefaultPortDescription(portNo, enabled, FIBER, 0, annotations);
         }
 
         private PortDescription buildPortDescription(OFPortStatus status) {
