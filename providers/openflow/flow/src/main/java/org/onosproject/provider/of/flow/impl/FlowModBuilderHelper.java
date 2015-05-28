@@ -15,11 +15,11 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.EnumHashBiMap;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignalType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Collection of helper methods to convert protocol agnostic models to values used in OpenFlow spec.
@@ -27,10 +27,52 @@ import org.slf4j.LoggerFactory;
 // TODO: Rename to a better name
 final class FlowModBuilderHelper {
 
-    private static final Logger log = LoggerFactory.getLogger(FlowModBuilderHelper.class);
-
     // prohibit instantiation
     private FlowModBuilderHelper() {}
+
+    private static final BiMap<GridType, Byte> GRID_TYPES = EnumHashBiMap.create(GridType.class);
+    static {
+        // See ONF "Optical Transport Protocol Extensions Version 1.0" for the following values
+        GRID_TYPES.put(GridType.DWDM, (byte) 1); // OFPGRIDT_DWDM of enum ofp_grid_type
+        GRID_TYPES.put(GridType.CWDM, (byte) 2); // OFPGRIDT_CWDM of enum ofp_grid_type
+        GRID_TYPES.put(GridType.FLEX, (byte) 3); // OFPGRIDT_FLEX of enum ofp_grid_type
+    }
+
+    private static final BiMap<ChannelSpacing, Byte> CHANNEL_SPACING = EnumHashBiMap.create(ChannelSpacing.class);
+    static {
+        // See ONF "Optical Transport Protocol Extensions Version 1.0" for the following values
+        CHANNEL_SPACING.put(ChannelSpacing.CHL_100GHZ, (byte) 1);   // OFPCS_100GHZ of enum ofp_chl_spacing
+        CHANNEL_SPACING.put(ChannelSpacing.CHL_50GHZ, (byte) 2);    // OFPCS_50GHZ of enum ofp_chl_spacing
+        CHANNEL_SPACING.put(ChannelSpacing.CHL_25GHZ, (byte) 3);    // OFPCS_25GHZ of enum ofp_chl_spacing
+        CHANNEL_SPACING.put(ChannelSpacing.CHL_12P5GHZ, (byte) 4);  // OFPCS_12P5GHZ of enum ofp_chl_spacing
+        CHANNEL_SPACING.put(ChannelSpacing.CHL_6P25GHZ, (byte) 5);  // OFPCS_6P25GHZ of enum ofp_chl_spacing
+    }
+
+    private static final BiMap<OchSignalType, Byte> OCH_SIGNAL_TYPES = EnumHashBiMap.create(OchSignalType.class);
+    static {
+        // See ONF "Optical Transport Protocol Extensions Version 1.0" for the following values
+        OCH_SIGNAL_TYPES.put(OchSignalType.FIXED_GRID, (byte) 1); // OFPOCHT_FIX_GRID of enum ofp_och_signal_type
+        OCH_SIGNAL_TYPES.put(OchSignalType.FLEX_GRID, (byte) 2);  // OFPOCHT_FLEX_GRID of enum ofp_och_signal_type
+    }
+
+    /**
+     * Converts the specified input value to the corresponding value with the specified map.
+     *
+     * @param map bidirectional mapping
+     * @param input input value
+     * @param cls class of output value
+     * @param <I> type of input value
+     * @param <O> type of output value
+     * @return the corresponding value stored in the specified map
+     * @throws UnsupportedConversionException if no corresponding value is found
+     */
+    private static <I, O> O convert(BiMap<I, O> map, I input, Class<O> cls) {
+        if (!map.containsKey(input)) {
+            throw new UnsupportedConversionException(input, cls);
+        }
+
+        return map.get(input);
+    }
 
     /**
      * Converts a {@link GridType} to the corresponding byte value defined in
@@ -38,24 +80,10 @@ final class FlowModBuilderHelper {
      *
      * @param type grid type
      * @return the byte value corresponding to the specified grid type
-     * @throws UnsupportedGridTypeException if the specified grid type is not supported
+     * @throws UnsupportedConversionException if the specified grid type is not supported
      */
     static byte convertGridType(GridType type) {
-        // See ONF "Optical Transport Protocol Extensions Version 1.0"
-        // for the following values
-        switch (type) {
-            case DWDM:
-                // OFPGRIDT_DWDM of enum ofp_grid_type
-                return 1;
-            case CWDM:
-                // OFPGRIDT_CWDM of enum ofp_grid_type
-                return 2;
-            case FLEX:
-                // OFPGRIDT_FLEX of enum ofp_grid_type
-                return 3;
-            default:
-                throw new UnsupportedGridTypeException(type);
-        }
+        return convert(GRID_TYPES, type, Byte.class);
     }
 
     /**
@@ -67,17 +95,7 @@ final class FlowModBuilderHelper {
      * @return the corresponding GridType instance
      */
     static GridType convertGridType(byte type) {
-        switch (type) {
-            case 1:
-                return GridType.DWDM;
-            case 2:
-                return GridType.CWDM;
-            case 3:
-                return GridType.FLEX;
-            default:
-                log.info("The value {} for grid type is not supported");
-                return null;
-        }
+        return convert(GRID_TYPES.inverse(), type, GridType.class);
     }
 
     /**
@@ -86,30 +104,10 @@ final class FlowModBuilderHelper {
      *
      * @param spacing channel spacing
      * @return byte value corresponding to the specified channel spacing
-     * @throws UnsupportedChannelSpacingException if the specified channel spacing is not supported
+     * @throws UnsupportedConversionException if the specified channel spacing is not supported
      */
     static byte convertChannelSpacing(ChannelSpacing spacing) {
-        // See ONF "Optical Transport Protocol Extensions Version 1.0"
-        // for the following values
-        switch (spacing) {
-            case CHL_100GHZ:
-                // OFPCS_100GHZ of enum ofp_chl_spacing
-                return 1;
-            case CHL_50GHZ:
-                // OFPCS_50GHZ of enum ofp_chl_spacing
-                return 2;
-            case CHL_25GHZ:
-                // OFPCS_25GHZ of enum ofp_chl_spacing
-                return 3;
-            case CHL_12P5GHZ:
-                // OFPCS_12P5GHZ of enum ofp_chl_spacing
-                return 4;
-            case CHL_6P25GHZ:
-                // OFPCS_6P25GHZ of enum ofp_chl_spacing
-                return 5;
-            default:
-                throw new UnsupportedChannelSpacingException(spacing);
-        }
+        return convert(CHANNEL_SPACING, spacing, Byte.class);
     }
 
     /**
@@ -121,21 +119,7 @@ final class FlowModBuilderHelper {
      * @return the corresponding ChannelSpacing instance
      */
     static ChannelSpacing convertChannelSpacing(byte spacing) {
-        switch (spacing) {
-            case 1:
-                return ChannelSpacing.CHL_100GHZ;
-            case 2:
-                return ChannelSpacing.CHL_50GHZ;
-            case 3:
-                return ChannelSpacing.CHL_25GHZ;
-            case 4:
-                return ChannelSpacing.CHL_12P5GHZ;
-            case 5:
-                return ChannelSpacing.CHL_6P25GHZ;
-            default:
-                log.info("The value {} for channel spacing is not supported");
-                return null;
-        }
+        return convert(CHANNEL_SPACING.inverse(), spacing, ChannelSpacing.class);
     }
 
     /**
@@ -145,15 +129,7 @@ final class FlowModBuilderHelper {
      * @return byte value corresponding to the specified OCh signal type
      */
     static byte convertOchSignalType(OchSignalType signalType) {
-        switch (signalType) {
-            case FIXED_GRID:
-                return (byte) 1;
-            case FLEX_GRID:
-                return (byte) 2;
-            default:
-                log.info("OchSignalType {} is not supported", signalType);
-                return (byte) 0;
-        }
+        return convert(OCH_SIGNAL_TYPES, signalType, Byte.class);
     }
 
     /**
@@ -165,14 +141,6 @@ final class FlowModBuilderHelper {
      * @return the corresponding OchSignalType instance
      */
     static OchSignalType convertOchSignalType(byte signalType) {
-        switch (signalType) {
-            case 1:
-                return OchSignalType.FIXED_GRID;
-            case 2:
-                return OchSignalType.FLEX_GRID;
-            default:
-                log.info("The value {} for Och signal type is not supported");
-                return null;
-        }
+        return convert(OCH_SIGNAL_TYPES.inverse(), signalType, OchSignalType.class);
     }
 }

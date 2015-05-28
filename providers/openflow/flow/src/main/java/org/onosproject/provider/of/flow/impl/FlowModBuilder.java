@@ -383,7 +383,7 @@ public abstract class FlowModBuilder {
                     mBuilder.setExact(MatchField.OCH_SIGID,
                             new CircuitSignalID(gridType, channelSpacing,
                                     (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
-                } catch (UnsupportedGridTypeException | UnsupportedChannelSpacingException e) {
+                } catch (UnsupportedConversionException e) {
                     log.warn(e.getMessage());
                 }
                 break;

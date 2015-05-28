@@ -267,7 +267,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case OCH:
                 try {
                     return buildModOchSignalInstruction((ModOchSignalInstruction) i);
-                } catch (UnsupportedGridTypeException | UnsupportedChannelSpacingException e) {
+                } catch (UnsupportedConversionException e) {
                     log.warn(e.getMessage());
                     break;
                 }

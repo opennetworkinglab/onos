@@ -15,19 +15,17 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import org.onosproject.net.GridType;
-
 /**
- * Thrown to indicate that unsupported gird type is referred.
+ * Thrown to indicate that unsupported conversion occurs.
  */
-public class UnsupportedGridTypeException extends RuntimeException {
-
+public class UnsupportedConversionException extends RuntimeException {
     /**
-     * Creates an instance with the specified unsupported grid type.
+     * Creates an instance with the specified values.
      *
-     * @param unsupported unsupported grid type
+     * @param input input value of conversion causing this exception
+     * @param output the desired class which the input value is converted to
      */
-    public UnsupportedGridTypeException(GridType unsupported) {
-        super("GridType " + unsupported + " is not supported");
+    public UnsupportedConversionException(Object input, Class<?> output) {
+        super(String.format("No mapping found for %s when converting to %s", input, output.getName()));
     }
 }
