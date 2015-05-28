@@ -2,6 +2,7 @@ package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -350,8 +351,9 @@ public class DistributedLeadershipManager implements LeadershipService {
     @Override
     public boolean makeTopCandidate(String path, NodeId nodeId) {
         Versioned<List<NodeId>> newCandidates = candidateMap.computeIf(path,
-                candidates -> (candidates != null && candidates.contains(nodeId)) ||
-                              (candidates != null && Objects.equals(nodeId, candidates.get(LEADER_CANDIDATE_POS))),
+                candidates -> candidates != null &&
+                              candidates.contains(nodeId) &&
+                              !nodeId.equals(Iterables.getFirst(candidates, null)),
                 (topic, candidates) -> {
                     List<NodeId> updatedCandidates = new ArrayList<>(candidates.size());
                     updatedCandidates.add(nodeId);
