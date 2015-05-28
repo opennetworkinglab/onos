@@ -80,6 +80,7 @@ import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;
@@ -137,6 +138,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
     private ApplicationId driverId;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
+        .register(KryoNamespaces.API)
         .register(GroupKey.class)
         .register(DefaultGroupKey.class)
         .register(OfdpaGroupChain.class)
@@ -574,9 +576,9 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 fail(fwd, ObjectiveError.GROUPMISSING);
                 return Collections.emptySet();
             }
-            tb.group(group.id());
+            tb.deferred().group(group.id());
         }
-
+        tb.transition(ACL_TABLE);
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority())
@@ -634,7 +636,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(driverId)
                 .makePermanent()
                 .forTable(PORT_TABLE).build();
-        ops = ops.add(tmisse);
+        /*ops = ops.add(tmisse);
 
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
@@ -646,7 +648,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
             public void onError(FlowRuleOperations ops) {
                 log.info("Failed to initialize port table");
             }
-        }));
+        }));*/
 
     }
 
@@ -716,7 +718,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(driverId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
-        ops =  ops.add(rule); // XXX bug in ofdpa
+        /*ops =  ops.add(rule); // XXX bug in ofdpa
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
@@ -727,7 +729,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
             public void onError(FlowRuleOperations ops) {
                 log.info("Failed to initialize tmac table");
             }
-        }));
+        }));*/
     }
 
     private void processIpTable() {
@@ -746,7 +748,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(driverId)
                 .makePermanent()
                 .forTable(UNICAST_ROUTING_TABLE).build();
-        ops =  ops.add(rule);
+        /*ops =  ops.add(rule);
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
@@ -757,7 +759,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
             public void onError(FlowRuleOperations ops) {
                 log.info("Failed to initialize unicast IP table");
             }
-        }));
+        }));*/
     }
 
     @SuppressWarnings("unused")

@@ -38,6 +38,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlOut;
 import org.projectfloodlight.openflow.protocol.action.OFActionDecMplsTtl;
 import org.projectfloodlight.openflow.protocol.action.OFActionDecNwTtl;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
+import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
 import org.projectfloodlight.openflow.protocol.action.OFActionPushMpls;
@@ -209,6 +210,10 @@ public class GroupBucketEntryBuilder {
                     OFActionDecNwTtl decNwTtl = (OFActionDecNwTtl) act;
                     builder.decNwTtl();
                     break;
+                case GROUP:
+                    OFActionGroup grp = (OFActionGroup) act;
+                    builder.group(new DefaultGroupId(grp.getGroup().getGroupNumber()));
+                    break;
                 case SET_TP_DST:
                 case SET_TP_SRC:
                 case POP_PBB:
@@ -222,7 +227,6 @@ public class GroupBucketEntryBuilder {
                 case SET_QUEUE:
                 case STRIP_VLAN:
                 case ENQUEUE:
-                case GROUP:
                 default:
                     log.warn("Action type {} not yet implemented.", act.getType());
             }

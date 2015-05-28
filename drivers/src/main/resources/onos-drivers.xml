@@ -58,7 +58,7 @@
                    impl="org.onosproject.driver.handshaker.CorsaSwitchHandshaker"/>
     </driver>
     <driver name="ofdpa" extends="default"
-            manufacturer="Broadcom Corp." hwVersion="OF-DPA 1.0" swVersion="OF-DPA 1.0">
+            manufacturer="Broadcom Corp." hwVersion="OF-DPA 2.0-EA1" swVersion="OF-DPA 2.0-EA1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
     </driver>
