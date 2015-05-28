@@ -182,9 +182,9 @@ public abstract class TopologySimulator {
                 new DefaultDeviceDescription(id.uri(), Device.Type.SWITCH,
                                              "ON.Lab", "0.1", "0.1", "1234",
                                              new ChassisId(i));
+        deviceIds.add(id);
         deviceProviderService.deviceConnected(id, desc);
         deviceProviderService.updatePorts(id, buildPorts(hostCount + infrastructurePorts));
-        deviceIds.add(id);
     }
 
 //    /**
@@ -287,10 +287,10 @@ public abstract class TopologySimulator {
      * Removes any devices previously advertised by this provider.
      */
     protected void removeDevices() {
-        prepareForDeviceEvents(deviceService.getDeviceCount());
-        deviceService.getDevices()
-                .forEach(device -> deviceService.removeDevice(device.id()));
+        prepareForDeviceEvents(deviceIds.size());
+        deviceIds.forEach(deviceProviderService::deviceDisconnected);
         waitForDeviceEvents();
+        deviceIds.clear();
     }
 
 
@@ -356,6 +356,16 @@ public abstract class TopologySimulator {
                                                  Port.Type.COPPER, 0));
         }
         return ports;
+    }
+
+    /**
+     * Indicates whether or not the simulation knows of this device.
+     *
+     * @param deviceId device identifier
+     * @return true if device is known
+     */
+    public boolean contains(DeviceId deviceId) {
+        return deviceIds.contains(deviceId);
     }
 
     // Counts down number of device added/available/removed events.

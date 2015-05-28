@@ -339,7 +339,6 @@ public class NullProviders {
             packetProvider.stop();
             flowRuleProvider.stop();
             delay(500);
-            rejectMastership();
             simulator.tearDownTopology();
             simulator = null;
         }
@@ -396,7 +395,8 @@ public class NullProviders {
 
         @Override
         public boolean isReachable(DeviceId deviceId) {
-            return topoShape.equals("configured") || deviceService.isAvailable(deviceId);
+            return topoShape.equals("configured") ||
+                    (simulator != null && simulator.contains(deviceId));
         }
 
         @Override

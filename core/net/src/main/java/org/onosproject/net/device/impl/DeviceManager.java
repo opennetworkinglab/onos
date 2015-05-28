@@ -382,7 +382,9 @@ public class DeviceManager
                                                      port.portSpeed())));
             store.updatePorts(this.provider().id(), deviceId, descs);
             try {
-                post(store.markOffline(deviceId));
+                if (mastershipService.getLocalRole(deviceId) == MASTER) {
+                    post(store.markOffline(deviceId));
+                }
             } catch (IllegalStateException e) {
                 log.warn("Failed to mark {} offline", deviceId);
                 // only the MASTER should be marking off-line in normal cases,
