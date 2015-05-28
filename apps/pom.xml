@@ -49,6 +49,7 @@
         <module>segmentrouting</module>
         <module>cordfabric</module>
         <module>xos-integration</module>
+        <module>pcep-api</module>
     </modules>
 
     <properties>

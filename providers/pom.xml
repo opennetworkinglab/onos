@@ -38,6 +38,7 @@
         <module>netconf</module>
         <module>null</module>
         <module>tunnel</module>
+        <module>pcep</module>
     </modules>
 
     <dependencies>
