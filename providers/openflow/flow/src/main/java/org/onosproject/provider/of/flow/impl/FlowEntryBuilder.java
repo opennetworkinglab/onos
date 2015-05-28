@@ -26,6 +26,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -63,17 +64,24 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
+import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
 import java.util.List;
 
+import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
+import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
+import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertChannelSpacing;
+import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertGridType;
+import static org.onosproject.provider.of.flow.impl.FlowModBuilderHelper.convertOchSignalType;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class FlowEntryBuilder {
@@ -633,11 +641,15 @@ public class FlowEntryBuilder {
                                             .getValue());
                 break;
             case OCH_SIGID:
-                builder.matchLambda(match.get(MatchField.OCH_SIGID).getChannelNumber());
+                CircuitSignalID sigId = match.get(MatchField.OCH_SIGID);
+                builder.add(matchLambda(Lambda.ochSignal(
+                                convertGridType(sigId.getGridType()), convertChannelSpacing(sigId.getChannelSpacing()),
+                                sigId.getChannelNumber(), sigId.getChannelSpacing())
+                ));
                 break;
             case OCH_SIGTYPE:
-                builder.matchOpticalSignalType(match.get(MatchField
-                                                                 .OCH_SIGTYPE).getValue());
+                U8 sigType = match.get(MatchField.OCH_SIGTYPE);
+                builder.add(matchOchSignalType(convertOchSignalType((byte) sigType.getValue())));
                 break;
             case ARP_OP:
             case ARP_SHA:

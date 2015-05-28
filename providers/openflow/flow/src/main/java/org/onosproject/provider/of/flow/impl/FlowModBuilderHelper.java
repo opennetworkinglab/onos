@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Collection of helper methods to convert protocol agnostic models to values used in OpenFlow spec.
  */
+// TODO: Rename to a better name
 final class FlowModBuilderHelper {
 
     private static final Logger log = LoggerFactory.getLogger(FlowModBuilderHelper.class);
@@ -54,6 +55,28 @@ final class FlowModBuilderHelper {
                 return 3;
             default:
                 throw new UnsupportedGridTypeException(type);
+        }
+    }
+
+    /**
+     * Converts a byte value for grid type
+     * defined in ONF "Optical Transport Protocol Extensions Version 1.0"
+     * to the corresponding {@link GridType} instance.
+     *
+     * @param type byte value as grid type defined the spec
+     * @return the corresponding GridType instance
+     */
+    static GridType convertGridType(byte type) {
+        switch (type) {
+            case 1:
+                return GridType.DWDM;
+            case 2:
+                return GridType.CWDM;
+            case 3:
+                return GridType.FLEX;
+            default:
+                log.info("The value {} for grid type is not supported");
+                return null;
         }
     }
 
@@ -90,6 +113,32 @@ final class FlowModBuilderHelper {
     }
 
     /**
+     * Converts a byte value for channel spacing
+     * defined in ONF "Optical Transport Protocol Extensions Version 1.0"
+     * to the corresponding {@link ChannelSpacing} instance.
+     *
+     * @param spacing byte value as channel spacing defined the spec
+     * @return the corresponding ChannelSpacing instance
+     */
+    static ChannelSpacing convertChannelSpacing(byte spacing) {
+        switch (spacing) {
+            case 1:
+                return ChannelSpacing.CHL_100GHZ;
+            case 2:
+                return ChannelSpacing.CHL_50GHZ;
+            case 3:
+                return ChannelSpacing.CHL_25GHZ;
+            case 4:
+                return ChannelSpacing.CHL_12P5GHZ;
+            case 5:
+                return ChannelSpacing.CHL_6P25GHZ;
+            default:
+                log.info("The value {} for channel spacing is not supported");
+                return null;
+        }
+    }
+
+    /**
      * Converts a {@link OchSignalType} to the corresponding byte value.
      *
      * @param signalType optical signal type
@@ -104,6 +153,26 @@ final class FlowModBuilderHelper {
             default:
                 log.info("OchSignalType {} is not supported", signalType);
                 return (byte) 0;
+        }
+    }
+
+    /**
+     * Converts a byte value for Och signal type
+     * defined in ONF "Optical Transport Protocol Extensions Version 1.0"
+     * to the corresponding {@link OchSignalType} instance.
+     *
+     * @param signalType byte value as Och singal type defined the spec
+     * @return the corresponding OchSignalType instance
+     */
+    static OchSignalType convertOchSignalType(byte signalType) {
+        switch (signalType) {
+            case 1:
+                return OchSignalType.FIXED_GRID;
+            case 2:
+                return OchSignalType.FLEX_GRID;
+            default:
+                log.info("The value {} for Och signal type is not supported");
+                return null;
         }
     }
 }
