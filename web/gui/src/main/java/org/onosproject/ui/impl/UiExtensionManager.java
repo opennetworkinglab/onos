@@ -23,7 +23,10 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
@@ -66,6 +69,8 @@ public class UiExtensionManager
     private final AltTopoViewMessageHandler topoHandler =
             new AltTopoViewMessageHandler();
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     // Creates core UI extension
     private UiExtension createCoreExtension() {
@@ -111,6 +116,7 @@ public class UiExtensionManager
 
     @Deactivate
     public void deactivate() {
+        UiWebSocketServlet.closeAll();
         unregister(core);
         log.info("Stopped");
     }

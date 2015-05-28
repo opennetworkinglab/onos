@@ -35,15 +35,28 @@ public class UiWebSocketServlet extends WebSocketServlet {
 
     private static final long PING_DELAY_MS = 5000;
 
+    private static UiWebSocketServlet instance;
+
     private ServiceDirectory directory = new DefaultServiceDirectory();
 
     private final Set<UiWebSocket> sockets = new HashSet<>();
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
 
+    /**
+     * Closes all currently open UI web-sockets.
+     */
+    public static void closeAll() {
+        if (instance != null) {
+            instance.sockets.forEach(UiWebSocket::close);
+            instance.sockets.clear();
+        }
+    }
+
     @Override
     public void init() throws ServletException {
         super.init();
+        instance = this;
         timer.schedule(pruner, PING_DELAY_MS, PING_DELAY_MS);
     }
 
