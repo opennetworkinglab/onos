@@ -17,13 +17,16 @@
 <div class="nav">
     <ul>
         <a href="#/home">
-            <li ng-class="{selected: page === 'dashboard'}">Dashboard</li>
+            <li ng-class="{selected: page === 'dashboard'}"
+                ng-click="$route.reload()">Dashboard</li>
         </a>
         <a href="#/user">
-            <li ng-class="{selected: page === 'user'}">Users</li>
+            <li ng-class="{selected: page === 'user'}"
+                ng-click="$route.reload()">Users</li>
         </a>
         <a href="#/bundle">
-            <li ng-class="{selected: page === 'bundle'}">Bundles</li>
+            <li ng-class="{selected: page === 'bundle'}"
+                ng-click="$route.reload()">Bundles</li>
         </a>
     </ul>
 </div>

@@ -1,5 +1,5 @@
-<div id="available" ng-controller="CordAvailable as ctrl">
+<div id="available">
     <h3>{{available.name}}</h3>
     <p>{{available.desc}}</p>
-    <button type="button">Apply</button>
+    <button ng-click="changeBundle(available.id)">Apply</button>
 </div>

@@ -17,91 +17,56 @@
 (function () {
     'use strict';
 
-    var $log, $resource;
-
     var url = 'http://localhost:8080/rs/bundle';
 
     var basic = 'basic',
-        family = 'family',
-        current,
-        bundleScope,
-        avScope,
-        avCb;
-
-    function setAndRefresh(resource, scope) {
-        current = resource.bundle.id;
-        scope.name = resource.bundle.name;
-        scope.desc = resource.bundle.desc;
-        scope.funcs = resource.bundle.functions;
-        // emit event will say when avCb should be invoked
-        avCb(resource);
-    }
-
-    // TODO: figure out timing issues with bundle page
-    // available bundles sometimes is loaded before avCb and avScope is created?
-    // emit event that avCb can be called upon
+        family = 'family';
 
     angular.module('cordBundle', [])
-        .controller('CordAvailable', ['$scope',
-            function ($scope) {
-                avScope = $scope;
-                avCb = function (resource) {
-                    $scope.id = (current === basic) ? family : basic;
-                    $scope.bundles = resource.bundles;
+        .controller('CordBundleCtrl', ['$log', '$scope', '$resource',
+            function ($log, $scope, $resource) {
+                var BundleData, resource,
+                    getData;
+                $scope.page = 'bundle';
 
-                    $scope.bundles.forEach(function (bundle) {
-                        if (bundle.id === $scope.id) {
-                            $scope.available = bundle;
-                        }
-                    });
+                getData = function (id) {
+                    if (!id) { id = ''; }
+
+                    BundleData = $resource(url + '/' + id);
+                    resource = BundleData.get({},
+                        // success
+                        function () {
+                            var current, availId;
+                            current = resource.bundle.id;
+                            $scope.name = resource.bundle.name;
+                            $scope.desc = resource.bundle.desc;
+                            $scope.funcs = resource.bundle.functions;
+
+                            availId = (current === basic) ? family : basic;
+                            resource.bundles.forEach(function (bundle) {
+                                if (bundle.id === availId) {
+                                    $scope.available = bundle;
+                                }
+                            });
+                        },
+                        // error
+                        function () {
+                            $log.error('Problem with resource', resource);
+                        });
                 };
 
-                $log.debug('Cord Available Ctrl has been created.');
-        }])
+                getData();
 
-        .controller('CordBundleCtrl', ['$log', '$scope', '$resource',
-            function (_$log_, $scope, _$resource_) {
-                var BundleData, resource;
-                $scope.page = 'bundle';
-                bundleScope = $scope;
-                $log = _$log_;
-                $resource = _$resource_;
-
-                BundleData = $resource(url);
-                resource = BundleData.get({},
-                    // success
-                    function () {
-                        setAndRefresh(resource, $scope);
-                    },
-                    // error
-                    function () {
-                        $log.error('Problem with resource', resource);
-                    });
+                $scope.changeBundle = function (id) {
+                    getData(id);
+                };
 
                 $log.debug('Cord Bundle Ctrl has been created.');
             }])
 
-        .directive('bundleAvailable', ['$resource', function ($resource) {
+        .directive('bundleAvailable', [function () {
             return {
-                templateUrl: 'app/view/bundle/available.html',
-                link: function (scope, elem) {
-                    var button = $(elem).find('button'),
-                        ApplyData, resource;
-
-                    button.click(function () {
-                        ApplyData = $resource(url + '/' + avScope.available.id);
-                        resource = ApplyData.get({},
-                            // success
-                            function () {
-                                setAndRefresh(resource, bundleScope);
-                            },
-                            // error
-                            function () {
-                                $log.error('Problem with resource', resource);
-                            }
-                        );
-                    });
-                }
+                templateUrl: 'app/view/bundle/available.html'
             };
         }]);
 }());
