@@ -136,6 +136,7 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MplsIntent;
 import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
@@ -361,6 +362,7 @@ public final class KryoNamespaces {
                     LinkCollectionIntent.class,
                     OpticalConnectivityIntent.class,
                     OpticalPathIntent.class,
+                    OpticalCircuitIntent.class,
                     LinkResourceRequest.class,
                     DefaultLinkResourceRequest.class,
                     BandwidthResourceRequest.class,

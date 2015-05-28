@@ -24,13 +24,10 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.Port;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.device.DeviceResourceStore;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -59,28 +56,35 @@ public class DeviceResourceManager implements DeviceResourceService {
     }
 
     @Override
-    public Set<Port> requestPorts(Intent intent) {
+    public boolean requestPorts(Set<Port> ports, Intent intent) {
         checkNotNull(intent);
-        if (intent instanceof OpticalConnectivityIntent) {
-            OpticalConnectivityIntent opticalIntent = (OpticalConnectivityIntent) intent;
-            Set<Port> srcPorts = store.getFreePorts(opticalIntent.getSrc().deviceId());
-            Set<Port> dstPorts = store.getFreePorts(opticalIntent.getDst().deviceId());
 
-            Port srcPort = getTypedPort(srcPorts, Port.Type.OCH);
-            Port dstPort = getTypedPort(dstPorts, Port.Type.OCH);
+        return store.allocatePorts(ports, intent.id());
+    }
 
-            if (srcPort == null || dstPort == null) {
-                return null;
-            }
+    @Override
+    public Set<Port> getAllocations(IntentId intentId) {
+        return store.getAllocations(intentId);
+    }
 
-            Set<Port> allocPorts = new HashSet(Arrays.asList(srcPort, dstPort));
+    @Override
+    public IntentId getAllocations(Port port) {
+        return store.getAllocations(port);
+    }
 
-            store.allocatePorts(allocPorts, intent.id());
+    @Override
+    public void releaseMapping(IntentId keyIntentId, IntentId valIntentId) {
+        store.releaseMapping(keyIntentId, valIntentId);
+    }
 
-            return allocPorts;
-        }
+    @Override
+    public boolean requestMapping(IntentId keyIntentId, IntentId valIntentId) {
+        return store.allocateMapping(keyIntentId, valIntentId);
+    }
 
-        return null;
+    @Override
+    public Set<IntentId> getMapping(IntentId intentId) {
+        return store.getMapping(intentId);
     }
 
     @Override

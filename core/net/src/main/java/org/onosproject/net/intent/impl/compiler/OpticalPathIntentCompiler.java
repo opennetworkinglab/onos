@@ -39,6 +39,8 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -47,6 +49,8 @@ import java.util.Set;
 
 @Component(immediate = true)
 public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathIntent> {
+
+    private static final Logger log = LoggerFactory.getLogger(OpticalPathIntentCompiler.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -73,6 +77,8 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
     @Override
     public List<Intent> compile(OpticalPathIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
+        log.debug("Compiling optical path intent between {} and {}", intent.src(), intent.dst());
+
         return Collections.singletonList(
                 new FlowRuleIntent(appId, createRules(intent), intent.resources()));
     }

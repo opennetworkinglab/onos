@@ -23,7 +23,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Implementation of OCh (Optical Channel) singal type criterion.
+ * Implementation of OCh (Optical Channel) signal type criterion.
  */
 public class OchSignalTypeCriterion implements Criterion {
 

@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
@@ -47,11 +48,13 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
 
         ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
 
+        // FIXME: Hardcoded ODU signal type
         Intent intent = OpticalConnectivityIntent.builder()
                 .appId(appId())
                 .key(key())
                 .src(ingress)
                 .dst(egress)
+                .signalType(OduSignalType.ODU4)
                 .build();
         service.submit(intent);
         print("Optical intent submitted:\n%s", intent.toString());

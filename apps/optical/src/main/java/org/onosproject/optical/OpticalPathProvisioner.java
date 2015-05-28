@@ -29,7 +29,9 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
+import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
@@ -40,6 +42,7 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.resource.device.DeviceResourceService;
@@ -307,17 +310,33 @@ public class OpticalPathProvisioner {
 
                 Port srcPort = deviceService.getPort(src.deviceId(), src.port());
                 Port dstPort = deviceService.getPort(dst.deviceId(), dst.port());
-                // Create lightpath
-                // TODO: Ensure src & dst are of type OchPort
-                Intent opticalIntent = OpticalConnectivityIntent.builder()
-                        .appId(appId)
-                        .src(src)
-                        .dst(dst)
-                        .build();
-                intents.add(opticalIntent);
+
                 if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
+                    // TODO: Check availability of ports
+
+                    // Create OTN circuit
+                    Intent circuitIntent = OpticalCircuitIntent.builder()
+                            .appId(appId)
+                            .src(src)
+                            .dst(dst)
+                            .signalType(OduCltPort.SignalType.CLT_10GBE)
+                            .build();
+                    intents.add(circuitIntent);
                     continue;
-                    // also create OTN service
+                } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
+                    // Create lightpath
+                    // FIXME: hardcoded ODU signal type
+                    Intent opticalIntent = OpticalConnectivityIntent.builder()
+                            .appId(appId)
+                            .src(src)
+                            .dst(dst)
+                            .signalType(OduSignalType.ODU4)
+                            .build();
+                    intents.add(opticalIntent);
+                    continue;
+                } else {
+                    log.warn("Unsupported cross connect point types {} {}", srcPort.type(), dstPort.type());
+                    return Collections.emptyList();
                 }
             }
 

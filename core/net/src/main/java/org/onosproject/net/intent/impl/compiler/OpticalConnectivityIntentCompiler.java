@@ -15,7 +15,8 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +42,7 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
+import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.link.LambdaResource;
@@ -56,6 +58,8 @@ import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -64,6 +68,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 @Component(immediate = true)
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {
+
+    protected static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
 
     private static final GridType DEFAULT_OCH_GRIDTYPE = GridType.DWDM;
     private static final ChannelSpacing DEFAULT_CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
@@ -105,6 +111,13 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         checkArgument(srcPort instanceof OchPort);
         checkArgument(dstPort instanceof OchPort);
 
+        log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
+
+        // Reserve OCh ports
+        if (!deviceResourceService.requestPorts(new HashSet(Arrays.asList(srcPort, dstPort)), intent)) {
+            throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
+        }
+
         // Calculate available light paths
         Set<Path> paths = getOpticalPaths(intent);
 
@@ -117,13 +130,6 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             }
 
             OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
-
-            // Try to reserve port resources, roll back if unsuccessful
-            Set<Port> portAllocs = deviceResourceService.requestPorts(intent);
-            if (portAllocs == null) {
-                linkResourceService.releaseResources(linkAllocs);
-                continue;
-            }
 
             // Create installable optical path intent
             LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
@@ -143,7 +149,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             return ImmutableList.of(newIntent);
         }
 
-        return Collections.emptyList();
+        // Release port allocations if unsuccessful
+        deviceResourceService.releasePorts(intent.id());
+
+        throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
     }
 
     /**

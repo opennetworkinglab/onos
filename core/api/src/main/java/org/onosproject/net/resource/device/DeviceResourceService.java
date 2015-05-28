@@ -28,10 +28,46 @@ public interface DeviceResourceService {
     /**
      * Request a set of ports needed to satisfy the intent.
      *
+     * @param ports set of ports to allocate
      * @param intent the intent
-     * @return set of ports
+     * @return true if ports were successfully allocated, false otherwise
      */
-    Set<Port> requestPorts(Intent intent);
+    boolean requestPorts(Set<Port> ports, Intent intent);
+
+    /**
+     * Returns the set of ports allocated for an intent.
+     *
+     * @param intentId the intent ID
+     * @return set of allocated ports
+     */
+    Set<Port> getAllocations(IntentId intentId);
+
+    /**
+     * Returns the intent allocated to a port.
+     *
+     * @param port the port
+     * @return intent ID allocated to the port
+     */
+    IntentId getAllocations(Port port);
+
+    /**
+     * Request a mapping between the given intents.
+     *
+     * @param keyIntentId the key intent ID
+     * @param valIntentId the value intent ID
+     * @return true if mapping was successful, false otherwise
+     */
+    boolean requestMapping(IntentId keyIntentId, IntentId valIntentId);
+
+    /**
+     * Returns the intents mapped to a lower intent.
+     *
+     * @param intentId the intent ID
+     * @return the set of intent IDs
+     */
+    Set<IntentId> getMapping(IntentId intentId);
+
+    void releaseMapping(IntentId keyIntentId, IntentId valIntentId);
 
     /**
      * Release ports associated with given intent ID.

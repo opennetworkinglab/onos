@@ -35,6 +35,7 @@ import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,12 +53,14 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
 
     private static final String PORT_ALLOCATIONS = "PortAllocations";
     private static final String INTENT_ALLOCATIONS = "IntentAllocations";
+    private static final String INTENT_MAPPING = "IntentMapping";
 
     private static final Serializer SERIALIZER = Serializer.using(
             new KryoNamespace.Builder().register(KryoNamespaces.API).build());
 
     private ConsistentMap<Port, IntentId> portAllocMap;
     private ConsistentMap<IntentId, Set<Port>> intentAllocMap;
+    private ConsistentMap<IntentId, Set<IntentId>> intentMapping;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
@@ -73,6 +76,10 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
                 .build();
         intentAllocMap = storageService.<IntentId, Set<Port>>consistentMapBuilder()
                 .withName(INTENT_ALLOCATIONS)
+                .withSerializer(SERIALIZER)
+                .build();
+        intentMapping = storageService.<IntentId, Set<IntentId>>consistentMapBuilder()
+                .withName(INTENT_MAPPING)
                 .withSerializer(SERIALIZER)
                 .build();
         log.info("Started");
@@ -110,7 +117,7 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     }
 
     @Override
-    public void allocatePorts(Set<Port> ports, IntentId intentId) {
+    public boolean allocatePorts(Set<Port> ports, IntentId intentId) {
         checkNotNull(ports);
         checkArgument(ports.size() > 0);
         checkNotNull(intentId);
@@ -120,20 +127,78 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
         try {
             TransactionalMap<Port, IntentId> portAllocs = getPortAllocs(tx);
             for (Port port : ports) {
-                portAllocs.put(port, intentId);
+                if (portAllocs.putIfAbsent(port, intentId) != null) {
+                    throw new Exception("Port already allocated " + port.toString());
+                }
             }
+
             TransactionalMap<IntentId, Set<Port>> intentAllocs = getIntentAllocs(tx);
             intentAllocs.put(intentId, ports);
             tx.commit();
         } catch (Exception e) {
             log.error("Exception thrown, rolling back", e);
             tx.abort();
-            throw e;
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public Set<Port> getAllocations(IntentId intentId) {
+        if (!intentAllocMap.containsKey(intentId)) {
+            Collections.emptySet();
+        }
+
+        return intentAllocMap.get(intentId).value();
+    }
+
+    @Override
+    public IntentId getAllocations(Port port) {
+        if (!portAllocMap.containsKey(port)) {
+            return null;
+        }
+
+        return portAllocMap.get(port).value();
+    }
+
+    @Override
+    public Set<IntentId> getMapping(IntentId intentId) {
+        return intentMapping.get(intentId).value();
+    }
+
+    @Override
+    public void releaseMapping(IntentId keyIntentId, IntentId valIntentId) {
+        if (!intentMapping.containsKey(keyIntentId)) {
+            return;
+        }
+
+        Set<IntentId> intents = intentMapping.get(keyIntentId).value();
+
+        try {
+            intents.remove(valIntentId);
+        } catch (Exception e) {
+            log.error("Trying to remove non-existing mapping {} {}", keyIntentId, valIntentId);
         }
     }
 
     @Override
-    public void releasePorts(IntentId intentId) {
+    public boolean allocateMapping(IntentId keyIntentId, IntentId valIntentId) {
+        Set<IntentId> intents = intentMapping.get(keyIntentId).value();
+
+        if (intents == null) {
+            intents = Collections.singleton(valIntentId);
+        } else {
+            intents.add(valIntentId);
+        }
+
+        intentMapping.put(keyIntentId, intents);
+
+        return true;
+    }
+
+    @Override
+    public boolean releasePorts(IntentId intentId) {
         checkNotNull(intentId);
 
         TransactionContext tx = getTxContext();
@@ -150,7 +215,9 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
         } catch (Exception e) {
             log.error("Exception thrown, rolling back", e);
             tx.abort();
-            throw e;
+            return false;
         }
+
+        return true;
     }
 }

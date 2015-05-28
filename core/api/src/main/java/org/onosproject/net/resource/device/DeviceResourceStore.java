@@ -24,7 +24,60 @@ import java.util.Set;
 public interface DeviceResourceStore {
     Set<Port> getFreePorts(DeviceId deviceId);
 
-    void allocatePorts(Set<Port> port, IntentId intent);
+    /**
+     * Allocates the given ports to the given intent.
+     * @param ports set of ports to allocate
+     * @param intentId intent ID
+     * @return true if allocation was successful, false otherwise
+     */
+    boolean allocatePorts(Set<Port> ports, IntentId intentId);
 
-    void releasePorts(IntentId intent);
+    /**
+     * Returns set of ports allocated for an intent.
+     *
+     * @param intentId the intent ID
+     * @return set of allocated ports
+     */
+    Set<Port> getAllocations(IntentId intentId);
+
+    /**
+     * Returns intent allocated to a port.
+     *
+     * @param port the port
+     * @return intent ID allocated to the port
+     */
+    IntentId getAllocations(Port port);
+
+    /**
+     * Allocates the mapping between the given intents.
+     *
+     * @param keyIntentId key intent ID
+     * @param valIntentId value intent ID
+     * @return true if mapping was successful, false otherwise
+     */
+    boolean allocateMapping(IntentId keyIntentId, IntentId valIntentId);
+
+    /**
+     * Returns the set of intents mapped to a lower intent.
+     *
+     * @param intentId intent ID
+     * @return set of intent IDs
+     */
+    Set<IntentId> getMapping(IntentId intentId);
+
+    /**
+     * Releases the mapping between the given intents.
+     *
+     * @param keyIntentId key intent ID
+     * @param valIntentId value intent ID
+     */
+    void releaseMapping(IntentId keyIntentId, IntentId valIntentId);
+
+    /**
+     * Releases the ports allocated to the given intent.
+     *
+     * @param intentId intent ID
+     * @return true if release was successful, false otherwise
+     */
+    boolean releasePorts(IntentId intentId);
 }

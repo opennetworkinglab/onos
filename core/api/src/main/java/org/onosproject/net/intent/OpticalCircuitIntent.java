@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +18,34 @@ package org.onosproject.net.intent;
 import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.OduSignalType;
+import org.onosproject.net.OduCltPort;
 
 import java.util.Collections;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * An optical layer intent for connectivity between two OCh ports.
+ * An optical layer intent for circuits between two OduClt ports.
  * No traffic selector or traffic treatment are needed.
  */
-public final class OpticalConnectivityIntent extends Intent {
+public class OpticalCircuitIntent extends Intent {
     private final ConnectPoint src;
     private final ConnectPoint dst;
-    private final OduSignalType signalType;
+    private final OduCltPort.SignalType signalType;
 
     /**
-     * Creates an optical connectivity intent between the specified
+     * Creates an optical circuit intent between the specified
      * connection points.
      *
      * @param appId application identification
      * @param key intent key
      * @param src the source transponder port
      * @param dst the destination transponder port
+     * @param signalType ODU signal type
      * @param priority priority to use for flows from this intent
      */
-    protected OpticalConnectivityIntent(ApplicationId appId,
-                                        Key key,
-                                        ConnectPoint src,
-                                        ConnectPoint dst,
-                                        OduSignalType signalType,
-                                        int priority) {
+    protected OpticalCircuitIntent(ApplicationId appId, Key key, ConnectPoint src, ConnectPoint dst,
+                                   OduCltPort.SignalType signalType, int priority) {
         super(appId, key, Collections.emptyList(), priority);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
@@ -56,7 +53,7 @@ public final class OpticalConnectivityIntent extends Intent {
     }
 
     /**
-     * Returns a new optical connectivity intent builder.
+     * Returns a new optical circuit intent builder.
      *
      * @return host to host intent builder
      */
@@ -66,12 +63,12 @@ public final class OpticalConnectivityIntent extends Intent {
 
 
     /**
-     * Builder for optical connectivity intents.
+     * Builder for optical circuit intents.
      */
     public static class Builder extends Intent.Builder {
         private ConnectPoint src;
         private ConnectPoint dst;
-        private OduSignalType signalType;
+        private OduCltPort.SignalType signalType;
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -113,22 +110,22 @@ public final class OpticalConnectivityIntent extends Intent {
         /**
          * Sets the ODU signal type for the intent that will be built.
          *
-         * @param signalType ODU signal type
+         * @param signalType signal type to use for built intent
          * @return this builder
          */
-        public Builder signalType(OduSignalType signalType) {
+        public Builder signalType(OduCltPort.SignalType signalType) {
             this.signalType = signalType;
             return this;
         }
 
         /**
-         * Builds an optical connectivity intent from the accumulated parameters.
+         * Builds an optical circuit intent from the accumulated parameters.
          *
          * @return point to point intent
          */
-        public OpticalConnectivityIntent build() {
+        public OpticalCircuitIntent build() {
 
-            return new OpticalConnectivityIntent(
+            return new OpticalCircuitIntent(
                     appId,
                     key,
                     src,
@@ -142,7 +139,7 @@ public final class OpticalConnectivityIntent extends Intent {
     /**
      * Constructor for serializer.
      */
-    protected OpticalConnectivityIntent() {
+    protected OpticalCircuitIntent() {
         super();
         this.src = null;
         this.dst = null;
@@ -172,7 +169,7 @@ public final class OpticalConnectivityIntent extends Intent {
      *
      * @return ODU signal type
      */
-    public OduSignalType getSignalType() {
+    public OduCltPort.SignalType getSignalType() {
         return signalType;
     }
 
@@ -189,4 +186,5 @@ public final class OpticalConnectivityIntent extends Intent {
                 .add("signalType", signalType)
                 .toString();
     }
+
 }
