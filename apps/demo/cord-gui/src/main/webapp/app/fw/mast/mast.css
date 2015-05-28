@@ -42,3 +42,12 @@ div.mast {
 .mast a:visited {
     color: white;
 }
+
+.mast svg {
+    position: absolute;
+    top: -1px;
+    left: 88px;
+}
+.mast g.icon use.glyph.bird {
+    fill: #CE5650;
+}

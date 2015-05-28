@@ -17,13 +17,15 @@
 head, body, footer,
 h1, h2, h3, h4, h5, h6, p,
 a, ul, li, div,
-table, tr, td, th, thead, tbody {
+table, tr, td, th, thead, tbody,
+form, select, input, option, label {
     padding: 0;
     margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6,
-p, a, li, th, td {
+p, a, li, th, td,
+select, input, option, label {
     font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
 }
 
@@ -80,6 +82,7 @@ input[type="button"][disabled]:hover,
 input[type="reset"][disabled]:hover {
     background-color: lightgray;
     color: graytext;
+    cursor: default;
 }
 
 div.container {
@@ -99,6 +102,13 @@ div.main-right {
 
 svg#icon-defs {
     display: none;
+}
+
+g.icon circle {
+    fill: none;
+}
+g.icon use.glyph.checkMark {
+    fill: rgb(68, 189, 83)
 }
 
 /* animation */

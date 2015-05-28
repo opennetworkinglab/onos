@@ -23,12 +23,13 @@
         url_filter = 'url_filter';
 
     angular.module('cordUser', [])
-        .controller('CordUserCtrl', ['$log', '$scope', '$resource',
-            function ($log, $scope, $resource) {
+        .controller('CordUserCtrl', ['$log', '$scope', '$resource', '$timeout',
+            function ($log, $scope, $resource, $timeout) {
                 var BundleData, bundleResource;
                 $scope.page = 'user';
                 $scope.isFamily = false;
                 $scope.newLevels = {};
+                $scope.showCheck = false;
 
                 // === Get data functions ---
 
@@ -77,7 +78,7 @@
                     return userUrl + '/' + id + '/apply/url_filter/level/' + level;
                 }
 
-                $scope.applyChanges = function () {
+                $scope.applyChanges = function (changeLevels) {
                     var requests = [];
 
                     if ($scope.users) {
@@ -93,6 +94,11 @@
                             getUsers(req);
                         });
                     }
+                    changeLevels.$setPristine();
+                    $scope.showCheck = true;
+                    $timeout(function () {
+                        $scope.showCheck = false;
+                    }, 3000);
                 };
 
                 $scope.cancelChanges = function (changeLevels) {
@@ -102,6 +108,7 @@
                         });
                     }
                     changeLevels.$setPristine();
+                    $scope.showCheck = false;
                 };
 
             $log.debug('Cord User Ctrl has been created.');

@@ -14,6 +14,104 @@
  * limitations under the License.
  */
 
-#user table.user-info {
+#user div.main-left {
+    width: 98%;
+    padding-left: 1%;
+}
+#user div.main-left.family {
+    width: 61%;
+    padding-left: 1%;
+}
+
+#user div.main-right {
+    width: 0;
+}
+#user div.main-right.family {
+    width: 37%;
+}
+
+#user table.user-info,
+#user table.user-form {
     float: left;
+    width: 100%;
+}
+
+#user th.topLeft {
+    border-top-left-radius: 3px;
+}
+#user th.topRight {
+    border-top-right-radius: 3px;
+}
+
+#user table.user-info th,
+#user table.user-form th {
+    text-align: left;
+    background-color: rgba(173, 216, 230, 0.75);
+    padding: 2% 1%;
+}
+
+#user div.main-left.family table.user-info th,
+#user div.main-right.family table.user-form th {
+    padding: 17px;
+}
+
+#user div.main-left.family table.user-info td,
+#user div.main-right.family table.user-form td {
+    padding: 10px;
+    height: 23px;
+}
+#user table.user-info td {
+    padding: 1%;
+}
+#user table.user-form td.buttons {
+    text-align: right;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+#user table.user-info tr:nth-of-type(odd),
+#user table.user-form tr:nth-of-type(odd) {
+    background-color: rgba(173, 216, 230, 0.5);
+}
+#user table.user-info tr:nth-of-type(even),
+#user table.user-form tr:nth-of-type(even) {
+    background-color: rgba(173, 216, 230, 0.25);
+}
+
+#user table.user-form tr.options td {
+    padding-left: 5%;
+}
+
+#user select,
+#user select:focus {
+    border: none;
+}
+
+#user select {
+    font-size: 95%;
+}
+
+#user option,
+#user option:focus {
+    border: none;
+}
+
+#user option[selected] {
+    background-color: rgb(122, 188, 229);
+}
+
+#user label {
+    font-weight: bold;
+    display: block;
+    text-align: center;
+    padding: 5%;
+}
+
+#user input[type="button"],
+#user input[type="reset"] {
+    width: 30%;
+}
+
+#user td.buttons svg {
+    vertical-align: middle;
 }
