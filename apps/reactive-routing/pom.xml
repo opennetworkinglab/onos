@@ -32,7 +32,7 @@
     <description>SDN-IP reactive routing application</description>
 
     <properties>
-        <onos.app.name>org.onosproject.routing</onos.app.name>
+        <onos.app.name>org.onosproject.reactive.routing</onos.app.name>
     </properties>
 
     <dependencies>
