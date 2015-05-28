@@ -512,7 +512,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Subscribes for summary messages.
     private synchronized void requestSummary(long sid) {
-
         sendMessage(summmaryMessage(sid));
     }
 
@@ -754,9 +753,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
-            msgSender.execute(() -> {
-                sendMessage(instanceMessage(event, null));
-            });
+            msgSender.execute(() -> sendMessage(instanceMessage(event, null)));
         }
     }
 
@@ -779,9 +776,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void event(DeviceEvent event) {
             if (event.type() != PORT_STATS_UPDATED) {
-                msgSender.execute(() -> {
-                    sendMessage(deviceMessage(event));
-                });
+                msgSender.execute(() -> sendMessage(deviceMessage(event)));
                 eventAccummulator.add(event);
             }
         }
@@ -791,9 +786,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            msgSender.execute(() -> {
-                sendMessage(linkMessage(event));
-            });
+            msgSender.execute(() -> sendMessage(linkMessage(event)));
             eventAccummulator.add(event);
         }
     }
@@ -802,9 +795,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            msgSender.execute(() -> {
-                sendMessage(hostMessage(event));
-            });
+            msgSender.execute(() -> sendMessage(hostMessage(event)));
             eventAccummulator.add(event);
         }
     }
@@ -830,7 +821,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // encapsulate
     private static class TrafficEvent {
-        enum Type { ALL_TRAFFIC, DEV_LINK_FLOWS, SEL_INTENT }
+        enum Type {
+            ALL_TRAFFIC, DEV_LINK_FLOWS, SEL_INTENT
+        }
 
         private final Type type;
         private final ObjectNode payload;
@@ -875,7 +868,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void run() {
             try {
                 if (summaryRunning) {
-                    requestSummary(0);
+                    msgSender.execute(() -> requestSummary(0));
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
@@ -894,7 +887,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void processItems(List<Event> items) {
             try {
                 if (summaryRunning) {
-                    requestSummary(0);
+                    msgSender.execute(() -> requestSummary(0));
                 }
             } catch (Exception e) {
                 log.warn("Unable to handle summary request due to {}", e.getMessage());
