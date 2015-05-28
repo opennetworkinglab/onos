@@ -33,9 +33,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Corsa switch handshaker.
  */
-public class CorsaSwitchHandShaker extends AbstractOpenFlowSwitch {
+public class CorsaSwitchHandshaker extends AbstractOpenFlowSwitch {
 
-    private AtomicBoolean handShakeComplete = new AtomicBoolean(false);
+    private AtomicBoolean handshakeComplete = new AtomicBoolean(false);
 
     private int barrierXid;
 
@@ -72,7 +72,7 @@ public class CorsaSwitchHandShaker extends AbstractOpenFlowSwitch {
         if (!startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeAlreadyStarted();
         }
-        return handShakeComplete.get();
+        return handshakeComplete.get();
     }
 
     @Override
@@ -80,12 +80,12 @@ public class CorsaSwitchHandShaker extends AbstractOpenFlowSwitch {
         if (!startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeNotStarted();
         }
-        if (handShakeComplete.get()) {
+        if (handshakeComplete.get()) {
             throw new SwitchDriverSubHandshakeCompleted(m);
         }
         if (m.getType() == OFType.BARRIER_REPLY &&
                 m.getXid() == barrierXid) {
-            handShakeComplete.set(true);
+            handshakeComplete.set(true);
         }
     }
 

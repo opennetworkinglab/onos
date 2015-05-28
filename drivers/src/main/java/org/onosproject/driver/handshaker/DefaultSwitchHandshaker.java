@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * Default driver to fallback on if no other driver is available.
  */
-public class DefaultSwitchHandShaker extends AbstractOpenFlowSwitch {
+public class DefaultSwitchHandshaker extends AbstractOpenFlowSwitch {
 
     private static final int LOWEST_PRIORITY = 0;
 

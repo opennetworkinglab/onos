@@ -20,12 +20,12 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.DefaultSwitchHandShaker"/>
+                   impl="org.onosproject.driver.handshaker.DefaultSwitchHandshaker"/>
     </driver>
     <driver name="ovs" extends="default"
             manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.NiciraSwitchHandShaker"/>
+                   impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
     </driver>
     <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
@@ -55,7 +55,7 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CorsaPipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.CorsaSwitchHandShaker"/>
+                   impl="org.onosproject.driver.handshaker.CorsaSwitchHandshaker"/>
     </driver>
     <driver name="ofdpa" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA 1.0" swVersion="OF-DPA 1.0">

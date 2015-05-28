@@ -21,7 +21,7 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 /**
  * Default driver to fallback on if no other driver is available.
  */
-public class NiciraSwitchHandShaker extends DefaultSwitchHandShaker {
+public class NiciraSwitchHandshaker extends DefaultSwitchHandshaker {
 
     @Override
     public Boolean supportNxRole() {
