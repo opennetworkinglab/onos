@@ -62,7 +62,8 @@
                 </tr>
                 <tr class="ignore-width"
                     ng-repeat-end ng-repeat-done>
-                    <td class="buckets" colspan="6">{{group.buckets}}</td>
+                    <td class="buckets" colspan="6"
+                        ng-bind-html="group.buckets"></td>
                 </tr>
             </table>
         </div>

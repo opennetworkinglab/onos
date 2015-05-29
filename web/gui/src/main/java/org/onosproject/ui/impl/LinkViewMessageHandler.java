@@ -125,7 +125,7 @@ public class LinkViewMessageHandler extends UiMessageHandler {
         }
 
         private String linkDir(BiLink link) {
-            return link.two != null ? "A <--> B" : "A --> B";
+            return link.two != null ? "A &harr; B" : "A &rarr; B";
         }
     }
 }

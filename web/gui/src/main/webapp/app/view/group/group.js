@@ -48,6 +48,14 @@
                 query: params
             });
 
+            $scope.$watch('tableData', function () {
+                if (!fs.isEmptyObject($scope.tableData)) {
+                    $scope.tableData.forEach(function (group) {
+                        group.buckets = $sce.trustAsHtml(group.buckets);
+                    });
+                }
+            });
+
             $log.log('OvGroupCtrl has been created');
         }]);
 }());

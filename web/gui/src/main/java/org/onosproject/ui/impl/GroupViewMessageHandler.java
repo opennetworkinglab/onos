@@ -103,7 +103,7 @@ public class GroupViewMessageHandler extends UiMessageHandler {
         }
 
         private final class BucketFormatter implements CellFormatter {
-            private static final String COMMA = ", ";
+            private static final String BREAK = "<br>";
 
             @Override
             public String format(Object value) {
@@ -121,17 +121,10 @@ public class GroupViewMessageHandler extends UiMessageHandler {
                             .append(b.packets())
                             .append(" Actions: ")
                             .append(b.treatment().allInstructions())
-                            .append(COMMA);
+                            .append(BREAK);
                 }
-                removeTrailingComma(sb);
 
                 return sb.toString();
-            }
-
-            private StringBuilder removeTrailingComma(StringBuilder sb) {
-                int pos = sb.lastIndexOf(COMMA);
-                sb.delete(pos, sb.length());
-                return sb;
             }
         }
     }

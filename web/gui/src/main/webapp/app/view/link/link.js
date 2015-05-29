@@ -23,12 +23,20 @@
 
     angular.module('ovLink', [])
     .controller('OvLinkCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', '$sce', 'FnService', 'TableBuilderService',
 
-        function ($log, $scope, tbs) {
+        function ($log, $scope, $sce, fs, tbs) {
             tbs.buildTable({
                 scope: $scope,
                 tag: 'link'
+            });
+
+            $scope.$watch('tableData', function () {
+                if (!fs.isEmptyObject($scope.tableData)) {
+                    $scope.tableData.forEach(function (link) {
+                        link.direction = $sce.trustAsHtml(link.direction);
+                    });
+                }
             });
 
             $log.log('OvLinkCtrl has been created');
