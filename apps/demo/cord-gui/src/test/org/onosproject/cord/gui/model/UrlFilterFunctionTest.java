@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class UrlFilterFunctionTest {
 
-    private SubscriberUser user = new SubscriberUser(1, "foo", "fooMAC");
+    private SubscriberUser user = new SubscriberUser(1, "foo", "fooMAC", "levelX");
     private UrlFilterFunction fn;
 
     @Before

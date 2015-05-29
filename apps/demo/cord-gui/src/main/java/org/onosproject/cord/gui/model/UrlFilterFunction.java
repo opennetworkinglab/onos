@@ -53,6 +53,10 @@ public class UrlFilterFunction extends DefaultXosFunction {
         if (LEVEL.equals(param)) {
             Level newLevel = Level.valueOf(value.toUpperCase());
             ufMemo.setLevel(newLevel);
+
+            // Also store the (string version) of the level
+            // (not in the memento). Hackish, but that's how it is for now.
+            user.setUrlFilterLevel(value);
         }
     }
 

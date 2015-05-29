@@ -17,6 +17,7 @@
 
 package org.onosproject.cord.gui;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.cord.gui.model.XosFunctionDescriptor.URL_FILTER;
 
 /**
  * In memory cache of the model of the subscriber's account.
@@ -43,13 +45,7 @@ public class CordModelCache extends JsonFactory {
     private static final String BUNDLE = "bundle";
     private static final String USERS = "users";
     private static final String SUB_ID = "subId";
-
-
-    // faked for the demo
-    private static final String MAC_1 = "010203040506";
-    private static final String MAC_2 = "010203040507";
-    private static final String MAC_3 = "010203040508";
-    private static final String MAC_4 = "010203040509";
+    private static final String LEVEL = "level";
 
     private int subscriberId;
     private Bundle currentBundle;
@@ -59,26 +55,37 @@ public class CordModelCache extends JsonFactory {
             new TreeMap<Integer, SubscriberUser>();
 
     /**
-     * Constructs a model cache, initializing it with basic bundle.
+     * Constructs a model cache, (retrieving demo subscriber ID),
+     * initializing it with basic bundle, and fetching the list of users.
      */
     CordModelCache() {
+        subscriberId = XosManager.INSTANCE.initDemoSubscriber();
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
-        subscriberId = XosManager.INSTANCE.getSubscriberId();
+        initUsers();
     }
 
-    /**
-     * Used to initialize users for the demo. These are currently fake.
-     */
-    @Deprecated
     private void initUsers() {
-        userMap.put(1, createUser(1, "Mom's MacBook", MAC_1));
-        userMap.put(2, createUser(2, "Dad's iPad", MAC_2));
-        userMap.put(3, createUser(3, "Dick's laptop", MAC_3));
-        userMap.put(4, createUser(4, "Jane's laptop", MAC_4));
+        ArrayNode users = XosManager.INSTANCE.getUserList();
+        for (JsonNode u: users) {
+            ObjectNode user = (ObjectNode) u;
+
+            int id = user.get("id").asInt();
+            String name = user.get("name").asText();
+            String mac = user.get("mac").asText();
+            String level = user.get("level").asText();
+
+            // NOTE: We are just storing the current "url-filter" level.
+            //       Since we are starting with the BASIC bundle, (that does
+            //       not include URL_FILTER), we don't yet have the URL_FILTER
+            //       memento in which to store the level.
+            SubscriberUser su = createUser(id, name, mac, level);
+            userMap.put(id, su);
+        }
     }
 
-    private SubscriberUser createUser(int uid, String name, String mac) {
-        SubscriberUser user = new SubscriberUser(uid, name, mac);
+    private SubscriberUser createUser(int uid, String name, String mac,
+                                      String level) {
+        SubscriberUser user = new SubscriberUser(uid, name, mac, level);
         for (XosFunction f: currentBundle.functions()) {
             user.setMemento(f.descriptor(), f.createMemento());
         }
@@ -108,10 +115,13 @@ public class CordModelCache extends JsonFactory {
             user.clearMementos();
             for (XosFunction f: currentBundle.functions()) {
                 user.setMemento(f.descriptor(), f.createMemento());
+                if (f.descriptor().equals(URL_FILTER)) {
+                    applyUrlFilterLevel(user, user.urlFilterLevel());
+                }
             }
         }
 
-        XosManager.INSTANCE.setNewBundle(subscriberId, currentBundle);
+        XosManager.INSTANCE.setNewBundle(currentBundle);
     }
 
 
@@ -125,7 +135,8 @@ public class CordModelCache extends JsonFactory {
     }
 
     /**
-     * Applies a function parameter change for a user.
+     * Applies a function parameter change for a user, pushing that
+     * change through to XOS.
      *
      * @param userId user identifier
      * @param funcId function identifier
@@ -144,12 +155,25 @@ public class CordModelCache extends JsonFactory {
 
         XosFunction func = currentBundle.findFunction(xfd);
         checkNotNull(func, "function not part of bundle: " + funcId);
-
-        func.applyParam(user, param, value);
-        XosManager.INSTANCE.apply(subscriberId, func, user);
+        applyParam(func, user, param, value, true);
     }
 
     // =============
+
+    private void applyUrlFilterLevel(SubscriberUser user, String level) {
+        XosFunction urlFilter = currentBundle.findFunction(URL_FILTER);
+        if (urlFilter != null) {
+            applyParam(urlFilter, user, LEVEL, level, false);
+        }
+    }
+
+    private void applyParam(XosFunction func, SubscriberUser user,
+                            String param, String value, boolean punchThrough) {
+        func.applyParam(user, param, value);
+        if (punchThrough) {
+            XosManager.INSTANCE.apply(func, user);
+        }
+    }
 
     private ArrayNode userJsonArray() {
         ArrayNode userList = arrayNode();

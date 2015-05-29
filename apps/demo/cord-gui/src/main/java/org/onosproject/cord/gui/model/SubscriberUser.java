@@ -28,6 +28,10 @@ public class SubscriberUser {
     private final String name;
     private final String mac;
 
+    // this is "duplicated" in the URL_FILTER memento, but, oh well...
+    // -- the level, as returned from XOS, when we create this user object.
+    private String level;
+
     private final Map<XosFunctionDescriptor, XosFunction.Memento> mementos =
             new HashMap<XosFunctionDescriptor, XosFunction.Memento>();
 
@@ -37,11 +41,13 @@ public class SubscriberUser {
      * @param id internal identifier
      * @param name display name
      * @param mac MAC address of the associated device
+     * @param level URL filter level
      */
-    public SubscriberUser(int id, String name, String mac) {
+    public SubscriberUser(int id, String name, String mac, String level) {
         this.id = id;
         this.name = name;
         this.mac = mac;
+        this.level = level;
     }
 
     /**
@@ -69,6 +75,24 @@ public class SubscriberUser {
      */
     public String mac() {
         return mac;
+    }
+
+    /**
+     * Returns the URL filter level.
+     *
+     * @return URL filter level
+     */
+    public String urlFilterLevel() {
+        return level;
+    }
+
+    /**
+     * Sets the URL filter level.
+     *
+     * @param level URL filter level
+     */
+    public void setUrlFilterLevel(String level) {
+        this.level = level;
     }
 
     /**
