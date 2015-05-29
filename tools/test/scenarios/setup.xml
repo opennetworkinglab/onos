@@ -16,13 +16,21 @@
 <scenario name="setup" description="ONOS cluster setup">
     <group name="Setup">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+
         <parallel var="${OC#}">
             <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
+
             <step name="Install-${#}" exec="onos-install ${OC#}"
                   requires="Uninstall-${#},Push-Bits"/>
+
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Install-${#}"/>
+
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
+                  requires="-Wait-for-Start-${#}"/>
+            <step name="Check-Components-${#}" exec="onos-check-components ${OC#}"
+                  requires="-Wait-for-Start-${#}"/>
+            <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#}"
                   requires="-Wait-for-Start-${#}"/>
         </parallel>
     </group>

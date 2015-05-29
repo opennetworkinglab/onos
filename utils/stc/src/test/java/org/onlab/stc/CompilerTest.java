@@ -48,9 +48,9 @@ public class CompilerTest {
 
         System.setProperty("prop.foo", "Foobar");
         System.setProperty("prop.bar", "Barfoo");
-        System.setProperty("OC1", "1.2.3.1");
-        System.setProperty("OC2", "1.2.3.2");
-        System.setProperty("OC3", "1.2.3.3");
+        System.setProperty("TOC1", "1.2.3.1");
+        System.setProperty("TOC2", "1.2.3.2");
+        System.setProperty("TOC3", "1.2.3.3");
     }
 
     public static FileInputStream getStream(String name) throws FileNotFoundException {

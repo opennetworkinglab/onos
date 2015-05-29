@@ -38,8 +38,8 @@
 
     <dependency name="maybe" requires="yo"/>
 
-    <parallel var="${OC#}" requires="alpha">
-        <step name="ping-${#}" exec="asdads ${OC#}"/>
+    <parallel var="${TOC#}" requires="alpha">
+        <step name="ping-${#}" exec="asdads ${TOC#}"/>
         <step name="pong-${#}" exec="asdads"/>
         <step name="ding-${#}" exec="asdads" requires="ping-${#},pong-${#}"/>
         <dependency name="maybe" requires="ding-${#}"/>

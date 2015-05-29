@@ -17,6 +17,7 @@
     <group name="Prerequisites">
         <step name="Check-Environment" exec="test -n ${ONOS_ROOT} -a -n ${ONOS_NIC} -a -n ${OC1}"/>
         <step name="Check-ONOS-Bits" exec="onos-check-bits"/>
+
         <parallel var="${OC#}">
             <step name="Check-Passwordless-Login-${#}"
                   exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no sdn@${OC#} date"/>
