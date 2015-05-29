@@ -61,6 +61,22 @@ public final class DefaultPortStatistics implements PortStatistics {
         this.durationNano = durationNano;
     }
 
+    // Constructor for serializer
+    private DefaultPortStatistics() {
+        this.deviceId = null;
+        this.port = 0;
+        this.packetsReceived = 0;
+        this.packetsSent = 0;
+        this.bytesReceived = 0;
+        this.bytesSent = 0;
+        this.packetsRxDropped = 0;
+        this.packetsTxDropped = 0;
+        this.packetsRxErrors = 0;
+        this.packetsTxErrors = 0;
+        this.durationSec = 0;
+        this.durationNano = 0;
+    }
+
     /**
      * Creates a builder for DefaultPortStatistics object.
      *

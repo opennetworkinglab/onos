@@ -55,6 +55,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.consistent.impl.DatabaseManager;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -157,13 +158,17 @@ public class GossipDeviceStoreTest {
 
         clusterCommunicator = createNiceMock(ClusterCommunicationService.class);
         clusterCommunicator.addSubscriber(anyObject(MessageSubject.class),
-                                    anyObject(ClusterMessageHandler.class), anyObject(ExecutorService.class));
+                                          anyObject(ClusterMessageHandler.class), anyObject(ExecutorService.class));
         expectLastCall().anyTimes();
         replay(clusterCommunicator);
         ClusterService clusterService = new TestClusterService();
 
         testGossipDeviceStore = new TestGossipDeviceStore(deviceClockService, clusterService, clusterCommunicator);
         testGossipDeviceStore.mastershipService = new TestMastershipService();
+
+        TestDatabaseManager testDatabaseManager = new TestDatabaseManager();
+        testDatabaseManager.init(clusterService, clusterCommunicator);
+        testGossipDeviceStore.storageService = testDatabaseManager;
 
         gossipDeviceStore = testGossipDeviceStore;
         gossipDeviceStore.activate();
@@ -883,6 +888,14 @@ public class GossipDeviceStoreTest {
 
             nodes.put(NID2, ONOS2);
             nodeStates.put(NID2, ACTIVE);
+        }
+    }
+
+    private class TestDatabaseManager extends DatabaseManager {
+        void init(ClusterService clusterService,
+                  ClusterCommunicationService clusterCommunicator) {
+            this.clusterService = clusterService;
+            this.clusterCommunicator = clusterCommunicator;
         }
     }
 }

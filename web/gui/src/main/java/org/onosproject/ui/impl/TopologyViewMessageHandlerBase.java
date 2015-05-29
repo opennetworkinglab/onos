@@ -850,7 +850,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             if (load != null) {
                 this.hasTraffic = hasTraffic || load.rate() > threshold;
                 this.bytes += load.latest();
-                this.rate = load.rate();
+                this.rate += load.rate();
             }
         }
 

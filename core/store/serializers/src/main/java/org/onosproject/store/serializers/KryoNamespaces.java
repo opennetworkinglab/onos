@@ -71,9 +71,11 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -380,7 +382,9 @@ public final class KryoNamespaces {
                     IntentOperation.class,
                     FlowRuleExtPayLoad.class,
                     Frequency.class,
-                    DefaultAnnotations.class
+                    DefaultAnnotations.class,
+                    PortStatistics.class,
+                    DefaultPortStatistics.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)

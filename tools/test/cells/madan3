@@ -1,0 +1,7 @@
+# Madan's ProxMox ONOS instances 1,2,3 & ONOS mininet box
+
+export ONOS_NIC="10.128.4.*"
+export OC1="10.128.4.2"
+export OC2="10.128.4.3"
+export OC3="10.128.4.4"
+export OCN="10.128.4.5"
