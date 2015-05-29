@@ -303,7 +303,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         public void event(MastershipEvent event) {
             switch (event.type()) {
                 case MASTER_CHANGED:
-                    log.info("mastership changed on device {}", event.subject());
+                    log.debug("mastership changed on device {}", event.subject());
                     if (deviceService.isAvailable(event.subject())) {
                         setupPipelineHandler(event.subject());
                     }
@@ -323,10 +323,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
-                    log.info("Device either added or availability changed {}",
+                    log.debug("Device either added or availability changed {}",
                              event.subject().id());
                     if (deviceService.isAvailable(event.subject().id())) {
-                        log.info("Device is now available {}", event.subject().id());
+                        log.debug("Device is now available {}", event.subject().id());
                         setupPipelineHandler(event.subject().id());
                     }
                     break;
