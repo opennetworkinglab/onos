@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
@@ -28,7 +30,11 @@ import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.PartitionEvent;
+import org.onosproject.net.intent.PartitionEventListener;
 import org.onosproject.net.intent.PartitionService;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
@@ -55,14 +61,24 @@ public class SimpleClusterStore
 
     private final DateTime creationTime = DateTime.now();
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
+
+    private ListenerRegistry<PartitionEvent, PartitionEventListener> listenerRegistry;
+
     @Activate
     public void activate() {
         instance = new DefaultControllerNode(new NodeId("local"), LOCALHOST);
+
+        listenerRegistry = new ListenerRegistry<>();
+        eventDispatcher.addSink(PartitionEvent.class, listenerRegistry);
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(PartitionEvent.class);
         log.info("Stopped");
     }
 
@@ -109,5 +125,15 @@ public class SimpleClusterStore
     @Override
     public NodeId getLeader(Key intentKey) {
         return instance.id();
+    }
+
+    @Override
+    public void addListener(PartitionEventListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(PartitionEventListener listener) {
+        listenerRegistry.removeListener(listener);
     }
 }

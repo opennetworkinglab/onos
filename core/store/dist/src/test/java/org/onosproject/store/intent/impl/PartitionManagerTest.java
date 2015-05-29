@@ -28,6 +28,7 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.intent.Key;
 
 import java.util.HashMap;
@@ -86,6 +87,7 @@ public class PartitionManagerTest {
 
         partitionManager.clusterService = new TestClusterService();
         partitionManager.leadershipService = leadershipService;
+        partitionManager.eventDispatcher = new TestEventDispatcher();
     }
 
     /**

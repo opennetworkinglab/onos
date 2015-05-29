@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.Event;
@@ -38,8 +39,12 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.PartitionEvent;
+import org.onosproject.net.intent.PartitionEventListener;
+import org.onosproject.net.intent.PartitionService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.link.LinkResourceEvent;
 import org.onosproject.net.resource.link.LinkResourceListener;
@@ -54,6 +59,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -94,18 +103,27 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+               policy = ReferencePolicy.DYNAMIC)
     protected IntentService intentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PartitionService partitionService;
 
     private ExecutorService executorService =
             newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker"));
+    private ScheduledExecutorService executor = Executors
+            .newScheduledThreadPool(1);
 
     private TopologyListener listener = new InternalTopologyListener();
     private LinkResourceListener linkResourceListener =
             new InternalLinkResourceListener();
     private DeviceListener deviceListener = new InternalDeviceListener();
     private HostListener hostListener = new InternalHostListener();
+    private PartitionEventListener partitionListener = new InternalPartitionListener();
     private TopologyChangeDelegate delegate;
+
+    protected final AtomicBoolean updateScheduled = new AtomicBoolean(false);
 
     @Activate
     public void activate() {
@@ -113,6 +131,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         resourceManager.addListener(linkResourceListener);
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
+        partitionService.addListener(partitionListener);
         log.info("Started");
     }
 
@@ -122,6 +141,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         resourceManager.removeListener(linkResourceListener);
         deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
+        partitionService.removeListener(partitionListener);
         log.info("Stopped");
     }
 
@@ -268,7 +288,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private void updateTrackedResources(ApplicationId appId, boolean track) {
         if (intentService == null) {
-            log.debug("Intent service is not bound yet");
+            log.warn("Intent service is not bound yet");
             return;
         }
         intentService.getIntents().forEach(intent -> {
@@ -340,6 +360,54 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             HostEvent.Type type = event.type();
             boolean available = (type == HostEvent.Type.HOST_ADDED);
             executorService.execute(new DeviceAvailabilityHandler(id, available));
+        }
+    }
+
+    protected void doIntentUpdate() {
+        updateScheduled.set(false);
+        if (intentService == null) {
+            log.warn("Intent service is not bound yet");
+            return;
+        }
+        try {
+            //FIXME very inefficient
+            for (Intent intent : intentService.getIntents()) {
+                try {
+                    if (intentService.isLocal(intent.key())) {
+                        log.warn("intent {}, old: {}, new: {}",
+                                 intent.key(), intentsByDevice.values().contains(intent.key()), true);
+                        addTrackedResources(intent.key(), intent.resources());
+                        intentService.getInstallableIntents(intent.key()).stream()
+                                .forEach(installable ->
+                                                 addTrackedResources(intent.key(), installable.resources()));
+                    } else {
+                        log.warn("intent {}, old: {}, new: {}",
+                                 intent.key(), intentsByDevice.values().contains(intent.key()), false);
+                        removeTrackedResources(intent.key(), intent.resources());
+                        intentService.getInstallableIntents(intent.key()).stream()
+                                .forEach(installable ->
+                                                 removeTrackedResources(intent.key(), installable.resources()));
+                    }
+                } catch (NullPointerException npe) {
+                    log.warn("intent error {}", intent.key(), npe);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Exception caught during update task", e);
+        }
+    }
+
+    private void scheduleIntentUpdate(int afterDelaySec) {
+        if (updateScheduled.compareAndSet(false, true)) {
+            executor.schedule(this::doIntentUpdate, afterDelaySec, TimeUnit.SECONDS);
+        }
+    }
+
+    private final class InternalPartitionListener implements PartitionEventListener {
+        @Override
+        public void event(PartitionEvent event) {
+            log.warn("got message {}", event.subject());
+            scheduleIntentUpdate(1);
         }
     }
 }

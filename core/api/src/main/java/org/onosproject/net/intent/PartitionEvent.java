@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cluster;
+package org.onosproject.net.intent;
 
-import org.onosproject.event.EventListener;
+import org.onosproject.event.AbstractEvent;
 
 /**
- * Entity capable of receiving device leadership-related events.
+ * Partition event.
  */
-public interface LeadershipEventListener extends EventListener<LeadershipEvent> {
+//TODO change String into a proper object type
+public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, String> {
+
+    public enum Type {
+        LEADER_CHANGED
+    }
+
+    public PartitionEvent(Type type, String partition) {
+        super(type, partition);
+    }
 }

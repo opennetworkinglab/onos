@@ -40,4 +40,18 @@ public interface PartitionService {
     NodeId getLeader(Key intentKey);
 
     // TODO add API for rebalancing partitions
+
+    /**
+     * Registers a event listener to be notified of partition events.
+     *
+     * @param listener listener that will asynchronously notified of partition events.
+     */
+    void addListener(PartitionEventListener listener);
+
+    /**
+     * Unregisters a event listener for partition events.
+     *
+     * @param listener listener to be removed.
+     */
+    void removeListener(PartitionEventListener listener);
 }

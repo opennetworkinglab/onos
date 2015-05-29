@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cluster;
+package org.onosproject.net.intent;
 
 import org.onosproject.event.EventListener;
 
 /**
- * Entity capable of receiving device leadership-related events.
+ * Entity capable of receiving device partition-related events.
  */
-public interface LeadershipEventListener extends EventListener<LeadershipEvent> {
+public interface PartitionEventListener extends EventListener<PartitionEvent> {
 }
