@@ -15,9 +15,12 @@
  */
 package org.onosproject.rest;
 
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.ws.rs.core.MediaType;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -30,11 +33,13 @@ import org.onlab.packet.MacAddress;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -51,12 +56,15 @@ import org.onosproject.net.flow.instructions.Instructions;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyShort;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.containsString;
@@ -72,6 +80,8 @@ import static org.junit.Assert.fail;
  */
 public class FlowsResourceTest extends ResourceTest {
     final FlowRuleService mockFlowService = createMock(FlowRuleService.class);
+    CoreService mockCoreService = createMock(CoreService.class);
+
     final HashMap<DeviceId, Set<FlowEntry>> rules = new HashMap<>();
 
     final DeviceService mockDeviceService = createMock(DeviceService.class);
@@ -245,6 +255,11 @@ public class FlowsResourceTest extends ResourceTest {
         expect(mockDeviceService.getDevices())
                 .andReturn(ImmutableSet.of(device1, device2));
 
+        // Mock Core Service
+        expect(mockCoreService.getAppId(anyShort()))
+                .andReturn(NetTestTools.APP_ID).anyTimes();
+        replay(mockCoreService);
+
         // Register the services needed for the test
         final CodecManager codecService =  new CodecManager();
         codecService.activate();
@@ -252,7 +267,8 @@ public class FlowsResourceTest extends ResourceTest {
                 new TestServiceDirectory()
                         .add(FlowRuleService.class, mockFlowService)
                         .add(DeviceService.class, mockDeviceService)
-                        .add(CodecService.class, codecService);
+                        .add(CodecService.class, codecService)
+                        .add(CoreService.class, mockCoreService);
 
         BaseResource.setServiceDirectory(testDirectory);
     }
@@ -263,6 +279,7 @@ public class FlowsResourceTest extends ResourceTest {
     @After
     public void tearDownTest() {
         verify(mockFlowService);
+        verify(mockCoreService);
     }
 
     /**
@@ -541,5 +558,28 @@ public class FlowsResourceTest extends ResourceTest {
             assertThat(ex.getMessage(),
                     containsString("returned a response status of"));
         }
+    }
+
+    /**
+     * Tests creating a flow with POST.
+     */
+    @Test
+    public void testPost() {
+        String json = "{\"appId\":2,\"priority\":1,\"isPermanent\":true,"
+        + "\"deviceId\":\"of:0000000000000001\","
+        + "\"treatment\":{\"instructions\":[ {\"type\":\"OUTPUT\",\"port\":2}]},"
+        + "\"selector\":{\"criteria\":[ {\"type\":\"ETH_TYPE\",\"ethType\":2054}]}}";
+
+        mockFlowService.applyFlowRules(anyObject());
+        expectLastCall();
+        replay(mockFlowService);
+
+        WebResource rs = resource();
+
+
+        ClientResponse response = rs.path("flows/")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, json);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_ACCEPTED));
     }
 }

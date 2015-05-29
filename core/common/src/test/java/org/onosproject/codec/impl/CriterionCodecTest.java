@@ -72,8 +72,10 @@ public class CriterionCodecTest {
      */
     @Test
     public void checkCriterionTypes() throws Exception {
+        EncodeCriterionCodec encoder = new EncodeCriterionCodec(
+                Criteria.dummy(), context);
         EnumMap<Criterion.Type, Object> formatMap =
-                getField(criterionCodec, "formatMap");
+                getField(encoder, "formatMap");
         assertThat(formatMap, notNullValue());
 
         for (Criterion.Type type : Criterion.Type.values()) {

@@ -15,11 +15,15 @@
  */
 package org.onosproject.codec.impl;
 
+import java.util.stream.IntStream;
+
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -29,12 +33,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Traffic treatment codec.
  */
 public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
+    private static final String INSTRUCTIONS = "instructions";
+
     @Override
     public ObjectNode encode(TrafficTreatment treatment, CodecContext context) {
         checkNotNull(treatment, "Traffic treatment cannot be null");
 
         final ObjectNode result = context.mapper().createObjectNode();
-        final ArrayNode jsonInstructions = result.putArray("instructions");
+        final ArrayNode jsonInstructions = result.putArray(INSTRUCTIONS);
 
         final JsonCodec<Instruction> instructionCodec =
                 context.codec(Instruction.class);
@@ -50,5 +56,21 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
         }
 
         return result;
+    }
+
+    @Override
+    public TrafficTreatment decode(ObjectNode json, CodecContext context) {
+        final JsonCodec<Instruction> instructionsCodec =
+                context.codec(Instruction.class);
+
+        JsonNode instructionsJson = json.get(INSTRUCTIONS);
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
+        if (instructionsJson != null) {
+            IntStream.range(0, instructionsJson.size())
+                    .forEach(i -> builder.add(
+                            instructionsCodec.decode((ObjectNode) instructionsJson.get(i),
+                                    context)));
+        }
+        return builder.build();
     }
 }

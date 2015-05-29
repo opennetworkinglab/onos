@@ -35,6 +35,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -83,6 +84,7 @@ public class CodecManager implements CodecService {
         registerCodec(Intent.class, new IntentCodec());
         registerCodec(ConnectivityIntent.class, new ConnectivityIntentCodec());
         registerCodec(FlowEntry.class, new FlowEntryCodec());
+        registerCodec(FlowRule.class, new FlowRuleCodec());
         registerCodec(TrafficTreatment.class, new TrafficTreatmentCodec());
         registerCodec(TrafficSelector.class, new TrafficSelectorCodec());
         registerCodec(Instruction.class, new InstructionCodec());

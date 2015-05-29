@@ -38,6 +38,8 @@ public class ImmutableCodecsTest {
         assertThatClassIsImmutable(ConnectPointCodec.class);
         assertThatClassIsImmutable(ConstraintCodec.class);
         assertThatClassIsImmutable(CriterionCodec.class);
+        assertThatClassIsImmutable(EncodeCriterionCodec.class);
+        assertThatClassIsImmutable(DecodeCriterionCodec.class);
         assertThatClassIsImmutable(DeviceCodec.class);
         assertThatClassIsImmutable(EthernetCodec.class);
         assertThatClassIsImmutable(FlowEntryCodec.class);
@@ -45,6 +47,8 @@ public class ImmutableCodecsTest {
         assertThatClassIsImmutable(HostLocationCodec.class);
         assertThatClassIsImmutable(HostToHostIntentCodec.class);
         assertThatClassIsImmutable(InstructionCodec.class);
+        assertThatClassIsImmutable(EncodeInstructionCodec.class);
+        assertThatClassIsImmutable(DecodeInstructionCodec.class);
         assertThatClassIsImmutable(IntentCodec.class);
         assertThatClassIsImmutable(LinkCodec.class);
         assertThatClassIsImmutable(PathCodec.class);
@@ -54,5 +58,6 @@ public class ImmutableCodecsTest {
         assertThatClassIsImmutable(TopologyCodec.class);
         assertThatClassIsImmutable(TrafficSelectorCodec.class);
         assertThatClassIsImmutable(TrafficTreatmentCodec.class);
+        assertThatClassIsImmutable(FlowRuleCodec.class);
     }
 }

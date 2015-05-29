@@ -15,11 +15,15 @@
  */
 package org.onosproject.codec.impl;
 
+import java.util.stream.IntStream;
+
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -29,12 +33,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Traffic selector codec.
  */
 public final class TrafficSelectorCodec extends JsonCodec<TrafficSelector> {
+    private static final String CRITERIA = "criteria";
+
     @Override
     public ObjectNode encode(TrafficSelector selector, CodecContext context) {
         checkNotNull(selector, "Traffic selector cannot be null");
 
         final ObjectNode result = context.mapper().createObjectNode();
-        final ArrayNode jsonCriteria = result.putArray("criteria");
+        final ArrayNode jsonCriteria = result.putArray(CRITERIA);
 
         if (selector.criteria() != null) {
             final JsonCodec<Criterion> criterionCodec =
@@ -45,5 +51,21 @@ public final class TrafficSelectorCodec extends JsonCodec<TrafficSelector> {
         }
 
         return result;
+    }
+
+    @Override
+    public TrafficSelector decode(ObjectNode json, CodecContext context) {
+        final JsonCodec<Criterion> criterionCodec =
+                context.codec(Criterion.class);
+
+        JsonNode criteriaJson = json.get(CRITERIA);
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+        if (criteriaJson != null) {
+            IntStream.range(0, criteriaJson.size())
+                    .forEach(i -> builder.add(
+                            criterionCodec.decode((ObjectNode) criteriaJson.get(i),
+                                    context)));
+        }
+        return builder.build();
     }
 }

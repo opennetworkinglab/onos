@@ -15,22 +15,29 @@
  */
 package org.onosproject.rest.resources;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.util.ItemNotFoundException;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.rest.AbstractWebResource;
+import java.io.IOException;
+import java.io.InputStream;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.onlab.util.ItemNotFoundException;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.rest.AbstractWebResource;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * REST resource for interacting with the inventory of flows.
@@ -113,4 +120,27 @@ public class FlowsWebResource extends AbstractWebResource {
         }
         return ok(root).build();
     }
+
+    /**
+     * Creates a flow rule from a POST of a JSON string and attempts to apply it.
+     *
+     * @param stream input JSON
+     * @return status of the request - ACCEPTED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createFlow(InputStream stream) {
+        try {
+            FlowRuleService service = get(FlowRuleService.class);
+            ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            FlowRule rule = codec(FlowRule.class).decode(root, this);
+            service.applyFlowRules(rule);
+        } catch (IOException ex) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
 }

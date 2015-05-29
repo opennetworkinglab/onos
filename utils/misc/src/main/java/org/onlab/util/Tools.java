@@ -123,7 +123,7 @@ public abstract class Tools {
     }
 
     /**
-     * Returns the specified item if that items is null; otherwise throws
+     * Returns the specified item if that item is not null; otherwise throws
      * not found exception.
      *
      * @param item    item to check
@@ -135,6 +135,23 @@ public abstract class Tools {
     public static <T> T nullIsNotFound(T item, String message) {
         if (item == null) {
             throw new ItemNotFoundException(message);
+        }
+        return item;
+    }
+
+    /**
+     * Returns the specified item if that item is not null; otherwise throws
+     * bad argument exception.
+     *
+     * @param item    item to check
+     * @param message not found message
+     * @param <T>     item type
+     * @return item if not null
+     * @throws IllegalArgumentException if item is null
+     */
+    public static <T> T nullIsIllegal(T item, String message) {
+        if (item == null) {
+            throw new IllegalArgumentException(message);
         }
         return item;
     }

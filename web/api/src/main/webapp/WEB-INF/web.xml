@@ -61,6 +61,7 @@
                 org.onosproject.rest.exceptions.ServerErrorMapper,
                 org.onosproject.rest.exceptions.BadRequestMapper,
                 org.onosproject.rest.exceptions.WebApplicationExceptionMapper,
+                org.onosproject.rest.exceptions.IllegalArgumentExceptionMapper,
                 org.onosproject.rest.resources.JsonBodyWriter,
 
                 org.onosproject.rest.resources.ApplicationsWebResource,

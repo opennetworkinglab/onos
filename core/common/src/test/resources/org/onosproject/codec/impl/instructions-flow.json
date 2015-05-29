@@ -1,0 +1,35 @@
+{
+  "appId":-29467,
+  "priority":1,
+  "isPermanent":"false",
+  "timeout":1,
+  "deviceId":"of:0000000000000001",
+  "treatment":
+  {
+      "instructions":
+      [
+        {"type":"OUTPUT","port":-3},
+        {"type":"DROP"},
+        {"type":"L2MODIFICATION","subtype":"ETH_SRC","mac":"12:34:56:78:90:12"},
+        {"type":"L2MODIFICATION","subtype":"ETH_DST","mac":"98:76:54:32:01:00"},
+        {"type":"L2MODIFICATION","subtype":"VLAN_ID","vlanId":22},
+        {"type":"L2MODIFICATION","subtype":"VLAN_PCP","vlanPcp":1},
+        {"type":"L2MODIFICATION","subtype":"MPLS_LABEL","label":777},
+        {"type":"L2MODIFICATION","subtype":"MPLS_PUSH"},
+        {"type":"L2MODIFICATION","subtype":"MPLS_POP"},
+        {"type":"L2MODIFICATION","subtype":"DEC_MPLS_TTL"},
+        {"type":"L2MODIFICATION","subtype":"VLAN_POP"},
+        {"type":"L2MODIFICATION","subtype":"VLAN_PUSH"},
+        {"type":"L3MODIFICATION","subtype":"IPV4_SRC", "ip":"1.2.3.4"},
+        {"type":"L3MODIFICATION","subtype":"IPV4_DST", "ip":"1.2.3.3"},
+        {"type":"L3MODIFICATION","subtype":"IPV6_SRC", "ip":"1.2.3.2"},
+        {"type":"L3MODIFICATION","subtype":"IPV6_DST", "ip":"1.2.3.1"},
+        {"type":"L3MODIFICATION","subtype":"IPV6_FLABEL", "flowLabel":8},
+        {"type":"L0MODIFICATION","subtype":"LAMBDA","lambda":7},
+        {"type":"L0MODIFICATION","subtype":"OCH","gridType":"DWDM",
+          "channelSpacing":"CHL_100GHZ","spacingMultiplier":4,"slotGranularity":8}
+      ],
+      "deferred":[]
+  },
+  "selector": {"criteria":[{"type":"ETH_TYPE","ethType":2054}]}
+}

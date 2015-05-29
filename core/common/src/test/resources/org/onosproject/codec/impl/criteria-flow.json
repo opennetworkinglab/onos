@@ -1,0 +1,44 @@
+{
+  "appId":-29467,
+  "priority":1,
+  "isPermanent":"false",
+  "timeout":1,
+  "deviceId":"of:0000000000000001",
+  "selector":
+      {"criteria":
+          [
+            {"type":"IN_PORT", "port":23},
+            {"type":"IN_PHY_PORT", "port":44},
+            {"type":"METADATA", "metadata":123456},
+            {"type":"ETH_TYPE","ethType":2054},
+            {"type":"ETH_SRC","mac":"00:11:22:33:44:55"},
+            {"type":"ETH_DST","mac":"00:11:22:33:44:55"},
+            {"type":"VLAN_VID","vlanId":777},
+            {"type":"VLAN_PCP","priority":3},
+            {"type":"IP_DSCP","ipDscp":2},
+            {"type":"IP_ECN","ipEcn":1},
+            {"type":"IP_PROTO","protocol":4},
+            {"type":"IPV4_SRC", "ip":"1.2.0.0/32"},
+            {"type":"IPV4_DST", "ip":"2.2.0.0/32"},
+            {"type":"IPV6_SRC", "ip":"3.2.0.0/32"},
+            {"type":"IPV6_DST", "ip":"4.2.0.0/32"},
+            {"type":"TCP_SRC", "tcpPort":80},
+            {"type":"TCP_DST", "tcpPort":443},
+            {"type":"UDP_SRC", "udpPort":180},
+            {"type":"UDP_DST", "udpPort":1443},
+            {"type":"SCTP_SRC", "sctpPort":280},
+            {"type":"SCTP_DST", "sctpPort":2443},
+            {"type":"ICMPV4_TYPE", "icmpType":24},
+            {"type":"ICMPV4_CODE", "icmpCode":16},
+            {"type":"ICMPV6_TYPE", "icmpv6Type":14},
+            {"type":"ICMPV6_CODE", "icmpv6Code":6},
+            {"type":"IPV6_FLABEL", "flowLabel":8},
+            {"type":"IPV6_ND_TARGET", "targetAddress":"1111:2222:3333:4444:5555:6666:7777:8888"},
+            {"type":"IPV6_ND_SLL", "mac":"00:11:22:33:44:56"},
+            {"type":"IPV6_ND_TLL", "mac":"00:11:22:33:44:57"},
+            {"type":"MPLS_LABEL", "label":123},
+            {"type":"IPV6_EXTHDR", "exthdrFlags":99},
+            {"type":"OCH_SIGID", "lambda":122}
+          ]
+      }
+}

@@ -1,0 +1,13 @@
+{
+   "appId":-29467,
+   "priority":1,
+   "isPermanent":"false",
+   "timeout":1,
+   "deviceId":"of:0000000000000001",
+   "treatment":
+      {"instructions":
+         [{"type":"OUTPUT","port":-3}],"deferred":[]},
+   "selector":
+      {"criteria":
+         [{"type":"ETH_TYPE","ethType":2054}]}
+}
