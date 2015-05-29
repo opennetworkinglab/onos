@@ -311,6 +311,11 @@ public class DeviceManagerTest {
         }
 
         @Override
+        public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        @Override
         public MastershipTerm getMastershipTerm(DeviceId deviceId) {
             // FIXME: just returning something not null
             return MastershipTerm.of(NID_LOCAL, 1);

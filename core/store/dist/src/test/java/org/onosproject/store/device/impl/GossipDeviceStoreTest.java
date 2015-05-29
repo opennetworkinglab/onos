@@ -37,6 +37,7 @@ import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -62,6 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -853,6 +855,10 @@ public class GossipDeviceStoreTest {
         @Override
         public NodeId getMasterFor(DeviceId deviceId) {
             return NID1;
+        }
+        @Override
+        public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
+            return CompletableFuture.completedFuture(null);
         }
     }
 

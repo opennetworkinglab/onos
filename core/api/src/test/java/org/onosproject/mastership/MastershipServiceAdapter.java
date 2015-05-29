@@ -38,7 +38,8 @@ public class MastershipServiceAdapter implements MastershipService {
     }
 
     @Override
-    public void relinquishMastership(DeviceId deviceId) {
+    public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
+        return null;
     }
 
     @Override

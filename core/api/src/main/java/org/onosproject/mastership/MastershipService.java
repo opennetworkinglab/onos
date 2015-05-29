@@ -55,8 +55,9 @@ public interface MastershipService {
      * for this device, no master selection will occur.
      *
      * @param deviceId the identifier of the device
+     * @return future that is completed when relinquish is complete
      */
-    void relinquishMastership(DeviceId deviceId);
+    CompletableFuture<Void> relinquishMastership(DeviceId deviceId);
 
     /**
      * Returns the current master for a given device.

@@ -16,7 +16,6 @@
 package org.onosproject.net.device.impl;
 
 import com.google.common.collect.Lists;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -411,8 +410,15 @@ public class DeviceManager
                     }
                 });
             } finally {
-                //relinquish master role and ability to be backup.
-                mastershipService.relinquishMastership(deviceId);
+                try {
+                    //relinquish master role and ability to be backup.
+                    mastershipService.relinquishMastership(deviceId).get();
+                } catch (InterruptedException e) {
+                    log.warn("Interrupted while reliquishing role for {}", deviceId);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    log.error("Exception thrown while relinquishing role for {}", deviceId, e);
+                }
             }
         }
 

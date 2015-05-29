@@ -95,12 +95,13 @@ public class MastershipManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MetricsService metricsService;
 
+    private NodeId localNodeId;
     private Timer requestRoleTimer;
 
     @Activate
     public void activate() {
         requestRoleTimer = createTimer("Mastership", "requestRole", "responseTime");
-
+        localNodeId = clusterService.getLocalNode().id();
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
         store.setDelegate(delegate);
         log.info("Started");
@@ -136,11 +137,8 @@ public class MastershipManager
                 return CompletableFuture.completedFuture(null);
         }
 
-        return eventFuture.whenComplete((event, error) -> {
-            if (event != null) {
-                post(event);
-            }
-        }).thenApply(v -> null);
+        return eventFuture.thenAccept(this::post)
+                          .thenApply(v -> null);
     }
 
     @Override
@@ -152,15 +150,11 @@ public class MastershipManager
     }
 
     @Override
-    public void relinquishMastership(DeviceId deviceId) {
+    public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
         checkPermission(Permission.CLUSTER_WRITE);
-
-        store.relinquishRole(clusterService.getLocalNode().id(), deviceId)
-             .whenComplete((event, error) -> {
-                 if (event != null) {
-                     post(event);
-                 }
-             });
+        return store.relinquishRole(localNodeId, deviceId)
+                    .thenAccept(this::post)
+                    .thenApply(v -> null);
     }
 
     @Override

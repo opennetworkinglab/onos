@@ -502,8 +502,8 @@ public class LLDPLinkProviderTest {
         }
 
         @Override
-        public void relinquishMastership(DeviceId deviceId) {
-
+        public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
+            return null;
         }
 
         @Override
