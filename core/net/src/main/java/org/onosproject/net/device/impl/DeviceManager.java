@@ -613,56 +613,66 @@ public class DeviceManager
         }
     }
 
+    private void handleMastershipEvent(MastershipEvent event) {
+        if (event.type() != MastershipEvent.Type.MASTER_CHANGED) {
+            // Don't care if backup list changed.
+            return;
+        }
+
+        final DeviceId did = event.subject();
+
+        // myRole suggested by MastershipService
+        MastershipRole myNextRole;
+        if (localNodeId.equals(event.roleInfo().master())) {
+            // confirm latest info
+            MastershipTerm term = termService.getMastershipTerm(did);
+            final boolean iHaveControl = term != null && localNodeId.equals(term.master());
+            if (iHaveControl) {
+                deviceClockProviderService.setMastershipTerm(did, term);
+                myNextRole = MASTER;
+            } else {
+                myNextRole = STANDBY;
+            }
+        } else if (event.roleInfo().backups().contains(localNodeId)) {
+            myNextRole = STANDBY;
+        } else {
+            myNextRole = NONE;
+        }
+
+
+        final boolean isReachable = isReachable(did);
+        if (!isReachable) {
+            // device is not connected to this node
+            if (myNextRole != NONE) {
+                log.warn("Node was instructed to be {} role for {}, "
+                        + "but this node cannot reach the device.  "
+                        + "Relinquishing role.  ",
+                         myNextRole, did);
+                mastershipService.relinquishMastership(did);
+            }
+            return;
+        }
+
+        // device is connected to this node:
+        if (store.getDevice(did) != null) {
+            reassertRole(did, myNextRole);
+        } else {
+            log.debug("Device is not yet/no longer in the store: {}", did);
+        }
+    }
+
     // Intercepts mastership events
     private class InternalMastershipListener implements MastershipListener {
 
         @Override
         public void event(MastershipEvent event) {
-            if (event.type() != MastershipEvent.Type.MASTER_CHANGED) {
-                // Don't care if backup list changed.
-                return;
-            }
-
-            final DeviceId did = event.subject();
-
-            // myRole suggested by MastershipService
-            MastershipRole myNextRole;
-            if (localNodeId.equals(event.roleInfo().master())) {
-                // confirm latest info
-                MastershipTerm term = termService.getMastershipTerm(did);
-                final boolean iHaveControl = term != null && localNodeId.equals(term.master());
-                if (iHaveControl) {
-                    deviceClockProviderService.setMastershipTerm(did, term);
-                    myNextRole = MASTER;
-                } else {
-                    myNextRole = STANDBY;
+            backgroundService.submit(() -> {
+                try {
+                    handleMastershipEvent(event);
+                } catch (Exception e) {
+                    log.warn("Failed to handle {}", event, e);
                 }
-            } else if (event.roleInfo().backups().contains(localNodeId)) {
-                myNextRole = STANDBY;
-            } else {
-                myNextRole = NONE;
-            }
-
-
-            final boolean isReachable = isReachable(did);
-            if (!isReachable) {
-                // device is not connected to this node
-                if (myNextRole != NONE) {
-                    log.warn("Node was instructed to be {} role for {}, "
-                            + "but this node cannot reach the device.  "
-                            + "Relinquishing role.  ",
-                             myNextRole, did);
-                    mastershipService.relinquishMastership(did);
-                }
-                return;
-            }
-
-            // device is connected to this node:
-            if (store.getDevice(did) != null) {
-                reassertRole(did, myNextRole);
-            } else {
-                log.debug("Device is not yet/no longer in the store: {}", did);
-            }
+            });
         }
     }
 
