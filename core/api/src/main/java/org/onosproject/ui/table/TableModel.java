@@ -246,7 +246,6 @@ public class TableModel {
          * @return self, for chaining
          */
         public Row cell(String columnId, Object value) {
-            checkNotNull(value, "Must supply some value");
             checkId(columnId);
             cells.put(columnId, value);
             return this;

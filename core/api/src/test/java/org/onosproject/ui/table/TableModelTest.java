@@ -112,12 +112,6 @@ public class TableModelTest {
         tm.addRow().cell(ZOO, 2);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void rowNullValue() {
-        tm = new TableModel(FOO, BAR);
-        tm.addRow().cell(FOO, null);
-    }
-
     @Test
     public void simpleRow() {
         tm = new TableModel(FOO, BAR);

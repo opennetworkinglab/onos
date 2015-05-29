@@ -133,7 +133,7 @@
         };
     }
 
-    function resetSortIcons() {
+    function resetSort() {
         if (currCol.div) {
             sortIconAPI.sortNone(currCol.div);
         }
@@ -219,7 +219,7 @@
                 sortIconAPI = is.sortIcons();
 
                 return {
-                    resetSortIcons: resetSortIcons
+                    resetSort: resetSort
                 };
         }]);
 

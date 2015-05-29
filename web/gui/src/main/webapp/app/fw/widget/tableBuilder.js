@@ -63,7 +63,7 @@
 
         function refresh() {
             $log.debug('Refreshing ' + root + ' page');
-            ts.resetSortIcons();
+            ts.resetSort();
             sortCb();
         }
         o.scope.refresh = refresh;
@@ -74,6 +74,7 @@
         // Cleanup on destroyed scope
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
+            ts.resetSort();
         });
 
         sortCb();
