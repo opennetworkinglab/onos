@@ -26,10 +26,10 @@
 
     angular.module('ovGroup', [])
     .controller('OvGroupCtrl',
-        ['$log', '$scope', '$location',
+        ['$log', '$scope', '$location', '$sce',
             'FnService', 'TableBuilderService',
 
-        function (_$log_, _$scope_, _$location_, _fs_, _tbs_) {
+        function (_$log_, _$scope_, _$location_, $sce, _fs_, _tbs_) {
             var params;
             $log = _$log_;
             $scope = _$scope_;
