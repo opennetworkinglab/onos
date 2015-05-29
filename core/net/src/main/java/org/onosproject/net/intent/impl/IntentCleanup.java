@@ -61,6 +61,10 @@ public class IntentCleanup implements Runnable, IntentListener {
     private static final int DEFAULT_PERIOD = 5; //seconds
     private static final int DEFAULT_THRESHOLD = 5; //tries
 
+    @Property(name = "enabled", boolValue = true,
+              label = "Enables/disables the intent cleanup component")
+    private boolean enabled = true;
+
     @Property(name = "period", intValue = DEFAULT_PERIOD,
               label = "Frequency in ms between cleanup runs")
     protected int period = DEFAULT_PERIOD;
@@ -108,40 +112,50 @@ public class IntentCleanup implements Runnable, IntentListener {
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
 
         int newPeriod;
+        boolean newEnabled;
         try {
             String s = get(properties, "period");
             newPeriod = isNullOrEmpty(s) ? period : Integer.parseInt(s.trim());
 
             s = get(properties, "retryThreshold");
-            retryThreshold = isNullOrEmpty(s) ? period : Integer.parseInt(s.trim());
+            retryThreshold = isNullOrEmpty(s) ? retryThreshold : Integer.parseInt(s.trim());
+
+            s = get(properties, "enabled");
+            newEnabled = isNullOrEmpty(s) ? enabled : Boolean.parseBoolean(s.trim());
         } catch (NumberFormatException e) {
             log.warn(e.getMessage());
             newPeriod = period;
+            newEnabled = enabled;
         }
 
         // Any change in the following parameters implies hard restart
-        if (newPeriod != period) {
+        if (newPeriod != period || enabled != newEnabled) {
             period = newPeriod;
+            enabled = newEnabled;
             adjustRate();
         }
 
-        log.info("Settings: period={}", period);
+        log.info("Settings: enabled={}, period={}, retryThreshold={}",
+                 enabled, period, retryThreshold);
     }
 
     protected void adjustRate() {
         if (timerTask != null) {
             timerTask.cancel();
+            timerTask = null;
         }
 
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                executor.submit(IntentCleanup.this);
-            }
-        };
+        if (enabled) {
+            timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    executor.submit(IntentCleanup.this);
+                }
+            };
 
-        periodMs = period * 1_000; //convert to ms
-        timer.scheduleAtFixedRate(timerTask, periodMs, periodMs);
+            periodMs = period * 1_000; //convert to ms
+            timer.scheduleAtFixedRate(timerTask, periodMs, periodMs);
+        }
     }
 
 
@@ -224,7 +238,7 @@ public class IntentCleanup implements Runnable, IntentListener {
     public void event(IntentEvent event) {
         // this is the fast path for CORRUPT intents, retry on event notification.
         //TODO we might consider using the timer to back off for subsequent retries
-        if (event.type() == IntentEvent.Type.CORRUPT) {
+        if (enabled && event.type() == IntentEvent.Type.CORRUPT) {
             Key key = event.subject().key();
             if (store.isMaster(key)) {
                 IntentData data = store.getIntentData(event.subject().key());
