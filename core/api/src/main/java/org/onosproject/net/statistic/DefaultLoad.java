@@ -26,13 +26,14 @@ public class DefaultLoad implements Load {
     private final long current;
     private final long previous;
     private final long time;
+    private final int interval;
 
     /**
      * Indicates the flow statistics poll interval in seconds.
      */
     private static int pollInterval = 10;
 
-     /**
+    /**
      * Creates an invalid load.
      */
     public DefaultLoad() {
@@ -40,18 +41,32 @@ public class DefaultLoad implements Load {
         this.time = System.currentTimeMillis();
         this.current = -1;
         this.previous = -1;
+        this.interval = pollInterval;
     }
 
     /**
      * Creates a load value from the parameters.
-     * @param current the current value
+     *
+     * @param current  the current value
      * @param previous the previous value
      */
     public DefaultLoad(long current, long previous) {
+        this(current, previous, pollInterval);
+    }
+
+    /**
+     * Creates a load value from the parameters.
+     *
+     * @param current  the current value
+     * @param previous the previous value
+     * @param interval poll interval for this load
+     */
+    public DefaultLoad(long current, long previous, int interval) {
         this.current = current;
         this.previous = previous;
         this.time = System.currentTimeMillis();
         this.isValid = true;
+        this.interval = interval;
     }
 
     /**
@@ -66,7 +81,7 @@ public class DefaultLoad implements Load {
 
     @Override
     public long rate() {
-        return (current - previous) / pollInterval;
+        return (current - previous) / interval;
     }
 
     @Override

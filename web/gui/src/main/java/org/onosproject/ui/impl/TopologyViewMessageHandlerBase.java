@@ -27,6 +27,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.AnnotationKeys;
@@ -100,6 +101,7 @@ import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.*;
 
 /**
  * Facility for creating messages bound for the topology viewer.
@@ -123,6 +125,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static final String KB_UNIT = "KB";
     private static final String B_UNIT = "B";
 
+    private static final long BPS_THRESHOLD = 1024;
+
     protected ServiceDirectory directory;
     protected ClusterService clusterService;
     protected DeviceService deviceService;
@@ -131,8 +135,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected MastershipService mastershipService;
     protected IntentService intentService;
     protected FlowRuleService flowService;
-    protected StatisticService statService;
+    protected StatisticService flowStatsService;
+    protected PortStatisticsService portStatsService;
     protected TopologyService topologyService;
+
+    protected enum StatsType {
+        FLOW, PORT
+    }
 
     private String version;
 
@@ -159,7 +168,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         mastershipService = directory.get(MastershipService.class);
         intentService = directory.get(IntentService.class);
         flowService = directory.get(FlowRuleService.class);
-        statService = directory.get(StatisticService.class);
+        flowStatsService = directory.get(StatisticService.class);
+        portStatsService = directory.get(PortStatisticsService.class);
         topologyService = directory.get(TopologyService.class);
 
         String ver = directory.get(CoreService.class).version().toString();
@@ -532,8 +542,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
 
-    // Produces JSON message to trigger traffic overview visualization
-    protected ObjectNode trafficSummaryMessage() {
+    // Produces JSON message to trigger flow traffic overview visualization
+    protected ObjectNode trafficSummaryMessage(StatsType type) {
         ObjectNode payload = objectNode();
         ArrayNode paths = arrayNode();
         payload.set("paths", paths);
@@ -560,11 +570,18 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             boolean bi = link.two != null;
             if (isInfrastructureEgress(link.one) ||
                     (bi && isInfrastructureEgress(link.two))) {
-                link.addLoad(statService.load(link.one));
-                link.addLoad(bi ? statService.load(link.two) : null);
+                if (type == FLOW) {
+                    link.addLoad(flowStatsService.load(link.one));
+                    link.addLoad(bi ? flowStatsService.load(link.two) : null);
+                } else if (type == PORT) {
+                    link.addLoad(portStatsService.load(link.one.src()), BPS_THRESHOLD);
+                    link.addLoad(bi ? portStatsService.load(link.two.src()) : null, BPS_THRESHOLD);
+                }
                 if (link.hasTraffic) {
                     linksNodeT.add(compactLinkString(link.one));
-                    labelsT.add(formatBytes(link.bytes));
+                    labelsT.add(type == PORT ?
+                                        formatBytes(link.rate) + "ps" :
+                                        formatBytes(link.bytes));
                 } else {
                     linksNodeN.add(compactLinkString(link.one));
                     labelsN.add("");
@@ -692,7 +709,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 BiLink biLink = addLink(biLinks, link);
                 if (isInfrastructureEgress(link)) {
                     if (showTraffic) {
-                        biLink.addLoad(statService.load(link));
+                        biLink.addLoad(flowStatsService.load(link));
                     }
                     biLink.addClass(type);
                 }
@@ -727,7 +744,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             for (Link link : links) {
                 if (isInfrastructureEgress(link)) {
                     linksNode.add(compactLinkString(link));
-                    Load load = statService.load(link);
+                    Load load = flowStatsService.load(link);
                     String label = "";
                     if (load.rate() > 0) {
                         hasTraffic = true;
@@ -814,6 +831,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         public long bytes = 0;
 
         private Set<String> classes = new HashSet<>();
+        private long rate;
 
         BiLink(LinkKey key, Link link) {
             this.key = key;
@@ -825,9 +843,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
 
         void addLoad(Load load) {
+            addLoad(load, 0);
+        }
+
+        void addLoad(Load load, long threshold) {
             if (load != null) {
-                this.hasTraffic = hasTraffic || load.rate() > 0;
+                this.hasTraffic = hasTraffic || load.rate() > threshold;
                 this.bytes += load.latest();
+                this.rate = load.rate();
             }
         }
 

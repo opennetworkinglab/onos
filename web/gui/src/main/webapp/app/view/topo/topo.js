@@ -67,7 +67,8 @@
             rightArrow: [tts.showNextIntentAction, 'Show next related intent'],
             leftArrow: [tts.showPrevIntentAction, 'Show previous related intent'],
             W: [tts.showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
-            A: [tts.showAllTrafficAction, 'Monitor all traffic'],
+            A: [tts.showAllFlowTrafficAction, 'Monitor all traffic using flow stats'],
+            Q: [tts.showAllPortTrafficAction, 'Monitor all traffic using port stats'],
             F: [tts.showDeviceLinkFlowsAction, 'Show device link flows'],
 
             E: [equalizeMasters, 'Equalize mastership roles'],

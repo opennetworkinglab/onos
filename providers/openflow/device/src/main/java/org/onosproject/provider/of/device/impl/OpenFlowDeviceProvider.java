@@ -15,14 +15,15 @@
  */
 package org.onosproject.provider.of.device.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.ChassisId;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -50,7 +51,6 @@ import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
-import org.onlab.packet.ChassisId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
@@ -74,8 +74,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-
-import com.google.common.base.Strings;
 
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Port.Type.COPPER;
@@ -204,36 +202,37 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private void pushPortMetrics(Dpid dpid, OFPortStatsReply msg) {
         DeviceId deviceId = DeviceId.deviceId(dpid.uri(dpid));
-
         Collection<PortStatistics> stats = buildPortStatistics(deviceId, msg);
-
         providerService.updatePortStatistics(deviceId, stats);
     }
 
     private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId, OFPortStatsReply msg) {
-
         HashSet<PortStatistics> stats = Sets.newHashSet();
 
         for (OFPortStatsEntry entry: msg.getEntries()) {
-            if (entry.getPortNo().getPortNumber() < 0) {
-                continue;
-            }
-            DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
-            DefaultPortStatistics stat = builder.setDeviceId(deviceId)
-                    .setPort(entry.getPortNo().getPortNumber())
-                    .setPacketsReceived(entry.getRxPackets().getValue())
-                    .setPacketsSent(entry.getTxPackets().getValue())
-                    .setBytesReceived(entry.getRxBytes().getValue())
-                    .setBytesSent(entry.getTxBytes().getValue())
-                    .setPacketsRxDropped(entry.getRxDropped().getValue())
-                    .setPacketsTxDropped(entry.getTxDropped().getValue())
-                    .setPacketsRxErrors(entry.getRxErrors().getValue())
-                    .setPacketsTxErrors(entry.getTxErrors().getValue())
-                    .setDurationSec(entry.getDurationSec())
-                    .setDurationNano(entry.getDurationNsec())
-                    .build();
+            try {
+                if (entry.getPortNo().getPortNumber() < 0) {
+                    continue;
+                }
+                DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+                DefaultPortStatistics stat = builder.setDeviceId(deviceId)
+                        .setPort(entry.getPortNo().getPortNumber())
+                        .setPacketsReceived(entry.getRxPackets().getValue())
+                        .setPacketsSent(entry.getTxPackets().getValue())
+                        .setBytesReceived(entry.getRxBytes().getValue())
+                        .setBytesSent(entry.getTxBytes().getValue())
+                        .setPacketsRxDropped(entry.getRxDropped().getValue())
+                        .setPacketsTxDropped(entry.getTxDropped().getValue())
+                        .setPacketsRxErrors(entry.getRxErrors().getValue())
+                        .setPacketsTxErrors(entry.getTxErrors().getValue())
+                        .setDurationSec(entry.getVersion() == OFVersion.OF_10 ? 0 : entry.getDurationSec())
+                        .setDurationNano(entry.getVersion() == OFVersion.OF_10 ? 0 : entry.getDurationNsec())
+                        .build();
 
-            stats.add(stat);
+                stats.add(stat);
+            } catch (Exception e) {
+                LOG.warn("Unable to process port stats", e);
+            }
         }
 
         return Collections.unmodifiableSet(stats);

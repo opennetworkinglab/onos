@@ -150,10 +150,17 @@
     }
 
     // keystroke-A (see topo.js)
-    function showAllTrafficAction() {
+    function showAllFlowTrafficAction() {
         hoverMode = hoverModeAll;
-        wss.sendEvent('requestAllTraffic');
-        flash.flash('All Traffic');
+        wss.sendEvent('requestAllFlowTraffic');
+        flash.flash('All Flow Traffic');
+    }
+
+    // keystroke-A (see topo.js)
+    function showAllPortTrafficAction() {
+        hoverMode = hoverModeAll;
+        wss.sendEvent('requestAllPortTraffic');
+        flash.flash('All Port Traffic');
     }
 
     // === -----------------------------
@@ -228,7 +235,8 @@
                 showNextIntentAction: showNextIntentAction,
                 showPrevIntentAction: showPrevIntentAction,
                 showSelectedIntentTrafficAction: showSelectedIntentTrafficAction,
-                showAllTrafficAction: showAllTrafficAction
+                showAllFlowTrafficAction: showAllFlowTrafficAction,
+                showAllPortTrafficAction: showAllPortTrafficAction
             };
         }]);
 }());

@@ -92,7 +92,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String REQ_NEXT_INTENT = "requestNextRelatedIntent";
     private static final String REQ_PREV_INTENT = "requestPrevRelatedIntent";
     private static final String REQ_SEL_INTENT_TRAFFIC = "requestSelectedIntentTraffic";
-    private static final String REQ_ALL_TRAFFIC = "requestAllTraffic";
+    private static final String REQ_ALL_FLOW_TRAFFIC = "requestAllFlowTraffic";
+    private static final String REQ_ALL_PORT_TRAFFIC = "requestAllPortTraffic";
     private static final String REQ_DEV_LINK_FLOWS = "requestDeviceLinkFlows";
     private static final String CANCEL_TRAFFIC = "cancelTraffic";
     private static final String REQ_SUMMARY = "requestSummary";
@@ -187,7 +188,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new ReqNextIntent(),
                 new ReqPrevIntent(),
                 new ReqSelectedIntentTraffic(),
-                new ReqAllTraffic(),
+                new ReqAllFlowTraffic(),
+                new ReqAllPortTraffic(),
                 new ReqDevLinkFlows(),
                 new CancelTraffic()
         );
@@ -453,23 +455,33 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            trafficEvent =
-                    new TrafficEvent(TrafficEvent.Type.SEL_INTENT, payload);
+            trafficEvent = new TrafficEvent(TrafficEvent.Type.SEL_INTENT, payload);
             requestSelectedIntentTraffic();
             startTrafficMonitoring();
         }
     }
 
-    private final class ReqAllTraffic extends RequestHandler {
-        private ReqAllTraffic() {
-            super(REQ_ALL_TRAFFIC);
+    private final class ReqAllFlowTraffic extends RequestHandler {
+        private ReqAllFlowTraffic() {
+            super(REQ_ALL_FLOW_TRAFFIC);
         }
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            trafficEvent =
-                    new TrafficEvent(TrafficEvent.Type.ALL_TRAFFIC, payload);
-            requestAllTraffic();
+            trafficEvent = new TrafficEvent(TrafficEvent.Type.ALL_FLOW_TRAFFIC, payload);
+            requestAllFlowTraffic();
+        }
+    }
+
+    private final class ReqAllPortTraffic extends RequestHandler {
+        private ReqAllPortTraffic() {
+            super(REQ_ALL_PORT_TRAFFIC);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            trafficEvent = new TrafficEvent(TrafficEvent.Type.ALL_PORT_TRAFFIC, payload);
+            requestAllPortTraffic();
         }
     }
 
@@ -480,8 +492,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            trafficEvent =
-                    new TrafficEvent(TrafficEvent.Type.DEV_LINK_FLOWS, payload);
+            trafficEvent = new TrafficEvent(TrafficEvent.Type.DEV_LINK_FLOWS, payload);
             requestDeviceLinkFlows(payload);
         }
     }
@@ -615,10 +626,16 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    // Subscribes for host traffic messages.
-    private synchronized void requestAllTraffic() {
+    // Subscribes for flow traffic messages.
+    private synchronized void requestAllFlowTraffic() {
         startTrafficMonitoring();
-        sendMessage(trafficSummaryMessage());
+        sendMessage(trafficSummaryMessage(StatsType.FLOW));
+    }
+
+    // Subscribes for port traffic messages.
+    private synchronized void requestAllPortTraffic() {
+        startTrafficMonitoring();
+        sendMessage(trafficSummaryMessage(StatsType.PORT));
     }
 
     private void requestDeviceLinkFlows(ObjectNode payload) {
@@ -822,7 +839,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     // encapsulate
     private static class TrafficEvent {
         enum Type {
-            ALL_TRAFFIC, DEV_LINK_FLOWS, SEL_INTENT
+            ALL_FLOW_TRAFFIC, ALL_PORT_TRAFFIC, DEV_LINK_FLOWS, SEL_INTENT
         }
 
         private final Type type;
@@ -841,8 +858,11 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             try {
                 if (trafficEvent != null) {
                     switch (trafficEvent.type) {
-                        case ALL_TRAFFIC:
-                            requestAllTraffic();
+                        case ALL_FLOW_TRAFFIC:
+                            requestAllFlowTraffic();
+                            break;
+                        case ALL_PORT_TRAFFIC:
+                            requestAllPortTraffic();
                             break;
                         case DEV_LINK_FLOWS:
                             requestDeviceLinkFlows(trafficEvent.payload);
