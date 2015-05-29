@@ -58,9 +58,12 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
 
 
@@ -92,6 +95,8 @@ public class PacketManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private FlowObjectiveService objectiveService;
 
+    private ExecutorService eventHandlingExecutor;
+
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private final Map<Integer, PacketProcessor> processors = new ConcurrentHashMap<>();
@@ -100,6 +105,8 @@ public class PacketManager
 
     @Activate
     public void activate() {
+        eventHandlingExecutor = Executors.newSingleThreadExecutor(
+                        groupedThreads("onos/net/packet", "event-handler"));
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
@@ -111,6 +118,7 @@ public class PacketManager
     public void deactivate() {
         store.unsetDelegate(delegate);
         deviceService.removeListener(deviceListener);
+        eventHandlingExecutor.shutdown();
         log.info("Stopped");
     }
 
@@ -277,19 +285,25 @@ public class PacketManager
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            Device device = event.subject();
-            switch (event.type()) {
-                case DEVICE_ADDED:
-                case DEVICE_AVAILABILITY_CHANGED:
-                    if (deviceService.isAvailable(event.subject().id())) {
-                        for (PacketRequest request : store.existingRequests()) {
-                            pushRule(device, request);
+            eventHandlingExecutor.execute(() -> {
+                try {
+                    Device device = event.subject();
+                    switch (event.type()) {
+                    case DEVICE_ADDED:
+                    case DEVICE_AVAILABILITY_CHANGED:
+                        if (deviceService.isAvailable(event.subject().id())) {
+                            for (PacketRequest request : store.existingRequests()) {
+                                pushRule(device, request);
+                            }
                         }
+                        break;
+                    default:
+                        break;
                     }
-                    break;
-                default:
-                    break;
-            }
+                } catch (Exception e) {
+                    log.warn("Failed to process {}", event, e);
+                }
+            });
         }
     }
 
