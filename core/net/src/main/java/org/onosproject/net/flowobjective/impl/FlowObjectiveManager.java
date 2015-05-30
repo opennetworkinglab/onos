@@ -142,32 +142,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     }
 
     /**
-     * Hook for binding the optional default driver providers.
-     *
-     * @param service arriving default driver provider service
-     */
-    // Note: For now disabled until we can move to OPTIONAL_UNARY dependency
-    protected void xbindDefaultDriverService(DefaultDriverProviderService service) {
-        log.info("Detected default drivers... going active");
-        defaultDriverService = service;
-        deviceService.getDevices().forEach(device -> setupPipelineHandler(device.id()));
-    }
-
-    /**
-     * Hook for unbinding the optional default driver providers.
-     *
-     * @param service departing default driver provider service
-     */
-    // Note: For now disabled until we can move to OPTIONAL_UNARY dependency
-    protected void xunbindDefaultDriverService(DefaultDriverProviderService service) {
-        log.info("Lost default drivers... going dormant");
-        defaultDriverService = null;
-        pipeliners.clear();
-        driverHandlers.clear();
-    }
-
-
-    /**
      * Task that passes the flow objective down to the driver. The task will
      * make a few attempts to find the appropriate driver, then eventually give
      * up and report an error if no suitable driver could be found.
