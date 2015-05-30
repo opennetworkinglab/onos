@@ -17,6 +17,8 @@ package org.onosproject.net.statistic;
 
 import com.google.common.base.MoreObjects;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Implementation of a load.
  */
@@ -62,6 +64,7 @@ public class DefaultLoad implements Load {
      * @param interval poll interval for this load
      */
     public DefaultLoad(long current, long previous, int interval) {
+        checkArgument(interval > 0, "Interval must be greater than 0");
         this.current = current;
         this.previous = previous;
         this.time = System.currentTimeMillis();

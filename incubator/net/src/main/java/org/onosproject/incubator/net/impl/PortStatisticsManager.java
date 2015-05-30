@@ -46,7 +46,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 @Service
 public class PortStatisticsManager implements PortStatisticsService {
+
     private final Logger log = getLogger(getClass());
+
+    private static final int SECOND = 1_000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -73,9 +76,9 @@ public class PortStatisticsManager implements PortStatisticsService {
     public Load load(ConnectPoint connectPoint) {
         DataPoint c = current.get(connectPoint);
         DataPoint p = previous.get(connectPoint);
-        if (c != null && p != null) {
+        if (c != null && p != null && (c.time > p.time + SECOND)) {
             return new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
-                                   (int) (c.time - p.time) / 1000);
+                                   (int) (c.time - p.time) / SECOND);
         }
         return null;
     }
