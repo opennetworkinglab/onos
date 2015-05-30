@@ -32,8 +32,8 @@ public class DependencyTest extends StepTest {
     @Before
     public void setUp() throws ConfigurationException {
         super.setUp();
-        step1 = new Step("step1", CMD, null);
-        step2 = new Step("step2", CMD, null);
+        step1 = new Step("step1", CMD, null, null, null);
+        step2 = new Step("step2", CMD, null, null, null);
     }
 
     @Test

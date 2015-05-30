@@ -29,22 +29,28 @@ public class Step implements Vertex {
 
     protected final String name;
     protected final String command;
+    protected final String env;
+    protected final String cwd;
     protected final Group group;
 
     /**
      * Creates a new test step.
      *
-     * @param name     step name
-     * @param command  step command to execute
-     * @param group    optional group to which this step belongs
+     * @param name    step name
+     * @param command step command to execute
+     * @param env     path to file to be sourced into the environment
+     * @param cwd     path to current working directory for the step
+     * @param group   optional group to which this step belongs
      */
-    public Step(String name, String command, Group group) {
+    public Step(String name, String command, String env, String cwd, Group group) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.group = group;
 
-        // Set the command; if one is not given default to the enclosing group
-        this.command = command != null ? command :
-                group != null && group.command != null ? group.command : null;
+        // Set the command, environment and cwd
+        // If one is not given use the value from the enclosing group
+        this.command = command != null ? command : group != null && group.command != null ? group.command : null;
+        this.env = env != null ? env : group != null && group.env != null ? group.env : null;
+        this.cwd = cwd != null ? cwd : group != null && group.cwd != null ? group.cwd : null;
     }
 
     /**
@@ -63,6 +69,24 @@ public class Step implements Vertex {
      */
     public String command() {
         return command;
+    }
+
+    /**
+     * Returns the step environment script path.
+     *
+     * @return env script path
+     */
+    public String env() {
+        return env;
+    }
+
+    /**
+     * Returns the step current working directory path.
+     *
+     * @return current working dir path
+     */
+    public String cwd() {
+        return cwd;
     }
 
     /**
@@ -97,6 +121,8 @@ public class Step implements Vertex {
         return MoreObjects.toStringHelper(this)
                 .add("name", name)
                 .add("command", command)
+                .add("env", env)
+                .add("cwd", cwd)
                 .add("group", group)
                 .toString();
     }

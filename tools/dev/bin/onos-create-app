@@ -8,8 +8,10 @@
 
 type=${1:-bundle}
 
+[ $type = app ] && archetype=bundle || archetype=$type
+
 if [ "$1" = "-?" -o "$1" = "-h" -o "$1" = "--help" ]; then
-    echo "usage: $(basename $0) {bundle|ui|cli|api} groupId artifactId version package mvn-options"
+    echo "usage: $(basename $0) {app|bundle|ui|cli|api} groupId artifactId version package mvn-options"
     echo "        All arguments are optional"
     exit 1
 fi
@@ -17,10 +19,16 @@ fi
 otherOptions=""
 [ -n "$1" ] && shift
 [ -n "$1" ] && otherOptions="$otherOptions -DgroupId=$1" && shift
-[ -n "$1" ] && otherOptions="$otherOptions -DartifactId=$1" && shift
+[ -n "$1" ] && otherOptions="$otherOptions -DartifactId=$1" && dir=$1 && shift
 [ -n "$1" ] && otherOptions="$otherOptions -Dversion=$1" && shift
 [ -n "$1" ] && otherOptions="$otherOptions -Dpackage=$1" && shift
 
 mvn archetype:generate -DarchetypeGroupId=org.onosproject \
-    -DarchetypeArtifactId=onos-$type-archetype -DarchetypeVersion=$ONOS_POM_VERSION \
-    $otherOptions "$@"
+    -DarchetypeArtifactId=onos-$archetype-archetype \
+    -DarchetypeVersion=$ONOS_POM_VERSION $otherOptions "$@"
+
+# Patch the pom.xml file to make this an app.
+if [ $type = app -a -d $dir ]; then
+    egrep -v "        (<!--|-->)" $dir/pom.xml > $dir/pom.app.xml
+    mv $dir/pom.app.xml $dir/pom.xml
+fi

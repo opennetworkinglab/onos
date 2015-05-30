@@ -50,6 +50,8 @@ public class Compiler {
     private static final String LOG_DIR = "[@logDir]";
     private static final String NAME = "[@name]";
     private static final String COMMAND = "[@exec]";
+    private static final String ENV = "[@env]";
+    private static final String CWD = "[@cwd]";
     private static final String REQUIRES = "[@requires]";
     private static final String IF = "[@if]";
     private static final String UNLESS = "[@unless]";
@@ -200,11 +202,12 @@ public class Compiler {
     private void processStep(HierarchicalConfiguration cfg,
                              String namespace, Group parentGroup) {
         String name = expand(prefix(cfg.getString(NAME), namespace));
-        String defaultValue = parentGroup != null ? parentGroup.command() : null;
-        String command = expand(cfg.getString(COMMAND, defaultValue));
+        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null));
+        String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
+        String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
 
-        print("step name=%s command=%s", name, command);
-        Step step = new Step(name, command, parentGroup);
+        print("step name=%s command=%s env=%s cwd=%s", name, command, env, cwd);
+        Step step = new Step(name, command, env, cwd, parentGroup);
         registerStep(step, cfg, namespace, parentGroup);
     }
 
@@ -218,11 +221,12 @@ public class Compiler {
     private void processGroup(HierarchicalConfiguration cfg,
                               String namespace, Group parentGroup) {
         String name = expand(prefix(cfg.getString(NAME), namespace));
-        String defaultValue = parentGroup != null ? parentGroup.command() : null;
-        String command = expand(cfg.getString(COMMAND, defaultValue));
+        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null));
+        String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
+        String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
 
-        print("group name=%s command=%s", name, command);
-        Group group = new Group(name, command, parentGroup);
+        print("group name=%s command=%s env=%s cwd=%s", name, command, env, cwd);
+        Group group = new Group(name, command, env, cwd, parentGroup);
         if (registerStep(group, cfg, namespace, parentGroup)) {
             compile(cfg, namespace, group);
         }

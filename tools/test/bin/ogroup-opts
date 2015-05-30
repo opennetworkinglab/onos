@@ -1,14 +1,43 @@
-# tab completion settings for onos-group.
 
-# options available to onos-group
-GOPTS='install kill patch-vm push-keys uninstall'
-
+# Tab completion settings for onos-group.
 function _ogroup-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
-
   if [ $COMP_CWORD -eq 1 ]; then
-    COMPREPLY=( $( compgen -W "$GOPTS help" -- $cur ) )
+    COMPREPLY=( $( compgen -W "install kill patch-vm push-keys uninstall help" -- $cur ) )
   fi
 }
 
 complete -F _ogroup-opts onos-group
+
+
+# Tab completion settings for stc
+function _stc-opts () {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  if [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $( compgen -W "$(cd $ONOS_ROOT/tools/test/scenarios && ls -1 | sed 's/.xml//g')" -- $cur ) )
+  fi
+}
+
+complete -F _stc-opts stc
+
+
+# Tab completion settings for cell
+function _cell-opts () {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  if [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $( compgen -W "$(cd $ONOS_ROOT/tools/test/cells && ls -1)" -- $cur ) )
+  fi
+}
+
+complete -F _cell-opts cell
+
+
+# Tab completion settings for onos-create-app.
+function _ocapp-opts () {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  if [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $( compgen -W "bundle ui cli" -- $cur ) )
+  fi
+}
+
+complete -F _ocapp-opts onos-create-app

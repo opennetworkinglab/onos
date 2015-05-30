@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
+import static java.lang.String.format;
 import static org.onlab.stc.Coordinator.print;
 
 /**
@@ -71,8 +72,8 @@ class StepProcessor implements Runnable {
      * @return exit code
      */
     private int execute() {
-        try (PrintWriter pw = new PrintWriter(logFile(step))) {
-            process = Runtime.getRuntime().exec(launcher + step.command());
+        try (PrintWriter pw = new PrintWriter(logFile())) {
+            process = Runtime.getRuntime().exec(command());
             processOutput(pw);
 
             // Wait for the process to complete and get its exit code.
@@ -87,6 +88,18 @@ class StepProcessor implements Runnable {
             print("Step %s interrupted", step.name());
         }
         return FAIL;
+    }
+
+    /**
+     * Returns ready-to-run command for the step.
+     *
+     * @return command to execute
+     */
+    private String command() {
+        return format("%s %s %s %s", launcher,
+                      step.env() != null ? step.env() : "-",
+                      step.cwd() != null ? step.cwd() : "-",
+                      step.command());
     }
 
     /**
@@ -108,12 +121,11 @@ class StepProcessor implements Runnable {
     }
 
     /**
-     * Returns the log file for the specified step.
+     * Returns the log file for the step output.
      *
-     * @param step test step
      * @return log file
      */
-    private File logFile(Step step) {
+    private File logFile() {
         return new File(logDir, step.name() + ".log");
     }
 

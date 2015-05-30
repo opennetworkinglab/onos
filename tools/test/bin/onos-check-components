@@ -8,4 +8,10 @@ trap "rm -f $aux 2>/dev/null" EXIT
 
 onos ${1:-$OCI} scr:list > $aux
 cat $aux
-grep -q UNSATISFIED $aux && exit 1 || exit 0
+grep -q UNSATISFIED $aux && exit 1
+
+if [ -n "$2" ]; then
+    echo "Searching for ACTIVE $2"
+    egrep "ACTIVE.*$2" $aux || exit 1
+fi
+exit 0

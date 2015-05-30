@@ -3,11 +3,14 @@
 #   System Test Coordinator
 #-------------------------------------------------------------------------------
 
-STC_ROOT=${STC_ROOT:-$(dirname $0)/..}
-cd $STC_ROOT
 VER=1.2.0-SNAPSHOT
+JAR=~/.m2/repository/org/onosproject/onlab-stc/$VER/onlab-stc-$VER.jar
+SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
-PATH=$PWD/bin:$PATH
+scenario=${1:-smoke}
 
-java -jar ~/.m2/repository/org/onosproject/onlab-stc/$VER/onlab-stc-$VER.jar \
-    "${@:-$ONOS_ROOT/tools/test/scenarios/smoke.xml}"
+[ ! -f $scenario ] && scenario=$SCENARIOS/$scenario
+[ ! -f $scenario ] && scenario=$scenario.xml
+[ ! -f $scenario ] && echo "Scenario $scenario file not found" && exit 1
+
+java -jar $JAR $scenario

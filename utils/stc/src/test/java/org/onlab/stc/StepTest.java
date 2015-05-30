@@ -30,26 +30,30 @@ public class StepTest {
 
     protected static final String NAME = "step";
     protected static final String CMD = "command";
+    protected static final String ENV = "environment";
+    protected static final String CWD = "directory";
     protected Group parent;
 
     @Before
     public void setUp() throws ConfigurationException {
-        parent = new Group("parent", null, null);
+        parent = new Group("parent", null, null, null, null);
     }
 
     @Test
     public void basics() {
-        Step step = new Step(NAME, CMD, parent);
+        Step step = new Step(NAME, CMD, ENV, CWD, parent);
         assertEquals("incorrect name", NAME, step.name());
         assertEquals("incorrect command", CMD, step.command());
+        assertEquals("incorrect env", ENV, step.env());
+        assertEquals("incorrect cwd", CWD, step.cwd());
         assertSame("incorrect group", parent, step.group());
     }
 
     @Test
     public void equality() {
-        Step s1 = new Step(NAME, CMD, parent);
-        Step s2 = new Step(NAME, CMD, null);
-        Step s3 = new Step("foo", null, parent);
+        Step s1 = new Step(NAME, CMD, null, null, parent);
+        Step s2 = new Step(NAME, CMD, ENV, CWD, null);
+        Step s3 = new Step("foo", null, null, null, parent);
         new EqualsTester()
                 .addEqualityGroup(s1, s2)
                 .addEqualityGroup(s3)

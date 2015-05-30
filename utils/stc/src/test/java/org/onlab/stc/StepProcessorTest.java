@@ -36,7 +36,7 @@ public class StepProcessorTest {
 
     @BeforeClass
     public static void setUpClass() {
-        StepProcessor.launcher = "";
+        StepProcessor.launcher = "echo";
         DIR.mkdirs();
     }
 
@@ -47,7 +47,7 @@ public class StepProcessorTest {
 
     @Test
     public void executed() {
-        Step step = new Step("foo", "ls /tmp", null);
+        Step step = new Step("foo", "ls /tmp", null, null, null);
         StepProcessor processor = new StepProcessor(step, false, DIR, delegate);
         processor.run();
         assertTrue("should be started", delegate.started);
@@ -59,7 +59,7 @@ public class StepProcessorTest {
 
     @Test
     public void skipped() {
-        Step step = new Step("foo", "ls /tmp", null);
+        Step step = new Step("foo", "ls /tmp", null, null, null);
         StepProcessor processor = new StepProcessor(step, true, DIR, delegate);
         processor.run();
         assertTrue("should be started", delegate.started);

@@ -31,11 +31,13 @@ public class Group extends Step {
      * Creates a new test step.
      *
      * @param name    group name
-     * @param command group default command
+     * @param command default command
+     * @param env     default path to file to be sourced into the environment
+     * @param cwd     default path to current working directory for the step
      * @param group   optional group to which this step belongs
      */
-    public Group(String name, String command, Group group) {
-        super(name, command, group);
+    public Group(String name, String command, String env, String cwd, Group group) {
+        super(name, command, env, cwd, group);
     }
 
     /**

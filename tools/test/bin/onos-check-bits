@@ -6,4 +6,4 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-test -f $ONOS_TAR
+ls -l $ONOS_TAR && cksum $ONOS_TAR
