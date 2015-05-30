@@ -37,7 +37,7 @@ import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
-import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -334,9 +334,9 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatOchSigType implements CriterionTypeFormatter {
         @Override
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
-            final OpticalSignalTypeCriterion opticalSignalTypeCriterion =
-                    (OpticalSignalTypeCriterion) criterion;
-            return root.put("signalType", opticalSignalTypeCriterion.signalType());
+            final OchSignalTypeCriterion ochSignalTypeCriterion =
+                    (OchSignalTypeCriterion) criterion;
+            return root.put("ochSignalType", ochSignalTypeCriterion.signalType().name());
         }
     }
 

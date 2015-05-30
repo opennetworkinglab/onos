@@ -37,7 +37,7 @@ import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
-import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -469,11 +469,11 @@ public final class CriterionJsonMatcher extends
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(OpticalSignalTypeCriterion criterion) {
-        final short signalType = criterion.signalType();
-        final short jsonSignalType = jsonCriterion.get("signalType").shortValue();
-        if (signalType != jsonSignalType) {
-            description.appendText("signal type was " + Short.toString(signalType));
+    private boolean matchCriterion(OchSignalTypeCriterion criterion) {
+        final String signalType = criterion.signalType().name();
+        final String jsonSignalType = jsonCriterion.get("ochSignalType").textValue();
+        if (!signalType.equals(jsonSignalType)) {
+            description.appendText("signal type was " + signalType);
             return false;
         }
         return true;
@@ -575,8 +575,7 @@ public final class CriterionJsonMatcher extends
                 return matchCriterion((LambdaCriterion) criterion);
 
             case OCH_SIGTYPE:
-                return matchCriterion(
-                        (OpticalSignalTypeCriterion) criterion);
+                return matchCriterion((OchSignalTypeCriterion) criterion);
 
             default:
                 // Don't know how to format this type

@@ -26,6 +26,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -416,7 +417,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchOpticalSignalTypeTest() {
-        Criterion criterion = Criteria.matchOpticalSignalType((byte) 250);
+        Criterion criterion = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }

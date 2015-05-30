@@ -31,11 +31,13 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -139,7 +141,7 @@ public class IntentCodecTest extends AbstractIntentTest {
         final TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchIPProtocol((byte) 3)
                 .matchMplsLabel(MplsLabel.mplsLabel(4))
-                .matchOpticalSignalType((short) 5)
+                .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
                 .matchLambda((short) 6)
                 .matchEthDst(MacAddress.BROADCAST)
                 .matchIPDst(IpPrefix.valueOf("1.2.3.4/24"))
