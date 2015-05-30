@@ -374,14 +374,14 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             for (Intent intent : intentService.getIntents()) {
                 try {
                     if (intentService.isLocal(intent.key())) {
-                        log.warn("intent {}, old: {}, new: {}",
+                        log.trace("intent {}, old: {}, new: {}",
                                  intent.key(), intentsByDevice.values().contains(intent.key()), true);
                         addTrackedResources(intent.key(), intent.resources());
                         intentService.getInstallableIntents(intent.key()).stream()
                                 .forEach(installable ->
                                                  addTrackedResources(intent.key(), installable.resources()));
                     } else {
-                        log.warn("intent {}, old: {}, new: {}",
+                        log.trace("intent {}, old: {}, new: {}",
                                  intent.key(), intentsByDevice.values().contains(intent.key()), false);
                         removeTrackedResources(intent.key(), intent.resources());
                         intentService.getInstallableIntents(intent.key()).stream()
@@ -406,7 +406,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private final class InternalPartitionListener implements PartitionEventListener {
         @Override
         public void event(PartitionEvent event) {
-            log.warn("got message {}", event.subject());
+            log.debug("got message {}", event.subject());
             scheduleIntentUpdate(1);
         }
     }
