@@ -15,6 +15,10 @@
  */
 package org.onosproject.provider.pcep.topology.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.pcep.api.PcepDpid.uri;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +31,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
@@ -57,16 +60,13 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcep.api.PcepController;
 import org.onosproject.pcep.api.PcepDpid;
 import org.onosproject.pcep.api.PcepLink;
+import org.onosproject.pcep.api.PcepLink.PortType;
 import org.onosproject.pcep.api.PcepLinkListener;
 import org.onosproject.pcep.api.PcepOperator.OperationType;
 import org.onosproject.pcep.api.PcepSwitch;
 import org.onosproject.pcep.api.PcepSwitchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.pcep.api.PcepDpid.uri;
 
 /**
  * Provider which uses an PCEP controller to detect network infrastructure
@@ -130,7 +130,7 @@ public class PcepTopologyProvider extends AbstractProvider
     }
 
     private List<PortDescription> buildPortDescriptions(List<Long> ports,
-                                                        String portType) {
+                                                        PortType portType) {
         final List<PortDescription> portDescs = new ArrayList<>();
         for (long port : ports) {
             portDescs.add(buildPortDescription(port, portType));
@@ -138,11 +138,11 @@ public class PcepTopologyProvider extends AbstractProvider
         return portDescs;
     }
 
-    private PortDescription buildPortDescription(long port, String portType) {
+    private PortDescription buildPortDescription(long port, PortType portType) {
         final PortNumber portNo = PortNumber.portNumber(port);
         final boolean enabled = true;
         DefaultAnnotations extendedAttributes = DefaultAnnotations.builder()
-                .set("portType", portType).build();
+                .set("portType", String.valueOf(portType)).build();
         return new DefaultPortDescription(portNo, enabled, extendedAttributes);
     }
 
@@ -246,14 +246,22 @@ public class PcepTopologyProvider extends AbstractProvider
             PcepSwitch sw = controller.getSwitch(dpid);
             checkNotNull(sw, "device should not null.");
             // The default device type is switch.
-            Device.Type deviceType = Device.Type.SWITCH;
             ChassisId cId = new ChassisId(dpid.value());
+            Device.Type deviceType = null;
 
-            // Device subType: ROADM,OTN,ROUTER.
-            DefaultAnnotations extendedAttributes = DefaultAnnotations
-                    .builder()
-                    .set("subType", String.valueOf(sw.getDeviceSubType()))
-                    .build();
+            switch (sw.getDeviceType()) {
+            case ROADM:
+                deviceType = Device.Type.ROADM;
+                break;
+            case OTN:
+                deviceType = Device.Type.SWITCH;
+                break;
+            case ROUTER:
+                deviceType = Device.Type.ROUTER;
+                break;
+            default:
+                deviceType = Device.Type.OTHER;
+            }
 
             DeviceDescription description = new DefaultDeviceDescription(
                                                                          devicdId.uri(),
@@ -262,12 +270,7 @@ public class PcepTopologyProvider extends AbstractProvider
                                                                          sw.hardwareDescription(),
                                                                          sw.softwareDescription(),
                                                                          sw.serialNumber(),
-                                                                         cId,
-                                                                         extendedAttributes);
-            NodeId localNode = clusterService.getLocalNode().id();
-            mastershipAdminService.setRole(localNode, devicdId,
-                                           MastershipRole.MASTER);
-            mastershipService.relinquishMastership(devicdId);
+                                                                         cId);
             deviceProviderService.deviceConnected(devicdId, description);
 
         }
@@ -322,19 +325,15 @@ public class PcepTopologyProvider extends AbstractProvider
     @Override
     public void triggerProbe(DeviceId deviceId) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-        // NodeId localNode = clusterService.getLocalNode().id();
-        // mastershipService.setRole(localNode, deviceId, newRole);
-
     }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
         // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 }

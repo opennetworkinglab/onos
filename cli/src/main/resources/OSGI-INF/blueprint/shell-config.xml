@@ -380,6 +380,15 @@
         <command>
             <action class="org.onosproject.cli.net.TunnelQuerySubscriptionCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.TunnelCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.TunnelRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.TunnelUpdateCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="permAppNameCompleter" class="org.onosproject.cli.security.PermissionApplicationNameCompleter"/>

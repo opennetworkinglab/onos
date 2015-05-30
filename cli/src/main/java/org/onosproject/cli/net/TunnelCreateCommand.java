@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.tunnel.cli;
+package org.onosproject.cli.net;
 
 import java.util.Optional;
 
@@ -64,11 +64,11 @@ public class TunnelCreateCommand extends AbstractShellCommand {
     String type = null;
     @Option(name = "-g", aliases = "--groupId",
             description = "Group flow table id which a tunnel match up", required = false, multiValued = false)
-    String groupId = null;
+    String groupId = "0";
 
     @Option(name = "-n", aliases = "--tunnelName",
             description = "The name of tunnels", required = false, multiValued = false)
-    String tunnelName = null;
+    String tunnelName = "onos";
 
     @Option(name = "-b", aliases = "--bandwidth",
             description = "The bandwidth attribute of tunnel", required = false, multiValued = false)

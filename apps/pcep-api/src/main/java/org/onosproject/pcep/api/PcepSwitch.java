@@ -20,7 +20,7 @@ package org.onosproject.pcep.api;
  */
 public interface PcepSwitch extends PcepOperator {
 
-    public static enum SubDeviceType {
+    public static enum DeviceType {
         /* optical device */
         ROADM,
 
@@ -52,7 +52,7 @@ public interface PcepSwitch extends PcepOperator {
      * Gets the sub type of the device.
      * @return the sub type
      */
-    public SubDeviceType getDeviceSubType();
+    public DeviceType getDeviceType();
 
     /**
      * fetch the manufacturer description.

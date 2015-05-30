@@ -48,13 +48,16 @@ public interface PcepLink extends PcepOperator {
     }
 
 
+    public enum PortType {
+        ODU_PORT, OCH_PORT, OMS_PORT
+    }
 
     /**
      * Get the link endpoint port type.
      *
      * @return endpoint port type
      */
-    public String portType();
+    public PortType portType();
 
     /**
      * Get the link sub type,OTS,OPS,PKT_OPTICAL or ODUK.

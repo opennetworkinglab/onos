@@ -78,6 +78,7 @@ public class PcepTunnelProvider extends AbstractProvider
     private static final Logger log = getLogger(PcepTunnelProvider.class);
     private static final long MAX_BANDWIDTH = 99999744;
     private static final long MIN_BANDWIDTH = 64;
+    private static final String BANDWIDTH_UINT = "kbps";
     static final String PROVIDER_ID = "org.onosproject.provider.tunnel.default";
 
     private static final String TUNNLE_NOT_NULL = "Create failed,The given port may be wrong or has been occupied.";
@@ -154,10 +155,11 @@ public class PcepTunnelProvider extends AbstractProvider
     @Override
     public TunnelId tunnelAdded(TunnelDescription tunnel) {
 
-        long bandwidth = Long.parseLong(tunnel.annotations().value("bandWith"));
+        long bandwidth = Long
+                .parseLong(tunnel.annotations().value("bandwidth"));
 
         if (bandwidth < MIN_BANDWIDTH || bandwidth > MAX_BANDWIDTH) {
-            System.out.println("Update failed, invalid bandwidth.");
+            error("Update failed, invalid bandwidth.");
             return null;
         }
 
@@ -175,8 +177,7 @@ public class PcepTunnelProvider extends AbstractProvider
 
         // type
         if (tunnel.type() != Tunnel.Type.VLAN) {
-            System.out
-                    .println("Llegal tunnel type. Only support VLAN tunnel creation.");
+            error("Illegal tunnel type. Only support VLAN tunnel creation.");
             return null;
         }
 
@@ -198,18 +199,17 @@ public class PcepTunnelProvider extends AbstractProvider
         Tunnel tunnelOld = tunnelQueryById(tunnel.id());
         checkNotNull(tunnelOld, "The tunnel id is not exsited.");
         if (tunnelOld.type() != Tunnel.Type.VLAN) {
-            System.out
-                    .println("Llegal tunnel type. Only support VLAN tunnel deletion.");
+            error("Llegal tunnel type. Only support VLAN tunnel deletion.");
             return;
         }
         String pcepTunnelId = getPCEPTunnelKey(tunnel.id());
         checkNotNull(pcepTunnelId, "The tunnel id is not exsited.");
-        if (controller.deleteTunnel(pcepTunnelId)) {
-            log.info("delete tunnel:" + pcepTunnelId + "ok.");
+        if (!controller.deleteTunnel(pcepTunnelId)) {
+            error("Delete tunnel failed, Maybe some devices have been disconnected.");
+            return;
         }
         tunnelMap.remove(pcepTunnelId);
         service.tunnelRemoved(tunnel);
-
     }
 
     @Override
@@ -217,13 +217,13 @@ public class PcepTunnelProvider extends AbstractProvider
 
         Tunnel tunnelOld = tunnelQueryById(tunnel.id());
         if (tunnelOld.type() != Tunnel.Type.VLAN) {
-            System.out
-                    .println("Llegal tunnel type. Only support VLAN tunnel update.");
+            error("Llegal tunnel type. Only support VLAN tunnel update.");
             return;
         }
-        long bandwidth = Long.parseLong(tunnel.annotations().value("bandWith"));
+        long bandwidth = Long
+                .parseLong(tunnel.annotations().value("bandwidth"));
         if (bandwidth < MIN_BANDWIDTH || bandwidth > MAX_BANDWIDTH) {
-            System.out.println("Update failed, invalid bandwidth.");
+            error("Update failed, invalid bandwidth.");
             return;
         }
         String pcepTunnelId = getPCEPTunnelKey(tunnel.id());
@@ -231,11 +231,15 @@ public class PcepTunnelProvider extends AbstractProvider
         checkNotNull(pcepTunnelId, "Invalid tunnel id");
         if (!controller.updateTunnelBandwidth(pcepTunnelId, bandwidth)) {
 
-            System.out.println("Update failed,maybe invalid bandwidth.");
+            error("Update failed,maybe invalid bandwidth.");
             return;
 
         }
         service.tunnelUpdated(tunnel);
+    }
+
+    private void error(String info) {
+        System.err.println(info);
     }
 
     // Short-hand for creating a connection point.
@@ -334,21 +338,12 @@ public class PcepTunnelProvider extends AbstractProvider
                                                     true);
 
         // basic annotations
-        DefaultAnnotations annotations = DefaultAnnotations.builder()
-                .set("bandWith", String.valueOf(pcepTunnel.bandWidth()))
+        DefaultAnnotations annotations = DefaultAnnotations
+                .builder()
                 .set("SLA", String.valueOf(pcepTunnel.getSla()))
+                .set("bandwidth",
+                     String.valueOf(pcepTunnel.bandWidth()) + BANDWIDTH_UINT)
                 .set("index", String.valueOf(pcepTunnel.id())).build();
-
-        // if (path != null) {
-        //
-        // DefaultAnnotations extendAnnotations = DefaultAnnotations.builder()
-        // .set("pathNum", String.valueOf(hopNum))
-        // // .set("path", pathString)
-        // .set("pathType", String.valueOf(pcepTunnel.getPathType()))
-        // .build();
-        // annotations = DefaultAnnotations.merge(annotations,
-        // extendAnnotations);
-        // }
 
         // a VLAN tunnel always carry OCH tunnel, this annotation is the index
         // of a OCH tunnel.
