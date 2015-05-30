@@ -413,10 +413,10 @@ public class CriterionCodecTest {
     }
 
     /**
-     * Tests optical signal type criterion.
+     * Tests Och signal type criterion.
      */
     @Test
-    public void matchOpticalSignalTypeTest() {
+    public void matchOchSignalTypeTest() {
         Criterion criterion = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));

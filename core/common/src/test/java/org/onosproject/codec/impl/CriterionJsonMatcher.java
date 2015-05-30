@@ -464,7 +464,7 @@ public final class CriterionJsonMatcher extends
     }
 
     /**
-     * Matches an optical signal type criterion object.
+     * Matches an Och signal type criterion object.
      *
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
