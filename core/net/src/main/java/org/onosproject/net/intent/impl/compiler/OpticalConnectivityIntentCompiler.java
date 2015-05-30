@@ -265,7 +265,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 if (edge.link().type() != Link.Type.OPTICAL) {
                     return -1;
                 }
-                return edge.link().annotations().value("optical.type").equals("WDM") ? +1 : -1;
+                //return edge.link().annotations().value("optical.type").equals("WDM") ? +1 : -1;
+                return 1;
             }
         };
 

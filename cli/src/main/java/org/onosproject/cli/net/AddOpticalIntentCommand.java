@@ -20,6 +20,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
@@ -27,6 +28,10 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Installs optical connectivity or circuit intents, depending on given port types.
@@ -45,13 +50,37 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
+    private ConnectPoint createConnectPoint(String devicePortString) {
+        String[] splitted = devicePortString.split("/");
+
+        checkArgument(splitted.length == 2,
+                "Connect point must be in \"deviceUri/portNumber\" format");
+
+        DeviceId deviceId = DeviceId.deviceId(splitted[0]);
+
+        DeviceService deviceService = get(DeviceService.class);
+
+        List<Port> ports = deviceService.getPorts(deviceId);
+
+        for (Port port : ports) {
+            if (splitted[1].equals(port.number().name())) {
+                return new ConnectPoint(deviceId, port.number());
+            }
+        }
+
+        return null;
+    }
+
     @Override
     protected void execute() {
         IntentService service = get(IntentService.class);
 
-        ConnectPoint ingress = ConnectPoint.deviceConnectPoint(ingressDeviceString);
+        ConnectPoint ingress = createConnectPoint(ingressDeviceString);
+        ConnectPoint egress = createConnectPoint(egressDeviceString);
 
-        ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
+        if (ingress == null || egress == null) {
+            print("Could not create optical intent");
+        }
 
         DeviceService deviceService = get(DeviceService.class);
         Port srcPort = deviceService.getPort(ingress.deviceId(), ingress.port());

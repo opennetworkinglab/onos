@@ -37,6 +37,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.AnnotationsUtil;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -1007,6 +1008,26 @@ public class GossipDeviceStore
                                  chassisId, annotations);
     }
 
+    private Port buildTypedPort(Device device, PortNumber number, boolean isEnabled,
+                                 PortDescription description, Annotations annotations) {
+        switch (description.type()) {
+            case OMS:
+                OmsPortDescription omsDesc = (OmsPortDescription) description;
+                return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
+                        omsDesc.maxFrequency(), omsDesc.grid(), annotations);
+            case OCH:
+                OchPortDescription ochDesc = (OchPortDescription) description;
+                return new OchPort(device, number, isEnabled, ochDesc.signalType(),
+                        ochDesc.isTunable(), ochDesc.lambda(), annotations);
+            case ODUCLT:
+                OduCltPortDescription oduDesc = (OduCltPortDescription) description;
+                return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);
+            default:
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                        description.portSpeed(), annotations);
+        }
+    }
+
     /**
      * Returns a Port, merging description given from multiple Providers.
      *
@@ -1048,25 +1069,7 @@ public class GossipDeviceStore
                 }
                 annotations = merge(annotations, otherPortDesc.value().annotations());
                 PortDescription other = otherPortDesc.value();
-                switch (other.type()) {
-                    case OMS:
-                        OmsPortDescription omsPortDesc = (OmsPortDescription) otherPortDesc.value();
-                        updated = new OmsPort(device, number, isEnabled, omsPortDesc.minFrequency(),
-                                              omsPortDesc.maxFrequency(), omsPortDesc.grid(), annotations);
-                        break;
-                    case OCH:
-                        OchPortDescription ochPortDesc = (OchPortDescription) otherPortDesc.value();
-                        updated = new OchPort(device, number, isEnabled, ochPortDesc.signalType(),
-                                              ochPortDesc.isTunable(), ochPortDesc.lambda(), annotations);
-                        break;
-                    case ODUCLT:
-                        OduCltPortDescription oduCltPortDesc = (OduCltPortDescription) otherPortDesc.value();
-                        updated = new OduCltPort(device, number, isEnabled, oduCltPortDesc.signalType(), annotations);
-                        break;
-                    default:
-                        updated = new DefaultPort(
-                                device, number, isEnabled, other.type(), other.portSpeed(), annotations);
-                }
+                updated = buildTypedPort(device, number, isEnabled, other, annotations);
                 newest = otherPortDesc.timestamp();
             }
         }
@@ -1075,7 +1078,7 @@ public class GossipDeviceStore
         }
         PortDescription current = portDesc.value();
         return updated == null
-                ? new DefaultPort(device, number, isEnabled, current.type(), current.portSpeed(), annotations)
+                ? buildTypedPort(device, number, isEnabled, current, annotations)
                 : updated;
     }
 

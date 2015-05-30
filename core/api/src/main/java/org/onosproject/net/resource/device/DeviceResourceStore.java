@@ -22,10 +22,17 @@ import org.onosproject.net.intent.IntentId;
 import java.util.Set;
 
 public interface DeviceResourceStore {
+    /**
+     * Returns unallocated ports on the given device.
+     *
+     * @param deviceId device ID
+     * @return set of unallocated ports
+     */
     Set<Port> getFreePorts(DeviceId deviceId);
 
     /**
      * Allocates the given ports to the given intent.
+     *
      * @param ports set of ports to allocate
      * @param intentId intent ID
      * @return true if allocation was successful, false otherwise

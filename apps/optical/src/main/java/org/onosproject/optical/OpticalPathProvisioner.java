@@ -206,7 +206,6 @@ public class OpticalPathProvisioner {
                 src = p2pIntent.ingressPoint();
                 dst = p2pIntent.egressPoint();
             } else {
-                log.error("Unsupported intent type: {}", intent.getClass());
                 return;
             }
 
