@@ -16,6 +16,7 @@
 package org.onosproject.provider.of.device.impl;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -63,6 +64,7 @@ import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.PortSpeed;
@@ -200,16 +202,17 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.info("Accepting mastership role change for device {}", deviceId);
     }
 
-    private void pushPortMetrics(Dpid dpid, OFPortStatsReply msg) {
+    private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
         DeviceId deviceId = DeviceId.deviceId(dpid.uri(dpid));
-        Collection<PortStatistics> stats = buildPortStatistics(deviceId, msg);
+        Collection<PortStatistics> stats = buildPortStatistics(deviceId, portStatsEntries);
         providerService.updatePortStatistics(deviceId, stats);
     }
 
-    private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId, OFPortStatsReply msg) {
+    private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId,
+                                                           List<OFPortStatsEntry> entries) {
         HashSet<PortStatistics> stats = Sets.newHashSet();
 
-        for (OFPortStatsEntry entry: msg.getEntries()) {
+        for (OFPortStatsEntry entry : entries) {
             try {
                 if (entry.getPortNo().getPortNumber() < 0) {
                     continue;
@@ -240,6 +243,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     private class InternalDeviceProvider implements OpenFlowSwitchListener, OpenFlowEventListener {
+
+        private List<OFPortStatsEntry> portStatsReplies = Lists.newArrayList();
+
         @Override
         public void switchAdded(Dpid dpid) {
             if (providerService == null) {
@@ -442,7 +448,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             switch (msg.getType()) {
                 case STATS_REPLY:
                     if (((OFStatsReply) msg).getStatsType() == OFStatsType.PORT) {
-                        pushPortMetrics(dpid, (OFPortStatsReply) msg);
+                        OFPortStatsReply portStatsReply = (OFPortStatsReply) msg;
+                        portStatsReplies.addAll(portStatsReply.getEntries());
+                        if (!portStatsReply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+                            pushPortMetrics(dpid, portStatsReplies);
+                            portStatsReplies.clear();
+                        }
                     }
                     break;
                 default:
