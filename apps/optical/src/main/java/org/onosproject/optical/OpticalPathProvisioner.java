@@ -140,7 +140,6 @@ public class OpticalPathProvisioner {
                 case INSTALL_REQ:
                     break;
                 case INSTALLED:
-                    // track h2h & p2p intents using our connectivity
                     break;
                 case FAILED:
                     log.info("Intent {} failed, calling optical path provisioning app.", event.subject());
@@ -407,8 +406,10 @@ public class OpticalPathProvisioner {
             if (intent instanceof OpticalConnectivityIntent) {
                 deviceResourceService.releasePorts(intent.id());
                 linkResourceService.releaseResources(linkResourceService.getAllocations(intent.id()));
+            } else if (intent instanceof  OpticalCircuitIntent) {
+                deviceResourceService.releasePorts(intent.id());
+                deviceResourceService.releaseMapping(intent.id());
             }
-            // TODO: add other layers
         }
     }
 

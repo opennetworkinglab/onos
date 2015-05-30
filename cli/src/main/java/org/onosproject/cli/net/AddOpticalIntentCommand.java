@@ -18,13 +18,18 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 
 /**
- * Installs optical connectivity intents.
+ * Installs optical connectivity or circuit intents, depending on given port types.
  */
 @Command(scope = "onos", name = "add-optical-intent",
          description = "Installs optical connectivity intent")
@@ -48,14 +53,33 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
 
         ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
 
-        // FIXME: Hardcoded ODU signal type
-        Intent intent = OpticalConnectivityIntent.builder()
-                .appId(appId())
-                .key(key())
-                .src(ingress)
-                .dst(egress)
-                .signalType(OduSignalType.ODU4)
-                .build();
+        DeviceService deviceService = get(DeviceService.class);
+        Port srcPort = deviceService.getPort(ingress.deviceId(), ingress.port());
+        Port dstPort = deviceService.getPort(egress.deviceId(), egress.port());
+
+        Intent intent;
+        // FIXME: Hardcoded signal types
+        if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
+            intent = OpticalCircuitIntent.builder()
+                    .appId(appId())
+                    .key(key())
+                    .src(ingress)
+                    .dst(egress)
+                    .signalType(OduCltPort.SignalType.CLT_10GBE)
+                    .build();
+        } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
+            intent = OpticalConnectivityIntent.builder()
+                    .appId(appId())
+                    .key(key())
+                    .src(ingress)
+                    .dst(egress)
+                    .signalType(OduSignalType.ODU4)
+                    .build();
+        } else {
+            print("Unable to create optical intent between connect points {} and {}", ingress, egress);
+            return;
+        }
+
         service.submit(intent);
         print("Optical intent submitted:\n%s", intent.toString());
     }

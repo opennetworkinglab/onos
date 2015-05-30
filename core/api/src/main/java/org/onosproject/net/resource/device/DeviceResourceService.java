@@ -67,7 +67,12 @@ public interface DeviceResourceService {
      */
     Set<IntentId> getMapping(IntentId intentId);
 
-    void releaseMapping(IntentId keyIntentId, IntentId valIntentId);
+    /**
+     * Release mapping of given intent.
+     *
+     * @param intentId intent ID
+     */
+    void releaseMapping(IntentId intentId);
 
     /**
      * Release ports associated with given intent ID.

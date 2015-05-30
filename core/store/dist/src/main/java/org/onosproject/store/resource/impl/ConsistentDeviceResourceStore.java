@@ -168,21 +168,6 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     }
 
     @Override
-    public void releaseMapping(IntentId keyIntentId, IntentId valIntentId) {
-        if (!intentMapping.containsKey(keyIntentId)) {
-            return;
-        }
-
-        Set<IntentId> intents = intentMapping.get(keyIntentId).value();
-
-        try {
-            intents.remove(valIntentId);
-        } catch (Exception e) {
-            log.error("Trying to remove non-existing mapping {} {}", keyIntentId, valIntentId);
-        }
-    }
-
-    @Override
     public boolean allocateMapping(IntentId keyIntentId, IntentId valIntentId) {
         Set<IntentId> intents = intentMapping.get(keyIntentId).value();
 
@@ -195,6 +180,17 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
         intentMapping.put(keyIntentId, intents);
 
         return true;
+    }
+
+    @Override
+    public void releaseMapping(IntentId intentId) {
+        for (IntentId intent : intentMapping.keySet()) {
+            // TODO: optimize by checking for identical src & dst
+            Set<IntentId> mapping = intentMapping.get(intent).value();
+            if (mapping.remove(intentId)) {
+                return;
+            }
+        }
     }
 
     @Override

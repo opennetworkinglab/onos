@@ -73,8 +73,8 @@ public class DeviceResourceManager implements DeviceResourceService {
     }
 
     @Override
-    public void releaseMapping(IntentId keyIntentId, IntentId valIntentId) {
-        store.releaseMapping(keyIntentId, valIntentId);
+    public void releaseMapping(IntentId intentId) {
+        store.releaseMapping(intentId);
     }
 
     @Override

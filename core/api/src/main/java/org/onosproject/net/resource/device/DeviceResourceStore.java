@@ -66,12 +66,11 @@ public interface DeviceResourceStore {
     Set<IntentId> getMapping(IntentId intentId);
 
     /**
-     * Releases the mapping between the given intents.
+     * Releases the mapping of the given intent.
      *
-     * @param keyIntentId key intent ID
-     * @param valIntentId value intent ID
+     * @param intentId intent ID
      */
-    void releaseMapping(IntentId keyIntentId, IntentId valIntentId);
+    void releaseMapping(IntentId intentId);
 
     /**
      * Releases the ports allocated to the given intent.
