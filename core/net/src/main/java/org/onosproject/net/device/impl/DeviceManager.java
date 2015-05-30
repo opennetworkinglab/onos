@@ -479,7 +479,7 @@ public class DeviceManager
 
             // FIXME: implement response to this notification
 
-            log.info("got reply to a role request for {}: asked for {}, and got {}",
+            log.debug("got reply to a role request for {}: asked for {}, and got {}",
                      deviceId, requested, response);
 
             if (requested == null && response == null) {
@@ -596,16 +596,18 @@ public class DeviceManager
                 post(devEvent);
             }
             // TODO: should apply role only if there is mismatch
-            log.info("Applying role {} to {}", myNextRole, did);
+            log.debug("Applying role {} to {}", myNextRole, did);
             if (!applyRoleAndProbe(did, MASTER)) {
+                log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
                 // immediately failed to apply role
                 mastershipService.relinquishMastership(did);
                 // FIXME disconnect?
             }
             break;
         case STANDBY:
-            log.info("Applying role {} to {}", myNextRole, did);
+            log.debug("Applying role {} to {}", myNextRole, did);
             if (!applyRoleAndProbe(did, STANDBY)) {
+                log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
                 // immediately failed to apply role
                 mastershipService.relinquishMastership(did);
                 // FIXME disconnect?

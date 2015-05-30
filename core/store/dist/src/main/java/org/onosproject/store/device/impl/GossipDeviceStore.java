@@ -322,7 +322,7 @@ public class GossipDeviceStore
             }
 
             if (deviceEvent != null) {
-                log.info("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
+                log.debug("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
                          providerId, deviceId);
                 notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
             }
@@ -452,7 +452,7 @@ public class GossipDeviceStore
         final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
         final DeviceEvent event = markOfflineInternal(deviceId, timestamp);
         if (event != null) {
-            log.info("Notifying peers of a device offline topology event for deviceId: {} {}",
+            log.debug("Notifying peers of a device offline topology event for deviceId: {} {}",
                      deviceId, timestamp);
             notifyPeers(new InternalDeviceOfflineEvent(deviceId, timestamp));
         }
@@ -572,7 +572,7 @@ public class GossipDeviceStore
             }
 
             if (!deviceEvents.isEmpty()) {
-                log.info("Notifying peers of a ports update topology event for providerId: {} and deviceId: {}",
+                log.debug("Notifying peers of a ports update topology event for providerId: {} and deviceId: {}",
                          providerId, deviceId);
                 notifyPeers(new InternalPortEvent(providerId, deviceId, merged));
             }
@@ -766,7 +766,7 @@ public class GossipDeviceStore
                     .getPortDesc(portDescription.portNumber());
         }
         if (event != null) {
-            log.info("Notifying peers of a port status update topology event for providerId: {} and deviceId: {}",
+            log.debug("Notifying peers of a port status update topology event for providerId: {} and deviceId: {}",
                      providerId, deviceId);
             notifyPeers(new InternalPortStatusEvent(providerId, deviceId, mergedDesc));
         }

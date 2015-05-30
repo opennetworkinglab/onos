@@ -119,7 +119,7 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
         long prev = lastPrinted.get();
         if (now - prev > STATS_INTERVAL) {
             if (lastPrinted.compareAndSet(prev, now)) {
-                log.warn("queue size: {} jobs, submitted: {} jobs/s, taken: {} jobs/s",
+                log.debug("queue size: {} jobs, submitted: {} jobs/s, taken: {} jobs/s",
                          getQueue().size(),
                          submitted.throughput(), taken.throughput());
                 submitted.reset();

@@ -69,7 +69,7 @@ public class DeviceClockManager implements DeviceClockService, DeviceClockProvid
 
     @Override
     public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
-        log.info("adding term info {} {}", deviceId, term.master());
+        log.debug("adding term info {} {}", deviceId, term.master());
         deviceMastershipTerms.put(deviceId, term);
     }
 

@@ -274,7 +274,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     public void setRole(RoleState role) {
         try {
             if (this.roleMan.sendRoleRequest(role, RoleRecvStatus.MATCHED_SET_ROLE)) {
-                log.info("Sending role {} to switch {}", role, getStringId());
+                log.debug("Sending role {} to switch {}", role, getStringId());
                 if (role == RoleState.SLAVE || role == RoleState.EQUAL) {
                     this.role = role;
                 }

@@ -317,7 +317,7 @@ public class GossipLinkStore
             }
 
             if (linkEvent != null) {
-                log.info("Notifying peers of a link update topology event from providerId: "
+                log.debug("Notifying peers of a link update topology event from providerId: "
                                 + "{}  between src: {} and dst: {}",
                         providerId, linkDescription.src(), linkDescription.dst());
                 notifyPeers(new InternalLinkEvent(providerId, mergedDesc));
@@ -475,7 +475,7 @@ public class GossipLinkStore
         LinkEvent event = removeLinkInternal(key, timestamp);
 
         if (event != null) {
-            log.info("Notifying peers of a link removed topology event for a link "
+            log.debug("Notifying peers of a link removed topology event for a link "
                     + "between src: {} and dst: {}", src, dst);
             notifyPeers(new InternalLinkRemovedEvent(key, timestamp));
         }
