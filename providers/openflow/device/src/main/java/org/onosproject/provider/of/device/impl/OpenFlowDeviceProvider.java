@@ -158,7 +158,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Override
     public void triggerProbe(DeviceId deviceId) {
-        LOG.info("Triggering probe on device {}", deviceId);
+        LOG.debug("Triggering probe on device {}", deviceId);
 
         final Dpid dpid = dpid(deviceId.uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
@@ -199,7 +199,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 LOG.error("Unknown Mastership state : {}", newRole);
 
         }
-        LOG.info("Accepting mastership role change for device {}", deviceId);
+        LOG.debug("Accepting mastership role change for device {}", deviceId);
     }
 
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {

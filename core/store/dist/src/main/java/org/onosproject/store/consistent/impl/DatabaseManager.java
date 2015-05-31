@@ -31,7 +31,6 @@ import net.kuujo.copycat.cluster.internal.coordinator.DefaultClusterCoordinator;
 import net.kuujo.copycat.log.BufferedLog;
 import net.kuujo.copycat.log.FileLog;
 import net.kuujo.copycat.log.Log;
-import net.kuujo.copycat.netty.NettyTcpProtocol;
 import net.kuujo.copycat.protocol.Consistency;
 import net.kuujo.copycat.protocol.Protocol;
 import net.kuujo.copycat.util.concurrent.NamedThreadFactory;
@@ -231,19 +230,6 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                 .stream()
                 .map(DatabaseManager::toPartitionInfo)
                 .collect(Collectors.toList());
-    }
-
-    @SuppressWarnings("unused")
-    private Protocol newNettyProtocol() {
-        return new NettyTcpProtocol()
-            .withSsl(false)
-            .withConnectTimeout(60000)
-            .withAcceptBacklog(1024)
-            .withTrafficClass(-1)
-            .withSoLinger(-1)
-            .withReceiveBufferSize(32768)
-            .withSendBufferSize(8192)
-            .withThreads(1);
     }
 
     private Log newPersistentLog() {
