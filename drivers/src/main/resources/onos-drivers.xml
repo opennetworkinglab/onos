@@ -62,6 +62,11 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
     </driver>
+    <driver name="pmc-olt" extends="default"
+            manufacturer="Big Switch Networks" hwVersion="ivs 0.5" swVersion="ivs 0.5">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OLTPipeline"/>
+    </driver>
     <!--  The SoftRouter driver is meant to be used by any software/NPU based
        ~  switch that wishes to implement a simple 2-table router. To use this
        ~  driver, configure ONOS with the dpid of the device, or extend the
