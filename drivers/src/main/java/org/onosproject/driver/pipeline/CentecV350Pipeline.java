@@ -14,6 +14,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
@@ -78,7 +79,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
     protected static final int ROUTE_TABLE = 3;
 
     private static final long DEFAULT_METADATA = 100;
-    private static final long DEFAULT_METADATA_MASK = 0xff;
+    private static final long DEFAULT_METADATA_MASK = 0xffffffffffffffffL;
 
     // Priority used in PORT_VLAN Table, the only priority accepted is PORT_VLAN_TABLE_PRIORITY.
     // The packet passed PORT+VLAN check will goto FILTER Table.
@@ -424,8 +425,22 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
                         .forTable(PORT_VLAN_TABLE).build();
                 ops = install ? ops.add(rule) : ops.remove(rule);
             } else if (c.type() == Criterion.Type.IPV4_DST) {
-                // TODO: not needed now? Why not?
-                fail(filt, ObjectiveError.UNSUPPORTED);
+                IPCriterion ipaddr = (IPCriterion) c;
+                log.debug("adding IP filtering rules in FILTER table: {}", ipaddr.ip());
+                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+                selector.matchEthType(Ethernet.TYPE_IPV4);
+                selector.matchIPDst(ipaddr.ip()); // router IPs to the controller
+                treatment.setOutput(PortNumber.CONTROLLER);
+                FlowRule rule = DefaultFlowRule.builder()
+                        .forDevice(deviceId)
+                        .withSelector(selector.build())
+                        .withTreatment(treatment.build())
+                        .withPriority(FILTER_TABLE_CONTROLLER_PRIORITY)
+                        .fromApp(applicationId)
+                        .makePermanent()
+                        .forTable(FILTER_TABLE).build();
+                ops =  install ? ops.add(rule) : ops.remove(rule);
             } else {
                 log.warn("Driver does not currently process filtering condition"
                         + " of type: {}", c.type());

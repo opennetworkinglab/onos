@@ -437,6 +437,7 @@ public class FlowRuleManager
             for (FlowEntry rule : storedRules) {
                 try {
                     // there are rules in the store that aren't on the switch
+                    log.debug("Adding rule in store, but not on switch {}", rule);
                     flowMissing(rule);
                 } catch (Exception e) {
                     log.debug("Can't add missing flow rule {}", e.getMessage());

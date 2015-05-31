@@ -260,7 +260,8 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         selector.matchVlanId(v.vlanId());
         selector.matchEthDst(e.mac());
         selector.matchEthType(Ethernet.TYPE_IPV4);
-        treatment.transition(FIB_TABLE);
+        treatment.popVlan();
+        treatment.transition(FIB_TABLE); // all other IPs to the FIB table
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector.build())
@@ -272,11 +273,14 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         ops =  ops.add(rule);
 
         for (IPCriterion ipaddr : ips) {
-            log.debug("adding IP filtering rules in FIB table: {}", ipaddr.ip());
+            log.debug("adding IP filtering rules in FILTER table: {}", ipaddr.ip());
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
+            selector.matchInPort(p.port());
+            selector.matchVlanId(v.vlanId());
+            selector.matchEthDst(e.mac());
             selector.matchEthType(Ethernet.TYPE_IPV4);
-            selector.matchIPDst(ipaddr.ip());
+            selector.matchIPDst(ipaddr.ip()); // router IPs to the controller
             treatment.setOutput(PortNumber.CONTROLLER);
             rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)
@@ -285,7 +289,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                     .withPriority(HIGHEST_PRIORITY)
                     .fromApp(applicationId)
                     .makePermanent()
-                    .forTable(FIB_TABLE).build();
+                    .forTable(FILTER_TABLE).build();
             ops =  ops.add(rule);
         }
 
@@ -474,8 +478,9 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
      */
     private void processSimpleNextObjective(NextObjective nextObj) {
         // Simple next objective has a single treatment (not a collection)
+        TrafficTreatment treatment = nextObj.next().iterator().next();
         flowObjectiveStore.putNextGroup(nextObj.id(),
-                                        new DummyGroup(nextObj.next().iterator().next()));
+                                        new DummyGroup(treatment));
     }
 
     private class Filter {

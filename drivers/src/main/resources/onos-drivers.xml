@@ -82,5 +82,8 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.PicaPipeline"/>
     </driver>
+    <driver name="noviflow" extends="softrouter"
+            manufacturer="NoviFlow Inc" hwVersion="NS1132" swVersion="NW250.4.4">
+    </driver>
 </drivers>
 
