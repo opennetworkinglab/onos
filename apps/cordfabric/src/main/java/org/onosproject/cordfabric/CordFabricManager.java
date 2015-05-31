@@ -104,42 +104,14 @@ public class CordFabricManager implements FabricService {
     private void setupDefaultFlows() {
         TrafficSelector toControllerOF = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpDst(openflowPort)
-                .build();
-
-        TrafficSelector fromControllerOF = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpSrc(openflowPort)
-                .build();
-
-        TrafficSelector toRadius = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchInPort(oltConnectPoint.port())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(radiusPort)
                 .build();
-
-        TrafficSelector fromRadius = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchInPort(radiusConnectPoint.port())
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(radiusPort)
-                .build();
-
 
         TrafficTreatment forwardToController = DefaultTrafficTreatment.builder()
-                .setOutput(oltControllerConnectPoint.port())
+                .punt()
                 .build();
 
-        TrafficTreatment forwardToOLT = DefaultTrafficTreatment.builder()
-                .setOutput(oltConnectPoint.port())
-                .build();
-
-        TrafficTreatment forwardToRadius = DefaultTrafficTreatment.builder()
-                .setOutput(radiusConnectPoint.port())
-                .build();
 
 
         ForwardingObjective ofToController = DefaultForwardingObjective.builder()
@@ -151,37 +123,8 @@ public class CordFabricManager implements FabricService {
                 .withTreatment(forwardToController)
                 .add();
 
-        ForwardingObjective ofFromController = DefaultForwardingObjective.builder()
-                .fromApp(appId)
-                .makePermanent()
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(PRIORITY)
-                .withSelector(fromControllerOF)
-                .withTreatment(forwardToOLT)
-                .add();
-
-        ForwardingObjective gotoRadius = DefaultForwardingObjective.builder()
-                .fromApp(appId)
-                .makePermanent()
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(PRIORITY)
-                .withSelector(toRadius)
-                .withTreatment(forwardToRadius)
-                .add();
-
-        ForwardingObjective cameFromRadius = DefaultForwardingObjective.builder()
-                .fromApp(appId)
-                .makePermanent()
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(PRIORITY)
-                .withSelector(fromRadius)
-                .withTreatment(forwardToOLT)
-                .add();
 
         flowObjectiveService.forward(fabricDeviceId, ofToController);
-        flowObjectiveService.forward(fabricDeviceId, ofFromController);
-        flowObjectiveService.forward(fabricDeviceId, gotoRadius);
-        flowObjectiveService.forward(fabricDeviceId, cameFromRadius);
     }
 
     @Override
