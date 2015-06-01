@@ -1,9 +1,11 @@
+# Options read by onos-group for help message formatting and sanity checks.
+GOPTS='install kill patch-vm push-keys uninstall'
 
 # Tab completion settings for onos-group.
 function _ogroup-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
   if [ $COMP_CWORD -eq 1 ]; then
-    COMPREPLY=( $( compgen -W "install kill patch-vm push-keys uninstall help" -- $cur ) )
+    COMPREPLY=( $( compgen -W "${GOPTS} help" -- $cur ) )
   fi
 }
 
