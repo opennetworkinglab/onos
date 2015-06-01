@@ -63,9 +63,10 @@
                    impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
     </driver>
     <!--  The SoftRouter driver is meant to be used by any software/NPU based
-       ~  switch that wishes to implement a simple 2-table router. ONOS needs to
-       ~  be configured with the dpid of such a device to attach this driver
-       ~  to the device.
+       ~  switch that wishes to implement a simple 2-table router. To use this
+       ~  driver, configure ONOS with the dpid of the device, or extend the
+       ~  driver declaration with the manufacturer/hwVersion/swVersion of the
+       ~  device (see 'noviflow' example).
       -->
     <driver name="softrouter" extends="default"
             manufacturer="Various" hwVersion="various" swVersion="0.0.0">
@@ -84,6 +85,15 @@
     </driver>
     <driver name="noviflow" extends="softrouter"
             manufacturer="NoviFlow Inc" hwVersion="NS1132" swVersion="NW250.4.4">
+    </driver>
+    <!--  Emulation of the ofdpa pipeline using a CPqD OF 1.3 software switch.
+       ~  To use this driver, configure ONOS with the dpid of the device.
+      -->
+    <driver name="ofdpa-cpqd" extends="default"
+            manufacturer="ONF"
+            hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.CpqdOFDPA1Pipeline"/>
     </driver>
 </drivers>
 
