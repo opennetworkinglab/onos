@@ -52,8 +52,8 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     private final Logger log = getLogger(getClass());
 
     private static final String PORT_ALLOCATIONS = "PortAllocations";
-    private static final String INTENT_ALLOCATIONS = "IntentAllocations";
     private static final String INTENT_MAPPING = "IntentMapping";
+    private static final String INTENT_ALLOCATIONS = "PortIntentAllocations";
 
     private static final Serializer SERIALIZER = Serializer.using(
             new KryoNamespace.Builder().register(KryoNamespaces.API).build());

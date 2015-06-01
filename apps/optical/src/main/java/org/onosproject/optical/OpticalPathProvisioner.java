@@ -46,6 +46,7 @@ import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.resource.device.DeviceResourceService;
+import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
@@ -62,7 +63,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -402,12 +402,16 @@ public class OpticalPathProvisioner {
          * @param intent the withdrawn intent
          */
         private void withdrawIntent(Intent intent) {
+            LinkResourceAllocations lra = linkResourceService.getAllocations(intent.id());
             if (intent instanceof OpticalConnectivityIntent) {
                 deviceResourceService.releasePorts(intent.id());
-                linkResourceService.releaseResources(linkResourceService.getAllocations(intent.id()));
+                linkResourceService.releaseResources(lra);
             } else if (intent instanceof  OpticalCircuitIntent) {
                 deviceResourceService.releasePorts(intent.id());
                 deviceResourceService.releaseMapping(intent.id());
+                if (lra != null) {
+                    linkResourceService.releaseResources(lra);
+                }
             }
         }
     }

@@ -64,6 +64,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OmsPort;
@@ -408,6 +409,7 @@ public final class KryoNamespaces {
             .register(OmsPort.class)
             .register(OchPort.class)
             .register(OduSignalType.class)
+            .register(OchSignalType.class)
             .register(GridType.class)
             .register(ChannelSpacing.class)
             .register(OduCltPort.class)

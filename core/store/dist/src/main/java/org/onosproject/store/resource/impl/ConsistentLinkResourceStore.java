@@ -79,10 +79,10 @@ public class ConsistentLinkResourceStore extends
 
     // table to store current allocations
     /** LinkKey -> List<LinkResourceAllocations>. */
-    private static final String LINK_RESOURCE_ALLOCATIONS = "o";
+    private static final String LINK_RESOURCE_ALLOCATIONS = "LinkAllocations";
 
     /** IntentId -> LinkResourceAllocations. */
-    private static final String INTENT_ALLOCATIONS = "IntentAllocations";
+    private static final String INTENT_ALLOCATIONS = "LinkIntentAllocations";
 
     private static final Serializer SERIALIZER = Serializer.using(
             new KryoNamespace.Builder().register(KryoNamespaces.API).build());
