@@ -17,6 +17,7 @@ package org.onosproject.xosintegration;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.Maps;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -49,15 +50,14 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.JSON_UTF_8;
-import static java.net.HttpURLConnection.HTTP_CREATED;
-import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
-import static java.net.HttpURLConnection.HTTP_OK;
+import static java.net.HttpURLConnection.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -116,12 +116,16 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     protected int xosProviderService = TEST_XOS_PROVIDER_SERVICE;
 
     private ApplicationId appId;
+    private Map<String, ConnectPoint> nodeToPort;
 
     @Activate
     public void activate(ComponentContext context) {
         log.info("XOS app is starting");
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.xosintegration");
+
+        setupMap();
+
         readComponentConfiguration(context);
 
         log.info("XOS({}) started", appId.id());
@@ -136,6 +140,16 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     @Modified
     public void modified(ComponentContext context) {
         readComponentConfiguration(context);
+    }
+
+    private void setupMap() {
+        nodeToPort = Maps.newHashMap();
+
+        nodeToPort.put("cordcompute01.onlab.us", new ConnectPoint(FABRIC_DEVICE_ID,
+                                                                  PortNumber.portNumber(4)));
+
+        nodeToPort.put("cordcompute02.onlab.us", new ConnectPoint(FABRIC_DEVICE_ID,
+                                                                  PortNumber.portNumber(3)));
     }
 
     /**
@@ -237,7 +251,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * @param json JSON string to post
      */
     @Deprecated
-    private void postRest(String json) {
+    private String postRest(String json) {
         WebResource.Builder builder = getClientBuilder();
         ClientResponse response;
 
@@ -245,13 +259,14 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
             response = builder.post(ClientResponse.class, json);
         } catch (ClientHandlerException e) {
             log.warn("Unable to contact REST server: {}", e.getMessage());
-            return;
+            return "{ 'error' : 'oops no one home' }";
         }
 
         if (response.getStatus() != HTTP_CREATED) {
             log.info("REST POST request returned error code {}",
                     response.getStatus());
         }
+        return response.getEntity(String.class);
     }
 
     /**
@@ -310,13 +325,25 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
                 .build();
         String json = tenantToJson(tenantToCreate);
 
-        provisionDataPlane(tenantToCreate);
+        //provisionDataPlane(tenantToCreate);
 
-        postRest(json);
+        String retJson = postRest(json);
 
-        provisionFabric(VlanId.vlanId(Short.parseShort(newTenant.vlanId())));
+        fetchCPELocation(newTenant, retJson);
 
         return newTenant;
+    }
+
+    private void fetchCPELocation(VoltTenant newTenant, String jsonString) {
+        JsonObject json = JsonObject.readFrom(jsonString);
+
+        if (json.get("computeNodeName") != null) {
+            ConnectPoint point = nodeToPort.get(json.get("computeNodeName"));
+
+            provisionFabric(VlanId.vlanId(Short.parseShort(newTenant.vlanId())),
+                            point);
+        }
+
     }
 
     @Override
@@ -375,13 +402,27 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         flowObjectiveService.forward(FABRIC_PORT.deviceId(), forwardToGateway);
     }
 
-    private void provisionFabric(VlanId vlanId) {
-        String json = "{\"vlan\":" + vlanId + ",\"ports\":[";
-        json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
-                + FABRIC_OLT_CONNECT_POINT.toString() + "\"},";
-        json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
-                + FABRIC_VCPE_CONNECT_POINT.toString() + "\"}";
-        json += "]}";
+    private void provisionFabric(VlanId vlanId, ConnectPoint point) {
+        //String json = "{\"vlan\":" + vlanId + ",\"ports\":[";
+        //json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
+        //       + FABRIC_OLT_CONNECT_POINT.toString() + "\"},";
+        //json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
+        //        + FABRIC_VCPE_CONNECT_POINT.toString() + "\"}";
+        //json += "]}";
+
+        JsonObject node = new JsonObject();
+        node.add("vlan", vlanId.toShort());
+        JsonArray array = new JsonArray();
+        JsonObject cp1 = new JsonObject();
+        JsonObject cp2 = new JsonObject();
+        cp1.add("device", point.deviceId().toString());
+        cp1.add("port", point.port().toLong());
+        cp2.add("device", FABRIC_DEVICE_ID.toString());
+        cp2.add("port", FABRIC_OLT_CONNECT_POINT.toString());
+        array.add(cp1);
+        array.add(cp2);
+        node.add("ports", array);
+
 
         String baseUrl = "http://" + FABRIC_CONTROLLER_ADDRESS + ":"
                 + Integer.toString(FABRIC_SERVER_PORT);
@@ -391,7 +432,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
                 .type(JSON_UTF_8.toString());
 
         try {
-            builder.post(ClientResponse.class, json);
+            builder.post(ClientResponse.class, node);
         } catch (ClientHandlerException e) {
             log.warn("Unable to contact fabric REST server:", e.getMessage());
             return;
