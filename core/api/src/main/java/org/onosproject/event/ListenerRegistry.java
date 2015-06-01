@@ -84,6 +84,7 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
                       lastListener.getClass().getName(),
                       System.currentTimeMillis() - lastStart);
             removeListener(lastListener);
+            lastStart = 0;
         }
     }
 
