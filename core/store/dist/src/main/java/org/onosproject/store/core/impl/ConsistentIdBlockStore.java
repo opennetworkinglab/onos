@@ -13,6 +13,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.IdBlock;
 import org.onosproject.core.IdBlockStore;
 import org.onosproject.store.service.AtomicCounter;
+import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
@@ -24,6 +25,8 @@ import com.google.common.collect.Maps;
 @Component(immediate = true, enabled = true)
 @Service
 public class ConsistentIdBlockStore implements IdBlockStore {
+
+    private static final int MAX_TRIES = 3;
 
     private final Logger log = getLogger(getClass());
     private final Map<String, AtomicCounter> topicCounters = Maps.newConcurrentMap();
@@ -45,11 +48,23 @@ public class ConsistentIdBlockStore implements IdBlockStore {
 
     @Override
     public IdBlock getIdBlock(String topic) {
-        AtomicCounter counter = topicCounters.computeIfAbsent(topic,
-                                    name -> storageService.atomicCounterBuilder()
-                                              .withName(name)
-                                              .build());
-        Long blockBase = counter.getAndAdd(DEFAULT_BLOCK_SIZE);
-        return new IdBlock(blockBase, DEFAULT_BLOCK_SIZE);
+        AtomicCounter counter = topicCounters
+                .computeIfAbsent(topic,
+                                 name -> storageService.atomicCounterBuilder()
+                                         .withName(name)
+                                         .build());
+        Throwable exc = null;
+        for (int i = 0; i < MAX_TRIES; i++) {
+            try {
+                Long blockBase = counter.getAndAdd(DEFAULT_BLOCK_SIZE);
+                return new IdBlock(blockBase, DEFAULT_BLOCK_SIZE);
+            } catch (StorageException e) {
+                log.warn("Unable to allocate ID block due to {}; retrying...",
+                         e.getMessage());
+                exc = e;
+            }
+        }
+        throw new IllegalStateException("Unable to allocate ID block", exc);
     }
+
 }
