@@ -68,6 +68,8 @@ public class OLT {
 
     private ApplicationId appId;
 
+    public static final int OFFSET = 200;
+
     public static final int UPLINK_PORT = 129;
 
     public static final String OLT_DEVICE = "of:90e2ba82f97791e9";
@@ -114,7 +116,7 @@ public class OLT {
     }
 
     private void provisionVlanOnPort(PortNumber p) {
-        long port = p.toLong();
+        long port = p.toLong() + OFFSET;
         if (port > 4095) {
             log.warn("Port Number {} exceeds vlan max", port);
             return;
