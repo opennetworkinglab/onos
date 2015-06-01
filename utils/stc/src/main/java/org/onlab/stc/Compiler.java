@@ -73,6 +73,7 @@ public class Compiler {
     private ProcessFlow processFlow;
     private File logDir;
 
+    private String previous = null;
     private String pfx = "";
     private boolean debugOn = System.getenv("debug") != null;
 
@@ -130,6 +131,7 @@ public class Compiler {
 
     /**
      * Returns the log directory where scenario logs should be kept.
+     *
      * @return scenario logs directory
      */
     public File logDir() {
@@ -258,6 +260,7 @@ public class Compiler {
         }
         steps.put(step.name(), step);
         processRequirements(step, expand(cfg.getString(REQUIRES)), namespace);
+        previous = step.name();
         return true;
     }
 
@@ -317,9 +320,11 @@ public class Compiler {
      * @param namespace optional namespace
      */
     private void processRequirements(Step src, String requires, String namespace) {
-        split(requires).forEach(name -> {
-            boolean isSoft = name.startsWith("-");
-            Step dst = getStep(expand(name.replaceFirst("^-", "")), namespace);
+        split(requires).forEach(n -> {
+            boolean isSoft = n.startsWith("~");
+            String name = n.replaceFirst("^~", "");
+            name = previous != null && name.equals("^") ? previous : name;
+            Step dst = getStep(name, namespace);
             if (!inactiveSteps.containsValue(dst)) {
                 dependencies.add(new Dependency(src, dst, isSoft));
             }

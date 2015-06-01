@@ -27,11 +27,11 @@
                   requires="Install-${#}"/>
 
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
-                  requires="-Wait-for-Start-${#}"/>
+                  requires="~Wait-for-Start-${#}"/>
             <step name="Check-Components-${#}" exec="onos-check-components ${OC#}"
-                  requires="-Wait-for-Start-${#}"/>
+                  requires="~Wait-for-Start-${#}"/>
             <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#}"
-                  requires="-Wait-for-Start-${#}"/>
+                  requires="~Wait-for-Start-${#}"/>
         </parallel>
     </group>
 </scenario>

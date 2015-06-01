@@ -18,13 +18,13 @@
 
     <import file="/tmp/junit-stc/two-scenario.xml"/>
 
-    <dependency name="dude" requires="-yolo"/>
+    <dependency name="dude" requires="~yolo"/>
 
     <step name="yo" exec="some-command ${HOME} and ${prop.foo} args" if="${prop.foo}"/>
     <step name="hi" exec="some-command ${prop.bar} or ${HOME} other args"/>
     <step name="there" exec="another-command" requires="yo,hi"/>
 
-    <step name="maybe" exec="another-command" requires="-hi" unless="${prop.foo}"/>
+    <step name="maybe" exec="another-command" requires="~hi" unless="${prop.foo}"/>
 
     <group name="alpha" exec="same-command args" requires="yo">
         <step name="one" exec="asdads"/>

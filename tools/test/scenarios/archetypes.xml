@@ -18,28 +18,28 @@
         <step name="Clean-Up" cwd="${WORKSPACE}/tmp" env="~"
               exec="rm -r test-app"/>
 
-        <step name="Create-App" cwd="${WORKSPACE}/tmp" requires="Clean-Up"
+        <step name="Create-App" cwd="${WORKSPACE}/tmp" requires="^"
               exec="onos-create-app app org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
         <step name="Build-App" requires="Create-App" exec="mvn clean install"/>
-        <step name="Install-App" requires="Build-App"
+        <step name="Install-App" requires="^"
               exec="onos-app ${OCI} install! target/test-app-1.2.3.oar"/>
-        <step name="Verify-App" requires="Install-App"
+        <step name="Verify-App" requires="^"
               exec="onos-check-components ${OCI} org.test.app.AppComponent"/>
 
         <step name="Create-App-CLI-Overlay" requires="Install-App"
               exec="onos-create-app cli org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
-        <step name="Build-App-With-CLI" requires="Create-App-CLI-Overlay"
+        <step name="Build-App-With-CLI" requires="^"
               exec="mvn clean install"/>
-        <step name="Reinstall-App-With-CLI" requires="Build-App-With-CLI,-Verify-App"
+        <step name="Reinstall-App-With-CLI" requires="^,~Verify-App"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <step name="Verify-CLI" requires="Reinstall-App-With-CLI"
+        <step name="Verify-CLI" requires="^"
               exec="onos ${OCI} sample"/>
 
         <step name="Create-App-UI-Overlay" requires="Reinstall-App-With-CLI"
               exec="onos-create-app ui org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
-        <step name="Build-App-With-UI" requires="Create-App-UI-Overlay"
+        <step name="Build-App-With-UI" requires="^"
               exec="mvn clean install"/>
-        <step name="Reinstall-App-With-UI" requires="Build-App-With-UI,-Verify-CLI"
+        <step name="Reinstall-App-With-UI" requires="^,~Verify-CLI"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
     </group>
 </scenario>
