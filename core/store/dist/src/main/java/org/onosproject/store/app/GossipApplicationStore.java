@@ -384,7 +384,7 @@ public class GossipApplicationStore extends ApplicationArchive
                                        latch.countDown();
                                    } else if (error != null) {
                                        log.warn("Unable to fetch bits for application {} from node {}",
-                                               app.id().name(), node.id(), error);
+                                               app.id().name(), node.id());
                                    }
                                }, executor);
         }
