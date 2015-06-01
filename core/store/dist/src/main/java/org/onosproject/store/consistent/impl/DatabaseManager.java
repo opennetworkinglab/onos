@@ -85,7 +85,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());
 
-    public static final int COPYCAT_TCP_PORT = 7238; //  7238 = RAFT
+    public static final int COPYCAT_TCP_PORT = 9876;
     public static final String PARTITION_DEFINITION_FILE = "../config/tablets.json";
     public static final String BASE_PARTITION_NAME = "p0";
 
