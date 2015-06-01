@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class UrlFilterFunction extends DefaultXosFunction {
 
     private static final String LEVEL = "level";
+    private static final String URI_PATTERN = "%s/%s/";
 
     /**
      * Denotes the URL filtering levels available. From most restrictive
@@ -87,6 +88,6 @@ public class UrlFilterFunction extends DefaultXosFunction {
     public String xosUrlApply(SubscriberUser user) {
         XosFunctionDescriptor xfd = XosFunctionDescriptor.URL_FILTER;
         UrlFilterMemento memo = (UrlFilterMemento) user.getMemento(xfd);
-        return xfd.id() + "/" + memo.level();
+        return String.format(URI_PATTERN, xfd.id(), memo.level());
     }
 }

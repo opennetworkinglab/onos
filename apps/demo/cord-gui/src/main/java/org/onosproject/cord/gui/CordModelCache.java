@@ -29,6 +29,8 @@ import org.onosproject.cord.gui.model.SubscriberUser;
 import org.onosproject.cord.gui.model.UserFactory;
 import org.onosproject.cord.gui.model.XosFunction;
 import org.onosproject.cord.gui.model.XosFunctionDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,8 @@ public class CordModelCache extends JsonFactory {
     private int subscriberId;
     private Bundle currentBundle;
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     // NOTE: use a tree map to maintain sorted order by user ID
     private final Map<Integer, SubscriberUser> userMap =
             new TreeMap<Integer, SubscriberUser>();
@@ -59,6 +63,7 @@ public class CordModelCache extends JsonFactory {
      * initializing it with basic bundle, and fetching the list of users.
      */
     CordModelCache() {
+        log.info("Initialize model cache");
         subscriberId = XosManager.INSTANCE.initDemoSubscriber();
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
         initUsers();
@@ -80,6 +85,7 @@ public class CordModelCache extends JsonFactory {
             //       memento in which to store the level.
             SubscriberUser su = createUser(id, name, mac, level);
             userMap.put(id, su);
+            log.info("..caching user {} (id:{})", name, id);
         }
     }
 
@@ -108,6 +114,7 @@ public class CordModelCache extends JsonFactory {
      * @throws IllegalArgumentException if bundle ID is unknown
      */
     public void setCurrentBundle(String bundleId) {
+        log.info("set new bundle : {}", bundleId);
         BundleDescriptor bd = BundleFactory.bundleFromId(bundleId);
         currentBundle = new Bundle(bd);
         // update the user mementos

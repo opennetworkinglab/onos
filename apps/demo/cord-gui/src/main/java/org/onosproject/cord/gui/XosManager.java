@@ -42,6 +42,8 @@ public class XosManager {
     private static final int TEST_XOS_SERVER_PORT = 8000;
     private static final String URI_RS = "/rs/";
     private static final String URI_SUBSCRIBER = "/rs/subscriber/%d/";
+    private static final String BUNDLE_URI_FORMAT = "services/%s/%s/";
+
 
     private final XosManagerRestUtils xosUtilsRs =
             new XosManagerRestUtils(TEST_XOS_SERVER_ADDRESS,
@@ -51,8 +53,6 @@ public class XosManager {
 
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private int demoId;
 
     /**
      * No instantiation (except via unit test).
@@ -76,7 +76,7 @@ public class XosManager {
         }
 
         ObjectNode obj = (ObjectNode) node;
-        demoId = obj.get("id").asInt();
+        int demoId = obj.get("id").asInt();
         log.info("Using DEMO subscriber ID {}.", demoId);
 
         String uri = String.format(URI_SUBSCRIBER, demoId);
@@ -114,14 +114,15 @@ public class XosManager {
      * @param bundle new bundle to set
      */
     public void setNewBundle(Bundle bundle) {
-        log.info("\n>> Set New Bundle : " + bundle.descriptor().id());
+        log.info(">> Set New Bundle : {}", bundle.descriptor().id());
 
-        String uriFmt = "services/%s/%s";
         Set<XosFunctionDescriptor> inBundle = bundle.descriptor().functions();
         for (XosFunctionDescriptor xfd: XosFunctionDescriptor.values()) {
             // only process the functions that have a real back-end on XOS
             if (xfd.backend()) {
-                String uri = String.format(uriFmt, xfd.id(), inBundle.contains(xfd));
+                String uri = String.format(BUNDLE_URI_FORMAT, xfd.id(),
+                                           inBundle.contains(xfd));
+                log.info("XOS-URI: {}", uri);
                 String result = xosUtils.putRest(uri);
                 // TODO: convert JSON result to object and check (if we care)
             }
@@ -136,10 +137,11 @@ public class XosManager {
      * @param user user (containing function state)
      */
     public void apply(XosFunction func, SubscriberUser user) {
-        log.info("\n>> Apply : " + func + " for " + user);
+        log.info(">> Apply : {} for {}", func, user);
 
         String uriPrefix = "users/" + user.id() + "/";
         String uri = uriPrefix + func.xosUrlApply(user);
+        log.info("XOS-URI: {}", uri);
         String result = xosUtils.putRest(uri);
         // TODO: convert JSON result to object and check (if we care)
     }
