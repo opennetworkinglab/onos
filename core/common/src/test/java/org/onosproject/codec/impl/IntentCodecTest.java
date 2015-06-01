@@ -27,9 +27,12 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.OchSignalType;
 import org.onosproject.net.PortNumber;
@@ -138,11 +141,12 @@ public class IntentCodecTest extends AbstractIntentTest {
         DeviceId did1 = did("device1");
         DeviceId did2 = did("device2");
         DeviceId did3 = did("device3");
+        Lambda ochSignal = Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8);
         final TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchIPProtocol((byte) 3)
                 .matchMplsLabel(MplsLabel.mplsLabel(4))
                 .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
-                .matchLambda((short) 6)
+                .add(Criteria.matchLambda(ochSignal))
                 .matchEthDst(MacAddress.BROADCAST)
                 .matchIPDst(IpPrefix.valueOf("1.2.3.4/24"))
                 .build();

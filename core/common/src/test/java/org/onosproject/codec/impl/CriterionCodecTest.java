@@ -26,6 +26,9 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -406,8 +409,9 @@ public class CriterionCodecTest {
      * Tests lambda criterion.
      */
     @Test
-    public void matchLambdaTest() {
-        Criterion criterion = Criteria.matchLambda((short) 40000);
+    public void matchOchSignal() {
+        Lambda ochSignal = Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8);
+        Criterion criterion = Criteria.matchLambda(ochSignal);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }

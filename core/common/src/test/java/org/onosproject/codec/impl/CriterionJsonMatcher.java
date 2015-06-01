@@ -15,8 +15,10 @@
  */
 package org.onosproject.codec.impl;
 
+import com.google.common.base.Joiner;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,9 +36,9 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
@@ -44,6 +46,8 @@ import org.onosproject.net.flow.criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
+
+import java.util.Objects;
 
 /**
  * Hamcrest matcher for criterion objects.
@@ -448,16 +452,29 @@ public final class CriterionJsonMatcher extends
     }
 
     /**
-     * Matches a lambda criterion object.
+     * Matches an Och signal criterion object.
      *
      * @param criterion criterion to match
      * @return true if the JSON matches the criterion, false otherwise.
      */
-    private boolean matchCriterion(LambdaCriterion criterion) {
-        final int lambda = criterion.lambda();
-        final int jsonLambda = jsonCriterion.get("lambda").intValue();
-        if (lambda != jsonLambda) {
-            description.appendText("lambda was " + Integer.toString(lambda));
+    private boolean matchCriterion(OchSignalCriterion criterion) {
+        final OchSignal ochSignal = criterion.lambda();
+        final JsonNode jsonOchSignal = jsonCriterion.get("ochSignalId");
+        String jsonGridType = jsonOchSignal.get("gridType").textValue();
+        String jsonChannelSpacing = jsonOchSignal.get("channelSpacing").textValue();
+        int jsonSpacingMultiplier = jsonOchSignal.get("spacingMultiplier").intValue();
+        int jsonSlotGranularity = jsonOchSignal.get("slotGranularity").intValue();
+
+        boolean equality = Objects.equals(ochSignal.gridType().name(), jsonGridType)
+                && Objects.equals(ochSignal.channelSpacing().name(), jsonChannelSpacing)
+                && Objects.equals(ochSignal.spacingMultiplier(), jsonSpacingMultiplier)
+                && Objects.equals(ochSignal.slotGranularity(), jsonSlotGranularity);
+
+        if (!equality) {
+            String joined = Joiner.on(", ")
+                    .join(jsonGridType, jsonChannelSpacing, jsonSpacingMultiplier, jsonSlotGranularity);
+
+            description.appendText("och signal id was " + joined);
             return false;
         }
         return true;
@@ -572,7 +589,7 @@ public final class CriterionJsonMatcher extends
                         (IPv6ExthdrFlagsCriterion) criterion);
 
             case OCH_SIGID:
-                return matchCriterion((LambdaCriterion) criterion);
+                return matchCriterion((OchSignalCriterion) criterion);
 
             case OCH_SIGTYPE:
                 return matchCriterion((OchSignalTypeCriterion) criterion);

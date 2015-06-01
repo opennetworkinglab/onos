@@ -19,6 +19,7 @@ import java.util.EnumMap;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -34,9 +35,9 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
@@ -325,9 +326,15 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     private static class FormatOchSigId implements CriterionTypeFormatter {
         @Override
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
-            final LambdaCriterion lambdaCriterion =
-                    (LambdaCriterion) criterion;
-            return root.put("lambda", lambdaCriterion.lambda());
+            OchSignal ochSignal = ((OchSignalCriterion) criterion).lambda();
+            ObjectNode child = root.putObject("ochSignalId");
+
+            child.put("gridType", ochSignal.gridType().name());
+            child.put("channelSpacing", ochSignal.channelSpacing().name());
+            child.put("spacingMultiplier", ochSignal.spacingMultiplier());
+            child.put("slotGranularity", ochSignal.slotGranularity());
+
+            return root;
         }
     }
 
