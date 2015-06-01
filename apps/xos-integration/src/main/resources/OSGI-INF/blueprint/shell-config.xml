@@ -24,13 +24,17 @@
         </command>
         <command>
             <action class="org.onosproject.xosintegration.cli.VoltTenantsCreateCommand"/>
+            <completers>
+                <ref component-id="placeholderCompleter"/>
+                <ref component-id="placeholderCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.xosintegration.cli.VoltRemoveTenantCommand"/>
             <completers>
                 <ref component-id="tenantIdCompleter"/>
-                <ref component-id="placeholderCompleter"/>
-                <ref component-id="connectPointCompleter"/>
                 <null/>
             </completers>
         </command>
