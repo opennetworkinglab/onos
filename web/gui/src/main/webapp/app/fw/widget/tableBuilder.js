@@ -21,7 +21,10 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss, ts;
+    var $log, $interval, fs, wss, ts;
+
+    // constants
+    var refreshInterval = 2000;
 
     // example params to buildTable:
     // {
@@ -40,9 +43,11 @@
             root = o.tag + 's',
             req = o.tag + 'DataRequest',
             resp = o.tag + 'DataResponse',
-            onSel = fs.isF(o.selCb);
+            onSel = fs.isF(o.selCb),
+            promise;
 
         o.scope.tableData = [];
+        o.scope.sortParams = {};
 
         function respCb(data) {
             o.scope.tableData = data[root];
@@ -55,16 +60,15 @@
         }
         o.scope.sortCallback = sortCb;
 
-        function selCb($event, sel) {
-            o.scope.sel = (o.scope.sel === sel) ? null : sel;
-            onSel && onSel($event, o.scope.sel);
+        function selCb($event, selRow) {
+            o.scope.selId = (o.scope.selId === selRow.id) ? null : selRow.id;
+            onSel && onSel($event, selRow);
         }
         o.scope.selectCallback = selCb;
 
-        function refresh() {
+        function refresh(params) {
             $log.debug('Refreshing ' + root + ' page');
-            ts.resetSort();
-            sortCb();
+            sortCb(params);
         }
         o.scope.refresh = refresh;
 
@@ -75,17 +79,26 @@
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             ts.resetSort();
+            if (angular.isDefined(promise)) {
+                $interval.cancel(promise);
+                promise = undefined;
+            }
         });
 
         sortCb();
+
+        promise = $interval(function () {
+            refresh(o.scope.sortParams);
+        }, refreshInterval);
     }
 
     angular.module('onosWidget')
         .factory('TableBuilderService',
-        ['$log', 'FnService', 'WebSocketService', 'TableService',
+        ['$log', '$interval', 'FnService', 'WebSocketService', 'TableService',
 
-            function (_$log_, _fs_, _wss_, _ts_) {
+            function (_$log_, _$interval_, _fs_, _wss_, _ts_) {
                 $log = _$log_;
+                $interval = _$interval_;
                 fs = _fs_;
                 wss = _wss_;
                 ts = _ts_;

@@ -242,7 +242,7 @@
 
             function selCb($event, row) {
                 selRow = angular.element($event.currentTarget);
-                if ($scope.sel) {
+                if ($scope.selId) {
                     wss.sendEvent(detailsReq, { id: row.id });
                 } else {
                     detailsPanel.hide();

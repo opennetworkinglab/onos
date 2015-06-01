@@ -189,7 +189,8 @@
             function (_$log_, _is_) {
             return {
                 scope: {
-                    ctrlCallback: '&sortCallback'
+                    sortCallback: '&',
+                    sortParams: '='
                 },
                 link: function (scope, element) {
                     $log = _$log_;
@@ -204,8 +205,11 @@
 
                         if (col.attr('sortable') === '') {
                             updateSortDirection(col);
-                            scope.ctrlCallback({
-                                requestParams: sortRequestParams()
+                            scope.$apply(function () {
+                                scope.sortParams = sortRequestParams();
+                            });
+                            scope.sortCallback({
+                                requestParams: scope.sortParams
                             });
                         }
                     });

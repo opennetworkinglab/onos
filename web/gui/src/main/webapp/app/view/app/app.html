@@ -5,7 +5,7 @@
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
-                 ng-click="refresh()"></div>
+                 ng-click="refresh(sortParams)"></div>
             <div class="separator"></div>
             <div id="app-install"    icon icon-size="36" icon-id="plus" class="active"></div>
             <div id="app-activate"   icon icon-size="36" icon-id="play"></div>
@@ -25,7 +25,9 @@
     <div class="summary-list" onos-fixed-header>
 
         <div class="table-header"
-             onos-sortable-header sort-callback="sortCallback(requestParams)">
+             onos-sortable-header
+             sort-params="sortParams"
+             sort-callback="sortCallback(sortParams)">
             <table>
                 <tr>
                     <td colId="state" class="table-icon" sortable></td>
@@ -45,9 +47,9 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="app in tableData"
+                <tr ng-repeat="app in tableData track by app.id"
                     ng-click="selectCallback($event, app)"
-                    ng-class="{selected: app === sel}"
+                    ng-class="{selected: app.id === selId}"
                     ng-repeat-done>
                     <td class="table-icon">
                         <div icon icon-id="{{app._iconid_state}}"></div>

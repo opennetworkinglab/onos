@@ -5,14 +5,16 @@
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
-                 ng-click="refresh()"></div>
+                 ng-click="refresh(sortParams)"></div>
         </div>
     </div>
 
     <div class="summary-list" onos-fixed-header>
 
         <div class="table-header"
-             onos-sortable-header sort-callback="sortCallback(requestParams)">
+             onos-sortable-header
+             sort-params="sortParams"
+             sort-callback="sortCallback(sortParams)">
             <table>
                 <tr>
                     <td colId="available" class="table-icon" sortable></td>
@@ -36,9 +38,9 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="dev in tableData"
+                <tr ng-repeat="dev in tableData track by dev.id"
                     ng-click="selectCallback($event, dev)"
-                    ng-class="{selected: dev === sel}"
+                    ng-class="{selected: dev.id === selId}"
                     ng-repeat-done>
                     <td class="table-icon">
                         <div icon icon-id="{{dev._iconid_available}}"></div>

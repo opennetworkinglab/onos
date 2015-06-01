@@ -5,14 +5,16 @@
         <div class="ctrl-btns">
             <div class="refresh active"
                  icon icon-size="36" icon-id="refresh"
-                 ng-click="refresh()"></div>
+                 ng-click="refresh(sortParams)"></div>
         </div>
     </div>
 
     <div class="summary-list" onos-fixed-header>
 
         <div class="table-header"
-             onos-sortable-header sort-callback="sortCallback(requestParams)">
+             onos-sortable-header
+             sort-params="sortParams"
+             sort-callback="sortCallback(sortParams)">
             <table>
                 <tr>
                     <td colId="component" sortable col-width="400px">Component </td>
