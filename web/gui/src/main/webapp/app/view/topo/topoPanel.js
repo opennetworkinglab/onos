@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns;
+    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns, mast;
 
     // constants
     var pCls = 'topo-p',
@@ -32,12 +32,13 @@
         panelOpts = {
             width: 260
         },
-        sumFromTop = 64,
-        sumMax = 226;
+        sumMax = 226,
+        padTop = 28;
 
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
-        haveDetails = false;    // do we have details that we could show?
+        haveDetails = false,    // do we have details that we could show?
+        sumFromTop;             // summary panel distance from top of screen
 
     // panels
     var summary, detail;
@@ -396,8 +397,9 @@
     // ==========================
 
     function augmentDetailPanel() {
-        var d = detail;
-        d.ypos = { up: 64, down: 310, current: 310};
+        var d = detail,
+            downPos = sumFromTop + sumMax + 20;
+        d.ypos = { up: sumFromTop, down: downPos, current: downPos};
 
         d._move = function (y, cb) {
             var yp = d.ypos,
@@ -448,6 +450,7 @@
     // ==========================
 
     function initPanels() {
+        sumFromTop = mast.mastHeight() + padTop;
         summary = createTopoPanel(idSum, panelOpts);
         detail = createTopoPanel(idDet, panelOpts);
 
@@ -469,10 +472,10 @@
     angular.module('ovTopo')
     .factory('TopoPanelService',
         ['$log', '$window', '$rootScope', 'FnService', 'PanelService', 'GlyphService',
-            'FlashService', 'WebSocketService', 'ButtonService',
+            'FlashService', 'WebSocketService', 'ButtonService', 'MastService',
 
         function (_$log_, _$window_, _$rootScope_,
-                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_) {
+                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_, _mast_) {
             $log = _$log_;
             $window = _$window_;
             $rootScope = _$rootScope_;
@@ -482,6 +485,7 @@
             flash = _flash_;
             wss = _wss_;
             bns = _bns_;
+            mast = _mast_;
 
             return {
                 initPanels: initPanels,

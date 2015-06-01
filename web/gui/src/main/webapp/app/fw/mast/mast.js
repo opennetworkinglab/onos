@@ -24,7 +24,8 @@
     var $log;
 
     // configuration
-    var mastHeight = 36;
+    var mastHeight = 36,
+        padMobile = 16;
 
     angular.module('onosMast', ['onosNav'])
         .controller('MastCtrl', ['$log', 'NavService', function (_$log_, ns) {
@@ -44,9 +45,11 @@
         }])
 
         // also define a service to allow lookup of mast height.
-        .factory('MastService', [function () {
+        .factory('MastService', ['FnService', function (fs) {
             return {
-                mastHeight: function () { return mastHeight; }
+                mastHeight: function () {
+                    return fs.isMobile() ? mastHeight + padMobile : mastHeight;
+                }
             }
         }]);
 

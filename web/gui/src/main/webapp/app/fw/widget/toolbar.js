@@ -34,7 +34,8 @@
             width: 20,
             margin: 0,
             hideMargin: -20,
-            top: '80%',
+            top: 'auto',
+            bottom: '10px',
             fade: false,
             shown: false
         };
@@ -101,7 +102,8 @@
         };
 
         panel.classed('toolbar', true)
-            .style('top', settings.top);
+            .style('top', settings.top)
+            .style('bottom', settings.bottom);
 
         // Helper functions
 

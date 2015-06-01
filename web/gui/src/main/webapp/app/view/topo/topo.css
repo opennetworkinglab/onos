@@ -84,6 +84,9 @@
     /* Base css from panel.css */
     top: 310px;
 }
+html[data-platform='iPad'] #topo-p-detail {
+    top: 326px;
+}
 
 #topo-p-detail .actionBtns .actionBtn {
     display: inline-block;

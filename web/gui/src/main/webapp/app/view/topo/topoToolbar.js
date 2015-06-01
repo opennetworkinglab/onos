@@ -23,7 +23,7 @@
     'use strict';
 
     // injected references
-    var $log, tbs, ps, api;
+    var $log, fs, tbs, ps, api;
 
     // internal state
     var toolbar, keyData, cachedState;
@@ -124,8 +124,9 @@
         var v = keyData.get(key);
         v.btn = toolbar.addButton(v.id, v.gid, v.cb, v.tt);
     }
-    function addToggle(key) {
+    function addToggle(key, suppressIfMobile) {
         var v = keyData.get(key);
+        if (suppressIfMobile && fs.isMobile()) { return; }
         v.tog = toolbar.addToggle(v.id, v.gid, v.isel, v.cb, v.tt);
     }
 
@@ -137,9 +138,9 @@
 
         addToggle('H');
         addToggle('M');
-        addToggle('P');
+        addToggle('P', true);
         addToggle('B');
-        addToggle('S');
+        addToggle('S', true);
     }
     function addSecondRow() {
         //addToggle('X');
@@ -197,10 +198,11 @@
 
     angular.module('ovTopo')
         .factory('TopoToolbarService',
-        ['$log', 'ToolbarService', 'PrefsService',
+        ['$log', 'FnService', 'ToolbarService', 'PrefsService',
 
-        function (_$log_, _tbs_, _ps_) {
+        function (_$log_, _fs_, _tbs_, _ps_) {
             $log = _$log_;
+            fs = _fs_;
             tbs = _tbs_;
             ps = _ps_;
 

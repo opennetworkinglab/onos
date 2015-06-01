@@ -27,6 +27,10 @@
     visibility: hidden;
 }
 
+html[data-platform='iPad'] #nav {
+    top: 57px;
+}
+
 .light #nav {
     background-color: #bbb;
     box-shadow: 0 2px 8px #777;

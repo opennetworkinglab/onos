@@ -288,7 +288,7 @@
                 td3 = _td3_;
                 svg = api.svg;
                 network = api.network;
-                if (showPorts) {
+                if (showPorts && !fs.isMobile()) {
                     svg.on('mousemove', mouseMoveHandler);
                 }
                 svg.on('click', mouseClickHandler);
