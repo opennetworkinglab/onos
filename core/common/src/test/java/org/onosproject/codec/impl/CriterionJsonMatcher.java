@@ -490,7 +490,7 @@ public final class CriterionJsonMatcher extends
         final String signalType = criterion.signalType().name();
         final String jsonSignalType = jsonCriterion.get("ochSignalType").textValue();
         if (!signalType.equals(jsonSignalType)) {
-            description.appendText("signal type was " + signalType);
+            description.appendText("signal type was " + jsonSignalType);
             return false;
         }
         return true;
