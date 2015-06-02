@@ -215,7 +215,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         for (OFPortStatsEntry entry : entries) {
             try {
-                if (entry.getPortNo().getPortNumber() < 0) {
+                if (entry.getPortNo() == null || entry.getPortNo().getPortNumber() < 0) {
                     continue;
                 }
                 DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();

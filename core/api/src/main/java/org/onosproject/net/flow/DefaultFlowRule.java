@@ -330,11 +330,12 @@ public class DefaultFlowRule implements FlowRule {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     public int hashCode() {
-        return Objects.hash(deviceId, selector, priority, tableId, payLoad);
+        return Objects.hash(deviceId, selector, tableId, payLoad);
     }
 
-    public int hash() {
-        return Objects.hash(deviceId, selector, treatment, tableId, payLoad);
+    //FIXME do we need this method in addition to hashCode()?
+    private int hash() {
+        return Objects.hash(deviceId, selector, tableId, payLoad);
     }
 
     @Override
