@@ -89,6 +89,7 @@ import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchEvent;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleBatchRequest;
+import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -343,6 +344,8 @@ public final class KryoNamespaces {
                     FlowRuleBatchEvent.Type.class,
                     FlowRuleBatchRequest.class,
                     FlowRuleBatchOperation.class,
+                    FlowRuleEvent.class,
+                    FlowRuleEvent.Type.class,
                     CompletedBatchOperation.class,
                     FlowRuleBatchEntry.class,
                     FlowRuleBatchEntry.FlowRuleOperation.class,

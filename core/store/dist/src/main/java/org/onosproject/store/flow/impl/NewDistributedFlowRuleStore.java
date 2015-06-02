@@ -158,8 +158,6 @@ public class NewDistributedFlowRuleStore
             serializerPool = KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
-                    .register(FlowRuleEvent.class)
-                    .register(FlowRuleEvent.Type.class)
                     .build();
         }
     };
