@@ -38,6 +38,7 @@ class ScenarioStore {
 
     private final ProcessFlow processFlow;
     private final File storeFile;
+    private final File logDir;
 
     private final List<StepEvent> events = Lists.newArrayList();
     private final Map<String, Status> statusMap = Maps.newConcurrentMap();
@@ -51,6 +52,7 @@ class ScenarioStore {
      */
     ScenarioStore(ProcessFlow processFlow, File logDir, String name) {
         this.processFlow = processFlow;
+        this.logDir = logDir;
         this.storeFile = new File(logDir, name + ".stc");
         load();
     }
@@ -63,6 +65,7 @@ class ScenarioStore {
         statusMap.clear();
         processFlow.getVertexes().forEach(step -> statusMap.put(step.name(), WAITING));
         try {
+            removeLogs();
             PropertiesConfiguration cfg = new PropertiesConfiguration(storeFile);
             cfg.clear();
             cfg.save();
@@ -168,6 +171,20 @@ class ScenarioStore {
             cfg.save();
         } catch (ConfigurationException e) {
             print("Unable to store file %s", storeFile);
+        }
+    }
+
+    /**
+     * Removes all scenario log files.
+     */
+    private void removeLogs() {
+        File[] logFiles = logDir.listFiles();
+        if (logFiles != null && logFiles.length > 0) {
+            for (File file : logFiles) {
+                if (!file.delete()) {
+                    print("Unable to delete log file %s", file);
+                }
+            }
         }
     }
 

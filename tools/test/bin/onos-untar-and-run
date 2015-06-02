@@ -1,0 +1,22 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Untars ONOS tar.gz on the remote machine and runs ONOS.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
+
+ssh $remote "
+    [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
+    cd /tmp && rm -fr /tmp/$ONOS_BITS
+    tar zxf /tmp/$ONOS_BITS.tar.gz
+
+    cd /tmp/$ONOS_BITS
+    bin/onos-service server 1>/tmp/onos.out 2>/tmp/onos.err &
+
+    # Setup a symlink to allow other tools to work
+    sudo ln -s /tmp/$ONOS_BITS $ONOS_INSTALL_DIR
+"

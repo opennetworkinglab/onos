@@ -18,10 +18,11 @@
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
 
         <parallel var="${OC#}">
+            <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}" unless="${OCT}"/>
             <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
 
             <step name="Install-${#}" exec="onos-install ${OC#}"
-                  requires="Uninstall-${#},Push-Bits"/>
+                  requires="Uninstall-${#},Push-Bits-${#},Push-Bits"/>
 
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Install-${#}"/>

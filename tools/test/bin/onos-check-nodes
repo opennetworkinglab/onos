@@ -1,21 +1,21 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Checks whether all and only the ONOS apps configured in ONOS_APPS are active.
+# Checks whether all and only the ONOS instances configured active.
 # -----------------------------------------------------------------------------
 
 aux=/tmp/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
-onos ${1:-$OCI} "onos:apps -s -a" > $aux
+onos ${1:-$OCI} "onos:nodes" > $aux
 cat $aux
 
-# Normalize the installed apps
-cut -c7- $aux | cut -d\  -f1 | sort > $aux.1
+# Normalize the nodes
+cut -d= -f3 $aux | cut -d: -f1 | sort > $aux.1
 
 # Normalize the expected apps
-apps=${2:-$ONOS_APPS}
-apps=${apps:-drivers,openflow}
-(for app in ${apps//,/ }; do echo org.onosproject.$app; done) | sort > $aux.2
+ONOS_NODES=$(env | egrep "OC[0-9]*=" | cut -d= -f2 | sort)
+nodes=${2:-$ONOS_NODES}
+(for node in $nodes; do echo $node; done) | sort > $aux.2
 
 # Check for differences
 diff $aux.1 $aux.2

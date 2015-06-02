@@ -106,7 +106,8 @@ public class Compiler {
                                       ImmutableSet.copyOf(dependencies));
 
         // Extract the log directory if there was one specified
-        String path = scenario.definition().getString(LOG_DIR, DEFAULT_LOG_DIR);
+        String defaultPath = DEFAULT_LOG_DIR + scenario.name();
+        String path = scenario.definition().getString(LOG_DIR, defaultPath);
         logDir = new File(expand(path));
     }
 
