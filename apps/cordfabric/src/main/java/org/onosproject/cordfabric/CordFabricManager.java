@@ -32,6 +32,9 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -70,20 +73,16 @@ public class CordFabricManager implements FabricService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
-    private static final int PRIORITY = 50000;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
-    private short openflowPort = 6633;
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
+
+    private static final int PRIORITY = 50000;
 
     private short radiusPort = 1812;
 
     private DeviceId fabricDeviceId = DeviceId.deviceId("of:5e3e486e73000187");
-
-    private ConnectPoint oltConnectPoint =
-            new ConnectPoint(fabricDeviceId, PortNumber.portNumber(2));
-    private ConnectPoint oltControllerConnectPoint =
-            new ConnectPoint(fabricDeviceId, PortNumber.portNumber(1));
-    private ConnectPoint radiusConnectPoint =
-            new ConnectPoint(fabricDeviceId, PortNumber.portNumber(5));
 
     private final Multimap<VlanId, ConnectPoint> vlans = HashMultimap.create();
 
@@ -91,13 +90,19 @@ public class CordFabricManager implements FabricService {
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.cordfabric");
 
-        setupDefaultFlows();
+        deviceService.addListener(deviceListener);
+
+        if (deviceService.isAvailable(fabricDeviceId)) {
+            setupDefaultFlows();
+        }
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
+
         log.info("Stopped");
     }
 
@@ -112,8 +117,6 @@ public class CordFabricManager implements FabricService {
                 .punt()
                 .build();
 
-
-
         ForwardingObjective ofToController = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
@@ -122,7 +125,6 @@ public class CordFabricManager implements FabricService {
                 .withSelector(toControllerOF)
                 .withTreatment(forwardToController)
                 .add();
-
 
         flowObjectiveService.forward(fabricDeviceId, ofToController);
     }
@@ -221,6 +223,25 @@ public class CordFabricManager implements FabricService {
         @Override
         public void onError(Objective objective, ObjectiveError error) {
             log.info("Flow objective operation failed: {}", objective);
+        }
+    }
+
+    /**
+     * Internal listener for device service events.
+     */
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+            case DEVICE_ADDED:
+            case DEVICE_AVAILABILITY_CHANGED:
+                if (event.subject().id().equals(fabricDeviceId) &&
+                        deviceService.isAvailable(event.subject().id())) {
+                    setupDefaultFlows();
+                }
+            default:
+                break;
+            }
         }
     }
 }
