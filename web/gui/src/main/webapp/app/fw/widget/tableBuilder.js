@@ -48,6 +48,7 @@
 
         o.scope.tableData = [];
         o.scope.sortParams = {};
+        o.scope.autoRefresh = true;
 
         function respCb(data) {
             o.scope.tableData = data[root];
@@ -66,11 +67,25 @@
         }
         o.scope.selectCallback = selCb;
 
-        function refresh(params) {
-            $log.debug('Refreshing ' + root + ' page');
-            sortCb(params);
+        function startRefresh() {
+            promise = $interval(function () {
+                $log.debug('Refreshing ' + root + ' page');
+                sortCb(o.scope.sortParams);
+            }, refreshInterval);
         }
-        o.scope.refresh = refresh;
+
+        function stopRefresh() {
+            if (angular.isDefined(promise)) {
+                $interval.cancel(promise);
+                promise = undefined;
+            }
+        }
+
+        function toggleRefresh() {
+            o.scope.autoRefresh = !o.scope.autoRefresh;
+            o.scope.autoRefresh ? startRefresh() : stopRefresh();
+        }
+        o.scope.toggleRefresh = toggleRefresh;
 
         handlers[resp] = respCb;
         wss.bindHandlers(handlers);
@@ -79,17 +94,11 @@
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             ts.resetSort();
-            if (angular.isDefined(promise)) {
-                $interval.cancel(promise);
-                promise = undefined;
-            }
+            stopRefresh();
         });
 
         sortCb();
-
-        promise = $interval(function () {
-            refresh(o.scope.sortParams);
-        }, refreshInterval);
+        startRefresh();
     }
 
     angular.module('onosWidget')

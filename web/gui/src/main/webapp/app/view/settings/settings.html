@@ -3,9 +3,9 @@
     <div class="tabular-header">
         <h2>Component Settings ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
-            <div class="refresh active"
+            <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="36" icon-id="refresh"
-                 ng-click="refresh(sortParams)"></div>
+                 ng-click="toggleRefresh()"></div>
         </div>
     </div>
 
@@ -17,7 +17,7 @@
              sort-callback="sortCallback(sortParams)">
             <table>
                 <tr>
-                    <td colId="component" sortable col-width="400px">Component </td>
+                    <td colId="component" sortable col-width="350px">Component </td>
                     <td colId="id" sortable>Property </td>
                     <td colId="type" sortable col-width="70px">Type </td>
                     <td colId="value" sortable>Value </td>

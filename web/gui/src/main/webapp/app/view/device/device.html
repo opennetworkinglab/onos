@@ -3,9 +3,9 @@
     <div class="tabular-header">
         <h2>Devices ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
-            <div class="refresh active"
+            <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="36" icon-id="refresh"
-                 ng-click="refresh(sortParams)"></div>
+                 ng-click="toggleRefresh()"></div>
         </div>
     </div>
 

@@ -93,3 +93,70 @@ div.summary-list .table-body td {
 .dark div.summary-list td {
     color: #ccc;
 }
+
+/* Tabular view upper right control buttons */
+
+div.ctrl-btns {
+    display: inline-block;
+    float: right;
+    height: 44px;
+    margin-right: 24px;
+    margin-top: 7px;
+}
+
+
+div.ctrl-btns div {
+    display: inline-block;
+    padding: 4px;
+    cursor: pointer;
+}
+
+/* Inactive */
+.light .ctrl-btns div g.icon rect,
+.light .ctrl-btns div:hover g.icon rect {
+    fill: #eee;
+}
+.dark .ctrl-btns div g.icon rect,
+.dark .ctrl-btns div:hover g.icon rect {
+    fill: #222;
+}
+
+.light .ctrl-btns div g.icon use {
+    fill: #ddd;
+}
+.dark .ctrl-btns div g.icon use {
+    fill: #333;
+}
+
+/* Active hover */
+.light .ctrl-btns div.active:hover g.icon rect {
+    fill: #800;
+}
+
+.dark .ctrl-btns div.active:hover g.icon rect {
+    fill: #CE5650;
+}
+
+/* Active */
+.light .ctrl-btns div.active g.icon use {
+    fill: #fff;
+}
+.dark .ctrl-btns div.active g.icon use {
+    fill: #eee;
+}
+
+.light .ctrl-btns div.active g.icon rect {
+    fill: #bbb;
+}
+.dark .ctrl-btns div.active g.icon rect {
+    fill: #444;
+}
+
+/* Refresh button specific */
+.light .ctrl-btns div.refresh:hover g.icon rect {
+    fill: #800;
+}
+
+.dark .ctrl-btns div.refresh:hover g.icon rect {
+    fill: #CE5650;
+}
