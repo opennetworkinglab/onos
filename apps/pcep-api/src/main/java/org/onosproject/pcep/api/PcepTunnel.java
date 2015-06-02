@@ -19,9 +19,9 @@ package org.onosproject.pcep.api;
 import java.util.List;
 
 /**
- * Abstraction of a generalized  PCEP Tunnel entity (bandwidth pipe) for
- * L2 networks or L1/L0 networks, representation of e.g., VLAN, L1 ODUk
- * connection, WDM OCH, etc..
+ * Abstraction of a generalized PCEP Tunnel entity (bandwidth pipe) for L2
+ * networks or L1/L0 networks, representation of e.g., VLAN, L1 ODUk connection,
+ * WDM OCH, etc..
  */
 public interface PcepTunnel extends PcepOperator {
 
@@ -72,96 +72,111 @@ public interface PcepTunnel extends PcepOperator {
     public static enum PATHTYPE {
 
         /**
-         * the preferred path.
+         * Indicates path is the preferred path.
          */
         FIRST,
 
         /**
-         * the alternate path.
+         * Indicates path is the alternate path.
          */
         SECOND
     }
 
     /**
-     * Get the type of a tunnel.
+     * Represents state of the path, work normally or broken down.
+     *
+     */
+    public static enum PathState {
+        NORMAL, BROKEN
+    }
+
+    /**
+     * Returns the type of a tunnel.
      *
      * @return tunnel type
      */
     public Type type();
 
     /**
-     * Get the name of a tunnel.
+     * Returns the name of a tunnel.
      *
      * @return tunnel name
      */
     public String name();
 
     /**
-     * Get the device id of destination endpoint of a tunnel.
+     * Returns the device id of destination endpoint of a tunnel.
      *
      * @return device id
      */
     public PcepDpid srcDeviceID();
 
     /**
-     * Get the device id of source endpoint of a tunnel.
+     * Returns the device id of source endpoint of a tunnel.
      *
      * @return device id
      */
     public PcepDpid dstDeviceId();
 
     /**
-     * Get source port of a tunnel.
+     * Returns source port of a tunnel.
      *
      * @return port number
      */
     public long srcPort();
 
     /**
-     * Get destination port of a tunnel.
+     * Returns destination port of a tunnel.
      *
      * @return port number
      */
     public long dstPort();
 
     /**
-     * Get the bandwidth of a tunnel.
+     * Returns the bandwidth of a tunnel.
      *
      * @return bandwidth
      */
     public long bandWidth();
 
     /**
-     * Get the tunnel id.
+     * Returns the tunnel id.
      *
      * @return id of the PCEP tunnel
      */
     public long id();
 
     /**
-     * Get the detail hop list of a tunnel.
+     * Returns the detail hop list of a tunnel.
      *
      * @return hop list
      */
     public List<PcepHopNodeDescription> getHopList();
 
     /**
-     * Get the instance of a pcep tunnel,a instance is used to mark the times of a tunnel created.
-     * instance and id identify a tunnel together.
+     * Returns the instance of a pcep tunnel,a instance is used to mark the times of
+     * a tunnel created. instance and id identify a tunnel together.
      *
      * @return the instance of a tunnel.
      */
     public int getInstance();
 
     /**
-     * Get the ability of a tunnel.NOPROTECTED,SILVER,or DIAMOND.
+     * Returns the state of a path.
+     *
+     * @return normal or broken
+     */
+    public PathState getPathState();
+
+    /**
+     * Returns the ability of a tunnel.
      *
      * @return ability of the tunenl
      */
     public Ability getSla();
 
     /**
-     * Get the path type of a path if the tunnel's ability is diamond .
+     * Returns the path type of a path if the tunnel's ability is diamond .
      *
      * @return the type of a path, the preferred or alternate.
      */
@@ -172,6 +187,6 @@ public interface PcepTunnel extends PcepOperator {
      *
      * @return the tunnel id of a OCH tunnel under lay of a VLAN tunnel.
      */
-    public long underLayTunnelId();
+    public long underlayTunnelId();
 
 }

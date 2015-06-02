@@ -72,7 +72,7 @@ public class TunnelCreateCommand extends AbstractShellCommand {
 
     @Option(name = "-b", aliases = "--bandwidth",
             description = "The bandwidth attribute of tunnel", required = false, multiValued = false)
-    String bandwidth = null;
+    String bandwidth = "1024";
 
     private static final String FMT = "The tunnel identity is %s";
 
@@ -181,7 +181,7 @@ public class TunnelCreateCommand extends AbstractShellCommand {
 
         SparseAnnotations annotations = DefaultAnnotations
                 .builder()
-                .set("bandwidth", bandwidth == null && "".equals(bandwidth) ? "0" : bandwidth)
+                .set("bandwidth", bandwidth == null || "".equals(bandwidth) ? "0" : bandwidth)
                 .build();
         TunnelDescription tunnel = new DefaultTunnelDescription(
                                                                 null,
@@ -197,6 +197,10 @@ public class TunnelCreateCommand extends AbstractShellCommand {
                                                                         null,
                                                                 annotations);
         TunnelId tunnelId = service.tunnelAdded(tunnel);
+        if (tunnelId == null) {
+            error("Create tunnel failed.");
+            return;
+        }
         print(FMT, tunnelId.id());
     }
 

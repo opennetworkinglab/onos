@@ -60,6 +60,7 @@ import org.onosproject.pcep.api.PcepDpid;
 import org.onosproject.pcep.api.PcepHopNodeDescription;
 import org.onosproject.pcep.api.PcepOperator.OperationType;
 import org.onosproject.pcep.api.PcepTunnel;
+import org.onosproject.pcep.api.PcepTunnel.PathState;
 import org.onosproject.pcep.api.PcepTunnel.PATHTYPE;
 import org.onosproject.pcep.api.PcepTunnelListener;
 import org.slf4j.Logger;
@@ -199,7 +200,7 @@ public class PcepTunnelProvider extends AbstractProvider
         Tunnel tunnelOld = tunnelQueryById(tunnel.id());
         checkNotNull(tunnelOld, "The tunnel id is not exsited.");
         if (tunnelOld.type() != Tunnel.Type.VLAN) {
-            error("Llegal tunnel type. Only support VLAN tunnel deletion.");
+            error("Illegal tunnel type. Only support VLAN tunnel deletion.");
             return;
         }
         String pcepTunnelId = getPCEPTunnelKey(tunnel.id());
@@ -217,7 +218,7 @@ public class PcepTunnelProvider extends AbstractProvider
 
         Tunnel tunnelOld = tunnelQueryById(tunnel.id());
         if (tunnelOld.type() != Tunnel.Type.VLAN) {
-            error("Llegal tunnel type. Only support VLAN tunnel update.");
+            error("Illegal tunnel type. Only support VLAN tunnel update.");
             return;
         }
         long bandwidth = Long
@@ -256,7 +257,7 @@ public class PcepTunnelProvider extends AbstractProvider
 
     // Creates a path that leads through the given devices.
     private Path createPath(List<PcepHopNodeDescription> hopList,
-                            PATHTYPE pathtype) {
+                            PATHTYPE pathtype, PathState pathState) {
         if (hopList == null || hopList.size() == 0) {
             return null;
         }
@@ -270,6 +271,7 @@ public class PcepTunnelProvider extends AbstractProvider
         int hopNum = hopList.size() - 2;
         DefaultAnnotations extendAnnotations = DefaultAnnotations.builder()
                 .set("pathNum", String.valueOf(hopNum))
+                .set("pathState", String.valueOf(pathState))
                 .set("pathType", String.valueOf(pathtype)).build();
         return new DefaultPath(id(), links, hopNum, extendAnnotations);
     }
@@ -299,7 +301,8 @@ public class PcepTunnelProvider extends AbstractProvider
 
         // add path after codes of tunnel's path merged
         Path path = createPath(pcepTunnel.getHopList(),
-                               pcepTunnel.getPathType());
+                               pcepTunnel.getPathType(),
+                               pcepTunnel.getPathState());
 
         OpticalTunnelEndPoint.Type endPointType = null;
         switch (pcepTunnel.type()) {
@@ -347,11 +350,11 @@ public class PcepTunnelProvider extends AbstractProvider
 
         // a VLAN tunnel always carry OCH tunnel, this annotation is the index
         // of a OCH tunnel.
-        if (pcepTunnel.underLayTunnelId() != 0) {
+        if (pcepTunnel.underlayTunnelId() != 0) {
             DefaultAnnotations extendAnnotations = DefaultAnnotations
                     .builder()
                     .set("underLayTunnelIndex",
-                         String.valueOf(pcepTunnel.underLayTunnelId())).build();
+                         String.valueOf(pcepTunnel.underlayTunnelId())).build();
             annotations = DefaultAnnotations.merge(annotations,
                                                    extendAnnotations);
 

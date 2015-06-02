@@ -205,7 +205,7 @@ public class TunnelQueryCommand extends AbstractShellCommand {
 
     private String showPath(Path path) {
         if (path == null) {
-            return "";
+            return "null";
         }
         StringBuilder builder = new StringBuilder("(");
         for (Link link : path.links()) {
