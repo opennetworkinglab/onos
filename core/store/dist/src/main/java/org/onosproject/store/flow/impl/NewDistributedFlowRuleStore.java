@@ -608,6 +608,9 @@ public class NewDistributedFlowRuleStore
 
         @Override
         public void event(ReplicaInfoEvent event) {
+            if (!backupEnabled) {
+                return;
+            }
             if (event.type() == ReplicaInfoEvent.Type.BACKUPS_CHANGED) {
                 DeviceId deviceId = event.subject();
                 NodeId master = mastershipService.getMasterFor(deviceId);
@@ -767,14 +770,14 @@ public class NewDistributedFlowRuleStore
             log.debug("Received flowEntries for {} to backup", flowTables.keySet());
             Set<DeviceId> backedupDevices = Sets.newHashSet();
             try {
-                Set<DeviceId> managedDevices = mastershipService.getDevicesOf(local);
-                // Only process those devices are that not managed by the local node.
-                Maps.filterKeys(flowTables, deviceId -> !managedDevices.contains(deviceId))
-                .forEach((deviceId, flowTable) -> {
-                    Map<FlowId, Set<StoredFlowEntry>> deviceFlowTable = getFlowTable(deviceId);
-                    deviceFlowTable.clear();
-                    deviceFlowTable.putAll(flowTable);
-                    backedupDevices.add(deviceId);
+                flowTables.forEach((deviceId, deviceFlowTable) -> {
+                    // Only process those devices are that not managed by the local node.
+                    if (!Objects.equal(local, mastershipService.getMasterFor(deviceId))) {
+                        Map<FlowId, Set<StoredFlowEntry>> backupFlowTable = getFlowTable(deviceId);
+                        backupFlowTable.clear();
+                        backupFlowTable.putAll(deviceFlowTable);
+                        backedupDevices.add(deviceId);
+                    }
                 });
             } catch (Exception e) {
                 log.warn("Failure processing backup request", e);
