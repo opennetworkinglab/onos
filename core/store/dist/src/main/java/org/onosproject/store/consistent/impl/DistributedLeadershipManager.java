@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -102,7 +103,8 @@ public class DistributedLeadershipManager implements LeadershipService {
     private Set<String> activeTopics = Sets.newConcurrentHashSet();
     private Map<String, CompletableFuture<Leadership>> pendingFutures = Maps.newConcurrentMap();
 
-    private static final int ELECTION_JOIN_ATTEMPT_INTERVAL_SEC = 2;
+    // The actual delay is randomly chosen between the interval [0, WAIT_BEFORE_RETRY_MILLIS)
+    private static final int WAIT_BEFORE_RETRY_MILLIS = 150;
     private static final int DELAY_BETWEEN_LEADER_LOCK_ATTEMPTS_SEC = 2;
     private static final int LEADERSHIP_STATUS_UPDATE_INTERVAL_SEC = 2;
     private static final int DELAY_BETWEEN_STALE_LEADERSHIP_PURGE_ATTEMPTS_SEC = 2;
@@ -302,7 +304,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                                     newCandidates.version(),
                                     newCandidates.creationTime())));
             } else {
-                log.warn("Failed to withdraw from candidates list for {}. Will retry", path);
+                log.debug("Failed to withdraw from candidates list for {}. Will retry", path);
                 retryWithdraw(path, future);
             }
         } catch (Exception e) {
@@ -480,15 +482,15 @@ public class DistributedLeadershipManager implements LeadershipService {
     private void rerunForLeadership(String path, CompletableFuture<Leadership> future) {
         lockExecutor.schedule(
                 () -> doRunForLeadership(path, future),
-                ELECTION_JOIN_ATTEMPT_INTERVAL_SEC,
-                TimeUnit.SECONDS);
+                RandomUtils.nextInt(WAIT_BEFORE_RETRY_MILLIS),
+                TimeUnit.MILLISECONDS);
     }
 
     private void retryWithdraw(String path, CompletableFuture<Void> future) {
         lockExecutor.schedule(
                 () -> doWithdraw(path, future),
-                DELAY_BETWEEN_LEADER_LOCK_ATTEMPTS_SEC,
-                TimeUnit.SECONDS);
+                RandomUtils.nextInt(WAIT_BEFORE_RETRY_MILLIS),
+                TimeUnit.MILLISECONDS);
     }
 
     private void scheduleStaleLeadershipPurge(int afterDelaySec) {
