@@ -61,4 +61,14 @@ public interface VbngConfigurationService {
      * @return the assigned public IP address if it exists, otherwise null
      */
     IpAddress getAssignedPublicIpAddress(IpAddress privateIpAddress);
+
+    /**
+     * Recycles the public IP address assigned for a private IP address, and
+     * at the same time deletes the mapping entry from this private IP address
+     * to the public IP address.
+     *
+     * @param privateIpAddress a private IP address
+     * @return the assigned public IP address if it exists, otherwise null
+     */
+    IpAddress recycleAssignedPublicIpAddress(IpAddress privateIpAddress);
 }

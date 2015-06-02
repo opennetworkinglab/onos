@@ -17,6 +17,7 @@ package org.onosproject.virtualbng;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -35,13 +36,13 @@ public class VbngResource extends BaseResource {
 
     @POST
     @Path("{privateip}")
-    public String privateIpNotification(@PathParam("privateip")
+    public String privateIpAddNotification(@PathParam("privateip")
             String privateIp) {
         if (privateIp == null) {
-            log.info("Private IP address is null");
+            log.info("Private IP address to add is null");
             return "0";
         }
-        log.info("Received a private IP address : {}", privateIp);
+        log.info("Received a private IP address : {} to add", privateIp);
         IpAddress privateIpAddress = IpAddress.valueOf(privateIp);
 
         VbngService vbngService = get(VbngService.class);
@@ -52,6 +53,30 @@ public class VbngResource extends BaseResource {
 
         if (publicIpAddress != null) {
             return publicIpAddress.toString();
+        } else {
+            return "0";
+        }
+    }
+
+    @DELETE
+    @Path("{privateip}")
+    public String privateIpDeleteNotification(@PathParam("privateip")
+            String privateIp) {
+        if (privateIp == null) {
+            log.info("Private IP address to delete is null");
+            return "0";
+        }
+        log.info("Received a private IP address : {} to delete", privateIp);
+        IpAddress privateIpAddress = IpAddress.valueOf(privateIp);
+
+        VbngService vbngService = get(VbngService.class);
+
+        IpAddress assignedPublicIpAddress = null;
+        // Delete a virtual BNG
+        assignedPublicIpAddress = vbngService.deleteVbng(privateIpAddress);
+
+        if (assignedPublicIpAddress != null) {
+            return assignedPublicIpAddress.toString();
         } else {
             return "0";
         }

@@ -36,4 +36,13 @@ public interface VbngService {
      */
     IpAddress createVbng(IpAddress privateIpAddress);
 
+    /**
+     * Deletes a virtual BNG.
+     *
+     * @param privateIpAddress a private IP address
+     * @return the public address assigned for this private IP address if the
+     *         virtual BGN exists and is deleted, otherwise return null if
+     *         there is no vBNG for this private IP address
+     */
+    IpAddress deleteVbng(IpAddress privateIpAddress);
 }

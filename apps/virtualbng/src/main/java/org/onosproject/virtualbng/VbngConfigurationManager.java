@@ -182,6 +182,27 @@ public class VbngConfigurationManager implements VbngConfigurationService {
         return ipAddressMap.containsValue(ipAddress);
     }
 
+    @Override
+    public IpAddress recycleAssignedPublicIpAddress(IpAddress
+                                                    privateIpAddress) {
+        IpAddress publicIpAddress = ipAddressMap.remove(privateIpAddress);
+        if (publicIpAddress == null) {
+            return null;
+        }
+
+        Iterator<Entry<IpPrefix, Boolean>> prefixes =
+                localPublicIpPrefixes.entrySet().iterator();
+        while (prefixes.hasNext()) {
+            Entry<IpPrefix, Boolean> prefixEntry = prefixes.next();
+            if (prefixEntry.getKey().contains(publicIpAddress)
+                    && !prefixEntry.getValue()) {
+                updateIpPrefixStatus(prefixEntry.getKey(), true);
+            }
+        }
+
+        return publicIpAddress;
+    }
+
     /**
      * Generates a new IP address base on a given IP address plus a number to
      * increase.

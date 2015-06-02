@@ -91,7 +91,6 @@ public class VbngManager implements VbngService {
     private HostListener hostListener;
     private IpAddress nextHopIpAddress;
 
-
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
@@ -131,6 +130,47 @@ public class VbngManager implements VbngService {
             privateIpAddressSet.add(privateIpAddress);
         }
         return publicIpAddress;
+    }
+
+    @Override
+    public IpAddress deleteVbng(IpAddress privateIpAddress) {
+        // Recycle the public IP address assigned to this private IP address.
+        // Recycling will also delete the mapping entry from the private IP
+        // address to public IP address.
+        IpAddress assignedPublicIpAddress = vbngConfigurationService
+                .recycleAssignedPublicIpAddress(privateIpAddress);
+        if (assignedPublicIpAddress == null) {
+            return null;
+        }
+
+        // Remove the private IP address from privateIpAddressSet
+        privateIpAddressSet.remove(privateIpAddress);
+
+        // Remove intents
+        removeForwardingPaths(privateIpAddress);
+
+        return assignedPublicIpAddress;
+    }
+
+    /**
+     * Removes the forwarding paths in both two directions between host
+     * configured with private IP and next hop.
+     *
+     * @param privateIp the private IP address of a local host
+     */
+    private void removeForwardingPaths(IpAddress privateIp) {
+        PointToPointIntent toNextHopIntent =
+                p2pIntentsFromHost.remove(privateIp);
+        if (toNextHopIntent != null) {
+            intentService.withdraw(toNextHopIntent);
+            //intentService.purge(toNextHopIntent);
+        }
+        PointToPointIntent toLocalHostIntent =
+                p2pIntentsToHost.remove(privateIp);
+        if (toLocalHostIntent != null) {
+            intentService.withdraw(toLocalHostIntent);
+            //intentService.purge(toLocalHostIntent);
+        }
     }
 
     /**
@@ -207,7 +247,7 @@ public class VbngManager implements VbngService {
                                               localHost.mac(),
                                               localHostConnectPoint,
                                               nextHopConnectPoint);
-            p2pIntentsToHost.put(nextHopIpAddress, toLocalHostIntent);
+            p2pIntentsToHost.put(privateIp, toLocalHostIntent);
             intentService.submit(toLocalHostIntent);
         }
 
