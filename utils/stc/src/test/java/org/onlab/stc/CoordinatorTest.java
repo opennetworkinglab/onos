@@ -55,6 +55,7 @@ public class CoordinatorTest {
         compiler.compile();
         coordinator = new Coordinator(scenario, compiler.processFlow(), compiler.logDir());
         coordinator.addListener(listener);
+        coordinator.reset();
         coordinator.start();
         coordinator.waitFor();
         coordinator.removeListener(listener);

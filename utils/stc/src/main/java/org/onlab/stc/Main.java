@@ -15,11 +15,18 @@
  */
 package org.onlab.stc;
 
+import com.google.common.collect.ImmutableList;
+import org.onlab.stc.Coordinator.Status;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
+import static java.lang.System.currentTimeMillis;
+import static org.onlab.stc.Coordinator.Status.*;
 import static org.onlab.stc.Coordinator.print;
 
 /**
@@ -27,30 +34,53 @@ import static org.onlab.stc.Coordinator.print;
  */
 public final class Main {
 
+    private static final String NONE = "\u001B[0m";
+    private static final String GRAY = "\u001B[30;1m";
+    private static final String RED = "\u001B[31;1m";
+    private static final String GREEN = "\u001B[32;1m";
+    private static final String BLUE = "\u001B[36m";
+
     private enum Command {
-        LIST, RUN, RUN_FROM, RUN_TO
+        LIST, RUN, RUN_RANGE, HELP
     }
 
-    private final String[] args;
-    private final Command command;
     private final String scenarioFile;
 
-    private Scenario scenario;
+    private Command command = Command.HELP;
+    private String runFromPatterns = "";
+    private String runToPatterns = "";
+
     private Coordinator coordinator;
     private Listener delegate = new Listener();
 
+    private static boolean useColor = Objects.equals("true", System.getenv("stcColor"));
+
+    // usage: stc [<scenario-file>] [run]
+    // usage: stc [<scenario-file>] run [from <from-patterns>] [to <to-patterns>]]
+    // usage: stc [<scenario-file>] list
+
     // Public construction forbidden
     private Main(String[] args) {
-        this.args = args;
         this.scenarioFile = args[0];
-        this.command = Command.valueOf("RUN");
-    }
 
-    // usage: stc [<command>] [<scenario-file>]
-    // --list
-    // [--run]
-    // --run-from <step>,...
-    // --run-to <step>,...
+        if (args.length <= 1 || args.length == 2 && args[1].equals("run")) {
+            command = Command.RUN;
+        } else if (args.length == 2 && args[1].equals("list")) {
+            command = Command.LIST;
+        } else if (args.length >= 4 && args[1].equals("run")) {
+            int i = 2;
+            if (args[i].equals("from")) {
+                command = Command.RUN_RANGE;
+                runFromPatterns = args[i + 1];
+                i += 2;
+            }
+
+            if (args.length >= i + 2 && args[i].equals("to")) {
+                command = Command.RUN_RANGE;
+                runToPatterns = args[i + 1];
+            }
+        }
+    }
 
     /**
      * Main entry point for coordinating test scenario execution.
@@ -62,10 +92,11 @@ public final class Main {
         main.run();
     }
 
+    // Runs the scenario processing
     private void run() {
         try {
             // Load scenario
-            scenario = Scenario.loadScenario(new FileInputStream(scenarioFile));
+            Scenario scenario = Scenario.loadScenario(new FileInputStream(scenarioFile));
 
             // Elaborate scenario
             Compiler compiler = new Compiler(scenario);
@@ -82,17 +113,27 @@ public final class Main {
         }
     }
 
+    // Processes the appropriate command
     private void processCommand() {
         switch (command) {
             case RUN:
                 processRun();
+                break;
+            case LIST:
+                processList();
+                break;
+            case RUN_RANGE:
+                processRunRange();
+                break;
             default:
-                print("Unsupported command");
+                print("Unsupported command %s", command);
         }
     }
 
+    // Processes the scenario 'run' command.
     private void processRun() {
         try {
+            coordinator.reset();
             coordinator.start();
             int exitCode = coordinator.waitFor();
             pause(100); // allow stdout to flush
@@ -102,38 +143,85 @@ public final class Main {
         }
     }
 
-    private void pause(int ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            print("Interrupted!");
-        }
+    // Processes the scenario 'list' command.
+    private void processList() {
+        coordinator.getRecords()
+                .forEach(event -> logStatus(event.time(), event.name(), event.status()));
     }
 
+    // Processes the scenario 'run' command for range of steps.
+    private void processRunRange() {
+        try {
+            coordinator.reset(list(runFromPatterns), list(runToPatterns));
+            coordinator.start();
+            int exitCode = coordinator.waitFor();
+            pause(100); // allow stdout to flush
+            System.exit(exitCode);
+        } catch (InterruptedException e) {
+            print("Unable to execute scenario %s", scenarioFile);
+        }
+    }
 
     /**
      * Internal delegate to monitor the process execution.
      */
-    private class Listener implements StepProcessListener {
-
+    private static class Listener implements StepProcessListener {
         @Override
         public void onStart(Step step) {
-            print("%s  %s started", now(), step.name());
+            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS);
         }
 
         @Override
         public void onCompletion(Step step, int exitCode) {
-            print("%s  %s %s", now(), step.name(), exitCode == 0 ? "completed" : "failed");
+            logStatus(currentTimeMillis(), step.name(), exitCode == 0 ? SUCCEEDED : FAILED);
         }
 
         @Override
         public void onOutput(Step step, String line) {
         }
-
     }
 
-    private String now() {
-        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date());
+    // Logs the step status.
+    private static void logStatus(long time, String name, Status status) {
+        print("%s  %s%s %s%s", time(time), color(status), name, action(status), color(null));
+    }
+
+    // Produces a description of event using the specified step status.
+    private static String action(Status status) {
+        return status == IN_PROGRESS ? "started" :
+                (status == SUCCEEDED ? "completed" :
+                        (status == FAILED ? "failed" :
+                                (status == SKIPPED ? "skipped" : "waiting")));
+    }
+
+    // Produces an ANSI escape code for color using the specified step status.
+    private static String color(Status status) {
+        if (!useColor) {
+            return "";
+        }
+        return status == null ? NONE :
+                (status == IN_PROGRESS ? BLUE :
+                        (status == SUCCEEDED ? GREEN :
+                                (status == FAILED ? RED : GRAY)));
+    }
+
+    // Produces a list from the specified comma-separated string.
+    private static List<String> list(String patterns) {
+        return ImmutableList.copyOf(patterns.split(","));
+    }
+
+    // Produces a formatted time stamp.
+    private static String time(long time) {
+        return new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date(time));
+    }
+
+    // Pauses for the specified number of millis.
+    private static void pause(int ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            print("Interrupted!");
+        }
     }
 
 }

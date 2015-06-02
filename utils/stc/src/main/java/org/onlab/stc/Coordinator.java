@@ -15,9 +15,11 @@
  */
 package org.onlab.stc;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +38,6 @@ public class Coordinator {
 
     private final ExecutorService executor = newFixedThreadPool(MAX_THREADS);
 
-    private final Scenario scenario;
     private final ProcessFlow processFlow;
 
     private final StepProcessListener delegate;
@@ -57,7 +58,7 @@ public class Coordinator {
      * Represents processor state.
      */
     public enum Status {
-        WAITING, IN_PROGRESS, SUCCEEDED, FAILED
+        WAITING, IN_PROGRESS, SUCCEEDED, FAILED, SKIPPED
     }
 
     /**
@@ -68,12 +69,51 @@ public class Coordinator {
      * @param logDir      scenario log directory
      */
     public Coordinator(Scenario scenario, ProcessFlow processFlow, File logDir) {
-        this.scenario = scenario;
         this.processFlow = processFlow;
         this.logDir = logDir;
         this.store = new ScenarioStore(processFlow, logDir, scenario.name());
         this.delegate = new Delegate();
         this.latch = new CountDownLatch(store.getSteps().size());
+    }
+
+    /**
+     * Resets any previously accrued status and events.
+     */
+    public void reset() {
+        store.reset();
+    }
+
+    /**
+     * Resets all previously accrued status and events for steps that lie
+     * in the range between the steps or groups whose names match the specified
+     * patterns.
+     *
+     * @param runFromPatterns list of starting step patterns
+     * @param runToPatterns   list of ending step patterns
+     */
+    public void reset(List<String> runFromPatterns, List<String> runToPatterns) {
+        List<Step> fromSteps = matchSteps(runFromPatterns);
+        List<Step> toSteps = matchSteps(runToPatterns);
+
+        // FIXME: implement this
+    }
+
+    /**
+     * Returns a list of steps that match the specified list of patterns.
+     *
+     * @param runToPatterns list of patterns
+     * @return list of steps with matching names
+     */
+    private List<Step> matchSteps(List<String> runToPatterns) {
+        ImmutableList.Builder<Step> builder = ImmutableList.builder();
+        store.getSteps().forEach(step -> {
+            runToPatterns.forEach(p -> {
+                if (step.name().matches(p)) {
+                    builder.add(step);
+                }
+            });
+        });
+        return builder.build();
     }
 
     /**
@@ -104,10 +144,19 @@ public class Coordinator {
     }
 
     /**
-     * Returns the status of the specified test step.
+     * Returns a chronological list of step or group records.
+     *
+     * @return list of events
+     */
+    List<StepEvent> getRecords() {
+        return store.getEvents();
+    }
+
+    /**
+     * Returns the status record of the specified test step.
      *
      * @param step test step or group
-     * @return step status
+     * @return step status record
      */
     public Status getStatus(Step step) {
         return store.getStatus(step);
@@ -138,6 +187,7 @@ public class Coordinator {
      * @param group optional group
      */
     private void executeRoots(Group group) {
+        // FIXME: add ability to skip past completed steps
         Set<Step> steps =
                 group != null ? group.children() : processFlow.getVertexes();
         steps.forEach(step -> {
@@ -155,7 +205,7 @@ public class Coordinator {
     private synchronized void execute(Step step) {
         Directive directive = nextAction(step);
         if (directive == RUN || directive == SKIP) {
-            store.updateStatus(step, IN_PROGRESS);
+            store.markStarted(step);
             if (step instanceof Group) {
                 Group group = (Group) step;
                 delegate.onStart(group);
@@ -247,7 +297,7 @@ public class Coordinator {
 
         @Override
         public void onCompletion(Step step, int exitCode) {
-            store.updateStatus(step, exitCode == 0 ? SUCCEEDED : FAILED);
+            store.markComplete(step, exitCode == 0 ? SUCCEEDED : FAILED);
             listeners.forEach(listener -> listener.onCompletion(step, exitCode));
             executeSucessors(step);
             latch.countDown();

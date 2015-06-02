@@ -13,4 +13,8 @@ scenario=${1:-smoke}
 [ ! -f $scenario ] && scenario=$scenario.xml
 [ ! -f $scenario ] && echo "Scenario $scenario file not found" && exit 1
 
-java -jar $JAR $scenario
+[ $# -ge 1 ] && shift
+
+[ -t 1 ] && stcColor=true || unset stcColor
+
+java -jar $JAR $scenario "$@"

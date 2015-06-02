@@ -15,18 +15,20 @@
  */
 package org.onlab.stc;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.onlab.stc.Coordinator.Status;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.stc.Coordinator.Status.FAILED;
-import static org.onlab.stc.Coordinator.Status.WAITING;
+import static org.onlab.stc.Coordinator.Status.*;
 import static org.onlab.stc.Coordinator.print;
 
 /**
@@ -37,7 +39,8 @@ class ScenarioStore {
     private final ProcessFlow processFlow;
     private final File storeFile;
 
-    private final Map<Step, Status> stepStatus = Maps.newConcurrentMap();
+    private final List<StepEvent> events = Lists.newArrayList();
+    private final Map<String, Status> statusMap = Maps.newConcurrentMap();
 
     /**
      * Creates a new scenario store for the specified process flow.
@@ -49,9 +52,25 @@ class ScenarioStore {
     ScenarioStore(ProcessFlow processFlow, File logDir, String name) {
         this.processFlow = processFlow;
         this.storeFile = new File(logDir, name + ".stc");
-        processFlow.getVertexes().forEach(step -> stepStatus.put(step, WAITING));
+        load();
     }
 
+    /**
+     * Resets status of all steps to waiting and clears all events.
+     */
+    void reset() {
+        events.clear();
+        statusMap.clear();
+        processFlow.getVertexes().forEach(step -> statusMap.put(step.name(), WAITING));
+        try {
+            PropertiesConfiguration cfg = new PropertiesConfiguration(storeFile);
+            cfg.clear();
+            cfg.save();
+        } catch (ConfigurationException e) {
+            print("Unable to store file %s", storeFile);
+        }
+
+    }
 
     /**
      * Returns set of all test steps.
@@ -63,23 +82,42 @@ class ScenarioStore {
     }
 
     /**
-     * Returns the status of the specified test step.
+     * Returns a chronological list of step or group records.
      *
-     * @param step test step or group
-     * @return step status
+     * @return list of events
      */
-    Status getStatus(Step step) {
-        return checkNotNull(stepStatus.get(step), "Step %s not found", step.name());
+    synchronized List<StepEvent> getEvents() {
+        return ImmutableList.copyOf(events);
     }
 
     /**
-     * Updates the status of the specified test step.
+     * Returns the status record of the specified test step.
+     *
+     * @param step test step or group
+     * @return step status record
+     */
+    Status getStatus(Step step) {
+        return checkNotNull(statusMap.get(step.name()), "Step %s not found", step.name());
+    }
+
+    /**
+     * Marks the specified test step as being in progress.
+     *
+     * @param step test step or group
+     */
+    synchronized void markStarted(Step step) {
+        add(new StepEvent(step.name(), IN_PROGRESS));
+        save();
+    }
+
+    /**
+     * Marks the specified test step as being complete.
      *
      * @param step   test step or group
      * @param status new step status
      */
-    void updateStatus(Step step, Status status) {
-        stepStatus.put(step, status);
+    synchronized void markComplete(Step step, Status status) {
+        add(new StepEvent(step.name(), status));
         save();
     }
 
@@ -89,7 +127,7 @@ class ScenarioStore {
      * @return true if there are failed steps
      */
     boolean hasFailures() {
-        for (Status status : stepStatus.values()) {
+        for (Status status : statusMap.values()) {
             if (status == FAILED) {
                 return true;
             }
@@ -98,10 +136,26 @@ class ScenarioStore {
     }
 
     /**
+     * Registers a new step record.
+     *
+     * @param event step event
+     */
+    private synchronized void add(StepEvent event) {
+        events.add(event);
+        statusMap.put(event.name(), event.status());
+    }
+
+    /**
      * Loads the states from disk.
      */
     private void load() {
-        // FIXME: implement this
+        try {
+            PropertiesConfiguration cfg = new PropertiesConfiguration(storeFile);
+            cfg.getKeys().forEachRemaining(prop -> add(StepEvent.fromString(cfg.getString(prop))));
+            cfg.save();
+        } catch (ConfigurationException e) {
+            print("Unable to store file %s", storeFile);
+        }
     }
 
     /**
@@ -110,7 +164,7 @@ class ScenarioStore {
     private void save() {
         try {
             PropertiesConfiguration cfg = new PropertiesConfiguration(storeFile);
-            stepStatus.forEach((step, status) -> cfg.setProperty(step.name(), status));
+            events.forEach(event -> cfg.setProperty("T" + event.time(), event.toString()));
             cfg.save();
         } catch (ConfigurationException e) {
             print("Unable to store file %s", storeFile);
