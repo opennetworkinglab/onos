@@ -29,7 +29,7 @@ public class CpqdOFDPA1Pipeline extends OFDPA1Pipeline {
         processIpTable();
         //processMcastTable();
         processBridgingTable();
-        //processAclTable();
+        processAclTable();
         //processGroupTable();
     }
 
@@ -152,7 +152,35 @@ public class CpqdOFDPA1Pipeline extends OFDPA1Pipeline {
                 log.info("Failed to initialize Bridging table");
             }
         }));
+    }
 
+    private void processAclTable() {
+        //table miss entry - catch all to executed action-set
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        selector = DefaultTrafficSelector.builder();
+        treatment = DefaultTrafficTreatment.builder();
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(LOWEST_PRIORITY)
+                .fromApp(driverId)
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
+        ops =  ops.add(rule);
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Initialized Acl table");
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.info("Failed to initialize Acl table");
+            }
+        }));
     }
 
 }

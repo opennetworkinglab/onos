@@ -529,7 +529,6 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     .makePermanent()
                     .forTable(ACL_TABLE);
 
-            // XXX  bug in OFDPA
             return Collections.singletonList(ruleBuilder.build());
         }
 

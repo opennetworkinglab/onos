@@ -15,18 +15,16 @@
  */
 package org.onosproject.driver.pipeline;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalNotification;
-
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
@@ -48,34 +46,23 @@ import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.net.group.DefaultGroupBucket;
-import org.onosproject.net.group.DefaultGroupDescription;
-import org.onosproject.net.group.DefaultGroupKey;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.group.GroupEvent;
-import org.onosproject.net.group.GroupKey;
-import org.onosproject.net.group.GroupListener;
-import org.onosproject.net.group.GroupService;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -83,12 +70,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
-    protected static final int VLAN_TABLE = 252;
-    protected static final int ETHTYPE_TABLE = 252;
-    protected static final int IP_UNICAST_TABLE = 251;
-    protected static final int ACL_TABLE = 251;
+    protected static final int IP_UNICAST_TABLE = 252;
+    protected static final int ACL_TABLE = 0;
 
-    private static final int CONTROLLER_PRIORITY = 255;
+    //private static final int CONTROLLER_PRIORITY = 255;
     private static final int DROP_PRIORITY = 0;
     private static final int HIGHEST_PRIORITY = 0xffff;
 
@@ -97,46 +82,29 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
     private ServiceDirectory serviceDirectory;
     private FlowRuleService flowRuleService;
     private CoreService coreService;
-    private GroupService groupService;
     private FlowObjectiveStore flowObjectiveStore;
     private DeviceId deviceId;
     private ApplicationId appId;
+    private Collection<Filter> filters;
+    private Collection<ForwardingObjective> pendingVersatiles;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
-            .register(GroupKey.class)
-            .register(DefaultGroupKey.class)
+            .register(KryoNamespaces.API)
             .register(PicaGroup.class)
             .register(byte[].class)
             .build();
-
-    private Cache<GroupKey, NextObjective> pendingGroups;
-
-    private ScheduledExecutorService groupChecker =
-            Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner",
-                                                               "ovs-pica-%d"));
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
         this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
-        pendingGroups = CacheBuilder.newBuilder()
-                .expireAfterWrite(20, TimeUnit.SECONDS)
-                .removalListener((RemovalNotification<GroupKey, NextObjective> notification) -> {
-                    if (notification.getCause() == RemovalCause.EXPIRED) {
-                        fail(notification.getValue(), ObjectiveError.GROUPINSTALLATIONFAILED);
-                    }
-                }).build();
-
-        groupChecker.scheduleAtFixedRate(new GroupChecker(), 0, 500, TimeUnit.MILLISECONDS);
-
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
-        groupService = serviceDirectory.get(GroupService.class);
         flowObjectiveStore = context.store();
-
-        groupService.addListener(new InnerGroupListener());
-
+        filters = Collections.newSetFromMap(new ConcurrentHashMap<Filter, Boolean>());
+        pendingVersatiles = Collections.newSetFromMap(
+            new ConcurrentHashMap<ForwardingObjective, Boolean>());
         appId = coreService.registerApplication(
                 "org.onosproject.driver.OVSPicaPipeline");
 
@@ -196,22 +164,46 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
         switch (nextObjective.type()) {
             case SIMPLE:
                 Collection<TrafficTreatment> treatments = nextObjective.next();
-                if (treatments.size() == 1) {
-                    TrafficTreatment treatment = treatments.iterator().next();
-                    GroupBucket bucket =
-                            DefaultGroupBucket.createIndirectGroupBucket(treatment);
-                    final GroupKey key = new DefaultGroupKey(appKryo.serialize(nextObjective.id()));
-                    GroupDescription groupDescription
-                            = new DefaultGroupDescription(deviceId,
-                                    GroupDescription.Type.INDIRECT,
-                                    new GroupBuckets(Collections
-                                                             .singletonList(bucket)),
-                                    key,
-                                    null, // let group service determine group id
-                                    nextObjective.appId());
-                    groupService.addGroup(groupDescription);
-                    pendingGroups.put(key, nextObjective);
+                if (treatments.size() != 1) {
+                    log.error("Next Objectives of type Simple should only have a "
+                            + "single Traffic Treatment. Next Objective Id:{}", nextObjective.id());
+                   fail(nextObjective, ObjectiveError.BADPARAMS);
+                   return;
                 }
+                TrafficTreatment treatment = treatments.iterator().next();
+                TrafficTreatment.Builder filteredTreatment = DefaultTrafficTreatment.builder();
+                VlanId modVlanId;
+                for (Instruction ins : treatment.allInstructions()) {
+                    if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                        L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                        switch (l2ins.subtype()) {
+                            case ETH_DST:
+                                filteredTreatment.setEthDst(
+                                        ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac());
+                                break;
+                            case ETH_SRC:
+                                filteredTreatment.setEthSrc(
+                                        ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac());
+                                break;
+                            case VLAN_ID:
+                                modVlanId = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
+                                filteredTreatment.setVlanId(modVlanId);
+                                break;
+                            default:
+                                break;
+                        }
+                    } else if (ins.type() == Instruction.Type.OUTPUT) {
+                        //long portNum = ((Instructions.OutputInstruction) ins).port().toLong();
+                        filteredTreatment.add(ins);
+                    } else {
+                        // Ignore the vlan_pcp action since it's does matter much.
+                        log.warn("Driver does not handle this type of TrafficTreatment"
+                                + " instruction in nextObjectives:  {}", ins.type());
+                    }
+                }
+                // store for future use
+                flowObjectiveStore.putNextGroup(nextObjective.id(),
+                                                new PicaGroup(filteredTreatment.build()));
                 break;
             case HASHED:
             case BROADCAST:
@@ -250,11 +242,17 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             fail(fwd, ObjectiveError.UNKNOWN);
             return Collections.emptySet();
         }
+
         if (ethType.ethType() == Ethernet.TYPE_ARP) {
-            log.warn("Driver automatically handles ARP packets by punting to controller "
-                    + " from ETHER table");
-            pass(fwd);
-            return Collections.emptySet();
+            if (filters.isEmpty()) {
+                pendingVersatiles.add(fwd);
+                return Collections.emptySet();
+            }
+            Collection<FlowRule> flowrules = new ArrayList<FlowRule>();
+            for (Filter filter : filters) {
+                flowrules.addAll(processVersatilesWithFilters(filter, fwd));
+            }
+            return flowrules;
         } else if (ethType.ethType() == Ethernet.TYPE_LLDP ||
                 ethType.ethType() == Ethernet.TYPE_BSN) {
             log.warn("Driver currently does not currently handle LLDP packets");
@@ -280,7 +278,7 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             }
             if (ipProto != null && ipProto.protocol() == IPv4.PROTOCOL_TCP) {
                 log.warn("Driver automatically punts all packets reaching the "
-                        + "LOCAL table to the controller");
+                        + "ACL table to the controller");
                 pass(fwd);
                 return Collections.emptySet();
             }
@@ -290,6 +288,51 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
         fail(fwd, ObjectiveError.UNSUPPORTED);
         return Collections.emptySet();
     }
+
+    private Collection<FlowRule> processVersatilesWithFilters(
+                Filter filt, ForwardingObjective fwd) {
+        Collection<FlowRule> flows = new ArrayList<FlowRule>();
+
+        // rule for ARP replies
+        log.debug("adding ARP rule in ACL table");
+        TrafficSelector.Builder sel = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
+        sel.matchInPort(filt.port());
+        sel.matchVlanId(filt.vlanId());
+        sel.matchEthDst(filt.mac());
+        sel.matchEthType(Ethernet.TYPE_ARP);
+        treat.setOutput(PortNumber.CONTROLLER);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(sel.build())
+                .withTreatment(treat.build())
+                .withPriority(HIGHEST_PRIORITY)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
+        flows.add(rule);
+
+        // rule for ARP Broadcast
+        sel = DefaultTrafficSelector.builder();
+        treat = DefaultTrafficTreatment.builder();
+        sel.matchInPort(filt.port());
+        sel.matchVlanId(filt.vlanId());
+        sel.matchEthDst(MacAddress.BROADCAST);
+        sel.matchEthType(Ethernet.TYPE_ARP);
+        treat.setOutput(PortNumber.CONTROLLER);
+        rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(sel.build())
+                .withTreatment(treat.build())
+                .withPriority(HIGHEST_PRIORITY)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
+        flows.add(rule);
+
+        return flows;
+    }
+
 
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
         log.debug("Processing specific forwarding objective");
@@ -301,46 +344,47 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             return Collections.emptySet();
         }
 
-        TrafficSelector filteredSelector =
-                DefaultTrafficSelector.builder()
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(
+        List<FlowRule> ipflows = new ArrayList<FlowRule>();
+        for (Filter f: filters) {
+            TrafficSelector filteredSelector =
+                    DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(
                                 ((IPCriterion)
                                         selector.getCriterion(Criterion.Type.IPV4_DST)).ip())
-                        .build();
-
-        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
-
-        if (fwd.nextId() != null) {
-            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
-            GroupKey key = appKryo.deserialize(next.data());
-            Group group = groupService.getGroup(deviceId, key);
-            if (group == null) {
-                log.warn("The group left!");
-                fail(fwd, ObjectiveError.GROUPMISSING);
-                return Collections.emptySet();
+                    .matchEthDst(f.mac())
+                    .matchVlanId(f.vlanId())
+                    .build();
+            TrafficTreatment tt = null;
+            if (fwd.nextId() != null) {
+                NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+                if (next == null) {
+                    log.error("next-id {} does not exist in store", fwd.nextId());
+                    return Collections.emptySet();
+                }
+                tt = appKryo.deserialize(next.data());
+                if (tt == null)  {
+                    log.error("Error in deserializing next-id {}", fwd.nextId());
+                    return Collections.emptySet();
+                }
             }
-            tb.group(group.id());
+
+            FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                    .fromApp(fwd.appId())
+                    .withPriority(fwd.priority())
+                    .forDevice(deviceId)
+                    .withSelector(filteredSelector)
+                    .withTreatment(tt);
+            if (fwd.permanent()) {
+                ruleBuilder.makePermanent();
+            } else {
+                ruleBuilder.makeTemporary(fwd.timeout());
+            }
+            ruleBuilder.forTable(IP_UNICAST_TABLE);
+            ipflows.add(ruleBuilder.build());
         }
 
-        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                .fromApp(fwd.appId())
-                .withPriority(fwd.priority())
-                .forDevice(deviceId)
-                .withSelector(filteredSelector)
-                .withTreatment(tb.build());
-
-        if (fwd.permanent()) {
-            ruleBuilder.makePermanent();
-        } else {
-            ruleBuilder.makeTemporary(fwd.timeout());
-        }
-
-        ruleBuilder.forTable(IP_UNICAST_TABLE);
-
-
-        return Collections.singletonList(ruleBuilder.build());
-
+        return ipflows;
     }
 
     private void processFilter(FilteringObjective filt, boolean install,
@@ -357,67 +401,58 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             fail(filt, ObjectiveError.UNKNOWN);
             return;
         }
+
+        EthCriterion e = null; VlanIdCriterion v = null;
+        Collection<IPCriterion> ips = new ArrayList<IPCriterion>();
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion c : filt.conditions()) {
             if (c.type() == Criterion.Type.ETH_DST) {
-                EthCriterion e = (EthCriterion) c;
-                log.debug("adding rule for MAC: {}", e.mac());
-                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-                selector.matchEthDst(e.mac());
-                treatment.transition(IP_UNICAST_TABLE);
-                FlowRule rule = DefaultFlowRule.builder()
-                        .forDevice(deviceId)
-                        .withSelector(selector.build())
-                        .withTreatment(treatment.build())
-                        .withPriority(CONTROLLER_PRIORITY)
-                        .fromApp(applicationId)
-                        .makePermanent()
-                        .forTable(ETHTYPE_TABLE).build();
-                ops =  install ? ops.add(rule) : ops.remove(rule);
+                e = (EthCriterion) c;
             } else if (c.type() == Criterion.Type.VLAN_VID) {
-                VlanIdCriterion v = (VlanIdCriterion) c;
-                log.debug("adding rule for VLAN: {}", v.vlanId());
-                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-                selector.matchVlanId(v.vlanId());
-                selector.matchInPort(p.port());
-                treatment.transition(ETHTYPE_TABLE);
-                treatment.deferred().popVlan();
-                FlowRule rule = DefaultFlowRule.builder()
-                        .forDevice(deviceId)
-                        .withSelector(selector.build())
-                        .withTreatment(treatment.build())
-                        .withPriority(CONTROLLER_PRIORITY)
-                        .fromApp(applicationId)
-                        .makePermanent()
-                        .forTable(VLAN_TABLE).build();
-                ops = install ? ops.add(rule) : ops.remove(rule);
+                v = (VlanIdCriterion) c;
             } else if (c.type() == Criterion.Type.IPV4_DST) {
-                IPCriterion ip = (IPCriterion) c;
-                log.debug("adding rule for IP: {}", ip.ip());
-                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-                selector.matchEthType(Ethernet.TYPE_IPV4);
-                selector.matchIPDst(ip.ip());
-                treatment.transition(ACL_TABLE);
-                FlowRule rule = DefaultFlowRule.builder()
-                        .forDevice(deviceId)
-                        .withSelector(selector.build())
-                        .withTreatment(treatment.build())
-                        .withPriority(HIGHEST_PRIORITY)
-                        .fromApp(applicationId)
-                        .makePermanent()
-                        .forTable(IP_UNICAST_TABLE).build();
-
-                ops = install ? ops.add(rule) : ops.remove(rule);
+                ips.add((IPCriterion) c);
             } else {
-                log.warn("Driver does not currently process filtering condition"
-                        + " of type: {}", c.type());
+                log.error("Unsupported filter {}", c);
                 fail(filt, ObjectiveError.UNSUPPORTED);
+                return;
             }
         }
+
+        // cache for later use
+        Filter filter = new Filter(p, e, v, ips);
+        filters.add(filter);
+
+        // apply any pending versatile forwarding objectives
+        for (ForwardingObjective fwd : pendingVersatiles) {
+            Collection<FlowRule> ret = processVersatilesWithFilters(filter, fwd);
+            for (FlowRule fr : ret) {
+                ops.add(fr);
+            }
+        }
+
+        for (IPCriterion ipaddr : ips) {
+            log.debug("adding IP filtering rules in ACL table: {}", ipaddr.ip());
+            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            selector.matchInPort(p.port());
+            selector.matchVlanId(v.vlanId());
+            selector.matchEthDst(e.mac());
+            selector.matchEthType(Ethernet.TYPE_IPV4);
+            selector.matchIPDst(ipaddr.ip()); // router IPs to the controller
+            treatment.setOutput(PortNumber.CONTROLLER);
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(HIGHEST_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(ACL_TABLE).build();
+            ops =  ops.add(rule);
+        }
+
         // apply filtering flow rules
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
@@ -447,121 +482,11 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
     }
 
     private void initializePipeline() {
-        processVlanTable(true);
-        processEtherTable(true);
-        processIpUnicastTable(true);
-        //processACLTable(true);
+        //processIpUnicastTable(true);
+        processACLTable(true);
     }
 
-    private void processVlanTable(boolean install) {
-        TrafficSelector.Builder selector;
-        TrafficTreatment.Builder treatment;
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        FlowRule rule;
-
-
-        //Drop rule
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-
-        treatment.drop();
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(VLAN_TABLE).build();
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned vlan table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision vlan table");
-            }
-        }));
-    }
-
-    private void processEtherTable(boolean install) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment
-                .builder();
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        FlowRule rule;
-
-        selector.matchEthType(Ethernet.TYPE_ARP);
-        treatment.punt();
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(CONTROLLER_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(ETHTYPE_TABLE).build();
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        treatment.transition(IP_UNICAST_TABLE);
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withPriority(CONTROLLER_PRIORITY)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(ETHTYPE_TABLE).build();
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        //Drop rule
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-
-        treatment.drop();
-
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(ETHTYPE_TABLE).build();
-
-
-        ops = install ? ops.add(rule) : ops.remove(rule);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned ether table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision ether table");
-            }
-        }));
-
-    }
-
-
-    private void processIpUnicastTable(boolean install) {
+    private void processACLTable(boolean install) {
         TrafficSelector.Builder selector;
         TrafficTreatment.Builder treatment;
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -571,8 +496,6 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
         selector = DefaultTrafficSelector.builder();
         treatment = DefaultTrafficTreatment.builder();
 
-        treatment.drop();
-
         rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector.build())
@@ -580,79 +503,62 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
                 .withPriority(DROP_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(IP_UNICAST_TABLE).build();
+                .forTable(ACL_TABLE).build();
 
         ops = install ? ops.add(rule) : ops.remove(rule);
 
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Provisioned FIB table");
+                log.info("Provisioned ACL table");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.info("Failed to provision FIB table");
+                log.info("Failed to provision ACL table");
             }
         }));
     }
 
+    private class Filter {
+        private PortCriterion port;
+        private VlanIdCriterion vlan;
+        private EthCriterion eth;
 
-    private class InnerGroupListener implements GroupListener {
-        @Override
-        public void event(GroupEvent event) {
-            if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-                GroupKey key = event.subject().appCookie();
+        @SuppressWarnings("unused")
+        private Collection<IPCriterion> ips;
 
-                NextObjective obj = pendingGroups.getIfPresent(key);
-                if (obj != null) {
-                    flowObjectiveStore.putNextGroup(obj.id(), new PicaGroup(key));
-                    pass(obj);
-                    pendingGroups.invalidate(key);
-                }
-            }
+        public Filter(PortCriterion p, EthCriterion e, VlanIdCriterion v,
+                      Collection<IPCriterion> ips) {
+            this.eth = e;
+            this.port = p;
+            this.vlan = v;
+            this.ips = ips;
         }
-    }
 
+        public PortNumber port() {
+            return port.port();
+        }
 
-    private class GroupChecker implements Runnable {
+        public VlanId vlanId() {
+            return vlan.vlanId();
+        }
 
-        @Override
-        public void run() {
-            Set<GroupKey> keys = pendingGroups.asMap().keySet().stream()
-                    .filter(key -> groupService.getGroup(deviceId, key) != null)
-                    .collect(Collectors.toSet());
-
-            keys.stream().forEach(key -> {
-                NextObjective obj = pendingGroups.getIfPresent(key);
-                if (obj == null) {
-                    return;
-                }
-                pass(obj);
-                pendingGroups.invalidate(key);
-                log.info("Heard back from group service for group {}. "
-                        + "Applying pending forwarding objectives", obj.id());
-                flowObjectiveStore.putNextGroup(obj.id(), new PicaGroup(key));
-            });
+        public MacAddress mac() {
+            return eth.mac();
         }
     }
 
     private class PicaGroup implements NextGroup {
+        TrafficTreatment nextActions;
 
-        private final GroupKey key;
-
-        public PicaGroup(GroupKey key) {
-            this.key = key;
-        }
-
-        @SuppressWarnings("unused")
-        public GroupKey key() {
-            return key;
+        public PicaGroup(TrafficTreatment next) {
+            this.nextActions = next;
         }
 
         @Override
         public byte[] data() {
-            return appKryo.serialize(key);
+            return appKryo.serialize(nextActions);
         }
 
     }

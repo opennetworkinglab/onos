@@ -84,7 +84,7 @@
                    impl="org.onosproject.driver.pipeline.CentecV350Pipeline"/>
     </driver>
     <driver name="pica" extends="default"
-            manufacturer="Pica8, Inc." hwVersion="ly2" swVersion="PicOS 2.6">
+            manufacturer="Pica8, Inc." hwVersion=".*" swVersion="PicOS 2.6">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.PicaPipeline"/>
     </driver>
