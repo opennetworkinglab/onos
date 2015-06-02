@@ -32,6 +32,7 @@ public class OpticalCircuitIntent extends Intent {
     private final ConnectPoint src;
     private final ConnectPoint dst;
     private final OduCltPort.SignalType signalType;
+    private final boolean isBidirectional;
 
     /**
      * Creates an optical circuit intent between the specified
@@ -45,11 +46,12 @@ public class OpticalCircuitIntent extends Intent {
      * @param priority priority to use for flows from this intent
      */
     protected OpticalCircuitIntent(ApplicationId appId, Key key, ConnectPoint src, ConnectPoint dst,
-                                   OduCltPort.SignalType signalType, int priority) {
+                                   OduCltPort.SignalType signalType, boolean isBidirectional, int priority) {
         super(appId, key, Collections.emptyList(), priority);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.signalType = checkNotNull(signalType);
+        this.isBidirectional = isBidirectional;
     }
 
     /**
@@ -69,6 +71,7 @@ public class OpticalCircuitIntent extends Intent {
         private ConnectPoint src;
         private ConnectPoint dst;
         private OduCltPort.SignalType signalType;
+        private boolean isBidirectional;
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -119,6 +122,17 @@ public class OpticalCircuitIntent extends Intent {
         }
 
         /**
+         * Sets the directionality of the intent.
+         *
+         * @param isBidirectional true if bidirectional, false if unidirectional
+         * @return this builder
+         */
+        public Builder bidirectional(boolean isBidirectional) {
+            this.isBidirectional = isBidirectional;
+            return this;
+        }
+
+        /**
          * Builds an optical circuit intent from the accumulated parameters.
          *
          * @return point to point intent
@@ -131,6 +145,7 @@ public class OpticalCircuitIntent extends Intent {
                     src,
                     dst,
                     signalType,
+                    isBidirectional,
                     priority
             );
         }
@@ -144,6 +159,7 @@ public class OpticalCircuitIntent extends Intent {
         this.src = null;
         this.dst = null;
         this.signalType = null;
+        this.isBidirectional = false;
     }
 
     /**
@@ -173,6 +189,15 @@ public class OpticalCircuitIntent extends Intent {
         return signalType;
     }
 
+    /**
+     * Returns the directionality of the intent.
+     *
+     * @return true if bidirectional, false if unidirectional
+     */
+    public boolean isBidirectional() {
+        return isBidirectional;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -184,6 +209,7 @@ public class OpticalCircuitIntent extends Intent {
                 .add("src", src)
                 .add("dst", dst)
                 .add("signalType", signalType)
+                .add("isBidirectional", isBidirectional)
                 .toString();
     }
 

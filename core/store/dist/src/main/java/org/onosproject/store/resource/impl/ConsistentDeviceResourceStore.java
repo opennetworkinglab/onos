@@ -33,6 +33,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -169,15 +170,15 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
 
     @Override
     public boolean allocateMapping(IntentId keyIntentId, IntentId valIntentId) {
-        Set<IntentId> intents = intentMapping.get(keyIntentId).value();
+        Versioned<Set<IntentId>> versionedIntents = intentMapping.get(keyIntentId);
 
-        if (intents == null) {
-            intents = Collections.singleton(valIntentId);
+
+        if (versionedIntents == null) {
+            intentMapping.put(keyIntentId, Collections.singleton(valIntentId));
         } else {
-            intents.add(valIntentId);
+            versionedIntents.value().add(valIntentId);
+            intentMapping.put(keyIntentId, versionedIntents.value());
         }
-
-        intentMapping.put(keyIntentId, intents);
 
         return true;
     }

@@ -49,6 +49,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
               description = "Egress Device/Port Description",
               required = true, multiValued = false)
     String egressDeviceString = null;
+    // TODO: add parameter for uni/bidirectional intents
 
     private ConnectPoint createConnectPoint(String devicePortString) {
         String[] splitted = devicePortString.split("/");

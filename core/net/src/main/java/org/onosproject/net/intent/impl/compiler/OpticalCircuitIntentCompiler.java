@@ -136,15 +136,23 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                     .src(srcCP)
                     .dst(dstCP)
                     .signalType(OduSignalType.ODU4)
+                    .bidirectional(intent.isBidirectional())
                     .build();
             intents.add(connIntent);
         }
 
         // Create optical circuit intent
-        circuitIntent = new FlowRuleIntent(
-                appId,
-                createRules(src, connIntent.getSrc(), dst, connIntent.getDst()),
-                intent.resources());
+        List<FlowRule> rules = new LinkedList<>();
+        rules.add(connectPorts(src, connIntent.getSrc()));
+        rules.add(connectPorts(connIntent.getDst(), dst));
+
+        // Create flow rules for reverse path
+        if (intent.isBidirectional()) {
+            rules.add(connectPorts(connIntent.getSrc(), src));
+            rules.add(connectPorts(dst, connIntent.getDst()));
+        }
+
+        circuitIntent = new FlowRuleIntent(appId, rules, intent.resources());
 
         // Save circuit to connectivity intent mapping
         deviceResourceService.requestMapping(connIntent.id(), circuitIntent.id());
@@ -236,25 +244,25 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     /**
-     * Builds flow rules for mapping between ODU and OCh ports.
+     * Builds flow rule for mapping between two ports.
      *
-     * @param srcOdu
-     * @param dstOdu
-     * @return
+     * @param src source port
+     * @param dst destination port
+     * @return flow rules
      */
-    private List<FlowRule> createRules(ConnectPoint srcOdu, ConnectPoint srcOch,
-                                       ConnectPoint dstOdu, ConnectPoint dstOch) {
+    private FlowRule connectPorts(ConnectPoint src, ConnectPoint dst) {
+        checkArgument(src.deviceId().equals(dst.deviceId()));
+
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
 
-        // Source flow rule
-        selectorBuilder.matchInPort(srcOdu.port());
+        selectorBuilder.matchInPort(src.port());
         //selectorBuilder.add(Criteria.matchCltSignalType)
-        treatmentBuilder.setOutput(srcOch.port());
+        treatmentBuilder.setOutput(dst.port());
         //treatmentBuilder.add(Instructions.modL1OduSignalType)
 
-        FlowRule srcRule = DefaultFlowRule.builder()
-                .forDevice(srcOdu.deviceId())
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(src.deviceId())
                 .withSelector(selectorBuilder.build())
                 .withTreatment(treatmentBuilder.build())
                 .withPriority(100)
@@ -262,21 +270,6 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 .makePermanent()
                 .build();
 
-        // Destination flow rule
-        selectorBuilder.matchInPort(dstOch.port());
-        //selectorBuilder.add(Criteria.matchOduSignalType)
-        treatmentBuilder.setOutput(dstOdu.port());
-        //treatmentBuilder.add(Instructions.modL1CltSignalType)
-
-        FlowRule dstRule = DefaultFlowRule.builder()
-                .forDevice(dstOdu.deviceId())
-                .withSelector(selectorBuilder.build())
-                .withTreatment(treatmentBuilder.build())
-                .withPriority(100)
-                .fromApp(appId)
-                .makePermanent()
-                .build();
-
-        return Arrays.<FlowRule>asList(srcRule, dstRule);
+        return flowRule;
     }
 }

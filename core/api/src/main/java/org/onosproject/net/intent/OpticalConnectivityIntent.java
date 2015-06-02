@@ -32,6 +32,7 @@ public final class OpticalConnectivityIntent extends Intent {
     private final ConnectPoint src;
     private final ConnectPoint dst;
     private final OduSignalType signalType;
+    private final boolean isBidirectional;
 
     /**
      * Creates an optical connectivity intent between the specified
@@ -41,6 +42,7 @@ public final class OpticalConnectivityIntent extends Intent {
      * @param key intent key
      * @param src the source transponder port
      * @param dst the destination transponder port
+     * @param isBidirectional indicates if intent is unidirectional
      * @param priority priority to use for flows from this intent
      */
     protected OpticalConnectivityIntent(ApplicationId appId,
@@ -48,11 +50,13 @@ public final class OpticalConnectivityIntent extends Intent {
                                         ConnectPoint src,
                                         ConnectPoint dst,
                                         OduSignalType signalType,
+                                        boolean isBidirectional,
                                         int priority) {
         super(appId, key, Collections.emptyList(), priority);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.signalType = checkNotNull(signalType);
+        this.isBidirectional = isBidirectional;
     }
 
     /**
@@ -72,6 +76,7 @@ public final class OpticalConnectivityIntent extends Intent {
         private ConnectPoint src;
         private ConnectPoint dst;
         private OduSignalType signalType;
+        private boolean isBidirectional;
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -122,6 +127,17 @@ public final class OpticalConnectivityIntent extends Intent {
         }
 
         /**
+         * Sets the directionality of the intent.
+         *
+         * @param isBidirectional true if bidirectional, false if unidirectional
+         * @return this builder
+         */
+        public Builder bidirectional(boolean isBidirectional) {
+            this.isBidirectional = isBidirectional;
+            return this;
+        }
+
+        /**
          * Builds an optical connectivity intent from the accumulated parameters.
          *
          * @return point to point intent
@@ -134,6 +150,7 @@ public final class OpticalConnectivityIntent extends Intent {
                     src,
                     dst,
                     signalType,
+                    isBidirectional,
                     priority
             );
         }
@@ -147,6 +164,7 @@ public final class OpticalConnectivityIntent extends Intent {
         this.src = null;
         this.dst = null;
         this.signalType = null;
+        this.isBidirectional = false;
     }
 
     /**
@@ -176,6 +194,15 @@ public final class OpticalConnectivityIntent extends Intent {
         return signalType;
     }
 
+    /**
+     * Returns the directionality of the intent.
+     *
+     * @return true if bidirectional, false if unidirectional
+     */
+    public boolean isBidirectional() {
+        return isBidirectional;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -187,6 +214,7 @@ public final class OpticalConnectivityIntent extends Intent {
                 .add("src", src)
                 .add("dst", dst)
                 .add("signalType", signalType)
+                .add("isBidirectional", isBidirectional)
                 .toString();
     }
 }

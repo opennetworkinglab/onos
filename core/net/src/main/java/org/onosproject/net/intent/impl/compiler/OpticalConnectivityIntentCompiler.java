@@ -144,6 +144,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                     .path(path)
                     .lambda(ochSignal)
                     .signalType(signalType)
+                    .bidirectional(intent.isBidirectional())
                     .build();
 
             return ImmutableList.of(newIntent);

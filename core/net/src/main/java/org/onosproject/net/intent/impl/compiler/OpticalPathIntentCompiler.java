@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -79,10 +80,21 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                                 Set<LinkResourceAllocations> resources) {
         log.debug("Compiling optical path intent between {} and {}", intent.src(), intent.dst());
 
-        return Collections.singletonList(
-                new FlowRuleIntent(appId, createRules(intent), intent.resources()));
+        // Create rules for forward and reverse path
+        List<FlowRule> rules = createRules(intent);
+        if (intent.isBidirectional()) {
+            rules.addAll(createReverseRules(intent));
+        }
+
+        return Collections.singletonList(new FlowRuleIntent(appId, createRules(intent), intent.resources()));
     }
 
+    /**
+     * Create rules for the forward path of the intent.
+     *
+     * @param intent the intent
+     * @return list of flow rules
+     */
     private List<FlowRule> createRules(OpticalPathIntent intent) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         selectorBuilder.matchInPort(intent.src().port());
@@ -118,6 +130,58 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
         FlowRule rule = new DefaultFlowRule.Builder()
                 .forDevice(intent.dst().deviceId())
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatmentLast.build())
+                .withPriority(100)
+                .fromApp(appId)
+                .makePermanent()
+                .build();
+        rules.add(rule);
+
+        return rules;
+    }
+
+    /**
+     * Create rules for the reverse path of the intent.
+     *
+     * @param intent the intent
+     * @return list of flow rules
+     */
+    private List<FlowRule> createReverseRules(OpticalPathIntent intent) {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchInPort(intent.dst().port());
+
+        List<FlowRule> rules = new LinkedList<>();
+        ConnectPoint current = intent.dst();
+
+        for (Link link : Lists.reverse(intent.path().links())) {
+            TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+            treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            treatmentBuilder.setOutput(link.dst().port());
+
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(current.deviceId())
+                    .withSelector(selectorBuilder.build())
+                    .withTreatment(treatmentBuilder.build())
+                    .withPriority(100)
+                    .fromApp(appId)
+                    .makePermanent()
+                    .build();
+
+            rules.add(rule);
+
+            current = link.src();
+            selectorBuilder.matchInPort(link.src().port());
+            selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
+            selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
+        }
+
+        // Build the egress ROADM rule
+        TrafficTreatment.Builder treatmentLast = DefaultTrafficTreatment.builder();
+        treatmentLast.setOutput(intent.src().port());
+
+        FlowRule rule = new DefaultFlowRule.Builder()
+                .forDevice(intent.src().deviceId())
                 .withSelector(selectorBuilder.build())
                 .withTreatment(treatmentLast.build())
                 .withPriority(100)

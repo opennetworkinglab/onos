@@ -33,6 +33,7 @@ public final class OpticalPathIntent extends Intent {
     private final Path path;
     private final OchSignal lambda;
     private final OchSignalType signalType;
+    private final boolean isBidirectional;
 
     private OpticalPathIntent(ApplicationId appId,
                               Key key,
@@ -41,6 +42,7 @@ public final class OpticalPathIntent extends Intent {
                               Path path,
                               OchSignal lambda,
                               OchSignalType signalType,
+                              boolean isBidirectional,
                               int priority) {
         super(appId, key, ImmutableSet.copyOf(path.links()), priority);
         this.src = checkNotNull(src);
@@ -48,6 +50,7 @@ public final class OpticalPathIntent extends Intent {
         this.path = checkNotNull(path);
         this.lambda = checkNotNull(lambda);
         this.signalType = checkNotNull(signalType);
+        this.isBidirectional = isBidirectional;
     }
 
     protected OpticalPathIntent() {
@@ -56,6 +59,7 @@ public final class OpticalPathIntent extends Intent {
         this.path = null;
         this.lambda = null;
         this.signalType = null;
+        this.isBidirectional = true;
     }
 
     /**
@@ -77,6 +81,7 @@ public final class OpticalPathIntent extends Intent {
         private Path path;
         private OchSignal lambda;
         private OchSignalType signalType;
+        private boolean isBidirectional;
         Key key;
 
         @Override
@@ -150,6 +155,15 @@ public final class OpticalPathIntent extends Intent {
         }
 
         /**
+         * Sets the intent's direction.
+         * @return this builder
+         */
+        public Builder bidirectional(boolean isBidirectional) {
+            this.isBidirectional = isBidirectional;
+            return this;
+        }
+
+        /**
          * Builds an optical path intent from the accumulated parameters.
          *
          * @return optical path intent
@@ -164,6 +178,7 @@ public final class OpticalPathIntent extends Intent {
                     path,
                     lambda,
                     signalType,
+                    isBidirectional,
                     priority
             );
         }
@@ -190,6 +205,10 @@ public final class OpticalPathIntent extends Intent {
         return signalType;
     }
 
+    public boolean isBidirectional() {
+        return isBidirectional;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
@@ -202,6 +221,7 @@ public final class OpticalPathIntent extends Intent {
                 .add("path", path)
                 .add("lambda", lambda)
                 .add("signalType", signalType)
+                .add("isBidirectional", isBidirectional)
                 .toString();
     }
 }

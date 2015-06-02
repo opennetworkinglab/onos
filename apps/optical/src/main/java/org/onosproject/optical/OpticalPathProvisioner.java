@@ -58,9 +58,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -106,9 +104,6 @@ public class OpticalPathProvisioner {
 
     private ApplicationId appId;
 
-    private final Map<ConnectPoint, Map<ConnectPoint, Intent>> intentMap =
-            new ConcurrentHashMap<>();
-
     private final InternalOpticalPathProvisioner pathProvisioner = new InternalOpticalPathProvisioner();
 
     @Activate
@@ -147,32 +142,10 @@ public class OpticalPathProvisioner {
                     break;
                 case WITHDRAWN:
                     log.info("Intent {} withdrawn.", event.subject());
-                    withdrawIntent(event.subject());
+                    releaseResources(event.subject());
                     break;
                 default:
                     break;
-            }
-        }
-
-        /**
-         * Registers an intent from src to dst.
-         *
-         * @param src source point
-         * @param dst destination point
-         * @param intent intent to be registered
-         * @return true if intent has not been previously added, false otherwise
-         */
-        private boolean addIntent(ConnectPoint src, ConnectPoint dst, Intent intent) {
-            Map<ConnectPoint, Intent> srcMap = intentMap.get(src);
-            if (srcMap == null) {
-                srcMap = new ConcurrentHashMap<>();
-                intentMap.put(src, srcMap);
-            }
-            if (srcMap.containsKey(dst)) {
-                return false;
-            } else {
-                srcMap.put(dst, intent);
-                return true;
             }
         }
 
@@ -310,14 +283,13 @@ public class OpticalPathProvisioner {
                 Port dstPort = deviceService.getPort(dst.deviceId(), dst.port());
 
                 if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
-                    // TODO: Check availability of ports
-
                     // Create OTN circuit
                     Intent circuitIntent = OpticalCircuitIntent.builder()
                             .appId(appId)
                             .src(src)
                             .dst(dst)
                             .signalType(OduCltPort.SignalType.CLT_10GBE)
+                            .bidirectional(true)
                             .build();
                     intents.add(circuitIntent);
                     continue;
@@ -329,6 +301,7 @@ public class OpticalPathProvisioner {
                             .src(src)
                             .dst(dst)
                             .signalType(OduSignalType.ODU4)
+                            .bidirectional(true)
                             .build();
                     intents.add(opticalIntent);
                     continue;
@@ -397,11 +370,11 @@ public class OpticalPathProvisioner {
         }
 
         /**
-         * Handle withdrawn intent on each network layer.
+         * Release resources associated to the given intent.
          *
-         * @param intent the withdrawn intent
+         * @param intent the intent
          */
-        private void withdrawIntent(Intent intent) {
+        private void releaseResources(Intent intent) {
             LinkResourceAllocations lra = linkResourceService.getAllocations(intent.id());
             if (intent instanceof OpticalConnectivityIntent) {
                 deviceResourceService.releasePorts(intent.id());
