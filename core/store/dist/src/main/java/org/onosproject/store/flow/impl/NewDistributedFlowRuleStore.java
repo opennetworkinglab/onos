@@ -30,7 +30,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.NewConcurrentHashMap;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
@@ -76,8 +75,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -86,7 +83,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
@@ -595,16 +591,12 @@ public class NewDistributedFlowRuleStore
 
     private class InternalFlowTable implements ReplicaInfoEventListener {
 
-        private final ConcurrentMap<DeviceId, ConcurrentMap<FlowId, Set<StoredFlowEntry>>>
-                flowEntries = new ConcurrentHashMap<>();
+        private final Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>>
+                flowEntries = Maps.newConcurrentMap();
 
         private final Map<DeviceId, Long> lastBackupTimes = Maps.newConcurrentMap();
         private final Map<DeviceId, Long> lastUpdateTimes = Maps.newConcurrentMap();
         private final Map<DeviceId, NodeId> lastBackupNodes = Maps.newConcurrentMap();
-
-        private NewConcurrentHashMap<FlowId, Set<StoredFlowEntry>> lazyEmptyFlowTable() {
-            return NewConcurrentHashMap.<FlowId, Set<StoredFlowEntry>>ifNeeded();
-        }
 
         @Override
         public void event(ReplicaInfoEvent event) {
@@ -682,8 +674,8 @@ public class NewDistributedFlowRuleStore
          * @param deviceId identifier of the device
          * @return Map representing Flow Table of given device.
          */
-        private ConcurrentMap<FlowId, Set<StoredFlowEntry>> getFlowTable(DeviceId deviceId) {
-            return createIfAbsentUnchecked(flowEntries, deviceId, lazyEmptyFlowTable());
+        private Map<FlowId, Set<StoredFlowEntry>> getFlowTable(DeviceId deviceId) {
+            return flowEntries.computeIfAbsent(deviceId, id -> Maps.newConcurrentMap());
         }
 
         private Set<StoredFlowEntry> getFlowEntriesInternal(DeviceId deviceId, FlowId flowId) {
