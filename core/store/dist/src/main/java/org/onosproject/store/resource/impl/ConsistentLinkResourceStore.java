@@ -24,6 +24,7 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.PositionalParameterStringFormatter;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.Port;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.resource.link.BandwidthResource;
@@ -140,14 +141,15 @@ public class ConsistentLinkResourceStore extends
 
     private Set<LambdaResourceAllocation> getLambdaResourceCapacity(Link link) {
         Set<LambdaResourceAllocation> allocations = new HashSet<>();
+        Port port = deviceService.getPort(link.src().deviceId(), link.src().port());
+        if (port instanceof OmsPort) {
+            OmsPort omsPort = (OmsPort) port;
 
-        OmsPort port = (OmsPort) deviceService.getPort(link.src().deviceId(), link.src().port());
-
-        // Assume fixed grid for now
-        for (int i = 0; i < port.totalChannels(); i++) {
-            allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
+            // Assume fixed grid for now
+            for (int i = 0; i < omsPort.totalChannels(); i++) {
+                allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
+            }
         }
-
         return allocations;
     }
 

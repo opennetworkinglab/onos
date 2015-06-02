@@ -115,7 +115,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "-l", aliases = "--lambda", description = "Lambda",
             required = false, multiValued = false)
-    private boolean lambda = false;
+    private Boolean lambda = null;
 
     @Option(name = "-a", aliases = "--appId", description = "Application Id",
             required = false, multiValued = false)
@@ -189,7 +189,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         // Set the default EthType based on the IP version if the matching
         // source or destination IP prefixes.
         //
-        short ethType = EthType.IPV4.value();
+        Short ethType = null;
         if ((srcIpPrefix != null) && srcIpPrefix.isIp6()) {
             ethType = EthType.IPV6.value();
         }
@@ -199,8 +199,9 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         if (!isNullOrEmpty(ethTypeString)) {
             ethType = EthType.parseFromString(ethTypeString);
         }
-        selectorBuilder.matchEthType(ethType);
-
+        if (ethType != null) {
+            selectorBuilder.matchEthType(ethType);
+        }
         if (!isNullOrEmpty(srcMacString)) {
             selectorBuilder.matchEthSrc(MacAddress.valueOf(srcMacString));
         }
@@ -312,11 +313,12 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         // Check for a lambda specification
-        if (lambda) {
-            constraints.add(new LambdaConstraint(null));
+        if (lambda != null) {
+            if (lambda) {
+                constraints.add(new LambdaConstraint(null));
+            }
+            constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
         }
-        constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
-
         return constraints;
     }
 
