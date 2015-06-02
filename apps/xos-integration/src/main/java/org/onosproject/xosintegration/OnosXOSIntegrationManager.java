@@ -338,7 +338,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         JsonObject json = JsonObject.readFrom(jsonString);
 
         if (json.get("computeNodeName") != null) {
-            ConnectPoint point = nodeToPort.get(json.get("computeNodeName"));
+            ConnectPoint point = nodeToPort.get(json.get("computeNodeName").asString());
 
             provisionFabric(VlanId.vlanId(Short.parseShort(newTenant.vlanId())),
                             point);
