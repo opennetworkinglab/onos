@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${short.version}">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
     <repository>mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features</repository>
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
