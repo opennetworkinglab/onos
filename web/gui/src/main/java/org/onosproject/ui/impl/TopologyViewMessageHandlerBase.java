@@ -120,6 +120,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static final double MB = 1024 * KB;
     private static final double GB = 1024 * MB;
 
+    // TODO: change GB to Gb (when we compute bits/second)
     private static final String GB_UNIT = "GB";
     private static final String MB_UNIT = "MB";
     private static final String KB_UNIT = "KB";
@@ -763,6 +764,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Poor-mans formatting to get the labels with byte counts looking nice.
     private String formatBytes(long bytes) {
+        // TODO: multiply everything by 8 to compute bits/second
         String unit;
         double value;
         if (bytes > GB) {

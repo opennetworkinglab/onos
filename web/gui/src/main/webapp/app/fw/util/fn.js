@@ -176,6 +176,17 @@
         return Number(elem.style(prop).replace(/px$/, ''));
     }
 
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
+
+    function parseBitRate(str) {
+        return Number(str.replace(/,/, '')
+                        .replace(/\s+.bps/i, '')
+                        .replace(/\.\d*/, ''));
+    }
+
+
     angular.module('onosUtil')
         .factory('FnService', ['$window', function (_$window_) {
             $window = _$window_;
@@ -196,7 +207,9 @@
                 isEmptyObject: isEmptyObject,
                 cap: cap,
                 noPx: noPx,
-                noPxStyle: noPxStyle
+                noPxStyle: noPxStyle,
+                endsWith: endsWith,
+                parseBitRate: parseBitRate
             };
     }]);
 

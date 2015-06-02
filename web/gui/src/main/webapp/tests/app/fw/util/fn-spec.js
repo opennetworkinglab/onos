@@ -214,7 +214,7 @@ describe('factory: fw/util/fn.js', function() {
             'isF', 'isA', 'isS', 'isO', 'contains',
             'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'isMobile',
             'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'cap',
-            'noPx', 'noPxStyle'
+            'noPx', 'noPxStyle', 'endsWith', 'parseBitRate'
         ])).toBeTruthy();
     });
 
@@ -413,4 +413,34 @@ describe('factory: fw/util/fn.js', function() {
         d3.select('#fooElem').remove();
     });
 
+    // === Tests for endsWith()
+    it('should return true if string ends with foo', function () {
+        expect(fs.endsWith("barfoo", "foo")).toBe(true);
+    });
+
+    it('should return false if string doesnt end with foo', function () {
+        expect(fs.endsWith("barfood", "foo")).toBe(false);
+    });
+
+    // === Tests for parseBitRate()
+    it('should return 5 - a', function () {
+        expect(fs.parseBitRate('5.47 KBps')).toBe(5);
+    });
+
+    it('should return 5 - b', function () {
+        expect(fs.parseBitRate('5. KBps')).toBe(5);
+    });
+
+    it('should return 5 - c', function () {
+        expect(fs.parseBitRate('5 KBps')).toBe(5);
+    });
+
+    it('should return 5 - d', function () {
+        expect(fs.parseBitRate('5 Kbps')).toBe(5);
+    });
+
+    it('should return 2001', function () {
+        expect(fs.parseBitRate('2,001.59 Gbps')).toBe(2001);
+    });
 });
+

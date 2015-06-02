@@ -59,13 +59,31 @@
         //  labels to them, if they are defined.
         paths.forEach(function (p) {
             var n = p.links.length,
-                i, ldata;
+                i, ldata, lab, units, magnitude, portcls;
 
             for (i=0; i<n; i++) {
                 ldata = api.findLinkById(p.links[i]);
-                if (ldata && ldata.el) {
+                lab = p.labels[i];
+
+                if (ldata && !ldata.el.empty()) {
                     ldata.el.classed(p.class, true);
-                    ldata.label = p.labels[i];
+                    ldata.label = lab;
+
+                    // TODO: change this to 'bps' when we measure bits/sec
+                    if (fs.endsWith(lab, 'Bps')) {
+                        // inject additional styling for port-based traffic
+                        units = lab.substring(lab.length-4);
+                        portcls = 'port-traffic-' + units;
+
+                        // for GBps
+                        if (units.substring(0,1) === 'G') {
+                            magnitude = fs.parseBitRate(lab);
+                            if (magnitude >= 9) {
+                                portcls += '-choked'
+                            }
+                        }
+                        ldata.el.classed(portcls, true);
+                    }
                 }
             }
         });

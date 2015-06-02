@@ -458,6 +458,45 @@ html[data-platform='iPad'] #topo-p-detail {
     stroke: rgba(121,231,158,0.5);
 }
 
+/* Port traffic color visualization for KBps, MBps, and GBps */
+
+.light #ov-topo svg .link.secondary.port-traffic-KBps {
+    stroke: rgb(0,153,51);
+    stroke-width: 5.0;
+}
+.dark #ov-topo svg .link.secondary.port-traffic-KBps {
+    stroke: rgb(98, 153, 118);
+    stroke-width: 5.0;
+}
+
+.light #ov-topo svg .link.secondary.port-traffic-MBps {
+    stroke: rgb(128,145,27);
+    stroke-width: 6.5;
+}
+.dark #ov-topo svg .link.secondary.port-traffic-MBps {
+    stroke: rgb(91, 109, 54);
+    stroke-width: 6.5;
+}
+
+.light #ov-topo svg .link.secondary.port-traffic-GBps {
+    stroke: rgb(255, 137, 3);
+    stroke-width: 8.0;
+}
+.dark #ov-topo svg .link.secondary.port-traffic-GBps {
+    stroke: rgb(174, 119, 55);
+    stroke-width: 8.0;
+}
+
+.light #ov-topo svg .link.secondary.port-traffic-GBps-choked {
+    stroke: rgb(183, 30, 21);
+    stroke-width: 8.0;
+}
+.dark #ov-topo svg .link.secondary.port-traffic-GBps-choked {
+    stroke: rgb(127, 40, 39);
+    stroke-width: 8.0;
+}
+
+
 #ov-topo svg .link.primary {
     stroke-width: 4px;
 }
