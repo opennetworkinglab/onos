@@ -141,8 +141,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void deactivate() {
         providerRegistry.unregister(this);
         controller.removeListener(listener);
+        collectors.values().forEach(PortStatsCollector::stop);
         providerService = null;
-
         LOG.info("Stopped");
     }
 
@@ -165,6 +165,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         if (sw == null || !sw.isConnected()) {
             LOG.error("Failed to probe device {} on sw={}", deviceId, sw);
             providerService.deviceDisconnected(deviceId);
+            return;
         } else {
             LOG.trace("Confirmed device {} connection", deviceId);
         }

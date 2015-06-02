@@ -92,21 +92,18 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     @Override
     public ControllerNode getLocalNode() {
         checkPermission(Permission.CLUSTER_READ);
-
         return store.getLocalNode();
     }
 
     @Override
     public Set<ControllerNode> getNodes() {
         checkPermission(Permission.CLUSTER_READ);
-
         return store.getNodes();
     }
 
     @Override
     public ControllerNode getNode(NodeId nodeId) {
         checkPermission(Permission.CLUSTER_READ);
-
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getNode(nodeId);
     }
@@ -114,7 +111,6 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
         checkPermission(Permission.CLUSTER_READ);
-
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getState(nodeId);
     }
@@ -123,7 +119,6 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
         checkPermission(Permission.CLUSTER_READ);
-
         return store.getLastUpdated(nodeId);
     }
 
@@ -158,14 +153,12 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
     @Override
     public void addListener(ClusterEventListener listener) {
         checkPermission(Permission.CLUSTER_EVENT);
-
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(ClusterEventListener listener) {
         checkPermission(Permission.CLUSTER_EVENT);
-
         listenerRegistry.removeListener(listener);
     }
 
