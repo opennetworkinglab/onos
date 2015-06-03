@@ -278,6 +278,9 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     }
 
     private void updatePorts(ConnectPoint src, ConnectPoint dst, SparseAnnotations annotations) {
+        if (annotations == null) {
+            return;
+        }
         final String linkType = annotations.value("optical.type");
         if ("cross-connect".equals(linkType)) {
             String value = annotations.value("bandwidth").trim();
