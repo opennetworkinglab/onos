@@ -19,16 +19,13 @@ import org.onosproject.core.IdBlock;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.UnavailableIdException;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-
 /**
  * Base class of {@link IdGenerator} implementations which use {@link IdBlockAllocator} as
  * backend.
  */
 public class BlockAllocatorBasedIdGenerator implements IdGenerator {
     protected final IdBlockAllocator allocator;
-    protected Supplier<IdBlock> idBlock;
+    protected IdBlock idBlock;
 
     /**
      * Constructs an ID generator which use {@link IdBlockAllocator} as backend.
@@ -37,17 +34,17 @@ public class BlockAllocatorBasedIdGenerator implements IdGenerator {
      */
     protected BlockAllocatorBasedIdGenerator(IdBlockAllocator allocator) {
         this.allocator = allocator;
-        this.idBlock = Suppliers.memoize(allocator::allocateUniqueIdBlock);
+        this.idBlock = allocator.allocateUniqueIdBlock();
     }
 
     @Override
     public long getNewId() {
         try {
-            return idBlock.get().getNextId();
+            return idBlock.getNextId();
         } catch (UnavailableIdException e) {
             synchronized (allocator) {
-                idBlock = Suppliers.memoize(allocator::allocateUniqueIdBlock);
-                return idBlock.get().getNextId();
+                idBlock = allocator.allocateUniqueIdBlock();
+                return idBlock.getNextId();
             }
         }
     }
