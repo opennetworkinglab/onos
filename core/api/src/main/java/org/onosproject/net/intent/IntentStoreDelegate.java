@@ -29,4 +29,12 @@ public interface IntentStoreDelegate extends StoreDelegate<IntentEvent> {
      * @param intentData    intent data object
      */
     void process(IntentData intentData);
+
+    /**
+     * Called when a new intent has been updated for which this node is the master.
+     *
+     * @param intentData intent data object
+     */
+    default void onUpdate(IntentData intentData) {
+    }
 }

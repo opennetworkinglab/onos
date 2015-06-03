@@ -43,6 +43,11 @@ public class IntentServiceAdapter implements IntentService {
     }
 
     @Override
+    public Iterable<IntentData> getIntentData() {
+        return null;
+    }
+
+    @Override
     public long getIntentCount() {
         return 0;
     }

@@ -66,6 +66,13 @@ public interface IntentService {
     Iterable<Intent> getIntents();
 
     /**
+     * Returns an iterable of intent data objects currently in the system.
+     *
+     * @return set of intent data objects
+     */
+    Iterable<IntentData> getIntentData();
+
+    /**
      * Returns the number of intents currently in the system.
      *
      * @return number of intents

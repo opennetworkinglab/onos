@@ -182,6 +182,12 @@ public class IntentManager
     }
 
     @Override
+    public Iterable<IntentData> getIntentData() {
+        checkPermission(Permission.INTENT_READ);
+        return store.getIntentData(false, 0);
+    }
+
+    @Override
     public long getIntentCount() {
         checkPermission(Permission.INTENT_READ);
 
@@ -257,6 +263,11 @@ public class IntentManager
         @Override
         public void process(IntentData data) {
             accumulator.add(data);
+        }
+
+        @Override
+        public void onUpdate(IntentData intentData) {
+            trackerService.trackIntent(intentData);
         }
     }
 

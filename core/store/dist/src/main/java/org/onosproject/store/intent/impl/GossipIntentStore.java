@@ -288,11 +288,16 @@ public class GossipIntentStore
     private final class InternalCurrentListener implements
             EventuallyConsistentMapListener<Key, IntentData> {
         @Override
-        public void event(
-                EventuallyConsistentMapEvent<Key, IntentData> event) {
-            if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
-                IntentData intentData = event.value();
+        public void event(EventuallyConsistentMapEvent<Key, IntentData> event) {
+            IntentData intentData = event.value();
 
+            if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
+                // The current intents map has been updated. If we are master for
+                // this intent's partition, notify the Manager that it should
+                // emit notifications about updated tracked resources.
+                if (delegate != null && isMaster(event.value().intent().key())) {
+                    delegate.onUpdate(new IntentData(intentData)); // copy for safety, likely unnecessary
+                }
                 notifyDelegateIfNotNull(IntentEvent.getEvent(intentData));
             }
         }

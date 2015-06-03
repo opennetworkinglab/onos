@@ -15,10 +15,11 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Collection;
-
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.Key;
+
+import java.util.Collection;
 
 /**
  * Auxiliary service for tracking intent path flows and for notifying the
@@ -59,4 +60,10 @@ public interface ObjectiveTrackerService {
     void removeTrackedResources(Key intentKey,
                                        Collection<NetworkResource> resources);
 
+    /**
+     * Submits the specified intent data to be tracked.
+     *
+     * @param intentData intent data object to be tracked
+     */
+    void trackIntent(IntentData intentData);
 }

@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -40,6 +41,7 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PartitionEvent;
@@ -57,7 +59,9 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -69,7 +73,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.LinkKey.linkKey;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -83,6 +89,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private final Logger log = getLogger(getClass());
+
+    private final ConcurrentMap<Key, Intent> intents = Maps.newConcurrentMap();
 
     private final SetMultimap<LinkKey, Key> intentsByLink =
             //TODO this could be slow as a point of synchronization
@@ -191,6 +199,46 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 intentsByLink.remove(linkKey((Link) resource), intentKey);
             } else if (resource instanceof ElementId) {
                 intentsByDevice.remove((ElementId) resource, intentKey);
+            }
+        }
+    }
+
+    @Override
+    public void trackIntent(IntentData intentData) {
+
+        //NOTE: This will be called for intents that are being added to the store
+        //      locally (i.e. every intent update)
+
+        Key key = intentData.key();
+        Intent intent = intentData.intent();
+        boolean isLocal = intentService.isLocal(key);
+        List<Intent> installables = intentData.installables();
+
+        if (log.isTraceEnabled()) {
+            log.trace("intent {}, old: {}, new: {}, installableCount: {}, resourceCount: {}",
+                      key,
+                      intentsByDevice.values().contains(key),
+                      isLocal,
+                      installables.size(),
+                      intent.resources().size() +
+                          installables.stream()
+                              .mapToLong(i -> i.resources().size()).sum());
+        }
+
+        if (isNullOrEmpty(installables) && intentData.state() == INSTALLED) {
+            log.warn("Intent {} is INSTALLED with no installables", key);
+        }
+
+        if (isLocal) {
+            addTrackedResources(key, intent.resources());
+            for (Intent installable : installables) {
+                addTrackedResources(key, installable.resources());
+            }
+            // FIXME check all resources against current topo service(s); recompile if necessary
+        } else {
+            removeTrackedResources(key, intent.resources());
+            for (Intent installable : installables) {
+                removeTrackedResources(key, installable.resources());
             }
         }
     }
@@ -371,25 +419,11 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
         try {
             //FIXME very inefficient
-            for (Intent intent : intentService.getIntents()) {
+            for (IntentData intentData : intentService.getIntentData()) {
                 try {
-                    if (intentService.isLocal(intent.key())) {
-                        log.trace("intent {}, old: {}, new: {}",
-                                 intent.key(), intentsByDevice.values().contains(intent.key()), true);
-                        addTrackedResources(intent.key(), intent.resources());
-                        intentService.getInstallableIntents(intent.key()).stream()
-                                .forEach(installable ->
-                                                 addTrackedResources(intent.key(), installable.resources()));
-                    } else {
-                        log.trace("intent {}, old: {}, new: {}",
-                                 intent.key(), intentsByDevice.values().contains(intent.key()), false);
-                        removeTrackedResources(intent.key(), intent.resources());
-                        intentService.getInstallableIntents(intent.key()).stream()
-                                .forEach(installable ->
-                                                 removeTrackedResources(intent.key(), installable.resources()));
-                    }
+                    trackIntent(intentData);
                 } catch (NullPointerException npe) {
-                    log.warn("intent error {}", intent.key(), npe);
+                    log.warn("intent error {}", intentData.key(), npe);
                 }
             }
         } catch (Exception e) {

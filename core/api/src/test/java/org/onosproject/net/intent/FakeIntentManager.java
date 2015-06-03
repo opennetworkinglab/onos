@@ -183,6 +183,11 @@ public class FakeIntentManager implements TestableIntentService {
     }
 
     @Override
+    public Iterable<IntentData> getIntentData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public long getIntentCount() {
         return intents.size();
     }
