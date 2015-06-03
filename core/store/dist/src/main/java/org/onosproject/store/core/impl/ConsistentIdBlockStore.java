@@ -1,9 +1,6 @@
 package org.onosproject.store.core.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Map;
-
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -17,7 +14,10 @@ import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Maps;
+import java.util.Map;
+
+import static org.onlab.util.Tools.delay;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of {@code IdBlockStore} using {@code AtomicCounter}.
@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 public class ConsistentIdBlockStore implements IdBlockStore {
 
     private static final int MAX_TRIES = 3;
+    private static final int RETRY_DELAY_MS = 2_000;
 
     private final Logger log = getLogger(getClass());
     private final Map<String, AtomicCounter> topicCounters = Maps.newConcurrentMap();
@@ -62,6 +63,7 @@ public class ConsistentIdBlockStore implements IdBlockStore {
                 log.warn("Unable to allocate ID block due to {}; retrying...",
                          e.getMessage());
                 exc = e;
+                delay(RETRY_DELAY_MS); // FIXME: This is a deliberate hack; fix in Drake
             }
         }
         throw new IllegalStateException("Unable to allocate ID block", exc);
