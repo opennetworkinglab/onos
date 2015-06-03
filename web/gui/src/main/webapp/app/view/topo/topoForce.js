@@ -656,7 +656,10 @@
     // ==========================
     // function entry points for traffic module
 
-    var allTrafficClasses = 'primary secondary animated optical';
+    // TODO: change -XBps to -Xbps when we start measuring bits/sec
+    var allTrafficClasses = 'primary secondary optical ' +
+        'port-traffic-KBps port-traffic-MBps port-traffic-GBps ' +
+        'port-traffic-GBps-choked';
 
     function clearLinkTrafficStyle() {
         link.style('stroke-width', null)
