@@ -10,10 +10,14 @@ remote=$ONOS_USER@${1:-$OCI}
 
 ssh -t $remote "
     # Wait until we reach the run-level 100
-    running=""
-    while [ -z \$running ]; do
+    for i in \$(seq 1 30); do
         $ONOS_INSTALL_DIR/bin/onos bundle:list 2>/dev/null | \
-            grep -q 'START LEVEL 100' && running=1 || sleep 2
+            grep -q 'START LEVEL 100' && break || sleep 2
     done
 
+    # Wait until ApplicationManager is available
+    for i in \$(seq 1 5); do
+        grep -q \" ApplicationManager .* Started\" \
+            $ONOS_INSTALL_DIR/log/karaf.log && break || sleep 1
+    done
 "

@@ -1,0 +1,18 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks ONOS summary data
+# -----------------------------------------------------------------------------
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
+
+onos ${1:-$OCI} "onos:summary" > $aux
+cat $aux
+
+let status=0
+grep -q "nodes=$2" $aux || let status=status+1
+grep -q "devices=$3" $aux || let status=status+1
+grep -q "links=$4" $aux || let status=status+1
+grep -q "hosts=$5" $aux || let status=status+1
+
+exit $status

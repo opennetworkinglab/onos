@@ -20,10 +20,10 @@
         <parallel var="${OC#}">
             <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}" unless="${OCT}"/>
             <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
-            <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}"/>
+            <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}" requires="Uninstall-${#}"/>
 
             <step name="Untar-And-Run-${#}" exec="onos-untar-and-run ${OC#}"
-                  requires="Uninstall-${#},Push-Bits-${#},Push-Bits"/>
+                  requires="Kill-${#},Push-Bits-${#},Push-Bits"/>
 
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Untar-And-Run-${#}"/>
@@ -31,12 +31,12 @@
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
                   requires="~Wait-for-Start-${#}"/>
             <step name="Check-Components-${#}" exec="onos-check-components ${OC#}"
-                  requires="~Wait-for-Start-${#},~Check-Logs-${#}"/>
+                  requires="~Wait-for-Start-${#}"/>
             <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers"
-                  requires="~Wait-for-Start-${#},~Check-Logs-${#}"/>
+                  requires="~Wait-for-Start-${#}"/>
 
             <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#} ${OC#}"
-                  requires="~Wait-for-Start-${#},~Check-Logs-${#}"/>
+                  requires="~Wait-for-Start-${#}"/>
         </parallel>
     </group>
 
@@ -49,12 +49,12 @@
             <step name="Check-Logs-Again-${#}" exec="onos-check-logs ${OC#}"
                   requires="~Wait-for-Start-Again-${#}"/>
             <step name="Check-Components-Again-${#}" exec="onos-check-components ${OC#}"
-                  requires="~Wait-for-Start-Again-${#},~Check-Logs-Again-${#}"/>
+                  requires="~Wait-for-Start-Again-${#}"/>
             <step name="Check-Apps-Again-${#}" exec="onos-check-apps ${OC#} drivers"
-                  requires="~Wait-for-Start-Again-${#},~Check-Logs-Again-${#}"/>
+                  requires="~Wait-for-Start-Again-${#}"/>
 
             <step name="Check-Nodes-Again-${#}" exec="onos-check-nodes ${OC#}"
-                  requires="~Wait-for-Start-Again-${#},~Check-Logs-Again-${#}"/>
+                  requires="~Wait-for-Start-Again-${#}"/>
         </parallel>
     </group>
 

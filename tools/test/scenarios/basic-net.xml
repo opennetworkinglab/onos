@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="basic-net" description="Basic network functionality test">
+    <group name="Basic-Net">
+        <step name="Install-Apps"
+              exec="onos ${OC1} app activate org.onosproject.proxyarp org.onosproject.fwd"/>
+        <step name="Check-Apps" requires="Install-Apps"
+              exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd"/>
+
+        <step name="Config-Topo"
+              exec="onos-topo-cfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls.json"/>
+        <step name="Check-Summary" requires="Config-Topo"
+              exec="onos-check-summary ${OC1} [0-9]* 25 0 25"/>
+
+        <step name="Start-Mininet" requires="Install-Apps,Check-Summary"
+              exec="echo onos-start-mininet not implemented yet"/>
+    </group>
+</scenario>

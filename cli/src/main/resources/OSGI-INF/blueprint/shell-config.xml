@@ -59,6 +59,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.UiViewListCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.RolesCommand"/>
         </command>
         <command>

@@ -41,5 +41,10 @@
               exec="mvn clean install"/>
         <step name="Reinstall-App-With-UI" requires="^,~Verify-CLI"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
+        <step name="Verify-UI" requires="^"
+              exec="onos-check-views ${OCI} id=sample"/>
+
+        <step name="Uninstall-App" requires="^"
+              exec="onos-app ${OCI} uninstall org.foo.app"/>
     </group>
 </scenario>
