@@ -48,10 +48,10 @@ public class IntentRemoveCommand extends AbstractShellCommand {
               required = true, multiValued = false)
     String applicationIdString = null;
 
-    @Argument(index = 1, name = "id",
-              description = "Intent ID",
+    @Argument(index = 1, name = "key",
+              description = "Intent Key",
               required = true, multiValued = false)
-    String id = null;
+    String keyString = null;
 
     @Option(name = "-p", aliases = "--purge",
             description = "Purge the intent from the store after removal",
@@ -78,12 +78,13 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         }
 
         final Key key;
-        if (id.startsWith("0x")) {
-            id = id.replaceFirst("0x", "");
-            key = Key.of(new BigInteger(id, 16).longValue(), appId);
+        if (keyString.startsWith("0x")) {
+            // The intent uses a LongKey
+            keyString = keyString.replaceFirst("0x", "");
+            key = Key.of(new BigInteger(keyString, 16).longValue(), appId);
         } else {
-            // This line is to use the intent key to delete an intent
-            key = Key.of(id, appId);
+            // The intent uses a StringKey
+            key = Key.of(keyString, appId);
         }
 
         Intent intent = intentService.getIntent(key);
