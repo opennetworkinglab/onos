@@ -165,7 +165,13 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
 
     @Override
     public Set<IntentId> getMapping(IntentId intentId) {
-        return intentMapping.get(intentId).value();
+        Versioned<Set<IntentId>> result = intentMapping.get(intentId);
+
+        if (result == null) {
+            return result.value();
+        }
+
+        return null;
     }
 
     @Override
@@ -174,10 +180,11 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
 
 
         if (versionedIntents == null) {
-            intentMapping.put(keyIntentId, Collections.singleton(valIntentId));
+            Set<IntentId> newSet = new HashSet<>();
+            newSet.add(valIntentId);
+            intentMapping.put(keyIntentId, newSet);
         } else {
             versionedIntents.value().add(valIntentId);
-            intentMapping.put(keyIntentId, versionedIntents.value());
         }
 
         return true;

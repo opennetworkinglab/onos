@@ -26,8 +26,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Frequency;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchPort;
@@ -123,17 +125,26 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         // Use first path that can be successfully reserved
         for (Path path : paths) {
-            // Request and reserve lambda on path
-            LinkResourceAllocations linkAllocs = assignWavelength(intent, path);
-            if (linkAllocs == null) {
-                continue;
+
+            // Static or dynamic lambda allocation
+            LambdaResourceAllocation lambdaAlloc;
+            String staticLambda = srcPort.annotations().value(AnnotationKeys.STATIC_LAMBDA);
+            if (staticLambda != null) {
+                // FIXME: need to actually reserve the lambda
+                lambdaAlloc = new LambdaResourceAllocation(LambdaResource.valueOf(Integer.parseInt(staticLambda)));
+            } else {
+                // Request and reserve lambda on path
+                LinkResourceAllocations linkAllocs = assignWavelength(intent, path);
+                if (linkAllocs == null) {
+                    continue;
+                }
+                lambdaAlloc = getWavelength(path, linkAllocs);
             }
 
             OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
 
             // Create installable optical path intent
-            LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
-            OchSignal ochSignal = getOchSignal(lambdaAlloc, omsPort.minFrequency(), omsPort.grid());
+            OchSignal ochSignal = getOchSignal(lambdaAlloc, omsPort.maxFrequency(), omsPort.grid());
             // Only support fixed grid for now
             OchSignalType signalType = OchSignalType.FIXED_GRID;
 
@@ -188,7 +199,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         LinkResourceAllocations allocations = linkResourceService.requestResources(request.build());
 
-        checkWavelengthContinuity(allocations, path);
+        if (!checkWavelengthContinuity(allocations, path)) {
+            linkResourceService.releaseResources(allocations);
+            return null;
+        }
 
         return allocations;
     }
@@ -229,15 +243,15 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * Convert lambda resource allocation in OCh signal.
      *
      * @param alloc lambda resource allocation
-     * @param minFrequency minimum frequency
+     * @param maxFrequency maximum frequency
      * @param grid grid spacing frequency
      * @return OCh signal
      */
-    private OchSignal getOchSignal(LambdaResourceAllocation alloc, Frequency minFrequency, Frequency grid) {
+    private OchSignal getOchSignal(LambdaResourceAllocation alloc, Frequency maxFrequency, Frequency grid) {
         int channel = alloc.lambda().toInt();
 
         // Calculate center frequency
-        Frequency centerFrequency = minFrequency.add(grid.multiply(channel)).add(grid.floorDivision(2));
+        Frequency centerFrequency = maxFrequency.subtract(grid.multiply(channel - 1));
 
         // Build OCh signal object
         int spacingMultiplier = (int) (centerFrequency.subtract(OchSignal.CENTER_FREQUENCY).asHz() / grid.asHz());
@@ -246,6 +260,23 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 spacingMultiplier, slotGranularity);
 
         return ochSignal;
+    }
+
+    private ConnectPoint staticPort(ConnectPoint connectPoint) {
+        Port port = deviceService.getPort(connectPoint.deviceId(), connectPoint.port());
+
+        String staticPort = port.annotations().value(AnnotationKeys.STATIC_PORT);
+
+        // FIXME: need a better way to match the port
+        if (staticPort != null) {
+            for (Port p : deviceService.getPorts(connectPoint.deviceId())) {
+                if (staticPort.equals(p.number().name())) {
+                    return new ConnectPoint(p.element().id(), p.number());
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -260,13 +291,29 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         LinkWeight weight = new LinkWeight() {
             @Override
             public double weight(TopologyEdge edge) {
+                // Disregard inactive or non-optical links
                 if (edge.link().state() == Link.State.INACTIVE) {
                     return -1;
                 }
                 if (edge.link().type() != Link.Type.OPTICAL) {
                     return -1;
                 }
-                //return edge.link().annotations().value("optical.type").equals("WDM") ? +1 : -1;
+                // Adhere to static port mappings
+                DeviceId srcDeviceId = edge.link().src().deviceId();
+                if (srcDeviceId.equals(intent.getSrc().deviceId())) {
+                    ConnectPoint srcStaticPort = staticPort(intent.getSrc());
+                    if (srcStaticPort != null) {
+                        return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
+                    }
+                }
+                DeviceId dstDeviceId = edge.link().dst().deviceId();
+                if (dstDeviceId.equals(intent.getDst().deviceId())) {
+                    ConnectPoint dstStaticPort = staticPort(intent.getDst());
+                    if (dstStaticPort != null) {
+                        return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
+                    }
+                }
+
                 return 1;
             }
         };

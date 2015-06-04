@@ -23,8 +23,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
@@ -138,7 +138,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                     .signalType(OduSignalType.ODU4)
                     .bidirectional(intent.isBidirectional())
                     .build();
-            intents.add(connIntent);
+            intentService.submit(connIntent);
         }
 
         // Create optical circuit intent
@@ -155,7 +155,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         circuitIntent = new FlowRuleIntent(appId, rules, intent.resources());
 
         // Save circuit to connectivity intent mapping
-        deviceResourceService.requestMapping(connIntent.id(), circuitIntent.id());
+        deviceResourceService.requestMapping(connIntent.id(), intent.id());
         intents.add(circuitIntent);
 
         return intents;
@@ -163,16 +163,43 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     /**
      * Checks if current allocations on given resource can satisfy request.
+     * If the resource is null, return true.
      *
      * @param request
      * @param resource
      * @return
      */
     private boolean isAvailable(Intent request, IntentId resource) {
+        if (resource == null) {
+            return true;
+        }
+
         Set<IntentId> mapping = deviceResourceService.getMapping(resource);
 
-        // TODO: hardcoded 10 x 10G
-        return mapping.size() < 10;
+        if (mapping == null) {
+            return true;
+        }
+
+        // TODO: hardcoded 80% utilization
+        return mapping.size() < 8;
+    }
+
+    private boolean isAllowed(OpticalCircuitIntent circuitIntent, OpticalConnectivityIntent connIntent) {
+        ConnectPoint srcStaticPort = staticPort(circuitIntent.getSrc());
+        if (srcStaticPort != null) {
+            if (!srcStaticPort.equals(connIntent.getSrc())) {
+                return false;
+            }
+        }
+
+        ConnectPoint dstStaticPort = staticPort(circuitIntent.getDst());
+        if (dstStaticPort != null) {
+            if (!dstStaticPort.equals(connIntent.getDst())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -191,7 +218,13 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
             ConnectPoint src = circuitIntent.getSrc();
             ConnectPoint dst = circuitIntent.getDst();
-            if (!src.equals(connIntent.getSrc()) && !dst.equals(connIntent.getDst())) {
+            // Ignore if the intents don't have identical src and dst devices
+            if (!src.deviceId().equals(connIntent.getSrc().deviceId()) &&
+                    !dst.deviceId().equals(connIntent.getDst().deviceId())) {
+                continue;
+            }
+
+            if (!isAllowed(circuitIntent, connIntent)) {
                 continue;
             }
 
@@ -203,21 +236,44 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    private OchPort findAvailableOchPort(DeviceId deviceId, OpticalCircuitIntent circuitIntent) {
-        List<Port> ports = deviceService.getPorts(deviceId);
+    private ConnectPoint staticPort(ConnectPoint connectPoint) {
+        Port port = deviceService.getPort(connectPoint.deviceId(), connectPoint.port());
+
+        String staticPort = port.annotations().value(AnnotationKeys.STATIC_PORT);
+
+        // FIXME: need a better way to match the port
+        if (staticPort != null) {
+            for (Port p : deviceService.getPorts(connectPoint.deviceId())) {
+                if (staticPort.equals(p.number().name())) {
+                    return new ConnectPoint(p.element().id(), p.number());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private OchPort findAvailableOchPort(ConnectPoint oduPort, OpticalCircuitIntent circuitIntent) {
+        // First see if the port mappings are constrained
+        ConnectPoint ochCP = staticPort(oduPort);
+
+        if (ochCP != null) {
+            OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
+            IntentId intentId = deviceResourceService.getAllocations(ochPort);
+            if (isAvailable(circuitIntent, intentId)) {
+                return ochPort;
+            }
+        }
+
+        // No port constraints, so find any port that works
+        List<Port> ports = deviceService.getPorts(oduPort.deviceId());
 
         for (Port port : ports) {
             if (!(port instanceof OchPort)) {
                 continue;
             }
 
-            // Port is not used
             IntentId intentId = deviceResourceService.getAllocations(port);
-            if (intentId == null) {
-                return (OchPort) port;
-            }
-
-            // Port is used but has free resources
             if (isAvailable(circuitIntent, intentId)) {
                 return (OchPort) port;
             }
@@ -226,16 +282,14 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    // TODO: Add constraints for OduClt to OCh port mappings
-    // E.g., ports need to belong to same line card.
     private Pair<OchPort, OchPort> findPorts(OpticalCircuitIntent intent) {
 
-        OchPort srcPort = findAvailableOchPort(intent.getSrc().deviceId(), intent);
+        OchPort srcPort = findAvailableOchPort(intent.getSrc(), intent);
         if (srcPort == null) {
             return null;
         }
 
-        OchPort dstPort = findAvailableOchPort(intent.getDst().deviceId(), intent);
+        OchPort dstPort = findAvailableOchPort(intent.getDst(), intent);
         if (dstPort == null) {
             return null;
         }

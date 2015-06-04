@@ -214,15 +214,28 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     private void parsePorts(DeviceId deviceId, JsonNode nodes) {
         List<PortDescription> ports = new ArrayList<>();
         for (JsonNode node : nodes) {
-            ports.add(parsePort(node));
+            ports.add(parsePort(deviceId, node));
         }
         deviceProviderService.updatePorts(deviceId, ports);
     }
 
     // Parses the given node with port information.
-    private PortDescription parsePort(JsonNode node) {
+    private PortDescription parsePort(DeviceId deviceId, JsonNode node) {
         Port.Type type = Port.Type.valueOf(node.path("type").asText("COPPER"));
-        PortNumber port = portNumber(node.path("port").asLong(0));
+        // TL1-based ports have a name
+        PortNumber port = null;
+        if (node.has("name")) {
+            for (Port p : deviceService.getPorts(deviceId)) {
+                if (p.number().name().equals(node.get("name").asText())) {
+                    port = p.number();
+                    break;
+                }
+            }
+        } else {
+            port = portNumber(node.path("port").asLong(0));
+        }
+
+        checkNotNull(port);
         String portName = Strings.emptyToNull(port.name());
         SparseAnnotations annotations  = null;
         if (portName != null) {
@@ -239,6 +252,22 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                 return new OmsPortDescription(port, node.path("enabled").asBoolean(true),
                                               CENTER, CENTER.add(TOTAL),
                                               Frequency.ofGHz(100), annotations);
+            case ODUCLT:
+                annotations = annotations(node.get("annotations"));
+                OduCltPort oduCltPort = (OduCltPort) deviceService.getPort(deviceId, port);
+                return new OduCltPortDescription(port, node.path("enabled").asBoolean(true),
+                        oduCltPort.signalType(), annotations);
+            case OCH:
+                annotations = annotations(node.get("annotations"));
+                OchPort ochPort = (OchPort) deviceService.getPort(deviceId, port);
+                return new OchPortDescription(port, node.path("enabled").asBoolean(true),
+                        ochPort.signalType(), ochPort.isTunable(),
+                        ochPort.lambda(), annotations);
+            case OMS:
+                annotations = annotations(node.get("annotations"));
+                OmsPort omsPort = (OmsPort) deviceService.getPort(deviceId, port);
+                return new OmsPortDescription(port, node.path("enabled").asBoolean(true),
+                        omsPort.minFrequency(), omsPort.maxFrequency(), omsPort.grid(), annotations);
             default:
                 log.warn("{}: Unsupported Port Type");
         }

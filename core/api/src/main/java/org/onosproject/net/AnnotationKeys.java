@@ -85,6 +85,10 @@ public final class AnnotationKeys {
      */
     public static final String ROUTER_ID = "routerId";
 
+    public static final String STATIC_LAMBDA = "staticLambda";
+
+    public static final String STATIC_PORT = "staticPort";
+
     /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
