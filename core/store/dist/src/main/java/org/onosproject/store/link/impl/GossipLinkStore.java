@@ -466,8 +466,8 @@ public class GossipLinkStore
         try {
             timestamp = deviceClockService.getTimestamp(dstDeviceId);
         } catch (IllegalStateException e) {
-            log.warn("Failed to remove link {}, was not the master", key);
-            //there are times when this is called before mastership
+            log.debug("Failed to remove link {}, was not the master", key);
+            // there are times when this is called before mastership
             // handoff correctly completes.
             return null;
         }
