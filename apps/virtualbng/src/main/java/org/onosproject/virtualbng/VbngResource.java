@@ -17,20 +17,29 @@ package org.onosproject.virtualbng;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.util.Map;
+
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.onlab.packet.IpAddress;
-import org.onlab.rest.BaseResource;
+import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
 /**
  * This class provides REST services to virtual BNG.
  */
 @Path("privateip")
-public class VbngResource extends BaseResource {
+public class VbngResource extends AbstractWebResource {
 
     private final Logger log = getLogger(getClass());
 
@@ -80,5 +89,24 @@ public class VbngResource extends BaseResource {
         } else {
             return "0";
         }
+    }
+
+    @GET
+    @Path("map")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response privateIpDeleteNotification() {
+
+        log.info("Received vBNG IP address map request");
+
+        VbngConfigurationService vbngConfigurationService =
+                get(VbngConfigurationService.class);
+
+        Map<IpAddress, IpAddress> map =
+                vbngConfigurationService.getIpAddressMappings();
+        ObjectNode result = new ObjectMapper().createObjectNode();
+
+        result.set("map", new IpAddressMapEntryCodec().encode(map.entrySet(), this));
+
+        return ok(result.toString()).build();
     }
 }

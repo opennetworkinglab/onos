@@ -73,10 +73,12 @@
                         <Import-Package>
                             org.slf4j,
                             javax.ws.rs,
+                            javax.ws.rs.core,
                             com.sun.jersey.api.core,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
+                            com.fasterxml.jackson.databind.node,
                             org.apache.karaf.shell.commands,
                             com.google.common.*,
                             org.onlab.packet.*,
