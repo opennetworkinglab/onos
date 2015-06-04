@@ -16,6 +16,7 @@
 package org.onosproject.store.flow.impl;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -641,11 +642,7 @@ public class NewDistributedFlowRuleStore
             log.debug("Sending flowEntries for devices {} to {} as backup.", deviceIds, nodeId);
             Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>> deviceFlowEntries =
                     Maps.newConcurrentMap();
-            flowEntries.forEach((key, value) -> {
-                if (deviceIds.contains(key)) {
-                    deviceFlowEntries.put(key, value);
-                }
-            });
+            deviceIds.forEach(id -> deviceFlowEntries.put(id, ImmutableMap.copyOf(getFlowTable(id))));
             clusterCommunicator.<Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>>, Set<DeviceId>>sendAndReceive(
                                         deviceFlowEntries,
                                         FLOW_TABLE_BACKUP,
@@ -657,7 +654,8 @@ public class NewDistributedFlowRuleStore
                                            deviceFlowEntries.keySet() :
                                            Sets.difference(deviceFlowEntries.keySet(), backedupDevices);
                                    if (devicesNotBackedup.size() > 0) {
-                                       log.warn("Failed to backup devices: {}", devicesNotBackedup, error);
+                                       log.warn("Failed to backup devices: {}. Reason: {}",
+                                               devicesNotBackedup, error.getMessage());
                                    }
                                    if (backedupDevices != null) {
                                        backedupDevices.forEach(id -> {
