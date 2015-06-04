@@ -278,9 +278,6 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     }
 
     private void updatePorts(ConnectPoint src, ConnectPoint dst, SparseAnnotations annotations) {
-        if (annotations == null) {
-            return;
-        }
         final String linkType = annotations.value("optical.type");
         if ("cross-connect".equals(linkType)) {
             String value = annotations.value("bandwidth").trim();
@@ -468,7 +465,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     // Produces set of annotations from the given JSON node.
     private SparseAnnotations annotations(JsonNode node) {
         if (node == null) {
-            return null;
+            return (SparseAnnotations) DefaultAnnotations.EMPTY;
         }
 
         DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
@@ -483,8 +480,9 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     // Produces a connection point from the specified uri/port text.
     private ConnectPoint connectPoint(String text) {
         int i = text.lastIndexOf("/");
+        String portStr = text.substring(i + 1);
         return new ConnectPoint(deviceId(text.substring(0, i)),
-                                portNumber(text.substring(i + 1)));
+                                portNumber(portStr.matches(".*[a-zA-Z].*") ? "0" : portStr, portStr));
     }
 
     // Returns string form of the named property in the given JSON object.
