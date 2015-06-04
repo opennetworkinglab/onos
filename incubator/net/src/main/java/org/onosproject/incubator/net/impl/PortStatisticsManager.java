@@ -49,7 +49,8 @@ public class PortStatisticsManager implements PortStatisticsService {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int SECOND = 1_000;
+    private static final int SECOND = 1_000; // milliseconds
+    private static final long STALE_LIMIT = 15_000; // milliseconds
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -63,7 +64,6 @@ public class PortStatisticsManager implements PortStatisticsService {
     public void activate() {
         deviceService.addListener(deviceListener);
         log.info("Started");
-
     }
 
     @Deactivate
@@ -76,7 +76,10 @@ public class PortStatisticsManager implements PortStatisticsService {
     public Load load(ConnectPoint connectPoint) {
         DataPoint c = current.get(connectPoint);
         DataPoint p = previous.get(connectPoint);
-        if (c != null && p != null && (c.time > p.time + SECOND)) {
+        long now = System.currentTimeMillis();
+        if (c != null && p != null && (now - c.time < STALE_LIMIT) &&
+                (c.time > p.time + SECOND) &&
+                (c.stats.bytesSent() - p.stats.bytesSent() >= 0)) {
             return new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
                                    (int) (c.time - p.time) / SECOND);
         }
