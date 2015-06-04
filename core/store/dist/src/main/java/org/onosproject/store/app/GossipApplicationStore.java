@@ -62,8 +62,8 @@ import java.util.function.Function;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.onlab.util.Tools.delay;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.randomDelay;
 import static org.onosproject.app.ApplicationEvent.Type.*;
 import static org.onosproject.store.app.GossipApplicationStore.InternalState.*;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
@@ -83,11 +83,10 @@ public class GossipApplicationStore extends ApplicationArchive
 
     private static final MessageSubject APP_BITS_REQUEST = new MessageSubject("app-bits-request");
 
-    private static final int MAX_LOAD_RETRIES = 3;
+    private static final int MAX_LOAD_RETRIES = 5;
     private static final int RETRY_DELAY_MS = 2_000;
 
     private static final int FETCH_TIMEOUT_MS = 10_000;
-    private static final int LOAD_TIMEOUT_MS = 5_000;
 
     public enum InternalState {
         INSTALLED, ACTIVATED, DEACTIVATED
@@ -169,7 +168,7 @@ public class GossipApplicationStore extends ApplicationArchive
                     }
                 } catch (Exception e) {
                     log.warn("Unable to load application {} from disk; retrying", name);
-                    delay(RETRY_DELAY_MS);  // FIXME: This is a deliberate hack; fix in Drake
+                    randomDelay(RETRY_DELAY_MS);  // FIXME: This is a deliberate hack; fix in Drake
                 }
             }
         }

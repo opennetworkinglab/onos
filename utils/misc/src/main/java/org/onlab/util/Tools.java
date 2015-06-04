@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -61,6 +62,8 @@ public abstract class Tools {
     }
 
     private static final Logger log = getLogger(Tools.class);
+
+    private static Random random = new Random();
 
     /**
      * Returns a thread factory that produces threads named according to the
@@ -189,6 +192,20 @@ public abstract class Tools {
     public static void delay(int ms) {
         try {
             Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted", e);
+        }
+    }
+
+    /**
+     * Suspends the current thread for a random number of millis between 0 and
+     * the indicated limit.
+     *
+     * @param ms max number of millis
+     */
+    public static void randomDelay(int ms) {
+        try {
+            Thread.sleep(random.nextInt(ms));
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
         }

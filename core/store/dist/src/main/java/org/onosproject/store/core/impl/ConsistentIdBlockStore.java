@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 
-import static org.onlab.util.Tools.delay;
+import static org.onlab.util.Tools.randomDelay;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -26,7 +26,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class ConsistentIdBlockStore implements IdBlockStore {
 
-    private static final int MAX_TRIES = 3;
+    private static final int MAX_TRIES = 5;
     private static final int RETRY_DELAY_MS = 2_000;
 
     private final Logger log = getLogger(getClass());
@@ -63,7 +63,7 @@ public class ConsistentIdBlockStore implements IdBlockStore {
                 log.warn("Unable to allocate ID block due to {}; retrying...",
                          e.getMessage());
                 exc = e;
-                delay(RETRY_DELAY_MS); // FIXME: This is a deliberate hack; fix in Drake
+                randomDelay(RETRY_DELAY_MS); // FIXME: This is a deliberate hack; fix in Drake
             }
         }
         throw new IllegalStateException("Unable to allocate ID block", exc);
