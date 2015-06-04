@@ -16,7 +16,6 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
@@ -90,6 +89,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.LinkKey.linkKey;
@@ -101,7 +101,8 @@ import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
-import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.*;
+import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.FLOW;
+import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.PORT;
 
 /**
  * Facility for creating messages bound for the topology viewer.
@@ -126,7 +127,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static final String KB_UNIT = "KB";
     private static final String B_UNIT = "B";
 
-    private static final long BPS_THRESHOLD = 1024;
+    private static final double BPS_THRESHOLD = 4 * KB;
 
     protected ServiceDirectory directory;
     protected ClusterService clusterService;
@@ -567,37 +568,49 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         pathNodeT.set("labels", labelsT);
         paths.add(pathNodeT);
 
-        for (BiLink link : consolidateLinks(linkService.getLinks())) {
+        Map<LinkKey, BiLink> biLinks = consolidateLinks(linkService.getLinks());
+        addEdgeLinks(biLinks);
+        for (BiLink link : biLinks.values()) {
             boolean bi = link.two != null;
-            if (isInfrastructureEgress(link.one) ||
-                    (bi && isInfrastructureEgress(link.two))) {
-                if (type == FLOW) {
-                    link.addLoad(flowStatsService.load(link.one));
-                    link.addLoad(bi ? flowStatsService.load(link.two) : null);
-                } else if (type == PORT) {
-                    link.addLoad(portStatsService.load(link.one.src()), BPS_THRESHOLD);
-                    link.addLoad(bi ? portStatsService.load(link.two.src()) : null, BPS_THRESHOLD);
-                }
-                if (link.hasTraffic) {
-                    linksNodeT.add(compactLinkString(link.one));
-                    labelsT.add(type == PORT ?
-                                        formatBytes(link.rate) + "ps" :
-                                        formatBytes(link.bytes));
-                } else {
-                    linksNodeN.add(compactLinkString(link.one));
-                    labelsN.add("");
-                }
+            if (type == FLOW) {
+                link.addLoad(getLinkLoad(link.one));
+                link.addLoad(bi ? getLinkLoad(link.two) : null);
+            } else if (type == PORT) {
+                link.addLoad(portStatsService.load(link.one.src()), BPS_THRESHOLD);
+                link.addLoad(portStatsService.load(link.one.dst()), BPS_THRESHOLD);
+            }
+            if (link.hasTraffic) {
+                linksNodeT.add(compactLinkString(link.one));
+                labelsT.add(type == PORT ?
+                                    formatBytes(link.rate) + "ps" :
+                                    formatBytes(link.bytes));
+            } else {
+                linksNodeN.add(compactLinkString(link.one));
+                labelsN.add("");
             }
         }
         return JsonUtils.envelope("showTraffic", 0, payload);
     }
 
-    private Collection<BiLink> consolidateLinks(Iterable<Link> links) {
+    private Load getLinkLoad(Link link) {
+        if (link.src().elementId() instanceof DeviceId) {
+            return flowStatsService.load(link);
+        }
+        return null;
+    }
+
+    private void addEdgeLinks(Map<LinkKey, BiLink> biLinks) {
+        hostService.getHosts().forEach(host -> {
+            addLink(biLinks, createEdgeLink(host.location(), false));
+        });
+    }
+
+    private Map<LinkKey, BiLink> consolidateLinks(Iterable<Link> links) {
         Map<LinkKey, BiLink> biLinks = new HashMap<>();
         for (Link link : links) {
             addLink(biLinks, link);
         }
-        return biLinks.values();
+        return biLinks;
     }
 
     // Produces JSON message to trigger flow overview visualization
@@ -680,7 +693,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                                           ((LinkCollectionIntent) installable).links());
                         } else if (installable instanceof OpticalPathIntent) {
                             classifyLinks(type, biLinks, trafficClass.showTraffic,
-                                    ((OpticalPathIntent) installable).path().links());
+                                          ((OpticalPathIntent) installable).path().links());
                         }
                     }
                 }
@@ -708,12 +721,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         if (links != null) {
             for (Link link : links) {
                 BiLink biLink = addLink(biLinks, link);
-                if (isInfrastructureEgress(link)) {
-                    if (showTraffic) {
-                        biLink.addLoad(flowStatsService.load(link));
-                    }
-                    biLink.addClass(type);
+                if (showTraffic) {
+                    biLink.addLoad(flowStatsService.load(link));
                 }
+                biLink.addClass(type);
             }
         }
     }
@@ -729,37 +740,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             biLinks.put(key, biLink);
         }
         return biLink;
-    }
-
-
-    // Adds the link segments (path or tree) associated with the specified
-    // connectivity intent
-    protected void addPathTraffic(ArrayNode paths, String type, String trafficType,
-                                  Iterable<Link> links) {
-        ObjectNode pathNode = objectNode();
-        ArrayNode linksNode = arrayNode();
-
-        if (links != null) {
-            ArrayNode labels = arrayNode();
-            boolean hasTraffic = false;
-            for (Link link : links) {
-                if (isInfrastructureEgress(link)) {
-                    linksNode.add(compactLinkString(link));
-                    Load load = flowStatsService.load(link);
-                    String label = "";
-                    if (load.rate() > 0) {
-                        hasTraffic = true;
-                        label = formatBytes(load.latest());
-                    }
-                    labels.add(label);
-                }
-            }
-            pathNode.put("class", hasTraffic ? type + " " + trafficType : type);
-            pathNode.put("traffic", hasTraffic);
-            pathNode.set("links", linksNode);
-            pathNode.set("labels", labels);
-            paths.add(pathNode);
-        }
     }
 
     // Poor-mans formatting to get the labels with byte counts looking nice.
@@ -790,10 +770,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return format.format(number);
     }
 
-    private boolean isInfrastructureEgress(Link link) {
-        return link.src().elementId() instanceof DeviceId;
-    }
-
     // Produces compact string representation of a link.
     private static String compactLinkString(Link link) {
         return String.format(COMPACT, link.src().elementId(), link.src().port(),
@@ -802,7 +778,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Produces JSON property details.
     private ObjectNode json(String id, String type, Prop... props) {
-        ObjectMapper mapper = new ObjectMapper();
         ObjectNode result = objectNode()
                 .put("id", id).put("type", type);
         ObjectNode pnode = objectNode();
@@ -848,7 +823,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             addLoad(load, 0);
         }
 
-        void addLoad(Load load, long threshold) {
+        void addLoad(Load load, double threshold) {
             if (load != null) {
                 this.hasTraffic = hasTraffic || load.rate() > threshold;
                 this.bytes += load.latest();

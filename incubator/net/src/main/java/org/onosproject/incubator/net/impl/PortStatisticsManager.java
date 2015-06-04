@@ -49,8 +49,8 @@ public class PortStatisticsManager implements PortStatisticsService {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int SECOND = 1_000; // milliseconds
-    private static final long STALE_LIMIT = 15_000; // milliseconds
+    private static final long POLL_FREQUENCY = 10_000; // milliseconds
+    private static final long STALE_LIMIT = (long) (1.5 * POLL_FREQUENCY);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -77,11 +77,15 @@ public class PortStatisticsManager implements PortStatisticsService {
         DataPoint c = current.get(connectPoint);
         DataPoint p = previous.get(connectPoint);
         long now = System.currentTimeMillis();
-        if (c != null && p != null && (now - c.time < STALE_LIMIT) &&
-                (c.time > p.time + SECOND) &&
-                (c.stats.bytesSent() - p.stats.bytesSent() >= 0)) {
-            return new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
-                                   (int) (c.time - p.time) / SECOND);
+
+        if (c != null && p != null && (now - c.time < STALE_LIMIT)) {
+            if (c.stats.durationSec() > p.stats.durationSec() &&
+                    c.stats.bytesSent() >= p.stats.bytesSent() &&
+                    c.stats.durationSec() >= POLL_FREQUENCY / 1_000) {
+                return new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
+                                       c.stats.durationSec() - p.stats.durationSec());
+            }
+            return new DefaultLoad(c.stats.bytesSent(), 0, c.stats.durationSec());
         }
         return null;
     }
@@ -114,15 +118,15 @@ public class PortStatisticsManager implements PortStatisticsService {
     // Updates the port stats for the specified port
     private void updatePortData(DeviceId deviceId, PortStatistics stats) {
         ConnectPoint cp = new ConnectPoint(deviceId, portNumber(stats.port()));
-
-        // If we have a current data point, demote it to previous
         DataPoint c = current.get(cp);
-        if (c != null) {
-            previous.put(cp, c);
-        }
 
         // Create a new data point and make it the current one
         current.put(cp, new DataPoint(stats));
+
+        // If we have a current data point, demote it to previous
+        if (c != null) {
+            previous.put(cp, c);
+        }
     }
 
     // Cleans all port loads for the specified device
