@@ -182,7 +182,7 @@ public class ConsistentDeviceMastershipStore
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
         NodeId leader = leadershipService.getLeader(leadershipTopic);
-        if (Objects.equal(localNodeId, leader)) {
+        if (Objects.equal(nodeId, leader)) {
             return MastershipRole.MASTER;
         }
         return leadershipService.getCandidates(leadershipTopic).contains(nodeId) ?
