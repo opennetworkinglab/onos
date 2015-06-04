@@ -96,17 +96,6 @@ public final class PortNumber {
     }
 
     /**
-     * Returns the port number representing the specified long value and name.
-     *
-     * @param number port number as string value
-     * @param name port name as string value
-     * @return port number
-     */
-    public static PortNumber portNumber(String number, String name) {
-        return new PortNumber(UnsignedLongs.decode(number), name);
-    }
-
-    /**
      * Indicates whether or not this port number is a reserved logical one or
      * whether it corresponds to a normal physical port of a device or NIC.
      *
