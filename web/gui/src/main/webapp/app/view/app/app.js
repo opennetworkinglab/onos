@@ -21,23 +21,39 @@
 (function () {
     'use strict';
 
-    var selRow, selection;
+    var selectionObj;
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
-        ['$log', '$scope', 'TableBuilderService', 'WebSocketService',
+        ['$log', '$scope', 'FnService', 'TableBuilderService', 'WebSocketService',
 
-    function ($log, $scope, tbs, wss) {
+    function ($log, $scope, fs, tbs, wss) {
+        $scope.ctrlBtnState = {};
+        // TODO: clean up view
+        // all DOM manipulation (adding styles, getting elements and doing stuff
+        //     with them) should be done in directives
+
         function selCb($event, row) {
-            selRow = angular.element($event.currentTarget);
-            selection = row;
+            $scope.ctrlBtnState.selection = !!$scope.selId;
+            selectionObj = row;
             $log.debug('Got a click on:', row);
-            // adjust which toolbar buttons are selected
-            d3.select('#app-activate').classed('active', row && row.state === 'INSTALLED');
-            d3.select('#app-deactivate').classed('active', row && row.state === 'ACTIVE');
-            d3.select('#app-uninstall').classed('active', row);
+
+            if ($scope.ctrlBtnState.selection) {
+                $scope.ctrlBtnState.installed = row.state === 'INSTALLED';
+                $scope.ctrlBtnState.active = row.state === 'ACTIVE';
+            } else {
+                $scope.ctrlBtnState.installed = false;
+                $scope.ctrlBtnState.active = false;
+            }
         }
 
+        tbs.buildTable({
+            scope: $scope,
+            tag: 'app',
+            selCb: selCb
+        });
+
+        // TODO: use d3 click events -- move to directive
         d3.select('#app-install').on('click', function () {
             $log.debug('Initiating install');
             var evt = document.createEvent("HTMLEvents");
@@ -45,18 +61,21 @@
             document.getElementById('file').dispatchEvent(evt);
         });
 
+        // TODO: use d3 to select elements -- move to directive
         document.getElementById('app-form-response').onload = function () {
             document.getElementById('app-form').reset();
-            $scope.refresh();
+            $scope.$apply();
+            //$scope.sortCallback($scope.sortParams);
         };
 
         function appAction(action) {
-            if (selection) {
-                $log.debug('Initiating uninstall of', selection);
-                wss.sendEvent('appManagementRequest', {action: action, name: selection.id});
+            if ($scope.ctrlBtnState.selection) {
+                $log.debug('Initiating ' + action + ' of', selectionObj);
+                wss.sendEvent('appManagementRequest', {action: action, name: selectionObj.id});
             }
         }
 
+        // TODO: use d3 to select elements -- move to directive
         d3.select('#file').on('change', function () {
             var file = document.getElementById('file').value.replace('C:\\fakepath\\', '');
             $log.info('Handling file', file);
@@ -65,15 +84,10 @@
             document.getElementById('app-upload').dispatchEvent(evt);
         });
 
+        // TODO: move to directive
         d3.select('#app-uninstall').on('click', function () { appAction('uninstall'); });
         d3.select('#app-activate').on('click', function () { appAction('activate'); });
         d3.select('#app-deactivate').on('click', function () { appAction('deactivate'); });
-
-        tbs.buildTable({
-            scope: $scope,
-            tag: 'app',
-            selCb: selCb
-        });
 
         $log.log('OvAppCtrl has been created');
     }]);
