@@ -15,6 +15,8 @@
  */
 package org.onosproject.virtualbng;
 
+import java.util.Map;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
@@ -71,4 +73,12 @@ public interface VbngConfigurationService {
      * @return the assigned public IP address if it exists, otherwise null
      */
     IpAddress recycleAssignedPublicIpAddress(IpAddress privateIpAddress);
+
+    /**
+     * Gets all the mapping entries from private IP address to public IP
+     * address.
+     *
+     * @return the address map from private IP address to public IP address
+     */
+    Map<IpAddress, IpAddress> getIpAddressMappings();
 }

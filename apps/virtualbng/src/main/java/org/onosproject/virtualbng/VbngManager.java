@@ -121,7 +121,7 @@ public class VbngManager implements VbngService {
             log.info("Did not find an available public IP address to use.");
             return null;
         }
-        log.info("Private IP to Public IP mapping: {} --> {}",
+        log.info("[ADD] Private IP to Public IP mapping: {} --> {}",
                  privateIpAddress, publicIpAddress);
 
         // Setup paths between the host configured with private IP and

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -199,8 +200,14 @@ public class VbngConfigurationManager implements VbngConfigurationService {
                 updateIpPrefixStatus(prefixEntry.getKey(), true);
             }
         }
-
+        log.info("[DELETE] Private IP to Public IP mapping: {} --> {}",
+                 privateIpAddress, publicIpAddress);
         return publicIpAddress;
+    }
+
+    @Override
+    public Map<IpAddress, IpAddress> getIpAddressMappings() {
+        return Collections.unmodifiableMap(ipAddressMap);
     }
 
     /**

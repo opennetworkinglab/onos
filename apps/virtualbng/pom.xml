@@ -39,6 +39,15 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -68,6 +77,7 @@
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
+                            org.apache.karaf.shell.commands,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
