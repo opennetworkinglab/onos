@@ -160,6 +160,15 @@ public class BgpRouter {
         connectivityManager.start();
         icmpHandler.start();
 
+        // Initialize devices now if they are already connected
+        if (deviceService.isAvailable(deviceId)) {
+            processIntfFilters(true, configService.getInterfaces());
+        }
+
+        if (deviceService.isAvailable(ctrlDeviceId)) {
+            connectivityManager.notifySwitchAvailable();
+        }
+
         log.info("BgpRouter started");
     }
 
@@ -352,6 +361,11 @@ public class BgpRouter {
     private void processIntfFilters(boolean install, Set<Interface> intfs) {
         log.info("Processing {} router interfaces", intfs.size());
         for (Interface intf : intfs) {
+            if (!intf.connectPoint().deviceId().equals(deviceId)) {
+                // Ignore interfaces if they are not on the router switch
+                continue;
+            }
+
             FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
             fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
                .addCondition(Criteria.matchEthDst(intf.mac()))
