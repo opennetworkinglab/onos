@@ -106,6 +106,10 @@ html[data-platform='iPad'] #topo-p-detail {
     overflow-y: scroll;
 }
 
+.topo-p div.body::-webkit-scrollbar {
+    display: none;
+}
+
 .topo-p svg {
     display: inline-block;
     width: 42px;

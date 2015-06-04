@@ -38,7 +38,8 @@
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
         haveDetails = false,    // do we have details that we could show?
-        sumFromTop;             // summary panel distance from top of screen
+        sumFromTop,             // summary panel distance from top of screen
+        unbindWatch;
 
     // panels
     var summary, detail;
@@ -177,7 +178,7 @@
     }
 
     function watchWindow() {
-        $rootScope.$watchCollection(
+        unbindWatch = $rootScope.$watchCollection(
             function () {
                 return {
                     h: $window.innerHeight,
@@ -465,6 +466,7 @@
         detail.destroy();
         detail = null;
         haveDetails = false;
+        unbindWatch();
     }
 
     // ==========================
