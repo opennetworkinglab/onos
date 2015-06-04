@@ -143,10 +143,7 @@ public class Leadership {
         if (obj instanceof Leadership) {
             final Leadership other = (Leadership) obj;
             return Objects.equals(this.topic, other.topic) &&
-                    Objects.equals(this.leader, other.leader) &&
-                    Objects.equals(this.candidates, other.candidates) &&
-                    Objects.equals(this.epoch, other.epoch) &&
-                    Objects.equals(this.electedTime, other.electedTime);
+                    Objects.equals(this.epoch, other.epoch);
         }
         return false;
     }

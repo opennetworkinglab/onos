@@ -166,8 +166,8 @@ public class ConsistentDeviceMastershipStore
                                                 ? MastershipRole.MASTER : MastershipRole.STANDBY;
                                     });
         } else {
-            Leadership leadership = leadershipService.getLeadership(leadershipTopic);
-            if (leadership != null && leadership.leader().equals(localNodeId)) {
+            NodeId leader = leadershipService.getLeader(leadershipTopic);
+            if (Objects.equal(localNodeId, leader)) {
                 return CompletableFuture.completedFuture(MastershipRole.MASTER);
             } else {
                 return CompletableFuture.completedFuture(MastershipRole.STANDBY);
@@ -181,8 +181,8 @@ public class ConsistentDeviceMastershipStore
         checkArgument(deviceId != null, DEVICE_ID_NULL);
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
-        Leadership leadership = leadershipService.getLeadership(leadershipTopic);
-        if (leadership != null && nodeId.equals(leadership.leader())) {
+        NodeId leader = leadershipService.getLeader(leadershipTopic);
+        if (Objects.equal(localNodeId, leader)) {
             return MastershipRole.MASTER;
         }
         return leadershipService.getCandidates(leadershipTopic).contains(nodeId) ?
@@ -194,8 +194,7 @@ public class ConsistentDeviceMastershipStore
         checkArgument(deviceId != null, DEVICE_ID_NULL);
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
-        Leadership leadership = leadershipService.getLeadership(leadershipTopic);
-        return leadership != null ? leadership.leader() : null;
+        return leadershipService.getLeader(leadershipTopic);
     }
 
     @Override
