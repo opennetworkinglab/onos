@@ -77,13 +77,16 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             }
         }
 
+        final Key key;
         if (id.startsWith("0x")) {
             id = id.replaceFirst("0x", "");
+            key = Key.of(new BigInteger(id, 16).longValue(), appId);
+        } else {
+            // This line is to use the intent key to delete an intent
+            key = Key.of(id, appId);
         }
 
-        Key key = Key.of(new BigInteger(id, 16).longValue(), appId);
         Intent intent = intentService.getIntent(key);
-
         if (intent != null) {
             IntentListener listener = null;
             final CountDownLatch withdrawLatch, purgeLatch;
