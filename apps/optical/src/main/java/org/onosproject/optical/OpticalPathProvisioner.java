@@ -378,8 +378,10 @@ public class OpticalPathProvisioner {
             LinkResourceAllocations lra = linkResourceService.getAllocations(intent.id());
             if (intent instanceof OpticalConnectivityIntent) {
                 deviceResourceService.releasePorts(intent.id());
-                linkResourceService.releaseResources(lra);
-            } else if (intent instanceof  OpticalCircuitIntent) {
+                if (lra != null) {
+                    linkResourceService.releaseResources(lra);
+                }
+            } else if (intent instanceof OpticalCircuitIntent) {
                 deviceResourceService.releasePorts(intent.id());
                 deviceResourceService.releaseMapping(intent.id());
                 if (lra != null) {

@@ -27,10 +27,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
-import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.GridType;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
@@ -72,9 +70,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {
 
     protected static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
-
-    private static final GridType DEFAULT_OCH_GRIDTYPE = GridType.DWDM;
-    private static final ChannelSpacing DEFAULT_CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -127,24 +122,31 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         for (Path path : paths) {
 
             // Static or dynamic lambda allocation
-            LambdaResourceAllocation lambdaAlloc;
             String staticLambda = srcPort.annotations().value(AnnotationKeys.STATIC_LAMBDA);
+            OchPort srcOchPort = (OchPort) srcPort;
+            OchPort dstOchPort = (OchPort) dstPort;
+            OchSignal ochSignal;
+
+            // FIXME: need to actually reserve the lambda for static lambda's
             if (staticLambda != null) {
-                // FIXME: need to actually reserve the lambda
-                lambdaAlloc = new LambdaResourceAllocation(LambdaResource.valueOf(Integer.parseInt(staticLambda)));
+                ochSignal = new OchSignal(Frequency.ofHz(Long.valueOf(staticLambda)),
+                        srcOchPort.lambda().channelSpacing(),
+                        srcOchPort.lambda().slotGranularity());
+            } else if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
+                // FIXME: also check OCh port
+                ochSignal = srcOchPort.lambda();
             } else {
                 // Request and reserve lambda on path
                 LinkResourceAllocations linkAllocs = assignWavelength(intent, path);
                 if (linkAllocs == null) {
                     continue;
                 }
-                lambdaAlloc = getWavelength(path, linkAllocs);
+                LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
+                OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
+                ochSignal = new OchSignal(lambdaAlloc, omsPort.maxFrequency(), omsPort.grid());
             }
 
-            OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
-
             // Create installable optical path intent
-            OchSignal ochSignal = getOchSignal(lambdaAlloc, omsPort.maxFrequency(), omsPort.grid());
             // Only support fixed grid for now
             OchSignalType signalType = OchSignalType.FIXED_GRID;
 
@@ -237,29 +239,6 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         }
 
         return true;
-    }
-
-    /**
-     * Convert lambda resource allocation in OCh signal.
-     *
-     * @param alloc lambda resource allocation
-     * @param maxFrequency maximum frequency
-     * @param grid grid spacing frequency
-     * @return OCh signal
-     */
-    private OchSignal getOchSignal(LambdaResourceAllocation alloc, Frequency maxFrequency, Frequency grid) {
-        int channel = alloc.lambda().toInt();
-
-        // Calculate center frequency
-        Frequency centerFrequency = maxFrequency.subtract(grid.multiply(channel - 1));
-
-        // Build OCh signal object
-        int spacingMultiplier = (int) (centerFrequency.subtract(OchSignal.CENTER_FREQUENCY).asHz() / grid.asHz());
-        int slotGranularity = (int) (grid.asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
-        OchSignal ochSignal = new OchSignal(DEFAULT_OCH_GRIDTYPE, DEFAULT_CHANNEL_SPACING,
-                spacingMultiplier, slotGranularity);
-
-        return ochSignal;
     }
 
     private ConnectPoint staticPort(ConnectPoint connectPoint) {

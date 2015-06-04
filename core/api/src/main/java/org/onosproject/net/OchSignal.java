@@ -17,6 +17,7 @@ package org.onosproject.net;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.util.Frequency;
+import org.onosproject.net.resource.link.LambdaResourceAllocation;
 
 import java.util.Objects;
 
@@ -34,6 +35,9 @@ public class OchSignal implements Lambda {
 
     public static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
     public static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
+    private static final GridType DEFAULT_OCH_GRIDTYPE = GridType.DWDM;
+    private static final ChannelSpacing DEFAULT_CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
+
 
     private final GridType gridType;
     private final ChannelSpacing channelSpacing;
@@ -59,6 +63,33 @@ public class OchSignal implements Lambda {
         // Negative values are permitted for spacingMultiplier
         this.spacingMultiplier = spacingMultiplier;
         checkArgument(slotGranularity > 0, "slotGranularity must be larger than 0, received %s", slotGranularity);
+        this.slotGranularity = slotGranularity;
+    }
+
+    /**
+     * Create OCh signal from lambda resource allocation.
+     *
+     * @param alloc lambda resource allocation
+     * @param maxFrequency maximum frequency
+     * @param grid grid spacing frequency
+     */
+    public OchSignal(LambdaResourceAllocation alloc, Frequency maxFrequency, Frequency grid) {
+        int channel = alloc.lambda().toInt();
+
+        // Calculate center frequency
+        Frequency centerFrequency = maxFrequency.subtract(grid.multiply(channel - 1));
+
+        this.gridType = DEFAULT_OCH_GRIDTYPE;
+        this.channelSpacing = DEFAULT_CHANNEL_SPACING;
+        this.spacingMultiplier = (int) (centerFrequency.subtract(OchSignal.CENTER_FREQUENCY).asHz() / grid.asHz());
+        this.slotGranularity = (int) Math.round((double) grid.asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
+    }
+
+    public OchSignal(Frequency centerFrequency, ChannelSpacing channelSpacing, int slotGranularity) {
+        this.gridType = DEFAULT_OCH_GRIDTYPE;
+        this.channelSpacing = channelSpacing;
+        this.spacingMultiplier = (int) Math.round((double) centerFrequency.
+                subtract(OchSignal.CENTER_FREQUENCY).asHz() / channelSpacing().frequency().asHz());
         this.slotGranularity = slotGranularity;
     }
 

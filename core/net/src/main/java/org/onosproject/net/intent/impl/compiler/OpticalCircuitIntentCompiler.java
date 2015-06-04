@@ -165,9 +165,9 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * Checks if current allocations on given resource can satisfy request.
      * If the resource is null, return true.
      *
-     * @param request
-     * @param resource
-     * @return
+     * @param request the intent making the request
+     * @param resource the resource on which to map the intent
+     * @return true if the resource can accept the request, false otherwise
      */
     private boolean isAvailable(Intent request, IntentId resource) {
         if (resource == null) {

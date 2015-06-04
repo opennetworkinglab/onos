@@ -167,7 +167,7 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     public Set<IntentId> getMapping(IntentId intentId) {
         Versioned<Set<IntentId>> result = intentMapping.get(intentId);
 
-        if (result == null) {
+        if (result != null) {
             return result.value();
         }
 
@@ -177,7 +177,6 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     @Override
     public boolean allocateMapping(IntentId keyIntentId, IntentId valIntentId) {
         Versioned<Set<IntentId>> versionedIntents = intentMapping.get(keyIntentId);
-
 
         if (versionedIntents == null) {
             Set<IntentId> newSet = new HashSet<>();
@@ -216,6 +215,7 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
             for (Port port : ports) {
                 portAllocs.remove(port);
             }
+            tx.commit();
         } catch (Exception e) {
             log.error("Exception thrown, rolling back", e);
             tx.abort();

@@ -235,7 +235,11 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             port = portNumber(node.path("port").asLong(0));
         }
 
-        checkNotNull(port);
+        if (port == null) {
+            log.error("Cannot find port given in node {}", node);
+            return null;
+        }
+
         String portName = Strings.emptyToNull(port.name());
         SparseAnnotations annotations  = null;
         if (portName != null) {
