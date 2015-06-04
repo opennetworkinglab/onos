@@ -15,6 +15,7 @@
  */
 package org.onosproject.net;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.net.provider.ProviderId;
 
@@ -70,6 +71,19 @@ public class DefaultPath extends DefaultLink implements Path {
         checkNotNull(links, "List of path links cannot be null");
         checkArgument(!links.isEmpty(), "List of path links cannot be empty");
         return links.get(links.size() - 1).dst();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("src", src())
+                .add("dst", dst())
+                .add("type", type())
+                .add("state", state())
+                .add("durable", isDurable())
+                .add("links", links)
+                .add("cost", cost)
+                .toString();
     }
 
     @Override
