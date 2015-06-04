@@ -19,6 +19,9 @@ package org.onosproject.cord.gui.model;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Utility functions on users.
  */
@@ -26,6 +29,19 @@ public class UserFactory extends JsonFactory {
 
     private static final String MAC = "mac";
     private static final String PROFILE = "profile";
+
+
+    // hard-coded icons for the demo
+    private static final Map<String, String> ICON_LOOKUP =
+            new HashMap<String, String>();
+    static {
+        ICON_LOOKUP.put("Mom's PC", "mom");
+        ICON_LOOKUP.put("Dad's PC", "dad");
+        ICON_LOOKUP.put("Jack's iPhone", "boy2");
+        ICON_LOOKUP.put("Jill's iPad", "girl1");
+    }
+
+    private static final String DEFAULT_ICON_ID = "boy1";
 
     // no instantiation
     private UserFactory() {}
@@ -37,8 +53,12 @@ public class UserFactory extends JsonFactory {
      * @return object node
      */
     public static ObjectNode toObjectNode(SubscriberUser user) {
+        String icon = ICON_LOOKUP.get(user.name());
+        icon = icon == null ? DEFAULT_ICON_ID : icon;
+
         ObjectNode root = objectNode()
                 .put(ID, user.id())
+                .put(ICON_ID, icon)
                 .put(NAME, user.name())
                 .put(MAC, user.mac());
         root.set(PROFILE, XosFunctionFactory.profileForUser(user));
