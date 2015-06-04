@@ -601,7 +601,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     private void addEdgeLinks(Map<LinkKey, BiLink> biLinks) {
         hostService.getHosts().forEach(host -> {
-            addLink(biLinks, createEdgeLink(host.location(), false));
+            addLink(biLinks, createEdgeLink(host, true));
+            addLink(biLinks, createEdgeLink(host, false));
         });
     }
 
@@ -722,7 +723,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             for (Link link : links) {
                 BiLink biLink = addLink(biLinks, link);
                 if (showTraffic) {
-                    biLink.addLoad(flowStatsService.load(link));
+                    biLink.addLoad(getLinkLoad(link));
                 }
                 biLink.addClass(type);
             }

@@ -78,4 +78,19 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
                                    location, isIngress);
     }
 
+    /**
+     * Creates a an edge link, to the specified end-station.
+     *
+     * @param host      host
+     * @param isIngress true to indicate host-to-network direction; false
+     *                  for network-to-host direction
+     * @return new phantom edge link
+     */
+    public static DefaultEdgeLink createEdgeLink(Host host, boolean isIngress) {
+        checkNotNull(host, "Host cannot be null");
+        return new DefaultEdgeLink(ProviderId.NONE,
+                                   new ConnectPoint(host.id(), PortNumber.P0),
+                                   host.location(), isIngress);
+    }
+
 }
