@@ -465,7 +465,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     // Produces set of annotations from the given JSON node.
     private SparseAnnotations annotations(JsonNode node) {
         if (node == null) {
-            return (SparseAnnotations) DefaultAnnotations.EMPTY;
+            return DefaultAnnotations.EMPTY;
         }
 
         DefaultAnnotations.Builder builder = DefaultAnnotations.builder();

@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class DefaultAnnotations implements SparseAnnotations {
 
-    public static final Annotations EMPTY = DefaultAnnotations.builder().build();
+    public static final SparseAnnotations EMPTY = DefaultAnnotations.builder().build();
 
     private final Map<String, String> map;
 
