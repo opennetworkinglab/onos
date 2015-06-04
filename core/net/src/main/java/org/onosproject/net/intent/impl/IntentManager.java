@@ -501,6 +501,14 @@ public class IntentManager
             }
         });
 
+        if (log.isTraceEnabled()) {
+            log.trace("applying intent {} -> {} with {} rules: {}",
+                      toUninstall.isPresent() ? toUninstall.get().key() : "<empty>",
+                      toInstall.isPresent() ? toInstall.get().key() : "<empty>",
+                      operations.stages().stream().mapToLong(i -> i.size()).sum(),
+                      operations.stages());
+        }
+
         flowRuleService.apply(operations);
     }
 
