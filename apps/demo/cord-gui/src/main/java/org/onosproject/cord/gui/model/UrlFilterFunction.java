@@ -31,10 +31,10 @@ public class UrlFilterFunction extends DefaultXosFunction {
 
     /**
      * Denotes the URL filtering levels available. From most restrictive
-     * to least restrictive. Note: <em>OFF</em> denies everything;
-     * <em>NONE</em> allows everything.
+     * to least restrictive. Note: <em>NONE</em> allows nothing;
+     * <em>ALL</em> allows everything.
      */
-    public enum Level { OFF, G, PG, PG_13, R, NONE }
+    public enum Level { NONE, G, PG, PG_13, R, ALL }
 
     /**
      * The default URL filtering level

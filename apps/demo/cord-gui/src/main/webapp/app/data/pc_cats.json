@@ -2,7 +2,7 @@
   "_comment_": "Parental Control Categories - data file",
 
   "level_order": [
-    "OFF", "G", "PG", "PG_13", "R", "NONE"
+    "NONE", "G", "PG", "PG_13", "R", "ALL"
   ],
 
   "category_order": [
@@ -110,7 +110,8 @@
   },
 
   "_prohibited_comment_": [
-    "Note: Level OFF prohibits everything; level NONE prohibits nothing.",
+    "Note: Level NONE allows nothing (prohibits everything)",
+    "      level ALL allows everything (prohibits nothing)",
     "      Levels G, PG, PG_13, R prohibitions listed below:"
   ],
 
