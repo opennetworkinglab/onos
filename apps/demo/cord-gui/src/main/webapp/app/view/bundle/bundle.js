@@ -17,7 +17,7 @@
 (function () {
     'use strict';
 
-    var url = 'http://localhost:8080/rs/bundle';
+    var urlSuffix = '/rs/bundle';
 
     var basic = 'basic',
         family = 'family';
@@ -32,7 +32,7 @@
                 getData = function (id) {
                     if (!id) { id = ''; }
 
-                    BundleData = $resource(url + '/' + id);
+                    BundleData = $resource($scope.shared.url + urlSuffix + '/' + id);
                     resource = BundleData.get({},
                         // success
                         function () {

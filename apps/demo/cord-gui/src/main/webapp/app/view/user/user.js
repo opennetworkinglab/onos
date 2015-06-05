@@ -17,8 +17,8 @@
 (function () {
     'use strict';
 
-    var bundleUrl = 'http://localhost:8080/rs/bundle',
-        userUrl = 'http://localhost:8080/rs/users',
+    var bundleUrlSuffix = '/rs/bundle',
+        userUrlSuffix = '/rs/users',
         family = 'family',
         url_filter = 'url_filter';
 
@@ -33,7 +33,7 @@
 
                 // === Get data functions ---
 
-                BundleData = $resource(bundleUrl);
+                BundleData = $resource($scope.shared.url + bundleUrlSuffix);
                 bundleResource = BundleData.get({},
                     // success
                     function () {
@@ -70,12 +70,13 @@
                     );
                 }
 
-                getUsers(userUrl);
+                getUsers($scope.shared.url + userUrlSuffix);
 
                 // === Form functions ---
 
                 function levelUrl(id, level) {
-                    return userUrl + '/' + id + '/apply/url_filter/level/' + level;
+                    return $scope.shared.url +
+                        userUrlSuffix + '/' + id + '/apply/url_filter/level/' + level;
                 }
 
                 $scope.applyChanges = function (changeLevels) {

@@ -17,7 +17,7 @@
 (function () {
     'use strict';
 
-    var url = 'http://localhost:8080/rs/dashboard';
+    var urlSuffix = '/rs/dashboard';
 
     angular.module('cordHome', [])
         .controller('CordHomeCtrl', ['$log', '$scope', '$resource',
@@ -25,7 +25,7 @@
                 var DashboardData, resource;
                 $scope.page = 'dashboard';
 
-                DashboardData = $resource(url);
+                DashboardData = $resource($scope.shared.url + urlSuffix);
                 resource = DashboardData.get({},
                     // success
                     function () {

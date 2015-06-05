@@ -71,7 +71,10 @@
                 }
             });
         }])
-        .controller('CordCtrl', [function () {
-
+        .controller('CordCtrl', ['$scope', '$location',
+            function ($scope, $location) {
+            $scope.shared = {
+                url: 'http://' + $location.host() + ':' + $location.port()
+            };
         }]);
 }());
