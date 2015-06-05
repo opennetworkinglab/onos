@@ -87,10 +87,13 @@ public class OLT {
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.mobility");
+
         deviceService.getPorts(DeviceId.deviceId(oltDevice)).stream().forEach(
                 port -> {
                     if (port.isEnabled()) {
-                        provisionVlanOnPort(port.number());
+                        short vlanId = fetchVlanId(port.number());
+                        provisionVlanOnPort(port.number(), (short) 7);
+                        provisionVlanOnPort(port.number(), vlanId);
                     }
                 }
         );
@@ -115,22 +118,27 @@ public class OLT {
 
     }
 
-    private void provisionVlanOnPort(PortNumber p) {
-        long port = p.toLong() + OFFSET;
-        if (port > 4095) {
+
+    private short fetchVlanId(PortNumber port) {
+        long p = port.toLong() + OFFSET;
+        if (p > 4095) {
             log.warn("Port Number {} exceeds vlan max", port);
-            return;
+            return -1;
         }
+        return (short) p;
+    }
+
+
+    private void provisionVlanOnPort(PortNumber p, short vlanId) {
+
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
-                .matchVlanId(
-                        VlanId.vlanId((short) port))
+                .matchVlanId(VlanId.vlanId(vlanId))
                 .matchInPort(p)
                 .build();
 
         TrafficSelector downStream = DefaultTrafficSelector.builder()
-                .matchVlanId(
-                        VlanId.vlanId((short) port))
+                .matchVlanId(VlanId.vlanId(vlanId))
                 .matchInPort(PortNumber.portNumber(uplinkPort))
                 .build();
 
@@ -174,7 +182,8 @@ public class OLT {
                 case PORT_ADDED:
                 case PORT_UPDATED:
                     if (devId.equals(event.subject().id()) && event.port().isEnabled()) {
-                        provisionVlanOnPort(event.port().number());
+                        short vlanId = fetchVlanId(event.port().number());
+                        provisionVlanOnPort(event.port().number(), vlanId);
                     }
                     break;
                 case DEVICE_ADDED:
