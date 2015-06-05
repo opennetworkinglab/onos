@@ -76,6 +76,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALLING;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -212,13 +213,15 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         Key key = intentData.key();
         Intent intent = intentData.intent();
         boolean isLocal = intentService.isLocal(key);
+        boolean isInstalled = intentData.state() == INSTALLING ||
+                              intentData.state() == INSTALLED;
         List<Intent> installables = intentData.installables();
 
         if (log.isTraceEnabled()) {
             log.trace("intent {}, old: {}, new: {}, installableCount: {}, resourceCount: {}",
                       key,
                       intentsByDevice.values().contains(key),
-                      isLocal,
+                      isLocal && isInstalled,
                       installables.size(),
                       intent.resources().size() +
                           installables.stream()
@@ -229,7 +232,9 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             log.warn("Intent {} is INSTALLED with no installables", key);
         }
 
-        if (isLocal) {
+        // FIXME Intents will be added 3 times (once directly using addTracked,
+        //       then when installing and when installed)
+        if (isLocal && isInstalled) {
             addTrackedResources(key, intent.resources());
             for (Intent installable : installables) {
                 addTrackedResources(key, installable.resources());
