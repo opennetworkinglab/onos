@@ -1,6 +1,6 @@
 # script to stop the cord gui server
 #
-PID=$(ps | grep jetty-runner | grep -v grep | cut -c1-5)
+PID=$(ps -ef | grep jetty-runner | grep -v grep | awk '{print $2}')
 if [ -z "$PID" ]
 then
   echo jetty-runner not running
@@ -9,7 +9,7 @@ fi
 kill $PID
 sleep 1
 
-PID=$(ps | grep jetty-runner | grep -v grep | cut -c1-5)
+PID=$(ps -ef | grep jetty-runner | grep -v grep | awk '{print $2}')
 if [ ! -z "$PID" ]
 then
   echo jetty-runner still running ?

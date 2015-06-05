@@ -2,6 +2,7 @@
 # CORD Demo
 # =========
 
+export LISTENPORT=8080
 export JETTY="-jar jetty-runner.jar"
 export CORD=./cord-gui-1.2.0-SNAPSHOT.war
 export LOGDBG=-Dorg.onosproject.cord.gui.LEVEL=DEBUG
@@ -25,8 +26,8 @@ else
   PARAM2=""
 fi
 
-java $PARAM1 $PARAM2 $LOGDBG $JETTY $CORD >$LOG 2>&1 &
-#java $PARAM1 $PARAM2 $LOGDBG $DEBUG $JETTY $CORD >$LOG 2>&1 &
+java $PARAM1 $PARAM2 $LOGDBG $JETTY --port $LISTENPORT $CORD >$LOG 2>&1 &
+#java $PARAM1 $PARAM2 $LOGDBG $DEBUG $JETTY --port $LISTENPORT $CORD >$LOG 2>&1 &
 
 echo jetty-runner started {$PARAM1:$PARAM2}
 echo .. logging to $LOG
