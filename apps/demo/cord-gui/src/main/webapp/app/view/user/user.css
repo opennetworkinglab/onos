@@ -112,6 +112,9 @@
     width: 30%;
 }
 
+#user td.buttons div {
+    display: inline;
+}
 #user td.buttons svg {
     vertical-align: middle;
 }

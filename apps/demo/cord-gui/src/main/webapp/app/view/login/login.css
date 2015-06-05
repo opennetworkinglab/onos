@@ -21,15 +21,15 @@ div#login-wrapper {
 #login h2 {
     margin: 1%;
     color: rgb(115, 115, 115);
-    font-size: 100%;
-    font-style: italic;
+    font-size: xx-large;
+    font-weight: lighter;
     text-align: left;
     position: absolute;
     top: -140px;
 }
 
 div#login-logo {
-    margin-top: 7%;
+    margin-top: 13%;
     width: 217px;
 }
 div#login-logo, div#login-form {
@@ -37,16 +37,26 @@ div#login-logo, div#login-form {
 }
 
 #login-logo use.glyph.bird {
-    fill: #800;
+    fill: #CE5650;
 }
 #login-logo circle {
     fill: none;
 }
 
+#login div.outline {
+    position: absolute;
+    border: 1px solid rgba(115, 115, 115, 0.7);
+    top: -160px;
+    left: -25px;
+    width: 300px;
+    height: 245px;
+    border-radius: 1px;
+}
+
 div#login-form {
     margin-left: 2.5%;
     position: relative;
-    width: 240px;
+    width: 255px;
 }
 
 #login-form form {
@@ -60,20 +70,19 @@ div#login-form {
     font-size: 19px;
     padding: 0 5px;
     margin-bottom: 3.5%;
-    border-radius: 3px;
+    border-radius: 1px;
     position: absolute;
 }
 #login-form input[type="text"] {
-    top: -110px;
+    top: -90px;
 }
 #login-form input[type="password"] {
-    top: -60px;
+    top: -35px;
 }
 
 #login-form input[type="text"],
 #login-form input[type="password"] {
-    box-shadow: none;
-    border: none;
+    border: 2px solid rgba(115, 115, 115, 0.7);
     transition: border 0.1s;
 }
 #login-form input[type="text"]:focus,
@@ -88,15 +97,13 @@ div#login-form {
 }
 
 #login-form input[type="button"] {
-    top: -5px;
-    width: 240px;
+    top: 25px;
+    width: 245px;
     height: 30px;
-    box-shadow: none;
-    border: none;
-    outline: none;
     cursor: pointer;
     letter-spacing: 0.02em;
-    font-size: 14px;
+    font-size: 100%;
+    color: #3C3C3C;
     background-color: lightgray;
     transition: background-color 0.4s;
 }

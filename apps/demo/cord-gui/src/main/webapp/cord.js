@@ -73,8 +73,9 @@
         }])
         .controller('CordCtrl', ['$scope', '$location',
             function ($scope, $location) {
-            $scope.shared = {
-                url: 'http://' + $location.host() + ':' + $location.port()
-            };
-        }]);
+                $scope.shared = {
+                    url: 'http://' + $location.host() + ':' + $location.port()
+                };
+                $scope.page = {};
+            }]);
 }());

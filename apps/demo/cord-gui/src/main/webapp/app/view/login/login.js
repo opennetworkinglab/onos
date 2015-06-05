@@ -18,7 +18,9 @@
     'use strict';
 
     angular.module('cordLogin', [])
-        .controller('CordLoginCtrl', ['$log', function ($log) {
+        .controller('CordLoginCtrl', ['$log', '$scope',
+            function ($log, $scope) {
+            $scope.page.curr = 'login';
             $log.debug('Cord Login Ctrl has been created.');
         }]);
 }());

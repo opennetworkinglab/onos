@@ -23,7 +23,7 @@
         .controller('CordHomeCtrl', ['$log', '$scope', '$resource',
             function ($log, $scope, $resource) {
                 var DashboardData, resource;
-                $scope.page = 'dashboard';
+                $scope.page.curr = 'dashboard';
 
                 DashboardData = $resource($scope.shared.url + urlSuffix);
                 resource = DashboardData.get({},

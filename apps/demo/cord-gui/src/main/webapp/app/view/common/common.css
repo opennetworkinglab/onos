@@ -26,11 +26,12 @@ form, select, input, option, label {
 h1, h2, h3, h4, h5, h6,
 p, a, li, th, td,
 select, input, option, label {
-    font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
+    font-family: sans-serif, "Droid Sans", "Lucida Grande", Arial, Helvetica;
 }
 
 body {
-    background-color: #efefef;
+    background-color: white;
+    overflow: hidden;
 }
 table {
     border-spacing: 0;
@@ -40,10 +41,15 @@ th, td {
     color: rgba(0, 0, 0, 0.8);
 }
 h3 {
-    font-weight: normal;
     margin-bottom: 4%;
+    font-size: xx-large;
+    font-weight: lighter;
 }
 h4 {
+    font-size: large;
+    font-weight: lighter;
+}
+h5 {
     color: rgb(107, 107, 107);
     font-style: italic;
     font-weight: normal;
@@ -86,7 +92,7 @@ input[type="reset"][disabled]:hover {
 }
 
 div.container {
-    width: 75%;
+    width: 85%;
     margin: 0 auto;
 }
 div.main-left, div.main-right {

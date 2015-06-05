@@ -14,36 +14,73 @@
  * limitations under the License.
  */
 
+#home div.main-left {
+    width: 55%;
+    padding: 0;
+}
+#home div.main-right {
+    padding: 1% 0 0 3%;
+    width: 42%;
+}
+#home div.move-down {
+    margin-top: 19%;
+}
+
+#home div.image-holder {
+    width: 100%;
+    position: relative;
+}
+
+#home div.main-left img {
+    width: 100%;
+    opacity: 0.8;
+    box-shadow: 10px 0 12px 1px rgba(54, 136, 210, 0.25);
+}
+
+#home div.main-right div.bundle-title {
+    padding: 2% 0;
+}
+
+#home h4 {
+    padding-bottom: 2%;
+}
+
+#home p {
+    margin-bottom: 3%;
+}
+
 #home table {
     width: 94%;
     table-layout: fixed;
     margin-left: 6%;
-}
-#home table.title {
-    background: linear-gradient(lightgray, darkgray);
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-}
-#home table.title th {
-    text-align: center;
+    border-left: 1px solid #CE5650;
 }
 
-#home table.content th,
-#home table.content td {
+#home table.users th,
+#home table.users td {
     font-size: 90%;
 }
-#home table.content th {
-    background-color: rgba(173, 216, 230, 0.75);
-}
-
-#home table.content tbody tr:nth-of-type(even) {
-    background-color: rgba(173, 216, 230, 0.25);
-}
-#home table.content tbody tr:nth-of-type(odd) {
-    background-color: rgba(173, 216, 230, 0.5);
+#home table.users th {
+    background-color: #7AB6EA;
+    color: white;
+    letter-spacing: 0.05em;
+    font-weight: lighter;
 }
 
 #home td, #home th {
     text-align: left;
     padding: 2%;
+}
+
+#home table.users th.user-pic {
+    background-color: white;
+}
+#home table.users th.user-pic,
+#home table.users td.user-pic {
+    width: 30px;
+    padding-left: 4%;
+}
+#home table.users td.user-pic img {
+    width: 25px;
+    opacity: 0.5;
 }

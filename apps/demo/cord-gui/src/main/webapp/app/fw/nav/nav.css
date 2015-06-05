@@ -19,31 +19,27 @@
     table-layout: fixed;
     list-style-type: none;
     width: 100%;
-    margin-bottom: 2%;
 }
 
 .nav li {
-    background-color: lightgray;
     padding: 2.5% 0;
-    transition: background-color 0.4s;
+    color: #3C3C3C;
 }
 .nav li:hover {
-    background-color: #BD5643;
-
+    border-bottom: 2px solid #CE5650;
+    color: black;
 }
 .nav li.selected {
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(#A56151, #BD5643);
+    font-weight: bolder;
+    color: #3C3C3C;
     letter-spacing: 0.03em;
+    border-bottom: 2px solid #CE5650;
 }
 
-.nav a {
+.nav a,
+.nav a:visited {
     display: table-cell;
     text-align: center;
     text-decoration: none;
-    color: black;
-}
-.nav a:visited {
     color: black;
 }

@@ -27,7 +27,7 @@
             function ($log, $scope, $resource) {
                 var BundleData, resource,
                     getData;
-                $scope.page = 'bundle';
+                $scope.page.curr = 'bundle';
 
                 getData = function (id) {
                     if (!id) { id = ''; }

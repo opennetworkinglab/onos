@@ -26,7 +26,7 @@
         .controller('CordUserCtrl', ['$log', '$scope', '$resource', '$timeout',
             function ($log, $scope, $resource, $timeout) {
                 var BundleData, bundleResource;
-                $scope.page = 'user';
+                $scope.page.curr = 'user';
                 $scope.isFamily = false;
                 $scope.newLevels = {};
                 $scope.showCheck = false;

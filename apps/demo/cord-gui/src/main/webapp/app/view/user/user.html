@@ -1,6 +1,5 @@
 <!-- Users page partial html -->
 <div class="container">
-    <nav></nav>
     <div id="user">
         <div class="main-left" ng-class="{family: isFamily}">
             <table class="user-info">
@@ -32,8 +31,9 @@
                     </tr>
                     <tr>
                         <td class="buttons">
-                            <icon size="20px" id="checkMark"
-                                  ng-show="showCheck"></icon>
+                            <div ng-show="showCheck">
+                                <icon size="20px" id="checkMark"></icon>
+                            </div>
                             <input type="reset" value="Cancel"
                                    ng-click="cancelChanges(changeLevels)"
                                    ng-disabled="changeLevels.$pristine">
