@@ -16,13 +16,11 @@
 
 div#bundle div.main-left {
     width: 61%;
-    padding-left: 1%;
+    padding: 4% 0 0 1%;
 }
 div#bundle div.main-right {
     width: 37%;
-    height: 85vh;
-    background-color: rgba(173, 216, 230, 0.25);
-    border-radius: 5px;
+    padding-top: 4%;
 }
 
 #bundle table {
@@ -57,18 +55,42 @@ div#bundle div.main-right {
     border: none;
 }
 
+#bundle img {
+    width: 100%;
+}
+
 #bundle h2 {
     text-align: center;
     padding: 3%;
-    background-color: rgba(173, 216, 230, 0.75);
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    color: white;
-    font-weight: normal;
+    font-weight: lighter;
+    border: 1px solid #3C3C3C;
+    cursor: pointer;
+}
+#bundle h2:hover {
+    color: #CE5650;
+    border-color: #CE5650;
+}
+
+div#bundles {
+    position: relative;
+}
+
+div#available.ng-hide-add.ng-hide-add-active,
+div#available.ng-hide-remove.ng-hide-remove-active {
+    -webkit-transition: all linear 0.5s;
+    transition: all linear 0.5s;
+}
+div#available.ng-hide {
+    opacity: 0;
+    top: -80px;
 }
 
 div#available {
+    position: absolute;
     padding: 5%;
+    opacity: 1;
+    top: -10px;
+    width: 100%;
 }
 
 #available p {

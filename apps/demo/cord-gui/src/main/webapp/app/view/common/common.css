@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+[ng\:cloak], [ng-cloak], .ng-cloak {
+    display: none !important;
+}
+
 head, body, footer,
 h1, h2, h3, h4, h5, h6, p,
 a, ul, li, div,
@@ -27,6 +31,7 @@ h1, h2, h3, h4, h5, h6,
 p, a, li, th, td,
 select, input, option, label {
     font-family: sans-serif, "Droid Sans", "Lucida Grande", Arial, Helvetica;
+    color: #3C3C3C;
 }
 
 body {
@@ -57,7 +62,7 @@ h5 {
     margin-bottom: 1%;
 }
 p {
-    font-size: 70%;
+    font-size: 100%;
     color: rgba(0,0,0, 0.8);
     text-indent: 20px;
     text-align: justify;

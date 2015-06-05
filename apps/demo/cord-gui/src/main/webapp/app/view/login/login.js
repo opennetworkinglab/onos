@@ -16,11 +16,25 @@
 
 (function () {
     'use strict';
+    var urlSuffix = '/rs/login';
 
     angular.module('cordLogin', [])
-        .controller('CordLoginCtrl', ['$log', '$scope',
-            function ($log, $scope) {
-            $scope.page.curr = 'login';
-            $log.debug('Cord Login Ctrl has been created.');
+        .controller('CordLoginCtrl', ['$log', '$scope', '$resource',
+            function ($log, $scope, $resource) {
+                var LoginData, resource;
+                $scope.page.curr = 'login';
+
+                $scope.login = function () {
+                    var email;
+                    if (!$scope.email) {
+                        email = 'mom@user.org';
+                    } else {
+                        email = $scope.email
+                    }
+                    LoginData = $resource($scope.shared.url + urlSuffix + '/' + email);
+                    resource = LoginData.get();
+                };
+
+                $log.debug('Cord Login Ctrl has been created.');
         }]);
 }());

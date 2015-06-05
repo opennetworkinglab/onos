@@ -9,9 +9,11 @@
             <div class="outline"></div>
                 <h2>Subscriber Portal</h2>
                 <form>
-                    <input type="text" placeholder="email">
+                    <input ng-model="email" type="text" placeholder="email">
                     <input type="password" placeholder="password">
-                    <a href="#/home"><input type="button" value="Log In"></a>
+                    <a href="#/home">
+                        <input ng-click="login()" type="button" value="Log In">
+                    </a>
                 </form>
         </div>
     </div>

@@ -28,6 +28,7 @@
                 var BundleData, resource,
                     getData;
                 $scope.page.curr = 'bundle';
+                $scope.show = false;
 
                 getData = function (id) {
                     if (!id) { id = ''; }
@@ -59,6 +60,10 @@
 
                 $scope.changeBundle = function (id) {
                     getData(id);
+                };
+
+                $scope.showBundles = function () {
+                    $scope.show = !$scope.show;
                 };
 
                 $log.debug('Cord Bundle Ctrl has been created.');
