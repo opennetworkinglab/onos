@@ -71,6 +71,7 @@ public class OLT {
     public static final int OFFSET = 200;
 
     public static final int UPLINK_PORT = 129;
+    public static final int GFAST_UPLINK_PORT = 100;
 
     public static final String OLT_DEVICE = "of:90e2ba82f97791e9";
     public static final String GFAST_DEVICE = "of:0011223344551357";
@@ -78,6 +79,10 @@ public class OLT {
     @Property(name = "uplinkPort", intValue = UPLINK_PORT,
             label = "The OLT's uplink port number")
     private int uplinkPort = UPLINK_PORT;
+
+    @Property(name = "gfastUplink", intValue = GFAST_UPLINK_PORT,
+            label = "The OLT's uplink port number")
+    private int gfastUplink = GFAST_UPLINK_PORT;
 
     //TODO: replace this with an annotation lookup
     @Property(name = "oltDevice", value = OLT_DEVICE,
@@ -98,8 +103,8 @@ public class OLT {
                     if (!port.number().isLogical() && port.isEnabled()) {
                         short vlanId = fetchVlanId(port.number());
                         if (vlanId > 0) {
-                            provisionVlanOnPort(oltDevice, port.number(), (short) 7);
-                            provisionVlanOnPort(oltDevice, port.number(), vlanId);
+                            provisionVlanOnPort(oltDevice, uplinkPort, port.number(), (short) 7);
+                            provisionVlanOnPort(oltDevice, uplinkPort, port.number(), vlanId);
                         }
                     }
                 }
@@ -111,7 +116,7 @@ public class OLT {
                     if (!port.number().isLogical() && port.isEnabled()) {
                         short vlanId = (short) (fetchVlanId(port.number()) + OFFSET);
                         if (vlanId > 0) {
-                            provisionVlanOnPort(gfastDevice, port.number(), vlanId);
+                            provisionVlanOnPort(gfastDevice, gfastUplink, port.number(), vlanId);
                         }
                     }
                 }
@@ -148,7 +153,7 @@ public class OLT {
     }
 
 
-    private void provisionVlanOnPort(String deviceId, PortNumber p, short vlanId) {
+    private void provisionVlanOnPort(String deviceId, int uplinkPort, PortNumber p, short vlanId) {
         DeviceId did = DeviceId.deviceId(deviceId);
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
@@ -202,7 +207,7 @@ public class OLT {
                 case PORT_UPDATED:
                     if (devId.equals(event.subject().id()) && event.port().isEnabled()) {
                         short vlanId = fetchVlanId(event.port().number());
-                        provisionVlanOnPort(gfastDevice, event.port().number(), vlanId);
+                        provisionVlanOnPort(gfastDevice, uplinkPort, event.port().number(), vlanId);
                     }
                     break;
                 case DEVICE_ADDED:
