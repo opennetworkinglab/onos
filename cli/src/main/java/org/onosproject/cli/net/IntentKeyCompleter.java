@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.SortedSet;
 
 /**
- * Intent ID completer.
+ * Intent Key completer.
  */
-public class IntentIdCompleter implements Completer {
+public class IntentKeyCompleter implements Completer {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
