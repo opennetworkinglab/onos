@@ -41,7 +41,7 @@ public class Versioned<V> {
     public Versioned(V value, long version, long creationTime) {
         this.value = value;
         this.version = version;
-        this.creationTime = System.currentTimeMillis();
+        this.creationTime = creationTime;
     }
 
     /**
