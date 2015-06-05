@@ -120,10 +120,7 @@ public class XosManagerRestUtils {
             log.info("REST GET request returned error code {}",
                      response.getStatus());
         }
-        String jsonString = response.getEntity(String.class);
-        log.info("JSON read:\n{}", jsonString);
-
-        return jsonString;
+        return response.getEntity(String.class);
     }
 
     /**
@@ -157,10 +154,7 @@ public class XosManagerRestUtils {
             log.info("REST PUT request returned error code {}",
                      response.getStatus());
         }
-        String jsonString = response.getEntity(String.class);
-        log.info("JSON read:\n{}", jsonString);
-
-        return jsonString;
+        return response.getEntity(String.class);
     }
 
     /**
