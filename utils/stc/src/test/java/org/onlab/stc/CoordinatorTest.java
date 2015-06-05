@@ -68,8 +68,8 @@ public class CoordinatorTest {
         }
 
         @Override
-        public void onCompletion(Step step, int exitCode) {
-            print("< %s: %s", step.name(), exitCode == 0 ? "completed" : "failed");
+        public void onCompletion(Step step, Coordinator.Status status) {
+            print("< %s: %s", step.name(), status == Coordinator.Status.SUCCEEDED ? "completed" : "failed");
         }
 
         @Override

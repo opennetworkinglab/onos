@@ -204,19 +204,20 @@ public class Coordinator {
      */
     private synchronized void execute(Step step) {
         Directive directive = nextAction(step);
-        if (directive == RUN || directive == SKIP) {
+        if (directive == RUN) {
             store.markStarted(step);
             if (step instanceof Group) {
                 Group group = (Group) step;
                 delegate.onStart(group);
-                if (directive == RUN) {
-                    executeRoots(group);
-                } else {
-                    group.children().forEach(child -> delegate.onCompletion(child, 1));
-                }
+                executeRoots(group);
             } else {
-                executor.execute(new StepProcessor(step, directive == SKIP,
-                                                   logDir, delegate));
+                executor.execute(new StepProcessor(step, logDir, delegate));
+            }
+        } else if (directive == SKIP) {
+            if (step instanceof Group) {
+                Group group = (Group) step;
+                group.children().forEach(child -> delegate.onCompletion(child, SKIPPED));
+                delegate.onCompletion(step, SKIPPED);
             }
         }
     }
@@ -237,7 +238,8 @@ public class Coordinator {
             Status depStatus = store.getStatus(dependency.dst());
             if (depStatus == WAITING || depStatus == IN_PROGRESS) {
                 return NOOP;
-            } else if (depStatus == FAILED && !dependency.isSoft()) {
+            } else if ((depStatus == FAILED || depStatus == SKIPPED) &&
+                    !dependency.isSoft()) {
                 return SKIP;
             }
         }
@@ -270,7 +272,7 @@ public class Coordinator {
                 failed = failed || status == FAILED;
             }
             if (done) {
-                delegate.onCompletion(group, failed ? 1 : 0);
+                delegate.onCompletion(group, failed ? FAILED : SUCCEEDED);
             }
         }
     }
@@ -296,9 +298,9 @@ public class Coordinator {
         }
 
         @Override
-        public void onCompletion(Step step, int exitCode) {
-            store.markComplete(step, exitCode == 0 ? SUCCEEDED : FAILED);
-            listeners.forEach(listener -> listener.onCompletion(step, exitCode));
+        public void onCompletion(Step step, Status status) {
+            store.markComplete(step, status);
+            listeners.forEach(listener -> listener.onCompletion(step, status));
             executeSucessors(step);
             latch.countDown();
         }

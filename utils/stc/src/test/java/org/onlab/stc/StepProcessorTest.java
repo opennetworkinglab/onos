@@ -23,7 +23,9 @@ import org.onlab.util.Tools;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.onlab.stc.Coordinator.Status.SUCCEEDED;
 
 /**
  * Test of the step processor.
@@ -46,31 +48,19 @@ public class StepProcessorTest {
     }
 
     @Test
-    public void executed() {
+    public void basics() {
         Step step = new Step("foo", "ls /tmp", null, null, null);
-        StepProcessor processor = new StepProcessor(step, false, DIR, delegate);
+        StepProcessor processor = new StepProcessor(step, DIR, delegate);
         processor.run();
         assertTrue("should be started", delegate.started);
         assertTrue("should have output", delegate.output);
         assertTrue("should be stopped", delegate.stopped);
-        assertEquals("incorrect code", 0, delegate.code);
-    }
-
-
-    @Test
-    public void skipped() {
-        Step step = new Step("foo", "ls /tmp", null, null, null);
-        StepProcessor processor = new StepProcessor(step, true, DIR, delegate);
-        processor.run();
-        assertTrue("should be started", delegate.started);
-        assertFalse("should have output", delegate.output);
-        assertTrue("should be stopped", delegate.stopped);
-        assertEquals("incorrect code", -1, delegate.code);
+        assertEquals("incorrect status", SUCCEEDED, delegate.status);
     }
 
     private class Listener implements StepProcessListener {
 
-        private int code = 123;
+        private Coordinator.Status status;
         private boolean started, stopped, output;
 
         @Override
@@ -79,9 +69,9 @@ public class StepProcessorTest {
         }
 
         @Override
-        public void onCompletion(Step step, int exitCode) {
+        public void onCompletion(Step step, Coordinator.Status status) {
             stopped = true;
-            this.code = exitCode;
+            this.status = status;
         }
 
         @Override

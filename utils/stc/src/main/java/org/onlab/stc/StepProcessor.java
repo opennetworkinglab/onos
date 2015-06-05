@@ -15,6 +15,8 @@
  */
 package org.onlab.stc;
 
+import org.onlab.stc.Coordinator.Status;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 import static java.lang.String.format;
+import static org.onlab.stc.Coordinator.Status.FAILED;
+import static org.onlab.stc.Coordinator.Status.SUCCEEDED;
 import static org.onlab.stc.Coordinator.print;
 
 /**
@@ -30,12 +34,12 @@ import static org.onlab.stc.Coordinator.print;
  */
 class StepProcessor implements Runnable {
 
+    private static final String IGNORE_CODE = "~";
     private static final int FAIL = -1;
 
     static String launcher = "stc-launcher ";
 
     private final Step step;
-    private final boolean skip;
     private final File logDir;
 
     private Process process;
@@ -45,25 +49,22 @@ class StepProcessor implements Runnable {
      * Creates a process monitor.
      *
      * @param step     step or group to be executed
-     * @param skip     indicates the process should not actually execute
      * @param logDir   directory where step process log should be stored
      * @param delegate process lifecycle listener
      */
-    StepProcessor(Step step, boolean skip, File logDir, StepProcessListener delegate) {
+    StepProcessor(Step step, File logDir, StepProcessListener delegate) {
         this.step = step;
-        this.skip = skip;
         this.logDir = logDir;
         this.delegate = delegate;
     }
 
     @Override
     public void run() {
-        int code = FAIL;
         delegate.onStart(step);
-        if (!skip) {
-            code = execute();
-        }
-        delegate.onCompletion(step, code);
+        int code = execute();
+        boolean ignoreCode = step.env() != null && step.env.equals(IGNORE_CODE);
+        Status status = ignoreCode || code == 0 ? SUCCEEDED : FAILED;
+        delegate.onCompletion(step, status);
     }
 
     /**

@@ -31,10 +31,10 @@ public interface StepProcessListener {
     /**
      * Indicates that process step has completed.
      *
-     * @param step     subject step
-     * @param exitCode step process exit exitCode
+     * @param step   subject step
+     * @param status step completion status
      */
-    default void onCompletion(Step step, int exitCode) {
+    default void onCompletion(Step step, Coordinator.Status status) {
     }
 
     /**

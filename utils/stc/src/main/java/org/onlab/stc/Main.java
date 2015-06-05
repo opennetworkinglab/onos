@@ -172,8 +172,8 @@ public final class Main {
         }
 
         @Override
-        public void onCompletion(Step step, int exitCode) {
-            logStatus(currentTimeMillis(), step.name(), exitCode == 0 ? SUCCEEDED : FAILED);
+        public void onCompletion(Step step, Status status) {
+            logStatus(currentTimeMillis(), step.name(), status);
         }
 
         @Override

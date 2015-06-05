@@ -23,5 +23,5 @@
     <dependency name="Archetypes" requires="Setup"/>
 
     <import file="${ONOS_ROOT}/tools/test/scenarios/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Archetypes,Setup"/>
+    <dependency name="Wrapup" requires="~Archetypes,~Setup"/>
 </scenario>
