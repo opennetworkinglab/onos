@@ -67,6 +67,11 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OLTPipeline"/>
     </driver>
+    <driver name="g.fast" extends="default"
+            manufacturer="TEST1" hwVersion="TEST2" swVersion="TEST3">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OLTPipeline"/>
+    </driver>
     <!--  The SoftRouter driver is meant to be used by any software/NPU based
        ~  switch that wishes to implement a simple 2-table router. To use this
        ~  driver, configure ONOS with the dpid of the device, or extend the

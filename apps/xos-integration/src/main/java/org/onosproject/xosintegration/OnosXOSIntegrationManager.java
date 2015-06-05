@@ -117,6 +117,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
     private ApplicationId appId;
     private Map<String, ConnectPoint> nodeToPort;
+    private Map<Long, Short> portToVlan;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -150,6 +151,9 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
         nodeToPort.put("cordcompute02.onlab.us", new ConnectPoint(FABRIC_DEVICE_ID,
                                                                   PortNumber.portNumber(3)));
+
+        portToVlan.putIfAbsent(2L, (short) 201);
+        portToVlan.putIfAbsent(6L, (short) 401);
     }
 
     /**
@@ -412,7 +416,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         //json += "]}";
 
         JsonObject node = new JsonObject();
-        node.add("vlan", vlanId.toShort());
+        node.add("vlan", portToVlan.get(fromPoint.port().toLong()));
         JsonArray array = new JsonArray();
         JsonObject cp1 = new JsonObject();
         JsonObject cp2 = new JsonObject();
