@@ -121,6 +121,10 @@ public class IpHandler {
      * @param destIpAddress destination IP address
      */
     public void forwardPackets(DeviceId deviceId, Ip4Address destIpAddress) {
+        if (ipPacketQueue.get(destIpAddress) == null) {
+            return;
+        }
+
         for (IPv4 ipPacket : ipPacketQueue.get(destIpAddress)) {
             Ip4Address destAddress = Ip4Address.valueOf(ipPacket.getDestinationAddress());
             if (ipPacket != null && config.inSameSubnet(deviceId, destAddress)) {

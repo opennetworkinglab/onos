@@ -51,6 +51,7 @@ public class PortStatisticsManager implements PortStatisticsService {
 
     private static final long POLL_FREQUENCY = 10_000; // milliseconds
     private static final long STALE_LIMIT = (long) (1.5 * POLL_FREQUENCY);
+    private static final int SECOND = 1_000; // milliseconds
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -79,13 +80,11 @@ public class PortStatisticsManager implements PortStatisticsService {
         long now = System.currentTimeMillis();
 
         if (c != null && p != null && (now - c.time < STALE_LIMIT)) {
-            if (c.stats.durationSec() > p.stats.durationSec() &&
-                    c.stats.bytesSent() >= p.stats.bytesSent() &&
-                    c.stats.durationSec() >= POLL_FREQUENCY / 1_000) {
+            if ((c.time > p.time + SECOND) &&
+                (c.stats.bytesSent() >= p.stats.bytesSent())) {
                 return new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
-                                       c.stats.durationSec() - p.stats.durationSec());
+                                       (int) (c.time - p.time) / SECOND);
             }
-            return new DefaultLoad(c.stats.bytesSent(), 0, c.stats.durationSec());
         }
         return null;
     }

@@ -105,7 +105,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
     // TODO: We need to make the poll interval configurable.
-    static final int POLL_INTERVAL = 10;
+    static final int POLL_INTERVAL = 5;
 
     private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
 
@@ -245,7 +245,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private class InternalDeviceProvider implements OpenFlowSwitchListener, OpenFlowEventListener {
 
-        private List<OFPortStatsEntry> portStatsReplies = Lists.newArrayList();
+        private HashMap<Dpid, List<OFPortStatsEntry>> portStatsReplies = new HashMap<>();
 
         @Override
         public void switchAdded(Dpid dpid) {
@@ -450,10 +450,15 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 case STATS_REPLY:
                     if (((OFStatsReply) msg).getStatsType() == OFStatsType.PORT) {
                         OFPortStatsReply portStatsReply = (OFPortStatsReply) msg;
-                        portStatsReplies.addAll(portStatsReply.getEntries());
+                        List<OFPortStatsEntry> portStatsReplyList = portStatsReplies.get(dpid);
+                        if (portStatsReplyList == null) {
+                            portStatsReplyList = Lists.newArrayList();
+                        }
+                        portStatsReplyList.addAll(portStatsReply.getEntries());
+                        portStatsReplies.put(dpid, portStatsReplyList);
                         if (!portStatsReply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
-                            pushPortMetrics(dpid, portStatsReplies);
-                            portStatsReplies.clear();
+                            pushPortMetrics(dpid, portStatsReplies.get(dpid));
+                            portStatsReplies.get(dpid).clear();
                         }
                     }
                     break;

@@ -1,19 +1,22 @@
 {
     "devices": [
-        { "uri": "of:00010001e88b27e3", "mac": "0001e88b27e3", "annotations": { "name": "s101", "latitude": 41.996877, "longitude":  -84.169273 }},
         { "uri": "of:00010001e88b9368", "mac": "0001e88b9368", "annotations": { "name": "s101", "latitude": 37.710742, "longitude": -103.975010 }},
-        { "uri": "of:00010001e88b93ad", "mac": "0001e88b93ad", "annotations": { "name": "s101", "latitude": 37.634692, "longitude":  -84.215821 }},
-        { "uri": "of:00010001e88b93bc", "mac": "0001e88b93bc", "annotations": { "name": "s101", "latitude": 41.951018, "longitude": -103.853350 }},
-        { "uri": "of:00010001e88b9398", "mac": "0001e88b9398", "annotations": { "name": "s101", "latitude": 41.952876, "longitude":  -90.696484 }},
-        { "uri": "of:00010001e88b938c", "mac": "0001e88b938c", "annotations": { "name": "s101", "latitude": 37.657851, "longitude":  -90.778101 }},
-        { "uri": "of:00010001e88b939b", "mac": "0001e88b939b", "annotations": { "name": "s101", "latitude": 37.756072, "longitude":  -97.547678 }},
-        { "uri": "of:00010001e88b93c2", "mac": "0001e88b93c2", "annotations": { "name": "s101", "latitude": 41.945684, "longitude":  -97.526174 }}
+        { "uri": "of:00010001e88b939b", "mac": "0001e88b939b", "annotations": { "name": "s102", "latitude": 37.756072, "longitude":  -97.547678 }},
+        { "uri": "of:00010001e88b938c", "mac": "0001e88b938c", "annotations": { "name": "s103", "latitude": 37.657851, "longitude":  -90.778101 }},
+        { "uri": "of:00010001e88b93ad", "mac": "0001e88b93ad", "annotations": { "name": "s104", "latitude": 37.634692, "longitude":  -84.215821 }},
+        { "uri": "of:00010001e88b93bc", "mac": "0001e88b93bc", "annotations": { "name": "s105", "latitude": 41.951018, "longitude": -103.853350 }},
+        { "uri": "of:00010001e88b93c2", "mac": "0001e88b93c2", "annotations": { "name": "s106", "latitude": 41.945684, "longitude":  -97.526174 }},
+        { "uri": "of:00010001e88b9398", "mac": "0001e88b9398", "annotations": { "name": "s107", "latitude": 41.952876, "longitude":  -90.696484 }},
+        { "uri": "of:00010001e88b27e3", "mac": "0001e88b27e3", "annotations": { "name": "s108", "latitude": 41.996877, "longitude":  -84.169273 }}
     ],
     "hosts": [
-        { "id": "5A:66:A0:6F:10:A5/-1", "mac": "5A:66:A0:6F:10:A5", "vlan": -1, "location": "of:00010001e88b93ad/1", "ip": "1.2.3.4", "annotations": { "name": "h1", "latitude": 34.384830, "longitude": -104.019262 }},
-        { "id": "D2:22:5A:E1:52:B7/-1", "mac": "D2:22:5A:E1:52:B7", "vlan": -1, "location": "of:00010001e88b93ad/1", "ip": "1.2.3.4", "annotations": { "name": "h1", "latitude": 34.133376, "longitude":  -89.442032 }},
-        { "id": "F2:25:F0:11:69:E2/-1", "mac": "F2:25:F0:11:69:E2", "vlan": -1, "location": "of:00010001e88b93ad/1", "ip": "1.2.3.4", "annotations": { "name": "h1", "latitude": 34.166625, "longitude":  -91.983293 }},
-        { "id": "52:1C:5E:A5:8C:E0/-1", "mac": "52:1C:5E:A5:8C:E0", "vlan": -1, "location": "of:00010001e88b93ad/1", "ip": "1.2.3.4", "annotations": { "name": "h1", "latitude": 34.225065, "longitude":  -97.492882 }},
-        { "id": "EA:11:0C:F7:49:D8/-1", "mac": "EA:11:0C:F7:49:D8", "vlan": -1, "location": "of:00010001e88b93ad/1", "ip": "1.2.3.4", "annotations": { "name": "h1", "latitude": 34.249236, "longitude":  -84.253025 }}
+        { "id": "00:1f:29:e1:2c:36/-1", "mac": "00:1f:29:e1:2c:36", "vlan": -1, "location": "of:00010001e88b9368/46", "ip": "10.200.1.11", "annotations": { "name": "h1", "latitude": 34.384830, "longitude": -104.019262 }},
+        { "id": "00:1e:0b:cb:9d:64/-1", "mac": "00:1e:0b:cb:9d:64", "vlan": -1, "location": "of:00010001e88b9368/45", "ip": "10.200.1.12", "annotations": { "name": "h2", "latitude": 34.384830, "longitude": -104.019262 }},
+        { "id": "00:1c:c4:6b:d8:12/-1", "mac": "00:1c:c4:6b:d8:12", "vlan": -1, "location": "of:00010001e88b939b/46", "ip": "10.200.2.21", "annotations": { "name": "h3", "latitude": 34.133376, "longitude":  -89.442032 }},
+        { "id": "00:1e:0b:ca:90:44/-1", "mac": "00:1e:0b:ca:90:44", "vlan": -1, "location": "of:00010001e88b939b/45", "ip": "10.200.2.22", "annotations": { "name": "h4", "latitude": 34.133376, "longitude":  -89.442032 }},
+        { "id": "00:1e:0b:ca:e5:1a/-1", "mac": "00:1e:0b:ca:e5:1a", "vlan": -1, "location": "of:00010001e88b938c/46", "ip": "10.200.3.31", "annotations": { "name": "h5", "latitude": 34.166625, "longitude":  -91.983293 }},
+        { "id": "52:1C:5E:A5:8C:E0/-1", "mac": "52:1C:5E:A5:8C:E0", "vlan": -1, "location": "of:00010001e88b938c/45", "ip": "10.200.3.32", "annotations": { "name": "h6", "latitude": 34.166625, "longitude":  -91.983293 }},
+        { "id": "00:1e:0b:cb:3f:ac/-1", "mac": "00:1e:0b:cb:3f:ac", "vlan": -1, "location": "of:00010001e88b93ad/46", "ip": "10.200.4.41", "annotations": { "name": "h7", "latitude": 34.225065, "longitude":  -97.492882 }},
+        { "id": "EA:11:0C:F7:49:D8/-1", "mac": "EA:11:0C:F7:49:D8", "vlan": -1, "location": "of:00010001e88b93ad/45", "ip": "10.200.4.42", "annotations": { "name": "h8", "latitude": 34.249236, "longitude":  -84.253025 }}
     ]
 }
