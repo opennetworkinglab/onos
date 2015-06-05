@@ -120,11 +120,11 @@ public class CordFabricManager implements FabricService {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
                 .matchTcpSrc(ofPort)
-                .matchInPort(PortNumber.portNumber(5))
+                .matchInPort(PortNumber.portNumber(1))
                 .build();
 
         TrafficTreatment up = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.portNumber(5))
+                .setOutput(PortNumber.portNumber(1))
                 .build();
 
         TrafficTreatment down = DefaultTrafficTreatment.builder()

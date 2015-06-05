@@ -339,9 +339,10 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
         if (json.get("computeNodeName") != null) {
             ConnectPoint point = nodeToPort.get(json.get("computeNodeName").asString());
+            ConnectPoint fromPoint = newTenant.port();
 
             provisionFabric(VlanId.vlanId(Short.parseShort(newTenant.vlanId())),
-                            point);
+                            point, fromPoint);
         }
 
     }
@@ -402,7 +403,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         flowObjectiveService.forward(FABRIC_PORT.deviceId(), forwardToGateway);
     }
 
-    private void provisionFabric(VlanId vlanId, ConnectPoint point) {
+    private void provisionFabric(VlanId vlanId, ConnectPoint point, ConnectPoint fromPoint) {
         //String json = "{\"vlan\":" + vlanId + ",\"ports\":[";
         //json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
         //       + FABRIC_OLT_CONNECT_POINT.toString() + "\"},";
@@ -417,8 +418,8 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         JsonObject cp2 = new JsonObject();
         cp1.add("device", point.deviceId().toString());
         cp1.add("port", point.port().toLong());
-        cp2.add("device", FABRIC_DEVICE_ID.toString());
-        cp2.add("port", FABRIC_OLT_CONNECT_POINT.toString());
+        cp2.add("device", fromPoint.deviceId().toString());
+        cp2.add("port", fromPoint.port().toLong());
         array.add(cp1);
         array.add(cp2);
         node.add("ports", array);
