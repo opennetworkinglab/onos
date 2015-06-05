@@ -106,6 +106,8 @@ public class NewDistributedFlowRuleStore
     private static final boolean DEFAULT_BACKUP_ENABLED = true;
     private static final int DEFAULT_BACKUP_PERIOD_MILLIS = 2000;
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
+    // number of devices whose flow entries will be backed up in one communication round
+    private static final int FLOW_TABLE_BACKUP_BATCH_SIZE = 1;
 
     @Property(name = "msgHandlerPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
             label = "Number of threads in the message handler pool")
@@ -638,7 +640,16 @@ public class NewDistributedFlowRuleStore
             }
         }
 
+        private void sendBackups(NodeId nodeId, Set<DeviceId> deviceIds) {
+            // split up the devices into smaller batches and send them separately.
+            Iterables.partition(deviceIds, FLOW_TABLE_BACKUP_BATCH_SIZE)
+                     .forEach(ids -> backupFlowEntries(nodeId, Sets.newHashSet(ids)));
+        }
+
         private void backupFlowEntries(NodeId nodeId, Set<DeviceId> deviceIds) {
+            if (deviceIds.isEmpty()) {
+                return;
+            }
             log.debug("Sending flowEntries for devices {} to {} as backup.", deviceIds, nodeId);
             Map<DeviceId, Map<FlowId, Set<StoredFlowEntry>>> deviceFlowEntries =
                     Maps.newConcurrentMap();
@@ -750,7 +761,7 @@ public class NewDistributedFlowRuleStore
                     }
                 });
                 // send the device flow entries to their respective backup nodes
-                devicesToBackupByNode.forEach(this::backupFlowEntries);
+                devicesToBackupByNode.forEach(this::sendBackups);
             } catch (Exception e) {
                 log.error("Backup failed.", e);
             }
