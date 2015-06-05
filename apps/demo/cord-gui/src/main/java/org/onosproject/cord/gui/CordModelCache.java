@@ -64,7 +64,7 @@ public class CordModelCache extends JsonFactory {
      */
     CordModelCache() {
         log.info("Initialize model cache");
-        subscriberId = XosManager.INSTANCE.initDemoSubscriber();
+        subscriberId = XosManager.INSTANCE.initXosSubscriber();
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
         initUsers();
     }

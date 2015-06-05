@@ -38,17 +38,22 @@ public class XosManager {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final String TEST_XOS_SERVER_ADDRESS = "10.254.1.22";
+    private static final String HEAD_NODE_IP = "headnodeip";
+    private static final String HEAD_NODE_PORT = "headnodeport";
+    private static final int PORT_MIN = 1025;
+    private static final int PORT_MAX = 65535;
+
+    private static final String TEST_XOS_SERVER_IP = "10.254.1.22";
+    private static final String TEST_XOS_SERVER_PORT_STR = "8000";
     private static final int TEST_XOS_SERVER_PORT = 8000;
     private static final String URI_RS = "/rs/";
     private static final String URI_SUBSCRIBER = "/rs/subscriber/%d/";
     private static final String BUNDLE_URI_FORMAT = "services/%s/%s/";
 
 
-    private final XosManagerRestUtils xosUtilsRs =
-            new XosManagerRestUtils(TEST_XOS_SERVER_ADDRESS,
-                                    TEST_XOS_SERVER_PORT, URI_RS);
-
+    private String xosServerIp;
+    private int xosServerPort;
+    private XosManagerRestUtils xosUtilsRs;
     private XosManagerRestUtils xosUtils;
 
 
@@ -59,11 +64,38 @@ public class XosManager {
      */
     XosManager() {}
 
+    private String getXosServerIp() {
+        return System.getProperty(HEAD_NODE_IP, TEST_XOS_SERVER_IP);
+    }
+
+    private int getXosServerPort() {
+        String p = System.getProperty(HEAD_NODE_PORT, TEST_XOS_SERVER_PORT_STR);
+        int port;
+        try {
+            port = Integer.valueOf(p);
+        } catch (NumberFormatException e) {
+            port = TEST_XOS_SERVER_PORT;
+            log.warn("Could not parse port number [{}], using {}", p, port);
+        }
+        if (port < PORT_MIN || port > PORT_MAX) {
+            log.warn("Bad port number [{}], using {}", port, TEST_XOS_SERVER_PORT);
+            port = TEST_XOS_SERVER_PORT;
+        }
+        return port;
+    }
+
     /**
      * Queries XOS for the Demo Subscriber ID and caches it for future calls.
      */
-    public int initDemoSubscriber() {
+    public int initXosSubscriber() {
         log.info("intDemoSubscriber() called");
+        xosServerIp = getXosServerIp();
+        xosServerPort = getXosServerPort();
+        log.info("Using XOS server at {}:{}", xosServerIp, xosServerPort);
+
+        xosUtilsRs = new XosManagerRestUtils(xosServerIp, xosServerPort, URI_RS);
+
+        // ask XOS for the subscriber ID of the canned Demo account...
         String result = xosUtilsRs.getRest("initdemo/");
         log.info("from XOS: {}", result);
 
@@ -80,8 +112,7 @@ public class XosManager {
         log.info("Using DEMO subscriber ID {}.", demoId);
 
         String uri = String.format(URI_SUBSCRIBER, demoId);
-        xosUtils = new XosManagerRestUtils(TEST_XOS_SERVER_ADDRESS,
-                                           TEST_XOS_SERVER_PORT, uri);
+        xosUtils = new XosManagerRestUtils(xosServerIp, xosServerPort, uri);
         return demoId;
     }
 
