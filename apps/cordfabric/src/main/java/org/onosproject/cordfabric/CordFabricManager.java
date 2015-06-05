@@ -82,6 +82,8 @@ public class CordFabricManager implements FabricService {
 
     private short radiusPort = 1812;
 
+    private short ofPort = 6633;
+
     private DeviceId fabricDeviceId = DeviceId.deviceId("of:5e3e486e73000187");
 
     private final Multimap<VlanId, ConnectPoint> vlans = HashMultimap.create();
@@ -107,26 +109,68 @@ public class CordFabricManager implements FabricService {
     }
 
     private void setupDefaultFlows() {
-        TrafficSelector toControllerOF = DefaultTrafficSelector.builder()
+        TrafficSelector ofInBandMatchUp = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_TCP)
+                .matchTcpDst(ofPort)
+                .matchInPort(PortNumber.portNumber(6))
+                .build();
+
+        TrafficSelector ofInBandMatchDown = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_TCP)
+                .matchTcpSrc(ofPort)
+                .matchInPort(PortNumber.portNumber(5))
+                .build();
+
+        TrafficTreatment up = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(5))
+                .build();
+
+        TrafficTreatment down = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(6))
+                .build();
+
+        TrafficSelector toRadius = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(radiusPort)
                 .build();
 
-        TrafficTreatment forwardToController = DefaultTrafficTreatment.builder()
+        TrafficTreatment puntToController = DefaultTrafficTreatment.builder()
                 .punt()
                 .build();
 
-        ForwardingObjective ofToController = DefaultForwardingObjective.builder()
+        ForwardingObjective radiusToController = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withPriority(PRIORITY)
-                .withSelector(toControllerOF)
-                .withTreatment(forwardToController)
+                .withSelector(toRadius)
+                .withTreatment(puntToController)
                 .add();
 
-        flowObjectiveService.forward(fabricDeviceId, ofToController);
+        ForwardingObjective upCtrl = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(ofInBandMatchUp)
+                .withTreatment(up)
+                .add();
+
+        ForwardingObjective downCtrl = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(ofInBandMatchDown)
+                .withTreatment(down)
+                .add();
+
+        flowObjectiveService.forward(fabricDeviceId, upCtrl);
+        flowObjectiveService.forward(fabricDeviceId, downCtrl);
+        flowObjectiveService.forward(fabricDeviceId, radiusToController);
     }
 
     @Override
