@@ -27,6 +27,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -154,9 +155,10 @@ public class FlowsListCommand extends AbstractShellCommand {
         print("deviceId=%s, flowRuleCount=%d", d.id(), empty ? 0 : flows.size());
         if (!empty) {
             for (FlowEntry f : flows) {
+                ApplicationId appId = coreService.getAppId(f.appId());
                 print(FMT, Long.toHexString(f.id().value()), f.state(),
                       f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
-                      coreService.getAppId(f.appId()).name(),
+                      appId != null ? appId.name() : "<none>",
                       f.payLoad() == null ? null : f.payLoad().payLoad().toString());
                 print(SFMT, f.selector().criteria());
                 print(TFMT, f.treatment());
