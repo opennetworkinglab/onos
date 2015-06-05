@@ -19,8 +19,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.AnnotationKeys;
@@ -47,11 +51,13 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,6 +72,16 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircuitIntent> {
 
     private static final Logger log = LoggerFactory.getLogger(OpticalCircuitIntentCompiler.class);
+
+    private static final int DEFAULT_MAX_CAPACITY = 10;
+
+    @Property(name = "maxCapacity", intValue = DEFAULT_MAX_CAPACITY,
+            label = "Maximum utilization of an optical connection.")
+
+    private int maxCapacity = DEFAULT_MAX_CAPACITY;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -84,15 +100,44 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     private ApplicationId appId;
 
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary properties = context.getProperties();
+
+        //TODO for reduction check if the new capacity is smaller than the size of the current mapping
+        String propertyString = Tools.get(properties, "maxCapacity");
+
+        //Ignore if propertyString is empty
+        if (!propertyString.isEmpty()) {
+            try {
+                int temp = Integer.parseInt(propertyString);
+                //Ensure value is non-negative but allow zero as a way to shutdown the link
+                if (temp >= 0) {
+                    maxCapacity = temp;
+                }
+            } catch (NumberFormatException e) {
+                //Malformed arguments lead to no change of value (user should be notified of error)
+              log.error("The value '{}' for maxCapacity was not parsable as an integer.", propertyString, e);
+            }
+        } else {
+            //Notify of empty value but do not return (other properties will also go in this function)
+            log.error("The value for maxCapacity was set to an empty value.");
+        }
+
+    }
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         appId = coreService.registerApplication("org.onosproject.net.intent");
         intentManager.registerCompiler(OpticalCircuitIntent.class, this);
+        cfgService.registerProperties(getClass());
+        modified(context);
     }
 
     @Deactivate
     public void deactivate() {
         intentManager.unregisterCompiler(OpticalCircuitIntent.class);
+        cfgService.unregisterProperties(getClass(), false);
     }
 
     @Override
@@ -180,8 +225,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             return true;
         }
 
-        // TODO: hardcoded 80% utilization
-        return mapping.size() < 8;
+        return mapping.size() < maxCapacity;
     }
 
     private boolean isAllowed(OpticalCircuitIntent circuitIntent, OpticalConnectivityIntent connIntent) {
