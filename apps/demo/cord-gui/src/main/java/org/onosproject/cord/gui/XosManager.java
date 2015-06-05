@@ -85,35 +85,46 @@ public class XosManager {
     }
 
     /**
-     * Queries XOS for the Demo Subscriber ID and caches it for future calls.
+     * Queries XOS for the Subscriber ID lookup data, and returns it.
      */
-    public int initXosSubscriber() {
-        log.info("intDemoSubscriber() called");
+    public ObjectNode initXosSubscriberLookups() {
+        log.info("intDemoSubscriberLookups() called");
         xosServerIp = getXosServerIp();
         xosServerPort = getXosServerPort();
         log.info("Using XOS server at {}:{}", xosServerIp, xosServerPort);
 
         xosUtilsRs = new XosManagerRestUtils(xosServerIp, xosServerPort, URI_RS);
 
-        // ask XOS for the subscriber ID of the canned Demo account...
-        String result = xosUtilsRs.getRest("initdemo/");
-        log.info("from XOS: {}", result);
+        // ask XOS for the subscriber ID lookup info
+        String result = xosUtilsRs.getRest("subidlookup/");
+        log.info("lookup data from XOS: {}", result);
 
         JsonNode node;
         try {
             node = MAPPER.readTree(result);
         } catch (IOException e) {
-            log.error("failed to read demo subscriber JSON", e);
-            return 0;
+            log.error("failed to read subscriber lookup JSON data", e);
+            return null;
         }
+        return (ObjectNode) node;
+    }
 
-        ObjectNode obj = (ObjectNode) node;
-        int demoId = obj.get("id").asInt();
-        log.info("Using DEMO subscriber ID {}.", demoId);
-
-        String uri = String.format(URI_SUBSCRIBER, demoId);
+    /**
+     * Sets a new XOS utils object to bind URL patterns for the
+     * given XOS subscriber ID.
+     *
+     * @param xosSubId XOS subscriber ID
+     */
+    public void setXosUtilsForSubscriber(int xosSubId) {
+        String uri = String.format(URI_SUBSCRIBER, xosSubId);
         xosUtils = new XosManagerRestUtils(xosServerIp, xosServerPort, uri);
-        return demoId;
+    }
+
+
+    public void initDemoSubscriber() {
+        log.info("initDemoSubscriber() called");
+        String result = xosUtilsRs.getRest("initdemo/");
+        log.info("initdemo data from XOS: {}", result);
     }
 
     /**

@@ -54,6 +54,13 @@ public class CordWebResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("login/{email}")
+    public Response login(@PathParam("email") String email) {
+        return Response.ok(CordModelCache.INSTANCE.jsonLogin(email)).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("bundle/{id}")
     public Response bundle(@PathParam("id") String bundleId) {
         CordModelCache.INSTANCE.setCurrentBundle(bundleId);

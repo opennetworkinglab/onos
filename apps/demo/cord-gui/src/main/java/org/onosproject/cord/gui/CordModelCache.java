@@ -32,6 +32,8 @@ import org.onosproject.cord.gui.model.XosFunctionDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -44,12 +46,28 @@ import static org.onosproject.cord.gui.model.XosFunctionDescriptor.URL_FILTER;
  */
 public class CordModelCache extends JsonFactory {
 
+    private static final String KEY_SSID_MAP = "ssidmap";
+    // FIXME: should not be a colon in the key..... Scott to fix on XOS
+    private static final String KEY_SSID = "service_specific_id:";
+    private static final String KEY_SUB_ID = "subscriber_id";
+
+    private static final int DEMO_SSID = 1234;
+
+    private static final String EMAIL_0 = "john@smith.org";
+    private static final String EMAIL_1 = "john@doe.org";
+
+    private static final String EMAIL = "email";
+    private static final String SSID = "ssid";
+    private static final String SUB_ID = "subId";
+
     private static final String BUNDLE = "bundle";
     private static final String USERS = "users";
-    private static final String SUB_ID = "subId";
     private static final String LEVEL = "level";
 
+    private static final Map<Integer, Integer> LOOKUP = new HashMap<>();
+
     private int subscriberId;
+    private int ssid;
     private Bundle currentBundle;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -59,18 +77,76 @@ public class CordModelCache extends JsonFactory {
             new TreeMap<Integer, SubscriberUser>();
 
     /**
-     * Constructs a model cache, (retrieving demo subscriber ID),
-     * initializing it with basic bundle, and fetching the list of users.
+     * Constructs a model cache, retrieving a mapping of SSID to XOS Subscriber
+     * IDs from the XOS server.
      */
     CordModelCache() {
         log.info("Initialize model cache");
-        subscriberId = XosManager.INSTANCE.initXosSubscriber();
+        ObjectNode map = XosManager.INSTANCE.initXosSubscriberLookups();
+        initLookupMap(map);
+        log.info("{} entries in SSID->SubID lookup map", LOOKUP.size());
+    }
+
+    private void initLookupMap(ObjectNode map) {
+        ArrayNode array = (ArrayNode) map.get(KEY_SSID_MAP);
+        Iterator<JsonNode> iter = array.elements();
+        while (iter.hasNext()) {
+            ObjectNode node = (ObjectNode) iter.next();
+            String ssidStr = node.get(KEY_SSID).asText();
+            int ssid = Integer.valueOf(ssidStr);
+            int subId = node.get(KEY_SUB_ID).asInt();
+            LOOKUP.put(ssid, subId);
+            log.info("... binding SSID {} to sub-id {}", ssid, subId);
+        }
+    }
+
+    private int lookupSubId(int ssid) {
+        Integer subId = LOOKUP.get(ssid);
+        if (subId == null) {
+            log.error("Unmapped SSID: {}", ssid);
+            return 0;
+        }
+        return subId;
+    }
+
+    /**
+     * Initializes the model for the subscriber account associated with
+     * the given email address.
+     *
+     * @param email the email address
+     */
+    void init(String email) {
+        // defaults to the demo account
+        int ssid = DEMO_SSID;
+
+        // obviously not scalable, but good enough for demo code...
+        if (EMAIL_0.equals(email)) {
+            ssid = 0;
+        } else if (EMAIL_1.equals(email)) {
+            ssid = 1;
+        }
+
+        this.ssid = ssid;
+        subscriberId = lookupSubId(ssid);
+        XosManager.INSTANCE.setXosUtilsForSubscriber(subscriberId);
+
+        // if we are using the demo account, tell XOS to reset it...
+        if (ssid == DEMO_SSID) {
+            XosManager.INSTANCE.initDemoSubscriber();
+        }
+
+        // NOTE: I think the following should work for non-DEMO account...
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
         initUsers();
     }
 
     private void initUsers() {
         ArrayNode users = XosManager.INSTANCE.getUserList();
+        if (users == null) {
+            log.warn("no user list for SSID {} (subid {})", ssid, subscriberId);
+            return;
+        }
+
         for (JsonNode u: users) {
             ObjectNode user = (ObjectNode) u;
 
@@ -194,6 +270,25 @@ public class CordModelCache extends JsonFactory {
 
     private void addSubId(ObjectNode root) {
         root.put(SUB_ID, subscriberId);
+        root.put(SSID, ssid);
+    }
+
+
+    /**
+     * Returns response JSON for login request.
+     * <p>
+     * Depending on which email is used, will bind the GUI to the
+     * appropriate XOS Subscriber ID.
+     *
+     * @param email the supplied email
+     * @return JSON acknowledgement
+     */
+    public String jsonLogin(String email) {
+        init(email);
+        ObjectNode root = objectNode();
+        root.put(EMAIL, email);
+        addSubId(root);
+        return root.toString();
     }
 
     /**
