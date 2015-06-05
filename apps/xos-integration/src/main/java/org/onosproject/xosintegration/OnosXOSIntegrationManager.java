@@ -432,9 +432,9 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
                 .type(JSON_UTF_8.toString());
 
         try {
-            builder.post(ClientResponse.class, node);
+            builder.post(ClientResponse.class, node.toString());
         } catch (ClientHandlerException e) {
-            log.warn("Unable to contact fabric REST server:", e.getMessage());
+            log.warn("Unable to contact fabric REST server: {}", e.getMessage());
             return;
         }
     }
