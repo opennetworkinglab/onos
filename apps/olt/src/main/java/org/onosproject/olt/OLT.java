@@ -73,6 +73,7 @@ public class OLT {
     public static final int UPLINK_PORT = 129;
 
     public static final String OLT_DEVICE = "of:90e2ba82f97791e9";
+    public static final String GFAST_DEVICE = "of:0011223344551357";
 
     @Property(name = "uplinkPort", intValue = UPLINK_PORT,
             label = "The OLT's uplink port number")
@@ -83,16 +84,30 @@ public class OLT {
             label = "The OLT device id")
     private String oltDevice = OLT_DEVICE;
 
+    @Property(name = "gfastDevice", value = GFAST_DEVICE,
+            label = "The gfast device id")
+    private String gfastDevice = GFAST_DEVICE;
+
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onosproject.mobility");
+        appId = coreService.registerApplication("org.onosproject.olt");
 
         deviceService.getPorts(DeviceId.deviceId(oltDevice)).stream().forEach(
                 port -> {
                     if (port.isEnabled()) {
                         short vlanId = fetchVlanId(port.number());
                         provisionVlanOnPort(port.number(), (short) 7);
+                        provisionVlanOnPort(port.number(), vlanId);
+                    }
+                }
+        );
+
+
+        deviceService.getPorts(DeviceId.deviceId(gfastDevice)).stream().forEach(
+                port -> {
+                    if (port.isEnabled()) {
+                        short vlanId = (short) (fetchVlanId(port.number()) + OFFSET);
                         provisionVlanOnPort(port.number(), vlanId);
                     }
                 }
