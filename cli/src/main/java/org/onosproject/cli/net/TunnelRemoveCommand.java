@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.apache.karaf.shell.commands.Command;
@@ -31,6 +32,7 @@ import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
@@ -95,8 +97,8 @@ public class TunnelRemoveCommand extends AbstractShellCommand {
                         .valueOf(dst));
             } else if ("ODUK".equals(type)) {
                 trueType = Tunnel.Type.ODUK;
-                String[] srcArray = src.split("-");
-                String[] dstArray = dst.split("-");
+                String[] srcArray = src.split("/");
+                String[] dstArray = dst.split("/");
                 srcPoint = new DefaultOpticalTunnelEndPoint(
                                                             producerName,
                                                             Optional.of(DeviceId
@@ -121,8 +123,8 @@ public class TunnelRemoveCommand extends AbstractShellCommand {
                                                             true);
             } else if ("OCH".equals(type)) {
                 trueType = Tunnel.Type.OCH;
-                String[] srcArray = src.split("-");
-                String[] dstArray = dst.split("-");
+                String[] srcArray = src.split("/");
+                String[] dstArray = dst.split("/");
                 srcPoint = new DefaultOpticalTunnelEndPoint(
                                                             producerName,
                                                             Optional.of(DeviceId
@@ -154,12 +156,44 @@ public class TunnelRemoveCommand extends AbstractShellCommand {
                                                   trueType, null, producerName,
                                                   null, null);
             service.tunnelRemoved(tunnel);
+            return;
         }
         if (!isNull(tunnelId)) {
             TunnelId id = TunnelId.valueOf(tunnelId);
             tunnel = new DefaultTunnelDescription(id, null, null, null, null,
                                                   producerName, null, null);
             service.tunnelRemoved(tunnel);
+            return;
+        }
+
+        if (!isNull(type)) {
+            Tunnel.Type trueType = null;
+            Collection<Tunnel> tunnelSet = null;
+            TunnelService tunnelService = get(TunnelService.class);
+            if ("MPLS".equals(type)) {
+                trueType = Tunnel.Type.MPLS;
+            } else if ("VLAN".equals(type)) {
+                trueType = Tunnel.Type.VLAN;
+            } else if ("VXLAN".equals(type)) {
+                trueType = Tunnel.Type.VXLAN;
+            } else if ("GRE".equals(type)) {
+                trueType = Tunnel.Type.GRE;
+            } else if ("ODUK".equals(type)) {
+                trueType = Tunnel.Type.ODUK;
+            } else if ("OCH".equals(type)) {
+                trueType = Tunnel.Type.OCH;
+            } else {
+                print("Illegal tunnel type. Please input MPLS, VLAN, VXLAN, GRE, ODUK or OCH.");
+                return;
+            }
+            tunnelSet = tunnelService.queryTunnel(trueType);
+            if (tunnelSet != null) {
+                for (Tunnel tunnelTemp : tunnelSet) {
+                    tunnel = new DefaultTunnelDescription(tunnelTemp.tunnelId(), null, null, null, null,
+                                                          producerName, null, null);
+                    service.tunnelRemoved(tunnel);
+                }
+            }
         }
     }
 

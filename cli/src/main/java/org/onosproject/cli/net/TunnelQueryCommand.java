@@ -87,8 +87,8 @@ public class TunnelQueryCommand extends AbstractShellCommand {
                 dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress
                         .valueOf(dst));
             } else if ("VLAN".equals(type)) {
-                String[] srcArray = src.split("-");
-                String[] dstArray = dst.split("-");
+                String[] srcArray = src.split("/");
+                String[] dstArray = dst.split("/");
                 srcPoint = new DefaultOpticalTunnelEndPoint(
                                                             producerName,
                                                             Optional.of(DeviceId
@@ -112,8 +112,8 @@ public class TunnelQueryCommand extends AbstractShellCommand {
                                                                     .logicId(0),
                                                             true);
             } else if ("ODUK".equals(type)) {
-                String[] srcArray = src.split("-");
-                String[] dstArray = dst.split("-");
+                String[] srcArray = src.split("/");
+                String[] dstArray = dst.split("/");
                 srcPoint = new DefaultOpticalTunnelEndPoint(
                                                             producerName,
                                                             Optional.of(DeviceId
@@ -137,8 +137,8 @@ public class TunnelQueryCommand extends AbstractShellCommand {
                                                                     .logicId(0),
                                                             true);
             } else if ("OCH".equals(type)) {
-                String[] srcArray = src.split("-");
-                String[] dstArray = dst.split("-");
+                String[] srcArray = src.split("/");
+                String[] dstArray = dst.split("/");
                 srcPoint = new DefaultOpticalTunnelEndPoint(
                                                             producerName,
                                                             Optional.of(DeviceId
@@ -194,7 +194,7 @@ public class TunnelQueryCommand extends AbstractShellCommand {
         }
         if (tunnelSet != null) {
             for (Tunnel tunnel : tunnelSet) {
-                print(FMT, tunnel.tunnelId(), tunnel.src().toString(), tunnel.dst().toString(),
+                print(FMT, tunnel.tunnelId().id(), tunnel.src().toString(), tunnel.dst().toString(),
                       tunnel.type(), tunnel.state(), tunnel.providerId(),
                       tunnel.tunnelName(), tunnel.groupId(),
                       showPath(tunnel.path()),

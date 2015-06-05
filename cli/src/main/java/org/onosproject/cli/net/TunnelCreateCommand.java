@@ -90,8 +90,8 @@ public class TunnelCreateCommand extends AbstractShellCommand {
             dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
         } else if ("VLAN".equals(type)) {
             trueType = Tunnel.Type.VLAN;
-            String[] srcArray = src.split("-");
-            String[] dstArray = dst.split("-");
+            String[] srcArray = src.split("/");
+            String[] dstArray = dst.split("/");
             srcPoint = new DefaultOpticalTunnelEndPoint(
                                                         producerName,
                                                         Optional.of(DeviceId
@@ -124,8 +124,8 @@ public class TunnelCreateCommand extends AbstractShellCommand {
             dstPoint = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(dst));
         } else if ("ODUK".equals(type)) {
             trueType = Tunnel.Type.ODUK;
-            String[] srcArray = src.split("-");
-            String[] dstArray = dst.split("-");
+            String[] srcArray = src.split("/");
+            String[] dstArray = dst.split("/");
             srcPoint = new DefaultOpticalTunnelEndPoint(
                                                         producerName,
                                                         Optional.of(DeviceId
@@ -150,8 +150,8 @@ public class TunnelCreateCommand extends AbstractShellCommand {
                                                         true);
         } else if ("OCH".equals(type)) {
             trueType = Tunnel.Type.OCH;
-            String[] srcArray = src.split("-");
-            String[] dstArray = dst.split("-");
+            String[] srcArray = src.split("/");
+            String[] dstArray = dst.split("/");
             srcPoint = new DefaultOpticalTunnelEndPoint(
                                                         producerName,
                                                         Optional.of(DeviceId
