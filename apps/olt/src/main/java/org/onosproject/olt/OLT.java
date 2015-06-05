@@ -95,10 +95,12 @@ public class OLT {
 
         deviceService.getPorts(DeviceId.deviceId(oltDevice)).stream().forEach(
                 port -> {
-                    if (port.isEnabled()) {
+                    if (!port.number().isLogical() && port.isEnabled()) {
                         short vlanId = fetchVlanId(port.number());
-                        provisionVlanOnPort(port.number(), (short) 7);
-                        provisionVlanOnPort(port.number(), vlanId);
+                        if (vlanId > 0) {
+                            provisionVlanOnPort(oltDevice, port.number(), (short) 7);
+                            provisionVlanOnPort(oltDevice, port.number(), vlanId);
+                        }
                     }
                 }
         );
@@ -106,9 +108,11 @@ public class OLT {
 
         deviceService.getPorts(DeviceId.deviceId(gfastDevice)).stream().forEach(
                 port -> {
-                    if (port.isEnabled()) {
+                    if (!port.number().isLogical() && port.isEnabled()) {
                         short vlanId = (short) (fetchVlanId(port.number()) + OFFSET);
-                        provisionVlanOnPort(port.number(), vlanId);
+                        if (vlanId > 0) {
+                            provisionVlanOnPort(gfastDevice, port.number(), vlanId);
+                        }
                     }
                 }
         );
@@ -144,8 +148,8 @@ public class OLT {
     }
 
 
-    private void provisionVlanOnPort(PortNumber p, short vlanId) {
-
+    private void provisionVlanOnPort(String deviceId, PortNumber p, short vlanId) {
+        DeviceId did = DeviceId.deviceId(deviceId);
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
                 .matchVlanId(VlanId.vlanId(vlanId))
@@ -184,8 +188,8 @@ public class OLT {
                 .withTreatment(downStreamTreatment)
                 .add();
 
-        flowObjectiveService.forward(DeviceId.deviceId(oltDevice), upFwd);
-        flowObjectiveService.forward(DeviceId.deviceId(oltDevice), downFwd);
+        flowObjectiveService.forward(did, upFwd);
+        flowObjectiveService.forward(did, downFwd);
 
     }
 
@@ -198,7 +202,7 @@ public class OLT {
                 case PORT_UPDATED:
                     if (devId.equals(event.subject().id()) && event.port().isEnabled()) {
                         short vlanId = fetchVlanId(event.port().number());
-                        provisionVlanOnPort(event.port().number(), vlanId);
+                        provisionVlanOnPort(gfastDevice, event.port().number(), vlanId);
                     }
                     break;
                 case DEVICE_ADDED:
