@@ -15,6 +15,8 @@
  */
 package org.onosproject.core.impl;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.onosproject.core.IdBlock;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.UnavailableIdException;
@@ -26,6 +28,8 @@ import org.onosproject.core.UnavailableIdException;
 public class BlockAllocatorBasedIdGenerator implements IdGenerator {
     protected final IdBlockAllocator allocator;
     protected IdBlock idBlock;
+    protected AtomicBoolean initialized;
+
 
     /**
      * Constructs an ID generator which use {@link IdBlockAllocator} as backend.
@@ -34,18 +38,26 @@ public class BlockAllocatorBasedIdGenerator implements IdGenerator {
      */
     protected BlockAllocatorBasedIdGenerator(IdBlockAllocator allocator) {
         this.allocator = allocator;
-        this.idBlock = allocator.allocateUniqueIdBlock();
+        this.initialized = new AtomicBoolean(false);
     }
 
     @Override
     public long getNewId() {
         try {
+            if (!initialized.get()) {
+                synchronized (allocator) {
+                    if (!initialized.get()) {
+                        idBlock = allocator.allocateUniqueIdBlock();
+                        initialized.set(true);
+                    }
+                }
+            }
             return idBlock.getNextId();
         } catch (UnavailableIdException e) {
             synchronized (allocator) {
                 idBlock = allocator.allocateUniqueIdBlock();
-                return idBlock.getNextId();
             }
+            return idBlock.getNextId();
         }
     }
 }
