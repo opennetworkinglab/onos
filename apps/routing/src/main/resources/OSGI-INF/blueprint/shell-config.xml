@@ -25,5 +25,11 @@
     <command>
       <action class="org.onosproject.routing.cli.RoutesListCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.cli.AddRouteCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.RemoveRouteCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
