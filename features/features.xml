@@ -133,7 +133,8 @@
     <feature name="onos-security" version="@FEATURE-VERSION"
              description="Security-Mode ONOS">
         <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/org.apache.felix.framework.security/2.2.0.onos-SNAPSHOT</bundle>
+        <!-- FIXME Removing the following for 1.2.0 release as it is not yet released -->
+        <!--bundle>mvn:org.onosproject/org.apache.felix.framework.security/2.2.0.onos-SNAPSHOT</bundle-->
         <bundle>mvn:org.onosproject/onos-security-impl/@ONOS-VERSION</bundle>
     </feature>
 
