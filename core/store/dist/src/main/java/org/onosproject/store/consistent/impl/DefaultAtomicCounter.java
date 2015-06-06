@@ -17,6 +17,7 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -36,8 +37,11 @@ public class DefaultAtomicCounter implements AtomicCounter {
 
     private final AsyncAtomicCounter asyncCounter;
 
-    public DefaultAtomicCounter(String name, Database database) {
-        asyncCounter = new DefaultAsyncAtomicCounter(name, database);
+    public DefaultAtomicCounter(String name,
+            Database database,
+            boolean retryOnException,
+            ScheduledExecutorService retryExecutor) {
+        asyncCounter = new DefaultAsyncAtomicCounter(name, database, retryOnException, retryExecutor);
     }
 
     @Override
