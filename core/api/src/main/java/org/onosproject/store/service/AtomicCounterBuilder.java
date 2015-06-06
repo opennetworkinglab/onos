@@ -48,6 +48,7 @@ public interface AtomicCounterBuilder {
      * <p>
      * Note: Must be set when retries are enabled
      * </p>
+     * @param executor executor service
      * @return this AtomicCounterBuilder
      */
     AtomicCounterBuilder withRetryExecutor(ScheduledExecutorService executor);

@@ -156,6 +156,8 @@ public final class OpticalPathIntent extends Intent {
 
         /**
          * Sets the intent's direction.
+         *
+         * @param isBidirectional indicates if intent is bidirectional
          * @return this builder
          */
         public Builder bidirectional(boolean isBidirectional) {

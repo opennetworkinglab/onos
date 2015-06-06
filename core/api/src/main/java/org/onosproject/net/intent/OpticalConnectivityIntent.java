@@ -42,6 +42,7 @@ public final class OpticalConnectivityIntent extends Intent {
      * @param key intent key
      * @param src the source transponder port
      * @param dst the destination transponder port
+     * @param signalType signal type
      * @param isBidirectional indicates if intent is unidirectional
      * @param priority priority to use for flows from this intent
      */
