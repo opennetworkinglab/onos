@@ -43,6 +43,7 @@ public class OpticalCircuitIntent extends Intent {
      * @param src the source transponder port
      * @param dst the destination transponder port
      * @param signalType ODU signal type
+     * @param isBidirectional indicate if intent is bidirectional
      * @param priority priority to use for flows from this intent
      */
     protected OpticalCircuitIntent(ApplicationId appId, Key key, ConnectPoint src, ConnectPoint dst,
