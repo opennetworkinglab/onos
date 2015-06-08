@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
+#user div {
+    padding-top: 2%;
+}
+
 #user div.main-left {
     width: 98%;
     padding-left: 1%;
 }
 #user div.main-left.family {
-    width: 61%;
+    width: 62%;
     padding-left: 1%;
 }
 
@@ -36,17 +40,10 @@
     width: 100%;
 }
 
-#user th.topLeft {
-    border-top-left-radius: 3px;
-}
-#user th.topRight {
-    border-top-right-radius: 3px;
-}
-
 #user table.user-info th,
 #user table.user-form th {
     text-align: left;
-    background-color: rgba(173, 216, 230, 0.75);
+    background-color: #7AB6EA;
     padding: 2% 1%;
 }
 
@@ -63,19 +60,14 @@
 #user table.user-info td {
     padding: 1%;
 }
-#user table.user-form td.buttons {
-    text-align: right;
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
+
+#user table.user-form td {
+    border-left: 1px solid #CE5650;
 }
 
-#user table.user-info tr:nth-of-type(odd),
-#user table.user-form tr:nth-of-type(odd) {
-    background-color: rgba(173, 216, 230, 0.5);
-}
-#user table.user-info tr:nth-of-type(even),
-#user table.user-form tr:nth-of-type(even) {
-    background-color: rgba(173, 216, 230, 0.25);
+#user table.user-form td.buttons {
+    text-align: right;
+    border: none;
 }
 
 #user table.user-form tr.options td {

@@ -23,7 +23,7 @@
     width: 42%;
 }
 #home div.move-down {
-    margin-top: 19%;
+    margin-top: 10%;
 }
 
 #home div.image-holder {
@@ -59,12 +59,6 @@
 #home table.users th,
 #home table.users td {
     font-size: 90%;
-}
-#home table.users th {
-    background-color: #7AB6EA;
-    color: white;
-    letter-spacing: 0.05em;
-    font-weight: lighter;
 }
 
 #home td, #home th {

@@ -6,7 +6,9 @@
         <p>{{desc}}</p>
         <table>
             <tr ng-repeat="func in funcs" class="fadein">
-                <td class="icon">icon of function</td>
+                <td class="icon">
+                    <img ng-src="{{'/imgs/' + func.id + '.png'}}">
+                </td>
                 <td class="name">{{func.name}}</td>
                 <td class="desc">{{func.desc}}</td>
             </tr>

@@ -19,9 +19,13 @@
 
     var urlSuffix = '/rs/dashboard';
 
+    function randomDate(start, end) {
+        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    }
+
     angular.module('cordHome', [])
-        .controller('CordHomeCtrl', ['$log', '$scope', '$resource',
-            function ($log, $scope, $resource) {
+        .controller('CordHomeCtrl', ['$log', '$scope', '$resource', '$filter',
+            function ($log, $scope, $resource, $filter) {
                 var DashboardData, resource;
                 $scope.page.curr = 'dashboard';
 
@@ -31,6 +35,15 @@
                     function () {
                         $scope.bundle = resource.bundle;
                         $scope.users = resource.users;
+
+                        if ($.isEmptyObject($scope.shared.userActivity)) {
+                            $scope.users.forEach(function (user) {
+                                var date = randomDate(new Date(2015, 0, 1), new Date());
+
+                                $scope.shared.userActivity[user.id] = $filter('date')(date, 'mediumTime');
+                            });
+                        }
+
                     },
                     // error
                     function () {

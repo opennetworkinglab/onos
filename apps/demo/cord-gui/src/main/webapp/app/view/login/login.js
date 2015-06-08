@@ -29,7 +29,7 @@
                     if (!$scope.email) {
                         email = 'mom@user.org';
                     } else {
-                        email = $scope.email
+                        email = $scope.email;
                     }
                     LoginData = $resource($scope.shared.url + urlSuffix + '/' + email);
                     resource = LoginData.get();

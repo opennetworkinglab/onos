@@ -67,6 +67,12 @@ p {
     text-indent: 20px;
     text-align: justify;
 }
+th {
+    background-color: #7AB6EA;
+    color: white;
+    letter-spacing: 0.05em;
+    font-weight: lighter;
+}
 
 button,
 input[type="button"],
@@ -88,11 +94,17 @@ input[type="reset"]:hover {
     background-color: rgb(122, 188, 229);
 }
 
+button[disabled],
+input[type="button"][disabled],
+input[type="reset"][disabled] {
+    background-color: lightgray;
+    color: graytext;
+}
+
+
 button[disabled]:hover,
 input[type="button"][disabled]:hover,
 input[type="reset"][disabled]:hover {
-    background-color: lightgray;
-    color: graytext;
     cursor: default;
 }
 

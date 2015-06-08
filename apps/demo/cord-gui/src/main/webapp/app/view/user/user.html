@@ -4,22 +4,22 @@
         <div class="main-left" ng-class="{family: isFamily}">
             <table class="user-info">
                 <tr>
-                    <th class="topLeft">Name</th>
-                    <th ng-class="{topRight: !isFamily}">Mac</th>
+                    <th>Name</th>
+                    <th>Last Login</th>
                 </tr>
                 <tr ng-repeat="user in users" class="fadein">
                     <td>{{user.name}}</td>
-                    <td>{{user.mac}}</td>
+                    <td>{{shared.userActivity[user.id]}}</td>
                 </tr>
             </table>
         </div>
 
         <div class="main-right" ng-class="{family: isFamily}">
             <form ng-if="isFamily"
-                    name="changeLevels">
+                  name="changeLevels">
                 <table class="user-form">
                     <tr>
-                        <th class="topRight">Select Site Rating</th>
+                        <th>Select Site Rating</th>
                     </tr>
                     <tr ng-repeat="user in users" class="options">
                         <td>
