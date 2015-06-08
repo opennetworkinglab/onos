@@ -48,8 +48,6 @@ public class CordModelCache extends JsonFactory {
 
     private static final String KEY_SSID_MAP = "ssidmap";
     private static final String KEY_SSID = "service_specific_id";
-    // FIXME: remove once the key has been fixed
-    private static final String KEY_SSID_ALT = "service_specific_id:";
     private static final String KEY_SUB_ID = "subscriber_id";
 
     private static final int DEMO_SSID = 1234;
@@ -96,18 +94,7 @@ public class CordModelCache extends JsonFactory {
         StringBuilder msg = new StringBuilder();
         while (iter.hasNext()) {
             ObjectNode node = (ObjectNode) iter.next();
-
-            // FIXME: clean up once the colon has been removed from the key
-            JsonNode s = node.get(KEY_SSID);
-            if (s == null) {
-                s = node.get(KEY_SSID_ALT);
-                if (s == null) {
-                    log.error("missing {} property!", KEY_SSID);
-                    continue;
-                }
-            }
-
-            String ssidStr = s.asText();
+            String ssidStr = node.get(KEY_SSID).asText();
             int ssid = Integer.valueOf(ssidStr);
             int subId = node.get(KEY_SUB_ID).asInt();
             LOOKUP.put(ssid, subId);
