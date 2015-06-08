@@ -64,7 +64,7 @@ public class XosManagerRestUtils {
         this.xosServerAddress = xosServerAddress;
         this.xosServerPort = xosServerPort;
         this.baseUri = baseUri;
-        log.info("XMRU:: {}:{}/{}", xosServerAddress, xosServerPort, baseUri);
+        log.info("XMRU:: {}:{}{}", xosServerAddress, xosServerPort, baseUri);
     }
 
     // build the base URL from the pieces we know...

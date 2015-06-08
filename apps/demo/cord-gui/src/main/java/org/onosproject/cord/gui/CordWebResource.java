@@ -31,6 +31,13 @@ public class CordWebResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("login/{email}")
+    public Response login(@PathParam("email") String email) {
+        return Response.ok(CordModelCache.INSTANCE.jsonLogin(email)).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("dashboard")
     public Response dashboard() {
         return Response.ok(CordModelCache.INSTANCE.jsonDashboard()).build();
@@ -50,14 +57,14 @@ public class CordWebResource {
         return Response.ok(CordModelCache.INSTANCE.jsonUsers()).build();
     }
 
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("login/{email}")
-    public Response login(@PathParam("email") String email) {
-        return Response.ok(CordModelCache.INSTANCE.jsonLogin(email)).build();
+    @Path("logout")
+    public Response logout() {
+        return Response.ok(CordModelCache.INSTANCE.jsonLogout()).build();
     }
+
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

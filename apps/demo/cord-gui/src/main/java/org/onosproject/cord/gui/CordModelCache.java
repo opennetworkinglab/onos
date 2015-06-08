@@ -62,9 +62,11 @@ public class CordModelCache extends JsonFactory {
     private static final String BUNDLE = "bundle";
     private static final String USERS = "users";
     private static final String LEVEL = "level";
+    private static final String LOGOUT = "logout";
 
     private static final Map<Integer, Integer> LOOKUP = new HashMap<>();
 
+    private String email = null;
     private int subscriberId;
     private int ssid;
     private Bundle currentBundle;
@@ -84,8 +86,6 @@ public class CordModelCache extends JsonFactory {
         ObjectNode map = XosManager.INSTANCE.initXosSubscriberLookups();
         initLookupMap(map);
         log.info("{} entries in SSID->SubID lookup map", LOOKUP.size());
-        // force DEMO subscriber to be installed by default
-        init("foo@bar");
     }
 
     private void initLookupMap(ObjectNode map) {
@@ -122,6 +122,8 @@ public class CordModelCache extends JsonFactory {
         // defaults to the demo account
         int ssid = DEMO_SSID;
 
+        this.email = email;
+
         // obviously not scalable, but good enough for demo code...
         if (EMAIL_0.equals(email)) {
             ssid = 0;
@@ -144,12 +146,16 @@ public class CordModelCache extends JsonFactory {
     }
 
     private void initUsers() {
+        // start with a clean slate
+        userMap.clear();
+
         ArrayNode users = XosManager.INSTANCE.getUserList();
         if (users == null) {
             log.warn("no user list for SSID {} (subid {})", ssid, subscriberId);
             return;
         }
 
+        StringBuilder sb = new StringBuilder();
         for (JsonNode u: users) {
             ObjectNode user = (ObjectNode) u;
 
@@ -164,8 +170,10 @@ public class CordModelCache extends JsonFactory {
             //       memento in which to store the level.
             SubscriberUser su = createUser(id, name, mac, level);
             userMap.put(id, su);
-            log.info("..caching user {} (id:{})", name, id);
+            sb.append(String.format("\n..cache user %s [%d], %s, %s",
+                                    name, id, mac, level));
         }
+        log.info(sb.toString());
     }
 
     private SubscriberUser createUser(int uid, String name, String mac,
@@ -274,6 +282,7 @@ public class CordModelCache extends JsonFactory {
     private void addSubId(ObjectNode root) {
         root.put(SUB_ID, subscriberId);
         root.put(SSID, ssid);
+        root.put(EMAIL, email);
     }
 
 
@@ -287,9 +296,9 @@ public class CordModelCache extends JsonFactory {
      * @return JSON acknowledgement
      */
     public String jsonLogin(String email) {
+        log.info("jsonLogin(\"{}\")", email);
         init(email);
         ObjectNode root = objectNode();
-        root.put(EMAIL, email);
         addSubId(root);
         return root.toString();
     }
@@ -300,6 +309,12 @@ public class CordModelCache extends JsonFactory {
      * @return dashboard page JSON data
      */
     public String jsonDashboard() {
+        log.info("jsonDashboard()");
+
+        if (email == null) {
+            return jsonLogout();
+        }
+
         ObjectNode root = objectNode();
         root.put(BUNDLE, currentBundle.descriptor().displayName());
         root.set(USERS, userJsonArray());
@@ -313,6 +328,12 @@ public class CordModelCache extends JsonFactory {
      * @return bundle page JSON data
      */
     public String jsonBundle() {
+        log.info("jsonBundle()");
+
+        if (email == null) {
+            return jsonLogout();
+        }
+
         ObjectNode root = BundleFactory.toObjectNode(currentBundle);
         addSubId(root);
         return root.toString();
@@ -324,9 +345,30 @@ public class CordModelCache extends JsonFactory {
      * @return users page JSON data
      */
     public String jsonUsers() {
+        log.info("jsonUsers()");
+
+        if (email == null) {
+            return jsonLogout();
+        }
+
         ObjectNode root = objectNode();
         root.set(USERS, userJsonArray());
         addSubId(root);
+        return root.toString();
+    }
+
+    /**
+     * Returns logout acknowledgement as JSON.
+     *
+     * @return logout acknowledgement
+     */
+    public String jsonLogout() {
+        log.info("jsonLogout()");
+        ObjectNode root = objectNode().put(LOGOUT, true);
+        addSubId(root);
+
+        email = null;   // signifies no one logged in
+
         return root.toString();
     }
 
