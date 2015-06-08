@@ -170,6 +170,8 @@ import org.onosproject.net.resource.link.MplsLabel;
 import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.onosproject.store.Timestamp;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.Versioned;
 
 import java.net.URI;
@@ -408,6 +410,10 @@ public final class KryoNamespaces {
             .register(new HostLocationSerializer(), HostLocation.class)
             .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
             .register(Versioned.class)
+            .register(MapEvent.class)
+            .register(MapEvent.Type.class)
+            .register(SetEvent.class)
+            .register(SetEvent.Type.class)
             .register(DefaultGroupId.class)
             .register(Annotations.class)
             .register(OmsPort.class)

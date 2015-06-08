@@ -28,10 +28,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.Set;
 
-import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
-import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Versioned;
 
 /**
@@ -45,13 +44,14 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
 
     private static final int OPERATION_TIMEOUT_MILLIS = 5000;
 
-    private final AsyncConsistentMap<K, V> asyncMap;
+    private final DefaultAsyncConsistentMap<K, V> asyncMap;
 
-    public DefaultConsistentMap(String name,
-            Database database,
-            Serializer serializer,
-            boolean readOnly) {
-        asyncMap = new DefaultAsyncConsistentMap<>(name, database, serializer, readOnly);
+    public String name() {
+        return asyncMap.name();
+    }
+
+    public DefaultConsistentMap(DefaultAsyncConsistentMap<K, V> asyncMap) {
+        this.asyncMap = asyncMap;
     }
 
     @Override
@@ -189,5 +189,15 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
                 throw new ConsistentMapException(e.getCause());
             }
         }
+    }
+
+    @Override
+    public void addListener(MapEventListener<K, V> listener) {
+        asyncMap.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(MapEventListener<K, V> listener) {
+        asyncMap.addListener(listener);
     }
 }

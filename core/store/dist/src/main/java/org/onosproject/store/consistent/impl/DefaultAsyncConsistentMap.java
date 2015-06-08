@@ -17,6 +17,7 @@
 package org.onosproject.store.consistent.impl;
 
 import static com.google.common.base.Preconditions.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
 import java.util.Map;
@@ -24,8 +25,10 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -36,8 +39,11 @@ import org.onlab.util.HexString;
 import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
+import org.slf4j.Logger;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -56,6 +62,11 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     private final Database database;
     private final Serializer serializer;
     private final boolean readOnly;
+    private final Consumer<MapEvent<K, V>> eventPublisher;
+
+    private final Set<MapEventListener<K, V>> listeners = new CopyOnWriteArraySet<>();
+
+    private final Logger log = getLogger(getClass());
 
     private static final String ERROR_NULL_KEY = "Key cannot be null";
     private static final String ERROR_NULL_VALUE = "Null values are not allowed";
@@ -77,11 +88,29 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public DefaultAsyncConsistentMap(String name,
             Database database,
             Serializer serializer,
-            boolean readOnly) {
+            boolean readOnly,
+            Consumer<MapEvent<K, V>> eventPublisher) {
         this.name = checkNotNull(name, "map name cannot be null");
         this.database = checkNotNull(database, "database cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
         this.readOnly = readOnly;
+        this.eventPublisher = eventPublisher;
+    }
+
+    /**
+     * Returns this map name.
+     * @return map name
+     */
+    public String name() {
+        return name;
+    }
+
+    /**
+     * Returns the serializer for map entries.
+     * @return map entry serializer
+     */
+    public Serializer serializer() {
+        return serializer;
     }
 
     @Override
@@ -139,6 +168,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(condition, "predicate function cannot be null");
         checkNotNull(remappingFunction, "Remapping function cannot be null");
+        AtomicReference<MapEvent<K, V>> mapEvent = new AtomicReference<>();
         return get(key).thenCompose(r1 -> {
             V existingValue = r1 == null ? null : r1.value();
             // if the condition evaluates to false, return existing value.
@@ -160,6 +190,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
                 if (r1 != null) {
                     return remove(key, r1.version()).thenApply(result -> {
                         if (result) {
+                            mapEvent.set(new MapEvent<>(name, MapEvent.Type.REMOVE, key, r1));
                             return null;
                         } else {
                             throw new ConsistentMapException.ConcurrentModification();
@@ -174,6 +205,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
                     return replaceAndGet(key, r1.version(), computedValue.get())
                             .thenApply(v -> {
                                 if (v.isPresent()) {
+                                    mapEvent.set(new MapEvent<>(name, MapEvent.Type.UPDATE, key, v.get()));
                                     return v.get();
                                 } else {
                                     throw new ConsistentMapException.ConcurrentModification();
@@ -184,12 +216,13 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
                         if (!result.isPresent()) {
                             throw new ConsistentMapException.ConcurrentModification();
                         } else {
+                            mapEvent.set(new MapEvent<>(name, MapEvent.Type.INSERT, key, result.get()));
                             return result.get();
                         }
                     });
                 }
             }
-        });
+        }).whenComplete((result, error) -> notifyListeners(mapEvent.get()));
     }
 
     @Override
@@ -368,6 +401,37 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     private void checkIfUnmodifiable() {
         if (readOnly) {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    @Override
+    public void addListener(MapEventListener<K, V> listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(MapEventListener<K, V> listener) {
+        listeners.remove(listener);
+    }
+
+    protected void notifyListeners(MapEvent<K, V> event) {
+        try {
+            if (event != null) {
+                notifyLocalListeners(event);
+                notifyRemoteListeners(event);
+            }
+        } catch (Exception e) {
+            log.warn("Failure notifying listeners about {}", event, e);
+        }
+    }
+
+    protected void notifyLocalListeners(MapEvent<K, V> event) {
+        listeners.forEach(listener -> listener.event(event));
+    }
+
+    protected void notifyRemoteListeners(MapEvent<K, V> event) {
+        if (eventPublisher != null) {
+            eventPublisher.accept(event);
         }
     }
 }

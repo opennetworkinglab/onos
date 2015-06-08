@@ -17,6 +17,7 @@ package org.onosproject.store.consistent.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Transaction;
@@ -49,7 +51,7 @@ public class TransactionManager {
             .register(ImmutablePair.class)
             .build();
 
-    private final Serializer serializer = Serializer.using(KRYO_NAMESPACE);
+    private final Serializer serializer = Serializer.using(Arrays.asList(KRYO_NAMESPACE));
     private final Database database;
     private final AsyncConsistentMap<Long, Transaction> transactions;
 
@@ -58,9 +60,11 @@ public class TransactionManager {
      *
      * @param database database
      */
-    public TransactionManager(Database database) {
+    public TransactionManager(Database database, ConsistentMapBuilder<Long, Transaction> mapBuilder) {
         this.database = checkNotNull(database, "database cannot be null");
-        this.transactions = new DefaultAsyncConsistentMap<>("onos-transactions", this.database, serializer, false);
+        this.transactions = mapBuilder.withName("onos-transactions")
+                                      .withSerializer(serializer)
+                                      .buildAsyncMap();
     }
 
     /**

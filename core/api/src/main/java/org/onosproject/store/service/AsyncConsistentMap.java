@@ -288,4 +288,19 @@ public interface AsyncConsistentMap<K, V> {
      * @return optional updated value. Will be empty if update did not happen.
      */
     CompletableFuture<Optional<Versioned<V>>> replaceAndGet(K key, long oldVersion, V newValue);
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     */
+    void addListener(MapEventListener<K, V> listener);
+
+    /**
+     * Unregisters the specified listener such that it will no longer
+     * receive map change notifications.
+     *
+     * @param listener listener to unregister
+     */
+    void removeListener(MapEventListener<K, V> listener);
 }

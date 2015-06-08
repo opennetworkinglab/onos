@@ -10,14 +10,11 @@ import org.onosproject.store.service.TransactionContextBuilder;
 public class DefaultTransactionContextBuilder implements TransactionContextBuilder {
 
     private boolean partitionsEnabled = true;
-    private final Database partitionedDatabase;
-    private final Database inMemoryDatabase;
+    private final DatabaseManager manager;
     private final long transactionId;
 
-    public DefaultTransactionContextBuilder(
-            Database inMemoryDatabase, Database partitionedDatabase, long transactionId) {
-        this.partitionedDatabase = partitionedDatabase;
-        this.inMemoryDatabase = inMemoryDatabase;
+    public DefaultTransactionContextBuilder(DatabaseManager manager, long transactionId) {
+        this.manager = manager;
         this.transactionId = transactionId;
     }
 
@@ -30,8 +27,9 @@ public class DefaultTransactionContextBuilder implements TransactionContextBuild
     @Override
     public TransactionContext build() {
         return new DefaultTransactionContext(
-                partitionsEnabled ? partitionedDatabase : inMemoryDatabase,
-                transactionId);
+                transactionId,
+                partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
+                () -> partitionsEnabled ? manager.consistentMapBuilder()
+                                        : manager.consistentMapBuilder().withPartitionsDisabled());
     }
-
 }

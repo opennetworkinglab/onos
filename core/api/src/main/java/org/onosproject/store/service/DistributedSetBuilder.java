@@ -15,14 +15,12 @@
  */
 package org.onosproject.store.service;
 
-import java.util.Set;
-
 /**
  * Builder for distributed set.
  *
  * @param <E> type set elements.
  */
-public interface SetBuilder<E> {
+public interface DistributedSetBuilder<E> {
 
     /**
      * Sets the name of the set.
@@ -34,9 +32,9 @@ public interface SetBuilder<E> {
      * </p>
      *
      * @param name name of the set
-     * @return this SetBuilder
+     * @return this DistributedSetBuilder
      */
-    SetBuilder<E> withName(String name);
+    DistributedSetBuilder<E> withName(String name);
 
     /**
      * Sets a serializer that can be used to serialize
@@ -48,18 +46,36 @@ public interface SetBuilder<E> {
      * </p>
      *
      * @param serializer serializer
-     * @return this SetBuilder
+     * @return this DistributedSetBuilder
      */
-    SetBuilder<E> withSerializer(Serializer serializer);
+    DistributedSetBuilder<E> withSerializer(Serializer serializer);
 
     /**
      * Disables set updates.
      * <p>
      * Attempt to update the built set will throw {@code UnsupportedOperationException}.
      *
-     * @return this SetBuilder
+     * @return this DistributedSetBuilder
      */
-    SetBuilder<E> withUpdatesDisabled();
+    DistributedSetBuilder<E> withUpdatesDisabled();
+
+    /**
+     * Disables distribution of set entries across multiple database partitions.
+     * <p>
+     * When partitioning is disabled, the returned set will have a single partition
+     * that spans the entire cluster. Furthermore, the changes made to the set are
+     * ephemeral and do not survive a full cluster restart.
+     * </p>
+     * <p>
+     * Disabling partitions is more appropriate when the returned set is used for
+     * simple coordination activities and not for long term data persistence.
+     * </p>
+     * <p>
+     * Note: By default partitions are enabled and entries in the set are durable.
+     * </p>
+     * @return this DistributedSetBuilder
+     */
+    DistributedSetBuilder<E> withPartitionsDisabled();
 
     /**
      * Builds an set based on the configuration options
@@ -68,5 +84,5 @@ public interface SetBuilder<E> {
      * @return new set
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
-    Set<E> build();
+    DistributedSet<E> build();
 }
