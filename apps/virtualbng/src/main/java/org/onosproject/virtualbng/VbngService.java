@@ -16,6 +16,7 @@
 package org.onosproject.virtualbng;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 
 /**
  * Provides service of the virtual BNG.
@@ -31,10 +32,13 @@ public interface VbngService {
      * </p>
      *
      * @param privateIpAddress the private IP address
+     * @param hostMacAddress the MAC address for the IP address
+     * @param hostName the host name for the IP address
      * @return the public address if a virtual BGN is successfully created,
      *         otherwise return null
      */
-    IpAddress createVbng(IpAddress privateIpAddress);
+    IpAddress createVbng(IpAddress privateIpAddress, MacAddress hostMacAddress,
+                         String hostName);
 
     /**
      * Deletes a virtual BNG.

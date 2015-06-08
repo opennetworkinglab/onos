@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
@@ -44,21 +45,30 @@ public class VbngResource extends AbstractWebResource {
     private final Logger log = getLogger(getClass());
 
     @POST
-    @Path("{privateip}")
+    @Path("{privateip}/{mac}/{hostname}")
     public String privateIpAddNotification(@PathParam("privateip")
-            String privateIp) {
-        if (privateIp == null) {
-            log.info("Private IP address to add is null");
+            String privateIp, @PathParam("mac") String mac,
+            @PathParam("hostname") String hostName) {
+
+        log.info("Received creating vBNG request, "
+                + "privateIp= {}, mac={}, hostName= {}",
+                 privateIp, mac, hostName);
+
+        if (privateIp == null || mac == null || hostName == null) {
+            log.info("Parameters can not be null");
             return "0";
         }
-        log.info("Received a private IP address : {} to add", privateIp);
+
         IpAddress privateIpAddress = IpAddress.valueOf(privateIp);
+        MacAddress hostMacAddress = MacAddress.valueOf(mac);
 
         VbngService vbngService = get(VbngService.class);
 
         IpAddress publicIpAddress = null;
         // Create a virtual BNG
-        publicIpAddress = vbngService.createVbng(privateIpAddress);
+        publicIpAddress = vbngService.createVbng(privateIpAddress,
+                                                 hostMacAddress,
+                                                 hostName);
 
         if (publicIpAddress != null) {
             return publicIpAddress.toString();

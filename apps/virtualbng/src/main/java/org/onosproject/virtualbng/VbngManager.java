@@ -17,11 +17,10 @@ package org.onosproject.virtualbng;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -37,7 +36,9 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -84,19 +85,28 @@ public class VbngManager implements VbngService {
     private Map<IpAddress, PointToPointIntent> p2pIntentsFromHost;
     private Map<IpAddress, PointToPointIntent> p2pIntentsToHost;
 
-    // This set stores all the private IP addresses we failed to create vBNGs
-    // for the first time.
-    private Set<IpAddress> privateIpAddressSet;
+    // This map stores the mapping from the private IP addresses to VcpeHost.
+    // The IP addresses in this map are all the private IP addresses we failed
+    // to create vBNGs due to the next hop host was not in ONOS.
+    private Map<IpAddress, VcpeHost> privateIpAddressMap;
+
+    // Store the mapping from hostname to connect point
+    private Map<String, ConnectPoint> nodeToPort;
 
     private HostListener hostListener;
     private IpAddress nextHopIpAddress;
+
+    private static final DeviceId FABRIC_DEVICE_ID =
+            DeviceId.deviceId("of:8f0e486e73000187");
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
         p2pIntentsFromHost = new ConcurrentHashMap<>();
         p2pIntentsToHost = new ConcurrentHashMap<>();
-        privateIpAddressSet = Sets.newConcurrentHashSet();
+        privateIpAddressMap = new ConcurrentHashMap<>();
+
+        setupMap();
 
         nextHopIpAddress = vbngConfigurationService.getNextHopIpAddress();
         hostListener = new InternalHostListener();
@@ -111,8 +121,25 @@ public class VbngManager implements VbngService {
         log.info("vBNG Stopped");
     }
 
+    /**
+     * Sets up mapping from hostname to connect point.
+     */
+    private void setupMap() {
+        nodeToPort = Maps.newHashMap();
+
+        nodeToPort.put("cordcompute01.onlab.us",
+                       new ConnectPoint(FABRIC_DEVICE_ID,
+                                        PortNumber.portNumber(48)));
+
+        nodeToPort.put("cordcompute02.onlab.us",
+                       new ConnectPoint(FABRIC_DEVICE_ID,
+                                        PortNumber.portNumber(47)));
+    }
+
     @Override
-    public IpAddress createVbng(IpAddress privateIpAddress) {
+    public IpAddress createVbng(IpAddress privateIpAddress,
+                                MacAddress hostMacAddress,
+                                String hostName) {
 
         IpAddress publicIpAddress =
                 vbngConfigurationService.getAvailablePublicIpAddress(
@@ -126,8 +153,10 @@ public class VbngManager implements VbngService {
 
         // Setup paths between the host configured with private IP and
         // next hop
-        if (!setupForwardingPaths(privateIpAddress, publicIpAddress)) {
-            privateIpAddressSet.add(privateIpAddress);
+        if (!setupForwardingPaths(privateIpAddress, publicIpAddress,
+                                  hostMacAddress, hostName)) {
+            privateIpAddressMap.put(privateIpAddress,
+                                    new VcpeHost(hostMacAddress, hostName));
         }
         return publicIpAddress;
     }
@@ -143,8 +172,8 @@ public class VbngManager implements VbngService {
             return null;
         }
 
-        // Remove the private IP address from privateIpAddressSet
-        privateIpAddressSet.remove(privateIpAddress);
+        // Remove the private IP address from privateIpAddressMap
+        privateIpAddressMap.remove(privateIpAddress);
 
         // Remove intents
         removeForwardingPaths(privateIpAddress);
@@ -179,10 +208,17 @@ public class VbngManager implements VbngService {
      *
      * @param privateIp the private IP address of a local host
      * @param publicIp the public IP address assigned for the private IP address
+     * @param hostMacAddress the MAC address for the IP address
+     * @param hostName the host name for the IP address
      */
-    private boolean setupForwardingPaths(IpAddress privateIp, IpAddress publicIp) {
+    private boolean setupForwardingPaths(IpAddress privateIp,
+                                         IpAddress publicIp,
+                                         MacAddress hostMacAddress,
+                                         String hostName) {
         checkNotNull(privateIp);
         checkNotNull(publicIp);
+        checkNotNull(hostMacAddress);
+        checkNotNull(hostName);
 
         if (nextHopIpAddress == null) {
             log.warn("Did not find next hop IP address");
@@ -196,7 +232,6 @@ public class VbngManager implements VbngService {
             return true;
         }
 
-        Host localHost = null;
         Host nextHopHost = null;
         if (!hostService.getHostsByIp(nextHopIpAddress).isEmpty()) {
             nextHopHost = hostService.getHostsByIp(nextHopIpAddress)
@@ -209,20 +244,10 @@ public class VbngManager implements VbngService {
             return false;
         }
 
-        if (!hostService.getHostsByIp(privateIp).isEmpty()) {
-            localHost =
-                    hostService.getHostsByIp(privateIp).iterator().next();
-        } else {
-            hostService.startMonitoringIp(privateIp);
-            return false;
-        }
-
         ConnectPoint nextHopConnectPoint =
                 new ConnectPoint(nextHopHost.location().elementId(),
                                  nextHopHost.location().port());
-        ConnectPoint localHostConnectPoint =
-                new ConnectPoint(localHost.location().elementId(),
-                                 localHost.location().port());
+        ConnectPoint localHostConnectPoint = nodeToPort.get(hostName);
 
         // Generate and install intent for traffic from host configured with
         // private IP
@@ -244,7 +269,7 @@ public class VbngManager implements VbngService {
             PointToPointIntent toLocalHostIntent
                     = dstMatchIntentGenerator(publicIp,
                                               privateIp,
-                                              localHost.mac(),
+                                              hostMacAddress,
                                               localHostConnectPoint,
                                               nextHopConnectPoint);
             p2pIntentsToHost.put(privateIp, toLocalHostIntent);
@@ -268,18 +293,21 @@ public class VbngManager implements VbngService {
             }
 
             for (IpAddress ipAddress: host.ipAddresses()) {
-                if (privateIpAddressSet.contains(ipAddress)) {
+                // The POST method from XOS gives us MAC and host name, so we
+                // do not need to do anything after receive a vCPE host event
+                // for now.
+                /*if (privateIpAddressSet.contains(ipAddress)) {
                     createVbngAgain(ipAddress);
-                }
+                }*/
 
                 if (nextHopIpAddress != null &&
                         ipAddress.equals(nextHopIpAddress)) {
-                    Iterator<IpAddress> ipAddresses =
-                            privateIpAddressSet.iterator();
-                    while (ipAddresses.hasNext()) {
-                        IpAddress privateIpAddress = ipAddresses.next();
-                        createVbngAgain(privateIpAddress);
+
+                    for (Entry<IpAddress, VcpeHost> entry:
+                        privateIpAddressMap.entrySet()) {
+                        createVbngAgain(entry.getKey());
                     }
+
                 }
             }
         }
@@ -287,8 +315,7 @@ public class VbngManager implements VbngService {
 
     /**
      * Tries to create vBNG again after receiving a host event if the IP
-     * address of the host is a private IP address or the next hop IP
-     * address.
+     * address of the host is the next hop IP address.
      *
      * @param privateIpAddress the private IP address
      */
@@ -301,16 +328,14 @@ public class VbngManager implements VbngService {
             // addresses. If a private IP addresses does not have an assigned
             // public IP address, we should not get it an available public IP
             // address here, and we should delete it in the unhandled private
-            // IP address set.
-            privateIpAddressSet.remove(privateIpAddress);
+            // IP address map.
+            privateIpAddressMap.remove(privateIpAddress);
             return;
         }
-        if (setupForwardingPaths(privateIpAddress, publicIpAddress)) {
-            // At this moment it is still possible to fail to create a vBNG,
-            // because creating a vBNG needs two hosts, one is the local host
-            // configured with private IP address, the other is the next hop
-            // host.
-            privateIpAddressSet.remove(privateIpAddress);
+        VcpeHost vcpeHost = privateIpAddressMap.get(privateIpAddress);
+        if (setupForwardingPaths(privateIpAddress, publicIpAddress,
+                                 vcpeHost.macAddress, vcpeHost.hostName)) {
+            privateIpAddressMap.remove(privateIpAddress);
         }
     }
 
@@ -412,5 +437,17 @@ public class VbngManager implements VbngService {
                 + ": {}", intent);
 
         return intent;
+    }
+
+    /**
+     * Constructor to store the a vCPE host info.
+     */
+    private class VcpeHost {
+        MacAddress macAddress;
+        String hostName;
+        public VcpeHost(MacAddress macAddress, String hostName) {
+            this.macAddress = macAddress;
+            this.hostName = hostName;
+        }
     }
 }
