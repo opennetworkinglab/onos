@@ -64,6 +64,7 @@ public class XosManagerRestUtils {
         this.xosServerAddress = xosServerAddress;
         this.xosServerPort = xosServerPort;
         this.baseUri = baseUri;
+        log.info("XMRU:: {}:{}/{}", xosServerAddress, xosServerPort, baseUri);
     }
 
     // build the base URL from the pieces we know...
@@ -93,6 +94,7 @@ public class XosManagerRestUtils {
         Client client = Client.create();
         client.addFilter(new HTTPBasicAuthFilter(AUTH_USER, AUTH_PASS));
         WebResource resource = client.resource(baseUrl() + uri);
+        log.info("XOS REST CALL>> {}", resource);
         return resource.accept(UTF_8).type(UTF_8);
     }
 
