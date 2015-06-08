@@ -20,7 +20,9 @@
     var urlSuffix = '/rs/dashboard';
 
     function randomDate(start, end) {
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        return new Date(
+            start.getTime() + Math.random() * (end.getTime() - start.getTime())
+        );
     }
 
     angular.module('cordHome', [])
@@ -38,12 +40,13 @@
 
                         if ($.isEmptyObject($scope.shared.userActivity)) {
                             $scope.users.forEach(function (user) {
-                                var date = randomDate(new Date(2015, 0, 1), new Date());
+                                var date = randomDate(new Date(2015, 0, 1),
+                                    new Date());
 
-                                $scope.shared.userActivity[user.id] = $filter('date')(date, 'mediumTime');
+                                $scope.shared.userActivity[user.id] =
+                                    $filter('date')(date, 'mediumTime');
                             });
                         }
-
                     },
                     // error
                     function () {

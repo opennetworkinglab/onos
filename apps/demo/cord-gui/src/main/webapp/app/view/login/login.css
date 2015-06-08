@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+div#login{
+    /*background: url("/imgs/login.png") no-repeat;*/
+    height: 100%;
+}
+
 div#login-wrapper {
     text-align: center;
 }
@@ -28,19 +33,8 @@ div#login-wrapper {
     top: -140px;
 }
 
-div#login-logo {
-    margin-top: 13%;
-    width: 217px;
-}
-div#login-logo, div#login-form {
+div#login-form {
     display: inline-block;
-}
-
-#login-logo use.glyph.bird {
-    fill: #CE5650;
-}
-#login-logo circle {
-    fill: none;
 }
 
 #login div.outline {
@@ -57,12 +51,13 @@ div#login-form {
     margin-left: 2.5%;
     position: relative;
     width: 255px;
+    margin-top: 30%;
 }
 
 #login-form form {
     line-height: 250%;
-
 }
+
 #login-form input {
     display: block;
     height: 40px;
@@ -111,4 +106,9 @@ div#login-form {
 #login-form input[type="button"]:hover {
     color: white;
     background-color: rgb(122, 188, 229);
+}
+
+#login-form input.ng-invalid.ng-touched {
+    background-color: #CE5650;
+    color: white;
 }

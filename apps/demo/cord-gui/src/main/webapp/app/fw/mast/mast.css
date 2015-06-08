@@ -35,7 +35,11 @@ div.mast {
 
 .mast div.right {
     right: 7%;
-    width: 30%;
+    width: 37%;
+}
+
+.mast h1 {
+    font-size: 250%;
 }
 
 .mast a,
@@ -47,8 +51,21 @@ div.mast {
 .mast svg {
     position: absolute;
     top: -1px;
-    left: 88px;
+    left: 106px;
 }
 .mast g.icon use.glyph.bird {
     fill: #CE5650;
+}
+
+.mast li.logout {
+    list-style-type: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+.mast li.logout:hover {
+    border-bottom: 2px solid #CE5650;
+    list-style-type: none;
+    cursor: pointer;
 }

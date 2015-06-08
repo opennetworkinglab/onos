@@ -18,6 +18,10 @@
     display: none !important;
 }
 
+html, body, div#frame, div#view {
+    height: 100%;
+}
+
 head, body, footer,
 h1, h2, h3, h4, h5, h6, p,
 a, ul, li, div,
@@ -72,6 +76,10 @@ th {
     color: white;
     letter-spacing: 0.05em;
     font-weight: lighter;
+}
+
+div.container {
+    min-height: 100%;
 }
 
 button,

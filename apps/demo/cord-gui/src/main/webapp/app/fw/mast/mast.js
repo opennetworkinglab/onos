@@ -14,10 +14,33 @@
  * limitations under the License.
  */
 
-angular.module('cordMast', [])
-    .directive('mast', function () {
-        return {
-            restrict: 'E',
-            templateUrl: 'app/fw/mast/mast.html'
-        };
-    });
+(function () {
+    'use strict';
+
+    var urlSuffix = '/rs/logout';
+
+    angular.module('cordMast', [])
+        .controller('CordMastCtrl',
+        ['$log','$scope', '$resource', '$location', '$window',
+            function ($log, $scope, $resource, $location, $window) {
+                var LogoutData, resource;
+
+                $scope.logout = function () {
+                    $log.debug('Logging out...');
+                    LogoutData = $resource($scope.shared.url + urlSuffix);
+                    resource = LogoutData.get({},
+                        function () {
+                            $location.path('/login');
+                            $window.location.href = $location.absUrl();
+                            $log.debug('Resource received:', resource);
+                        });
+                };
+            }])
+
+        .directive('mast', function () {
+            return {
+                restrict: 'E',
+                templateUrl: 'app/fw/mast/mast.html'
+            };
+        });
+}());

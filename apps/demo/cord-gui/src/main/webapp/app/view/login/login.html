@@ -1,19 +1,13 @@
 <!-- Login page partial html -->
 <div id="login" class="container">
     <div id="login-wrapper">
-        <div id="login-logo">
-            <icon size="125" id="bird"></icon>
-        </div>
-
         <div id="login-form">
             <div class="outline"></div>
                 <h2>Subscriber Portal</h2>
                 <form>
-                    <input ng-model="email" type="text" placeholder="email">
-                    <input type="password" placeholder="password">
-                    <a href="#/home">
-                        <input ng-click="login()" type="button" value="Log In">
-                    </a>
+                    <input ng-model="email" type="text" placeholder="email" required>
+                    <input ng-model="password" type="password" placeholder="password" required>
+                    <input ng-click="login()" type="button" value="Log In">
                 </form>
         </div>
     </div>
