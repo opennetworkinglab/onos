@@ -53,7 +53,7 @@ public interface StorageService {
      * @param <E> set element type
      * @return builder for an distributed set
      */
-    <E> SetBuilder<E> setBuilder();
+    <E> DistributedSetBuilder<E> setBuilder();
 
     /**
      * Creates a new AtomicCounterBuilder.

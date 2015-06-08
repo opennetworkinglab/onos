@@ -18,9 +18,11 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.*;
 
+import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
@@ -41,10 +43,14 @@ public class DefaultTransactionContext implements TransactionContext {
     private boolean isOpen = false;
     private final Database database;
     private final long transactionId;
+    private final Supplier<ConsistentMapBuilder> mapBuilderSupplier;
 
-    public DefaultTransactionContext(Database database, long transactionId) {
-        this.database = checkNotNull(database);
+    public DefaultTransactionContext(long transactionId,
+            Database database,
+            Supplier<ConsistentMapBuilder> mapBuilderSupplier) {
         this.transactionId = transactionId;
+        this.database = checkNotNull(database);
+        this.mapBuilderSupplier = checkNotNull(mapBuilderSupplier);
     }
 
     @Override
@@ -72,7 +78,7 @@ public class DefaultTransactionContext implements TransactionContext {
         checkNotNull(serializer);
         return txMaps.computeIfAbsent(mapName, name -> new DefaultTransactionalMap<>(
                                 name,
-                                new DefaultConsistentMap<>(name, database, serializer, false),
+                                mapBuilderSupplier.get().withName(name).withSerializer(serializer).build(),
                                 this,
                                 serializer));
     }
@@ -85,6 +91,7 @@ public class DefaultTransactionContext implements TransactionContext {
             List<DatabaseUpdate> updates = Lists.newLinkedList();
             txMaps.values()
                   .forEach(m -> { updates.addAll(m.prepareDatabaseUpdates()); });
+            // FIXME: Updates made via transactional context currently do not result in notifications. (ONOS-2097)
             database.prepareAndCommit(new DefaultTransaction(transactionId, updates));
         } catch (Exception e) {
             abort();

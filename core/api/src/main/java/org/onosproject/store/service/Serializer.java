@@ -16,7 +16,12 @@
 
 package org.onosproject.store.service;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.onlab.util.KryoNamespace;
+
+import com.google.common.collect.Lists;
 
 /**
  * Interface for serialization for store artifacts.
@@ -45,16 +50,32 @@ public interface Serializer {
      * @return Serializer instance
      */
     static Serializer using(KryoNamespace kryo) {
+        return using(Arrays.asList(kryo));
+    }
+
+    static Serializer using(List<KryoNamespace> namespaces, Class<?>... classes) {
+        KryoNamespace.Builder builder = new KryoNamespace.Builder();
+        namespaces.forEach(builder::register);
+        Lists.newArrayList(classes).forEach(builder::register);
+        builder.register(MapEvent.class, MapEvent.Type.class);
+        KryoNamespace namespace = builder.build();
         return new Serializer() {
             @Override
             public <T> byte[] encode(T object) {
-                return kryo.serialize(object);
+                return namespace.serialize(object);
             }
 
             @Override
             public <T> T decode(byte[] bytes) {
-                return kryo.deserialize(bytes);
+                return namespace.deserialize(bytes);
             }
         };
+    }
+
+    static Serializer forTypes(Class<?>... classes) {
+        return using(KryoNamespace.newBuilder()
+                                  .register(classes)
+                                  .register(MapEvent.class, MapEvent.Type.class)
+                                  .build());
     }
 }

@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkState;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
+import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.Serializer;
 
 /**
@@ -20,12 +21,10 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     private String name;
     private boolean partitionsEnabled = true;
     private boolean readOnly = false;
-    private final Database partitionedDatabase;
-    private final Database inMemoryDatabase;
+    private final DatabaseManager manager;
 
-    public DefaultConsistentMapBuilder(Database inMemoryDatabase, Database partitionedDatabase) {
-        this.inMemoryDatabase = inMemoryDatabase;
-        this.partitionedDatabase = partitionedDatabase;
+    public DefaultConsistentMapBuilder(DatabaseManager manager) {
+        this.manager = manager;
     }
 
     @Override
@@ -60,21 +59,25 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
 
     @Override
     public ConsistentMap<K, V> build() {
-        checkState(validInputs());
-        return new DefaultConsistentMap<>(
-                name,
-                partitionsEnabled ? partitionedDatabase : inMemoryDatabase,
-                serializer,
-                readOnly);
+        return new DefaultConsistentMap<>(buildAndRegisterMap());
     }
 
     @Override
     public AsyncConsistentMap<K, V> buildAsyncMap() {
+        return buildAndRegisterMap();
+    }
+
+    private DefaultAsyncConsistentMap<K, V> buildAndRegisterMap() {
         checkState(validInputs());
-        return new DefaultAsyncConsistentMap<>(
+        DefaultAsyncConsistentMap<K, V> asyncMap = new DefaultAsyncConsistentMap<>(
                 name,
-                partitionsEnabled ? partitionedDatabase : inMemoryDatabase,
+                partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
                 serializer,
-                readOnly);
+                readOnly,
+                event -> manager.clusterCommunicator.<MapEvent<K, V>>broadcast(event,
+                        DatabaseManager.mapUpdatesSubject(name),
+                        serializer::encode));
+        manager.registerMap(asyncMap);
+        return asyncMap;
     }
 }

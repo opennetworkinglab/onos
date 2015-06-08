@@ -50,6 +50,7 @@ public class PartitionedDatabase implements Database {
     private final List<Database> partitions;
     private final AtomicBoolean isOpen = new AtomicBoolean(false);
     private static final String DB_NOT_OPEN = "Partitioned Database is not open";
+    private TransactionManager transactionManager;
 
     public PartitionedDatabase(
             String name,
@@ -285,7 +286,10 @@ public class PartitionedDatabase implements Database {
                     subTransactions.entrySet().iterator().next();
             return entry.getKey().prepareAndCommit(entry.getValue());
         } else {
-            return new TransactionManager(this).execute(transaction);
+            if (transactionManager != null) {
+                throw new IllegalStateException("TransactionManager is not initialized");
+            }
+            return transactionManager.execute(transaction);
         }
     }
 
@@ -386,5 +390,9 @@ public class PartitionedDatabase implements Database {
         Map<Database, Transaction> subTransactions = Maps.newHashMap();
         perPartitionUpdates.forEach((k, v) -> subTransactions.put(k, new DefaultTransaction(transaction.id(), v)));
         return subTransactions;
+    }
+
+    protected void setTransactionManager(TransactionManager tranasactionManager) {
+        this.transactionManager = transactionManager;
     }
 }

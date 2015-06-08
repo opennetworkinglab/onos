@@ -42,19 +42,24 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+
+import static org.onlab.util.Tools.groupedThreads;
+
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.store.cluster.impl.ClusterDefinitionManager;
 import org.onosproject.store.cluster.impl.NodeInfo;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.PartitionInfo;
-import org.onosproject.store.service.SetBuilder;
+import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Transaction;
@@ -69,6 +74,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -93,11 +99,15 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private static final int DATABASE_OPERATION_TIMEOUT_MILLIS = 5000;
 
     private ClusterCoordinator coordinator;
-    private PartitionedDatabase partitionedDatabase;
-    private Database inMemoryDatabase;
+    protected PartitionedDatabase partitionedDatabase;
+    protected Database inMemoryDatabase;
 
     private TransactionManager transactionManager;
     private final IdGenerator transactionIdGenerator = () -> RandomUtils.nextLong();
+
+    private ExecutorService eventDispatcher;
+
+    private final Set<DefaultAsyncConsistentMap> maps = Sets.newCopyOnWriteArraySet();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -187,7 +197,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         Futures.getUnchecked(status);
 
-        transactionManager = new TransactionManager(partitionedDatabase);
+        transactionManager = new TransactionManager(partitionedDatabase, consistentMapBuilder());
+
+        eventDispatcher = Executors.newSingleThreadExecutor(
+                groupedThreads("onos/store/manager", "map-event-dispatcher"));
         log.info("Started");
     }
 
@@ -213,13 +226,14 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                     log.info("Successfully closed databases.");
                 }
             });
+        maps.forEach(map -> clusterCommunicator.removeSubscriber(mapUpdatesSubject(map.name())));
+        eventDispatcher.shutdown();
         log.info("Stopped");
     }
 
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
-        return new DefaultTransactionContextBuilder(
-                inMemoryDatabase, partitionedDatabase, transactionIdGenerator.getNewId());
+        return new DefaultTransactionContextBuilder(this, transactionIdGenerator.getNewId());
     }
 
     @Override
@@ -296,12 +310,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
-        return new DefaultConsistentMapBuilder<>(inMemoryDatabase, partitionedDatabase);
+        return new DefaultConsistentMapBuilder<>(this);
     }
 
     @Override
-    public <E> SetBuilder<E> setBuilder() {
-        return new DefaultSetBuilder<>(partitionedDatabase);
+    public <E> DistributedSetBuilder<E> setBuilder() {
+        return new DefaultDistributedSetBuilder<>(this);
     }
 
     @Override
@@ -369,5 +383,21 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     @Override
     public void redriveTransactions() {
         getTransactions().stream().forEach(transactionManager::execute);
+    }
+
+    protected <K, V> void registerMap(DefaultAsyncConsistentMap<K, V> map) {
+        // TODO: Support different local instances of the same map.
+        if (!maps.add(map)) {
+            throw new IllegalStateException("Map by name " + map.name() + " already exists");
+        }
+
+        clusterCommunicator.<MapEvent<K, V>>addSubscriber(mapUpdatesSubject(map.name()),
+                map.serializer()::decode,
+                map::notifyLocalListeners,
+                eventDispatcher);
+    }
+
+    protected static MessageSubject mapUpdatesSubject(String mapName) {
+        return new MessageSubject(mapName + "-map-updates");
     }
 }

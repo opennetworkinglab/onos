@@ -17,11 +17,17 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.DistributedSet;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.SetEvent;
+import org.onosproject.store.service.SetEventListener;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -29,12 +35,15 @@ import com.google.common.collect.Sets;
 
  * @param <E> set element type
  */
-public class DefaultDistributedSet<E> implements Set<E> {
+public class DefaultDistributedSet<E> implements DistributedSet<E> {
 
+    private final String name;
     private final ConsistentMap<E, Boolean> backingMap;
+    private final Map<SetEventListener<E>, MapEventListener<E, Boolean>> listenerMapping = Maps.newIdentityHashMap();
 
-    public DefaultDistributedSet(String name, Database database, Serializer serializer, boolean readOnly) {
-        backingMap = new DefaultConsistentMap<>(name, database, serializer, readOnly);
+    public DefaultDistributedSet(String name, ConsistentMap<E, Boolean> backingMap) {
+        this.name = name;
+        this.backingMap = backingMap;
     }
 
     @Override
@@ -76,7 +85,7 @@ public class DefaultDistributedSet<E> implements Set<E> {
     @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object o) {
-        return backingMap.remove((E) o, true);
+        return backingMap.remove((E) o) != null;
     }
 
     @Override
@@ -118,5 +127,27 @@ public class DefaultDistributedSet<E> implements Set<E> {
     @Override
     public void clear() {
         backingMap.clear();
+    }
+
+    @Override
+    public void addListener(SetEventListener<E> listener) {
+        MapEventListener<E, Boolean> mapEventListener = mapEvent -> {
+            if (mapEvent.type() == MapEvent.Type.INSERT) {
+                listener.event(new SetEvent<>(name, SetEvent.Type.ADD, mapEvent.key()));
+            } else if (mapEvent.type() == MapEvent.Type.REMOVE) {
+                listener.event(new SetEvent<>(name, SetEvent.Type.REMOVE, mapEvent.key()));
+            }
+        };
+        if (listenerMapping.putIfAbsent(listener, mapEventListener) == null) {
+            backingMap.addListener(mapEventListener);
+        }
+    }
+
+    @Override
+    public void removeListener(SetEventListener<E> listener) {
+        MapEventListener<E, Boolean> mapEventListener = listenerMapping.remove(listener);
+        if (mapEventListener != null) {
+            backingMap.removeListener(mapEventListener);
+        }
     }
 }
