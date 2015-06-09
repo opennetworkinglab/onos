@@ -217,8 +217,8 @@ public class Coordinator {
             if (step instanceof Group) {
                 Group group = (Group) step;
                 group.children().forEach(child -> delegate.onCompletion(child, SKIPPED));
-                delegate.onCompletion(step, SKIPPED);
             }
+            delegate.onCompletion(step, SKIPPED);
         }
     }
 
@@ -268,7 +268,7 @@ public class Coordinator {
             boolean failed = false;
             for (Step child : group.children()) {
                 Status status = store.getStatus(child);
-                done = done && (status == SUCCEEDED || status == FAILED);
+                done = done && (status == SUCCEEDED || status == FAILED || status == SKIPPED);
                 failed = failed || status == FAILED;
             }
             if (done) {
