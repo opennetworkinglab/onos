@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -48,6 +49,7 @@ import org.onosproject.incubator.net.tunnel.TunnelStore;
 import org.onosproject.incubator.net.tunnel.TunnelStoreDelegate;
 import org.onosproject.incubator.net.tunnel.TunnelSubscription;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
@@ -371,6 +373,11 @@ public class TunnelManager
                 eventDispatcher.post(event);
             }
         }
+    }
+
+    @Override
+    public Iterable<Tunnel> getTunnels(DeviceId deviceId) {
+        return Collections.emptyList();
     }
 
 }
