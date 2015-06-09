@@ -20,6 +20,7 @@ import java.util.Collection;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.DeviceId;
 
 /**
  * Service for interacting with the inventory of tunnels.
@@ -184,6 +185,14 @@ public interface TunnelService {
      * @return all tunnels
      */
     int tunnelCount();
+
+    /**
+     * Returns the collection of tunnels applied on the specified device.
+     *
+     * @param deviceId device identifier
+     * @return collection of tunnels
+     */
+    Iterable<Tunnel> getTunnels(DeviceId deviceId);
 
     /**
      * Adds the specified tunnel listener.

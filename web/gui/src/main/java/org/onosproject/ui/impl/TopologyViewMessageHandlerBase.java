@@ -27,6 +27,9 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.PortStatisticsService;
+import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.AnnotationKeys;
@@ -143,6 +146,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected StatisticService flowStatsService;
     protected PortStatisticsService portStatsService;
     protected TopologyService topologyService;
+    protected TunnelService tunnelService;
 
     protected enum StatsType {
         FLOW, PORT
@@ -176,6 +180,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         flowStatsService = directory.get(StatisticService.class);
         portStatsService = directory.get(PortStatisticsService.class);
         topologyService = directory.get(TopologyService.class);
+        tunnelService = directory.get(TunnelService.class);
 
         String ver = directory.get(CoreService.class).version().toString();
         version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
@@ -446,6 +451,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                                        new Prop("Topology SCCs", format(topology.clusterCount())),
                                        new Separator(),
                                        new Prop("Intents", format(intentService.getIntentCount())),
+                                       new Prop("Tunnels", format(tunnelService.tunnelCount())),
                                        new Prop("Flows", format(flowService.getFlowRuleCount())),
                                        new Prop("Version", version)));
     }
@@ -457,6 +463,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String name = annot.value(AnnotationKeys.NAME);
         int portCount = deviceService.getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
+        int tunnelCount = getTunnelCount(deviceId);
         return JsonUtils.envelope("showDetails", sid,
                                   json(isNullOrEmpty(name) ? deviceId.toString() : name,
                                        device.type().toString().toLowerCase(),
@@ -472,7 +479,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                                        new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)),
                                        new Separator(),
                                        new Prop("Ports", Integer.toString(portCount)),
-                                       new Prop("Flows", Integer.toString(flowCount))));
+                                       new Prop("Flows", Integer.toString(flowCount)),
+                                       new Prop("Tunnels", Integer.toString(tunnelCount))
+                                  ));
     }
 
     protected int getFlowCount(DeviceId deviceId) {
@@ -481,6 +490,22 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         while (it.hasNext()) {
             count++;
             it.next();
+        }
+        return count;
+    }
+
+    protected int getTunnelCount(DeviceId deviceId) {
+        int count = 0;
+        Collection<Tunnel> tunnels = tunnelService.queryAllTunnels();
+        for (Tunnel tunnel : tunnels) {
+            OpticalTunnelEndPoint src = (OpticalTunnelEndPoint) tunnel.src();
+            OpticalTunnelEndPoint dst = (OpticalTunnelEndPoint) tunnel.dst();
+            DeviceId srcDevice = (DeviceId) src.elementId().get();
+            DeviceId dstDevice = (DeviceId) dst.elementId().get();
+            if (srcDevice.toString().equals(deviceId.toString())
+             || dstDevice.toString().equals(deviceId.toString())) {
+                count++;
+            }
         }
         return count;
     }
