@@ -184,7 +184,7 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     }
 
     @Override
-    public IpAddress recycleAssignedPublicIpAddress(IpAddress
+    public synchronized IpAddress recycleAssignedPublicIpAddress(IpAddress
                                                     privateIpAddress) {
         IpAddress publicIpAddress = ipAddressMap.remove(privateIpAddress);
         if (publicIpAddress == null) {
@@ -208,6 +208,61 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     @Override
     public Map<IpAddress, IpAddress> getIpAddressMappings() {
         return Collections.unmodifiableMap(ipAddressMap);
+    }
+
+    @Override
+    public synchronized boolean assignSpecifiedPublicIp(IpAddress publicIpAddress,
+                                  IpAddress privateIpAddress) {
+
+        // Judge whether this public IP address is in our public IP
+        // prefix/address list.
+        boolean isPublicIpExist = false;
+        for (Entry<IpPrefix, Boolean> prefix: localPublicIpPrefixes.entrySet()) {
+            if (prefix.getKey().contains(publicIpAddress)) {
+                isPublicIpExist = true;
+
+                // Judge whether this public IP address is already assigned
+                if (!prefix.getValue() ||
+                        isAssignedPublicIpAddress(publicIpAddress)) {
+                    log.info("The public IP address {} is already assigned, "
+                            + "and not available.", publicIpAddress);
+                    return false;
+                }
+
+                // The public IP address is still available
+                // Store the mapping from private IP address to public IP address
+                ipAddressMap.put(privateIpAddress, publicIpAddress);
+
+                // Update the prefix status
+                if (prefix.getKey().prefixLength() == 32) {
+                    updateIpPrefixStatus(prefix.getKey(), false);
+                    return true;
+                }
+
+                // Judge whether the prefix of this public IP address is used
+                // up, if so, update the IP prefix status.
+                int prefixLen = prefix.getKey().prefixLength();
+                int availableIpNum = (int) Math.pow(2,
+                        IpPrefix.MAX_INET_MASK_LENGTH - prefixLen) - 1;
+                int usedIpNum = 0;
+                for (Entry<IpAddress, IpAddress> ipAddressMapEntry:
+                    ipAddressMap.entrySet()) {
+                    if (prefix.getKey().contains(ipAddressMapEntry.getValue())) {
+                        usedIpNum = usedIpNum + 1;
+                    }
+                }
+                if (usedIpNum == availableIpNum) {
+                    updateIpPrefixStatus(prefix.getKey(), false);
+                }
+
+                return true;
+            }
+        }
+        if (!isPublicIpExist) {
+            log.info("The public IP address {} retrieved from XOS mapping does "
+                    + "not exist", publicIpAddress);
+        }
+        return false;
     }
 
     /**

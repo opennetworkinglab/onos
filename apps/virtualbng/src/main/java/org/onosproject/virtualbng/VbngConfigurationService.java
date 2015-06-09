@@ -81,4 +81,16 @@ public interface VbngConfigurationService {
      * @return the address map from private IP address to public IP address
      */
     Map<IpAddress, IpAddress> getIpAddressMappings();
+
+    /**
+     * Tries to assign a given public IP address to a private IP address. If
+     * success, then sets up the mapping from this private IP address to the
+     * public IP address, and stores the mapping.
+     *
+     * @param publicIpAddress the public IP address try to assign
+     * @param privateIpAddress a private IP address
+     * @return true if this public IP address is available, otherwise false
+     */
+    boolean assignSpecifiedPublicIp(IpAddress publicIpAddress,
+                                    IpAddress privateIpAddress);
 }

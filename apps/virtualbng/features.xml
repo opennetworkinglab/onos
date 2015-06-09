@@ -18,6 +18,7 @@
     <repository>mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features</repository>
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
+        <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
         <bundle>mvn:${project.groupId}/onos-app-virtualbng/${project.version}</bundle>
         <feature>onos-thirdparty-web</feature>
     </feature>

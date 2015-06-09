@@ -17,8 +17,12 @@ package org.onosproject.virtualbng;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,6 +70,7 @@ import org.slf4j.LoggerFactory;
 public class VbngManager implements VbngService {
 
     private static final String APP_NAME = "org.onosproject.virtualbng";
+    private static final String VBNG_MAP_NAME = "vbng_mapping";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -113,12 +118,51 @@ public class VbngManager implements VbngService {
         hostService.addListener(hostListener);
 
         log.info("vBNG Started");
+
+        // Recover the status before vBNG restarts
+        statusRecovery();
     }
 
     @Deactivate
     public void deactivate() {
         hostService.removeListener(hostListener);
         log.info("vBNG Stopped");
+    }
+
+    /**
+     * Recovers from XOS record. Re-sets up the mapping between private IP
+     * address and public IP address, re-calculates intents and re-installs
+     * those intents.
+     */
+    private void statusRecovery() {
+        log.info("vBNG starts to recover from XOS record......");
+        RestClient restClient = new RestClient();
+        ObjectNode map = restClient.getRest();
+        if (map == null) {
+            log.info("Stop to recover vBNG status due to the vBNG map "
+                    + "is null!");
+            return;
+        }
+
+        log.info("Get record from XOS: {}", map);
+
+        ArrayNode array = (ArrayNode) map.get(VBNG_MAP_NAME);
+        Iterator<JsonNode> entries = array.elements();
+        while (entries.hasNext()) {
+            ObjectNode entry = (ObjectNode) entries.next();
+
+            IpAddress hostIpAdddress =
+                    IpAddress.valueOf(entry.get("private_ip").asText());
+            IpAddress publicIpAddress =
+                    IpAddress.valueOf(entry.get("routeable_subnet").asText());
+            MacAddress macAddress =
+                    MacAddress.valueOf(entry.get("mac").asText());
+            String hostName = entry.get("hostname").asText();
+
+            // Create vBNG
+            createVbng(hostIpAdddress, publicIpAddress, macAddress, hostName);
+
+        }
     }
 
     /**
@@ -134,6 +178,39 @@ public class VbngManager implements VbngService {
         nodeToPort.put("cordcompute02.onlab.us",
                        new ConnectPoint(FABRIC_DEVICE_ID,
                                         PortNumber.portNumber(47)));
+    }
+
+    /**
+     * Creates a new vBNG.
+     *
+     * @param privateIpAddress a private IP address
+     * @param publicIpAddress the public IP address for the private IP address
+     * @param hostMacAddress the MAC address for the private IP address
+     * @param hostName the host name for the private IP address
+     */
+    private void createVbng(IpAddress privateIpAddress,
+                            IpAddress publicIpAddress,
+                            MacAddress hostMacAddress,
+                            String hostName) {
+        boolean result = vbngConfigurationService
+                .assignSpecifiedPublicIp(publicIpAddress, privateIpAddress);
+        if (!result) {
+            log.info("Assign public IP address {} for private IP address {} "
+                    + "failed!", publicIpAddress, privateIpAddress);
+            log.info("Failed to create vBNG for private IP address {}",
+                     privateIpAddress);
+            return;
+        }
+        log.info("[ADD] Private IP to Public IP mapping: {} --> {}",
+                 privateIpAddress, publicIpAddress);
+
+        // Setup paths between the host configured with private IP and
+        // next hop
+        if (!setupForwardingPaths(privateIpAddress, publicIpAddress,
+                                  hostMacAddress, hostName)) {
+            privateIpAddressMap.put(privateIpAddress,
+                                    new VcpeHost(hostMacAddress, hostName));
+        }
     }
 
     @Override
