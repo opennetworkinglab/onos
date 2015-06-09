@@ -117,17 +117,20 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             new ProviderId("core", "org.onosproject.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
 
-    private static final double KB = 1024;
-    private static final double MB = 1024 * KB;
-    private static final double GB = 1024 * MB;
+    private static final double KILO = 1024;
+    private static final double MEGA = 1024 * KILO;
+    private static final double GIGA = 1024 * MEGA;
 
-    // TODO: change GB to Gb (when we compute bits/second)
-    private static final String GB_UNIT = "GB";
-    private static final String MB_UNIT = "MB";
-    private static final String KB_UNIT = "KB";
-    private static final String B_UNIT = "B";
-
-    private static final double BPS_THRESHOLD = 4 * KB;
+    private static final String GBITS_UNIT = "Gb";
+    private static final String MBITS_UNIT = "Mb";
+    private static final String KBITS_UNIT = "Kb";
+    private static final String BITS_UNIT = "b";
+    private static final String GBYTES_UNIT = "GB";
+    private static final String MBYTES_UNIT = "MB";
+    private static final String KBYTES_UNIT = "KB";
+    private static final String BYTES_UNIT = "B";
+    //4 Kilo Bytes as threshold
+    private static final double BPS_THRESHOLD = 4 * KILO;
 
     protected ServiceDirectory directory;
     protected ClusterService clusterService;
@@ -576,13 +579,17 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 link.addLoad(getLinkLoad(link.one));
                 link.addLoad(bi ? getLinkLoad(link.two) : null);
             } else if (type == PORT) {
-                link.addLoad(portStatsService.load(link.one.src()), BPS_THRESHOLD);
-                link.addLoad(portStatsService.load(link.one.dst()), BPS_THRESHOLD);
+                //For a bi-directional traffic links, use
+                //the max link rate of either direction
+                link.addLoad(portStatsService.load(link.one.src()),
+                             BPS_THRESHOLD,
+                             portStatsService.load(link.one.dst()),
+                             BPS_THRESHOLD);
             }
             if (link.hasTraffic) {
                 linksNodeT.add(compactLinkString(link.one));
                 labelsT.add(type == PORT ?
-                                    formatBytes(link.rate) + "ps" :
+                                    formatBitRate(link.rate) + "ps" :
                                     formatBytes(link.bytes));
             } else {
                 linksNodeN.add(compactLinkString(link.one));
@@ -745,21 +752,43 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Poor-mans formatting to get the labels with byte counts looking nice.
     private String formatBytes(long bytes) {
-        // TODO: multiply everything by 8 to compute bits/second
         String unit;
         double value;
-        if (bytes > GB) {
-            value = bytes / GB;
-            unit = GB_UNIT;
-        } else if (bytes > MB) {
-            value = bytes / MB;
-            unit = MB_UNIT;
-        } else if (bytes > KB) {
-            value = bytes / KB;
-            unit = KB_UNIT;
+        if (bytes > GIGA) {
+            value = bytes / GIGA;
+            unit = GBYTES_UNIT;
+        } else if (bytes > MEGA) {
+            value = bytes / MEGA;
+            unit = MBYTES_UNIT;
+        } else if (bytes > KILO) {
+            value = bytes / KILO;
+            unit = KBYTES_UNIT;
         } else {
             value = bytes;
-            unit = B_UNIT;
+            unit = BYTES_UNIT;
+        }
+        DecimalFormat format = new DecimalFormat("#,###.##");
+        return format.format(value) + " " + unit;
+    }
+
+    // Poor-mans formatting to get the labels with byte counts looking nice.
+    private String formatBitRate(long bytes) {
+        String unit;
+        double value;
+        //Convert to bits
+        long bits = bytes * 8;
+        if (bits > GIGA) {
+            value = bits / GIGA;
+            unit = GBITS_UNIT;
+        } else if (bits > MEGA) {
+            value = bits / MEGA;
+            unit = MBITS_UNIT;
+        } else if (bits > KILO) {
+            value = bits / KILO;
+            unit = KBITS_UNIT;
+        } else {
+            value = bits;
+            unit = BITS_UNIT;
         }
         DecimalFormat format = new DecimalFormat("#,###.##");
         return format.format(value) + " " + unit;
@@ -829,6 +858,26 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 this.hasTraffic = hasTraffic || load.rate() > threshold;
                 this.bytes += load.latest();
                 this.rate += load.rate();
+            }
+        }
+
+        void addLoad(Load srcLinkLoad,
+                     double srcLinkThreshold,
+                     Load dstLinkLoad,
+                     double dstLinkThreshold) {
+            //use the max of link load at source or destination
+            if (srcLinkLoad != null) {
+                this.hasTraffic = hasTraffic || srcLinkLoad.rate() > srcLinkThreshold;
+                this.bytes = srcLinkLoad.latest();
+                this.rate = srcLinkLoad.rate();
+            }
+
+            if (dstLinkLoad != null) {
+                if (dstLinkLoad.rate() > this.rate) {
+                    this.bytes = dstLinkLoad.latest();
+                    this.rate = dstLinkLoad.rate();
+                    this.hasTraffic = hasTraffic || dstLinkLoad.rate() > dstLinkThreshold;
+                }
             }
         }
 

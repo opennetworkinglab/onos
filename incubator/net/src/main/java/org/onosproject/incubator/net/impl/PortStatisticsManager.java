@@ -80,10 +80,19 @@ public class PortStatisticsManager implements PortStatisticsService {
         long now = System.currentTimeMillis();
 
         if (c != null && p != null && (now - c.time < STALE_LIMIT)) {
-            if ((c.time > p.time + SECOND) &&
-                (c.stats.bytesSent() >= p.stats.bytesSent())) {
-                return new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
-                                       (int) (c.time - p.time) / SECOND);
+            if (c.time > p.time + SECOND) {
+                //Use max of either Tx or Rx load as the total load of a port
+                Load load = null;
+                if (c.stats.bytesSent() >= p.stats.bytesSent()) {
+                    load = new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
+                                                    (int) (c.time - p.time) / SECOND);
+                }
+                if (c.stats.bytesReceived() >= p.stats.bytesReceived()) {
+                    Load rcvLoad = new DefaultLoad(c.stats.bytesReceived(), p.stats.bytesReceived(),
+                                                    (int) (c.time - p.time) / SECOND);
+                    load = ((load == null) || (rcvLoad.rate() > load.rate())) ? rcvLoad : load;
+                }
+                return load;
             }
         }
         return null;

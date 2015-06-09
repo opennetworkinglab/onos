@@ -46,7 +46,7 @@
       { "id": "rack", "pos":[800,600], "class":"blue1" }
     ],
     "labels": [
-      { "pos":[550,80], "text":"Segment Routing Demo", "class":"blue1", "size":1.4 }
+      { "pos":[550,80], "text":"", "class":"blue1", "size":1.4 }
     ]
   }
 }

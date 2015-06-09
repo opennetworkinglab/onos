@@ -69,8 +69,7 @@
                     ldata.el.classed(p.class, true);
                     ldata.label = lab;
 
-                    // TODO: change this to 'bps' when we measure bits/sec
-                    if (fs.endsWith(lab, 'Bps')) {
+                    if (fs.endsWith(lab, 'bps')) {
                         // inject additional styling for port-based traffic
                         units = lab.substring(lab.length-4);
                         portcls = 'port-traffic-' + units;
