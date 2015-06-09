@@ -295,7 +295,7 @@ public class CordModelCache extends JsonFactory {
      * @param email the supplied email
      * @return JSON acknowledgement
      */
-    public String jsonLogin(String email) {
+    public synchronized String jsonLogin(String email) {
         log.info("jsonLogin(\"{}\")", email);
         init(email);
         ObjectNode root = objectNode();
@@ -308,7 +308,7 @@ public class CordModelCache extends JsonFactory {
      *
      * @return dashboard page JSON data
      */
-    public String jsonDashboard() {
+    public synchronized String jsonDashboard() {
         log.info("jsonDashboard()");
 
         if (email == null) {
@@ -327,7 +327,7 @@ public class CordModelCache extends JsonFactory {
      *
      * @return bundle page JSON data
      */
-    public String jsonBundle() {
+    public synchronized String jsonBundle() {
         log.info("jsonBundle()");
 
         if (email == null) {
@@ -344,7 +344,7 @@ public class CordModelCache extends JsonFactory {
      *
      * @return users page JSON data
      */
-    public String jsonUsers() {
+    public synchronized String jsonUsers() {
         log.info("jsonUsers()");
 
         if (email == null) {
@@ -362,7 +362,7 @@ public class CordModelCache extends JsonFactory {
      *
      * @return logout acknowledgement
      */
-    public String jsonLogout() {
+    public synchronized String jsonLogout() {
         log.info("jsonLogout()");
         ObjectNode root = objectNode().put(LOGOUT, true);
         addSubId(root);
