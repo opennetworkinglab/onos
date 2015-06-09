@@ -118,6 +118,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     private ApplicationId appId;
     private Map<String, ConnectPoint> nodeToPort;
     private Map<Long, Short> portToVlan;
+    private Map<ConnectPoint, String> portToSsid;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -155,6 +156,10 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         portToVlan = Maps.newHashMap();
         portToVlan.putIfAbsent(2L, (short) 201);
         portToVlan.putIfAbsent(6L, (short) 401);
+
+        portToSsid = Maps.newHashMap();
+        portToSsid.put(new ConnectPoint(FABRIC_DEVICE_ID, PortNumber.portNumber(2)), "0");
+        portToSsid.put(new ConnectPoint(FABRIC_DEVICE_ID, PortNumber.portNumber(6)), "1");
     }
 
     /**
@@ -324,7 +329,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         }
         VoltTenant tenantToCreate = VoltTenant.builder()
                 .withProviderService(providerServiceId)
-                .withServiceSpecificId(newTenant.serviceSpecificId())
+                .withServiceSpecificId(portToSsid.get(newTenant.port()))
                 .withVlanId(newTenant.vlanId())
                 .withPort(newTenant.port())
                 .build();
