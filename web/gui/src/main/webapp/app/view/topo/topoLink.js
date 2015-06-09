@@ -48,16 +48,47 @@
         return {x: mx, y: my};
     }
 
-    function computeNearestLink(mouse) {
-        var proximity = 30 / api.zoomer.scale(),
+
+    function sq(x) { return x * x; }
+
+    function mdist(p, m) {
+        return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
+    }
+
+    function prox(dist) {
+        return dist / api.zoomer.scale();
+    }
+
+    function computeNearestNode(mouse) {
+        var proximity = prox(30),
             nearest = null,
             minDist;
 
-        function sq(x) { return x * x; }
+        if (network.nodes.length) {
+            minDist = proximity * 2;
 
-        function mdist(p, m) {
-            return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
+            network.nodes.forEach(function (d) {
+                var dist;
+
+                if (!api.showHosts() && d.class === 'host') {
+                    return; // skip hidden hosts
+                }
+
+                dist = mdist({x: d.x, y: d.y}, mouse);
+                if (dist < minDist && dist < proximity) {
+                    minDist = dist;
+                    nearest = d;
+                }
+            });
         }
+        return nearest;
+    }
+
+
+    function computeNearestLink(mouse) {
+        var proximity = prox(30),
+            nearest = null,
+            minDist;
 
         function pdrop(line, mouse) {
             var x1 = line.x1,
@@ -229,12 +260,18 @@
     }
 
     function mouseClickHandler() {
-        var mp, link;
+        var mp, link, node;
 
         if (!tss.clickConsumed()) {
             mp = getLogicalMousePosition(this);
-            link = computeNearestLink(mp);
-            selectLink(link);
+            node = computeNearestNode(mp);
+            if (node) {
+                $log.debug('found nearest node:', node.labels[1]);
+                tss.selectObject(node);
+            } else {
+                link = computeNearestLink(mp);
+                selectLink(link);
+            }
         }
     }
 
