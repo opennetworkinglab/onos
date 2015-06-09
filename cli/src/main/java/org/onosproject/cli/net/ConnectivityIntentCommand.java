@@ -115,7 +115,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "-l", aliases = "--lambda", description = "Lambda",
             required = false, multiValued = false)
-    private Boolean lambda = null;
+    private boolean lambda = false;
 
     @Option(name = "-a", aliases = "--appId", description = "Application Id",
             required = false, multiValued = false)
@@ -313,12 +313,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         // Check for a lambda specification
-        if (lambda != null) {
-            if (lambda) {
-                constraints.add(new LambdaConstraint(null));
-            }
-            constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
+        if (lambda) {
+            constraints.add(new LambdaConstraint(null));
         }
+        constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
+
         return constraints;
     }
 
