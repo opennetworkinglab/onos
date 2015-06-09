@@ -16,15 +16,12 @@
 package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.Ethernet;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
-import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -52,7 +49,6 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private FlowRuleService flowRuleService;
     private DeviceId deviceId;
 
-    private boolean done = false;
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -63,34 +59,7 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     }
 
-    private boolean installIGMPRule(ApplicationId appId, boolean done) {
-        if (done) {
-            return done;
-        }
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchInPort(PortNumber.portNumber(1))
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol((byte) 2).build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .punt().build();
-
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .fromApp(appId)
-                .withTreatment(treatment)
-                .withSelector(selector)
-                .makePermanent()
-                .withPriority(0)
-                .build();
-
-        FlowRuleOperations.Builder flowBuilder = FlowRuleOperations.builder();
-
-        flowRuleService.apply(flowBuilder.add(rule).build());
-
-        return true;
-
-    }
 
     @Override
     public void filter(FilteringObjective filter) {
@@ -99,7 +68,6 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     @Override
     public void forward(ForwardingObjective fwd) {
-        done = installIGMPRule(fwd.appId(), done);
         FlowRuleOperations.Builder flowBuilder = FlowRuleOperations.builder();
 
         if (fwd.flag() != ForwardingObjective.Flag.VERSATILE) {

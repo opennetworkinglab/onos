@@ -415,8 +415,16 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         //        + FABRIC_VCPE_CONNECT_POINT.toString() + "\"}";
         //json += "]}";
 
+        long vlan = portToVlan.get(fromPoint.port().toLong());
+
+
         JsonObject node = new JsonObject();
-        node.add("vlan", portToVlan.get(fromPoint.port().toLong()));
+        node.add("vlan", vlan);
+        if (vlan == 201) {
+            node.add("iptv", true);
+        } else {
+            node.add("iptv", false);
+        }
         JsonArray array = new JsonArray();
         JsonObject cp1 = new JsonObject();
         JsonObject cp2 = new JsonObject();

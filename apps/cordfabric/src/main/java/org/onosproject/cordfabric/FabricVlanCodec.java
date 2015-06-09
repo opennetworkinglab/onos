@@ -37,6 +37,7 @@ public final class FabricVlanCodec extends JsonCodec<FabricVlan> {
     // JSON field names
     private static final String VLAN = "vlan";
     private static final String PORTS = "ports";
+    private static final String IPTV = "iptv";
 
     @Override
     public ObjectNode encode(FabricVlan vlan, CodecContext context) {
@@ -54,6 +55,7 @@ public final class FabricVlanCodec extends JsonCodec<FabricVlan> {
     @Override
     public FabricVlan decode(ObjectNode json, CodecContext context) {
         short vlan =  json.path(VLAN).shortValue();
+        boolean iptv = json.path(IPTV).booleanValue();
         List<ConnectPoint> ports = new ArrayList<>();
 
         ArrayNode portArray = (ArrayNode) json.path(PORTS);
@@ -61,6 +63,6 @@ public final class FabricVlanCodec extends JsonCodec<FabricVlan> {
             ports.add(context.codec(ConnectPoint.class).decode((ObjectNode) o, context));
         }
 
-        return new FabricVlan(VlanId.vlanId(vlan), ports);
+        return new FabricVlan(VlanId.vlanId(vlan), ports, iptv);
     }
 }

@@ -168,6 +168,8 @@ public class CordFabricManager implements FabricService {
                 .withTreatment(down)
                 .add();
 
+
+
         flowObjectiveService.forward(fabricDeviceId, upCtrl);
         flowObjectiveService.forward(fabricDeviceId, downCtrl);
         flowObjectiveService.forward(fabricDeviceId, radiusToController);
@@ -181,6 +183,10 @@ public class CordFabricManager implements FabricService {
 
         removeVlan(vlan.vlan());
 
+        if (vlan.iptv()) {
+            provisionIPTV();
+        }
+
         vlan.ports().forEach(cp -> {
             if (vlans.put(vlan.vlan(), cp)) {
                 addForwarding(vlan.vlan(), cp.deviceId(), cp.port(),
@@ -190,6 +196,46 @@ public class CordFabricManager implements FabricService {
                                       .collect(Collectors.toList()));
             }
         });
+    }
+
+    //FIXME: pass iptv vlan in here.
+    private void provisionIPTV() {
+        TrafficSelector ipTvUp = DefaultTrafficSelector.builder()
+                .matchVlanId(VlanId.vlanId((short) 7))
+                .matchInPort(PortNumber.portNumber(2))
+                .build();
+
+        TrafficTreatment ipTvActUp = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(7)).build();
+
+        TrafficSelector ipTvDown = DefaultTrafficSelector.builder()
+                .matchVlanId(VlanId.vlanId((short) 7))
+                .matchInPort(PortNumber.portNumber(7))
+                .build();
+
+        TrafficTreatment ipTvActDown = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(2)).build();
+
+        ForwardingObjective ipTvUpstream = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(ipTvUp)
+                .withTreatment(ipTvActUp)
+                .add();
+
+        ForwardingObjective ipTvDownstream = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(ipTvDown)
+                .withTreatment(ipTvActDown)
+                .add();
+
+        flowObjectiveService.forward(fabricDeviceId, ipTvUpstream);
+        flowObjectiveService.forward(fabricDeviceId, ipTvDownstream);
     }
 
     @Override
@@ -202,7 +248,9 @@ public class CordFabricManager implements FabricService {
     public List<FabricVlan> getVlans() {
         List<FabricVlan> fVlans = new ArrayList<>();
         vlans.keySet().forEach(vlan -> fVlans.add(
-                new FabricVlan(vlan, vlans.get(vlan))));
+                //FIXME: Very aweful but will fo for now
+                new FabricVlan(vlan, vlans.get(vlan),
+                               vlan.toShort() == 201 ? true : false)));
         return fVlans;
     }
 
@@ -217,6 +265,7 @@ public class CordFabricManager implements FabricService {
 
     private void addForwarding(VlanId vlanId, DeviceId deviceId, PortNumber inPort,
                                List<PortNumber> outPorts) {
+
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchVlanId(vlanId)
                 .matchInPort(inPort)

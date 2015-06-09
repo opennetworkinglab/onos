@@ -33,12 +33,14 @@ public class FabricVlan {
     private final VlanId vlan;
 
     private final List<ConnectPoint> ports;
+    private final boolean iptv;
 
-    public FabricVlan(VlanId vlan, Collection<ConnectPoint> ports) {
+    public FabricVlan(VlanId vlan, Collection<ConnectPoint> ports, boolean iptv) {
         checkNotNull(vlan);
         checkNotNull(ports);
         this.vlan = vlan;
         this.ports = ImmutableList.copyOf(ports);
+        this.iptv = iptv;
     }
 
     public VlanId vlan() {
@@ -47,5 +49,9 @@ public class FabricVlan {
 
     public List<ConnectPoint> ports() {
         return ports;
+    }
+
+    public boolean iptv() {
+        return iptv;
     }
 }

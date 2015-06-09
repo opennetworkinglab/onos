@@ -59,6 +59,6 @@ public class FabricAddCommand extends AbstractShellCommand {
             ports.add(ConnectPoint.deviceConnectPoint(portString));
         }
 
-        service.addVlan(new FabricVlan(vlan, ports));
+        service.addVlan(new FabricVlan(vlan, ports, false));
     }
 }
