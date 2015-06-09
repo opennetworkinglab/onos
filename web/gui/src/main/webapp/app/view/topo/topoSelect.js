@@ -88,14 +88,15 @@
 
     function selectObject(obj) {
         var el = this,
-            ev = d3.event.sourceEvent,
+            nodeEv = el && el.tagName === 'g',
+            ev = d3.event.sourceEvent || {},
             n;
 
         if (api.zoomingOrPanning(ev)) {
             return;
         }
 
-        if (el) {
+        if (nodeEv) {
             n = d3.select(el);
         } else {
             api.node().each(function (d) {
@@ -106,7 +107,9 @@
         }
         if (!n) return;
 
-        consumeClick = true;
+        if (nodeEv) {
+            consumeClick = true;
+        }
         api.deselectLink();
 
         if (ev.shiftKey && n.classed('selected')) {
