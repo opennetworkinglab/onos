@@ -40,6 +40,9 @@ div.mast {
 
 .mast h1 {
     font-size: 250%;
+    text-decoration: none;
+    color: #3C3C3C;
+    cursor: default;
 }
 
 .mast a,
@@ -63,9 +66,10 @@ div.mast {
     right: 0;
     top: 50%;
     transform: translate(0, -50%);
+    font-size: 90%;
 }
 .mast li.logout:hover {
-    border-bottom: 2px solid #CE5650;
+    font-weight: bold;
     list-style-type: none;
     cursor: pointer;
 }

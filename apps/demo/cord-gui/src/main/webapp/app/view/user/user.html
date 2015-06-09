@@ -4,10 +4,14 @@
         <div class="main-left" ng-class="{family: isFamily}">
             <table class="user-info">
                 <tr>
+                    <th class="user-pic"></th>
                     <th>Name</th>
                     <th>Last Login</th>
                 </tr>
                 <tr ng-repeat="user in users" class="fadein">
+                    <td class="user-pic">
+                        <img ng-src="{{'/imgs/' + user.icon_id + '.jpg'}}">
+                    </td>
                     <td>{{user.name}}</td>
                     <td>{{shared.userActivity[user.id]}}</td>
                 </tr>

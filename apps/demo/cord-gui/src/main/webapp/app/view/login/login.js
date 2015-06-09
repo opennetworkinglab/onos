@@ -35,12 +35,10 @@
                 }
 
                 $scope.login = function () {
-
                     if ($scope.email && $scope.password) {
                         getResource($scope.email);
+                        $scope.shared.login = $scope.email;
                     }
-
-                    $scope.shared.login = $scope.email;
                 };
 
                 $log.debug('Cord Login Ctrl has been created.');

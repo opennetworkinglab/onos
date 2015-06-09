@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-div#login{
-    /*background: url("/imgs/login.png") no-repeat;*/
-    height: 100%;
+div#login {
+    background: url("/imgs/login.jpg") no-repeat center;
+    background-size: contain;
+    position: absolute;
+    top: 3%;
+    left: 5%;
 }
 
 div#login-wrapper {
@@ -40,6 +43,8 @@ div#login-form {
 #login div.outline {
     position: absolute;
     border: 1px solid rgba(115, 115, 115, 0.7);
+    background-color: white;
+    opacity: .6;
     top: -160px;
     left: -25px;
     width: 300px;
@@ -51,7 +56,7 @@ div#login-form {
     margin-left: 2.5%;
     position: relative;
     width: 255px;
-    margin-top: 30%;
+    margin-top: 33.5%;
 }
 
 #login-form form {
