@@ -152,6 +152,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         nodeToPort.put("cordcompute02.onlab.us", new ConnectPoint(FABRIC_DEVICE_ID,
                                                                   PortNumber.portNumber(3)));
 
+        portToVlan = Maps.newHashMap();
         portToVlan.putIfAbsent(2L, (short) 201);
         portToVlan.putIfAbsent(6L, (short) 401);
     }
