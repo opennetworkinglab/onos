@@ -42,7 +42,7 @@ public class UiWebSocket
 
     private static final Logger log = LoggerFactory.getLogger(UiWebSocket.class);
 
-    private static final long MAX_AGE_MS = 15_000;
+    private static final long MAX_AGE_MS = 30_000;
 
     private static final byte PING = 0x9;
     private static final byte PONG = 0xA;
