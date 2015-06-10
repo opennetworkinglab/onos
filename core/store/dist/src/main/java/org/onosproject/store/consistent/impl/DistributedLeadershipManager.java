@@ -289,6 +289,7 @@ public class DistributedLeadershipManager implements LeadershipService {
                                    (topic, candidates) -> candidates.stream()
                                                                     .filter(nodeId -> !localNodeId.equals(nodeId))
                                                                     .collect(Collectors.toList()));
+            future.complete(null);
         } catch (Exception e) {
             log.debug("Failed to verify (and clear) any lock this node might be holding for {}", path, e);
             retryWithdraw(path, future);
