@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -240,8 +241,13 @@ public class CordFabricManager implements FabricService {
 
     @Override
     public void removeVlan(VlanId vlanId) {
-        vlans.removeAll(vlanId)
-                .forEach(cp -> removeForwarding(vlanId, cp.deviceId(), cp.port()));
+        Collection<ConnectPoint> ports = vlans.removeAll(vlanId);
+
+        ports.forEach(cp -> removeForwarding(vlanId, cp.deviceId(), cp.port(),
+                                             ports.stream()
+                                                     .filter(p -> p != cp)
+                                                     .map(ConnectPoint::port)
+                                                     .collect(Collectors.toList())));
     }
 
     @Override
@@ -287,11 +293,16 @@ public class CordFabricManager implements FabricService {
         flowObjectiveService.forward(deviceId, objective);
     }
 
-    private void removeForwarding(VlanId vlanId, DeviceId deviceId, PortNumber inPort) {
+    private void removeForwarding(VlanId vlanId, DeviceId deviceId, PortNumber inPort,
+                                  List<PortNumber> outPorts) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchVlanId(vlanId)
                 .matchInPort(inPort)
                 .build();
+
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+
+        outPorts.forEach(p -> treatmentBuilder.setOutput(p));
 
         ForwardingObjective objective = DefaultForwardingObjective.builder()
                 .fromApp(appId)
@@ -299,7 +310,7 @@ public class CordFabricManager implements FabricService {
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withPriority(PRIORITY)
                 .withSelector(selector)
-                .withTreatment(DefaultTrafficTreatment.builder().build())
+                .withTreatment(treatmentBuilder.build())
                 .remove(new ObjectiveHandler());
 
         flowObjectiveService.forward(deviceId, objective);
