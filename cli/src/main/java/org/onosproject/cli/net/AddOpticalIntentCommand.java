@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
@@ -49,7 +50,13 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
               description = "Egress Device/Port Description",
               required = true, multiValued = false)
     String egressDeviceString = null;
-    // TODO: add parameter for uni/bidirectional intents
+
+    @Option(name = "-b", aliases = "--bidirectional",
+            description = "If this argument is passed the optical link created will be bidirectional, " +
+            "else the link will be unidirectional.",
+            required = false, multiValued = false)
+    private boolean bidirectional = false;
+
 
     private ConnectPoint createConnectPoint(String devicePortString) {
         String[] splitted = devicePortString.split("/");
@@ -96,6 +103,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                     .src(ingress)
                     .dst(egress)
                     .signalType(OduCltPort.SignalType.CLT_10GBE)
+                    .bidirectional(bidirectional)
                     .build();
         } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
             intent = OpticalConnectivityIntent.builder()
@@ -104,6 +112,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                     .src(ingress)
                     .dst(egress)
                     .signalType(OduSignalType.ODU4)
+                    .bidirectional(bidirectional)
                     .build();
         } else {
             print("Unable to create optical intent between connect points {} and {}", ingress, egress);
