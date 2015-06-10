@@ -53,7 +53,8 @@ public class BundleFactory extends JsonFactory {
             new DefaultBundleDescriptor(BASIC_ID, BASIC_DISPLAY_NAME,
                                         BASIC_DESCRIPTION,
                                         XosFunctionDescriptor.INTERNET,
-                                        XosFunctionDescriptor.FIREWALL);
+                                        XosFunctionDescriptor.FIREWALL,
+                                        XosFunctionDescriptor.CDN);
 
     /**
      * Designates the FAMILY bundle.
@@ -63,6 +64,7 @@ public class BundleFactory extends JsonFactory {
                                         FAMILY_DESCRIPTION,
                                         XosFunctionDescriptor.INTERNET,
                                         XosFunctionDescriptor.FIREWALL,
+                                        XosFunctionDescriptor.CDN,
                                         XosFunctionDescriptor.URL_FILTER);
 
     // all bundles, in the order they should be listed in the GUI
@@ -98,6 +100,8 @@ public class BundleFactory extends JsonFactory {
 
     /**
      * Returns an object node representation of the given bundle.
+     * Note that some functions (such as CDN) are not added to the output
+     * as we don't want them to appear in the GUI.
      *
      * @param bundle the bundle
      * @return object node
@@ -113,7 +117,9 @@ public class BundleFactory extends JsonFactory {
 
         ArrayNode funcs = arrayNode();
         for (XosFunctionDescriptor xfd: bundle.descriptor().functions()) {
-            funcs.add(XosFunctionFactory.toObjectNode(xfd));
+            if (xfd.visible()) {
+                funcs.add(XosFunctionFactory.toObjectNode(xfd));
+            }
         }
         bnode.set(FUNCTIONS, funcs);
         root.set(BUNDLE, bnode);

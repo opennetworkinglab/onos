@@ -27,7 +27,8 @@ public enum XosFunctionDescriptor {
     INTERNET("internet",
              "Internet",
              "Basic internet connectivity.",
-             false),
+             false,
+             true),
 
     /**
      * Firewall function.
@@ -35,6 +36,7 @@ public enum XosFunctionDescriptor {
     FIREWALL("firewall",
              "Firewall",
              "Normal firewall protection.",
+             true,
              true),
 
     /**
@@ -43,6 +45,7 @@ public enum XosFunctionDescriptor {
     URL_FILTER("url_filter",
                "Parental Control",
                "Variable levels of URL filtering.",
+               true,
                true),
 
     /**
@@ -51,20 +54,23 @@ public enum XosFunctionDescriptor {
     CDN("cdn",
         "CDN",
         "Content Distribution Network service.",
-        true);
+        true,
+        false);
 
 
     private final String id;
     private final String displayName;
     private final String description;
     private final boolean backend;
+    private final boolean visible;
 
     XosFunctionDescriptor(String id, String displayName, String description,
-                          boolean backend) {
+                          boolean backend, boolean visible) {
         this.id = id;
         this.displayName = displayName;
         this.description = description;
         this.backend = backend;
+        this.visible = visible;
     }
 
     /**
@@ -103,4 +109,13 @@ public enum XosFunctionDescriptor {
         return backend;
     }
 
+    /**
+     * Returns true if this function should be shown in the GUI, in the
+     * bundle listing.
+     *
+     * @return true if to be displayed
+     */
+    public boolean visible() {
+        return visible;
+    }
 }
