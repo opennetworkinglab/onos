@@ -22,7 +22,9 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
@@ -34,8 +36,10 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.link.LinkService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.onosproject.net.intent.IntentState.INSTALLED;
@@ -59,8 +63,7 @@ public class TopologyViewIntentFilter {
      * @param hostService   host service reference
      * @param linkService   link service reference
      */
-    TopologyViewIntentFilter(IntentService intentService,
-                             DeviceService deviceService,
+    TopologyViewIntentFilter(IntentService intentService, DeviceService deviceService,
                              HostService hostService, LinkService linkService) {
         this.intentService = intentService;
         this.deviceService = deviceService;
@@ -175,6 +178,11 @@ public class TopologyViewIntentFilter {
                     if (pathContainsDevice(pathIntent.path().links(), device.id())) {
                         return true;
                     }
+                } else if (installable instanceof FlowRuleIntent) {
+                    FlowRuleIntent flowRuleIntent = (FlowRuleIntent) installable;
+                    if (rulesContainDevice(flowRuleIntent.flowRules(), device.id())) {
+                        return true;
+                    }
                 } else if (installable instanceof LinkCollectionIntent) {
                     LinkCollectionIntent linksIntent = (LinkCollectionIntent) installable;
                     if (pathContainsDevice(linksIntent.links(), device.id())) {
@@ -186,10 +194,20 @@ public class TopologyViewIntentFilter {
         return false;
     }
 
-    // Indicates whether the specified intent involves the given device.
+    // Indicates whether the specified links involve the given device.
     private boolean pathContainsDevice(Iterable<Link> links, DeviceId id) {
         for (Link link : links) {
             if (link.src().elementId().equals(id) || link.dst().elementId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Indicates whether the specified flow rules involvesthe given device.
+    private boolean rulesContainDevice(Collection<FlowRule> flowRules, DeviceId id) {
+        for (FlowRule rule : flowRules) {
+            if (rule.deviceId().equals(id)) {
                 return true;
             }
         }
@@ -226,6 +244,9 @@ public class TopologyViewIntentFilter {
                                      Iterable<Intent> intents) {
         Link ccSrc = getFirstLink(opticalIntent.getSrc(), false);
         Link ccDst = getFirstLink(opticalIntent.getDst(), true);
+        if (ccSrc == null || ccDst == null) {
+            return false;
+        }
 
         for (Intent intent : intents) {
             List<Intent> installables = intentService.getInstallableIntents(intent.key());
@@ -234,8 +255,8 @@ public class TopologyViewIntentFilter {
                     List<Link> links = ((PathIntent) installable).path().links();
                     if (links.size() == 3) {
                         Link tunnel = links.get(1);
-                        if (tunnel.src().equals(ccSrc.src()) &&
-                                tunnel.dst().equals(ccDst.dst())) {
+                        if (Objects.equals(tunnel.src(), ccSrc.src()) &&
+                                Objects.equals(tunnel.dst(), ccDst.dst())) {
                             return true;
                         }
                     }
