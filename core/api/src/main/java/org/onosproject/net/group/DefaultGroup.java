@@ -37,6 +37,20 @@ public class DefaultGroup extends DefaultGroupDescription
     private GroupId id;
 
     /**
+     * Initializes default values.
+     *
+     * @param newId group id for new group
+     */
+    private void initialize(GroupId newId) {
+        id = newId;
+        state = GroupState.PENDING_ADD;
+        life = 0;
+        packets = 0;
+        bytes = 0;
+        referenceCount = 0;
+    }
+
+    /**
      * Default group object constructor with the parameters.
      *
      * @param id group identifier
@@ -44,12 +58,7 @@ public class DefaultGroup extends DefaultGroupDescription
      */
     public DefaultGroup(GroupId id, GroupDescription groupDesc) {
         super(groupDesc);
-        this.id = id;
-        this.state = GroupState.PENDING_ADD;
-        this.life = 0;
-        this.packets = 0;
-        this.bytes = 0;
-        this.referenceCount = 0;
+        initialize(id);
     }
 
     /**
@@ -66,12 +75,7 @@ public class DefaultGroup extends DefaultGroupDescription
                         GroupDescription.Type type,
                         GroupBuckets buckets) {
         super(deviceId, type, buckets);
-        this.id = id;
-        this.state = GroupState.PENDING_ADD;
-        this.life = 0;
-        this.packets = 0;
-        this.bytes = 0;
-        this.referenceCount = 0;
+        initialize(id);
     }
 
     /**
