@@ -82,10 +82,10 @@
 
 #topo-p-detail {
     /* Base css from panel.css */
-    top: 310px;
+    top: 320px;
 }
 html[data-platform='iPad'] #topo-p-detail {
-    top: 326px;
+    top: 336px;
 }
 
 #topo-p-detail .actionBtns .actionBtn {

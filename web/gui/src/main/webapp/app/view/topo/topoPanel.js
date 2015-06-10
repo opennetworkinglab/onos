@@ -32,8 +32,8 @@
         panelOpts = {
             width: 260
         },
-        sumMax = 226,
-        padTop = 28;
+        sumMax = 240,
+        padTop = 20;
 
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
