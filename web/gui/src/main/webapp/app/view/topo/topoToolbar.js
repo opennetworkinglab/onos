@@ -41,7 +41,7 @@
         H: { id: 'hosts-tog', gid: 'endstation', isel: false },
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
-        B: { id: 'bkgrnd-tog', gid: 'map', isel: true },
+        B: { id: 'bkgrnd-tog', gid: 'map', isel: false },
         S: { id: 'sprite-tog', gid: 'cloud', isel: false },
 
         //X: { id: 'nodelock-tog', gid: 'lock', isel: false },
@@ -68,9 +68,9 @@
             hosts: 0,
             offdev: 1,
             porthl: 1,
-            bg: 1,
+            bg: 0,
             spr: 0,
-            toolbar: 1
+            toolbar: 0
         },
         prefsMap = {
             summary: 'O',
