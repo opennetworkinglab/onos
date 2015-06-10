@@ -6215,7 +6215,12 @@
           type: "start",
           alpha: alpha = x
         });
-        d3.timer(force.tick);
+        //d3.timer(force.tick);
+        setTimeout(function tick(){
+          force.tick();
+          if(alpha >= .005);
+          setTimeout(tick, 0);
+        }, 0);
       }
       return force;
     };
