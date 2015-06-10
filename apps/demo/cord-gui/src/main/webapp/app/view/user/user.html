@@ -23,7 +23,11 @@
                   name="changeLevels">
                 <table class="user-form">
                     <tr>
-                        <th>Select Site Rating</th>
+                        <th>
+                            Select Site Rating
+                            <span class="help"
+                                  ng-click="showRatings()"> (?)</span>
+                        </th>
                     </tr>
                     <tr ng-repeat="user in users" class="options">
                         <td>
@@ -48,6 +52,9 @@
                     </tr>
                 </table>
             </form>
+        </div>
+        <div ng-if="isFamily">
+            <ratings-panel></ratings-panel>
         </div>
     </div>
 </div>

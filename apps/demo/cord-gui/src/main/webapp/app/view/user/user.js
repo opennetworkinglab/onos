@@ -30,6 +30,7 @@
                 $scope.isFamily = false;
                 $scope.newLevels = {};
                 $scope.showCheck = false;
+                $scope.ratingsShown = false;
 
                 // === Get data functions ---
 
@@ -112,7 +113,53 @@
                     $scope.showCheck = false;
                 };
 
+                $scope.showRatings = function () {
+                    $scope.ratingsShown = !$scope.ratingsShown;
+                };
+
             $log.debug('Cord User Ctrl has been created.');
+        }])
+
+        .directive('ratingsPanel', ['$log', function ($log) {
+            return  {
+                templateUrl: 'app/view/user/ratingPanel.html',
+                link: function (scope, elem, attrs) {
+                    function fillSubMap(order, bool) {
+                        var result = {};
+                        $.each(order, function (index, cat) {
+                            result[cat] = bool;
+                        });
+                        return result;
+                    }
+                    function processSubMap(prhbSites) {
+                        var result = {};
+                        $.each(prhbSites, function (index, cat) {
+                            result[cat] = true;
+                        });
+                        return result;
+                    }
+
+                    function preprocess(data, order) {
+                        return {
+                            ALL: fillSubMap(order, false),
+                            G: processSubMap(data.G),
+                            PG: processSubMap(data.PG),
+                            PG_13: processSubMap(data.PG_13),
+                            R: processSubMap(data.R),
+                            NONE: fillSubMap(order, true)
+                        };
+                    }
+
+                    $.getJSON('/app/data/pc_cats.json', function (data) {
+                        scope.level_order = data.level_order;
+                        scope.category_order = data.category_order;
+                        scope.prohibitedSites = preprocess(
+                            data.prohibited, data.category_order
+                        );
+                        scope.$apply();
+                    });
+                }
+            };
         }]);
 
 }());

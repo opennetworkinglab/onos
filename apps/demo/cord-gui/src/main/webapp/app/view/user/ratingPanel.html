@@ -1,0 +1,22 @@
+<!--Partial HTML for rating panel directive-->
+<div id="rating-panel">
+    <div ng-cloak class="ng-hide ng-cloak panel" ng-show="ratingsShown">
+        <table>
+            <tr>
+                <th class="title">Category</th>
+                <th ng-repeat="rating in level_order">{{rating}}</th>
+            </tr>
+            <tr ng-repeat="cat in category_order">
+                <td class="title">{{cat}}</td>
+                <td ng-repeat="r in level_order">
+                    <div ng-if="prohibitedSites[r][cat]">
+                        <icon size="15" id="xMark"></icon>
+                    </div>
+                   <div ng-if="!prohibitedSites[r][cat]">
+                       <icon size="15" id="checkMark"></icon>
+                   </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

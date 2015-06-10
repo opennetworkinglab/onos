@@ -78,10 +78,6 @@ th {
     font-weight: lighter;
 }
 
-div.container {
-    min-height: 100%;
-}
-
 button,
 input[type="button"],
 input[type="reset"] {
@@ -119,6 +115,7 @@ input[type="reset"][disabled]:hover {
 div.container {
     width: 85%;
     margin: 0 auto;
+    min-height: 100%;
 }
 div.main-left, div.main-right {
     float: left;
@@ -140,6 +137,9 @@ g.icon circle {
 }
 g.icon use.glyph.checkMark {
     fill: rgb(68, 189, 83)
+}
+g.icon use.glyph.xMark {
+    fill: #CE5650;
 }
 
 th.user-pic {
