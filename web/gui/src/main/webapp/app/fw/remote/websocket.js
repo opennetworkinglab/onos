@@ -61,7 +61,9 @@
         $log.info('Web socket open - ', url);
         vs.hide();
 
-        $log.debug('Sending ' + pendingEvents.length + ' pending event(s)...');
+        if (fs.debugOn('txrx')) {
+            $log.debug('Sending ' + pendingEvents.length + ' pending event(s)...');
+        }
         pendingEvents.forEach(function (ev) {
             _send(ev);
         });
@@ -82,7 +84,9 @@
             $log.error('Message.data is not valid JSON', msgEvent.data, e);
             return null;
         }
-        $log.debug(' << *Rx* ', ev.event, ev.payload);
+        if (fs.debugOn('txrx')) {
+            $log.debug(' << *Rx* ', ev.event, ev.payload);
+        }
 
         if (h = handlers[ev.event]) {
             try {
@@ -140,7 +144,9 @@
     }
 
     function _send(ev) {
-        $log.debug(' *Tx* >> ', ev.event, ev.payload);
+        if (fs.debugOn('txrx')) {
+            $log.debug(' *Tx* >> ', ev.event, ev.payload);
+        }
         ws.send(JSON.stringify(ev));
     }
 

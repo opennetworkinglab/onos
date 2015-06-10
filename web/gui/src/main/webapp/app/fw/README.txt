@@ -1,33 +1,44 @@
 # Framework related code
 
-- Util
-    - General Functions
-    - Key Handler
-    - Theme Service
-    - Alert Service
-    - Preference Service
-
-- Mast
-    - Masthead
-
-- Svg
-    - Glyph Service
-    - Icon Service
-    - Map Service
-    - Zoom Service
-
-- Layers
+- layer
     - Flash Service (transient messages)
     - Panel Service (floating panels)
     - Quick Help Service (key bindings, mouse gestures)
-    - Death Mask Service (loss of server connection)
+    - Veil Service (loss of server connection)
 
-- Remote
-    - Login Service
+- mast
+    - Masthead Service
+
+- nav
+    - Navigation Service (navigation menu)
+
+- remote
+    - REST Service
+    - URL functin Service
     - Web Socket Service
+    - Web Socket Event Service
+    - Web Socket encapsulation
 
-- Widget
-    - Table Styling Directives
+    - (Login Service) << planned
+
+- svg
+    - GeoData Service (TopoJSON map functions)
+    - Glyph Service
+    - Icon Service
+    - Map Service
+    - SVG Utilities Service
+    - Zoom Service
+
+- util
+    - General Functions
+    - Key Handler
+    - User Preference Service
+    - Randomization Service
+    - Theme Service
+
+- widget
+    - Button Service
+    - Table Service (table styling directives)
     - Table Builder Service
     - Toolbar Service
-    - Button Service
+    - Tooltip Service

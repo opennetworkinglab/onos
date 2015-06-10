@@ -20,7 +20,20 @@
 (function () {
     'use strict';
 
-    var $window;
+    // injected services
+    var $window, $log;
+
+    // internal state
+    var debugFlags = {};
+
+
+    function _parseDebugFlags(dbgstr) {
+        var bits = dbgstr ? dbgstr.split(",") : [];
+        bits.forEach(function (key) {
+            debugFlags[key] = true;
+        });
+        $log.debug('Debug flags:', dbgstr);
+    }
 
     function isF(f) {
         return typeof f === 'function' ? f : null;
@@ -186,10 +199,18 @@
                         .replace(/\.\d*/, ''));
     }
 
+    // return true if the given debug flag was specified in the query params
+    function debugOn(tag) {
+        return debugFlags[tag];
+    }
 
     angular.module('onosUtil')
-        .factory('FnService', ['$window', function (_$window_) {
+        .factory('FnService',
+        ['$window', '$location', '$log', function (_$window_, $loc, _$log_) {
             $window = _$window_;
+            $log = _$log_;
+
+            _parseDebugFlags($loc.search().debug);
 
             return {
                 isF: isF,
@@ -201,6 +222,7 @@
                 areFunctionsNonStrict: areFunctionsNonStrict,
                 windowSize: windowSize,
                 isMobile: isMobile,
+                debugOn: debugOn,
                 find: find,
                 inArray: inArray,
                 removeFromArray: removeFromArray,
