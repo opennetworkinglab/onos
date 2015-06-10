@@ -58,6 +58,9 @@
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         nodeLock = false,       // whether nodes can be dragged or not (locked)
+        fTimer,                 // timer for delayed force layout
+        fNodesTimer,            // timer for delayed nodes update
+        fLinksTimer,            // timer for delayed links update
         dim;                    // the dimensions of the force layout [w,h]
 
     // SVG elements;
@@ -479,6 +482,13 @@
     // ==========================================
 
     function updateNodes() {
+        if (fNodesTimer) {
+            $timeout.cancel(fNodesTimer);
+        }
+        fNodesTimer = $timeout(_updateNodes, 150);
+    }
+
+    function _updateNodes() {
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -526,6 +536,13 @@
     // ==========================
 
     function updateLinks() {
+        if (fLinksTimer) {
+            $timeout.cancel(fLinksTimer);
+        }
+        fLinksTimer = $timeout(_updateLinks, 150);
+    }
+
+    function _updateLinks() {
         var th = ts.theme();
 
         link = linkG.selectAll('.link')
@@ -589,7 +606,13 @@
 
     function fStart() {
         if (!tos.isOblique()) {
-            force.start();
+            if (fTimer) {
+                $timeout.cancel(fTimer);
+            }
+            fTimer = $timeout(function () {
+                $log.debug("Starting force-layout");
+                force.start();
+            }, 200);
         }
     }
 

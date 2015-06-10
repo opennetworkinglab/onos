@@ -55,7 +55,7 @@ public class TopologyResource extends BaseResource {
         Map<String, ObjectNode> metaUi = TopologyViewMessageHandler.getMetaUi();
         for (String id : metaUi.keySet()) {
             ObjectNode memento = metaUi.get(id);
-            if (id.charAt(17) == '/') {
+            if (id.length() > 17 && id.charAt(17) == '/') {
                 addGeoData(hosts, "id", id, memento);
             } else {
                 addGeoData(devices, "uri", id, memento);
