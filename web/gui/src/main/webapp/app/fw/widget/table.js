@@ -70,7 +70,9 @@
                     cstmWidths[index] = h.attr(colWidth);
                 }
             });
-            $log.debug('Headers with custom widths: ', cstmWidths);
+            if (fs.debugOn('widget')) {
+                $log.debug('Headers with custom widths: ', cstmWidths);
+            }
         }
 
         function setTdWidths(elem) {

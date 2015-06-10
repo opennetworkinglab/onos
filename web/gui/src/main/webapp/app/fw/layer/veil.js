@@ -67,6 +67,7 @@
     }
 
     // function that only invokes the veil if the caller is the current view
+    // TODO: review - is this deprecated ?
     function lostServer(ctrlName, msg) {
         if ($route.current.$$route.controller === ctrlName) {
             $log.debug('VEIL-service: ', ctrlName);

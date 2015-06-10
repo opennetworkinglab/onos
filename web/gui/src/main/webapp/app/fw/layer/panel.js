@@ -185,16 +185,22 @@
                     $log.warn('Panel with ID "' + id + '" already exists');
                     return null;
                 }
-                $log.debug('creating panel:', id, settings);
+                if (fs.debugOn('widget')) {
+                    $log.debug('creating panel:', id, settings);
+                }
                 return makePanel(id, settings);
             }
 
             function destroyPanel(id) {
                 if (panels[id]) {
-                    $log.debug('destroying panel:', id);
+                    if (fs.debugOn('widget')) {
+                        $log.debug('destroying panel:', id);
+                    }
                     removePanel(id);
                 } else {
-                    $log.debug('no panel to destroy:', id);
+                    if (fs.debugOn('widget')) {
+                        $log.debug('no panel to destroy:', id);
+                    }
                 }
             }
 

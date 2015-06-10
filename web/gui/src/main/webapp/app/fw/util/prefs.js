@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $cookies;
+    var $log, $cookies, fs;
 
     // internal state
     var cache = {};
@@ -106,14 +106,17 @@
 
         // FORCE cookie to be set by writing directly to document.cookie...
         document.cookie = name + '=' + encodeURIComponent(str);
-        $log.debug('<<>> Wrote cookie <'+name+'>:', str);
+        if (fs.debugOn('prefs')) {
+            $log.debug('<<>> Wrote cookie <'+name+'>:', str);
+        }
     }
 
     angular.module('onosUtil')
-    .factory('PrefsService', ['$log', '$cookies',
-        function (_$log_, _$cookies_) {
+    .factory('PrefsService', ['$log', '$cookies', 'FnService',
+        function (_$log_, _$cookies_, _fs_) {
             $log = _$log_;
             $cookies = _$cookies_;
+            fs = _fs_;
 
             return {
                 getPrefs: getPrefs,

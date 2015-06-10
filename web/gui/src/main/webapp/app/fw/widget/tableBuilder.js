@@ -69,7 +69,9 @@
 
         function startRefresh() {
             promise = $interval(function () {
-                $log.debug('Refreshing ' + root + ' page');
+                if (fs.debugOn('widget')) {
+                    $log.debug('Refreshing ' + root + ' page');
+                }
                 sortCb(o.scope.sortParams);
             }, refreshInterval);
         }
