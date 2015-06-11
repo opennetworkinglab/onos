@@ -796,7 +796,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return format.format(value) + " " + unit;
     }
 
-    // Poor-mans formatting to get the labels with byte counts looking nice.
+    // Poor-mans formatting to get the labels with bit rate looking nice.
     private String formatBitRate(long bytes) {
         String unit;
         double value;
@@ -805,6 +805,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         if (bits > GIGA) {
             value = bits / GIGA;
             unit = GBITS_UNIT;
+
+            // NOTE: temporary hack to clip rate at 10.0 Gbps
+            //  Added for the CORD Fabric demo at ONS 2015
+            if (value > 10.0) {
+                value = 10.0;
+            }
+
         } else if (bits > MEGA) {
             value = bits / MEGA;
             unit = MBITS_UNIT;
