@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
@@ -274,6 +275,31 @@ public class PartitionedDatabase implements Database {
     public CompletableFuture<Long> counterGetAndAdd(String counterName, long delta) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(counterName, counterName).counterGetAndAdd(counterName, delta);
+    }
+
+
+    @Override
+    public CompletableFuture<Long> queueSize(String queueName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(queueName, queueName).queueSize(queueName);
+    }
+
+    @Override
+    public CompletableFuture<Set<NodeId>> queuePush(String queueName, byte[] entry) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(queueName, queueName).queuePush(queueName, entry);
+    }
+
+    @Override
+    public CompletableFuture<byte[]> queuePop(String queueName, NodeId nodeId) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(queueName, queueName).queuePop(queueName, nodeId);
+    }
+
+    @Override
+    public CompletableFuture<byte[]> queuePeek(String queueName) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(queueName, queueName).queuePeek(queueName);
     }
 
     @Override

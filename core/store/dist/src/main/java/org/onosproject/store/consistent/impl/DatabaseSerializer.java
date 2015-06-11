@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.service.DatabaseUpdate;
@@ -78,6 +79,7 @@ public class DatabaseSerializer extends SerializerConfig {
             .register(Result.Status.class)
             .register(DefaultTransaction.class)
             .register(Transaction.State.class)
+            .register(NodeId.class)
             .build();
 
     private static final KryoSerializer SERIALIZER = new KryoSerializer() {

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
@@ -111,6 +112,18 @@ public interface DatabaseState<K, V> {
 
   @Command
   Long counterGetAndAdd(String counterName, long delta);
+
+  @Query
+  Long queueSize(String queueName);
+
+  @Query
+  byte[] queuePeek(String queueName);
+
+  @Command
+  byte[] queuePop(String queueName, NodeId requestor);
+
+  @Command
+  Set<NodeId> queuePush(String queueName, byte[] entry);
 
   @Query
   Long counterGet(String counterName);

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
@@ -247,6 +248,36 @@ public interface DatabaseProxy<K, V> {
      * @return current value
      */
     CompletableFuture<Long> counterGet(String counterName);
+
+    /**
+     * Returns the size of queue.
+     * @param queueName queue name
+     * @return queue size
+     */
+    CompletableFuture<Long> queueSize(String queueName);
+
+    /**
+     * Inserts an entry into the queue.
+     * @param queueName queue name
+     * @param entry queue entry
+     * @return set of nodes to notify about the queue update
+     */
+    CompletableFuture<Set<NodeId>> queuePush(String queueName, byte[] entry);
+
+    /**
+     * Removes an entry from the queue if the queue is non-empty.
+     * @param queueName queue name
+     * @param nodeId If the queue is empty the identifier of node to notify when an entry becomes available
+     * @return entry. Can be null if queue is empty
+     */
+    CompletableFuture<byte[]> queuePop(String queueName, NodeId nodeId);
+
+    /**
+     * Returns but does not remove an entry from the queue.
+     * @param queueName queue name
+     * @return entry. Can be null if queue is empty
+     */
+    CompletableFuture<byte[]> queuePeek(String queueName);
 
     /**
      * Prepare and commit the specified transaction.

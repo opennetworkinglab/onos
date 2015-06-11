@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
@@ -184,6 +185,26 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @Override
     public CompletableFuture<Long> counterGetAndAdd(String counterName, long delta) {
         return checkOpen(() -> proxy.counterGetAndAdd(counterName, delta));
+    }
+
+    @Override
+    public CompletableFuture<Long> queueSize(String queueName) {
+        return checkOpen(() -> proxy.queueSize(queueName));
+    }
+
+    @Override
+    public CompletableFuture<Set<NodeId>> queuePush(String queueName, byte[] entry) {
+        return checkOpen(() -> proxy.queuePush(queueName, entry));
+    }
+
+    @Override
+    public CompletableFuture<byte[]> queuePop(String queueName, NodeId nodeId) {
+        return checkOpen(() -> proxy.queuePop(queueName, nodeId));
+    }
+
+    @Override
+    public CompletableFuture<byte[]> queuePeek(String queueName) {
+        return checkOpen(() -> proxy.queuePeek(queueName));
     }
 
     @Override
