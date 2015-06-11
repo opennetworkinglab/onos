@@ -455,12 +455,10 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                 .filter(cp -> !existing.contains(cp))
                 .collect(Collectors.toSet());
 
-        if (!missing.isEmpty()) {
-            List<PortDescription> newPorts = Lists.newArrayList();
-            ports.forEach(p -> newPorts.add(description(p)));
-            missing.forEach(cp -> newPorts.add(description(cp)));
-            deviceProviderService.updatePorts(device.id(), newPorts);
-        }
+        List<PortDescription> newPorts = Lists.newArrayList();
+        ports.forEach(p -> newPorts.add(description(p)));
+        missing.forEach(cp -> newPorts.add(description(cp)));
+        deviceProviderService.updatePorts(device.id(), newPorts);
     }
 
     // Creates a port description from the specified port.
