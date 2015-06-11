@@ -517,13 +517,20 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         String portName = text.substring(i + 1);
         DeviceId deviceId = deviceId(text.substring(0, i));
 
-        long portNum = 0L;
         for (Port port : deviceService.getPorts(deviceId)) {
             PortNumber pn = port.number();
             if (pn.name().equals(portName)) {
                 return new ConnectPoint(deviceId, pn);
             }
         }
+
+        long portNum;
+        try {
+            portNum = Long.parseLong(portName);
+        } catch (NumberFormatException e) {
+            portNum = 0;
+        }
+
         return new ConnectPoint(deviceId, portNumber(portNum, portName));
     }
 
