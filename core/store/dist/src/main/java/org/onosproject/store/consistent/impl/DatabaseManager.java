@@ -16,6 +16,7 @@
 
 package org.onosproject.store.consistent.impl;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -46,6 +47,7 @@ import org.apache.felix.scr.annotations.Service;
 import static org.onlab.util.Tools.groupedThreads;
 
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.store.cluster.impl.ClusterDefinitionManager;
 import org.onosproject.store.cluster.impl.NodeInfo;
@@ -55,6 +57,7 @@ import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapInfo;
@@ -98,16 +101,21 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private static final int RAFT_ELECTION_TIMEOUT_MILLIS = 3000;
     private static final int DATABASE_OPERATION_TIMEOUT_MILLIS = 5000;
 
+    protected static final MessageSubject QUEUE_UPDATED_TOPIC = new MessageSubject("distributed-queue-updated");
+
     private ClusterCoordinator coordinator;
     protected PartitionedDatabase partitionedDatabase;
     protected Database inMemoryDatabase;
+    protected NodeId localNodeId;
 
     private TransactionManager transactionManager;
     private final IdGenerator transactionIdGenerator = () -> RandomUtils.nextLong();
 
     private ExecutorService eventDispatcher;
+    private ExecutorService queuePollExecutor;
 
-    private final Set<DefaultAsyncConsistentMap> maps = Sets.newCopyOnWriteArraySet();
+    private final Map<String, DefaultAsyncConsistentMap> maps = Maps.newConcurrentMap();
+    private final Map<String, DefaultDistributedQueue> queues = Maps.newConcurrentMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -121,6 +129,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Activate
     public void activate() {
+        localNodeId = clusterService.getLocalNode().id();
         // load database configuration
         File databaseDefFile = new File(PARTITION_DEFINITION_FILE);
         log.info("Loading database definition: {}", databaseDefFile.getAbsolutePath());
@@ -201,6 +210,19 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         eventDispatcher = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/store/manager", "map-event-dispatcher"));
+
+        queuePollExecutor = Executors.newFixedThreadPool(4,
+                groupedThreads("onos/store/manager", "queue-poll-handler"));
+
+        clusterCommunicator.<String>addSubscriber(QUEUE_UPDATED_TOPIC,
+                data -> new String(data, Charsets.UTF_8),
+                name -> {
+                    DefaultDistributedQueue q = queues.get(name);
+                    if (q != null) {
+                        q.tryPoll();
+                    }
+                },
+                queuePollExecutor);
         log.info("Started");
     }
 
@@ -226,8 +248,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                     log.info("Successfully closed databases.");
                 }
             });
-        maps.forEach(map -> clusterCommunicator.removeSubscriber(mapUpdatesSubject(map.name())));
+        clusterCommunicator.removeSubscriber(QUEUE_UPDATED_TOPIC);
+        maps.values().forEach(this::unregisterMap);
         eventDispatcher.shutdown();
+        queuePollExecutor.shutdown();
         log.info("Stopped");
     }
 
@@ -318,6 +342,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         return new DefaultDistributedSetBuilder<>(this);
     }
 
+
+    @Override
+    public <E> DistributedQueueBuilder<E> queueBuilder() {
+        return new DefaultDistributedQueueBuilder<>(this);
+    }
+
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         return new DefaultAtomicCounterBuilder(inMemoryDatabase, partitionedDatabase);
@@ -386,8 +416,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     protected <K, V> void registerMap(DefaultAsyncConsistentMap<K, V> map) {
-        // TODO: Support different local instances of the same map.
-        if (!maps.add(map)) {
+        // TODO: Support multiple local instances of the same map.
+        if (maps.putIfAbsent(map.name(), map) != null) {
             throw new IllegalStateException("Map by name " + map.name() + " already exists");
         }
 
@@ -395,6 +425,19 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                 map.serializer()::decode,
                 map::notifyLocalListeners,
                 eventDispatcher);
+    }
+
+    protected <K, V> void unregisterMap(DefaultAsyncConsistentMap<K, V> map) {
+        if (maps.remove(map.name()) != null) {
+            clusterCommunicator.removeSubscriber(mapUpdatesSubject(map.name()));
+        }
+    }
+
+    protected <E> void registerQueue(DefaultDistributedQueue<E> queue) {
+        // TODO: Support multiple local instances of the same queue.
+        if (queues.putIfAbsent(queue.name(), queue) != null) {
+            throw new IllegalStateException("Queue by name " + queue.name() + " already exists");
+        }
     }
 
     protected static MessageSubject mapUpdatesSubject(String mapName) {
