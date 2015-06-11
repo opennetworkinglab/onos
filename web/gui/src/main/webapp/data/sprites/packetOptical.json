@@ -1,0 +1,42 @@
+{
+  "defn_name": "packetOptical",
+  "defn_desc": "Packet-Optical Demo - ONS 2015",
+
+  "paths": [
+    {
+      "tag": "outline",
+      "stroke": {
+        "width": 1.0
+      },
+      "viewbox": "0 0 140 170",
+      "d": "M10,10h100v150h-100z"
+    }
+  ],
+
+  "defn": [
+    {
+      "id": "group",
+      "path": "outline",
+      "dim": [700, 1000]
+    }
+  ],
+
+  "load": {
+    "sprites": [
+      { "id": "group", "pos": [-300, 0], "class": "gold1" },
+      { "id": "group", "pos": [200, 0], "class": "gold1" },
+      { "id": "group", "pos": [700, 0], "class": "gold1" }
+    ],
+
+    "labels": [
+      { "pos":[0,800], "text":"Ciena", "class":"blue1", "size":1.4 },
+      { "pos":[0,840], "text":"Ottawa, Ontario", "class":"blue1", "size":1.0 },
+
+      { "pos":[500,800], "text":"Fujitsu", "class":"blue1", "size":1.4 },
+      { "pos":[500,840], "text":"Richardson, TX", "class":"blue1", "size":1.0 },
+
+      { "pos":[1000,800], "text":"Huawei", "class":"blue1", "size":1.4 },
+      { "pos":[1000,840], "text":"Plano, TX", "class":"blue1", "size":1.0 }
+    ]
+  }
+}
