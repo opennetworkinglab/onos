@@ -38,26 +38,14 @@ div.mast {
     width: 37%;
 }
 
-.mast h1 {
-    font-size: 250%;
-    text-decoration: none;
-    color: #3C3C3C;
-    cursor: default;
+.mast img {
+    width: 220px;
 }
 
 .mast a,
 .mast a:visited {
     text-decoration: none;
     color: #3C3C3C;
-}
-
-.mast svg {
-    position: absolute;
-    top: -1px;
-    left: 106px;
-}
-.mast g.icon use.glyph.bird {
-    fill: #CE5650;
 }
 
 .mast li.logout {
