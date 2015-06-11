@@ -80,6 +80,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -455,9 +456,10 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                 .filter(cp -> !existing.contains(cp))
                 .collect(Collectors.toSet());
 
-        List<PortDescription> newPorts = Lists.newArrayList();
-        ports.forEach(p -> newPorts.add(description(p)));
-        missing.forEach(cp -> newPorts.add(description(cp)));
+        List<PortDescription> newPorts = Stream.concat(
+                ports.stream().map(this::description),
+                missing.stream().map(this::description)
+        ).collect(Collectors.toList());
         deviceProviderService.updatePorts(device.id(), newPorts);
     }
 
