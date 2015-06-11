@@ -98,6 +98,8 @@ public class OLT {
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.olt");
 
+        deviceService.addListener(deviceListener);
+
         deviceService.getPorts(DeviceId.deviceId(oltDevice)).stream().forEach(
                 port -> {
                     if (!port.number().isLogical() && port.isEnabled()) {
