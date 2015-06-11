@@ -451,6 +451,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                 .map(p -> new ConnectPoint(device.id(), p.number()))
                 .collect(Collectors.toSet());
         Set<ConnectPoint> missing = connectPoints.stream()
+                .filter(cp -> cp.deviceId().equals(device.id()))
                 .filter(cp -> !existing.contains(cp))
                 .collect(Collectors.toSet());
 
