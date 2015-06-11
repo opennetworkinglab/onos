@@ -70,6 +70,7 @@ p {
     color: rgba(0,0,0, 0.8);
     text-indent: 20px;
     text-align: justify;
+    padding-right: 5%;
 }
 th {
     background-color: #7AB6EA;

@@ -26,7 +26,8 @@ public enum XosFunctionDescriptor {
      */
     INTERNET("internet",
              "Internet",
-             "Basic internet connectivity.",
+             "Discover the joys of high-speed, reliable Internet" +
+                     " connectivity delivered seamlessly to your home.",
              false,
              true),
 
@@ -35,7 +36,7 @@ public enum XosFunctionDescriptor {
      */
     FIREWALL("firewall",
              "Firewall",
-             "Normal firewall protection.",
+             "Simple access control and filtering with minimal set-up.",
              true,
              true),
 
@@ -44,7 +45,11 @@ public enum XosFunctionDescriptor {
      */
     URL_FILTER("url_filter",
                "Parental Control",
-               "Variable levels of URL filtering.",
+               "Parental Control is peace of mind that your kids are safe" +
+                       " - whether you are around or away. Indicate with a " +
+                       "few clicks what online content is appropriate for " +
+                       "your children, and voila - you have control over" +
+                       " what your kids can and cannot view.",
                true,
                true),
 

@@ -35,12 +35,18 @@ public class BundleFactory extends JsonFactory {
     private static final String BASIC_ID = "basic";
     private static final String BASIC_DISPLAY_NAME = "Basic Bundle";
     private static final String BASIC_DESCRIPTION =
-            "Provides basic internet and firewall functions.";
+            "If the thing that matters most to you is high speed Internet" +
+                    " connectivity delivered at a great price, then the basic" +
+                    " bundle is right for you.\n" +
+                    "Starting at $30 a month for 12 months.";
 
     private static final String FAMILY_ID = "family";
     private static final String FAMILY_DISPLAY_NAME = "Family Bundle";
     private static final String FAMILY_DESCRIPTION =
-            "Provides internet, firewall and parental control functions.";
+            "Enjoy great entertainment, peace of mind and big savings when " +
+                    "you bundle high speed Internet and Firewall with" +
+                    " Parental Control.\n" +
+                    "Starting at $40 a month for 12 months.";
 
 
     // no instantiation

@@ -35,7 +35,8 @@
                 resource = DashboardData.get({},
                     // success
                     function () {
-                        $scope.bundle = resource.bundle;
+                        $scope.bundle_name = resource.bundle_name;
+                        $scope.bundle_desc = resource.bundle_desc;
                         $scope.users = resource.users;
 
                         if ($.isEmptyObject($scope.shared.userActivity)) {

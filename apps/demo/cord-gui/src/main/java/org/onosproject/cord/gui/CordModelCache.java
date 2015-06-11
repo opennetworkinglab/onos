@@ -64,6 +64,9 @@ public class CordModelCache extends JsonFactory {
     private static final String LEVEL = "level";
     private static final String LOGOUT = "logout";
 
+    private static final String BUNDLE_NAME = BUNDLE + "_name";
+    private static final String BUNDLE_DESC = BUNDLE + "_desc";
+
     private static final Map<Integer, Integer> LOOKUP = new HashMap<>();
 
     private String email = null;
@@ -315,8 +318,10 @@ public class CordModelCache extends JsonFactory {
             return jsonLogout();
         }
 
+        BundleDescriptor bundleDescriptor = currentBundle.descriptor();
         ObjectNode root = objectNode();
-        root.put(BUNDLE, currentBundle.descriptor().displayName());
+        root.put(BUNDLE_NAME, bundleDescriptor.displayName());
+        root.put(BUNDLE_DESC, bundleDescriptor.description());
         root.set(USERS, userJsonArray());
         addSubId(root);
         return root.toString();
