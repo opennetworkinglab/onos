@@ -616,7 +616,7 @@ public class GossipDeviceStore
 
             if (isDeviceRemoved(deviceId, portDescriptions.timestamp())) {
                 log.debug("Ignoring outdated events: {}", portDescriptions);
-                return null;
+                return Collections.emptyList();
             }
 
             DeviceDescriptions descs = descsMap.get(providerId);
