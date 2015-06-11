@@ -132,7 +132,7 @@ public class Leadership {
 
     @Override
     public int hashCode() {
-        return Objects.hash(topic, leader, candidates, epoch);
+        return Objects.hash(topic, leader, candidates, epoch, electedTime);
     }
 
     @Override
@@ -143,7 +143,10 @@ public class Leadership {
         if (obj instanceof Leadership) {
             final Leadership other = (Leadership) obj;
             return Objects.equals(this.topic, other.topic) &&
-                    Objects.equals(this.epoch, other.epoch);
+                    Objects.equals(this.leader, other.leader) &&
+                    Objects.equals(this.candidates, other.candidates) &&
+                    Objects.equals(this.epoch, other.epoch) &&
+                    Objects.equals(this.electedTime, other.electedTime);
         }
         return false;
     }
