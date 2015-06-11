@@ -569,7 +569,7 @@ public class GossipDeviceStore
                                         return descs.getPortDesc(input.portNumber()).value();
                                     }
                                 }).toList();
-                merged = new Timestamped<List<PortDescription>>(mergedList, newTimestamp);
+                merged = new Timestamped<>(mergedList, newTimestamp);
             }
 
             if (!deviceEvents.isEmpty()) {
@@ -718,7 +718,7 @@ public class GossipDeviceStore
         Map<ProviderId, DeviceDescriptions> r;
         r = deviceDescs.get(deviceId);
         if (r == null) {
-            r = new HashMap<ProviderId, DeviceDescriptions>();
+            r = new HashMap<>();
             final Map<ProviderId, DeviceDescriptions> concurrentlyAdded;
             concurrentlyAdded = deviceDescs.putIfAbsent(deviceId, r);
             if (concurrentlyAdded != null) {
