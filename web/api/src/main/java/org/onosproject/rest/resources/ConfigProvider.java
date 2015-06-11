@@ -387,7 +387,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         }
 
         // if true, there was less channels than can be tightly packed.
-        Frequency grid = (chl == null) ? Frequency.ofGHz(100) : chl.frequency();
+        Frequency grid = chl.frequency();
         // say Linc's 1st slot starts at CENTER and goes up from there.
         Frequency min = CENTER.add(grid);
         Frequency max = CENTER.add(grid.multiply(numChls));
