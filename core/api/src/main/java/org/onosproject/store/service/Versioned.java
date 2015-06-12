@@ -16,6 +16,8 @@
 
 package org.onosproject.store.service;
 
+import java.util.function.Function;
+
 import org.joda.time.DateTime;
 
 import com.google.common.base.MoreObjects;
@@ -83,6 +85,16 @@ public class Versioned<V> {
      */
     public long creationTime() {
         return creationTime;
+    }
+
+    /**
+     * Maps this instance into another after transforming its
+     * value while retaining the same version and creationTime.
+     * @param transformer function to mapping the value
+     * @return mapped instance
+     */
+    public <U> Versioned<U> map(Function<V, U> transformer) {
+        return new Versioned<>(transformer.apply(value), version, creationTime);
     }
 
     @Override
