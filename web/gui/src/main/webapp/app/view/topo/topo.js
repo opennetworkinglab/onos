@@ -361,13 +361,26 @@
         // NOTE: toolbar will have set this for us..
         prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
 
-        $log.debug('TOPO---- Prefs State:', prefsState);
+        $log.debug('TOPO- Prefs State:', prefsState);
 
         flash.enable(false);
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
         toggleUseDetailsFlag(prefsState.detail);
         toggleSprites(prefsState.spr);
+        flash.enable(true);
+    }
+
+
+    // somewhat hackish, because summary update cannot happen until we
+    //  have opened the websocket to the server; hence this extra function
+    // invoked after tes.start()
+    function restoreSummaryFromPrefs() {
+        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
+        $log.debug('TOPO- Prefs SUMMARY State:', prefsState.summary);
+
+        flash.enable(false);
+        toggleSummary(prefsState.summary);
         flash.enable(true);
     }
 
@@ -463,7 +476,13 @@
                     flash.enable(false);
                     toggleMap(prefsState.bg);
                     flash.enable(true);
-                    // TODO: move tes.start() to here ????
+
+                    // now we have the map projection, we are ready for
+                    //  the server to send us device/host data...
+                    tes.start();
+                    // need to do the following so we immediately get
+                    //  the summary panel data back from the server
+                    restoreSummaryFromPrefs();
                 }
             );
             setUpSprites($loc, tspr);
@@ -472,7 +491,6 @@
             tfs.initForce(svg, forceG, uplink, dim);
             tis.initInst({ showMastership: tfs.showMastership });
             tps.initPanels();
-            tes.start();
 
             // temporary solution for persisting user settings
             restoreConfigFromPrefs();
