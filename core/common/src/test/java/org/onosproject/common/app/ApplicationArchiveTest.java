@@ -33,6 +33,9 @@ import java.util.Set;
 import static org.junit.Assert.*;
 import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 
+/**
+ * Suite of tests for the application archive utility.
+ */
 public class ApplicationArchiveTest {
 
     static final String ROOT = "/tmp/app-junit/";

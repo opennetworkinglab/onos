@@ -37,7 +37,7 @@ public class DefaultApplicationDescriptionTest {
 
     public static final String APP_NAME = "org.foo.app";
     public static final Version VER = Version.version(1, 2, "a", null);
-    public static final String DESC = "Awesome application from Circus";
+    public static final String DESC = "Awesome application from Circus, Inc.";
     public static final String ORIGIN = "Circus";
     public static final ApplicationRole ROLE = ApplicationRole.ADMIN;
     public static final Set<Permission> PERMS = ImmutableSet.of(Permission.FLOWRULE_WRITE, Permission.FLOWRULE_READ);
