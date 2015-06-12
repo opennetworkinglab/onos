@@ -312,7 +312,7 @@
     function setUpMap($loc) {
         var s1 = $loc.search().mapid,
             s2 = ps.getPrefs('topo_mapid'),
-            mapId = s1 || (s2 && s2.id) || 'world',
+            mapId = s1 || (s2 && s2.id) || 'usa',
             promise,
             cfilter,
             opts;
