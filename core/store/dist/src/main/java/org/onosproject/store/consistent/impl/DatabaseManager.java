@@ -415,16 +415,19 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         getTransactions().stream().forEach(transactionManager::execute);
     }
 
-    protected <K, V> void registerMap(DefaultAsyncConsistentMap<K, V> map) {
-        // TODO: Support multiple local instances of the same map.
-        if (maps.putIfAbsent(map.name(), map) != null) {
-            throw new IllegalStateException("Map by name " + map.name() + " already exists");
+    protected <K, V> DefaultAsyncConsistentMap<K, V> registerMap(DefaultAsyncConsistentMap<K, V> map) {
+        DefaultAsyncConsistentMap<K, V> existing = maps.putIfAbsent(map.name(), map);
+        if (existing != null) {
+            // FIXME: We need to cleanly support different map instances with same name.
+            log.info("Map by name {} already exists", map.name());
+            return existing;
         }
 
         clusterCommunicator.<MapEvent<K, V>>addSubscriber(mapUpdatesSubject(map.name()),
                 map.serializer()::decode,
                 map::notifyLocalListeners,
                 eventDispatcher);
+        return map;
     }
 
     protected <K, V> void unregisterMap(DefaultAsyncConsistentMap<K, V> map) {

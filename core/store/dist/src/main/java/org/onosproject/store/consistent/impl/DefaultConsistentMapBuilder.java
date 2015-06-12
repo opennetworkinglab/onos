@@ -77,7 +77,6 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
                 event -> manager.clusterCommunicator.<MapEvent<K, V>>broadcast(event,
                         DatabaseManager.mapUpdatesSubject(name),
                         serializer::encode));
-        manager.registerMap(asyncMap);
-        return asyncMap;
+        return manager.registerMap(asyncMap);
     }
 }
