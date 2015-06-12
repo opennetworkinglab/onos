@@ -1,0 +1,87 @@
+<!--
+  -- Sample code to show extracting country data from a countries TopoJSON
+  -- file and projecting it into an SVG layer.
+  --
+  -- See: http://bl.ocks.org/pnavarrc/62047b5638d624cfa9cb
+  -->
+<html>
+<head>
+    <title>S America</title>
+
+    <script charset="utf-8" src="../../tp/d3.min.js"></script>
+    <script charset="utf-8" src="../../tp/topojson.v1.min.js"></script>
+
+    <style>
+        svg {
+            border: 1px solid #888;
+        }
+        .country {
+            fill: #bcd1ff;
+            stroke: #7c79e6;
+            stroke-width: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        var datapath = '../../data/map/countries.topojson',
+            height = 500,
+            width = 500;
+
+        // create geographic projection
+        var projection = d3.geo.mercator()
+                .translate([width/2, height/2]);
+
+        // configure path generator
+        var pathGenerator = d3.geo.path()
+                .projection(projection);
+
+        var div = d3.select('#map'),
+            svg = div.append('svg'),
+            grp = svg.append('g');
+
+        svg.attr('width', width).attr('height', height);
+
+        d3.json(datapath, function (error, data) {
+            if (error) {
+                console.error(error);
+                throw error;
+            }
+
+            var features = topojson.feature(data, data.objects.countries).features;
+
+            // S.America
+            var southAmerica = features.filter(function (country) {
+                return country.properties.continent === 'South America';
+            });
+
+            var southAmericaFeature = {
+                type: 'FeatureCollection',
+                features: southAmerica
+            };
+
+            // compute bounds and centroid
+            var bounds = d3.geo.bounds(southAmericaFeature),
+                center = d3.geo.centroid(southAmericaFeature);
+
+            // compute angular distance between bound corners
+            var distance = d3.geo.distance(bounds[0], bounds[1]),
+                scale = height / distance / Math.sqrt(2);
+
+            // update projection
+            projection.scale(scale).center(center);
+
+            // draw
+            var countries = grp.selectAll('path.country')
+                    .data([southAmericaFeature]);
+            countries.enter().append('path').classed('country', true);
+            countries.attr('d', pathGenerator);
+            countries.exit().remove();
+        });
+    </script>
+</body>
+
+</html>
