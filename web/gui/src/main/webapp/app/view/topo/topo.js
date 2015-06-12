@@ -276,10 +276,57 @@
         sus.visible(noDevsLayer, b);
     }
 
-    function setUpMap() {
+
+    var countryFilters = {
+        world: function (c) {
+            return c.properties.continent !== 'Antarctica';
+        },
+
+        // NOTE: for "usa" we are using our hand-crafted topojson file
+
+        s_america: function (c) {
+            return c.properties.continent === 'South America';
+        },
+
+        japan: function (c) {
+            return c.properties.geounit === 'Japan';
+        },
+
+        europe: function (c) {
+            return c.properties.continent === 'Europe';
+        },
+
+        italy: function (c) {
+            return c.properties.geounit === 'Italy';
+        },
+
+        uk: function (c) {
+            // technically, Ireland is not part of the United Kingdom,
+            // but the map looks weird without it showing.
+            return c.properties.adm0_a3 === 'GBR' ||
+                c.properties.adm0_a3 === 'IRL';
+        }
+    };
+
+
+    function setUpMap($loc) {
+        var s1 = $loc.search().mapid,
+            s2 = ps.getPrefs('topo_mapid'),
+            mapId = s1 || (s2 && s2.id) || 'world',
+            promise,
+            cfilter,
+            opts;
+
         mapG = zoomLayer.append('g').attr('id', 'topo-map');
-        // returns a promise for the projection...
-        return ms.loadMapInto(mapG, '*continental_us');
+        if (mapId === 'usa') {
+            promise = ms.loadMapInto(mapG, '*continental_us');
+        } else {
+            ps.setPrefs('topo_mapid', {id:mapId});
+            cfilter = countryFilters[mapId] || countryFilters.world;
+            opts = { countryFilter: cfilter };
+            promise = ms.loadMapRegionInto(mapG, opts);
+        }
+        return promise;
     }
 
     function opacifyMap(b) {
@@ -405,7 +452,7 @@
             setUpDefs();
             setUpZoom();
             setUpNoDevs();
-            setUpMap().then(
+            setUpMap($loc).then(
                 function (proj) {
                     var z = ps.getPrefs('topo_zoom') || {tx:0, ty:0, sc:1};
                     zoomer.panZoom([z.tx, z.ty], z.sc);
@@ -416,6 +463,7 @@
                     flash.enable(false);
                     toggleMap(prefsState.bg);
                     flash.enable(true);
+                    // TODO: move tes.start() to here ????
                 }
             );
             setUpSprites($loc, tspr);

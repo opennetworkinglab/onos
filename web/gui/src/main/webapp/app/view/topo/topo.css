@@ -65,7 +65,7 @@
 }
 
 .light #ov-topo svg #topo-map {
-    stroke: #eee;
+    stroke: #ddd;
 }
 .dark #ov-topo svg #topo-map {
     stroke: #444;

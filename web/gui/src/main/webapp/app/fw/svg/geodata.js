@@ -63,9 +63,109 @@
 
     function getUrl(id) {
         if (id[0] === '*') {
-            return bundledUrlPrefix + id.slice(1) + '.json';
+            return bundledUrlPrefix + id.slice(1) + '.topojson';
         }
-        return id + '.json';
+        return id + '.topojson';
+    }
+
+
+    // start afresh...
+    function clearCache() {
+        cache = d3.map();
+    }
+
+    // returns a promise decorated with:
+    //   .meta -- id, url, and whether the data was cached
+    //   .topodata -- TopoJSON data (on response from server)
+
+    function fetchTopoData(id) {
+        if (!fs.isS(id)) {
+            return null;
+        }
+        var url = getUrl(id),
+            promise = cache.get(id);
+
+        if (!promise) {
+            // need to fetch the data, build the object,
+            // cache it, and return it.
+            promise = $http.get(url);
+
+            promise.meta = {
+                id: id,
+                url: url,
+                wasCached: false
+            };
+
+            promise.then(function (response) {
+                // success
+                promise.topodata = response.data;
+            }, function (response) {
+                // error
+                $log.warn('Failed to retrieve map TopoJSON data: ' + url,
+                    response.status, response.data);
+            });
+
+            cache.set(id, promise);
+
+        } else {
+            promise.meta.wasCached = true;
+        }
+
+        return promise;
+    }
+
+    var defaultGenSettings = {
+        objectTag: 'states',
+        projection: d3.geo.mercator(),
+        logicalSize: 1000,
+        mapFillScale: .95
+    };
+
+    // converts given TopoJSON-format data into corresponding GeoJSON
+    //  data, and creates a path generator for that data.
+    function createPathGenerator(topoData, opts) {
+        var settings = angular.extend({}, defaultGenSettings, opts),
+            topoObject = topoData.objects[settings.objectTag],
+            geoData = topojson.feature(topoData, topoObject),
+            proj = settings.projection,
+            dim = settings.logicalSize,
+            mfs = settings.mapFillScale,
+            path = d3.geo.path().projection(proj);
+
+        rescaleProjection(proj, mfs, dim, path, geoData);
+
+        // return the results
+        return {
+            geodata: geoData,
+            pathgen: path,
+            settings: settings
+        };
+    }
+
+    function rescaleProjection(proj, mfs, dim, path, geoData) {
+        // adjust projection scale and translation to fill the view
+        // with the map
+
+        // start with unit scale, no translation..
+        proj.scale(1).translate([0, 0]);
+
+        // figure out dimensions of map data..
+        var b = path.bounds(geoData),
+            x1 = b[0][0],
+            y1 = b[0][1],
+            x2 = b[1][0],
+            y2 = b[1][1],
+            dx = x2 - x1,
+            dy = y2 - y1,
+            x = (x1 + x2) / 2,
+            y = (y1 + y2) / 2;
+
+        // size map to 95% of minimum dimension to fill space..
+        var s = mfs / Math.min(dx / dim, dy / dim),
+            t = [dim / 2 - s * x, dim / 2 - s * y];
+
+        // set new scale, translation on the projection..
+        proj.scale(s).translate(t);
     }
 
     angular.module('onosSvg')
@@ -75,105 +175,12 @@
             $http = _$http_;
             fs = _fs_;
 
-            // start afresh...
-            function clearCache() {
-                cache = d3.map();
-            }
-
-            // returns a promise decorated with:
-            //   .meta -- id, url, and whether the data was cached
-            //   .topodata -- TopoJSON data (on response from server)
-
-            function fetchTopoData(id) {
-                if (!fs.isS(id)) {
-                    return null;
-                }
-                var url = getUrl(id),
-                    promise = cache.get(id);
-
-                if (!promise) {
-                    // need to fetch the data, build the object,
-                    // cache it, and return it.
-                    promise = $http.get(url);
-
-                    promise.meta = {
-                        id: id,
-                        url: url,
-                        wasCached: false
-                    };
-
-                    promise.then(function (response) {
-                        // success
-                        promise.topodata = response.data;
-                    }, function (response) {
-                        // error
-                        $log.warn('Failed to retrieve map TopoJSON data: ' + url,
-                            response.status, response.data);
-                    });
-
-                    cache.set(id, promise);
-
-                } else {
-                    promise.meta.wasCached = true;
-                }
-
-                return promise;
-            }
-
-            var defaultGenSettings = {
-                objectTag: 'states',
-                projection: d3.geo.mercator(),
-                logicalSize: 1000,
-                mapFillScale: .95
-            };
-
-            // converts given TopoJSON-format data into corresponding GeoJSON
-            //  data, and creates a path generator for that data.
-            function createPathGenerator(topoData, opts) {
-                var settings = angular.extend({}, defaultGenSettings, opts),
-                    topoObject = topoData.objects[settings.objectTag],
-                    geoData = topojson.feature(topoData, topoObject),
-                    proj = settings.projection,
-                    dim = settings.logicalSize,
-                    mfs = settings.mapFillScale,
-                    path = d3.geo.path().projection(proj);
-
-                // adjust projection scale and translation to fill the view
-                // with the map
-
-                // start with unit scale, no translation..
-                proj.scale(1).translate([0, 0]);
-
-                // figure out dimensions of map data..
-                var b = path.bounds(geoData),
-                    x1 = b[0][0],
-                    y1 = b[0][1],
-                    x2 = b[1][0],
-                    y2 = b[1][1],
-                    dx = x2 - x1,
-                    dy = y2 - y1,
-                    x = (x1 + x2) / 2,
-                    y = (y1 + y2) / 2;
-
-                // size map to 95% of minimum dimension to fill space..
-                var s = mfs / Math.min(dx / dim, dy / dim),
-                    t = [dim / 2 - s * x, dim / 2 - s * y];
-
-                // set new scale, translation on the projection..
-                proj.scale(s).translate(t);
-
-                // return the results
-                return {
-                    geodata: geoData,
-                    pathgen: path,
-                    settings: settings
-                };
-            }
 
             return {
                 clearCache: clearCache,
                 fetchTopoData: fetchTopoData,
-                createPathGenerator: createPathGenerator
+                createPathGenerator: createPathGenerator,
+                rescaleProjection: rescaleProjection
             };
         }]);
 }());

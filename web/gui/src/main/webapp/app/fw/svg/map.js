@@ -37,6 +37,11 @@
     // injected references
     var $log, $q, fs, gds;
 
+    // NOTE: This method assumes the datafile has exactly the map data
+    //       that you want to load; for example id="*continental_us"
+    //       mapping to ~/data/map/continental_us.topojson contains
+    //       exactly the paths for the continental US.
+
     function loadMapInto(mapLayer, id, opts) {
         var promise = gds.fetchTopoData(id),
             deferredProjection = $q.defer();
@@ -60,6 +65,52 @@
         return deferredProjection.promise;
     }
 
+    // ---
+
+    // NOTE: This method uses the countries.topojson data file, and then
+    //       filters the results based on the supplied options.
+    // Usage:
+    //     promise = loadMapRegionInto(svgGroup, {
+    //         countryFilter: function (country) {
+    //             return country.properties.continent === 'South America';
+    //         }
+    //     });
+
+    function loadMapRegionInto(mapLayer, filterOpts) {
+        var promise = gds.fetchTopoData("*countries"),
+            deferredProjection = $q.defer();
+
+        if (!promise) {
+            $log.warn('Failed to load countries TopoJSON data');
+            return false;
+        }
+
+        promise.then(function () {
+            var width = 1000,
+                height = 1000,
+                proj = d3.geo.mercator().translate([width/2, height/2]),
+                pathGen = d3.geo.path().projection(proj),
+                data = promise.topodata,
+                features = topojson.feature(data, data.objects.countries).features,
+                country = features.filter(filterOpts.countryFilter),
+                countryFeature = {
+                    type: 'FeatureCollection',
+                    features: country
+                },
+                path = d3.geo.path().projection(proj);
+
+            gds.rescaleProjection(proj, 0.95, 1000, path, countryFeature);
+
+            deferredProjection.resolve(proj);
+
+            mapLayer.selectAll('path.country')
+                .data([countryFeature])
+                .enter()
+                .append('path').classed('country', true)
+                .attr('d', pathGen);
+        });
+        return deferredProjection.promise;
+    }
 
     angular.module('onosSvg')
         .factory('MapService', ['$log', '$q', 'FnService', 'GeoDataService',
@@ -70,6 +121,7 @@
             gds = _gds_;
 
             return {
+                loadMapRegionInto: loadMapRegionInto,
                 loadMapInto: loadMapInto
             };
         }]);
