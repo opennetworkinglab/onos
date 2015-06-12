@@ -632,7 +632,7 @@ public class NewDistributedFlowRuleStore
                     // TODO: Pick any available node as backup and ensure hand-off occurs when
                     // a new master is elected.
                 }
-                log.info("Backup location for {} has changed from {} to {}.",
+                log.debug("Backup location for {} has changed from {} to {}.",
                         deviceId, currentBackupNode, newBackupNode);
                 backupSenderExecutor.schedule(() -> backupFlowEntries(newBackupNode, Sets.newHashSet(deviceId)),
                         0,
