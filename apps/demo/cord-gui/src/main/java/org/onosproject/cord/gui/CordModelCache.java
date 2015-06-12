@@ -138,10 +138,8 @@ public class CordModelCache extends JsonFactory {
         subscriberId = lookupSubId(ssid);
         XosManager.INSTANCE.setXosUtilsForSubscriber(subscriberId);
 
-        // if we are using the demo account, tell XOS to reset it...
-        if (ssid == DEMO_SSID) {
-            XosManager.INSTANCE.initDemoSubscriber();
-        }
+        // call the initdemo API to ensure users are populated in XOS
+        XosManager.INSTANCE.initDemoSubscriber();
 
         // NOTE: I think the following should work for non-DEMO account...
         currentBundle = new Bundle(BundleFactory.BASIC_BUNDLE);
