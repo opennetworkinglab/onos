@@ -15,11 +15,10 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -111,7 +110,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
 
         // Reserve OCh ports
-        if (!deviceResourceService.requestPorts(new HashSet(Arrays.asList(srcPort, dstPort)), intent)) {
+        if (!deviceResourceService.requestPorts(ImmutableSet.of(srcPort, dstPort), intent)) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
 
