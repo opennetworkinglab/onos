@@ -34,6 +34,8 @@ public final class VbngConfiguration {
     private final List<IpPrefix> localPublicIpPrefixes;
     private final IpAddress nextHopIpAddress;
     private final MacAddress publicFacingMac;
+    private final IpAddress xosIpAddress;
+    private final int xosRestPort;
 
     /**
      * Default constructor.
@@ -42,6 +44,8 @@ public final class VbngConfiguration {
         localPublicIpPrefixes = null;
         nextHopIpAddress = null;
         publicFacingMac = null;
+        xosIpAddress = null;
+        xosRestPort = 0;
     }
 
     /**
@@ -51,6 +55,8 @@ public final class VbngConfiguration {
      * @param prefixes the public IP prefix list for local SDN network
      * @param publicFacingMac the MAC address configured for all local
      *        public IP addresses
+     * @param xosIpAddress the XOS server IP address
+     * @param xosRestPort the port of the XOS server for REST
      */
     @JsonCreator
     public VbngConfiguration(@JsonProperty("localPublicIpPrefixes")
@@ -58,10 +64,16 @@ public final class VbngConfiguration {
                              @JsonProperty("nextHopIpAddress")
                              IpAddress nextHopIpAddress,
                              @JsonProperty("publicFacingMac")
-                             MacAddress publicFacingMac) {
+                             MacAddress publicFacingMac,
+                             @JsonProperty("xosIpAddress")
+                             IpAddress xosIpAddress,
+                             @JsonProperty("xosRestPort")
+                             int xosRestPort) {
         localPublicIpPrefixes = prefixes;
         this.nextHopIpAddress = nextHopIpAddress;
         this.publicFacingMac = publicFacingMac;
+        this.xosIpAddress = xosIpAddress;
+        this.xosRestPort = xosRestPort;
     }
 
     /**
@@ -89,5 +101,23 @@ public final class VbngConfiguration {
      */
     public MacAddress getPublicFacingMac() {
         return publicFacingMac;
+    }
+
+    /**
+     * Gets the IP address configured for XOS server.
+     *
+     * @return the IP address configured for the XOS server
+     */
+    public IpAddress getXosIpAddress() {
+        return xosIpAddress;
+    }
+
+    /**
+     * Gets the REST communication port configured for XOS server.
+     *
+     * @return the REST communication port configured for XOS server
+     */
+    public int getXosRestPort() {
+        return xosRestPort;
     }
 }

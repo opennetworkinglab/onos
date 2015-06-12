@@ -61,6 +61,8 @@ public class VbngConfigurationManager implements VbngConfigurationService {
 
     private IpAddress nextHopIpAddress;
     private MacAddress macOfPublicIpAddresses;
+    private IpAddress xosIpAddress;
+    private int xosRestPort;
 
     @Activate
     public void activate() {
@@ -100,6 +102,8 @@ public class VbngConfigurationManager implements VbngConfigurationService {
             }
             nextHopIpAddress = config.getNextHopIpAddress();
             macOfPublicIpAddresses = config.getPublicFacingMac();
+            xosIpAddress = config.getXosIpAddress();
+            xosRestPort = config.getXosRestPort();
 
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
@@ -116,6 +120,16 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     @Override
     public MacAddress getPublicFacingMac() {
         return macOfPublicIpAddresses;
+    }
+
+    @Override
+    public IpAddress getXosIpAddress() {
+        return xosIpAddress;
+    }
+
+    @Override
+    public int getXosRestPort() {
+        return xosRestPort;
     }
 
     // TODO handle the case: the number of public IP addresses is not enough

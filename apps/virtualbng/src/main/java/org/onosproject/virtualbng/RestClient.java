@@ -29,17 +29,25 @@ import com.sun.jersey.api.client.WebResource;
 
 import java.io.IOException;
 
+import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 public class RestClient {
     private final Logger log = getLogger(getClass());
-    private final String hostName = "10.254.1.22";
-    private final int xosServerPort = 8000;
     private static final String UTF_8 = JSON_UTF_8.toString();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private final String url = "http://" + hostName + ":" + xosServerPort
-            + "/xoslib/rs/vbng_mapping/";
+    private final String url;
 
+    /**
+     * Constructor.
+     *
+     * @param xosServerIpAddress the IP address of the XOS server
+     * @param xosServerPort the port for the REST service on XOS server
+     */
+    RestClient(IpAddress xosServerIpAddress, int xosServerPort) {
+        this.url = "http://" + xosServerIpAddress.toString() + ":"
+                + xosServerPort + "/xoslib/rs/vbng_mapping/";
+    }
     /**
      * Gets a client web resource builder.
      *

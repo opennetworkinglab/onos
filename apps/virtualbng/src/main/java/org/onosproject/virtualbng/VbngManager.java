@@ -136,7 +136,9 @@ public class VbngManager implements VbngService {
      */
     private void statusRecovery() {
         log.info("vBNG starts to recover from XOS record......");
-        RestClient restClient = new RestClient();
+        RestClient restClient =
+                new RestClient(vbngConfigurationService.getXosIpAddress(),
+                               vbngConfigurationService.getXosRestPort());
         ObjectNode map = restClient.getRest();
         if (map == null) {
             log.info("Stop to recover vBNG status due to the vBNG map "

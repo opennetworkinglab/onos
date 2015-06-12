@@ -40,6 +40,20 @@ public interface VbngConfigurationService {
     MacAddress getPublicFacingMac();
 
     /**
+     * Gets the IP address configured for XOS server.
+     *
+     * @return the IP address configured for the XOS server
+     */
+    IpAddress getXosIpAddress();
+
+    /**
+     * Gets the REST communication port configured for XOS server.
+     *
+     * @return the REST communication port configured for XOS server
+     */
+    int getXosRestPort();
+
+    /**
      * Evaluates whether an IP address is an assigned public IP address.
      *
      * @param ipAddress the IP address to evaluate
