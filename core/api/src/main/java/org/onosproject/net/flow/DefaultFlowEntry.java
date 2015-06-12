@@ -18,7 +18,6 @@ package org.onosproject.net.flow;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 
 public class DefaultFlowEntry extends DefaultFlowRule
@@ -36,21 +35,6 @@ public class DefaultFlowEntry extends DefaultFlowRule
     private final int errType;
 
     private final int errCode;
-
-
-    public DefaultFlowEntry(DeviceId deviceId, TrafficSelector selector,
-            TrafficTreatment treatment, int priority, FlowEntryState state,
-            long life, long packets, long bytes, long flowId,
-            int timeout) {
-        super(deviceId, selector, treatment, priority, flowId, timeout, false);
-        this.state = state;
-        this.life = life;
-        this.packets = packets;
-        this.bytes = bytes;
-        this.errCode = -1;
-        this.errType = -1;
-        this.lastSeen = System.currentTimeMillis();
-    }
 
     public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
             long life, long packets, long bytes) {

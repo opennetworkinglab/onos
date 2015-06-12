@@ -256,6 +256,13 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 
     protected FlowRule createFlowRule(MplsPathIntent intent, DeviceId deviceId,
                                       TrafficSelector selector, TrafficTreatment treat) {
-        return new DefaultFlowRule(deviceId, selector, treat, intent.priority(), appId, 0, true);
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector)
+                .withTreatment(treat)
+                .withPriority(intent.priority())
+                .fromApp(appId)
+                .makePermanent()
+                .build();
     }
 }

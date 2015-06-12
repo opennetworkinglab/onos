@@ -37,16 +37,17 @@ public class DefaultFlowEntryTest {
             new IntentTestsMocks.MockTreatment();
 
     private static DefaultFlowEntry makeFlowEntry(int uniqueValue) {
-        return new DefaultFlowEntry(did("id" + Integer.toString(uniqueValue)),
-                SELECTOR,
-                TREATMENT,
-                uniqueValue,
-                FlowEntry.FlowEntryState.ADDED,
-                uniqueValue,
-                uniqueValue,
-                uniqueValue,
-                uniqueValue,
-                uniqueValue);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(did("id" + Integer.toString(uniqueValue)))
+                .withSelector(SELECTOR)
+                .withTreatment(TREATMENT)
+                .withPriority(uniqueValue)
+                .withCookie(uniqueValue)
+                .makeTemporary(uniqueValue)
+                .build();
+
+        return new DefaultFlowEntry(rule, FlowEntry.FlowEntryState.ADDED,
+                uniqueValue, uniqueValue, uniqueValue);
     }
 
     final DefaultFlowEntry defaultFlowEntry1 = makeFlowEntry(1);

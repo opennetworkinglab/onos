@@ -135,7 +135,7 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
             }
 
             DefaultFlowRule rule = new DefaultFlowRule(deviceId, selector, treatment, 123, appId,
-                    new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true);
+                    new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true, null);
 
             rules.add(rule);
         }

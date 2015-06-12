@@ -34,6 +34,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
@@ -89,10 +90,26 @@ public class AddFlowsCommand extends AbstractShellCommand {
 
 
                 int randomPriority = RandomUtils.nextInt();
-                rules.add(new DefaultFlowRule(d.id(), sbuilder.build(), treatment,
-                                              randomPriority, appId, 10, false));
-                remove.remove(new DefaultFlowRule(d.id(), sbuilder.build(), treatment,
-                                                  randomPriority, appId, 10, false));
+
+                FlowRule addRule = DefaultFlowRule.builder()
+                        .forDevice(d.id())
+                        .withSelector(sbuilder.build())
+                        .withTreatment(treatment)
+                        .withPriority(randomPriority)
+                        .fromApp(appId)
+                        .makeTemporary(10)
+                        .build();
+                FlowRule removeRule = DefaultFlowRule.builder()
+                        .forDevice(d.id())
+                        .withSelector(sbuilder.build())
+                        .withTreatment(treatment)
+                        .withPriority(randomPriority)
+                        .fromApp(appId)
+                        .makeTemporary(10)
+                        .build();
+
+                rules.add(addRule);
+                remove.remove(removeRule);
 
             }
         }

@@ -144,7 +144,14 @@ public class FlowRuleManagerTest {
     private FlowRule flowRule(int tsval, int trval) {
         TestSelector ts = new TestSelector(tsval);
         TestTreatment tr = new TestTreatment(trval);
-        return new DefaultFlowRule(DID, ts, tr, 10, appId, TIMEOUT, false);
+        return DefaultFlowRule.builder()
+                .forDevice(DID)
+                .withSelector(ts)
+                .withTreatment(tr)
+                .withPriority(10)
+                .fromApp(appId)
+                .makeTemporary(TIMEOUT)
+                .build();
     }
 
 

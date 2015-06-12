@@ -97,7 +97,14 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         }
         TrafficTreatment treatment = treatmentBuilder.setOutput(egress.port()).build();
 
-        return new DefaultFlowRule(ingress.deviceId(), selector, treatment, 123, appId, 0, true);
+        return DefaultFlowRule.builder()
+                .forDevice(ingress.deviceId())
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(123)
+                .fromApp(appId)
+                .makePermanent()
+                .build();
     }
 
     private boolean isLast(List<Link> links, int i) {

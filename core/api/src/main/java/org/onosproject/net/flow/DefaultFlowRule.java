@@ -45,119 +45,6 @@ public class DefaultFlowRule implements FlowRule {
     private final Integer tableId;
     private final FlowRuleExtPayLoad payLoad;
 
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           long flowId, int timeout, boolean permanent) {
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.timeout = timeout;
-        this.permanent = permanent;
-        this.created = System.currentTimeMillis();
-
-        this.appId = (short) (flowId >>> 48);
-        this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
-        this.id = FlowId.valueOf(flowId);
-        this.tableId = 0;
-        this.payLoad = null;
-    }
-
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           long flowId, int timeout, boolean permanent,
-                           Type tableType) {
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.timeout = timeout;
-        this.permanent = permanent;
-        this.created = System.currentTimeMillis();
-
-        this.appId = (short) (flowId >>> 48);
-        this.groupId = new DefaultGroupId((short) ((flowId >>> 32) & 0xFFFF));
-        this.id = FlowId.valueOf(flowId);
-        this.tableId = tableType.ordinal();
-
-        this.payLoad = null;
-    }
-
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, int timeout, boolean permanent) {
-        this(deviceId, selector, treatment, priority, appId,
-             new DefaultGroupId(0), timeout, permanent);
-    }
-
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, int timeout, boolean permanent,
-                           Type type) {
-
-        if (priority < FlowRule.MIN_PRIORITY) {
-            throw new IllegalArgumentException("Priority cannot be less than "
-                    + MIN_PRIORITY);
-        }
-
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.appId = appId.id();
-        this.groupId = new DefaultGroupId(0);
-        this.timeout = timeout;
-        this.permanent = permanent;
-        this.created = System.currentTimeMillis();
-        this.tableId = type.ordinal();
-
-        this.payLoad = null;
-        /*
-         * id consists of the following. | appId (16 bits) | groupId (16 bits) |
-         * flowId (32 bits) |
-         */
-        this.id = FlowId.valueOf((((long) this.appId) << 48)
-                | (((long) this.groupId.id()) << 32)
-                | (this.hash() & 0xffffffffL));
-
-    }
-
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, GroupId groupId, int timeout,
-                           boolean permanent) {
-
-        if (priority < FlowRule.MIN_PRIORITY) {
-            throw new IllegalArgumentException("Priority cannot be less than "
-                    + MIN_PRIORITY);
-        }
-
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.appId = appId.id();
-        this.groupId = groupId;
-        this.timeout = timeout;
-        this.permanent = permanent;
-        this.created = System.currentTimeMillis();
-        this.tableId = 0;
-        this.payLoad = null;
-
-        /*
-         * id consists of the following. | appId (16 bits) | groupId (16 bits) |
-         * flowId (32 bits) |
-         */
-        this.id = FlowId.valueOf((((long) this.appId) << 48)
-                | (((long) this.groupId.id()) << 32)
-                | (this.hash() & 0xffffffffL));
-    }
-
     public DefaultFlowRule(FlowRule rule) {
         this.deviceId = rule.deviceId();
         this.priority = rule.priority();
@@ -371,7 +258,7 @@ public class DefaultFlowRule implements FlowRule {
                 .add("treatment", treatment == null ? "N/A" : treatment.allInstructions())
                 .add("tableId", tableId)
                 .add("created", created)
-                .add("payLoad", payLoad).toString()
+                .add("payLoad", payLoad)
                 .toString();
     }
 

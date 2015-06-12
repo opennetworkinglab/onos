@@ -130,8 +130,14 @@ public class MPLSForwarding {
         TrafficTreatment treatement = tbuilder.build();
         TrafficSelector selector = sbuilder.build();
 
-        FlowRule f = new DefaultFlowRule(device.id(), selector,
-                                         treatement, 100, appId, 600, false);
+        FlowRule f = DefaultFlowRule.builder()
+                .forDevice(device.id())
+                .withSelector(selector)
+                .withTreatment(treatement)
+                .withPriority(100)
+                .fromApp(appId)
+                .makeTemporary(600)
+                .build();
 
         flowRuleService.applyFlowRules(f);
     }

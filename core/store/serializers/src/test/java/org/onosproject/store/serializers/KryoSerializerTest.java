@@ -28,6 +28,7 @@ import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
@@ -236,8 +237,15 @@ public class KryoSerializerTest {
     @Test
     public void testFlowRuleBatchEntry() {
         final FlowRule rule1 =
-                new DefaultFlowRule(DID1, DefaultTrafficSelector.emptySelector(),
-                        DefaultTrafficTreatment.emptyTreatment(), 0, 0, 0, true);
+                DefaultFlowRule.builder()
+                        .forDevice(DID1)
+                        .withSelector(DefaultTrafficSelector.emptySelector())
+                        .withTreatment(DefaultTrafficTreatment.emptyTreatment())
+                        .withPriority(0)
+                        .fromApp(new DefaultApplicationId(1, "1"))
+                        .makeTemporary(1)
+                        .build();
+
         final FlowRuleBatchEntry entry1 =
                 new FlowRuleBatchEntry(FlowRuleBatchEntry.FlowRuleOperation.ADD, rule1);
         final FlowRuleBatchEntry entry2 =

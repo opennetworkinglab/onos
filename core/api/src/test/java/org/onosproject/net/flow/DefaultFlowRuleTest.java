@@ -41,10 +41,8 @@ public class DefaultFlowRuleTest {
     private static FlowRuleExtPayLoad payLoad = FlowRuleExtPayLoad.flowRuleExtPayLoad(b);
     final FlowRule flowRule1 = new IntentTestsMocks.MockFlowRule(1, payLoad);
     final FlowRule sameAsFlowRule1 = new IntentTestsMocks.MockFlowRule(1, payLoad);
-    final FlowRule flowRule2 = new IntentTestsMocks.MockFlowRule(2, payLoad);
     final DefaultFlowRule defaultFlowRule1 = new DefaultFlowRule(flowRule1);
     final DefaultFlowRule sameAsDefaultFlowRule1 = new DefaultFlowRule(sameAsFlowRule1);
-    final DefaultFlowRule defaultFlowRule2 = new DefaultFlowRule(flowRule2);
 
     /**
      * Checks that the DefaultFlowRule class is immutable but can be inherited
@@ -84,20 +82,27 @@ public class DefaultFlowRuleTest {
     /**
      * Tests creation of a DefaultFlowRule using a FlowId constructor.
      */
+
     @Test
     public void testCreationWithFlowId() {
-        final DefaultFlowRule rule =
-                new DefaultFlowRule(did("1"), SELECTOR,
-                        TREATMENT, 22, 33,
-                44, false);
+        final FlowRule rule =
+                DefaultFlowRule.builder()
+                .forDevice(did("1"))
+                .withSelector(SELECTOR)
+                .withTreatment(TREATMENT)
+                .withPriority(22)
+                .makeTemporary(44)
+                .fromApp(APP_ID)
+                .build();
+
         assertThat(rule.deviceId(), is(did("1")));
-        assertThat(rule.id().value(), is(33L));
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.priority(), is(22));
         assertThat(rule.selector(), is(SELECTOR));
         assertThat(rule.treatment(), is(TREATMENT));
         assertThat(rule.timeout(), is(44));
     }
+
 
     /**
      * Tests creation of a DefaultFlowRule using a PayLoad constructor.
@@ -136,10 +141,16 @@ public class DefaultFlowRuleTest {
      */
     @Test
     public void testCreationWithAppId() {
-        final DefaultFlowRule rule =
-                new DefaultFlowRule(did("1"), SELECTOR,
-                        TREATMENT, 22, APP_ID,
-                        44, false);
+        final FlowRule rule =
+                DefaultFlowRule.builder()
+                        .forDevice(did("1"))
+                        .withSelector(SELECTOR)
+                        .withTreatment(TREATMENT)
+                        .withPriority(22)
+                        .fromApp(APP_ID)
+                        .makeTemporary(44)
+                        .build();
+
         assertThat(rule.deviceId(), is(did("1")));
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.priority(), is(22));
