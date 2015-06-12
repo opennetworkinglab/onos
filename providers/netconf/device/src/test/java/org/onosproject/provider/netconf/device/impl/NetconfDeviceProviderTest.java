@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -179,6 +180,7 @@ public class NetconfDeviceProviderTest {
         return dictionary;
     }
 
+    @Ignore("Test fails if the hard coded host actually exists.")
     @Test(expected = SocketTimeoutException.class)
     public void testSSHAuthentication() throws JNCException, IOException {
         NetconfDevice netconfDevice = new NetconfDevice("10.18.14.19", 22,
@@ -408,34 +410,41 @@ public class NetconfDeviceProviderTest {
 
         private class TestProviderService implements DeviceProviderService {
 
+            @Override
             public DeviceProvider provider() {
                 return null;
             }
 
+            @Override
             public void deviceConnected(DeviceId deviceId,
                                         DeviceDescription deviceDescription) {
             }
 
+            @Override
             public void deviceDisconnected(DeviceId deviceId) {
 
             }
 
+            @Override
             public void updatePorts(DeviceId deviceId,
                                     List<PortDescription> portDescriptions) {
 
             }
 
+            @Override
             public void portStatusChanged(DeviceId deviceId,
                                           PortDescription portDescription) {
 
             }
 
+            @Override
             public void receivedRoleReply(DeviceId deviceId,
                                           MastershipRole requested,
                                           MastershipRole response) {
 
             }
 
+            @Override
             public void updatePortStatistics(DeviceId deviceId,
                                              Collection<PortStatistics> portStatistics) {
 
