@@ -150,7 +150,11 @@ public class ApplicationArchive
      */
     public ApplicationDescription getApplicationDescription(String appName) {
         try {
-            return loadAppDescription(new XMLConfiguration(appFile(appName, APP_XML)));
+            XMLConfiguration cfg = new XMLConfiguration();
+            cfg.setAttributeSplittingDisabled(true);
+            cfg.setDelimiterParsingDisabled(true);
+            cfg.load(appFile(appName, APP_XML));
+            return loadAppDescription(cfg);
         } catch (Exception e) {
             throw new ApplicationException("Unable to get app description", e);
         }
@@ -258,6 +262,8 @@ public class ApplicationArchive
     private ApplicationDescription parsePlainAppDescription(InputStream stream)
             throws IOException {
         XMLConfiguration cfg = new XMLConfiguration();
+        cfg.setAttributeSplittingDisabled(true);
+        cfg.setDelimiterParsingDisabled(true);
         try {
             cfg.load(stream);
             return loadAppDescription(cfg);
@@ -267,8 +273,6 @@ public class ApplicationArchive
     }
 
     private ApplicationDescription loadAppDescription(XMLConfiguration cfg) {
-        cfg.setAttributeSplittingDisabled(true);
-        cfg.setDelimiterParsingDisabled(true);
         String name = cfg.getString(NAME);
         Version version = Version.version(cfg.getString(VERSION));
         String desc = cfg.getString(DESCRIPTION);
@@ -277,7 +281,7 @@ public class ApplicationArchive
         Set<Permission> perms = getPermissions(cfg);
         String featRepo = cfg.getString(FEATURES_REPO);
         URI featuresRepo = featRepo != null ? URI.create(featRepo) : null;
-        List<String> features = ImmutableList.copyOf(cfg.getStringArray(FEATURES));
+        List<String> features = ImmutableList.copyOf(cfg.getString(FEATURES).split(","));
 
         return new DefaultApplicationDescription(name, version, desc, origin, role,
                                                  perms, featuresRepo, features);
