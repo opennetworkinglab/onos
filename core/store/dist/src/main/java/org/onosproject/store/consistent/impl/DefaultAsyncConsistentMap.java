@@ -276,8 +276,12 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkIfUnmodifiable();
         return database.remove(name, keyCache.getUnchecked(key))
                 .thenApply(this::unwrapResult)
-                .thenApply(v -> v != null
-                ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+                .thenApply(v -> v != null ? v.<V>map(serializer::decode) : null)
+                .whenComplete((r, e) -> {
+                    if (r != null) {
+                        notifyListeners(new MapEvent<>(name, MapEvent.Type.REMOVE, key, r));
+                    }
+                });
     }
 
     @Override
@@ -316,12 +320,19 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
         checkIfUnmodifiable();
-        return database.putIfAbsent(name,
-                                    keyCache.getUnchecked(key),
-                                    serializer.encode(value))
+        AtomicReference<MapEvent<K, V>> event = new AtomicReference<>();
+        return database.putIfAbsentAndGet(name, keyCache.getUnchecked(key), serializer.encode(value))
                 .thenApply(this::unwrapResult)
-                .thenApply(v -> v != null ?
-                        new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+                .whenComplete((r, e) -> {
+                    if (r != null && r.updated()) {
+                        event.set(new MapEvent<K, V>(name,
+                                                 MapEvent.Type.INSERT,
+                                                 key,
+                                                 r.newValue().<V>map(serializer::decode)));
+                    }
+                })
+                .thenApply(v -> v.updated() ? null : v.oldValue().<V>map(serializer::decode))
+                .whenComplete((r, e) -> notifyListeners(event.get()));
     }
 
     @Override
