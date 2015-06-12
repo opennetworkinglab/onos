@@ -37,8 +37,8 @@ public class UserFactory extends JsonFactory {
     static {
         ICON_LOOKUP.put("Mom's PC", "mom");
         ICON_LOOKUP.put("Dad's PC", "dad");
-        ICON_LOOKUP.put("Jack's iPhone", "boy2");
-        ICON_LOOKUP.put("Jill's iPad", "girl1");
+        ICON_LOOKUP.put("Jack's Laptop", "boy2");
+        ICON_LOOKUP.put("Jill's Laptop", "girl1");
     }
 
     private static final String DEFAULT_ICON_ID = "boy1";
