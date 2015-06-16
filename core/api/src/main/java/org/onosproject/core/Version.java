@@ -31,6 +31,7 @@ public final class Version {
     public static final String FORMAT_LONG = "%d.%d.%s.%s";
 
     private static final String NEGATIVE = "Version segment cannot be negative";
+    public static final String TOO_SHORT = "Version must have at least major and minor numbers";
 
     private final int major;
     private final int minor;
@@ -64,8 +65,8 @@ public final class Version {
      * @return version descriptor
      */
     public static Version version(int major, int minor, String patch, String build) {
-        checkArgument(major > 0, NEGATIVE);
-        checkArgument(minor > 0, NEGATIVE);
+        checkArgument(major >= 0, NEGATIVE);
+        checkArgument(minor >= 0, NEGATIVE);
         return new Version(major, minor, patch, build);
     }
 
@@ -77,6 +78,7 @@ public final class Version {
      */
     public static Version version(String string) {
         String[] fields = string.split("[.-]");
+        checkArgument(fields.length >= 2, TOO_SHORT);
         return new Version(parseInt(fields[0]), parseInt(fields[1]),
                            fields.length >= 3 ? fields[2] : null,
                            fields.length >= 4 ? fields[3] : null);
