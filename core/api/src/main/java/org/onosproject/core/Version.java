@@ -26,8 +26,9 @@ import static java.lang.Integer.parseInt;
  */
 public final class Version {
 
-    public static final String FORMAT = "%d.%d.%s.%s";
+    public static final String FORMAT_MINIMAL = "%d.%d";
     public static final String FORMAT_SHORT = "%d.%d.%s";
+    public static final String FORMAT_LONG = "%d.%d.%s.%s";
 
     private static final String NEGATIVE = "Version segment cannot be negative";
 
@@ -44,9 +45,12 @@ public final class Version {
         this.minor = minor;
         this.patch = patch;
         this.build = build;
-        this.format = isNullOrEmpty(build) ?
-                String.format(FORMAT_SHORT, major, minor, patch) :
-                String.format(FORMAT, major, minor, patch, build);
+        this.format =
+                isNullOrEmpty(patch) ?
+                        String.format(FORMAT_MINIMAL, major, minor) :
+                        (isNullOrEmpty(build) ?
+                                String.format(FORMAT_SHORT, major, minor, patch) :
+                                String.format(FORMAT_LONG, major, minor, patch, build));
     }
 
 
@@ -74,7 +78,8 @@ public final class Version {
     public static Version version(String string) {
         String[] fields = string.split("[.-]");
         return new Version(parseInt(fields[0]), parseInt(fields[1]),
-                           fields[2], fields.length == 4 ? fields[3] : null);
+                           fields.length >= 3 ? fields[2] : null,
+                           fields.length >= 4 ? fields[3] : null);
     }
 
     /**
