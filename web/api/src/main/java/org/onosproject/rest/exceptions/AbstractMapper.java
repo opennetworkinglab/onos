@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * Base exception mapper implementation.
  */
@@ -49,9 +51,27 @@ public abstract class AbstractMapper<E extends Throwable> implements ExceptionMa
     protected Response.ResponseBuilder response(Response.Status status,
                                                 Throwable exception) {
         ObjectMapper mapper = new ObjectMapper();
+        String message = messageFrom(exception);
         ObjectNode result = mapper.createObjectNode()
                 .put("code", status.getStatusCode())
-                .put("message", exception.getMessage());
+                .put("message", message);
         return Response.status(status).entity(result.toString());
     }
+
+    /**
+     * Produces a response message from the supplied exception. Either it will
+     * use the exception message, if there is one, or it will use the top
+     * stack-frame message.
+     *
+     * @param exception exception from which to produce a message
+     * @return response message
+     */
+    protected String messageFrom(Throwable exception) {
+        if (isNullOrEmpty(exception.getMessage())) {
+            StackTraceElement[] trace = exception.getStackTrace();
+            return trace.length == 0 ? "Unknown error" : trace[0].toString();
+        }
+        return exception.getMessage();
+    }
+
 }
