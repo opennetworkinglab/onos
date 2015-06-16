@@ -64,6 +64,14 @@ public class VersionTest {
     }
 
     @Test
+    public void minimal() {
+        Version v = version("1.4");
+        assertEquals("wrong major", 1, v.major());
+        assertEquals("wrong minor", 4, v.minor());
+        assertEquals("wrong patch", null, v.patch());
+        assertEquals("wrong build", null, v.build());
+    }
+    @Test
     public void testEquals() {
         new EqualsTester()
                 .addEqualityGroup(version("1.2.3.4321"), version(1, 2, "3", "4321"))
