@@ -17,6 +17,7 @@ ssh $remote "
     cd /tmp/$ONOS_BITS
     bin/onos-service server 1>/tmp/onos.out 2>/tmp/onos.err &
 
-    # Setup a symlink to allow other tools to work
+    # Setup a few symlinks to allow other tools to work
     sudo ln -s /tmp/$ONOS_BITS $ONOS_INSTALL_DIR
+    sudo ln -s /tmp/$ONOS_BITS/$KARAF_DIST/data/log $ONOS_INSTALL_DIR/log
 "

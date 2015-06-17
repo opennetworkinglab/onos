@@ -16,6 +16,9 @@
 package org.onlab.stc;
 
 import com.google.common.collect.ImmutableList;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.util.log.Logger;
 import org.onlab.stc.Coordinator.Status;
 
 import java.io.FileInputStream;
@@ -106,10 +109,27 @@ public final class Main {
             coordinator = new Coordinator(scenario, compiler.processFlow(),
                                           compiler.logDir());
             coordinator.addListener(delegate);
+
+            startMonitorServer();
+
             processCommand();
 
         } catch (FileNotFoundException e) {
             print("Unable to find scenario file %s", scenarioFile);
+        }
+    }
+
+    // Initiates a web-server for the monitor GUI.
+    private static void startMonitorServer() {
+        org.eclipse.jetty.util.log.Log.setLog(new NullLogger());
+        Server server = new Server(9999);
+        ServletHandler handler = new ServletHandler();
+        server.setHandler(handler);
+        handler.addServletWithMapping(MonitorWebSocketServlet.class, "/*");
+        try {
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -224,4 +244,65 @@ public final class Main {
         }
     }
 
+    // Logger to quiet Jetty down
+    private static class NullLogger implements Logger {
+        @Override
+        public String getName() {
+            return "quiet";
+        }
+
+        @Override
+        public void warn(String msg, Object... args) {
+        }
+
+        @Override
+        public void warn(Throwable thrown) {
+        }
+
+        @Override
+        public void warn(String msg, Throwable thrown) {
+        }
+
+        @Override
+        public void info(String msg, Object... args) {
+        }
+
+        @Override
+        public void info(Throwable thrown) {
+        }
+
+        @Override
+        public void info(String msg, Throwable thrown) {
+        }
+
+        @Override
+        public boolean isDebugEnabled() {
+            return false;
+        }
+
+        @Override
+        public void setDebugEnabled(boolean enabled) {
+        }
+
+        @Override
+        public void debug(String msg, Object... args) {
+        }
+
+        @Override
+        public void debug(Throwable thrown) {
+        }
+
+        @Override
+        public void debug(String msg, Throwable thrown) {
+        }
+
+        @Override
+        public Logger getLogger(String name) {
+            return this;
+        }
+
+        @Override
+        public void ignore(Throwable ignored) {
+        }
+    }
 }
