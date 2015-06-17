@@ -15,6 +15,10 @@
  */
 package org.onosproject.net.device;
 
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.onosproject.net.NetTestTools;
 
@@ -22,6 +26,7 @@ import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
@@ -91,5 +96,31 @@ public class DefaultPortStatisticsTest {
                 .addEqualityGroup(stats1, stats1)
                 .addEqualityGroup(stats2)
                 .testEquals();
+    }
+
+    /**
+     * Tests that the empty argument list constructor for serialization
+     * is present and creates a proper object.
+     */
+    @Test
+    public void testSerializerConstructor() {
+        try {
+            Constructor[] constructors = DefaultPortStatistics.class.getDeclaredConstructors();
+            assertThat(constructors, notNullValue());
+            Arrays.stream(constructors).filter(ctor ->
+                ctor.getParameterTypes().length == 0)
+                    .forEach(noParamsCtor -> {
+                        try {
+                            noParamsCtor.setAccessible(true);
+                            DefaultPortStatistics stats =
+                                    (DefaultPortStatistics) noParamsCtor.newInstance();
+                            assertThat(stats, notNullValue());
+                        } catch (Exception e) {
+                            Assert.fail("Exception instantiating no parameters constructor");
+                        }
+                    });
+        } catch (Exception e) {
+            Assert.fail("Exception looking up constructors");
+        }
     }
 }
