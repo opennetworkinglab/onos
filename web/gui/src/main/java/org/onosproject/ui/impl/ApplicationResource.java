@@ -18,7 +18,6 @@ package org.onosproject.ui.impl;
 import com.sun.jersey.multipart.FormDataParam;
 import org.onlab.rest.BaseResource;
 import org.onosproject.app.ApplicationAdminService;
-import org.onosproject.core.Application;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -38,8 +37,8 @@ public class ApplicationResource extends BaseResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response upload(@FormDataParam("file") InputStream stream) throws IOException {
-        Application app = get(ApplicationAdminService.class).install(stream);
-        return Response.ok(app.toString()).build();
+        get(ApplicationAdminService.class).install(stream);
+        return Response.ok().build();
     }
 
 }

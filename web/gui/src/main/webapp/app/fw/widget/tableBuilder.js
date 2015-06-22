@@ -44,6 +44,7 @@
             req = o.tag + 'DataRequest',
             resp = o.tag + 'DataResponse',
             onSel = fs.isF(o.selCb),
+            onResp = fs.isF(o.respCb),
             promise;
 
         o.scope.tableData = [];
@@ -52,6 +53,7 @@
 
         function respCb(data) {
             o.scope.tableData = data[root];
+            onResp && onResp();
             o.scope.$apply();
         }
 
