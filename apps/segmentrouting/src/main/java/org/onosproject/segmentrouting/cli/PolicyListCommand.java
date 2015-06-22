@@ -29,7 +29,7 @@ import org.onosproject.segmentrouting.TunnelPolicy;
 public class PolicyListCommand extends AbstractShellCommand {
 
     private static final String FORMAT_MAPPING_TUNNEL =
-            "  id=%s, type=%s,  prio=%d, src=%s, dst=%s, proto=%s, tunnel=%s";
+            "  id=%s, type=%s,  prio=%d, src=%s, port=%d, dst=%s, port=%d, proto=%s, tunnel=%s";
 
     @Override
     protected void execute() {
@@ -43,7 +43,8 @@ public class PolicyListCommand extends AbstractShellCommand {
     private void printPolicy(Policy policy) {
         if (policy.type() == Policy.Type.TUNNEL_FLOW) {
             print(FORMAT_MAPPING_TUNNEL, policy.id(), policy.type(), policy.priority(),
-                    policy.srcIp(), policy.dstIp(), (policy.ipProto() == null) ? "" : policy.ipProto(),
+                    policy.srcIp(), policy.srcPort(), policy.dstIp(), policy.dstPort(),
+                    (policy.ipProto() == null) ? "" : policy.ipProto(),
                     ((TunnelPolicy) policy).tunnelId());
         }
     }
