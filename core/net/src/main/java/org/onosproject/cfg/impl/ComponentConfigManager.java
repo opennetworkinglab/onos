@@ -23,6 +23,9 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.AbstractAccumulator;
+import org.onlab.util.Accumulator;
+import org.onlab.util.SharedExecutors;
 import org.onosproject.cfg.ComponentConfigEvent;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ComponentConfigStore;
@@ -37,7 +40,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -57,11 +62,19 @@ public class ComponentConfigManager implements ComponentConfigService {
     private static final String COMPONENT_NULL = "Component name cannot be null";
     private static final String PROPERTY_NULL = "Property name cannot be null";
 
+    //Symbolic constants for use with the accumulator
+    private static final int MAX_ITEMS = 100;
+    private static final int MAX_BATCH_MILLIS = 1000;
+    private static final int MAX_IDLE_MILLIS = 250;
+
     private static final String RESOURCE_EXT = ".cfgdef";
 
     private final Logger log = getLogger(getClass());
 
     private final ComponentConfigStoreDelegate delegate = new InternalStoreDelegate();
+    //TODO make accumulator properties configurable
+    private final InternalAccumulator accumulator = new InternalAccumulator(SharedExecutors.getTimer(),
+            MAX_ITEMS, MAX_BATCH_MILLIS, MAX_IDLE_MILLIS);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigStore store;
@@ -70,8 +83,9 @@ public class ComponentConfigManager implements ComponentConfigService {
     protected ConfigurationAdmin cfgAdmin;
 
     // Locally maintained catalog of definitions.
-    private final Map<String, Map<String, ConfigProperty>> properties =
+    private final Map<String, Map<String, ConfigProperty>>  properties =
             Maps.newConcurrentMap();
+
 
     @Activate
     public void activate() {
@@ -181,6 +195,22 @@ public class ComponentConfigManager implements ComponentConfigService {
         }
     }
 
+    private class InternalAccumulator extends AbstractAccumulator<String> implements Accumulator<String> {
+
+        protected InternalAccumulator(java.util.Timer timer, int maxItems, int maxBatchMillis, int maxIdleMillis) {
+            super(timer, maxItems, maxBatchMillis, maxIdleMillis);
+        }
+
+        @Override
+        public void processItems(List items) {
+            //Conversion to hashset removes duplicates
+            Set<String> componentSet = new HashSet<String>(items);
+            componentSet.forEach(ComponentConfigManager.this::triggerUpdate);
+
+
+        }
+    }
+
     // Locates the property in the component map and replaces it with an
     // updated copy.
     private void set(String componentName, String name, String value) {
@@ -189,7 +219,7 @@ public class ComponentConfigManager implements ComponentConfigService {
             ConfigProperty prop = map.get(name);
             if (prop != null) {
                 map.put(name, ConfigProperty.setProperty(prop, value));
-                triggerUpdate(componentName);
+                accumulator.add(componentName);
                 return;
             }
         }
@@ -205,7 +235,7 @@ public class ComponentConfigManager implements ComponentConfigService {
             ConfigProperty prop = map.get(name);
             if (prop != null) {
                 map.put(name, ConfigProperty.resetProperty(prop));
-                triggerUpdate(componentName);
+                accumulator.add(componentName);
                 return;
             }
             log.warn("Unable to reset non-existent property {} for component {}",
