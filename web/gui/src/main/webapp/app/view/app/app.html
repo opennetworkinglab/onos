@@ -7,31 +7,28 @@
                  icon icon-size="36" icon-id="refresh"
                  ng-click="toggleRefresh()"></div>
             <div class="separator"></div>
-            <div id="app-install"
-                 icon icon-size="36" icon-id="plus"
-                 class="active">
+
+            <form id="inputFileForm">
+                <input id="uploadFile"
+                       type="file" size="50" accept=".oar"
+                       file-model="appFile">
+            </form>
+            <div icon icon-size="36" icon-id="plus"
+                 class="active" trigger-form>
             </div>
-            <div id="app-activate"
-                 icon icon-size="36" icon-id="play"
+            <div icon icon-size="36" icon-id="play"
+                 ng-click="appAction('activate')"
                  ng-class="{active: ctrlBtnState.installed}">
             </div>
-            <div id="app-deactivate"
-                 icon icon-size="36" icon-id="stop"
+            <div icon icon-size="36" icon-id="stop"
+                 ng-click="appAction('deactivate')"
                  ng-class="{active: ctrlBtnState.active}">
             </div>
-            <div id="app-uninstall"
-                 icon icon-size="36" icon-id="garbage"
+            <div icon icon-size="36" icon-id="garbage"
+                 ng-click="appAction('uninstall')"
                  ng-class="{active: ctrlBtnState.selection}">
             </div>
         </div>
-
-        <form id="app-form" method="POST" action="rs/applications/upload"
-              target="app-form-response" enctype="multipart/form-data" style="display:none">
-            <input type="file" name="file" id="file" size="50" accept=".oar">
-            <button type="submit" id="app-upload">Upload</button>
-        </form>
-        <iframe id="app-form-response" name="app-form-response"
-                src="" width="0" height="0" style="visibility:hidden;display:none"></iframe>
     </div>
 
     <div class="summary-list" onos-fixed-header>

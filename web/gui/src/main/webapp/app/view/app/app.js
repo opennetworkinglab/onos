@@ -21,74 +21,115 @@
 (function () {
     'use strict';
 
-    var selectionObj;
+    // constants
+    var INSTALLED = 'INSTALLED',
+        ACTIVE = 'ACTIVE',
+        APP_MGMENT_REQ = 'appManagementRequest',
+        FILE_UPLOAD_URL = 'applications/upload';
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
-        ['$log', '$scope', 'FnService', 'TableBuilderService', 'WebSocketService',
+        ['$log', '$scope', '$http',
+        'FnService', 'TableBuilderService', 'WebSocketService', 'UrlFnService',
 
-    function ($log, $scope, fs, tbs, wss) {
+    function ($log, $scope, $http, fs, tbs, wss, ufs) {
+        var refreshCtrls;
         $scope.ctrlBtnState = {};
-        // TODO: clean up view
-        // all DOM manipulation (adding styles, getting elements and doing stuff
-        //     with them) should be done in directives
 
         function selCb($event, row) {
+            // selId comes from tableBuilder
             $scope.ctrlBtnState.selection = !!$scope.selId;
-            selectionObj = row;
             $log.debug('Got a click on:', row);
 
-            if ($scope.ctrlBtnState.selection) {
-                $scope.ctrlBtnState.installed = row.state === 'INSTALLED';
-                $scope.ctrlBtnState.active = row.state === 'ACTIVE';
-            } else {
-                $scope.ctrlBtnState.installed = false;
-                $scope.ctrlBtnState.active = false;
-            }
+            refreshCtrls = function () {
+                if ($scope.ctrlBtnState.selection) {
+                    $scope.ctrlBtnState.installed = row.state === INSTALLED;
+                    $scope.ctrlBtnState.active = row.state === ACTIVE;
+                } else {
+                    $scope.ctrlBtnState.installed = false;
+                    $scope.ctrlBtnState.active = false;
+                }
+            };
+
+            refreshCtrls();
+        }
+
+        function respCb() {
+            refreshCtrls && refreshCtrls();
         }
 
         tbs.buildTable({
             scope: $scope,
             tag: 'app',
-            selCb: selCb
+            selCb: selCb,
+            respCb: respCb
         });
 
-        // TODO: use d3 click events -- move to directive
-        d3.select('#app-install').on('click', function () {
-            $log.debug('Initiating install');
-            var evt = document.createEvent("HTMLEvents");
-            evt.initEvent("click", true, true);
-            document.getElementById('file').dispatchEvent(evt);
-        });
-
-        // TODO: use d3 to select elements -- move to directive
-        document.getElementById('app-form-response').onload = function () {
-            document.getElementById('app-form').reset();
-            $scope.$apply();
-            //$scope.sortCallback($scope.sortParams);
+        $scope.appAction = function (action) {
+            if ($scope.ctrlBtnState.selection) {
+                $log.debug('Initiating ' + action + ' of ' + $scope.selId);
+                wss.sendEvent(APP_MGMENT_REQ, {
+                    action: action,
+                    name: $scope.selId
+                });
+            }
         };
 
-        function appAction(action) {
-            if ($scope.ctrlBtnState.selection) {
-                $log.debug('Initiating ' + action + ' of', selectionObj);
-                wss.sendEvent('appManagementRequest', {action: action, name: selectionObj.id});
+        $scope.$on('FileChanged', function () {
+            var formData = new FormData();
+            if ($scope.appFile) {
+                formData.append('file', $scope.appFile);
+                $http.post(ufs.rsUrl(FILE_UPLOAD_URL), formData, {
+                    transformRequest: angular.identity,
+                    headers: {
+                        'Content-Type': undefined
+                    }
+                })
+                    // TODO: look for finally function to combine lines
+                    // TODO: reexamine reset input value
+                    .success(function () {
+                        $scope.sortCallback($scope.sortParams);
+                        document.getElementById('inputFileForm').reset();
+                    })
+                    .error(function () {
+                        $scope.sortCallback($scope.sortParams);
+                    });
             }
-        }
-
-        // TODO: use d3 to select elements -- move to directive
-        d3.select('#file').on('change', function () {
-            var file = document.getElementById('file').value.replace('C:\\fakepath\\', '');
-            $log.info('Handling file', file);
-            var evt = document.createEvent("HTMLEvents");
-            evt.initEvent("click", true, true);
-            document.getElementById('app-upload').dispatchEvent(evt);
         });
 
-        // TODO: move to directive
-        d3.select('#app-uninstall').on('click', function () { appAction('uninstall'); });
-        d3.select('#app-activate').on('click', function () { appAction('activate'); });
-        d3.select('#app-deactivate').on('click', function () { appAction('deactivate'); });
-
         $log.log('OvAppCtrl has been created');
+    }])
+
+    // triggers the input form to appear when button is clicked
+    .directive('triggerForm', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, elem) {
+                elem.bind('click', function () {
+                    document.getElementById('uploadFile')
+                        .dispatchEvent(new Event('click'));
+                });
+            }
+        };
+    })
+
+    // binds the model file to the scope in scope.appFile
+    // sends upload request to the server
+    .directive('fileModel', ['$parse',
+            function ($parse) {
+        return {
+            restrict: 'A',
+            link: function (scope, elem, attrs) {
+                var model = $parse(attrs.fileModel),
+                    modelSetter = model.assign;
+
+                elem.bind('change', function () {
+                    scope.$apply(function () {
+                        modelSetter(scope, elem[0].files[0]);
+                    });
+                    scope.$emit('FileChanged');
+                });
+            }
+        };
     }]);
 }());

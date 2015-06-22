@@ -24,9 +24,9 @@
 
     angular.module('onosRemote')
     .factory('RestService',
-        ['$log', '$http', 'UrlFnService',
+        ['$log', '$http', 'FnService', 'UrlFnService',
 
-        function (_$log_, $http, ufs) {
+        function (_$log_, $http, fs, ufs) {
             $log = _$log_;
 
             function get(url, callback, errorCb) {
@@ -37,7 +37,7 @@
                     callback(response.data);
                 }, function (response) {
                     // error
-                    var  emsg = 'Failed to retrieve JSON data: ' + fullUrl;
+                    var emsg = 'Failed to retrieve JSON data: ' + fullUrl;
                     $log.warn(emsg, response.status, response.data);
                     if (errorCb) {
                         errorCb(emsg);
@@ -45,8 +45,28 @@
                 });
             }
 
+            // TODO: test this
+            function post(url, data, callbacks) {
+                var fullUrl = ufs.rsUrl(url);
+                $http.post(fullUrl, data).then(function (response) {
+                    // success
+                    if (callbacks && fs.isF(callbacks.success)) {
+                        callbacks.success(response.data);
+                    }
+                }, function (response) {
+                    // error
+                    var msg = 'Problem with $http post request: ' + fullUrl;
+                    $log.warn(msg, response.status, response.data);
+
+                    if (callbacks && fs.isF(callbacks.error)) {
+                        callbacks.error(msg);
+                    }
+                });
+            }
+
             return {
-                get: get
+                get: get,
+                post: post
             };
         }]);
 }());

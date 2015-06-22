@@ -31,3 +31,8 @@
     width: 24px;
     border: none;
 }
+
+#ov-app form#inputFileForm,
+#ov-app input#uploadFile {
+    display: none;
+}
