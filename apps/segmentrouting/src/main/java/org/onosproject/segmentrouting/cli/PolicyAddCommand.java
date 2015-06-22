@@ -46,17 +46,32 @@ public class PolicyAddCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String srcIp;
 
-    @Argument(index = 3, name = "dst IP",
+    @Argument(index = 3, name = "src port",
+            description = "src port",
+            required = false, multiValued = false)
+    short srcPort;
+
+    @Argument(index = 4, name = "dst IP",
             description = "dst IP",
             required = false, multiValued = false)
     String dstIp;
 
-    @Argument(index = 4, name = "policy type",
+    @Argument(index = 5, name = "dst port",
+            description = "dst port",
+            required = false, multiValued = false)
+    short dstPort;
+
+    @Argument(index = 6, name = "proto",
+            description = "proto",
+            required = false, multiValued = false)
+    String proto;
+
+    @Argument(index = 7, name = "policy type",
             description = "policy type",
             required = true, multiValued = false)
     String policyType;
 
-    @Argument(index = 5, name = "tunnel ID",
+    @Argument(index = 8, name = "tunnel ID",
             description = "tunnel ID",
             required = false, multiValued = false)
     String tunnelId;
@@ -76,6 +91,15 @@ public class PolicyAddCommand extends AbstractShellCommand {
         }
         if (dstIp != null) {
             tpb.setDstIp(dstIp);
+        }
+        if (srcPort != 0) {
+            tpb.setSrcPort(srcPort);
+        }
+        if (dstPort != 0) {
+            tpb.setDstPort(dstPort);
+        }
+        if (!proto.equals("ip")) {
+            tpb.setIpProto(proto);
         }
         if (Policy.Type.valueOf(policyType) == Policy.Type.TUNNEL_FLOW) {
             if (tunnelId == null) {
