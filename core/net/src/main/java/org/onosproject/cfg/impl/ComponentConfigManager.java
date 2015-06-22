@@ -48,8 +48,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -72,9 +72,7 @@ public class ComponentConfigManager implements ComponentConfigService {
     private final Logger log = getLogger(getClass());
 
     private final ComponentConfigStoreDelegate delegate = new InternalStoreDelegate();
-    //TODO make accumulator properties configurable
-    private final InternalAccumulator accumulator = new InternalAccumulator(SharedExecutors.getTimer(),
-            MAX_ITEMS, MAX_BATCH_MILLIS, MAX_IDLE_MILLIS);
+    private final InternalAccumulator accumulator = new InternalAccumulator();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigStore store;
@@ -195,19 +193,19 @@ public class ComponentConfigManager implements ComponentConfigService {
         }
     }
 
-    private class InternalAccumulator extends AbstractAccumulator<String> implements Accumulator<String> {
+    // Buffers multiple subsequent configuration updates into one notification.
+    private class InternalAccumulator extends AbstractAccumulator<String>
+            implements Accumulator<String> {
 
-        protected InternalAccumulator(java.util.Timer timer, int maxItems, int maxBatchMillis, int maxIdleMillis) {
-            super(timer, maxItems, maxBatchMillis, maxIdleMillis);
+        protected InternalAccumulator() {
+            super(SharedExecutors.getTimer(), MAX_ITEMS, MAX_BATCH_MILLIS, MAX_IDLE_MILLIS);
         }
 
         @Override
-        public void processItems(List items) {
-            //Conversion to hashset removes duplicates
-            Set<String> componentSet = new HashSet<String>(items);
+        public void processItems(List<String> items) {
+            // Conversion to set removes duplicates
+            Set<String> componentSet = new HashSet<>(items);
             componentSet.forEach(ComponentConfigManager.this::triggerUpdate);
-
-
         }
     }
 
