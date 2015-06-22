@@ -28,7 +28,15 @@ mvn archetype:generate -DarchetypeGroupId=org.onosproject \
     -DarchetypeVersion=$ONOS_POM_VERSION $otherOptions "$@"
 
 # Patch the pom.xml file to make this an app.
-if [ $type = app -a -d $dir ]; then
-    egrep -v "        (<!--|-->)" $dir/pom.xml > $dir/pom.app.xml
-    mv $dir/pom.app.xml $dir/pom.xml
+if [ $type = app ]; then
+    # We need to add a few lines to the pom.xml to make this an app
+    if [ -n "$dir" ] && [ -d $dir ]; then
+        egrep -v "        (<!--|-->)" $dir/pom.xml > $dir/pom.app.xml
+        mv $dir/pom.app.xml $dir/pom.xml
+    else
+        echo
+        echo "IMPORTANT:"
+        echo "To build the application, you need to uncomment the 'onos.app.name' and 'onos.app.origin' properties in the pom.xml"
+        echo
+    fi
 fi
