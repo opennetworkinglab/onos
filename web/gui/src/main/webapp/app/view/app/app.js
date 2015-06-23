@@ -63,6 +63,7 @@
             selCb: selCb,
             respCb: refreshCtrls
         });
+        $scope.toggleRefresh();
 
         $scope.appAction = function (action) {
             if ($scope.ctrlBtnState.selection) {
