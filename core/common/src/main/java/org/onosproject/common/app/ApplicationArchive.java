@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.io.Files.createParentDirs;
 import static com.google.common.io.Files.write;
@@ -108,7 +109,7 @@ public class ApplicationArchive
      *
      * @return top-level directory path
      */
-    protected String getRootPath() {
+    public String getRootPath() {
         return root.getPath();
     }
 
@@ -179,6 +180,8 @@ public class ApplicationArchive
             boolean plainXml = isPlainXml(cache);
             ApplicationDescription desc = plainXml ?
                     parsePlainAppDescription(bis) : parseZippedAppDescription(bis);
+            checkState(!appFile(desc.name(), APP_XML).exists(),
+                       "Application %s already installed", desc.name());
 
             if (plainXml) {
                 expandPlainApplication(cache, desc);
@@ -309,6 +312,7 @@ public class ApplicationArchive
     private void expandPlainApplication(byte[] stream, ApplicationDescription desc)
             throws IOException {
         File file = appFile(desc.name(), APP_XML);
+        checkState(!file.getParentFile().exists(), "Application already installed");
         createParentDirs(file);
         write(stream, file);
     }

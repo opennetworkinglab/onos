@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.common.app.ApplicationArchive;
@@ -27,6 +28,10 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.Permission;
 import org.onosproject.core.ApplicationIdStoreAdapter;
 import org.onosproject.core.DefaultApplicationId;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
@@ -42,23 +47,33 @@ import static org.onosproject.app.ApplicationState.INSTALLED;
  */
 public class SimpleApplicationStoreTest {
 
-    private SimpleApplicationStore store = new SimpleApplicationStore();
+    static final String ROOT = "/tmp/app-junit/";
+    static final String STORE = ROOT + new Random().nextInt(1000) + "/foo";
+
+    private TestApplicationStore store = new TestApplicationStore();
     private TestDelegate delegate = new TestDelegate();
+    private static final Object LOCK = new Object();
 
     @Before
     public void setUp() {
         store.idStore = new TestIdStore();
+        store.setRootPath(STORE);
         store.setDelegate(delegate);
         store.activate();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws IOException {
+        if (new File(ROOT).exists()) {
+            Tools.removeDirectory(ROOT);
+        }
         store.deactivate();
     }
 
     private Application createTestApp() {
-        return store.create(ApplicationArchive.class.getResourceAsStream("app.zip"));
+        synchronized (LOCK) {
+            return store.create(ApplicationArchive.class.getResourceAsStream("app.zip"));
+        }
     }
 
     @Test
@@ -130,6 +145,13 @@ public class SimpleApplicationStoreTest {
         @Override
         public void notify(ApplicationEvent event) {
             this.event = event;
+        }
+    }
+
+    private class TestApplicationStore extends SimpleApplicationStore {
+        @Override
+        public void setRootPath(String root) {
+            super.setRootPath(root);
         }
     }
 }

@@ -93,7 +93,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Override
     public Set<Application> getApplications() {
         checkPermission(Permission.APP_READ);
-
         return store.getApplications();
     }
 
@@ -108,7 +107,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Override
     public Application getApplication(ApplicationId appId) {
         checkPermission(Permission.APP_READ);
-
         checkNotNull(appId, APP_ID_NULL);
         return store.getApplication(appId);
     }
@@ -116,7 +114,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Override
     public ApplicationState getState(ApplicationId appId) {
         checkPermission(Permission.APP_READ);
-
         checkNotNull(appId, APP_ID_NULL);
         return store.getState(appId);
     }
@@ -124,7 +121,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Override
     public Set<Permission> getPermissions(ApplicationId appId) {
         checkPermission(Permission.APP_READ);
-
         checkNotNull(appId, APP_ID_NULL);
         return store.getPermissions(appId);
     }
@@ -167,14 +163,12 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Override
     public void addListener(ApplicationListener listener) {
         checkPermission(Permission.APP_EVENT);
-
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(ApplicationListener listener) {
         checkPermission(Permission.APP_EVENT);
-
         listenerRegistry.removeListener(listener);
     }
 
