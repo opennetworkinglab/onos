@@ -15,10 +15,6 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
@@ -35,6 +31,10 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -255,11 +255,9 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
 
         if (resultIntent instanceof LinkCollectionIntent) {
             LinkCollectionIntent linkIntent = (LinkCollectionIntent) resultIntent;
-            assertThat(linkIntent.links(), hasSize(ingress.length + 1));
+            assertThat(linkIntent.links(), hasSize(ingress.length));
 
             assertThat(linkIntent.links(), linksHasPath("i2", "i1"));
-
-            assertThat(linkIntent.links(), linksHasPath("i1", "i1"));
         }
     }
 }

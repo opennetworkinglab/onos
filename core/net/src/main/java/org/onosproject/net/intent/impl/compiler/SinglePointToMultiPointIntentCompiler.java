@@ -15,11 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,7 +28,10 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Component(immediate = true)
 public class SinglePointToMultiPointIntentCompiler
@@ -59,8 +58,12 @@ public class SinglePointToMultiPointIntentCompiler
                                 List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
         Set<Link> links = new HashSet<>();
-        //FIXME: need to handle the case where ingress/egress points are on same switch
+
         for (ConnectPoint egressPoint : intent.egressPoints()) {
+            if (egressPoint.deviceId().equals(intent.ingressPoint().deviceId())) {
+                continue;
+            }
+
             Path path = getPath(intent, intent.ingressPoint().deviceId(), egressPoint.deviceId());
             links.addAll(path.links());
         }

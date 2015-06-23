@@ -27,7 +27,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.EdgeLink;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -78,18 +77,8 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 
         for (Link link : intent.links()) {
-            DeviceId srcDeviceId;
-            DeviceId dstDeviceId;
-
-            if (link instanceof EdgeLink) {
-                EdgeLink edgeLink = (EdgeLink) link;
-                dstDeviceId = edgeLink.hostLocation().deviceId();
-                srcDeviceId = dstDeviceId;
-            } else {
-                inputPorts.put(link.dst().deviceId(), link.dst().port());
-                srcDeviceId = link.src().deviceId();
-            }
-            outputPorts.put(srcDeviceId, link.src().port());
+            inputPorts.put(link.dst().deviceId(), link.dst().port());
+            outputPorts.put(link.src().deviceId(), link.src().port());
         }
 
         for (ConnectPoint ingressPoint : intent.ingressPoints()) {
