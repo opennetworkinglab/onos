@@ -97,7 +97,7 @@ public class FlowRuleCodecTest {
         flowRuleCodec = context.codec(FlowRule.class);
         assertThat(flowRuleCodec, notNullValue());
 
-        expect(mockCoreService.getAppId(APP_ID.id()))
+        expect(mockCoreService.registerApplication(FlowRuleCodec.REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
         context.registerService(CoreService.class, mockCoreService);

@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.ws.rs.core.MediaType;
 
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -33,12 +34,14 @@ import org.onlab.packet.MacAddress;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.codec.impl.FlowRuleCodec;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -74,6 +77,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.onosproject.net.NetTestTools.APP_ID;
 
 /**
  * Unit tests for Flows REST APIs.
@@ -102,6 +106,10 @@ public class FlowsResourceTest extends ResourceTest {
 
     final MockFlowEntry flow5 = new MockFlowEntry(deviceId2, 5);
     final MockFlowEntry flow6 = new MockFlowEntry(deviceId2, 6);
+
+    private static final String FLOW_JSON = "{\"priority\":1,\"isPermanent\":true,"
+            + "\"treatment\":{\"instructions\":[ {\"type\":\"OUTPUT\",\"port\":2}]},"
+            + "\"selector\":{\"criteria\":[ {\"type\":\"ETH_TYPE\",\"ethType\":2054}]}}";
 
     /**
      * Mock class for a flow entry.
@@ -214,8 +222,8 @@ public class FlowsResourceTest extends ResourceTest {
      */
     private void setupMockFlows() {
         flow2.treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.modL0Lambda((short) 4))
-                .add(Instructions.modL0Lambda((short) 5))
+                .add(Instructions.modL0Lambda(new IndexedLambda((short) 4)))
+                .add(Instructions.modL0Lambda(new IndexedLambda((short) 5)))
                 .setEthDst(MacAddress.BROADCAST)
                 .build();
         flow2.selector = DefaultTrafficSelector.builder()
@@ -223,15 +231,15 @@ public class FlowsResourceTest extends ResourceTest {
                 .matchIPProtocol((byte) 9)
                 .build();
         flow4.treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.modL0Lambda((short) 6))
+                .add(Instructions.modL0Lambda(new IndexedLambda((short) 6)))
                 .build();
         final Set<FlowEntry> flows1 = new HashSet<>();
         flows1.add(flow1);
         flows1.add(flow2);
 
         final Set<FlowEntry> flows2 = new HashSet<>();
-        flows1.add(flow3);
-        flows1.add(flow4);
+        flows2.add(flow3);
+        flows2.add(flow4);
 
         rules.put(deviceId1, flows1);
         rules.put(deviceId2, flows2);
@@ -258,6 +266,8 @@ public class FlowsResourceTest extends ResourceTest {
         // Mock Core Service
         expect(mockCoreService.getAppId(anyShort()))
                 .andReturn(NetTestTools.APP_ID).anyTimes();
+        expect(mockCoreService.registerApplication(FlowRuleCodec.REST_APP_ID))
+                .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
 
         // Register the services needed for the test
@@ -565,10 +575,7 @@ public class FlowsResourceTest extends ResourceTest {
      */
     @Test
     public void testPost() {
-        String json = "{\"appId\":2,\"priority\":1,\"isPermanent\":true,"
-        + "\"deviceId\":\"of:0000000000000001\","
-        + "\"treatment\":{\"instructions\":[ {\"type\":\"OUTPUT\",\"port\":2}]},"
-        + "\"selector\":{\"criteria\":[ {\"type\":\"ETH_TYPE\",\"ethType\":2054}]}}";
+
 
         mockFlowService.applyFlowRules(anyObject());
         expectLastCall();
@@ -577,9 +584,32 @@ public class FlowsResourceTest extends ResourceTest {
         WebResource rs = resource();
 
 
-        ClientResponse response = rs.path("flows/")
+        ClientResponse response = rs.path("flows/of:0000000000000001")
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, json);
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_ACCEPTED));
+                .post(ClientResponse.class, FLOW_JSON);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/flows/of:0000000000000001/"));
+    }
+
+    /**
+     * Tests deleting a flow.
+     */
+    @Test
+    public void testDelete() {
+        setupMockFlows();
+        mockFlowService.removeFlowRules(anyObject());
+        expectLastCall();
+        replay(mockFlowService);
+
+        WebResource rs = resource();
+
+        String location = "/flows/1/155";
+
+        ClientResponse deleteResponse = rs.path(location)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete(ClientResponse.class);
+        assertThat(deleteResponse.getStatus(),
+                is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 }

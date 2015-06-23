@@ -33,7 +33,6 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public final class FlowRuleCodec extends JsonCodec<FlowRule> {
 
-    private static final String APP_ID = "appId";
     private static final String PRIORITY = "priority";
     private static final String TIMEOUT = "timeout";
     private static final String IS_PERMANENT = "isPermanent";
@@ -42,6 +41,7 @@ public final class FlowRuleCodec extends JsonCodec<FlowRule> {
     private static final String SELECTOR = "selector";
     private static final String MISSING_MEMBER_MESSAGE =
             " member is required in FlowRule";
+    public static final String REST_APP_ID = "org.onosproject.rest";
 
 
     @Override
@@ -52,10 +52,9 @@ public final class FlowRuleCodec extends JsonCodec<FlowRule> {
 
         FlowRule.Builder resultBuilder = new DefaultFlowRule.Builder();
 
-        short appId = nullIsIllegal(json.get(APP_ID),
-                APP_ID + MISSING_MEMBER_MESSAGE).shortValue();
         CoreService coreService = context.getService(CoreService.class);
-        resultBuilder.fromApp(coreService.getAppId(appId));
+        resultBuilder.fromApp(coreService
+                .registerApplication(REST_APP_ID));
 
         int priority = nullIsIllegal(json.get(PRIORITY),
                 PRIORITY + MISSING_MEMBER_MESSAGE).asInt();

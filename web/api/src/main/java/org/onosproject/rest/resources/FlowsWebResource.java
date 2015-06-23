@@ -17,8 +17,12 @@ package org.onosproject.rest.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.stream.StreamSupport;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -36,6 +40,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.rest.AbstractWebResource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -125,22 +130,58 @@ public class FlowsWebResource extends AbstractWebResource {
      * Creates a flow rule from a POST of a JSON string and attempts to apply it.
      *
      * @param stream input JSON
-     * @return status of the request - ACCEPTED if the JSON is correct,
+     * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
      */
     @POST
+    @Path("{deviceId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createFlow(InputStream stream) {
+    public Response createFlow(@PathParam("deviceId") String deviceId,
+                               InputStream stream) {
+        URI location;
         try {
             FlowRuleService service = get(FlowRuleService.class);
             ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedDeviceId = root.get("deviceId");
+            if (specifiedDeviceId != null &&
+                    !specifiedDeviceId.asText().equals(deviceId)) {
+                throw new IllegalArgumentException(
+                        "Invalid deviceId in flow creation request");
+            }
+            root.put("deviceId", deviceId);
             FlowRule rule = codec(FlowRule.class).decode(root, this);
             service.applyFlowRules(rule);
-        } catch (IOException ex) {
+            location = new URI(Long.toString(rule.id().value()));
+        } catch (IOException | URISyntaxException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Response.Status.ACCEPTED).build();
+        return Response
+                .created(location)
+                .build();
+    }
+
+    /**
+     * Removes the flows for a given device with the given flow id.
+     *
+     * @param deviceId Id of device to look up
+     * @param flowId   Id of flow to look up
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{deviceId}/{flowId}")
+    public void deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
+                                                  @PathParam("flowId") long flowId) {
+        final Iterable<FlowEntry> deviceEntries =
+                service.getFlowEntries(DeviceId.deviceId(deviceId));
+
+        if (!deviceEntries.iterator().hasNext()) {
+            throw new ItemNotFoundException(DEVICE_NOT_FOUND);
+        }
+
+        StreamSupport.stream(deviceEntries.spliterator(), false)
+                .filter(entry -> entry.id().value() == flowId)
+                .forEach(service::removeFlowRules);
     }
 
 }
