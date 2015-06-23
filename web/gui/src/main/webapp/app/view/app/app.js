@@ -33,7 +33,6 @@
         'FnService', 'TableBuilderService', 'WebSocketService', 'UrlFnService',
 
     function ($log, $scope, $http, fs, tbs, wss, ufs) {
-        var refreshCtrls;
         $scope.ctrlBtnState = {};
 
         function selCb($event, row) {
@@ -41,28 +40,28 @@
             $scope.ctrlBtnState.selection = !!$scope.selId;
             $log.debug('Got a click on:', row);
 
-            refreshCtrls = function () {
-                if ($scope.ctrlBtnState.selection) {
-                    $scope.ctrlBtnState.installed = row.state === INSTALLED;
-                    $scope.ctrlBtnState.active = row.state === ACTIVE;
-                } else {
-                    $scope.ctrlBtnState.installed = false;
-                    $scope.ctrlBtnState.active = false;
-                }
-            };
-
             refreshCtrls();
         }
 
-        function respCb() {
-            refreshCtrls && refreshCtrls();
+        function refreshCtrls() {
+            var row, rowIdx;
+            if ($scope.ctrlBtnState.selection) {
+                rowIdx = fs.find($scope.selId, $scope.tableData);
+                row = rowIdx >= 0 ? $scope.tableData[rowIdx] : null;
+
+                $scope.ctrlBtnState.installed = row && row.state === INSTALLED;
+                $scope.ctrlBtnState.active = row && row.state === ACTIVE;
+            } else {
+                $scope.ctrlBtnState.installed = false;
+                $scope.ctrlBtnState.active = false;
+            }
         }
 
         tbs.buildTable({
             scope: $scope,
             tag: 'app',
             selCb: selCb,
-            respCb: respCb
+            respCb: refreshCtrls
         });
 
         $scope.appAction = function (action) {
@@ -85,14 +84,9 @@
                         'Content-Type': undefined
                     }
                 })
-                    // TODO: look for finally function to combine lines
-                    // TODO: reexamine reset input value
-                    .success(function () {
+                    .finally(function () {
                         $scope.sortCallback($scope.sortParams);
                         document.getElementById('inputFileForm').reset();
-                    })
-                    .error(function () {
-                        $scope.sortCallback($scope.sortParams);
                     });
             }
         });
