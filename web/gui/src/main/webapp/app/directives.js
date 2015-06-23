@@ -72,8 +72,11 @@
                     iconSize: '@'
                 },
                 link: function (scope, element, attrs) {
-                    is.loadEmbeddedIcon(d3.select(element[0]),
-                                        scope.iconId, scope.iconSize);
+                    attrs.$observe('iconId', function () {
+                        var div = d3.select(element[0]);
+                        div.selectAll('*').remove();
+                        is.loadEmbeddedIcon(div, scope.iconId, scope.iconSize);
+                    });
                 }
             };
         }])

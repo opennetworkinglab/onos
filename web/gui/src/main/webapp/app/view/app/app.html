@@ -56,7 +56,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="app in tableData track by app.id"
+                <tr ng-repeat="app in tableData"
                     ng-click="selectCallback($event, app)"
                     ng-class="{selected: app.id === selId}"
                     ng-repeat-done>
