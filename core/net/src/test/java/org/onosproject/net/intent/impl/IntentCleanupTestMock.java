@@ -29,8 +29,8 @@ import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.trivial.impl.SimpleIntentStore;
-import org.onosproject.store.trivial.impl.SystemClockTimestamp;
+import org.onosproject.store.trivial.SimpleIntentStore;
+import org.onosproject.store.trivial.SystemClockTimestamp;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertTrue;

@@ -62,7 +62,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.store.trivial.impl.SimpleFlowRuleStore;
+import org.onosproject.store.trivial.SimpleFlowRuleStore;
 
 import java.util.ArrayList;
 import java.util.Collections;

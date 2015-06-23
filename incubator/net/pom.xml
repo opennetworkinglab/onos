@@ -49,16 +49,9 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-core-trivial</artifactId>
+            <artifactId>onos-core-common</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- FIXME remove when we figure out the trivial store -->
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-core-dist</artifactId>
-            <version>${project.version}</version>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
 

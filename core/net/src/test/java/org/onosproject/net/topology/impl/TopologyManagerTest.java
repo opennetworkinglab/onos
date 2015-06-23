@@ -38,7 +38,7 @@ import org.onosproject.net.topology.TopologyProvider;
 import org.onosproject.net.topology.TopologyProviderRegistry;
 import org.onosproject.net.topology.TopologyProviderService;
 import org.onosproject.net.topology.TopologyService;
-import org.onosproject.store.trivial.impl.SimpleTopologyStore;
+import org.onosproject.store.trivial.SimpleTopologyStore;
 
 import java.util.ArrayList;
 import java.util.List;

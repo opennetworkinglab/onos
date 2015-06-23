@@ -54,7 +54,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.store.trivial.impl.SimpleDeviceStore;
+import org.onosproject.store.trivial.SimpleDeviceStore;
 
 import com.google.common.collect.Sets;
 

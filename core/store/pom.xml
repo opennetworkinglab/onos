@@ -32,7 +32,6 @@
     <description>ONOS Core Store subsystem</description>
 
     <modules>
-        <module>trivial</module>
         <module>dist</module>
         <module>serializers</module>
     </modules>

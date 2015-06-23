@@ -61,7 +61,7 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.store.trivial.impl.SimpleGroupStore;
+import org.onosproject.store.trivial.SimpleGroupStore;
 
 import com.google.common.collect.Iterables;
 

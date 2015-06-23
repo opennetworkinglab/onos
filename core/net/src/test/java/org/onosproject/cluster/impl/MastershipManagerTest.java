@@ -31,7 +31,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipStore;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.store.trivial.impl.SimpleMastershipStore;
+import org.onosproject.store.trivial.SimpleMastershipStore;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;

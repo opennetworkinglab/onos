@@ -138,13 +138,4 @@
         <bundle>mvn:org.onosproject/onos-security-impl/@ONOS-VERSION</bundle>
     </feature>
 
-    <!-- Deprecated! For standalone testing only. -->
-    <feature name="onos-core-trivial" version="@FEATURE-VERSION"
-             description="ONOS trivial core components">
-        <feature>onos-api</feature>
-        <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-core-common/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onos-core-trivial/@ONOS-VERSION</bundle>
-    </feature>
-    
 </features>

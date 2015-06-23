@@ -54,7 +54,7 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.store.trivial.impl.SimpleHostStore;
+import org.onosproject.store.trivial.SimpleHostStore;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
