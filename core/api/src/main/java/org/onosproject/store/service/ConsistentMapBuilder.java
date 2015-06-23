@@ -1,5 +1,6 @@
 package org.onosproject.store.service;
 
+import org.onosproject.core.ApplicationId;
 
 /**
  * Builder for consistent maps.
@@ -22,6 +23,18 @@ public interface ConsistentMapBuilder<K, V> {
      * @return this ConsistentMapBuilder
      */
     ConsistentMapBuilder<K, V> withName(String name);
+
+    /**
+     * Sets the owner applicationId for the map.
+     * <p>
+     * Note: If {@code purgeOnUninstall} option is enabled, applicationId
+     * must be specified.
+     * </p>
+     *
+     * @param id applicationId owning the consistent map
+     * @return this ConsistentMapBuilder
+     */
+    ConsistentMapBuilder<K, V> withApplicationId(ApplicationId id);
 
     /**
      * Sets a serializer that can be used to serialize
@@ -63,6 +76,18 @@ public interface ConsistentMapBuilder<K, V> {
      * @return this ConsistentMapBuilder
      */
     ConsistentMapBuilder<K, V> withUpdatesDisabled();
+
+    /**
+     * Purges map contents when the application owning the map is uninstalled.
+     * <p>
+     * When this option is enabled, the caller must provide a applicationId via
+     * the {@code withAppliationId} builder method.
+     * <p>
+     * By default map entries will NOT be purged when owning application is uninstalled.
+     *
+     * @return this ConsistentMapBuilder
+     */
+    ConsistentMapBuilder<K, V> withPurgeOnUninstall();
 
     /**
      * Builds an consistent map based on the configuration options

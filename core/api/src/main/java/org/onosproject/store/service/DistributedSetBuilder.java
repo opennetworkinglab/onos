@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.service;
 
+import org.onosproject.core.ApplicationId;
+
 /**
  * Builder for distributed set.
  *
@@ -35,6 +37,18 @@ public interface DistributedSetBuilder<E> {
      * @return this DistributedSetBuilder
      */
     DistributedSetBuilder<E> withName(String name);
+
+    /**
+     * Sets the owner applicationId for the set.
+     * <p>
+     * Note: If {@code purgeOnUninstall} option is enabled, applicationId
+     * must be specified.
+     * </p>
+     *
+     * @param id applicationId owning the set
+     * @return this DistributedSetBuilder
+     */
+    DistributedSetBuilder<E> withApplicationId(ApplicationId id);
 
     /**
      * Sets a serializer that can be used to serialize
@@ -76,6 +90,18 @@ public interface DistributedSetBuilder<E> {
      * @return this DistributedSetBuilder
      */
     DistributedSetBuilder<E> withPartitionsDisabled();
+
+    /**
+     * Purges set contents when the application owning the set is uninstalled.
+     * <p>
+     * When this option is enabled, the caller must provide a applicationId via
+     * the {@code withAppliationId} builder method.
+     * <p>
+     * By default set contents will NOT be purged when owning application is uninstalled.
+     *
+     * @return this DistributedSetBuilder
+     */
+    DistributedSetBuilder<E> withPurgeOnUninstall();
 
     /**
      * Builds an set based on the configuration options

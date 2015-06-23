@@ -37,6 +37,7 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.HexString;
 import org.onlab.util.Tools;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
@@ -59,9 +60,11 @@ import com.google.common.cache.LoadingCache;
 public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
 
     private final String name;
+    private final ApplicationId applicationId;
     private final Database database;
     private final Serializer serializer;
     private final boolean readOnly;
+    private final boolean purgeOnUninstall;
     private final Consumer<MapEvent<K, V>> eventPublisher;
 
     private final Set<MapEventListener<K, V>> listeners = new CopyOnWriteArraySet<>();
@@ -86,14 +89,18 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     }
 
     public DefaultAsyncConsistentMap(String name,
+            ApplicationId applicationId,
             Database database,
             Serializer serializer,
             boolean readOnly,
+            boolean purgeOnUninstall,
             Consumer<MapEvent<K, V>> eventPublisher) {
         this.name = checkNotNull(name, "map name cannot be null");
+        this.applicationId = applicationId;
         this.database = checkNotNull(database, "database cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
         this.readOnly = readOnly;
+        this.purgeOnUninstall = purgeOnUninstall;
         this.eventPublisher = eventPublisher;
     }
 
@@ -111,6 +118,23 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
      */
     public Serializer serializer() {
         return serializer;
+    }
+
+    /**
+     * Returns the applicationId owning this map.
+     * @return application Id
+     */
+    public ApplicationId applicationId() {
+        return applicationId;
+    }
+
+    /**
+     * Returns whether the map entries should be purged when the application
+     * owning it is uninstalled.
+     * @return true is map needs to cleared on app uninstall; false otherwise
+     */
+    public boolean purgeOnUninstall() {
+        return purgeOnUninstall;
     }
 
     @Override

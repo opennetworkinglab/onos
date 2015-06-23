@@ -17,7 +17,10 @@
 package org.onosproject.store.consistent.impl;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -42,12 +45,17 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 
 import static org.onlab.util.Tools.groupedThreads;
 
+import org.onosproject.app.ApplicationEvent;
+import org.onosproject.app.ApplicationListener;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.store.cluster.impl.ClusterDefinitionManager;
 import org.onosproject.store.cluster.impl.NodeInfo;
@@ -84,6 +92,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
 
 /**
  * Database manager.
@@ -113,18 +123,33 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     private ExecutorService eventDispatcher;
     private ExecutorService queuePollExecutor;
+    private ApplicationListener appListener = new InternalApplicationListener();
 
     private final Map<String, DefaultAsyncConsistentMap> maps = Maps.newConcurrentMap();
+    private final ListMultimap<ApplicationId, DefaultAsyncConsistentMap> mapsByApplication = ArrayListMultimap.create();
     private final Map<String, DefaultDistributedQueue> queues = Maps.newConcurrentMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY, policy = ReferencePolicy.DYNAMIC)
+    protected ApplicationService applicationService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
 
     protected String nodeToUri(NodeInfo node) {
         return String.format("onos://%s:%d", node.getIp(), node.getTcpPort());
+    }
+
+    protected void bindApplicationService(ApplicationService service) {
+        applicationService = service;
+        applicationService.addListener(appListener);
+    }
+
+    protected void unbindApplicationService(ApplicationService service) {
+        applicationService.removeListener(appListener);
+        this.applicationService = null;
     }
 
     @Activate
@@ -250,6 +275,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             });
         clusterCommunicator.removeSubscriber(QUEUE_UPDATED_TOPIC);
         maps.values().forEach(this::unregisterMap);
+        if (applicationService != null) {
+            applicationService.removeListener(appListener);
+        }
         eventDispatcher.shutdown();
         queuePollExecutor.shutdown();
         log.info("Stopped");
@@ -421,6 +449,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             // FIXME: We need to cleanly support different map instances with same name.
             log.info("Map by name {} already exists", map.name());
             return existing;
+        } else {
+            if (map.applicationId() != null) {
+                mapsByApplication.put(map.applicationId(), map);
+            }
         }
 
         clusterCommunicator.<MapEvent<K, V>>addSubscriber(mapUpdatesSubject(map.name()),
@@ -434,6 +466,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         if (maps.remove(map.name()) != null) {
             clusterCommunicator.removeSubscriber(mapUpdatesSubject(map.name()));
         }
+        if (map.applicationId() != null) {
+            mapsByApplication.remove(map.applicationId(), map);
+        }
     }
 
     protected <E> void registerQueue(DefaultDistributedQueue<E> queue) {
@@ -445,5 +480,19 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     protected static MessageSubject mapUpdatesSubject(String mapName) {
         return new MessageSubject(mapName + "-map-updates");
+    }
+
+    private class InternalApplicationListener implements ApplicationListener {
+        @Override
+        public void event(ApplicationEvent event) {
+            if (event.type() == APP_UNINSTALLED || event.type() == APP_DEACTIVATED) {
+                ApplicationId appId = event.subject().id();
+                List<DefaultAsyncConsistentMap> mapsToRemove = ImmutableList.copyOf(mapsByApplication.get(appId));
+                mapsToRemove.forEach(DatabaseManager.this::unregisterMap);
+                if (event.type() == APP_UNINSTALLED) {
+                    mapsToRemove.stream().filter(map -> map.purgeOnUninstall()).forEach(map -> map.clear());
+                }
+            }
+        }
     }
 }
