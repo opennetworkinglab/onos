@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.consistent.impl;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
@@ -38,6 +39,18 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
     public DistributedSetBuilder<E> withName(String name) {
         mapBuilder.withName(name);
         this.name = name;
+        return this;
+    }
+
+    @Override
+    public DistributedSetBuilder<E> withApplicationId(ApplicationId id) {
+        mapBuilder.withApplicationId(id);
+        return this;
+    }
+
+    @Override
+    public DistributedSetBuilder<E> withPurgeOnUninstall() {
+        mapBuilder.withPurgeOnUninstall();
         return this;
     }
 

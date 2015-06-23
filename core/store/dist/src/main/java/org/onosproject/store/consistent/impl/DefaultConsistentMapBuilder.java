@@ -3,6 +3,7 @@ package org.onosproject.store.consistent.impl;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
@@ -19,6 +20,8 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
 
     private Serializer serializer;
     private String name;
+    private ApplicationId applicationId;
+    private boolean purgeOnUninstall = false;
     private boolean partitionsEnabled = true;
     private boolean readOnly = false;
     private final DatabaseManager manager;
@@ -31,6 +34,19 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     public ConsistentMapBuilder<K, V> withName(String name) {
         checkArgument(name != null && !name.isEmpty());
         this.name = name;
+        return this;
+    }
+
+    @Override
+    public ConsistentMapBuilder<K, V> withApplicationId(ApplicationId id) {
+        checkArgument(id != null);
+        this.applicationId = id;
+        return this;
+    }
+
+    @Override
+    public ConsistentMapBuilder<K, V> withPurgeOnUninstall() {
+        purgeOnUninstall = true;
         return this;
     }
 
@@ -53,8 +69,12 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
         return this;
     }
 
-    private boolean validInputs() {
-        return name != null && serializer != null;
+    private void validateInputs() {
+        checkState(name != null, "name must be specified");
+        checkState(serializer != null, "serializer must be specified");
+        if (purgeOnUninstall) {
+            checkState(applicationId != null, "ApplicationId must be specified when purgeOnUninstall is enabled");
+        }
     }
 
     @Override
@@ -68,12 +88,14 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     }
 
     private DefaultAsyncConsistentMap<K, V> buildAndRegisterMap() {
-        checkState(validInputs());
+        validateInputs();
         DefaultAsyncConsistentMap<K, V> asyncMap = new DefaultAsyncConsistentMap<>(
                 name,
+                applicationId,
                 partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
                 serializer,
                 readOnly,
+                purgeOnUninstall,
                 event -> manager.clusterCommunicator.<MapEvent<K, V>>broadcast(event,
                         DatabaseManager.mapUpdatesSubject(name),
                         serializer::encode));
