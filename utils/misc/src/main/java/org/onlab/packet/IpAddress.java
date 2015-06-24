@@ -18,21 +18,20 @@ package org.onlab.packet;
 import java.net.InetAddress;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
-
 import com.google.common.net.InetAddresses;
 import com.google.common.primitives.UnsignedBytes;
 
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A class representing an IP address.
  * This class is immutable.
  */
 public class IpAddress implements Comparable<IpAddress> {
+    private static final int BIT_MASK = 0x000000ff;
+
     // IP Versions
     public enum Version { INET, INET6 };
 
@@ -353,20 +352,12 @@ public class IpAddress implements Comparable<IpAddress> {
         switch (version) {
             case INET:
                 return String.format("%d.%d.%d.%d", octets[0] & 0xff,
-                                                    octets[1] & 0xff,
-                                                    octets[2] & 0xff,
-                                                    octets[3] & 0xff);
+                        octets[1] & 0xff,
+                        octets[2] & 0xff,
+                        octets[3] & 0xff);
             case INET6:
             default:
-                InetAddress inetAddr = null;
-                try {
-                    inetAddr = InetAddress.getByAddress(octets);
-                } catch (UnknownHostException e) {
-                    // Should never happen
-                    checkState(false, "Internal error: Ip6Address.toString()");
-                    return "[Invalid IP Address]";
-                }
-                return InetAddresses.toAddrString(inetAddr);
+                return ipv6ToStringHelper();
         }
     }
 
@@ -493,5 +484,67 @@ public class IpAddress implements Comparable<IpAddress> {
             net[i] = (byte) (addr.octets[i] & mask[i]);
         }
         return net;
+    }
+
+    /**
+     * Creates a string based on the IPv6 recommendations for canonical representations found here:
+     * https://tools.ietf.org/html/rfc5952#section-1.
+     * @return A properly formatted IPv6 canonical representation.
+     */
+    private String ipv6ToStringHelper() {
+        //Populate a buffer with the string of the full address with leading zeros stripped
+        StringBuffer buff = new StringBuffer();
+        buff.append(String.format("%x:%x:%x:%x:%x:%x:%x:%x",
+                (((octets[0] & BIT_MASK) << 8) | (octets[1] & BIT_MASK)),
+                (((octets[2] & BIT_MASK) << 8) | (octets[3] & BIT_MASK)),
+                (((octets[4] & BIT_MASK) << 8) | (octets[5] & BIT_MASK)),
+                (((octets[6] & BIT_MASK) << 8) | (octets[7] & BIT_MASK)),
+                (((octets[8] & BIT_MASK) << 8) | (octets[9] & BIT_MASK)),
+                (((octets[10] & BIT_MASK) << 8) | (octets[11] & BIT_MASK)),
+                (((octets[12] & BIT_MASK) << 8) | (octets[13] & BIT_MASK)),
+                (((octets[14] & BIT_MASK) << 8) | (octets[15] & BIT_MASK))));
+        //Initialize variables for tracking longest zero subsequence, tiebreaking by first occurence
+        int longestSeqStart, longestSeqLen, currSeqStart, currSeqLen;
+        longestSeqStart = 0;
+        longestSeqLen = 0;
+        currSeqStart = 0;
+        currSeqLen = 0;
+
+        for (int index = 0; index < buff.length(); index++) {
+            if (buff.charAt(index) == ':') {
+                if (currSeqLen != 0 && buff.charAt(index + 1) == '0') {
+                    currSeqLen += 1;
+                }
+            } else if (buff.charAt(index) == '0' && ((index == 0) || (buff.charAt(index - 1) == ':'))) {
+                if (currSeqLen == 0) {
+                    currSeqStart = index;
+                }
+                currSeqLen += 1;
+            } else {
+                 if (currSeqLen > longestSeqLen) {
+                     longestSeqStart = currSeqStart;
+                     longestSeqLen = currSeqLen;
+                }
+                currSeqLen = 0;
+            }
+        }
+
+        if (currSeqLen > longestSeqLen) {
+            longestSeqLen = currSeqLen;
+            longestSeqStart = currSeqStart;
+        }
+        if (longestSeqLen > 1) {
+            if (buff.length() == (longestSeqStart + longestSeqLen)) {
+                buff.append(':');
+            }
+
+            buff.delete(longestSeqStart, longestSeqStart + longestSeqLen);
+
+            if (longestSeqStart == 0) {
+                buff.insert(0, ':');
+            }
+        }
+
+    return buff.toString();
     }
 }

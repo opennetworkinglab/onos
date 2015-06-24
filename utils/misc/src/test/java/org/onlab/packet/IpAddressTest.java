@@ -896,5 +896,40 @@ public class IpAddressTest {
             IpAddress.valueOf("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
         assertThat(ipAddress.toString(),
                    is("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
+
+        ipAddress =
+                IpAddress.valueOf("::1111:2222");
+        assertThat(ipAddress.toString(),
+                is("::1111:2222"));
+
+        ipAddress =
+                IpAddress.valueOf("1:0:0:1:0:0:2:3");
+        assertThat(ipAddress.toString(),
+                is("1::1:0:0:2:3"));
+
+        ipAddress =
+                IpAddress.valueOf("::0123:0004");
+        assertThat(ipAddress.toString(),
+                is("::123:4"));
+
+        ipAddress =
+                IpAddress.valueOf("0:0:1:1:0:0:1:1");
+        assertThat(ipAddress.toString(),
+                is("::1:1:0:0:1:1"));
+
+        ipAddress =
+                IpAddress.valueOf("1:1a2b::");
+        assertThat(ipAddress.toString(),
+                is("1:1a2b::"));
+
+        ipAddress =
+                IpAddress.valueOf("0:0:00:00:0000:00:00:000");
+        assertThat(ipAddress.toString(),
+                is("::"));
+
+        ipAddress =
+                IpAddress.valueOf("0:0:0:1:0:0:0:0");
+        assertThat(ipAddress.toString(),
+                is("0:0:0:1::"));
     }
 }
