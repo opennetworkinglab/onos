@@ -109,7 +109,7 @@ public class UiWebSocket
             log.info("GUI client connected");
 
         } catch (ServiceNotFoundException e) {
-            log.warn("Unable to open GUI connection; services have been shut-down");
+            log.warn("Unable to open GUI connection; services have been shut-down", e);
             this.connection.close();
             this.connection = null;
             this.control = null;
