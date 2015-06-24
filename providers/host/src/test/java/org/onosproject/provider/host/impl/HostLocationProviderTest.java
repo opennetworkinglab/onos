@@ -15,27 +15,7 @@
  */
 package org.onosproject.provider.host.impl;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.onlab.packet.VlanId.vlanId;
-import static org.onosproject.net.Device.Type.SWITCH;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.HostId.hostId;
-import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
-import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
-
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,8 +42,6 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -74,15 +52,27 @@ import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
-import com.google.common.collect.ImmutableSet;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Set;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
+import static org.onlab.packet.VlanId.vlanId;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.HostId.hostId;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 
 public class HostLocationProviderTest {
 
@@ -143,7 +133,7 @@ public class HostLocationProviderTest {
 
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication(appId.name()))
-            .andReturn(appId).anyTimes();
+                .andReturn(appId).anyTimes();
         replay(coreService);
 
         provider.cfgService = new ComponentConfigAdapter();
@@ -271,30 +261,10 @@ public class HostLocationProviderTest {
 
     }
 
-    private class TestPacketService implements PacketService {
-
+    private class TestPacketService extends PacketServiceAdapter {
         @Override
         public void addProcessor(PacketProcessor processor, int priority) {
             testProcessor = processor;
-        }
-
-        @Override
-        public void removeProcessor(PacketProcessor processor) {
-        }
-
-        @Override
-        public void emit(OutboundPacket packet) {
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId) {
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId,
-                                   FlowRule.Type tableType) {
         }
     }
 

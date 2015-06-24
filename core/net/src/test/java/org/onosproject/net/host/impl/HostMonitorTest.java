@@ -15,20 +15,9 @@
  */
 package org.onosproject.net.host.impl;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.junit.After;
 import org.junit.Test;
 import org.onlab.packet.ARP;
@@ -36,7 +25,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-import org.onosproject.core.ApplicationId;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -47,31 +35,31 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 public class HostMonitorTest {
 
     private static final IpAddress TARGET_IP_ADDR =
-        IpAddress.valueOf("10.0.0.1");
+            IpAddress.valueOf("10.0.0.1");
     private static final IpAddress SOURCE_ADDR =
-        IpAddress.valueOf("10.0.0.99");
+            IpAddress.valueOf("10.0.0.99");
     private static final InterfaceIpAddress IA1 =
-        new InterfaceIpAddress(SOURCE_ADDR, IpPrefix.valueOf("10.0.0.0/24"));
+            new InterfaceIpAddress(SOURCE_ADDR, IpPrefix.valueOf("10.0.0.0/24"));
     private MacAddress sourceMac = MacAddress.valueOf(1L);
 
     private HostMonitor hostMonitor;
@@ -132,7 +120,7 @@ public class HostMonitorTest {
 
         ConnectPoint cp = new ConnectPoint(devId, portNum);
         PortAddresses pa =
-            new PortAddresses(cp, Collections.singleton(IA1), sourceMac, VlanId.NONE);
+                new PortAddresses(cp, Collections.singleton(IA1), sourceMac, VlanId.NONE);
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.<Host>emptySet()).anyTimes();
@@ -200,8 +188,8 @@ public class HostMonitorTest {
 
         ConnectPoint cp = new ConnectPoint(devId, portNum);
         PortAddresses pa =
-            new PortAddresses(cp, Collections.singleton(IA1), sourceMac,
-                              VlanId.vlanId(vlan));
+                new PortAddresses(cp, Collections.singleton(IA1), sourceMac,
+                                  VlanId.vlanId(vlan));
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.<Host>emptySet()).anyTimes();
@@ -246,32 +234,13 @@ public class HostMonitorTest {
                           arp.getTargetProtocolAddress());
     }
 
-    class TestPacketService implements PacketService {
+    class TestPacketService extends PacketServiceAdapter {
 
         List<OutboundPacket> packets = new ArrayList<>();
 
         @Override
-        public void addProcessor(PacketProcessor processor, int priority) {
-        }
-
-        @Override
-        public void removeProcessor(PacketProcessor processor) {
-        }
-
-        @Override
         public void emit(OutboundPacket packet) {
             packets.add(packet);
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId) {
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId,
-                                   FlowRule.Type tableType) {
         }
     }
 

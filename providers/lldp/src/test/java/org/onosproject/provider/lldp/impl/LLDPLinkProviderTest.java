@@ -15,23 +15,9 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,8 +43,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
@@ -68,15 +52,21 @@ import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 public class LLDPLinkProviderTest {
 
@@ -383,32 +373,10 @@ public class LLDPLinkProviderTest {
 
     }
 
-    private class TestPacketService implements PacketService {
-
+    private class TestPacketService extends PacketServiceAdapter {
         @Override
         public void addProcessor(PacketProcessor processor, int priority) {
             testProcessor = processor;
-        }
-
-        @Override
-        public void removeProcessor(PacketProcessor processor) {
-
-        }
-
-        @Override
-        public void emit(OutboundPacket packet) {
-
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId) {
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId,
-                                   FlowRule.Type tableType) {
         }
     }
 
@@ -433,8 +401,6 @@ public class LLDPLinkProviderTest {
 
             ports.putAll(DID1, Lists.newArrayList(pd1, pd2));
             ports.putAll(DID2, Lists.newArrayList(pd3, pd4));
-
-
         }
 
         @Override

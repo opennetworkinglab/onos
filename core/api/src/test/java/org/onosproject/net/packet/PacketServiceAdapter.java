@@ -19,29 +19,26 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 
 /**
- * Represents a packet request made to devices.
+ * Test adapter for packet service.
  */
-public interface PacketRequest {
+public class PacketServiceAdapter implements PacketService {
+    @Override
+    public void addProcessor(PacketProcessor processor, int priority) {
+    }
 
-    /**
-     * Obtain the traffic selector.
-     *
-     * @return a traffic selector
-     */
-    TrafficSelector selector();
+    @Override
+    public void removeProcessor(PacketProcessor processor) {
+    }
 
-    /**
-     * Obtain the priority.
-     *
-     * @return a PacketPriority
-     */
-    PacketPriority priority();
+    @Override
+    public void requestPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId) {
+    }
 
-    /**
-     * Obtain the application id.
-     *
-     * @return an application id
-     */
-    ApplicationId appId();
+    @Override
+    public void cancelPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId) {
+    }
 
+    @Override
+    public void emit(OutboundPacket packet) {
+    }
 }

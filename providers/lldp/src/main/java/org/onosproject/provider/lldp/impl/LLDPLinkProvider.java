@@ -178,18 +178,20 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/device", "sync-%d"));
         executor.scheduleAtFixedRate(new SyncDeviceInfoTask(), INIT_DELAY, DELAY, SECONDS);
 
-        requestPackets();
+        requestIntercepts();
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        // TODO revoke all packet requests when deactivate
         cfgService.unregisterProperties(getClass(), false);
         if (disableLinkDiscovery) {
             return;
         }
+
+        withdrawIntercepts();
+
         providerRegistry.unregister(this);
         deviceService.removeListener(listener);
         packetService.removeProcessor(listener);
@@ -205,7 +207,6 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
     @Modified
     public void modified(ComponentContext context) {
-        // TODO revoke unnecessary packet requests when config being modified
         if (context == null) {
             loadSuppressionRules();
             return;
@@ -225,7 +226,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         if (!Strings.isNullOrEmpty(s)) {
             lldpSuppression = s;
         }
-
+        requestIntercepts();
         loadSuppressionRules();
     }
 
@@ -246,21 +247,32 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     }
 
     /**
-     * Request packet in via PacketService.
+     * Request packet intercepts.
      */
-    private void requestPackets() {
-        TrafficSelector.Builder lldpSelector = DefaultTrafficSelector.builder();
-        lldpSelector.matchEthType(Ethernet.TYPE_LLDP);
-        packetService.requestPackets(lldpSelector.build(),
-                                     PacketPriority.CONTROL, appId);
+    private void requestIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_LLDP);
+        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
 
+        selector.matchEthType(Ethernet.TYPE_BSN);
         if (useBDDP) {
-            TrafficSelector.Builder bddpSelector = DefaultTrafficSelector.builder();
-            bddpSelector.matchEthType(Ethernet.TYPE_BSN);
-            packetService.requestPackets(bddpSelector.build(),
-                                         PacketPriority.CONTROL, appId);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+        } else {
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
         }
     }
+
+    /**
+     * Withdraw packet intercepts.
+     */
+    private void withdrawIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_LLDP);
+        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+        selector.matchEthType(Ethernet.TYPE_BSN);
+        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+    }
+
 
     private class InternalRoleListener implements MastershipListener {
 

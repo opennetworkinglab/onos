@@ -17,8 +17,9 @@ package org.onosproject.net.packet;
 
 import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
+
+import java.util.Objects;
 
 /**
  * Default implementation of a packet request.
@@ -27,14 +28,19 @@ public final class DefaultPacketRequest implements PacketRequest {
     private final TrafficSelector selector;
     private final PacketPriority priority;
     private final ApplicationId appId;
-    private final FlowRule.Type tableType;
 
+    /**
+     * Creates a new packet request.
+     *
+     * @param selector  traffic selector
+     * @param priority  intercept priority
+     * @param appId     application id
+     */
     public DefaultPacketRequest(TrafficSelector selector, PacketPriority priority,
-                                ApplicationId appId, FlowRule.Type tableType) {
+                                ApplicationId appId) {
         this.selector = selector;
         this.priority = priority;
         this.appId = appId;
-        this.tableType = tableType;
     }
 
     public TrafficSelector selector() {
@@ -49,39 +55,23 @@ public final class DefaultPacketRequest implements PacketRequest {
         return appId;
     }
 
-    public FlowRule.Type tableType() {
-        return tableType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultPacketRequest that = (DefaultPacketRequest) o;
-
-        if (priority != that.priority) {
-            return false;
-        }
-        if (!selector.equals(that.selector)) {
-            return false;
-        }
-        if (!tableType.equals(that.tableType)) {
-            return false;
-        }
-
-        return true;
-    }
-
     @Override
     public int hashCode() {
-        int result = selector.hashCode();
-        result = 31 * result + priority.hashCode();
-        return result;
+        return Objects.hash(selector, priority, appId);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final DefaultPacketRequest other = (DefaultPacketRequest) obj;
+        return Objects.equals(this.selector, other.selector)
+                && Objects.equals(this.priority, other.priority)
+                && Objects.equals(this.appId, other.appId);
     }
 
     @Override
@@ -89,7 +79,6 @@ public final class DefaultPacketRequest implements PacketRequest {
         return MoreObjects.toStringHelper(this.getClass())
                 .add("selector", selector)
                 .add("priority", priority)
-                .add("appId", appId)
-                .add("table-type", tableType).toString();
+                .add("appId", appId).toString();
     }
 }

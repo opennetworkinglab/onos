@@ -20,14 +20,27 @@ import com.google.common.annotations.Beta;
 /**
  * The context of a objective that will become the subject of
  * the notification.
- *
+ * <p>
  * Implementations of this class must be serializable.
+ * </p>
  */
 @Beta
 public interface ObjectiveContext {
 
-    default void onSuccess(Objective objective) {}
+    /**
+     * Invoked on successful execution of the flow objective.
+     *
+     * @param objective objective to execute
+     */
+    default void onSuccess(Objective objective) {
+    }
 
-    default void onError(Objective objective, ObjectiveError error) {}
+    /**
+     * Invoked when error is encountered while executing the flow objective.
+     *
+     * @param objective objective to execute
+     */
+    default void onError(Objective objective, ObjectiveError error) {
+    }
 
 }

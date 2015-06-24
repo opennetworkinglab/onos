@@ -15,21 +15,7 @@
  */
 package org.onosproject.net.proxyarp.impl;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ARP;
@@ -38,7 +24,6 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.Device;
@@ -51,8 +36,6 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostService;
@@ -61,12 +44,17 @@ import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 /**
  * Tests for the {@link ProxyArpManager} class.
@@ -208,17 +196,17 @@ public class ProxyArpManagerTest {
         for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
             Ip4Prefix prefix1 =
-                Ip4Prefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
+                    Ip4Prefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
             Ip4Address addr1 =
-                Ip4Address.valueOf("10.0." + (2 * i - 1) + ".1");
+                    Ip4Address.valueOf("10.0." + (2 * i - 1) + ".1");
             Ip4Prefix prefix2 = Ip4Prefix.valueOf("10.0." + (2 * i) + ".0/24");
             Ip4Address addr2 = Ip4Address.valueOf("10.0." + (2 * i) + ".1");
             InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
             PortAddresses pa1 =
-                new PortAddresses(cp, Sets.newHashSet(ia1),
-                                  MacAddress.valueOf(2 * i - 1),
-                                  VlanId.vlanId((short) 1));
+                    new PortAddresses(cp, Sets.newHashSet(ia1),
+                                      MacAddress.valueOf(2 * i - 1),
+                                      VlanId.vlanId((short) 1));
             PortAddresses pa2 =
                     new PortAddresses(cp, Sets.newHashSet(ia2),
                                       MacAddress.valueOf(2 * i),
@@ -235,7 +223,7 @@ public class ProxyArpManagerTest {
 
         for (int i = 1; i <= NUM_FLOOD_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i + NUM_ADDRESS_PORTS),
-                    P1);
+                                               P1);
             expect(hostService.getAddressBindingsForPort(cp))
                     .andReturn(Collections.<PortAddresses>emptySet()).anyTimes();
         }
@@ -279,13 +267,13 @@ public class ProxyArpManagerTest {
     @Test
     public void testReplyKnown() {
         Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(4),
-                Collections.singleton(IP1));
+                                       Collections.singleton(IP1));
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                Collections.singleton(IP2));
+                                         Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
-            .andReturn(Collections.singleton(replyer));
+                .andReturn(Collections.singleton(replyer));
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
         replay(hostService);
@@ -307,7 +295,7 @@ public class ProxyArpManagerTest {
     @Test
     public void testReplyUnknown() {
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                Collections.singleton(IP2));
+                                         Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.<Host>emptySet());
@@ -331,10 +319,10 @@ public class ProxyArpManagerTest {
     @Test
     public void testReplyDifferentVlan() {
         Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN2, getLocation(4),
-                Collections.singleton(IP1));
+                                       Collections.singleton(IP1));
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                Collections.singleton(IP2));
+                                         Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.singleton(replyer));
@@ -358,7 +346,7 @@ public class ProxyArpManagerTest {
         MacAddress secondMac = MacAddress.valueOf(2L);
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
-                Collections.singleton(theirIp));
+                                         Collections.singleton(theirIp));
 
         expect(hostService.getHost(HID2)).andReturn(requestor);
         replay(hostService);
@@ -390,7 +378,7 @@ public class ProxyArpManagerTest {
 
         // Request for a valid external IP address but coming in the wrong port
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp,
-                Ip4Address.valueOf("10.0.3.1"));
+                                       Ip4Address.valueOf("10.0.3.1"));
         proxyArp.reply(arpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
@@ -433,7 +421,7 @@ public class ProxyArpManagerTest {
     @Test
     public void testForwardToHost() {
         Host host1 = new DefaultHost(PID, HID1, MAC1, VLAN1, LOC1,
-                Collections.singleton(IP1));
+                                     Collections.singleton(IP1));
 
         expect(hostService.getHost(HID1)).andReturn(host1);
         replay(hostService);
@@ -476,17 +464,17 @@ public class ProxyArpManagerTest {
         assertEquals(NUM_FLOOD_PORTS - 1, packetService.packets.size());
 
         Collections.sort(packetService.packets,
-            new Comparator<OutboundPacket>() {
-                @Override
-                public int compare(OutboundPacket o1, OutboundPacket o2) {
-                    return o1.sendThrough().uri().compareTo(o2.sendThrough().uri());
-                }
-            });
+                         new Comparator<OutboundPacket>() {
+                             @Override
+                             public int compare(OutboundPacket o1, OutboundPacket o2) {
+                                 return o1.sendThrough().uri().compareTo(o2.sendThrough().uri());
+                             }
+                         });
 
 
         for (int i = 0; i < NUM_FLOOD_PORTS - 1; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(NUM_ADDRESS_PORTS + i + 1),
-                    PortNumber.portNumber(1));
+                                               PortNumber.portNumber(1));
 
             OutboundPacket outboundPacket = packetService.packets.get(i);
             verifyPacketOut(packet, cp, outboundPacket);
@@ -497,11 +485,11 @@ public class ProxyArpManagerTest {
      * Verifies the given packet was sent out the given port.
      *
      * @param expected the packet that was expected to be sent
-     * @param outPort the port the packet was expected to be sent out
-     * @param actual the actual OutboundPacket to verify
+     * @param outPort  the port the packet was expected to be sent out
+     * @param actual   the actual OutboundPacket to verify
      */
     private void verifyPacketOut(Ethernet expected, ConnectPoint outPort,
-            OutboundPacket actual) {
+                                 OutboundPacket actual) {
         assertArrayEquals(expected.serialize(), actual.data().array());
         assertEquals(1, actual.treatment().immediate().size());
         assertEquals(outPort.deviceId(), actual.sendThrough());
@@ -530,12 +518,12 @@ public class ProxyArpManagerTest {
      * @param opcode opcode of the ARP packet
      * @param srcMac source MAC address
      * @param dstMac destination MAC address, or null if this is a request
-     * @param srcIp source IP address
-     * @param dstIp destination IP address
+     * @param srcIp  source IP address
+     * @param dstIp  destination IP address
      * @return the ARP packet
      */
     private Ethernet buildArp(short opcode, MacAddress srcMac, MacAddress dstMac,
-            Ip4Address srcIp, Ip4Address dstIp) {
+                              Ip4Address srcIp, Ip4Address dstIp) {
         Ethernet eth = new Ethernet();
 
         if (dstMac == null) {
@@ -574,32 +562,14 @@ public class ProxyArpManagerTest {
      * Test PacketService implementation that simply stores OutboundPackets
      * passed to {@link #emit(OutboundPacket)} for later verification.
      */
-    class TestPacketService implements PacketService {
+    class TestPacketService extends PacketServiceAdapter {
 
         List<OutboundPacket> packets = new ArrayList<>();
-
-        @Override
-        public void addProcessor(PacketProcessor processor, int priority) {
-        }
-
-        @Override
-        public void removeProcessor(PacketProcessor processor) {
-        }
 
         @Override
         public void emit(OutboundPacket packet) {
             packets.add(packet);
         }
 
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId) {
-        }
-
-        @Override
-        public void requestPackets(TrafficSelector selector,
-                                   PacketPriority priority, ApplicationId appId,
-                                   FlowRule.Type tableType) {
-        }
     }
 }

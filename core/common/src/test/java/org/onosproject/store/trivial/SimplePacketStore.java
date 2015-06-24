@@ -52,6 +52,11 @@ public class SimplePacketStore
     }
 
     @Override
+    public boolean cancelPackets(PacketRequest request) {
+        return requests.remove(request);
+    }
+
+    @Override
     public Set<PacketRequest> existingRequests() {
         return Collections.unmodifiableSet(requests);
     }

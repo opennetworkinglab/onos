@@ -29,10 +29,8 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -62,9 +60,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -77,6 +75,10 @@ public class PacketManager
         implements PacketService, PacketProviderRegistry {
 
     private final Logger log = getLogger(getClass());
+
+    private static final String TABLE_TYPE_MSG =
+            "Table Type cannot be null. For requesting packets without " +
+                    "table hints, use other methods in the packetService API";
 
     private final PacketStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -125,7 +127,6 @@ public class PacketManager
     @Override
     public void addProcessor(PacketProcessor processor, int priority) {
         checkPermission(Permission.PACKET_EVENT);
-
         checkNotNull(processor, "Processor cannot be null");
         processors.put(priority, processor);
     }
@@ -133,7 +134,6 @@ public class PacketManager
     @Override
     public void removeProcessor(PacketProcessor processor) {
         checkPermission(Permission.PACKET_EVENT);
-
         checkNotNull(processor, "Processor cannot be null");
         processors.values().remove(processor);
     }
@@ -142,35 +142,26 @@ public class PacketManager
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId) {
         checkPermission(Permission.PACKET_READ);
-
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
 
-        PacketRequest request =
-                new DefaultPacketRequest(selector, priority, appId, FlowRule.Type.DEFAULT);
-
+        PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
         if (store.requestPackets(request)) {
             pushToAllDevices(request);
         }
     }
 
     @Override
-    public void requestPackets(TrafficSelector selector, PacketPriority priority,
-                               ApplicationId appId, FlowRule.Type tableType) {
+    public void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                              ApplicationId appId) {
         checkPermission(Permission.PACKET_READ);
-
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
-        checkNotNull(tableType, "Table Type cannot be null. For requesting packets +"
-                + "without table hints, use other methods in the packetService API");
 
-        PacketRequest request =
-                new DefaultPacketRequest(selector, priority, appId, tableType);
-
-        if (store.requestPackets(request)) {
-            pushToAllDevices(request);
+        PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
+        if (store.cancelPackets(request)) {
+            removeFromAllDevices(request);
         }
-
     }
 
     /**
@@ -184,9 +175,20 @@ public class PacketManager
         }
     }
 
+
     /**
-     * Pushes flow rules to the device to request packets be sent to the
-     * controller.
+     * Removes packet request flow rule from all devices.
+     *
+     * @param request the packet request
+     */
+    private void removeFromAllDevices(PacketRequest request) {
+        for (Device device : deviceService.getDevices()) {
+            removeRule(device, request);
+        }
+    }
+
+    /**
+     * Pushes packet intercept flow rules to the device.
      *
      * @param device  the device to push the rules to
      * @param request the packet request
@@ -197,37 +199,54 @@ public class PacketManager
             return;
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                                                            .punt()
-                                                            .build();
-
-        ForwardingObjective forwarding = DefaultForwardingObjective.builder()
-                .withPriority(request.priority().priorityValue())
-                .withSelector(request.selector())
-                .fromApp(appId)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withTreatment(treatment)
-                .makePermanent()
+        ForwardingObjective forwarding = createBuilder(request)
                 .add(new ObjectiveContext() {
                     @Override
-                    public void onSuccess(Objective objective) { }
-
-                    @Override
                     public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install packet request {}: {}",
-                                 request, error);
+                        log.warn("Failed to install packet request {}: {}", request, error);
                     }
                 });
 
         objectiveService.forward(device.id(), forwarding);
     }
 
+    /**
+     * Removes packet intercept flow rules from the device.
+     *
+     * @param device  the device to remove the rules deom
+     * @param request the packet request
+     */
+    private void removeRule(Device device, PacketRequest request) {
+        // Everything is pre-provisioned on ROADMs
+        if (device.type().equals(Device.Type.ROADM)) {
+            return;
+        }
+
+        ForwardingObjective forwarding = createBuilder(request)
+                .remove(new ObjectiveContext() {
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.warn("Failed to withdraw packet request {}: {}", request, error);
+                    }
+                });
+
+        objectiveService.forward(device.id(), forwarding);
+    }
+
+    private DefaultForwardingObjective.Builder createBuilder(PacketRequest request) {
+        return DefaultForwardingObjective.builder()
+                .withPriority(request.priority().priorityValue())
+                .withSelector(request.selector())
+                .fromApp(appId)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withTreatment(DefaultTrafficTreatment.builder().punt().build())
+                .makePermanent();
+    }
+
     @Override
     public void emit(OutboundPacket packet) {
         checkPermission(Permission.PACKET_WRITE);
-
         checkNotNull(packet, "Packet cannot be null");
-
         store.emit(packet);
     }
 
@@ -238,8 +257,7 @@ public class PacketManager
             return;
         }
 
-        final PacketProvider packetProvider = getProvider(device.providerId());
-
+        PacketProvider packetProvider = getProvider(device.providerId());
         if (packetProvider != null) {
             packetProvider.emit(packet);
         }
@@ -250,7 +268,7 @@ public class PacketManager
         return new InternalPacketProviderService(provider);
     }
 
-    // Personalized link provider service issued to the supplied provider.
+    // Personalized packet provider service issued to the supplied provider.
     private class InternalPacketProviderService
             extends AbstractProviderService<PacketProvider>
             implements PacketProviderService {

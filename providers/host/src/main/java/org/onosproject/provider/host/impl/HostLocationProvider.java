@@ -113,8 +113,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private boolean hostRemovalEnabled = true;
 
     @Property(name = "ipv6NeighborDiscovery", boolValue = false,
-              label = "Enable using IPv6 Neighbor Discovery by the " +
-              "Host Location Provider; default is false")
+            label = "Enable using IPv6 Neighbor Discovery by the " +
+                    "Host Location Provider; default is false")
     private boolean ipv6NeighborDiscovery = false;
 
     /**
@@ -133,15 +133,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         packetService.addProcessor(processor, 1);
         deviceService.addListener(deviceListener);
         readComponentConfiguration(context);
-        requestPackests();
+        requestIntercepts();
 
         log.info("Started with Application ID {}", appId.id());
     }
 
     @Deactivate
     public void deactivate() {
-        // TODO revoke all packet requests when deactivate
         cfgService.unregisterProperties(getClass(), false);
+
+        withdrawIntercepts();
+
         providerRegistry.unregister(this);
         packetService.removeProcessor(processor);
         deviceService.removeListener(deviceListener);
@@ -151,38 +153,54 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     @Modified
     public void modified(ComponentContext context) {
-        // TODO revoke unnecessary packet requests when config being modified
         readComponentConfiguration(context);
-        requestPackests();
+        requestIntercepts();
     }
 
     /**
-     * Request packet in via PacketService.
+     * Request packet intercepts.
      */
-    private void requestPackests() {
-        TrafficSelector.Builder selectorBuilder =
-                DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selectorBuilder.build(),
-                                     PacketPriority.CONTROL, appId);
+    private void requestIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
 
+        // IPv6 Neighbor Solicitation packet.
+        selector.matchEthType(Ethernet.TYPE_IPV6);
+        selector.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selector.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
         if (ipv6NeighborDiscovery) {
-            // IPv6 Neighbor Solicitation packet.
-            selectorBuilder = DefaultTrafficSelector.builder();
-            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
-            packetService.requestPackets(selectorBuilder.build(),
-                                         PacketPriority.CONTROL, appId);
-
-            // IPv6 Neighbor Advertisement packet.
-            selectorBuilder = DefaultTrafficSelector.builder();
-            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
-            packetService.requestPackets(selectorBuilder.build(),
-                                         PacketPriority.CONTROL, appId);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+        } else {
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
         }
+
+        // IPv6 Neighbor Advertisement packet.
+        selector.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+        if (ipv6NeighborDiscovery) {
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+        } else {
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+        }
+    }
+
+    /**
+     * Withdraw packet intercepts.
+     */
+    private void withdrawIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+
+        // IPv6 Neighbor Solicitation packet.
+        selector.matchEthType(Ethernet.TYPE_IPV6);
+        selector.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
+        selector.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+
+        // IPv6 Neighbor Advertisement packet.
+        selector.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
     }
 
     /**
@@ -197,7 +215,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         flag = isPropertyEnabled(properties, "hostRemovalEnabled");
         if (flag == null) {
             log.info("Host removal on port/device down events is not configured, " +
-                     "using current value of {}", hostRemovalEnabled);
+                             "using current value of {}", hostRemovalEnabled);
         } else {
             hostRemovalEnabled = flag;
             log.info("Configured. Host removal on port/device down events is {}",
@@ -207,7 +225,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
         if (flag == null) {
             log.info("Using IPv6 Neighbor Discovery is not configured, " +
-                     "using current value of {}", ipv6NeighborDiscovery);
+                             "using current value of {}", ipv6NeighborDiscovery);
         } else {
             ipv6NeighborDiscovery = flag;
             log.info("Configured. Using IPv6 Neighbor Discovery is {}",
@@ -218,7 +236,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     /**
      * Check property name is defined and set to true.
      *
-     * @param properties properties to be looked up
+     * @param properties   properties to be looked up
      * @param propertyName the name of the property to look up
      * @return value when the propertyName is defined or return null
      */
@@ -244,24 +262,25 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         /**
          * Update host location only.
          *
-         * @param hid host ID
-         * @param mac source Mac address
+         * @param hid  host ID
+         * @param mac  source Mac address
          * @param vlan VLAN ID
          * @param hloc host location
          */
         private void updateLocation(HostId hid, MacAddress mac,
-                               VlanId vlan, HostLocation hloc) {
+                                    VlanId vlan, HostLocation hloc) {
             HostDescription desc = new DefaultHostDescription(mac, vlan, hloc);
             providerService.hostDetected(hid, desc);
         }
+
         /**
          * Update host location and IP address.
          *
-         * @param hid host ID
-         * @param mac source Mac address
+         * @param hid  host ID
+         * @param mac  source Mac address
          * @param vlan VLAN ID
          * @param hloc host location
-         * @param ip source IP address
+         * @param ip   source IP address
          */
         private void updateLocationIP(HostId hid, MacAddress mac,
                                       VlanId vlan, HostLocation hloc,
@@ -297,7 +316,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             }
 
             HostLocation hloc =
-                new HostLocation(heardOn, System.currentTimeMillis());
+                    new HostLocation(heardOn, System.currentTimeMillis());
 
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
 
@@ -308,19 +327,19 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                                  arp.getSenderProtocolAddress());
                 updateLocationIP(hid, srcMac, vlan, hloc, ip);
 
-            // IPv4: update location only
+                // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 updateLocation(hid, srcMac, vlan, hloc);
 
-            //
-            // NeighborAdvertisement and NeighborSolicitation: possible
-            // new hosts, update both location and IP.
-            //
-            // IPv6: update location only
+                //
+                // NeighborAdvertisement and NeighborSolicitation: possible
+                // new hosts, update both location and IP.
+                //
+                // IPv6: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV6) {
                 IPv6 ipv6 = (IPv6) eth.getPayload();
                 IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET6,
-                        ipv6.getSourceAddress());
+                                                 ipv6.getSourceAddress());
 
                 // skip extension headers
                 IPacket pkt = ipv6;
@@ -335,11 +354,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     pkt = pkt.getPayload();
                     // RouterSolicitation, RouterAdvertisement
                     if (pkt != null && (pkt instanceof RouterAdvertisement ||
-                        pkt instanceof RouterSolicitation)) {
+                            pkt instanceof RouterSolicitation)) {
                         return;
                     }
                     if (pkt != null && (pkt instanceof NeighborSolicitation ||
-                        pkt instanceof NeighborAdvertisement)) {
+                            pkt instanceof NeighborAdvertisement)) {
                         // Duplicate Address Detection
                         if (ip.isZero()) {
                             return;
@@ -367,37 +386,37 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         public void event(DeviceEvent event) {
             Device device = event.subject();
             switch (event.type()) {
-            case DEVICE_ADDED:
-                break;
-            case DEVICE_AVAILABILITY_CHANGED:
-                if (hostRemovalEnabled &&
-                    !deviceService.isAvailable(device.id())) {
-                    removeHosts(hostService.getConnectedHosts(device.id()));
-                }
-                break;
-            case DEVICE_SUSPENDED:
-            case DEVICE_UPDATED:
-                // Nothing to do?
-                break;
-            case DEVICE_REMOVED:
-                if (hostRemovalEnabled) {
-                    removeHosts(hostService.getConnectedHosts(device.id()));
-                }
-                break;
-            case PORT_ADDED:
-                break;
-            case PORT_UPDATED:
-                if (hostRemovalEnabled) {
-                    ConnectPoint point =
-                        new ConnectPoint(device.id(), event.port().number());
-                    removeHosts(hostService.getConnectedHosts(point));
-                }
-                break;
-            case PORT_REMOVED:
-                // Nothing to do?
-                break;
-            default:
-                break;
+                case DEVICE_ADDED:
+                    break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                    if (hostRemovalEnabled &&
+                            !deviceService.isAvailable(device.id())) {
+                        removeHosts(hostService.getConnectedHosts(device.id()));
+                    }
+                    break;
+                case DEVICE_SUSPENDED:
+                case DEVICE_UPDATED:
+                    // Nothing to do?
+                    break;
+                case DEVICE_REMOVED:
+                    if (hostRemovalEnabled) {
+                        removeHosts(hostService.getConnectedHosts(device.id()));
+                    }
+                    break;
+                case PORT_ADDED:
+                    break;
+                case PORT_UPDATED:
+                    if (hostRemovalEnabled) {
+                        ConnectPoint point =
+                                new ConnectPoint(device.id(), event.port().number());
+                        removeHosts(hostService.getConnectedHosts(point));
+                    }
+                    break;
+                case PORT_REMOVED:
+                    // Nothing to do?
+                    break;
+                default:
+                    break;
             }
         }
     }

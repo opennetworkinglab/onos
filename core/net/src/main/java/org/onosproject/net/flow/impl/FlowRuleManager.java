@@ -498,10 +498,10 @@ public class FlowRuleManager
                 FlowRuleBatchOperation batchOperation =
                         request.asBatchOperation(deviceId);
 
-                FlowRuleProvider flowRuleProvider =
-                        getProvider(deviceId);
-
-                flowRuleProvider.executeBatch(batchOperation);
+                FlowRuleProvider flowRuleProvider = getProvider(deviceId);
+                if (flowRuleProvider != null) {
+                    flowRuleProvider.executeBatch(batchOperation);
+                }
 
                 break;
 
