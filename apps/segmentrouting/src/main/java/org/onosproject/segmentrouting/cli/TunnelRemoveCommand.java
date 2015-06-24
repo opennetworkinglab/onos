@@ -16,23 +16,25 @@
 package org.onosproject.segmentrouting.cli;
 
 
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.segmentrouting.DefaultTunnel;
 import org.onosproject.segmentrouting.SegmentRoutingService;
-import org.onosproject.segmentrouting.TunnelPolicy;
+import org.onosproject.segmentrouting.Tunnel;
 
 /**
- * Command to remove a policy.
+ * Command to remove a tunnel.
  */
-@Command(scope = "onos", name = "srpolicy-remove",
-        description = "Remove a policy")
-public class PolicyRemoveCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "srtunnel-remove",
+        description = "Remove a tunnel")
+public class TunnelRemoveCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "policy ID",
-            description = "policy ID",
+    @Argument(index = 0, name = "tunnel ID",
+            description = "tunnel ID",
             required = true, multiValued = false)
-    String policyId;
+    String tunnelId;
 
     @Override
     protected void execute() {
@@ -40,7 +42,7 @@ public class PolicyRemoveCommand extends AbstractShellCommand {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
 
-        TunnelPolicy.Builder tpb = TunnelPolicy.builder().setPolicyId(policyId);
-        srService.removePolicy(tpb.build());
+        Tunnel tunnel = new DefaultTunnel(tunnelId, Lists.newArrayList());
+        srService.removeTunnel(tunnel);
     }
 }
