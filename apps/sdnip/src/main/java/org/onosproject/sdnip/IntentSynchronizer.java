@@ -381,11 +381,9 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
     @Override
     public void setUpConnectivityInternetToHost(IpAddress hostIpAddress) {
         checkNotNull(hostIpAddress);
-        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
-        for (Interface intf : configService.getInterfaces()) {
-            ConnectPoint srcPoint = intf.connectPoint();
-            ingressPoints.add(srcPoint);
-        }
+        Set<ConnectPoint> ingressPoints =
+                configService.getBgpPeerConnectPoints();
+
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
 
         if (hostIpAddress.isIp4()) {

@@ -81,6 +81,14 @@ public interface RoutingConfigurationService {
     Set<Interface> getInterfaces();
 
     /**
+     * Retrieves the entire set of connect points connected to BGP peers in the
+     * network.
+     *
+     * @return the set of connect points connected to BGP peers
+     */
+    public Set<ConnectPoint> getBgpPeerConnectPoints();
+
+    /**
      * Retrieves the interface associated with the given connect point.
      *
      * @param connectPoint the connect point to retrieve interface information

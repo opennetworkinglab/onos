@@ -71,6 +71,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
     private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
     private Set<IpAddress> gatewayIpAddresses = new HashSet<>();
+    private Set<ConnectPoint> bgpPeerConnectPoints = new HashSet<>();
 
     private InvertedRadixTree<LocalIpPrefixEntry>
             localPrefixTable4 = new ConcurrentInvertedRadixTree<>(
@@ -108,6 +109,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
             }
             for (BgpPeer peer : config.getPeers()) {
                 bgpPeers.put(peer.ipAddress(), peer);
+                bgpPeerConnectPoints.add(peer.connectPoint());
             }
 
             for (LocalIpPrefixEntry entry : config.getLocalIp4PrefixEntries()) {
@@ -151,6 +153,11 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     @Override
     public Set<Interface> getInterfaces() {
         return hostAdaptor.getInterfaces();
+    }
+
+    @Override
+    public Set<ConnectPoint> getBgpPeerConnectPoints() {
+        return Collections.unmodifiableSet(bgpPeerConnectPoints);
     }
 
     @Override
