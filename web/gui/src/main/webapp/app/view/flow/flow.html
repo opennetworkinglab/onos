@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-fixed-header>
+    <div class="summary-list" onos-table-resize>
 
         <div class="table-header"
              onos-sortable-header
@@ -36,13 +36,13 @@
 
         <div class="table-body">
             <table>
-                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="10">
                         No Flows found
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="flow in tableData">
+                <tr ng-repeat-start="flow in tableData track by $index">
                     <td>{{flow.id}}</td>
                     <td>{{flow.appId}}</td>
                     <td>{{flow.groupId}}</td>
@@ -54,11 +54,10 @@
                     <td>{{flow.packets}}</td>
                     <td>{{flow.bytes}}</td>
                 </tr>
-                <tr class="ignore-width">
+                <tr>
                     <td class="selector" colspan="10">{{flow.selector}}</td>
                 </tr>
-                <tr class="ignore-width"
-                    ng-repeat-end ng-repeat-done>
+                <tr ng-repeat-end>
                     <td class="treatment" colspan="10">{{flow.treatment}}</td>
                 </tr>
             </table>

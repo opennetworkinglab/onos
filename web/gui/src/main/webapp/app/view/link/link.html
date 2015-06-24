@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-fixed-header>
+    <div class="summary-list" onos-table-resize>
 
         <div class="table-header"
              onos-sortable-header
@@ -45,14 +45,13 @@
 
         <div class="table-body">
             <table>
-                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Links found
                     </td>
                 </tr>
 
-                <tr ng-repeat="link in tableData"
-                    ng-repeat-done>
+                <tr ng-repeat="link in tableData track by $index">
                     <td class="table-icon">
                         <div icon icon-id="{{link._iconid_state}}"></div>
                     </td>

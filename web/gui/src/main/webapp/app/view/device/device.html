@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-fixed-header>
+    <div class="summary-list" onos-table-resize>
 
         <div class="table-header"
              onos-sortable-header
@@ -32,16 +32,15 @@
 
         <div class="table-body">
             <table>
-                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="9">
                         No Devices found
                     </td>
                 </tr>
 
-                <tr ng-repeat="dev in tableData track by dev.id"
+                <tr ng-repeat="dev in tableData track by $index"
                     ng-click="selectCallback($event, dev)"
-                    ng-class="{selected: dev.id === selId}"
-                    ng-repeat-done>
+                    ng-class="{selected: dev.id === selId}">
                     <td class="table-icon">
                         <div icon icon-id="{{dev._iconid_available}}"></div>
                     </td>

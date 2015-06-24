@@ -26,20 +26,20 @@
     width: 45px;
 }
 
-.light #ov-group tr:nth-child(4n + 2),
-.light #ov-group tr:nth-child(4n + 3) {
+.light #ov-group tr:nth-child(4n + 1),
+.light #ov-group tr:nth-child(4n + 2) {
     background-color: #eee;
 }
-.light #ov-group tr:nth-child(4n + 4),
-.light #ov-group tr:nth-child(4n + 1) {
+.light #ov-group tr:nth-child(4n + 3),
+.light #ov-group tr:nth-child(4n) {
     background-color: #ddd;
 }
-.dark #ov-group tr:nth-child(4n + 2),
-.dark #ov-group tr:nth-child(4n + 3) {
+.dark #ov-group tr:nth-child(4n + 1),
+.dark #ov-group tr:nth-child(4n + 2) {
     background-color: #444;
 }
-.dark #ov-group tr:nth-child(4n + 4),
-.dark #ov-group tr:nth-child(4n + 1) {
+.dark #ov-group tr:nth-child(4n + 3),
+.dark #ov-group tr:nth-child(4n) {
     background-color: #333;
 }
 

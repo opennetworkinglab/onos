@@ -135,7 +135,7 @@ html[data-platform='iPad'] #topo-p-detail {
 .topo-p h2 {
     padding: 0 4px;
     margin: 0;
-    word-break: break-all;
+    word-wrap: break-word;
     display: inline-block;
     width: 210px;
     vertical-align: middle;
@@ -150,7 +150,7 @@ html[data-platform='iPad'] #topo-p-detail {
 .topo-p h3 {
     padding: 0 4px;
     margin: 0;
-    word-break: break-all;
+    word-wrap: break-word;
     top: 20px;
     left: 50px;
 }
@@ -167,7 +167,7 @@ html[data-platform='iPad'] #topo-p-detail {
 }
 
 .topo-p td {
-    word-break: break-all;
+    word-wrap: break-word;
 }
 .topo-p td.label {
     font-style: italic;

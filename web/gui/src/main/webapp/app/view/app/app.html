@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-fixed-header>
+    <div class="summary-list" onos-table-resize>
 
         <div class="table-header"
              onos-sortable-header
@@ -50,16 +50,15 @@
 
         <div class="table-body">
             <table>
-                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="5">
                         No Applications found
                     </td>
                 </tr>
 
-                <tr ng-repeat="app in tableData"
+                <tr ng-repeat="app in tableData track by $index"
                     ng-click="selectCallback($event, app)"
-                    ng-class="{selected: app.id === selId}"
-                    ng-repeat-done>
+                    ng-class="{selected: app.id === selId}">
                     <td class="table-icon">
                         <div icon icon-id="{{app._iconid_state}}"></div>
                     </td>

@@ -35,72 +35,62 @@
     // internal state
     var currCol = {},
         prevCol = {},
+        cstmWidths = {},
         sortIconAPI;
 
-    // Functions for creating a scrolling table body with fixed table header
+    // Functions for resizing a tabular view to the window
 
     function _width(elem, width) {
         elem.style('width', width);
     }
 
-    function defaultSize(table, width) {
-        var thead = table.select('.table-header').select('table'),
-            tbody = table.select('.table-body').select('table'),
-            wpx = width + 'px';
-        _width(thead, wpx);
-        _width(tbody, wpx);
+    function findCstmWidths(table) {
+        var headers = table.select('.table-header').selectAll('td');
+
+        headers.each(function (d, i) {
+            var h = d3.select(this),
+                index = i.toString();
+            if (h.classed(tableIcon)) {
+                cstmWidths[index] = tableIconTdSize + 'px';
+            }
+            if (h.attr(colWidth)) {
+                cstmWidths[index] = h.attr(colWidth);
+            }
+        });
+        if (fs.debugOn('widget')) {
+            $log.debug('Headers with custom widths: ', cstmWidths);
+        }
     }
 
-    function adjustTable(table, width, height) {
-        var thead = table.select('.table-header').select('table'),
-            tbodyDiv = table.select('.table-body'),
-            tbody = tbodyDiv.select('table'),
-            cstmWidths = {};
+    function setTdWidths(elem, width) {
+        var tds = elem.select('tr:first-child').selectAll('td');
+        _width(elem, width + 'px');
 
-        function findCstmWidths() {
-            var headers = thead.selectAll('td');
-
-            headers.each(function (d, i) {
-                var h = d3.select(this),
-                    index = i.toString();
-                if (h.classed(tableIcon)) {
-                    cstmWidths[index] = tableIconTdSize + 'px';
-                }
-                if (h.attr(colWidth)) {
-                    cstmWidths[index] = h.attr(colWidth);
-                }
-            });
-            if (fs.debugOn('widget')) {
-                $log.debug('Headers with custom widths: ', cstmWidths);
+        tds.each(function (d, i) {
+            var td = d3.select(this),
+                index = i.toString();
+            if (cstmWidths.hasOwnProperty(index)) {
+                _width(td, cstmWidths[index]);
             }
+        });
+    }
+
+    function setHeight(thead, body, height) {
+        var h = height - (mast.mastHeight() +
+            fs.noPxStyle(d3.select('.tabular-header'), 'height') +
+            fs.noPxStyle(thead, 'height') + pdg);
+        body.style('height', h + 'px');
+    }
+
+    function adjustTable(haveItems, tableElems, width, height) {
+        if (haveItems) {
+            setTdWidths(tableElems.thead, width);
+            setTdWidths(tableElems.tbody, width);
+            setHeight(tableElems.thead, tableElems.table.select('.table-body'), height);
+        } else {
+            setTdWidths(tableElems.thead, width);
+            _width(tableElems.tbody, width + 'px');
         }
-
-        function setTdWidths(elem) {
-            var tds = elem.selectAll('tr:not(.ignore-width)').selectAll('td');
-            _width(elem, width + 'px');
-
-            tds.each(function (d, i) {
-                var td = d3.select(this),
-                    index = i.toString();
-                if (cstmWidths.hasOwnProperty(index)) {
-                    _width(td, cstmWidths[index]);
-                }
-            });
-        }
-
-        function setHeight(body) {
-            var h = height - (mast.mastHeight() +
-                fs.noPxStyle(d3.select('.tabular-header'), 'height') +
-                fs.noPxStyle(thead, 'height') + pdg);
-            body.style('height', h + 'px');
-        }
-
-        findCstmWidths();
-        setTdWidths(thead);
-        setTdWidths(tbody);
-        setHeight(tbodyDiv);
-
-        cstmWidths = {};
     }
 
     // Functions for sorting table rows by header
@@ -147,7 +137,7 @@
     }
 
     angular.module('onosWidget')
-        .directive('onosFixedHeader', ['$log','$window',
+        .directive('onosTableResize', ['$log','$window',
             'FnService', 'MastService',
 
             function (_$log_, _$window_, _fs_, _mast_) {
@@ -158,31 +148,41 @@
                 mast = _mast_;
 
                 var table = d3.select(element[0]),
-                    canAdjust = false;
+                    tableElems = {
+                        table: table,
+                        thead: table.select('.table-header').select('table'),
+                        tbody: table.select('.table-body').select('table')
+                    },
+                    wsz;
 
+                findCstmWidths(table);
+
+                // adjust table on window resize
                 scope.$watchCollection(function () {
                     return {
                         h: $window.innerHeight,
                         w: $window.innerWidth
                     };
                 }, function () {
-                    var wsz = fs.windowSize(0, 30),
-                        wWidth = wsz.width,
-                        wHeight = wsz.height;
+                    wsz = fs.windowSize(0, 30);
+                    adjustTable(
+                        scope.tableData.length,
+                        tableElems,
+                        wsz.width, wsz.height
+                    );
+                });
 
-                    if (!scope.tableData.length) {
-                        defaultSize(table, wWidth);
-                    }
+                // adjust table when data changes
+                scope.$watchCollection('tableData', function () {
+                    adjustTable(
+                        scope.tableData.length,
+                        tableElems,
+                        wsz.width, wsz.height
+                    );
+                });
 
-                    scope.$on('LastElement', function () {
-                        // only adjust the table once it's completely loaded
-                        adjustTable(table, wWidth, wHeight);
-                        canAdjust = true;
-                    });
-
-                    if (canAdjust) {
-                        adjustTable(table, wWidth, wHeight);
-                    }
+                scope.$on('$destroy', function () {
+                    cstmWidths = {};
                 });
             };
         }])

@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-fixed-header>
+    <div class="summary-list" onos-table-resize>
 
         <div class="table-header"
              onos-sortable-header
@@ -44,13 +44,13 @@
 
         <div class="table-body">
             <table>
-                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="5">
                         No Intents found
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="intent in tableData">
+                <tr ng-repeat-start="intent in tableData track by $index">
                     <td>{{intent.appId}}</td>
                     <td>{{intent.key}}</td>
                     <td>{{intent.type}}</td>
@@ -60,7 +60,7 @@
                 <tr>
                     <td class="resources" colspan="5">{{intent.resources}}</td>
                 </tr>
-                <tr ng-repeat-end ng-repeat-done>
+                <tr ng-repeat-end>
                     <td class="details" colspan="5">{{intent.details}}</td>
                 </tr>
             </table>

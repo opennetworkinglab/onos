@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-fixed-header>
+    <div class="summary-list" onos-table-resize>
 
         <div class="table-header"
              onos-sortable-header
@@ -17,26 +17,25 @@
              sort-callback="sortCallback(sortParams)">
             <table>
                 <tr>
-                    <td colId="component" sortable col-width="350px">Component </td>
+                    <td colId="component" sortable col-width="200px">Component </td>
                     <td colId="id" sortable>Property </td>
                     <td colId="type" sortable col-width="70px">Type </td>
                     <td colId="value" sortable>Value </td>
                     <td colId="defValue" sortable>Default </td>
-                    <td colId="desc" col-width="520px">Description </td>
+                    <td colId="desc" col-width="400px">Description </td>
                 </tr>
             </table>
         </div>
 
         <div class="table-body">
             <table>
-                <tr ng-hide="tableData.length" class="no-data ignore-width">
+                <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Settings found
                     </td>
                 </tr>
 
-                <tr ng-repeat="prop in tableData"
-                    ng-repeat-done>
+                <tr ng-repeat="prop in tableData track by $index">
                     <td>{{prop.component}}</td>
                     <td>{{prop.id}}</td>
                     <td>{{prop.type}}</td>
