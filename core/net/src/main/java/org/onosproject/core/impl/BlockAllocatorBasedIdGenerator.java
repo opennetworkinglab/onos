@@ -21,6 +21,8 @@ import org.onosproject.core.IdBlock;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.UnavailableIdException;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Base class of {@link IdGenerator} implementations which use {@link IdBlockAllocator} as
  * backend.
@@ -37,27 +39,29 @@ public class BlockAllocatorBasedIdGenerator implements IdGenerator {
      * @param allocator the ID block allocator to use
      */
     protected BlockAllocatorBasedIdGenerator(IdBlockAllocator allocator) {
-        this.allocator = allocator;
+        this.allocator = checkNotNull(allocator, "allocator cannot be null");
         this.initialized = new AtomicBoolean(false);
     }
 
     @Override
     public long getNewId() {
         try {
-            if (!initialized.get()) {
-                synchronized (allocator) {
-                    if (!initialized.get()) {
-                        idBlock = allocator.allocateUniqueIdBlock();
-                        initialized.set(true);
-                    }
-                }
-            }
             return idBlock.getNextId();
         } catch (UnavailableIdException e) {
             synchronized (allocator) {
                 idBlock = allocator.allocateUniqueIdBlock();
             }
             return idBlock.getNextId();
+        } catch (NullPointerException e) {
+            synchronized (allocator) {
+                if (!initialized.get()) {
+                    idBlock = allocator.allocateUniqueIdBlock();
+                    initialized.set(true);
+                    return idBlock.getNextId();
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 }
