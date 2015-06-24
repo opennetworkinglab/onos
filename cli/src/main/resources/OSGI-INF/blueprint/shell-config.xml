@@ -120,6 +120,13 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.EdgePortsListCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.TopologyCommand"/>
         </command>
         <command>

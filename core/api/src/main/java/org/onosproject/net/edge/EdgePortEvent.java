@@ -41,7 +41,7 @@ public class EdgePortEvent extends AbstractEvent<EdgePortEvent.Type, ConnectPoin
      * @param type    event type
      * @param subject connection point subject
      */
-    protected EdgePortEvent(Type type, ConnectPoint subject) {
+    public EdgePortEvent(Type type, ConnectPoint subject) {
         super(type, subject);
     }
 
@@ -52,7 +52,7 @@ public class EdgePortEvent extends AbstractEvent<EdgePortEvent.Type, ConnectPoin
      * @param subject connection point subject
      * @param time    occurrence time
      */
-    protected EdgePortEvent(Type type, ConnectPoint subject, long time) {
+    public EdgePortEvent(Type type, ConnectPoint subject, long time) {
         super(type, subject, time);
     }
 

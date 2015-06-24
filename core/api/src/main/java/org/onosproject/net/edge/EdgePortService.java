@@ -40,7 +40,7 @@ public interface EdgePortService {
      *
      * @return iterable collection of all edge points
      */
-    Iterable<ConnectPoint> getEdgePoint();
+    Iterable<ConnectPoint> getEdgePoints();
 
     /**
      * Returns a collection of all edge point for the specified device.
@@ -48,7 +48,7 @@ public interface EdgePortService {
      * @param deviceId device identifier
      * @return iterable collection of all edge points for the device
      */
-    Iterable<ConnectPoint> getEdgePoint(DeviceId deviceId);
+    Iterable<ConnectPoint> getEdgePoints(DeviceId deviceId);
 
     /**
      * Emits the specified packet, with optional treatment to all edge ports.
