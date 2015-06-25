@@ -295,7 +295,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        if (ethType == null || ethType.ethType() != Ethernet.TYPE_IPV4) {
+        if (ethType == null || ethType.ethType().toShort() != Ethernet.TYPE_IPV4) {
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }

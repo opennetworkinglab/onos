@@ -510,7 +510,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
             fail(fwd, ObjectiveError.UNKNOWN);
             return Collections.emptySet();
         }
-        if (ethType.ethType() == Ethernet.TYPE_ARP) {
+        if (ethType.ethType().toShort() == Ethernet.TYPE_ARP) {
             log.warn("Installing ARP rule to table 60");
 
             // currently need to punt from ACL table should use:
@@ -551,7 +551,7 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         // XXX currently supporting only the L3 unicast table
-        if (ethType == null || ethType.ethType() != Ethernet.TYPE_IPV4) {
+        if (ethType == null || ethType.ethType().toShort() != Ethernet.TYPE_IPV4) {
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }

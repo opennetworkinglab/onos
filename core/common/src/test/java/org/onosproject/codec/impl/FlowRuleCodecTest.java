@@ -22,6 +22,7 @@ import java.util.TreeMap;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -148,7 +149,7 @@ public class FlowRuleCodecTest {
         assertThat(rule.selector().criteria().size(), is(1));
         Criterion criterion1 = rule.selector().criteria().iterator().next();
         assertThat(criterion1.type(), is(Criterion.Type.ETH_TYPE));
-        assertThat(((EthTypeCriterion) criterion1).ethType(), is(2054));
+        assertThat(((EthTypeCriterion) criterion1).ethType(), is(new EthType(2054)));
 
         assertThat(rule.treatment().allInstructions().size(), is(1));
         Instruction instruction1 = rule.treatment().allInstructions().get(0);
@@ -356,7 +357,7 @@ public class FlowRuleCodecTest {
         Criterion criterion;
 
         criterion = getCriterion(Criterion.Type.ETH_TYPE);
-        assertThat(((EthTypeCriterion) criterion).ethType(), is(2054));
+        assertThat(((EthTypeCriterion) criterion).ethType(), is(new EthType(2054)));
 
         criterion = getCriterion(Criterion.Type.ETH_DST);
         assertThat(((EthCriterion) criterion).mac(),

@@ -81,8 +81,8 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
         EthTypeCriterion ethType = (EthTypeCriterion) selector
                 .getCriterion(Criterion.Type.ETH_TYPE);
         if ((ethType == null) ||
-                ((((short) ethType.ethType()) != Ethernet.TYPE_IPV4) &&
-                (((short) ethType.ethType()) != Ethernet.MPLS_UNICAST))) {
+                (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
+                (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
             log.debug("processSpecific: Unsupported "
                     + "forwarding objective criteraia");
             fail(fwd, ObjectiveError.UNSUPPORTED);
@@ -92,7 +92,7 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
         TrafficSelector.Builder filteredSelectorBuilder =
                 DefaultTrafficSelector.builder();
         int forTableId = -1;
-        if (((short) ethType.ethType()) == Ethernet.TYPE_IPV4) {
+        if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             if (deviceTMac == null) {
                 log.debug("processSpecific: ETH_DST filtering "
                         + "objective is not set which is required "

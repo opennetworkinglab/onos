@@ -243,7 +243,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
             Criterion c = intent.selector().getCriterion(Criterion.Type.ETH_TYPE);
             if (c != null && c instanceof EthTypeCriterion) {
                 EthTypeCriterion ethertype = (EthTypeCriterion) c;
-                treat.popMpls((short) ethertype.ethType());
+                treat.popMpls(ethertype.ethType().toShort());
             } else {
                 treat.popMpls(Ethernet.TYPE_IPV4);
             }

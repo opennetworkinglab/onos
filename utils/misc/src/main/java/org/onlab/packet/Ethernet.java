@@ -31,28 +31,28 @@ import java.util.Map;
  */
 public class Ethernet extends BasePacket {
     private static final String HEXES = "0123456789ABCDEF";
-    public static final short TYPE_ARP = (short) 0x0806;
-    public static final short TYPE_RARP = (short) 0x8035;
-    public static final short TYPE_IPV4 = (short) 0x0800;
-    public static final short TYPE_IPV6 = (short) 0x86dd;
-    public static final short TYPE_LLDP = (short) 0x88cc;
-    public static final short TYPE_VLAN = (short) 0x8100;
-    public static final short TYPE_BSN = (short) 0x8942;
-    public static final short VLAN_UNTAGGED = (short) 0xffff;
-    public static final short MPLS_UNICAST = (short) 0x8847;
-    public static final short MPLS_MULTICAST = (short) 0x8848;
+    public static final short TYPE_ARP = EthType.ARP;
+    public static final short TYPE_RARP = EthType.RARP;
+    public static final short TYPE_IPV4 = EthType.IPV4;
+    public static final short TYPE_IPV6 = EthType.IPV6;
+    public static final short TYPE_LLDP = EthType.LLDP;
+    public static final short TYPE_VLAN = EthType.VLAN;
+    public static final short TYPE_BSN = EthType.BDDP;
 
+    public static final short MPLS_UNICAST = EthType.MPLS_UNICAST;
+    public static final short MPLS_MULTICAST = EthType.MPLS_MULTICAST;
+
+    public static final short VLAN_UNTAGGED = (short) 0xffff;
     public static final short DATALAYER_ADDRESS_LENGTH = 6; // bytes
     public static final Map<Short, Class<? extends IPacket>> ETHER_TYPE_CLASS_MAP =
         new HashMap<>();
 
     static {
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_ARP, ARP.class);
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_RARP, ARP.class);
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_IPV4, IPv4.class);
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_IPV6, IPv6.class);
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_LLDP, LLDP.class);
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(Ethernet.TYPE_BSN, LLDP.class);
+       for (EthType.EtherType ethType : EthType.EtherType.values()) {
+           if (ethType.clazz() != null) {
+               ETHER_TYPE_CLASS_MAP.put(ethType.ethType().toShort(), ethType.clazz());
+           }
+       }
     }
 
     protected MacAddress destinationMACAddress;

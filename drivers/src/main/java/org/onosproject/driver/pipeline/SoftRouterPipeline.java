@@ -367,7 +367,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
             return Collections.emptySet();
         }
 
-        if (ethType.ethType() == Ethernet.TYPE_ARP) {
+        if (ethType.ethType().toShort() == Ethernet.TYPE_ARP) {
             // need to install ARP request & reply flow rules for each interface filter
 
             // rule for ARP replies
@@ -425,7 +425,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         // XXX currently supporting only the L3 unicast table
-        if (ethType == null || ethType.ethType() != Ethernet.TYPE_IPV4) {
+        if (ethType == null || ethType.ethType().toShort() != Ethernet.TYPE_IPV4) {
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }
@@ -474,7 +474,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
      * the dummy group is fetched from the distributed store and the enclosed
      * treatment is applied as a flow rule action.
      *
-     * @param nextObjective the next objective of type simple
+     * @param nextObj the next objective of type simple
      */
     private void processSimpleNextObjective(NextObjective nextObj) {
         // Simple next objective has a single treatment (not a collection)

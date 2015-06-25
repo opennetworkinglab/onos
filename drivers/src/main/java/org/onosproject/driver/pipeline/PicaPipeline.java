@@ -243,7 +243,7 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             return Collections.emptySet();
         }
 
-        if (ethType.ethType() == Ethernet.TYPE_ARP) {
+        if (ethType.ethType().toShort() == Ethernet.TYPE_ARP) {
             if (filters.isEmpty()) {
                 pendingVersatiles.add(fwd);
                 return Collections.emptySet();
@@ -253,12 +253,12 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
                 flowrules.addAll(processVersatilesWithFilters(filter, fwd));
             }
             return flowrules;
-        } else if (ethType.ethType() == Ethernet.TYPE_LLDP ||
-                ethType.ethType() == Ethernet.TYPE_BSN) {
+        } else if (ethType.ethType().toShort() == Ethernet.TYPE_LLDP ||
+                ethType.ethType().toShort() == Ethernet.TYPE_BSN) {
             log.warn("Driver currently does not currently handle LLDP packets");
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
-        } else if (ethType.ethType() == Ethernet.TYPE_IPV4) {
+        } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             IPCriterion ipSrc = (IPCriterion) selector
                     .getCriterion(Criterion.Type.IPV4_SRC);
             IPCriterion ipDst = (IPCriterion) selector
@@ -339,7 +339,7 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        if (ethType == null || ethType.ethType() != Ethernet.TYPE_IPV4) {
+        if (ethType == null || ethType.ethType().toShort() != Ethernet.TYPE_IPV4) {
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }

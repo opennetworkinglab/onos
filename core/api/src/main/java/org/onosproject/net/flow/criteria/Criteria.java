@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onlab.packet.EthType;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
@@ -97,6 +98,16 @@ public final class Criteria {
      * @return match criterion
      */
     public static Criterion matchEthType(int ethType) {
+        return new EthTypeCriterion(ethType);
+    }
+
+    /**
+     * Creates a match on ETH_TYPE field using the specified value.
+     *
+     * @param ethType eth type value
+     * @return match criterion
+     */
+    public static Criterion matchEthType(EthType ethType) {
         return new EthTypeCriterion(ethType);
     }
 

@@ -165,7 +165,7 @@ public final class EncodeCriterionCodec {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final EthTypeCriterion ethTypeCriterion =
                     (EthTypeCriterion) criterion;
-            return root.put(CriterionCodec.ETH_TYPE, ethTypeCriterion.ethType());
+            return root.put(CriterionCodec.ETH_TYPE, ethTypeCriterion.ethType().toShort());
         }
     }
 

@@ -198,7 +198,7 @@ public abstract class FlowModBuilder {
                 break;
             case ETH_TYPE:
                 EthTypeCriterion ethType = (EthTypeCriterion) c;
-                mBuilder.setExact(MatchField.ETH_TYPE, EthType.of(ethType.ethType()));
+                mBuilder.setExact(MatchField.ETH_TYPE, EthType.of(ethType.ethType().toShort()));
                 break;
             case VLAN_VID:
                 VlanIdCriterion vid = (VlanIdCriterion) c;

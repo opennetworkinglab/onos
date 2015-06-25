@@ -440,8 +440,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         EthTypeCriterion ethType = (EthTypeCriterion) selector
                 .getCriterion(Criterion.Type.ETH_TYPE);
         if ((ethType == null) ||
-                ((((short) ethType.ethType()) != Ethernet.TYPE_IPV4) &&
-                (((short) ethType.ethType()) != Ethernet.MPLS_UNICAST))) {
+                (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
+                (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
             log.warn("processSpecific: Unsupported "
                     + "forwarding objective criteraia");
             fail(fwd, ObjectiveError.UNSUPPORTED);
@@ -451,7 +451,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         TrafficSelector.Builder filteredSelectorBuilder =
                 DefaultTrafficSelector.builder();
         int forTableId = -1;
-        if (((short) ethType.ethType()) == Ethernet.TYPE_IPV4) {
+        if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             filteredSelectorBuilder = filteredSelectorBuilder
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(((IPCriterion) selector

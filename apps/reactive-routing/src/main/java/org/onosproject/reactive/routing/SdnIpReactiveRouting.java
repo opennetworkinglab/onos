@@ -114,7 +114,7 @@ public class SdnIpReactiveRouting {
             ConnectPoint srcConnectPoint = pkt.receivedFrom();
 
             switch (ethPkt.getEtherType()) {
-            case Ethernet.TYPE_ARP:
+            case 0x806:
                 ARP arpPacket = (ARP) ethPkt.getPayload();
                 Ip4Address targetIpAddress = Ip4Address
                         .valueOf(arpPacket.getTargetProtocolAddress());
@@ -141,7 +141,7 @@ public class SdnIpReactiveRouting {
                             ByteBuffer.wrap(eth.serialize())));
                 }
                 break;
-            case Ethernet.TYPE_IPV4:
+            case 0x800:
                 // Parse packet
                 IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
                 IpAddress dstIp =

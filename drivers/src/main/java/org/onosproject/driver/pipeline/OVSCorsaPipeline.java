@@ -257,17 +257,17 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
             fail(fwd, ObjectiveError.UNKNOWN);
             return Collections.emptySet();
         }
-        if (ethType.ethType() == Ethernet.TYPE_ARP) {
+        if (ethType.ethType().toShort() == Ethernet.TYPE_ARP) {
             log.warn("Driver automatically handles ARP packets by punting to controller "
                     + " from ETHER table");
             pass(fwd);
             return Collections.emptySet();
-        } else if (ethType.ethType() == Ethernet.TYPE_LLDP ||
-                ethType.ethType() == Ethernet.TYPE_BSN) {
+        } else if (ethType.ethType().toShort() == Ethernet.TYPE_LLDP ||
+                ethType.ethType().toShort() == Ethernet.TYPE_BSN) {
             log.warn("Driver currently does not currently handle LLDP packets");
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
-        } else if (ethType.ethType() == Ethernet.TYPE_IPV4) {
+        } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             IPCriterion ipSrc = (IPCriterion) selector
                     .getCriterion(Criterion.Type.IPV4_SRC);
             IPCriterion ipDst = (IPCriterion) selector
@@ -303,7 +303,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        if (ethType == null || ethType.ethType() != Ethernet.TYPE_IPV4) {
+        if (ethType == null || ethType.ethType().toShort() != Ethernet.TYPE_IPV4) {
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }

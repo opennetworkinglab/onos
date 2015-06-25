@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import org.onlab.packet.ChassisId;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
@@ -293,6 +294,7 @@ public final class KryoNamespaces {
                     PortCriterion.class,
                     MetadataCriterion.class,
                     EthCriterion.class,
+                    EthType.class,
                     EthTypeCriterion.class,
                     VlanIdCriterion.class,
                     VlanPcpCriterion.class,

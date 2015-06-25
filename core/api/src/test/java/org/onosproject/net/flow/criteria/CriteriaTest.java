@@ -16,6 +16,7 @@
 package org.onosproject.net.flow.criteria;
 
 import org.junit.Test;
+import org.onlab.packet.EthType;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
@@ -418,8 +419,8 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchEthTypeMethod() {
-        int ethType = 12;
-        Criterion matchEthType = Criteria.matchEthType(ethType);
+        EthType ethType = new EthType(12);
+        Criterion matchEthType = Criteria.matchEthType(new EthType(12));
         EthTypeCriterion ethTypeCriterion =
                 checkAndConvert(matchEthType,
                                 Criterion.Type.ETH_TYPE,

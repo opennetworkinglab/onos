@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onlab.packet.EthType;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -24,7 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public final class EthTypeCriterion implements Criterion {
     private static final int MASK = 0xffff;
-    private final int ethType;              // Ethernet type value: 16 bits
+    private final EthType ethType;              // Ethernet type value: 16 bits
 
     /**
      * Constructor.
@@ -33,7 +35,16 @@ public final class EthTypeCriterion implements Criterion {
      * integer)
      */
     EthTypeCriterion(int ethType) {
-        this.ethType = ethType & MASK;
+        this.ethType = new EthType(ethType & MASK);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param ethType the Ethernet frame type to match
+     */
+    EthTypeCriterion(EthType ethType) {
+        this.ethType = ethType;
     }
 
     @Override
@@ -46,14 +57,14 @@ public final class EthTypeCriterion implements Criterion {
      *
      * @return the Ethernet frame type to match (16 bits unsigned integer)
      */
-    public int ethType() {
+    public EthType ethType() {
         return ethType;
     }
 
     @Override
     public String toString() {
         return toStringHelper(type().toString())
-                .add("ethType", Long.toHexString(ethType))
+                .add("ethType", ethType.toString())
                 .toString();
     }
 
