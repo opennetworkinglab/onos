@@ -15,12 +15,14 @@
  */
 package org.onosproject.incubator.net;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.statistic.Load;
 
 /**
  * Service for obtaining statistic information about device ports.
  */
+@Beta
 public interface PortStatisticsService {
 
     /**
