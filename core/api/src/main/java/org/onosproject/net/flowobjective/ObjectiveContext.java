@@ -26,8 +26,21 @@ import com.google.common.annotations.Beta;
 @Beta
 public interface ObjectiveContext {
 
-    default void onSuccess(Objective objective) {}
+    /**
+     * Invoked on successful execution of the flow objective.
+     *
+     * @param objective objective to execute
+     */
+    default void onSuccess(Objective objective) {
+    }
 
-    default void onError(Objective objective, ObjectiveError error) {}
+    /**
+     * Invoked when error is encountered while executing the flow objective.
+     *
+     * @param objective objective to execute
+     * @param error error encountered
+     */
+    default void onError(Objective objective, ObjectiveError error) {
+    }
 
 }
