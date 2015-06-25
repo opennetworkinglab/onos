@@ -75,6 +75,7 @@ public class PathIntentCompilerTest {
     private final ConnectPoint d3p1 = connectPoint("s3", 1);
     private final ConnectPoint d3p0 = connectPoint("s3", 10);
     private final ConnectPoint d1p0 = connectPoint("s1", 10);
+    private static final int PRIORITY = 555;
 
     private final List<Link> links = Arrays.asList(
             createEdgeLink(d1p0, true),
@@ -102,6 +103,7 @@ public class PathIntentCompilerTest {
                 .appId(APP_ID)
                 .selector(selector)
                 .treatment(treatment)
+                .priority(PRIORITY)
                 .path(new DefaultPath(pid, links, hops))
                 .build();
         intentExtensionService = createMock(IntentExtensionService.class);
@@ -141,6 +143,7 @@ public class PathIntentCompilerTest {
                 is(DefaultTrafficSelector.builder(selector).matchInPort(d1p0.port()).build()));
         assertThat(rule1.treatment(),
                 is(DefaultTrafficTreatment.builder().setOutput(d1p1.port()).build()));
+        assertThat(rule1.priority(), is(intent.priority()));
 
         FlowRule rule2 = rules.stream()
                 .filter(x -> x.deviceId().equals(d2p0.deviceId()))
@@ -151,6 +154,7 @@ public class PathIntentCompilerTest {
                 is(DefaultTrafficSelector.builder(selector).matchInPort(d2p0.port()).build()));
         assertThat(rule2.treatment(),
                 is(DefaultTrafficTreatment.builder().setOutput(d2p1.port()).build()));
+        assertThat(rule2.priority(), is(intent.priority()));
 
         FlowRule rule3 = rules.stream()
                 .filter(x -> x.deviceId().equals(d3p0.deviceId()))
@@ -161,6 +165,7 @@ public class PathIntentCompilerTest {
                 is(DefaultTrafficSelector.builder(selector).matchInPort(d3p1.port()).build()));
         assertThat(rule3.treatment(),
                 is(DefaultTrafficTreatment.builder(treatment).setOutput(d3p0.port()).build()));
+        assertThat(rule3.priority(), is(intent.priority()));
 
         sut.deactivate();
     }

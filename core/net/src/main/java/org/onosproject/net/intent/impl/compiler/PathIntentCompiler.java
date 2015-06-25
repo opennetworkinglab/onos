@@ -76,7 +76,9 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         for (int i = 0; i < links.size() - 1; i++) {
             ConnectPoint ingress = links.get(i).dst();
             ConnectPoint egress = links.get(i + 1).src();
-            FlowRule rule = createFlowRule(intent.selector(), intent.treatment(), ingress, egress, isLast(links, i));
+            FlowRule rule = createFlowRule(intent.selector(), intent.treatment(),
+                                           ingress, egress, intent.priority(),
+                                           isLast(links, i));
             rules.add(rule);
         }
 
@@ -84,7 +86,8 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
     }
 
     private FlowRule createFlowRule(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
-                                    ConnectPoint ingress, ConnectPoint egress, boolean last) {
+                                    ConnectPoint ingress, ConnectPoint egress,
+                                    int priority, boolean last) {
         TrafficSelector selector = DefaultTrafficSelector.builder(originalSelector)
                 .matchInPort(ingress.port())
                 .build();
@@ -97,7 +100,14 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         }
         TrafficTreatment treatment = treatmentBuilder.setOutput(egress.port()).build();
 
-        return new DefaultFlowRule(ingress.deviceId(), selector, treatment, 123, appId, 0, true);
+        return DefaultFlowRule.builder()
+                .forDevice(ingress.deviceId())
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(priority)
+                .fromApp(appId)
+                .makePermanent()
+                .build();
     }
 
     private boolean isLast(List<Link> links, int i) {

@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.EdgeLink;
@@ -134,9 +133,14 @@ public class LinkCollectionIntentCompiler implements IntentCompiler<LinkCollecti
                 treatment = defaultTreatment;
             }
 
-            DefaultFlowRule rule = new DefaultFlowRule(deviceId, selector, treatment, 123, appId,
-                    new DefaultGroupId((short) (intent.id().fingerprint() & 0xffff)), 0, true);
-
+            FlowRule rule = DefaultFlowRule.builder()
+                                .forDevice(deviceId)
+                                .withSelector(selector)
+                                .withTreatment(treatment)
+                                .withPriority(intent.priority())
+                                .fromApp(appId)
+                                .makePermanent()
+                                .build();
             rules.add(rule);
         }
 

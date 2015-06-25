@@ -188,13 +188,13 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
         // Create optical circuit intent
         List<FlowRule> rules = new LinkedList<>();
-        rules.add(connectPorts(src, connIntent.getSrc()));
-        rules.add(connectPorts(connIntent.getDst(), dst));
+        rules.add(connectPorts(src, connIntent.getSrc(), intent.priority()));
+        rules.add(connectPorts(connIntent.getDst(), dst, intent.priority()));
 
         // Create flow rules for reverse path
         if (intent.isBidirectional()) {
-            rules.add(connectPorts(connIntent.getSrc(), src));
-            rules.add(connectPorts(dst, connIntent.getDst()));
+            rules.add(connectPorts(connIntent.getSrc(), src, intent.priority()));
+            rules.add(connectPorts(dst, connIntent.getDst(), intent.priority()));
         }
 
         circuitIntent = new FlowRuleIntent(appId, rules, intent.resources());
@@ -348,7 +348,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * @param dst destination port
      * @return flow rules
      */
-    private FlowRule connectPorts(ConnectPoint src, ConnectPoint dst) {
+    private FlowRule connectPorts(ConnectPoint src, ConnectPoint dst, int priority) {
         checkArgument(src.deviceId().equals(dst.deviceId()));
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
@@ -363,7 +363,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 .forDevice(src.deviceId())
                 .withSelector(selectorBuilder.build())
                 .withTreatment(treatmentBuilder.build())
-                .withPriority(100)
+                .withPriority(priority)
                 .fromApp(appId)
                 .makePermanent()
                 .build();
