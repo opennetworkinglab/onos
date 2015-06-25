@@ -111,7 +111,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .forDevice(current.deviceId())
                     .withSelector(selectorBuilder.build())
                     .withTreatment(treatmentBuilder.build())
-                    .withPriority(100)
+                    .withPriority(intent.priority())
                     .fromApp(appId)
                     .makePermanent()
                     .build();
@@ -132,7 +132,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                 .forDevice(intent.dst().deviceId())
                 .withSelector(selectorBuilder.build())
                 .withTreatment(treatmentLast.build())
-                .withPriority(100)
+                .withPriority(intent.priority())
                 .fromApp(appId)
                 .makePermanent()
                 .build();
@@ -163,7 +163,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .forDevice(current.deviceId())
                     .withSelector(selectorBuilder.build())
                     .withTreatment(treatmentBuilder.build())
-                    .withPriority(100)
+                    .withPriority(intent.priority())
                     .fromApp(appId)
                     .makePermanent()
                     .build();
@@ -184,7 +184,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                 .forDevice(intent.src().deviceId())
                 .withSelector(selectorBuilder.build())
                 .withTreatment(treatmentLast.build())
-                .withPriority(100)
+                .withPriority(intent.priority())
                 .fromApp(appId)
                 .makePermanent()
                 .build();

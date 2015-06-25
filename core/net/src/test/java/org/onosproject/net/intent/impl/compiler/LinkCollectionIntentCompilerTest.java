@@ -81,7 +81,7 @@ public class LinkCollectionIntentCompilerTest {
     private LinkCollectionIntentCompiler sut;
 
     @Before
-    public void setUP() {
+    public void setUp() {
         sut = new LinkCollectionIntentCompiler();
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication("org.onosproject.net.intent"))
@@ -132,6 +132,7 @@ public class LinkCollectionIntentCompilerTest {
         assertThat(rule1.treatment(), is(
                 DefaultTrafficTreatment.builder(intent.treatment()).setOutput(d1p1.port()).build()
         ));
+        assertThat(rule1.priority(), is(intent.priority()));
 
         FlowRule rule2 = rules.stream()
                 .filter(rule -> rule.deviceId().equals(d2p0.deviceId()))
@@ -143,6 +144,7 @@ public class LinkCollectionIntentCompilerTest {
         assertThat(rule2.treatment(), is(
                 DefaultTrafficTreatment.builder().setOutput(d2p1.port()).build()
         ));
+        assertThat(rule2.priority(), is(intent.priority()));
 
         FlowRule rule3 = rules.stream()
                 .filter(rule -> rule.deviceId().equals(d3p0.deviceId()))
@@ -154,6 +156,7 @@ public class LinkCollectionIntentCompilerTest {
         assertThat(rule3.treatment(), is(
                 DefaultTrafficTreatment.builder().setOutput(d3p1.port()).build()
         ));
+        assertThat(rule3.priority(), is(intent.priority()));
 
         sut.deactivate();
     }

@@ -50,6 +50,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.PID;
 import static org.onosproject.net.NetTestTools.connectPoint;
@@ -135,7 +136,12 @@ public class OpticalPathIntentCompilerTest {
                 .findFirst()
                 .get();
 
+        rules.forEach(rule -> assertEquals("FlowRule priority is incorrect",
+                                           intent.priority(), rule.priority()));
+
         sut.deactivate();
     }
+
+    //TODO test bidirectional optical paths and verify rules
 
 }
