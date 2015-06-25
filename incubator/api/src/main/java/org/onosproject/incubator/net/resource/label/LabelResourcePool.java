@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
 import com.google.common.base.MoreObjects;
@@ -19,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
  * labels by calculating with three attributes, beginLabel,endLabel and
  * currentUsedMaxLabelId
  */
+@Beta
 public class LabelResourcePool {
 
     private final DeviceId deviceId;
