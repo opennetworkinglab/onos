@@ -114,7 +114,7 @@ public interface EventuallyConsistentMap<K, V> {
      * Removes the given key-value mapping from the map, if it exists.
      * <p>
      * This actually means remove any values up to and including the timestamp
-     * given by {@link org.onosproject.store.service.ClockService#getTimestamp(Object, Object)}.
+     * given by the map's timestampProvider.
      * Any mappings that produce an earlier timestamp than this given key-value
      * pair will be removed, and any mappings that produce a later timestamp
      * will supersede this remove.

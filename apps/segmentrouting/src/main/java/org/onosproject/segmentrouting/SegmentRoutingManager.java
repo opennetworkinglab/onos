@@ -55,7 +55,6 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
-import org.onosproject.store.service.WallclockClockManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,7 +170,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         nsNextObjStore = nsNextObjMapBuilder
                 .withName("nsnextobjectivestore")
                 .withSerializer(kryoBuilder)
-                .withClockService(new WallclockClockManager<>())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
         log.trace("Current size {}", nsNextObjStore.size());
 
@@ -181,7 +180,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         tunnelStore = tunnelMapBuilder
                 .withName("tunnelstore")
                 .withSerializer(kryoBuilder)
-                .withClockService(new WallclockClockManager<>())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
         EventuallyConsistentMapBuilder<String, Policy> policyMapBuilder =
@@ -190,7 +189,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         policyStore = policyMapBuilder
                 .withName("policystore")
                 .withSerializer(kryoBuilder)
-                .withClockService(new WallclockClockManager<>())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
         networkConfigService.init();

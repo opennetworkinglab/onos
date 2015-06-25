@@ -133,13 +133,13 @@ public class GossipApplicationStore extends ApplicationArchive
         apps = storageService.<ApplicationId, Application>eventuallyConsistentMapBuilder()
                 .withName("apps")
                 .withSerializer(serializer)
-                .withClockService((k, v) -> clockService.getTimestamp())
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
         states = storageService.<Application, InternalState>eventuallyConsistentMapBuilder()
                 .withName("app-states")
                 .withSerializer(serializer)
-                .withClockService((k, v) -> clockService.getTimestamp())
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
         states.addListener(new InternalAppStatesListener());
@@ -147,7 +147,7 @@ public class GossipApplicationStore extends ApplicationArchive
         permissions = storageService.<Application, Set<Permission>>eventuallyConsistentMapBuilder()
                 .withName("app-permissions")
                 .withSerializer(serializer)
-                .withClockService((k, v) -> clockService.getTimestamp())
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
         log.info("Started");

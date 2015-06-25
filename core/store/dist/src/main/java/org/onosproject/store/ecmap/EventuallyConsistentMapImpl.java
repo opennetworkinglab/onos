@@ -37,7 +37,6 @@ import org.onosproject.store.impl.LogicalTimestamp;
 import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoSerializer;
-import org.onosproject.store.service.ClockService;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
@@ -84,7 +83,7 @@ public class EventuallyConsistentMapImpl<K, V>
     private final ClusterCommunicationService clusterCommunicator;
     private final KryoSerializer serializer;
 
-    private final ClockService<K, V> clockService;
+    private final BiFunction<K, V, Timestamp> timestampProvider;
 
     private final MessageSubject updateMessageSubject;
     private final MessageSubject antiEntropyAdvertisementSubject;
@@ -130,8 +129,7 @@ public class EventuallyConsistentMapImpl<K, V>
      * @param clusterCommunicator   the cluster communications service
      * @param serializerBuilder     a Kryo namespace builder that can serialize
      *                              both K and V
-     * @param clockService          a clock service able to generate timestamps
-     *                              for K and V
+     * @param timestampProvider     provider of timestamps for K and V
      * @param peerUpdateFunction    function that provides a set of nodes to immediately
      *                              update to when there writes to the map
      * @param eventExecutor         executor to use for processing incoming
@@ -150,7 +148,7 @@ public class EventuallyConsistentMapImpl<K, V>
                                 ClusterService clusterService,
                                 ClusterCommunicationService clusterCommunicator,
                                 KryoNamespace.Builder serializerBuilder,
-                                ClockService<K, V> clockService,
+                                BiFunction<K, V, Timestamp> timestampProvider,
                                 BiFunction<K, V, Collection<NodeId>> peerUpdateFunction,
                                 ExecutorService eventExecutor,
                                 ExecutorService communicationExecutor,
@@ -170,7 +168,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
         this.serializer = createSerializer(serializerBuilder);
 
-        this.clockService = clockService;
+        this.timestampProvider = timestampProvider;
 
         if (peerUpdateFunction != null) {
             this.peerUpdateFunction = peerUpdateFunction;
@@ -302,7 +300,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
 
-        Timestamp timestamp = clockService.getTimestamp(key, value);
+        Timestamp timestamp = timestampProvider.apply(key, value);
 
         if (putInternal(key, value, timestamp)) {
             notifyPeers(new PutEntry<>(key, value, timestamp),
@@ -354,7 +352,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
 
         // TODO prevent calls here if value is important for timestamp
-        Timestamp timestamp = clockService.getTimestamp(key, null);
+        Timestamp timestamp = timestampProvider.apply(key, null);
 
         if (removeInternal(key, timestamp)) {
             notifyPeers(new RemoveEntry<>(key, timestamp),
@@ -412,7 +410,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
 
-        Timestamp timestamp = clockService.getTimestamp(key, value);
+        Timestamp timestamp = timestampProvider.apply(key, value);
 
         if (removeInternal(key, timestamp)) {
             notifyPeers(new RemoveEntry<>(key, timestamp),

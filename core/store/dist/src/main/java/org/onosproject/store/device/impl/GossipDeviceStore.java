@@ -78,7 +78,6 @@ import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
-import org.onosproject.store.service.WallclockClockManager;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -244,7 +243,7 @@ public class GossipDeviceStore
                 .withName("port-stats")
                 .withSerializer(deviceDataSerializer)
                 .withAntiEntropyPeriod(5, TimeUnit.SECONDS)
-                .withClockService(new WallclockClockManager<>())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .withTombstonesDisabled()
                 .build();
         devicePortStats.addListener(portStatsListener);

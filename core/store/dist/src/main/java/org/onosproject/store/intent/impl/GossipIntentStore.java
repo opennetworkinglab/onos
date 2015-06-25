@@ -16,6 +16,7 @@
 package org.onosproject.store.intent.impl;
 
 import com.google.common.collect.ImmutableList;
+
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -48,6 +49,7 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -83,6 +85,8 @@ public class GossipIntentStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PartitionService partitionService;
 
+    private final AtomicLong sequenceNumber = new AtomicLong(0);
+
     @Activate
     public void activate() {
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
@@ -94,14 +98,17 @@ public class GossipIntentStore
         currentMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-current")
                 .withSerializer(intentSerializer)
-                .withClockService(new IntentDataLogicalClockManager<>())
+                .withTimestampProvider((key, intentData) ->
+                                            new MultiValuedTimestamp<>(intentData.version(),
+                                                                       sequenceNumber.getAndIncrement()))
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
                 .build();
 
         pendingMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-pending")
                 .withSerializer(intentSerializer)
-                .withClockService(new IntentDataClockManager<>())
+                .withTimestampProvider((key, intentData) -> new MultiValuedTimestamp<>(intentData.version(),
+                                                                                       System.nanoTime()))
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
                 .build();
 

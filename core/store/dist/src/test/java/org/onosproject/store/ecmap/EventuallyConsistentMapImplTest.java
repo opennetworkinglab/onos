@@ -35,7 +35,6 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.service.ClockService;
 import org.onosproject.store.impl.LogicalTimestamp;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -148,7 +147,7 @@ public class EventuallyConsistentMapImplTest {
                         clusterService, clusterCommunicator)
                 .withName(MAP_NAME)
                 .withSerializer(serializer)
-                .withClockService(clockService)
+                .withTimestampProvider((k, v) -> clockService.getTimestamp(k, v))
                 .withCommunicationExecutor(MoreExecutors.newDirectExecutorService())
                 .build();
 
@@ -805,12 +804,11 @@ public class EventuallyConsistentMapImplTest {
      * @param <T> Type that the clock service will give out timestamps for
      * @param <U> Second type that the clock service will give out values for
      */
-    private class SequentialClockService<T, U> implements ClockService<T, U> {
+    private class SequentialClockService<T, U> {
 
         private static final long INITIAL_VALUE = 1;
         private final AtomicLong counter = new AtomicLong(INITIAL_VALUE);
 
-        @Override
         public Timestamp getTimestamp(T object, U object2) {
             return new TestTimestamp(counter.getAndIncrement());
         }

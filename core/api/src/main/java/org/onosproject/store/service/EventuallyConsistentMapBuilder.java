@@ -18,6 +18,7 @@ package org.onosproject.store.service;
 
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.store.Timestamp;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
@@ -66,10 +67,10 @@ public interface EventuallyConsistentMapBuilder<K, V> {
             KryoNamespace.Builder serializerBuilder);
 
     /**
-     * Sets the clock service to use for generating timestamps for map updates.
+     * Sets the function to use for generating timestamps for map updates.
      * <p>
-     * The client must provide an {@link org.onosproject.store.service.ClockService}
-     * which can generate timestamps for a given key. The clock service is free
+     * The client must provide an {@code BiFunction<K, V, Timestamp>}
+     * which can generate timestamps for a given key. The function is free
      * to generate timestamps however it wishes, however these timestamps will
      * be used to serialize updates to the map so they must be strict enough
      * to ensure updates are properly ordered for the use case (i.e. in some
@@ -80,11 +81,11 @@ public interface EventuallyConsistentMapBuilder<K, V> {
      * Note: This is a mandatory parameter.
      * </p>
      *
-     * @param clockService clock service
+     * @param timestampProvider provides a new timestamp
      * @return this EventuallyConsistentMapBuilder
      */
-    EventuallyConsistentMapBuilder<K, V> withClockService(
-            ClockService<K, V> clockService);
+    EventuallyConsistentMapBuilder<K, V> withTimestampProvider(
+            BiFunction<K, V, Timestamp> timestampProvider);
 
     /**
      * Sets the executor to use for processing events coming in from peers.

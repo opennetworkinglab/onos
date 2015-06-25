@@ -59,7 +59,6 @@ import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.group.StoredGroupBucketEntry;
 import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
@@ -67,7 +66,6 @@ import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.serializers.DeviceIdSerializer;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.URISerializer;
-import org.onosproject.store.service.ClockService;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
@@ -142,6 +140,8 @@ public class DistributedGroupStore
 
     private KryoNamespace.Builder kryoBuilder = null;
 
+    private final AtomicLong sequenceNumber = new AtomicLong(0);
+
     @Activate
     public void activate() {
         kryoBuilder = new KryoNamespace.Builder()
@@ -210,7 +210,8 @@ public class DistributedGroupStore
         groupStoreEntriesByKey = keyMapBuilder
                 .withName("groupstorekeymap")
                 .withSerializer(kryoBuilder)
-                .withClockService(new GroupStoreLogicalClockManager<>())
+                .withTimestampProvider((k, v) -> new MultiValuedTimestamp<>(System.currentTimeMillis(),
+                                                                            sequenceNumber.getAndIncrement()))
                 .build();
         groupStoreEntriesByKey.addListener(new GroupStoreKeyMapListener());
         log.debug("Current size of groupstorekeymap:{}",
@@ -223,7 +224,8 @@ public class DistributedGroupStore
         auditPendingReqQueue = auditMapBuilder
                 .withName("pendinggroupkeymap")
                 .withSerializer(kryoBuilder)
-                .withClockService(new GroupStoreLogicalClockManager<>())
+                .withTimestampProvider((k, v) -> new MultiValuedTimestamp<>(System.currentTimeMillis(),
+                                                                            sequenceNumber.getAndIncrement()))
                 .build();
         log.debug("Current size of pendinggroupkeymap:{}",
                   auditPendingReqQueue.size());
@@ -906,21 +908,6 @@ public class DistributedGroupStore
         // flatten and make iterator unmodifiable
         return FluentIterable.from(
                 getExtraneousGroupIdTable(deviceId).values());
-    }
-
-    /**
-     * ClockService that generates wallclock based timestamps.
-     */
-    private class GroupStoreLogicalClockManager<T, U>
-        implements ClockService<T, U> {
-
-        private final AtomicLong sequenceNumber = new AtomicLong(0);
-
-        @Override
-        public Timestamp getTimestamp(T t1, U u1) {
-            return new MultiValuedTimestamp<>(System.currentTimeMillis(),
-                    sequenceNumber.getAndIncrement());
-        }
     }
 
     /**

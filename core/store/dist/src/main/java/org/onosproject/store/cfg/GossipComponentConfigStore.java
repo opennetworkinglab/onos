@@ -70,7 +70,7 @@ public class GossipComponentConfigStore
         properties = storageService.<String, String>eventuallyConsistentMapBuilder()
                 .withName("cfg")
                 .withSerializer(serializer)
-                .withClockService((k, v) -> clockService.getTimestamp())
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
         properties.addListener(new InternalPropertiesListener());

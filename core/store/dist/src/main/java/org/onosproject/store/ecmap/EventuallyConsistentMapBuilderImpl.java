@@ -18,8 +18,8 @@ package org.onosproject.store.ecmap;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.service.ClockService;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 
@@ -45,7 +45,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     private ExecutorService eventExecutor;
     private ExecutorService communicationExecutor;
     private ScheduledExecutorService backgroundExecutor;
-    private ClockService<K, V> clockService;
+    private BiFunction<K, V, Timestamp> timestampProvider;
     private BiFunction<K, V, Collection<NodeId>> peerUpdateFunction;
     private boolean tombstonesDisabled = false;
     private long antiEntropyPeriod = 5;
@@ -79,9 +79,9 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     }
 
     @Override
-    public EventuallyConsistentMapBuilder<K, V> withClockService(
-            ClockService<K, V> clockService) {
-        this.clockService = checkNotNull(clockService);
+    public EventuallyConsistentMapBuilder<K, V> withTimestampProvider(
+            BiFunction<K, V, Timestamp> timestampProvider) {
+        this.timestampProvider = checkNotNull(timestampProvider);
         return this;
     }
 
@@ -141,13 +141,13 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     public EventuallyConsistentMap<K, V> build() {
         checkNotNull(name, "name is a mandatory parameter");
         checkNotNull(serializerBuilder, "serializerBuilder is a mandatory parameter");
-        checkNotNull(clockService, "clockService is a mandatory parameter");
+        checkNotNull(timestampProvider, "timestampProvider is a mandatory parameter");
 
         return new EventuallyConsistentMapImpl<>(name,
                                                  clusterService,
                                                  clusterCommunicator,
                                                  serializerBuilder,
-                                                 clockService,
+                                                 timestampProvider,
                                                  peerUpdateFunction,
                                                  eventExecutor,
                                                  communicationExecutor,

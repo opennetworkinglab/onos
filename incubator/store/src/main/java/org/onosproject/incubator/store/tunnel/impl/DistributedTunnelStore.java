@@ -57,7 +57,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.WallclockClockManager;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;
@@ -114,23 +114,23 @@ public class DistributedTunnelStore
         tunnelIdAsKeyStore = storageService
                 .<TunnelId, Tunnel>eventuallyConsistentMapBuilder()
                 .withName("all_tunnel").withSerializer(serializer)
-                .withClockService(new WallclockClockManager<>()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         tunnelNameAsKeyStore = storageService
                 .<TunnelName, Set<TunnelId>>eventuallyConsistentMapBuilder()
                 .withName("tunnel_name_tunnel").withSerializer(serializer)
-                .withClockService(new WallclockClockManager<>()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         srcAndDstKeyStore = storageService
                 .<TunnelKey, Set<TunnelId>>eventuallyConsistentMapBuilder()
                 .withName("src_dst_tunnel").withSerializer(serializer)
-                .withClockService(new WallclockClockManager<>()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         typeKeyStore = storageService
                 .<Tunnel.Type, Set<TunnelId>>eventuallyConsistentMapBuilder()
                 .withName("type_tunnel").withSerializer(serializer)
-                .withClockService(new WallclockClockManager<>()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         orderRelationship = storageService
                 .<ApplicationId, Set<TunnelSubscription>>eventuallyConsistentMapBuilder()
                 .withName("type_tunnel").withSerializer(serializer)
-                .withClockService(new WallclockClockManager<>()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         idGenerator = coreService.getIdGenerator(runnelOpTopoic);
         log.info("Started");
     }
