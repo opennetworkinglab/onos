@@ -15,9 +15,9 @@
  */
 package org.onlab.stc;
 
+import com.google.common.io.Files;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.onlab.util.Tools;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,12 +35,10 @@ import static org.onlab.stc.Scenario.loadScenario;
  */
 public class CompilerTest {
 
-    static final File TEST_DIR = new File("/tmp/junit-stc");
+    static final File TEST_DIR = Files.createTempDir();
 
     @BeforeClass
     public static void setUpClass() throws IOException {
-        Tools.removeDirectory(TEST_DIR);
-        TEST_DIR.mkdirs();
         stageTestResource("scenario.xml");
         stageTestResource("simple-scenario.xml");
         stageTestResource("one-scenario.xml");
@@ -51,6 +49,7 @@ public class CompilerTest {
         System.setProperty("TOC1", "1.2.3.1");
         System.setProperty("TOC2", "1.2.3.2");
         System.setProperty("TOC3", "1.2.3.3");
+        System.setProperty("test.dir", TEST_DIR.getAbsolutePath());
     }
 
     public static FileInputStream getStream(String name) throws FileNotFoundException {
@@ -72,7 +71,8 @@ public class CompilerTest {
         assertSame("incorrect scenario", scenario, compiler.scenario());
         assertEquals("incorrect step count", 25, flow.getVertexes().size());
         assertEquals("incorrect dependency count", 21, flow.getEdges().size());
-        assertEquals("incorrect logDir", "/tmp/junit-stc/foo", compiler.logDir().getPath());
+        assertEquals("incorrect logDir",
+                     TEST_DIR.getAbsolutePath() + "/foo", compiler.logDir().getPath());
 
         Step step = compiler.getStep("there");
         assertEquals("incorrect edge count", 2, flow.getEdgesFrom(step).size());

@@ -13,10 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="foo" description="Test Scenario" logDir="/tmp/junit-stc/foo">
-    <import file="/tmp/junit-stc/one-scenario.xml" namespace="foo"/>
+<scenario name="foo" description="Test Scenario" logDir="${test.dir}/foo">
+    <import file="${test.dir}/one-scenario.xml" namespace="foo"/>
 
-    <import file="/tmp/junit-stc/two-scenario.xml"/>
+    <import file="${test.dir}/two-scenario.xml"/>
 
     <dependency name="dude" requires="~yolo"/>
 
