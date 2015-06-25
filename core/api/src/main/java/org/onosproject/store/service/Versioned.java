@@ -91,6 +91,7 @@ public class Versioned<V> {
      * Maps this instance into another after transforming its
      * value while retaining the same version and creationTime.
      * @param transformer function to mapping the value
+     * @param <U> value type of the returned instance
      * @return mapped instance
      */
     public <U> Versioned<U> map(Function<V, U> transformer) {

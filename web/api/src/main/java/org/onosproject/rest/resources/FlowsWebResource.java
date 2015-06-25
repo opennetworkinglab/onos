@@ -129,6 +129,7 @@ public class FlowsWebResource extends AbstractWebResource {
     /**
      * Creates a flow rule from a POST of a JSON string and attempts to apply it.
      *
+     * @param deviceId device identifier
      * @param stream input JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid

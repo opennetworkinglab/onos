@@ -45,6 +45,7 @@ public interface EdgePortService {
     /**
      * Returns a collection of all edge point for the specified device.
      *
+     * @param deviceId device identifier
      * @return iterable collection of all edge points for the device
      */
     Iterable<ConnectPoint> getEdgePoint(DeviceId deviceId);

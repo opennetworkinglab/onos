@@ -59,6 +59,7 @@ public class TransactionManager {
      * Constructs a new TransactionManager for the specified database instance.
      *
      * @param database database
+     * @param mapBuilder builder for ConsistentMap instances
      */
     public TransactionManager(Database database, ConsistentMapBuilder<Long, Transaction> mapBuilder) {
         this.database = checkNotNull(database, "database cannot be null");

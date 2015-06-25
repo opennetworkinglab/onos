@@ -39,6 +39,7 @@ public interface ObjectiveContext {
      * Invoked when error is encountered while executing the flow objective.
      *
      * @param objective objective to execute
+     * @param error error encountered
      */
     default void onError(Objective objective, ObjectiveError error) {
     }
