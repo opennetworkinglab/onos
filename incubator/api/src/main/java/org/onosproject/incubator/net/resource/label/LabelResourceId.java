@@ -1,5 +1,6 @@
 package org.onosproject.incubator.net.resource.label;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.resource.ResourceId;
 
 import java.util.Objects;
@@ -7,6 +8,7 @@ import java.util.Objects;
 /**
  * Representation of a label.
  */
+@Beta
 public final class LabelResourceId implements ResourceId {
 
     private long labelId;

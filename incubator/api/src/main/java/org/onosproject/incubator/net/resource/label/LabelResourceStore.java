@@ -3,6 +3,7 @@ package org.onosproject.incubator.net.resource.label;
 import java.util.Collection;
 import java.util.Set;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
 
@@ -12,6 +13,7 @@ import com.google.common.collect.Multimap;
  * Manages inventory of label; not intended for direct use.
  *
  */
+@Beta
 public interface LabelResourceStore
         extends Store<LabelResourceEvent, LabelResourceDelegate> {
 

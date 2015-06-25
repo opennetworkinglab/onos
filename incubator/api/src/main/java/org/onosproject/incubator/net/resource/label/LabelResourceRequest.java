@@ -3,13 +3,16 @@ package org.onosproject.incubator.net.resource.label;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+
 /**
  * Represents for a label request.
  */
+@Beta
 public class LabelResourceRequest {
 
     private final DeviceId deviceId;

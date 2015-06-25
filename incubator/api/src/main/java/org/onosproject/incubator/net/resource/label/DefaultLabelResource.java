@@ -2,6 +2,7 @@ package org.onosproject.incubator.net.resource.label;
 
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderId;
@@ -10,6 +11,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * the implementation of a label resource of a device.
  */
+@Beta
 public final class DefaultLabelResource implements LabelResource {
 
     private DeviceId deviceId;

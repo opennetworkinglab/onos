@@ -1,10 +1,12 @@
 package org.onosproject.incubator.net.resource.label;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
 /**
  * Service for managing label resource.
  */
+@Beta
 public interface LabelResourceAdminService {
     /**
      * Creates the only label resource of some device id from begin label to end

@@ -1,10 +1,12 @@
 package org.onosproject.incubator.net.resource.label;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes label resource event.
  */
+@Beta
 public final class LabelResourceEvent
         extends AbstractEvent<LabelResourceEvent.Type, LabelResourcePool> {
 

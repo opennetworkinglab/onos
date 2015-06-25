@@ -1,11 +1,13 @@
 package org.onosproject.incubator.net.resource.label;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderService;
 
 /**
  * Means for injecting label information into the core.
  */
+@Beta
 public interface LabelResourceProviderService extends ProviderService<LabelResourceProvider> {
 
     /**
