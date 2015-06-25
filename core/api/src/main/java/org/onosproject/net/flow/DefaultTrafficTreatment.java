@@ -24,6 +24,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -323,7 +324,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public Builder setLambda(short lambda) {
-            return add(Instructions.modL0Lambda(lambda));
+            return add(Instructions.modL0Lambda(new IndexedLambda(lambda)));
         }
 
         @Override

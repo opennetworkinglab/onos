@@ -18,6 +18,7 @@ package org.onosproject.net.flow.instructions;
 import org.junit.Test;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onlab.packet.IpAddress;
@@ -180,8 +181,8 @@ public class InstructionsTest {
 
     //  ModLambdaInstruction
 
-    private final short lambda1 = 1;
-    private final short lambda2 = 2;
+    private final IndexedLambda lambda1 = new IndexedLambda(1);
+    private final IndexedLambda lambda2 = new IndexedLambda(2);
     private final Instruction lambdaInstruction1 = Instructions.modL0Lambda(lambda1);
     private final Instruction sameAsLambdaInstruction1 = Instructions.modL0Lambda(lambda1);
     private final Instruction lambdaInstruction2 = Instructions.modL0Lambda(lambda2);
@@ -196,7 +197,7 @@ public class InstructionsTest {
                 checkAndConvert(instruction,
                         Instruction.Type.L0MODIFICATION,
                         L0ModificationInstruction.ModLambdaInstruction.class);
-        assertThat(lambdaInstruction.lambda(), is(equalTo(lambda1)));
+        assertThat(lambdaInstruction.lambda(), is(equalTo((short) lambda1.index())));
     }
 
     /**

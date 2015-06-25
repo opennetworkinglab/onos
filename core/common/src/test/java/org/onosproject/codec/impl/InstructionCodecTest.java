@@ -26,6 +26,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -101,7 +102,7 @@ public class InstructionCodecTest {
     public void modLambdaInstructionTest() {
         final L0ModificationInstruction.ModLambdaInstruction instruction =
                 (L0ModificationInstruction.ModLambdaInstruction)
-                        Instructions.modL0Lambda((short) 55);
+                        Instructions.modL0Lambda(new IndexedLambda(55));
         final ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));
