@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.store.Timestamp;
 
 /**
  * Logical clock service that issues per-intent timestamps.
  */
+@Beta
 public interface IntentClockService {
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
@@ -33,6 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of single source, multiple destination connectivity intent.
  */
+@Beta
 public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;

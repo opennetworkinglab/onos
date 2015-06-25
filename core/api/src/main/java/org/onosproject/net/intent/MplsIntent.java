@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.annotations.Beta;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -19,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of MPLS label-switched connectivity.
  */
+@Beta
 public final class MplsIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;

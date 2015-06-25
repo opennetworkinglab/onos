@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LinkResourceService;
@@ -28,6 +29,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Constraint that evaluates links based on available lambda.
  */
+@Beta
 public class LambdaConstraint extends BooleanConstraint {
 
     private final LambdaResource lambda;

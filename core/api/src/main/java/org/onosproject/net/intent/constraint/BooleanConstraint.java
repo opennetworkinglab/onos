@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
@@ -24,6 +25,7 @@ import org.onosproject.net.resource.link.LinkResourceService;
  * Abstract base class for various constraints that evaluate link viability
  * in a yes/no fashion.
  */
+@Beta
 public abstract class BooleanConstraint implements Constraint {
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
@@ -30,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Constraint that evaluates links based on available bandwidths.
  */
+@Beta
 public class BandwidthConstraint extends BooleanConstraint {
 
     private final BandwidthResource bandwidth;

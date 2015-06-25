@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An intent that enables to tell flow level operation.
  * This instance holds a collection of flow rules that may be executed in parallel.
  */
+@Beta
 public class FlowRuleIntent extends Intent {
 
     private final Collection<FlowRule> flowRules;

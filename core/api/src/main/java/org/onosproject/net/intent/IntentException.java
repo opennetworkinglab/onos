@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Represents an intent related error.
  */
+@Beta
 public class IntentException extends RuntimeException {
 
     private static final long serialVersionUID = 1907263634145241319L;

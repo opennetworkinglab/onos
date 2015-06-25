@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 import java.util.List;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
@@ -32,6 +33,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Abstraction of explicitly path specified connectivity intent.
  */
+@Beta
 public class PathIntent extends ConnectivityIntent {
 
     private final Path path;

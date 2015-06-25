@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.DeviceId;
@@ -28,6 +29,7 @@ import java.util.Set;
 /**
  * Constraint that evaluates elements not passed through.
  */
+@Beta
 public class ObstacleConstraint extends BooleanConstraint {
 
     private final Set<DeviceId> obstacles;

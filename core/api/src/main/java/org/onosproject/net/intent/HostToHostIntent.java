@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
@@ -29,6 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of end-station to end-station bidirectional connectivity.
  */
+@Beta
 public final class HostToHostIntent extends ConnectivityIntent {
 
     private final HostId one;

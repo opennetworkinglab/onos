@@ -15,10 +15,12 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.EventListener;
 
 /**
  * Entity capable of receiving device partition-related events.
  */
+@Beta
 public interface PartitionEventListener extends EventListener<PartitionEvent> {
 }

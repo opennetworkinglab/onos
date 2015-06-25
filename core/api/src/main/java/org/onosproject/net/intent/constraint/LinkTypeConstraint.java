@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.link.LinkResourceService;
@@ -29,6 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Constraint that evaluates links based on their type.
  */
+@Beta
 public class LinkTypeConstraint extends BooleanConstraint {
 
     private final Set<Link.Type> types;

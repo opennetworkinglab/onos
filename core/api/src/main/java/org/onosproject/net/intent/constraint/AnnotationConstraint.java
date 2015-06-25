@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.link.LinkResourceService;
@@ -26,6 +27,7 @@ import static org.onosproject.net.AnnotationKeys.getAnnotatedValue;
 /**
  * Constraint that evaluates an arbitrary link annotated value is under the specified threshold.
  */
+@Beta
 public class AnnotationConstraint extends BooleanConstraint {
 
     private final String key;

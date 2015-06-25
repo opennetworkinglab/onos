@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
@@ -31,6 +32,7 @@ import static org.onosproject.net.AnnotationKeys.getAnnotatedValue;
 /**
  * Constraint that evaluates the latency through a path.
  */
+@Beta
 public class LatencyConstraint implements Constraint {
 
     private final Duration latency;

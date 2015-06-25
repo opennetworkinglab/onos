@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of point-to-point connectivity.
  */
+@Beta
 public final class PointToPointIntent extends ConnectivityIntent {
 
     private final ConnectPoint ingressPoint;

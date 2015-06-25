@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.net.DeviceId;
@@ -34,6 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Constraint that evaluates elements passed through in order.
  */
+@Beta
 public class WaypointConstraint implements Constraint {
 
     private final List<DeviceId> waypoints;

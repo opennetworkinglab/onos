@@ -3,6 +3,7 @@ package org.onosproject.net.intent;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.annotations.Beta;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Path;
@@ -15,7 +16,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of explicit MPLS label-switched path.
  */
-
+@Beta
 public final class MplsPathIntent extends PathIntent {
 
     private final Optional<MplsLabel> ingressLabel;

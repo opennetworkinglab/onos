@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * A class to represent an intent related event.
  */
+@Beta
 public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
 
     public enum Type {

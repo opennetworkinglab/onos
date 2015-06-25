@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Representation of the phases an intent may attain during its lifecycle.
  */
+@Beta
 public enum IntentState {
 
     /**

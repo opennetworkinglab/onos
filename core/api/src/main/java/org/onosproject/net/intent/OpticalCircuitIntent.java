@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -28,6 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An optical layer intent for circuits between two OduClt ports.
  * No traffic selector or traffic treatment are needed.
  */
+@Beta
 public class OpticalCircuitIntent extends Intent {
     private final ConnectPoint src;
     private final ConnectPoint dst;

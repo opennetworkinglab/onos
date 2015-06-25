@@ -15,12 +15,15 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
+
 import java.util.Map;
 
 /**
  * Service for extending the capability of intent framework by
  * adding additional compilers or/and installers.
  */
+@Beta
 public interface IntentExtensionService {
     /**
      * Registers the specified compiler for the given intent class.

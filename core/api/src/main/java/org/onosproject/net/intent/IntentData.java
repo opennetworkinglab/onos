@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.cluster.NodeId;
@@ -33,6 +34,7 @@ import static org.onosproject.net.intent.IntentState.*;
  * A wrapper class that contains an intents, its state, and other metadata for
  * internal use.
  */
+@Beta
 public class IntentData { //FIXME need to make this "immutable"
                           // manager should be able to mutate a local copy while processing
 
