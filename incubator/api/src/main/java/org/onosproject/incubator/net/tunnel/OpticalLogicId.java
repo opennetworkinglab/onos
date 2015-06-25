@@ -17,11 +17,14 @@
 package org.onosproject.incubator.net.tunnel;
 
 import java.util.Objects;
+
+import com.google.common.annotations.Beta;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
  * Representation of a label Id, a logical port identifier.
  */
+@Beta
 public final class OpticalLogicId {
         /**
          * Represents a logical Id.

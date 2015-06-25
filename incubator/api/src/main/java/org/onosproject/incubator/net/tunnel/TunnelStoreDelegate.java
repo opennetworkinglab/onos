@@ -16,10 +16,12 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.store.StoreDelegate;
 
 /**
  * Tunnel store delegate abstraction.
  */
+@Beta
 public interface TunnelStoreDelegate extends StoreDelegate<TunnelEvent> {
 }

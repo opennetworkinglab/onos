@@ -16,10 +16,12 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 
 /**
  * Representation of a Tunnel Id.
  */
+@Beta
 public final class TunnelId {
     private final long value;
 

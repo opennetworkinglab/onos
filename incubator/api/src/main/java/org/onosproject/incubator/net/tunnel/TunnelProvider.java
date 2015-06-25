@@ -16,6 +16,7 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.Provider;
@@ -23,6 +24,7 @@ import org.onosproject.net.provider.Provider;
 /**
  * Abstraction of an entity providing tunnel setup/release services to the core.
  */
+@Beta
 public interface TunnelProvider extends Provider {
 
     /**

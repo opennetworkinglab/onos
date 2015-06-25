@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.Path;
@@ -26,6 +27,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Default implementation of immutable tunnel description entity.
  */
+@Beta
 public class DefaultTunnelDescription extends AbstractDescription
         implements TunnelDescription {
 

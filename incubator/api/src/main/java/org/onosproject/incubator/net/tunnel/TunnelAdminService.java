@@ -16,12 +16,14 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
 
 /**
  * Service for administering the inventory of provisioned tunnels.
  */
+@Beta
 public interface TunnelAdminService {
 
     /**

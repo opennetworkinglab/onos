@@ -17,6 +17,7 @@ package org.onosproject.incubator.net.tunnel;
 
 import java.util.Collection;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
@@ -26,6 +27,7 @@ import org.onosproject.store.Store;
 /**
  * Manages inventory of tunnel; not intended for direct use.
  */
+@Beta
 public interface TunnelStore extends Store<TunnelEvent, TunnelStoreDelegate> {
     /**
      * Creates or updates a tunnel.

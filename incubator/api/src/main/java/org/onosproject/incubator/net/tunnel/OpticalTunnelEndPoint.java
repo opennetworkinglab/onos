@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.tunnel;
 
 import java.util.Optional;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.NetworkResource;
@@ -29,6 +30,7 @@ import org.onosproject.net.Provided;
  * it is used to identify e.g., ODUk timeSlot, WDM lambda, etc.
  * It supports nested case.
  */
+@Beta
 public interface OpticalTunnelEndPoint extends TunnelEndPoint, Annotated, Provided, NetworkResource {
 
     /** Represents coarse tunnel point type classification. */

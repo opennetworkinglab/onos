@@ -16,6 +16,8 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
+
 import java.util.Objects;
 
 /**
@@ -23,6 +25,7 @@ import java.util.Objects;
  * TunnelName is given by producer. The consumer can borrow tunnels with
  * TunnelId or TunnelName.
  */
+@Beta
 public final class TunnelName {
     private final String str;
 

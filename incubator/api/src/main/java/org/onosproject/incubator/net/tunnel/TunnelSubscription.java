@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.AbstractAnnotated;
 import org.onosproject.net.Annotations;
@@ -33,6 +34,7 @@ import com.google.common.base.MoreObjects;
  * ONOS. Although there is no a tunnel that consumer want to use, when producer
  * creates a new tunnel, ONOS will notify the consumers that want to use it.
  */
+@Beta
 public final class TunnelSubscription extends AbstractAnnotated {
     private final ApplicationId consumerId;
     private final TunnelEndPoint src;

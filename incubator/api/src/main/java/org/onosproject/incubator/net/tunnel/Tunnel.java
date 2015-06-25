@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.NetworkResource;
@@ -28,6 +29,7 @@ import org.onosproject.net.Provided;
  * least two tunnel end point objects that model the logical ports essentially.
  * Note that it supports nested case.
  */
+@Beta
 public interface Tunnel extends Annotated, Provided, NetworkResource {
 
     /**

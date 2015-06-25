@@ -19,6 +19,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.AbstractModel;
 import org.onosproject.net.Annotations;
@@ -30,6 +31,7 @@ import org.onosproject.net.provider.ProviderId;
  * The default implementation of an network tunnel. supports for creating a
  * tunnel by connect point ,IP address, MAC address, device and so on.
  */
+@Beta
 public final class DefaultTunnel extends AbstractModel implements Tunnel {
 
     private final TunnelEndPoint src; // a source point of tunnel.
