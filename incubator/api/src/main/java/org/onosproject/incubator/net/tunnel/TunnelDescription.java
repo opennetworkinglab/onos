@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotated;
@@ -25,6 +26,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Describes a tunnel.
  */
+@Beta
 public interface TunnelDescription extends Description, Annotated {
 
     /**

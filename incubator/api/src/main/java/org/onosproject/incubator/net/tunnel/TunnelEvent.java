@@ -16,11 +16,13 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes tunnel events.
  */
+@Beta
 public final class TunnelEvent extends AbstractEvent<TunnelEvent.Type, Tunnel> {
 
     /**

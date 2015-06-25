@@ -16,11 +16,13 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.provider.ProviderRegistry;
 
 /**
  * Abstraction of an tunnel provider registry.
  */
+@Beta
 public interface TunnelProviderRegistry
         extends ProviderRegistry<TunnelProvider, TunnelProviderService> {
 }

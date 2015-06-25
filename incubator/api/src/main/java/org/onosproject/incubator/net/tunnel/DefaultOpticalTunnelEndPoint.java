@@ -20,6 +20,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.AbstractModel;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ElementId;
@@ -29,6 +30,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Default optical tunnel point model implementation.
  */
+@Beta
 public class DefaultOpticalTunnelEndPoint extends AbstractModel implements OpticalTunnelEndPoint {
     private final Optional<ElementId> elementId;
     private final Optional<PortNumber> portNumber;

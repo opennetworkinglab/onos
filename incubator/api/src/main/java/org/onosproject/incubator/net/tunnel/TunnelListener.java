@@ -16,10 +16,12 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.EventListener;
 
 /**
  * Entity capable of receiving tunnel related events.
  */
+@Beta
 public interface TunnelListener extends EventListener<TunnelEvent> {
 }

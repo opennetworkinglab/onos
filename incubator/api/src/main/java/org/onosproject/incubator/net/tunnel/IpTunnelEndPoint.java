@@ -18,12 +18,15 @@ package org.onosproject.incubator.net.tunnel;
 
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.base.MoreObjects;
+
 /**
  * Represent for a tunnel point using ip address.
  */
+@Beta
 public final class IpTunnelEndPoint implements TunnelEndPoint {
 
     private final IpAddress ip;

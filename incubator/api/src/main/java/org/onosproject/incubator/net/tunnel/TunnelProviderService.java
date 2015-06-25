@@ -16,11 +16,13 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.provider.ProviderService;
 
 /**
  * APIs for tunnel provider to notify the tunnel subSystem.
  */
+@Beta
 public interface TunnelProviderService extends ProviderService<TunnelProvider> {
 
     /**
