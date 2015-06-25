@@ -15,11 +15,14 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
+
 import java.util.Collection;
 
 /**
  * Facade for receiving notifications from the intent batch service.
  */
+@Beta
 public interface IntentBatchDelegate {
 
     /**

@@ -16,6 +16,8 @@
 package org.onosproject.net.intent;
 
 
+import com.google.common.annotations.Beta;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -24,6 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of an intent-related operation, e.g. add, remove, replace.
  */
+@Beta
 public final class IntentOperation {
 
     private final Type type;

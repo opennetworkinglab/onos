@@ -15,10 +15,12 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.EventListener;
 
 /**
  * Listener for {@link IntentEvent intent events}.
  */
+@Beta
 public interface IntentListener extends EventListener<IntentEvent> {
 }

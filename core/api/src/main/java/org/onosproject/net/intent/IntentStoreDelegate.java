@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.store.StoreDelegate;
 
 /**
  * Intent store delegate abstraction.
  */
+@Beta
 public interface IntentStoreDelegate extends StoreDelegate<IntentEvent> {
 
     /**

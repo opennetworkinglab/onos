@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.store.Store;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 /**
  * Manages inventory of end-station intents; not intended for direct use.
  */
+@Beta
 public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
 
     /**

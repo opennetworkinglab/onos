@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.OchSignal;
@@ -26,6 +27,10 @@ import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * An optical layer intent with explicitly selected path.
+ */
+@Beta
 public final class OpticalPathIntent extends Intent {
 
     private final ConnectPoint src;

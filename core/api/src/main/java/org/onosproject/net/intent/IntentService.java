@@ -16,11 +16,14 @@
 package org.onosproject.net.intent;
 
 
+import com.google.common.annotations.Beta;
+
 import java.util.List;
 
 /**
  * Service for application submitting or withdrawing their intents.
  */
+@Beta
 public interface IntentService {
     /**
      * Submits an intent into the system.

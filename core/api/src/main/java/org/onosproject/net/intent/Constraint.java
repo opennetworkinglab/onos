@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.resource.link.LinkResourceService;
@@ -24,6 +25,7 @@ import org.onosproject.net.resource.link.LinkResourceService;
  * and determining the cost of traversing that link in the context of this
  * constraint.
  */
+@Beta
 public interface Constraint {
 
     // TODO: Consider separating cost vs viability.

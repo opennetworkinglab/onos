@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Set;
  *
  * @param <T> the type of intent
  */
+@Beta
 public interface IntentCompiler<T extends Intent> {
     /**
      * Compiles the specified intent into other intents.

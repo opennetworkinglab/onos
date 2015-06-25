@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
@@ -32,6 +33,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Make sure that an Intent should be immutable when a new type is defined.
  * </p>
  */
+@Beta
 public abstract class Intent {
 
     private final IntentId id;

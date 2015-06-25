@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
@@ -34,6 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Abstraction of connectivity intent for traffic matching some criteria.
  */
+@Beta
 public abstract class ConnectivityIntent extends Intent {
 
     // TODO: other forms of intents should be considered for this family:

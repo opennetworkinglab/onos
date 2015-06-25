@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
@@ -27,6 +28,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Constraint that serves as a request for asymmetric bi-directional path.
  */
+@Beta
 public class AsymmetricPathConstraint implements Constraint {
 
     @Override

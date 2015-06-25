@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.cluster.NodeId;
 
 /**
  * Service for interacting with the partition-to-instance assignments.
  */
+@Beta
 public interface PartitionService {
 
     /**

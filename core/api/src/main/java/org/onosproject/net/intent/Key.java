@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.onosproject.core.ApplicationId;
@@ -26,6 +27,7 @@ import java.util.Objects;
  * Key class for Intents.
  */
 // TODO maybe pull this up to utils
+@Beta
 public abstract class Key {
 
     //TODO consider making this a HashCode object (worry about performance)

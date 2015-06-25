@@ -18,6 +18,7 @@ package org.onosproject.net.intent;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
@@ -31,6 +32,7 @@ import com.google.common.collect.ImmutableSet;
  * Abstraction of a connectivity intent that is implemented by a set of path
  * segments.
  */
+@Beta
 public final class LinkCollectionIntent extends ConnectivityIntent {
 
     private final Set<Link> links;

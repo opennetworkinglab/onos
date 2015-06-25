@@ -15,10 +15,13 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Intent identifier suitable as an external key.
  * <p>This class is immutable.</p>
  */
+@Beta
 public final class IntentId {
 
     private final long value;

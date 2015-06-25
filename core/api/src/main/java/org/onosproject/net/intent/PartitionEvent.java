@@ -15,12 +15,14 @@
  */
 package org.onosproject.net.intent;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Partition event.
  */
 //TODO change String into a proper object type
+@Beta
 public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, String> {
 
     public enum Type {
