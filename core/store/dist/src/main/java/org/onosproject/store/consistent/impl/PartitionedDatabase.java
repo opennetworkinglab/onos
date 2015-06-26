@@ -312,7 +312,7 @@ public class PartitionedDatabase implements Database {
                     subTransactions.entrySet().iterator().next();
             return entry.getKey().prepareAndCommit(entry.getValue());
         } else {
-            if (transactionManager != null) {
+            if (transactionManager == null) {
                 throw new IllegalStateException("TransactionManager is not initialized");
             }
             return transactionManager.execute(transaction);
