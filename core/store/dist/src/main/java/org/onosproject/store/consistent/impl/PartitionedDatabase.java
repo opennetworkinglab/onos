@@ -418,7 +418,7 @@ public class PartitionedDatabase implements Database {
         return subTransactions;
     }
 
-    protected void setTransactionManager(TransactionManager tranasactionManager) {
+    protected void setTransactionManager(TransactionManager transactionManager) {
         this.transactionManager = transactionManager;
     }
 }

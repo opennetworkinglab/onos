@@ -232,6 +232,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         Futures.getUnchecked(status);
 
         transactionManager = new TransactionManager(partitionedDatabase, consistentMapBuilder());
+        partitionedDatabase.setTransactionManager(transactionManager);
 
         eventDispatcher = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/store/manager", "map-event-dispatcher"));
