@@ -1,0 +1,21 @@
+#!/bin/bash
+# 
+# Script to install ONOS dependencies on Ubuntu 14.04
+#
+
+echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections 
+
+echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
+
+sudo apt-get install software-properties-common -y
+sudo add-apt-repository ppa:webupd8team/java -y
+sudo apt-get update && sudo apt-get install oracle-java8-installer oracle-java8-set-default git wget -y
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+
+cd; mkdir Downloads Applications
+cd Downloads
+wget http://download.nextag.com/apache/karaf/3.0.3/apache-karaf-3.0.3.tar.gz
+wget http://archive.apache.org/dist/maven/maven-3/3.3.1/binaries/apache-maven-3.3.1-bin.tar.gz
+tar -zxvf apache-karaf-3.0.3.tar.gz -C ../Applications/
+tar -zxvf apache-maven-3.3.1-bin.tar.gz -C ../Applications/
+
