@@ -264,7 +264,6 @@ public final class KryoNamespaces {
                     Device.Type.class,
                     Port.Type.class,
                     ChassisId.class,
-                    DefaultAnnotations.class,
                     DefaultControllerNode.class,
                     DefaultDevice.class,
                     DefaultDeviceDescription.class,
@@ -411,6 +410,7 @@ public final class KryoNamespaces {
             .register(new MastershipTermSerializer(), MastershipTerm.class)
             .register(new HostLocationSerializer(), HostLocation.class)
             .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
+            .register(new AnnotationsSerializer(), DefaultAnnotations.class)
             .register(Versioned.class)
             .register(MapEvent.class)
             .register(MapEvent.Type.class)

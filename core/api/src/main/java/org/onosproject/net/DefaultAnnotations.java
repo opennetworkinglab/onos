@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.collect.Maps;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -56,6 +58,15 @@ public final class DefaultAnnotations implements SparseAnnotations {
     @Override
     public int hashCode() {
         return Objects.hashCode(this.map);
+    }
+
+    /**
+     * Returns the annotations as a map.
+     *
+     * @return a copy of the contents of the annotations as a map.
+     */
+    public HashMap<String, String> asMap() {
+        return Maps.newHashMap(this.map);
     }
 
     /**
