@@ -69,8 +69,8 @@ public class CompilerTest {
         ProcessFlow flow = compiler.processFlow();
 
         assertSame("incorrect scenario", scenario, compiler.scenario());
-        assertEquals("incorrect step count", 25, flow.getVertexes().size());
-        assertEquals("incorrect dependency count", 21, flow.getEdges().size());
+        assertEquals("incorrect step count", 24, flow.getVertexes().size());
+        assertEquals("incorrect dependency count", 17, flow.getEdges().size());
         assertEquals("incorrect logDir",
                      TEST_DIR.getAbsolutePath() + "/foo", compiler.logDir().getPath());
 

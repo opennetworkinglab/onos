@@ -309,7 +309,9 @@ public class Compiler {
 
         print("dependency name=%s requires=%s", name, requires);
         Step step = getStep(name, namespace);
-        processRequirements(step, requires, namespace);
+        if (!inactiveSteps.containsValue(step)) {
+            processRequirements(step, requires, namespace);
+        }
     }
 
     /**
