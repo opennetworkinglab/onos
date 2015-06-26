@@ -10,5 +10,12 @@
 [ "$1" = "-w" ] && shift && onos-wait-for-start $1
 
 [ -n "$1" ] && OCI=$(find_node $1) && shift
-unset KARAF_HOME
-client -h $OCI -u karaf "$@" 2>/dev/null
+
+if which -s client && [ -z "$ONOS_USE_SSH" ]; then
+    # Use Karaf client only if we can and are allowed to
+    unset KARAF_HOME
+    client -h $OCI -u karaf "$@" 2>/dev/null
+else
+    # Otherwise use raw ssh; strict checking is off for dev environments only
+    ssh -p 8101 -o StrictHostKeyChecking=no $OCI "$@"
+fi

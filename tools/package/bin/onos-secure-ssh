@@ -1,0 +1,22 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Enables secure access to ONOS console by removing default users & keys.
+# -----------------------------------------------------------------------------
+
+rm -f $(dirname $0)/onos
+
+set -e
+
+cd $(dirname $0)/../apache-karaf-*/etc
+USERS=users.properties
+KEYS=keys.properties
+
+# Remove the built-in users and keys to secure the access implicitly.
+egrep -v "^(karaf|onos)[ ]*=" $USERS > $USERS.new && mv $USERS.new $USERS
+egrep -v "^(#karaf|onos)[ ]*=" $KEYS > $KEYS.new && mv $KEYS.new $KEYS
+
+# Remove any previous known keys for the local host.
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R [localhost]:8101
+
+# Swap the onos client to use the SSH variant
+ln -s $(dirname $0)/onos-ssh $(dirname $0)/onos

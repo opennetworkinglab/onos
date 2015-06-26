@@ -6,7 +6,8 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-remote=$ONOS_USER@${1:-$OCI}
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
 
 # ONOS boot features
 export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui}"

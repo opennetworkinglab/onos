@@ -47,7 +47,8 @@ touch $ONOS_STAGE/apps/org.onosproject.drivers/active
 sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
     $ONOS_ROOT/tools/package/bin/onos-service > bin/onos-service
 sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
-    $ONOS_ROOT/tools/package/bin/onos > bin/onos
+    $ONOS_ROOT/tools/package/bin/onos-client > bin/onos
+chmod a+x bin/onos-service bin/onos
 
 # Stage the ONOS bundles, but only those that match the version
 mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject

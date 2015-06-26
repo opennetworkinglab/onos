@@ -16,21 +16,27 @@
 <scenario name="setup" description="ONOS cluster setup">
     <group name="Setup">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+        <step name="Secure-SSH" exec="onos-secure-ssh" if="${ONOS_USE_SSH}"/>
 
         <parallel var="${OC#}">
-            <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}" unless="${OCT}"/>
+            <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}"
+                  unless="${OCT}"/>
             <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
-            <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}" requires="Uninstall-${#}"/>
+            <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}"
+                  requires="Uninstall-${#}"/>
 
             <step name="Install-${#}" exec="onos-install ${OC#}"
                   requires="Kill-${#},Push-Bits-${#},Push-Bits"/>
 
+            <dependency name="Secure-SSH" requires="Install-${#}"/>
+
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
-                  requires="Install-${#}"/>
+                  requires="Install-${#},~Secure-SSH"/>
 
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
                   requires="~Wait-for-Start-${#}"/>
-            <step name="Check-Components-${#}" exec="onos-check-components ${OC#}"
+            <step name="Check-Components-${#}"
+                  exec="onos-check-components ${OC#}"
                   requires="~Wait-for-Start-${#},"/>
             <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#}"
                   requires="~Wait-for-Start-${#}"/>

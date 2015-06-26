@@ -1,0 +1,31 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Secures the ONOS console for all instances in the cell ONOS cluster.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+
+for node in $nodes; do
+    # Setup passwordless login for the remote user on the local bench host
+    onos-user-key $node
+
+    # Prune the node entry from the known hosts file since server key changes
+    ssh-keygen -f "$HOME/.ssh/known_hosts" -R [$node]:8101
+
+    # Setup passwordless login for the local user on the remote node
+    ssh $ONOS_USER@$node "
+        [ ! -f ~/.ssh/id_rsa.pub ] && ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' -q
+        $ONOS_INSTALL_DIR/bin/onos-user-key \$(id -un) \$(cut -d\\  -f2 ~/.ssh/id_rsa.pub)
+        $ONOS_INSTALL_DIR/bin/onos-secure-ssh
+
+        # Implicitly accept the new server key in dev/test environments
+        while ! ssh -p 8101 -o StrictHostKeyChecking=no localhost list 2>/dev/null; do
+            echo Waiting for connection...
+            sleep 1
+        done
+    "
+done
+

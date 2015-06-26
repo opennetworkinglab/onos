@@ -1,11 +1,13 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Logs in to the remote ONOS node.
+# Adds or removes a user key for managing passwordless loging to ONOS console.
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
-. $ONOS_ROOT/tools/test/bin/find-node.sh
 
-[ -n "$1" ] && OCI=$(find_node $1) && shift
-ssh -Y $ONOS_USER@$OCI "$@"
+node=${1:-$OCI}
+user=${2:-$(id -un)}
+key=${3:-$(cut -d\  -f2 ~/.ssh/id_rsa.pub)}
+
+ssh $ONOS_USER@$node $ONOS_INSTALL_DIR/bin/onos-user-key $user $key
