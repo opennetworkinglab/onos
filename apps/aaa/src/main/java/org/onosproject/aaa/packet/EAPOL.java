@@ -19,11 +19,14 @@
 package org.onosproject.aaa.packet;
 
 import org.onlab.packet.BasePacket;
+import org.onlab.packet.Deserializer;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.MacAddress;
 
 import java.nio.ByteBuffer;
+
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  *
@@ -133,28 +136,7 @@ public class EAPOL extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
 
-
-        //deserialize the EAPOL header
-        this.version = bb.get();
-        this.eapolType = bb.get();
-        this.packetLength = bb.getShort();
-
-        if (this.packetLength > 0) {
-            //deserialize the EAP Payload
-            this.payload = new EAP();
-
-            this.payload = this.payload.deserialize(data, bb.position(), length - 4);
-            this.payload.setParent(this);
-        }
-
-
-        return this;
-    }
 
     @Override
     public int hashCode() {
@@ -196,5 +178,51 @@ public class EAPOL extends BasePacket {
         eth.setPad(true);
         return eth;
     }
+
+    public static Deserializer<EAPOL> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, 0);
+
+            EAPOL eapol = new EAPOL();
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            eapol.setVersion(bb.get());
+            eapol.setEapolType(bb.get());
+            eapol.setPacketLength(bb.getShort());
+
+            if (eapol.packetLength > 0) {
+                //deserialize the EAP Payload
+                eapol.payload = new EAP();
+
+                eapol.payload = eapol.payload.deserialize(data, bb.position(), length - 4);
+                eapol.payload.setParent(eapol);
+            }
+            return eapol;
+        };
+    }
+
+    @Override
+    public IPacket deserialize(final byte[] data, final int offset,
+                               final int length) {
+        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+
+
+        //deserialize the EAPOL header
+        this.version = bb.get();
+        this.eapolType = bb.get();
+        this.packetLength = bb.getShort();
+
+        if (this.packetLength > 0) {
+            //deserialize the EAP Payload
+            this.payload = new EAP();
+
+            this.payload = this.payload.deserialize(data, bb.position(), length - 4);
+            this.payload.setParent(this);
+        }
+
+
+        return this;
+    }
+
+
 }
 

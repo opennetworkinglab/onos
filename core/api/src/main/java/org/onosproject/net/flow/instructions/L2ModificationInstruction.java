@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow.instructions;
 
+import org.onlab.packet.EthType;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
@@ -145,16 +146,16 @@ public abstract class L2ModificationInstruction implements Instruction {
     public static final class PushHeaderInstructions extends
             L2ModificationInstruction {
 
-        private static final int MASK = 0xffff;
-        private final L2SubType subtype;
-        private final int ethernetType; // Ethernet type value: 16 bits
 
-        PushHeaderInstructions(L2SubType subType, int ethernetType) {
+        private final L2SubType subtype;
+        private final EthType ethernetType; // Ethernet type value: 16 bits
+
+        PushHeaderInstructions(L2SubType subType, EthType ethernetType) {
             this.subtype = subType;
-            this.ethernetType = ethernetType & MASK;
+            this.ethernetType = ethernetType;
         }
 
-        public int ethernetType() {
+        public EthType ethernetType() {
             return ethernetType;
         }
 
@@ -166,7 +167,7 @@ public abstract class L2ModificationInstruction implements Instruction {
         @Override
         public String toString() {
             return toStringHelper(subtype().toString())
-                    .add("ethernetType", String.format("0x%04x", ethernetType()))
+                    .add("ethernetType", ethernetType())
                     .toString();
         }
 

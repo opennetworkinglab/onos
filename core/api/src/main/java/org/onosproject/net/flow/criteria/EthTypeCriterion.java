@@ -25,8 +25,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Implementation of Ethernet type criterion (16 bits unsigned integer).
  */
 public final class EthTypeCriterion implements Criterion {
-    private static final int MASK = 0xffff;
-    private final EthType ethType;              // Ethernet type value: 16 bits
+
+
+    private final EthType ethType;
 
     /**
      * Constructor.
@@ -35,7 +36,7 @@ public final class EthTypeCriterion implements Criterion {
      * integer)
      */
     EthTypeCriterion(int ethType) {
-        this.ethType = new EthType(ethType & MASK);
+        this.ethType = new EthType(ethType);
     }
 
     /**

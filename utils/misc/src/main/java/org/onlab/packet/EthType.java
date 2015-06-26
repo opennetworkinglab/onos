@@ -15,52 +15,106 @@
  */
 package org.onlab.packet;
 
-import com.google.common.collect.Maps;
-
-import java.util.Map;
-
 /**
  * Representation of an Ethertype.
  */
 public class EthType {
 
-    public static final short ARP = EtherType.ARP.ethType.toShort();
-    public static final short RARP = EtherType.RARP.ethType.toShort();
-    public static final short VLAN = EtherType.VLAN.ethType.toShort();
-    public static final short IPV4 = EtherType.IPV4.ethType.toShort();
-    public static final short IPV6 = EtherType.IPV6.ethType.toShort();
-    public static final short LLDP = EtherType.LLDP.ethType.toShort();
-    public static final short BDDP = EtherType.BDDP.ethType.toShort();
-    public static final short MPLS_MULTICAST = EtherType.MPLS_UNICAST.ethType.toShort();
-    public static final short MPLS_UNICAST = EtherType.MPLS_UNICAST.ethType.toShort();
-
-    private short etherType;
-
-    /*
-     * Reverse-lookup map for getting a EtherType enum
+    /**
+     * A list of known ethertypes. Adding a fully defined enum here will
+     * associated the ethertype with a textual representation and a parsing
+     * class.
      */
-    private static final Map<Short, EtherType> LOOKUP = Maps.newHashMap();
+    public enum EtherType {
 
-    static {
-        for (EtherType eth : EtherType.values()) {
-            LOOKUP.put(eth.ethType().toShort(), eth);
+        ARP(0x806, "arp", org.onlab.packet.ARP.deserializer()),
+        RARP(0x8035, "rarp", org.onlab.packet.ARP.deserializer()),
+        IPV4(0x800, "ipv4", org.onlab.packet.IPv4.deserializer()),
+        IPV6(0x86dd, "ipv6", org.onlab.packet.IPv6.deserializer()),
+        LLDP(0x88cc, "lldp", org.onlab.packet.LLDP.deserializer()),
+        VLAN(0x8100, "vlan", null),
+        BDDP(0x8942, "bddp", org.onlab.packet.LLDP.deserializer()),
+        MPLS_UNICAST(0x8847, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
+        MPLS_MULTICAST(0x8848, "mpls_unicast", org.onlab.packet.MPLS.deserializer());
+
+
+
+        private final EthType etherType;
+        private final String type;
+        private final Deserializer<?> deserializer;
+
+        /**
+         * Constucts a new ethertype.
+         *
+         * @param ethType The actual ethertype
+         * @param type it's textual representation
+         * @param deserializer a parser for this ethertype
+         */
+        EtherType(int ethType, String type, Deserializer<?> deserializer) {
+            this.etherType = new EthType(ethType);
+            this.type = type;
+            this.deserializer = deserializer;
         }
+
+        public EthType ethType() {
+            return etherType;
+        }
+
+        @Override
+        public String toString() {
+            return type;
+        }
+
+        public Deserializer<?> deserializer() {
+            return deserializer;
+        }
+
     }
 
+
+    private final short etherType;
+
+    /**
+     * Builds the EthType.
+     *
+     * @param etherType an integer representing an ethtype
+     */
     public EthType(int etherType) {
         this.etherType = (short) (etherType & 0xFFFF);
     }
 
+    /**
+     * Builds the EthType.
+     *
+     * @param etherType a short representing the ethtype
+     */
     public EthType(short etherType) {
         this.etherType = etherType;
     }
 
+    /**
+     * Returns the short value for this ethtype.
+     *
+     * @return a short value
+     */
     public short toShort() {
         return etherType;
     }
 
-    public static EtherType lookup(short etherType) {
-        return LOOKUP.get(etherType);
+    /**
+     * Looks up the ethertype by it's numerical representation
+     * and returns it's textual format.
+     *
+     * @param etherType the short value of the ethertype
+     * @return a textual representation
+     */
+    public EtherType lookup(short etherType) {
+        for (EtherType ethType : EtherType.values()) {
+            if (ethType.ethType().toShort() == etherType) {
+                return ethType;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -88,49 +142,8 @@ public class EthType {
 
     public String toString() {
         EtherType ethType = lookup(this.etherType);
-        return (ethType == null ? "unknown" : ethType.toString());
+        return (ethType == null ? String.format("0x%04x", etherType) :
+                ethType.toString());
     }
 
-    public static enum EtherType {
-
-        ARP(0x806, "arp", ARP.class, org.onlab.packet.ARP.deserializer()),
-        RARP(0x8035, "rarp", null, org.onlab.packet.ARP.deserializer()),
-        IPV4(0x800, "ipv4", IPv4.class, org.onlab.packet.IPv4.deserializer()),
-        IPV6(0x86dd, "ipv6", IPv6.class, org.onlab.packet.IPv6.deserializer()),
-        LLDP(0x88cc, "lldp", LLDP.class, org.onlab.packet.LLDP.deserializer()),
-        VLAN(0x8100, "vlan", null, null),
-        BDDP(0x8942, "bddp", LLDP.class, org.onlab.packet.LLDP.deserializer()),
-        MPLS_UNICAST(0x8847, "mpls_unicast", null, org.onlab.packet.MPLS.deserializer()),
-        MPLS_MULTICAST(0x8848, "mpls_unicast", null, org.onlab.packet.MPLS.deserializer());
-
-
-        private final Class clazz;
-        private EthType ethType;
-        private String type;
-        private Deserializer<?> deserializer;
-
-        EtherType(int ethType, String type, Class clazz, Deserializer deserializer) {
-            this.ethType = new EthType(ethType);
-            this.type = type;
-            this.clazz = clazz;
-            this.deserializer = deserializer;
-        }
-
-        public EthType ethType() {
-            return ethType;
-        }
-
-        @Override
-        public String toString() {
-            return type;
-        }
-
-        public Class clazz() {
-            return clazz;
-        }
-
-        public Deserializer<?> deserializer() {
-            return deserializer;
-        }
-    }
 }

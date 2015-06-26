@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow;
 
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -197,7 +198,16 @@ public interface TrafficTreatment {
          * @param etherType an ether type
          * @return a treatment builder.
          */
+        @Deprecated
         Builder popMpls(int etherType);
+
+        /**
+         * Pops MPLS ether type and set the new ethertype.
+         *
+         * @param etherType an ether type
+         * @return a treatment builder.
+         */
+        Builder popMpls(EthType etherType);
 
         /**
          * Sets the mpls label.

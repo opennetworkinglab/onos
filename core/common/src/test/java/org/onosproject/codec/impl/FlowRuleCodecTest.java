@@ -247,15 +247,15 @@ public class FlowRuleCodecTest {
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat((short) ((L2ModificationInstruction.PushHeaderInstructions) instruction)
-                        .ethernetType(),
+        assertThat(((L2ModificationInstruction.PushHeaderInstructions) instruction)
+                        .ethernetType().toShort(),
                 is(Ethernet.MPLS_UNICAST));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_POP.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat((short) ((L2ModificationInstruction.PushHeaderInstructions) instruction)
-                        .ethernetType(),
+        assertThat(((L2ModificationInstruction.PushHeaderInstructions) instruction)
+                        .ethernetType().toShort(),
                 is(Ethernet.MPLS_UNICAST));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,

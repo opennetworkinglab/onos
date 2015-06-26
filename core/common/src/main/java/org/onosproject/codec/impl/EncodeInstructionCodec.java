@@ -119,7 +119,8 @@ public final class EncodeInstructionCodec {
                 final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) instruction;
 
-                result.put(InstructionCodec.ETHERNET_TYPE, pushHeaderInstructions.ethernetType());
+                result.put(InstructionCodec.ETHERNET_TYPE,
+                           pushHeaderInstructions.ethernetType().toShort());
                 break;
 
             default:

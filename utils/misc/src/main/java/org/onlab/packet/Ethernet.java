@@ -32,16 +32,17 @@ import static org.onlab.packet.PacketUtils.checkInput;
  */
 public class Ethernet extends BasePacket {
     private static final String HEXES = "0123456789ABCDEF";
-    public static final short TYPE_ARP = EthType.ARP;
-    public static final short TYPE_RARP = EthType.RARP;
-    public static final short TYPE_IPV4 = EthType.IPV4;
-    public static final short TYPE_IPV6 = EthType.IPV6;
-    public static final short TYPE_LLDP = EthType.LLDP;
-    public static final short TYPE_VLAN = EthType.VLAN;
-    public static final short TYPE_BSN = EthType.BDDP;
 
-    public static final short MPLS_UNICAST = EthType.MPLS_UNICAST;
-    public static final short MPLS_MULTICAST = EthType.MPLS_MULTICAST;
+    public static final short TYPE_ARP = EthType.EtherType.ARP.ethType().toShort();
+    public static final short TYPE_RARP = EthType.EtherType.RARP.ethType().toShort();
+    public static final short TYPE_IPV4 = EthType.EtherType.IPV4.ethType().toShort();
+    public static final short TYPE_IPV6 = EthType.EtherType.IPV6.ethType().toShort();
+    public static final short TYPE_LLDP = EthType.EtherType.LLDP.ethType().toShort();
+    public static final short TYPE_VLAN = EthType.EtherType.VLAN.ethType().toShort();
+    public static final short TYPE_BSN = EthType.EtherType.BDDP.ethType().toShort();
+
+    public static final short MPLS_UNICAST = EthType.EtherType.MPLS_UNICAST.ethType().toShort();;
+    public static final short MPLS_MULTICAST = EthType.EtherType.MPLS_MULTICAST.ethType().toShort();
 
 
     public static final short VLAN_UNTAGGED = (short) 0xffff;
@@ -56,7 +57,7 @@ public class Ethernet extends BasePacket {
 
     static {
        for (EthType.EtherType ethType : EthType.EtherType.values()) {
-           if (ethType.clazz() != null) {
+           if (ethType.deserializer() != null) {
                ETHERTYPE_DESERIALIZER_MAP.put(ethType.ethType().toShort(), ethType.deserializer());
            }
        }

@@ -16,11 +16,13 @@
 
 package org.onosproject.aaa.packet;
 
-import org.onlab.packet.ARP;
+import org.onlab.packet.Deserializer;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.IPv6;
-import org.onlab.packet.LLDP;
+import org.onlab.packet.IPacket;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by jono on 5/19/15.
@@ -29,17 +31,21 @@ public final class EAPEthernet extends Ethernet {
 
     public static final short TYPE_PAE = (short) 0x888e;
 
+    private static final Map<Short, Deserializer<? extends IPacket>> ETHERTYPE_DESERIALIZER_MAP =
+            new HashMap<>();
+
     private EAPEthernet() {
 
     }
 
     static {
-        Ethernet.ETHER_TYPE_CLASS_MAP.put(org.onlab.packet.Ethernet.TYPE_ARP, ARP.class);
-        org.onlab.packet.Ethernet.ETHER_TYPE_CLASS_MAP.put(org.onlab.packet.Ethernet.TYPE_RARP, ARP.class);
-        org.onlab.packet.Ethernet.ETHER_TYPE_CLASS_MAP.put(org.onlab.packet.Ethernet.TYPE_IPV4, IPv4.class);
-        org.onlab.packet.Ethernet.ETHER_TYPE_CLASS_MAP.put(org.onlab.packet.Ethernet.TYPE_IPV6, IPv6.class);
-        org.onlab.packet.Ethernet.ETHER_TYPE_CLASS_MAP.put(org.onlab.packet.Ethernet.TYPE_LLDP, LLDP.class);
-        org.onlab.packet.Ethernet.ETHER_TYPE_CLASS_MAP.put(org.onlab.packet.Ethernet.TYPE_BSN, LLDP.class);
-        org.onlab.packet.Ethernet.ETHER_TYPE_CLASS_MAP.put(TYPE_PAE, EAPOL.class);
+        for (EthType.EtherType ethType : EthType.EtherType.values()) {
+            if (ethType.deserializer() != null) {
+                ETHERTYPE_DESERIALIZER_MAP.put(ethType.ethType().toShort(),
+                                               ethType.deserializer());
+            }
+        }
+        ETHERTYPE_DESERIALIZER_MAP.put((short) 0x888e, EAPOL.deserializer());
     }
+
 }

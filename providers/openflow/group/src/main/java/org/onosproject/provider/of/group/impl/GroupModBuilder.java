@@ -269,17 +269,17 @@ public final class GroupModBuilder {
                 L2ModificationInstruction.PushHeaderInstructions pushVlanInstruction
                         = (L2ModificationInstruction.PushHeaderInstructions) l2m;
                 return factory.actions().pushVlan(
-                        EthType.of(pushVlanInstruction.ethernetType()));
+                        EthType.of(pushVlanInstruction.ethernetType().toShort()));
             case MPLS_PUSH:
                 L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) l2m;
                 return factory.actions().pushMpls(EthType.of(pushHeaderInstructions
-                                                             .ethernetType()));
+                                                             .ethernetType().toShort()));
             case MPLS_POP:
                 L2ModificationInstruction.PushHeaderInstructions popHeaderInstructions =
                         (L2ModificationInstruction.PushHeaderInstructions) l2m;
                 return factory.actions().popMpls(EthType.of(popHeaderInstructions
-                                                            .ethernetType()));
+                                                            .ethernetType().toShort()));
             case MPLS_LABEL:
                 L2ModificationInstruction.ModMplsLabelInstruction mplsLabel =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2m;

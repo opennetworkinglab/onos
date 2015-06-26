@@ -316,12 +316,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 PushHeaderInstructions pushHeaderInstructions =
                         (PushHeaderInstructions) l2m;
                 return factory().actions().pushMpls(EthType.of(pushHeaderInstructions
-                                                               .ethernetType()));
+                                                               .ethernetType().toShort()));
             case MPLS_POP:
                 PushHeaderInstructions popHeaderInstructions =
                         (PushHeaderInstructions) l2m;
                 return factory().actions().popMpls(EthType.of(popHeaderInstructions
-                                                              .ethernetType()));
+                                                              .ethernetType().toShort()));
             case MPLS_LABEL:
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;
@@ -335,7 +335,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case VLAN_PUSH:
                 PushHeaderInstructions pushVlanInstruction = (PushHeaderInstructions) l2m;
                 return factory().actions().pushVlan(
-                        EthType.of(pushVlanInstruction.ethernetType()));
+                        EthType.of(pushVlanInstruction.ethernetType().toShort()));
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;

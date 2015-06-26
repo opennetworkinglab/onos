@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.ListUtils;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -309,6 +310,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public Builder popMpls(int etherType) {
+            return add(Instructions.popMpls(new EthType(etherType)));
+        }
+
+        @Override
+        public Builder popMpls(EthType etherType) {
             return add(Instructions.popMpls(etherType));
         }
 

@@ -66,7 +66,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             return false;
         }
 
-        if (instructionToMatch.ethernetType() != ethJson.asInt()) {
+        if (instructionToMatch.ethernetType().toShort() != ethJson.asInt()) {
             description.appendText("ethernetType was " + ethJson);
             return false;
         }
