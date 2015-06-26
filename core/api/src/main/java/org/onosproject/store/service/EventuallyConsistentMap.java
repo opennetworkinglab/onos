@@ -99,16 +99,14 @@ public interface EventuallyConsistentMap<K, V> {
     /**
      * Removes the mapping associated with the specified key from the map.
      * <p>
-     * Note: this differs from the specification of {@link java.util.Map}
-     * because it does not return the previous value associated with the key.
-     * Clients are expected to register an
-     * {@link EventuallyConsistentMapListener} if
+     * Clients are expected to register an {@link EventuallyConsistentMapListener} if
      * they are interested in receiving notification of updates to the map.
      * </p>
      *
      * @param key the key to remove the mapping for
+     * @return previous value associated with key, or null if there was no mapping for key.
      */
-    void remove(K key);
+    V remove(K key);
 
     /**
      * Removes the given key-value mapping from the map, if it exists.
