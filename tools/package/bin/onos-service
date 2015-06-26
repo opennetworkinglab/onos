@@ -6,6 +6,10 @@
 # uncomment the following line for performance testing
 #export JAVA_OPTS="${JAVA_OPTS:--Xms8G -Xmx8G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+PrintGCDetails -XX:+PrintGCTimeStamps}"
 
+# uncomment the following line for Netty TLS encryption
+# Do modify the keystore location/password and truststore location/password accordingly
+#export JAVA_OPTS="${JAVA_OPTS:--DenableNettyTLS=true -Djavax.net.ssl.keyStore=/home/ubuntu/onos.jks -Djavax.net.ssl.keyStorePassword=222222 -Djavax.net.ssl.trustStore=/home/ubuntu/onos.jks -Djavax.net.ssl.trustStorePassword=222222}"
+
 ONOS_HOME=/opt/onos
 
 [ -d $ONOS_HOME ] && cd $ONOS_HOME || ONOS_HOME=$(dirname $0)/..
