@@ -22,10 +22,24 @@ import org.onosproject.net.flow.criteria.Criterion;
 import java.util.Collection;
 
 /**
- * Represents a filtering flow objective. Each filter is mapping
- * from a criterion to a collection of criteria. The mapping will
- * be used by a device driver to construct the actual flow rules to
- * be installed on the device.
+ * Represents a filtering flow objective. Each filtering flow objective
+ * is made up of a key (criterion) to a set of criteria. Using this information
+ * a pipeline aware driver will decide how this objective should be mapped
+ * to the specific device pipeline. For example, consider the following
+ * filtering objective:
+ *
+ * portX -&gt; {MAC1, IP1, MAC2}
+ *
+ * The driver could decide to pass L3 packet to the L3 table and L2 packets to
+ * the L2 table for packets arriving on portX.
+ *
+ * Filtering objectives do not only represent what should be permitted into the
+ * pipeline but can also be used to deny or drop unwanted packets by specifying
+ * the appropriate type of filtering objective. It is also important to note
+ * that submitting a filtering objective does not necessarily result in rules
+ * programmed at the switch, the driver is free to decide when these rules are
+ * programmed. For example, a filtering rule may only be programmed once a
+ * corresponding forwarding objective has been received.
  */
 @Beta
 public interface FilteringObjective extends Objective {

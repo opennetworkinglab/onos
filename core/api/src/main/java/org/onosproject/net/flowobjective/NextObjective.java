@@ -24,7 +24,21 @@ import java.util.Collection;
 /**
  * Represents a nexthop which will be translated by a driver
  * into the appropriate group or actions needed to implement
- * the function.
+ * the egress function.
+ *
+ * A next objective is made up of a collection of traffic treatements
+ * associated with a type. These types are:
+ *
+ * - Hashed
+ * - Broadcast
+ * - Failover
+ * - Simple
+ *
+ * These types will indicate to the driver what the intended behaviour is.
+ * For example, a broadcast next objective with a collection of output
+ * treatments will indicate to a driver that all output actions are expected
+ * to be executed simultaneously. The driver is then free to implement this
+ * as a group or a simple action list.
  */
 @Beta
 public interface NextObjective extends Objective {

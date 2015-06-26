@@ -22,7 +22,20 @@ import org.onosproject.net.flow.TrafficTreatment;
 /**
  * Represents a description of which types of traffic need to
  * be forwarded through the device. A forwarding objective may
- * in multiple rules at the device.
+ * result in multiple rules at the device. There are two main types
+ * of forwarding objectives:
+ *
+ *  - Versatile
+ *  - Specific
+ *
+ * A versatile forwarding objective represents a composite rule that matches
+ * two or more header fields. The use of versatile usually indicates that this
+ * rule should be inserted in its entirety into the ACL table. Although,
+ * drivers for some devices are free to implement this differently.
+ *
+ * A specific forwarding objective represents a specific rule matching one or
+ * more header fields. The installation of this rule may result in several rules
+ * at the device. For example, one per table type.
  */
 @Beta
 public interface ForwardingObjective extends Objective {
