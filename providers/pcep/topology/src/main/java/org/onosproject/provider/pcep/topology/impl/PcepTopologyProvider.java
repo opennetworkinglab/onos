@@ -146,13 +146,6 @@ public class PcepTopologyProvider extends AbstractProvider
         return new DefaultPortDescription(portNo, enabled, extendedAttributes);
     }
 
-    /**
-     * Build link annotations from pcep link description.the annotations consist
-     * of lots of property of Huawei device.
-     *
-     * @param linkDesc
-     * @return
-     */
     private DefaultAnnotations buildLinkAnnotations(PcepLink linkDesc) {
         DefaultAnnotations extendedAttributes = DefaultAnnotations
                 .builder()
@@ -169,10 +162,10 @@ public class PcepTopologyProvider extends AbstractProvider
     }
 
     /**
-     * Build a LinkDescription from a PCEPLink.
+     * Build a link description from a pcep link.
      *
-     * @param pceLink
-     * @return LinkDescription
+     * @param pceLink pcep link
+     * @return LinkDescription onos link description
      */
     private LinkDescription buildLinkDescription(PcepLink pceLink) {
         LinkDescription ld;

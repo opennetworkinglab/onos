@@ -16,7 +16,7 @@
 package org.onosproject.pcep.api;
 
 /**
- * Abstraction of a huawei network infrastructure link.
+ * Abstraction of a network infrastructure link.
  */
 public interface PcepLink extends PcepOperator {
 
@@ -53,14 +53,14 @@ public interface PcepLink extends PcepOperator {
     }
 
     /**
-     * Get the link endpoint port type.
+     * Returns the link endpoint port type.
      *
      * @return endpoint port type
      */
     public PortType portType();
 
     /**
-     * Get the link sub type,OTS,OPS,PKT_OPTICAL or ODUK.
+     * Returns the link sub type,OTS,OPS,PKT_OPTICAL or ODUK.
      *
      * @return link subType
      */
@@ -68,21 +68,21 @@ public interface PcepLink extends PcepOperator {
     public SubType linkSubType();
 
     /**
-     * Get the link state, up or down.
+     * Returns the link state, up or down.
      *
      * @return link state
      */
     public String linkState();
 
     /**
-     * Get the distance of a link.
+     * Returns the distance of a link.
      *
      * @return distance
      */
     public int linkDistance();
 
     /**
-     * Get the capacity type of a link,1: WAVELENGTHNUM, 2:SLOTNUM, 3,
+     * Returns the capacity type of a link,1: WAVELENGTHNUM, 2:SLOTNUM, 3,
      * BANDWIDTH.
      *
      * @return capacity type
@@ -90,44 +90,42 @@ public interface PcepLink extends PcepOperator {
     public String linkCapacityType();
 
     /**
-     * Get the available capacity value ,such as available bandwidth.
+     * Returns the available capacity value ,such as available bandwidth.
      *
      * @return availValue
      */
     public int linkAvailValue();
 
     /**
-     * Get the max capacity value ,such as max bandwidth.
+     * Returns the max capacity value ,such as max bandwidth.
      *
      * @return maxValue
      */
     public int linkMaxValue();
 
     /**
-     * Get the source device did of a link.
+     * Returns the source device did of a link.
      *
      * @return source did
      */
     public PcepDpid linkSrcDeviceID();
 
     /**
-     * Get the destination device did of a link.
+     * Returns the destination device did of a link.
      *
      * @return destination did
      */
     public PcepDpid linkDstDeviceId();
 
     /**
-     * Get the source port number of a link,the port consists of shelf id, sub
-     * card id, board id, and port id of a Huawei Device.
+     * Returns the source port number of a link.
      *
      * @return port number
      */
     public long linkSrcPort();
 
     /**
-     * Get the destination port number of a link,the port consists of shelf id,
-     * sub card id, board id, and port id of a Huawei Device.
+     * Returns the destination port number of a link.
      *
      * @return port number
      */
