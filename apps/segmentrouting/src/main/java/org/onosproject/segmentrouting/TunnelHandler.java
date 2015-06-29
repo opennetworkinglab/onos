@@ -17,6 +17,8 @@ package org.onosproject.segmentrouting;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
@@ -24,9 +26,9 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -35,14 +37,28 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class TunnelHandler {
     protected final Logger log = getLogger(getClass());
 
-    private final SegmentRoutingManager srManager;
     private final DeviceConfiguration config;
     private final EventuallyConsistentMap<String, Tunnel> tunnelStore;
+    private Map<DeviceId, DefaultGroupHandler> groupHandlerMap;
+    private LinkService linkService;
 
-    public TunnelHandler(SegmentRoutingManager srm,
+    public enum Result {
+        SUCCESS,
+        WRONG_PATH,
+        TUNNEL_EXISTS,
+        ID_EXISTS,
+        TUNNEL_NOT_FOUND,
+        TUNNEL_IN_USE,
+        INTERNAL_ERROR
+    }
+
+    public TunnelHandler(LinkService linkService,
+                         DeviceConfiguration deviceConfiguration,
+                         Map<DeviceId, DefaultGroupHandler> groupHandlerMap,
                          EventuallyConsistentMap<String, Tunnel> tunnelStore) {
-        this.srManager = checkNotNull(srm);
-        this.config = srm.deviceConfiguration;
+        this.linkService = linkService;
+        this.config = deviceConfiguration;
+        this.groupHandlerMap = groupHandlerMap;
         this.tunnelStore = tunnelStore;
     }
 
@@ -50,60 +66,70 @@ public class TunnelHandler {
      * Creates a tunnel.
      *
      * @param tunnel tunnel reference to create a tunnel
-     * @return true if creation succeeded
+     * @return WRONG_PATH if the tunnel path is wrong, ID_EXISTS if the tunnel ID
+     * exists already, TUNNEL_EXISTS if the same tunnel exists, INTERNAL_ERROR
+     * if the tunnel creation failed internally, SUCCESS if the tunnel is created
+     * successfully
      */
-    public boolean createTunnel(Tunnel tunnel) {
+    public Result createTunnel(Tunnel tunnel) {
 
         if (tunnel.labelIds().isEmpty() || tunnel.labelIds().size() < 3) {
             log.error("More than one router needs to specified to created a tunnel");
-            return false;
+            return Result.WRONG_PATH;
         }
 
         if (tunnelStore.containsKey(tunnel.id())) {
             log.warn("The same tunnel ID exists already");
-            return false;
+            return Result.ID_EXISTS;
         }
 
         if (tunnelStore.containsValue(tunnel)) {
             log.warn("The same tunnel exists already");
-            return false;
+            return Result.TUNNEL_EXISTS;
         }
 
         int groupId = createGroupsForTunnel(tunnel);
         if (groupId < 0) {
             log.error("Failed to create groups for the tunnel");
-            return false;
+            return Result.INTERNAL_ERROR;
         }
 
         tunnel.setGroupId(groupId);
         tunnelStore.put(tunnel.id(), tunnel);
 
-        return true;
+        return Result.SUCCESS;
     }
 
     /**
      * Removes the tunnel with the tunnel ID given.
      *
      * @param tunnelInfo tunnel information to delete tunnels
+     * @return TUNNEL_NOT_FOUND if the tunnel to remove does not exists,
+     * INTERNAL_ERROR if the tunnel creation failed internally, SUCCESS
+     * if the tunnel is created successfully.
      */
-    public void removeTunnel(Tunnel tunnelInfo) {
+    public Result removeTunnel(Tunnel tunnelInfo) {
 
         Tunnel tunnel = tunnelStore.get(tunnelInfo.id());
         if (tunnel != null) {
             DeviceId deviceId = config.getDeviceId(tunnel.labelIds().get(0));
             if (tunnel.isAllowedToRemoveGroup()) {
-                if (srManager.removeNextObjective(deviceId, tunnel.groupId())) {
+                if (groupHandlerMap.get(deviceId).removeGroup(tunnel.groupId())) {
                     tunnelStore.remove(tunnel.id());
                 } else {
                     log.error("Failed to remove the tunnel {}", tunnelInfo.id());
+                    return Result.INTERNAL_ERROR;
                 }
             } else {
                 log.debug("The group is not removed because it is being used.");
                 tunnelStore.remove(tunnel.id());
             }
         } else {
-            log.warn("No tunnel found for tunnel ID {}", tunnelInfo.id());
+            log.error("No tunnel found for tunnel ID {}", tunnelInfo.id());
+            return Result.TUNNEL_NOT_FOUND;
         }
+
+        return Result.SUCCESS;
     }
 
     /**
@@ -132,19 +158,21 @@ public class TunnelHandler {
     private int createGroupsForTunnel(Tunnel tunnel) {
 
         List<Integer> portNumbers;
-
-        int groupId;
+        final int groupError = -1;
 
         DeviceId deviceId = config.getDeviceId(tunnel.labelIds().get(0));
         if (deviceId == null) {
             log.warn("No device found for SID {}", tunnel.labelIds().get(0));
-            return -1;
+            return groupError;
+        } else if (groupHandlerMap.get(deviceId) == null) {
+            log.warn("group handler not found for {}", deviceId);
+            return groupError;
         }
         Set<DeviceId> deviceIds = new HashSet<>();
         int sid = tunnel.labelIds().get(1);
         if (config.isAdjacencySid(deviceId, sid)) {
             portNumbers = config.getPortsForAdjacencySid(deviceId, sid);
-            for (Link link: srManager.linkService.getDeviceEgressLinks(deviceId)) {
+            for (Link link: linkService.getDeviceEgressLinks(deviceId)) {
                 for (Integer port: portNumbers) {
                     if (link.src().port().toLong() == port) {
                         deviceIds.add(link.dst().deviceId());
@@ -159,14 +187,13 @@ public class TunnelHandler {
 
         // If the tunnel reuses any existing groups, then tunnel handler
         // should not remove the group.
-        if (srManager.hasNextObjectiveId(deviceId, ns)) {
+        if (groupHandlerMap.get(deviceId).hasNextObjectiveId(ns)) {
             tunnel.allowToRemoveGroup(false);
         } else {
             tunnel.allowToRemoveGroup(true);
         }
-        groupId = srManager.getNextObjectiveId(deviceId, ns);
 
-        return groupId;
+        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns);
     }
 
 }

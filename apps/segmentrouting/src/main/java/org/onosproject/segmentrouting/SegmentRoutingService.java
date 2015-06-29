@@ -33,8 +33,12 @@ public interface SegmentRoutingService {
      * Creates a tunnel.
      *
      * @param tunnel tunnel reference to create
+     * @return WRONG_PATH if the tunnel path is wrong, ID_EXISTS if the tunnel ID
+     * exists already, TUNNEL_EXISTS if the same tunnel exists, INTERNAL_ERROR
+     * if the tunnel creation failed internally, SUCCESS if the tunnel is created
+     * successfully
      */
-    void createTunnel(Tunnel tunnel);
+    TunnelHandler.Result createTunnel(Tunnel tunnel);
 
     /**
      * Returns all policies.
@@ -47,20 +51,29 @@ public interface SegmentRoutingService {
      * Creates a policy.
      *
      * @param policy policy reference to create
+     * @return ID_EXISTS if the same policy ID exists,
+     *  POLICY_EXISTS if the same policy exists, TUNNEL_NOT_FOUND if the tunnel
+     *  does not exists, UNSUPPORTED_TYPE if the policy type is not supported,
+     *  SUCCESS if the policy is created successfully.
      */
-    void createPolicy(Policy policy);
+    PolicyHandler.Result createPolicy(Policy policy);
 
     /**
      * Removes a tunnel.
      *
      * @param tunnel tunnel reference to remove
+     * @return TUNNEL_NOT_FOUND if the tunnel to remove does not exists,
+     * INTERNAL_ERROR if the tunnel creation failed internally, SUCCESS
+     * if the tunnel is created successfully.
      */
-    void removeTunnel(Tunnel tunnel);
+    TunnelHandler.Result removeTunnel(Tunnel tunnel);
 
     /**
      * Removes a policy.
      *
      * @param policy policy reference to remove
+     * @return POLICY_NOT_FOUND if the policy to remove does not exists,
+     * SUCCESS if it is removed successfully
      */
-    void removePolicy(Policy policy);
+    PolicyHandler.Result removePolicy(Policy policy);
 }

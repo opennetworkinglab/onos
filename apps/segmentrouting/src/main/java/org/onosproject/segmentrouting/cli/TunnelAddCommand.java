@@ -22,6 +22,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.DefaultTunnel;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.Tunnel;
+import org.onosproject.segmentrouting.TunnelHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,22 @@ public class TunnelAddCommand extends AbstractShellCommand {
         }
         Tunnel tunnel = new DefaultTunnel(tunnelId, labelIds);
 
-        srService.createTunnel(tunnel);
+        TunnelHandler.Result result = srService.createTunnel(tunnel);
+        switch (result) {
+            case ID_EXISTS:
+                print("ERROR: the same tunnel ID exists");
+                break;
+            case TUNNEL_EXISTS:
+                print("ERROR: the same tunnel exists");
+                break;
+            case INTERNAL_ERROR:
+                print("ERROR: internal tunnel creation error");
+                break;
+            case WRONG_PATH:
+                print("ERROR: the tunnel path is wrong");
+                break;
+            default:
+                break;
+        }
     }
 }

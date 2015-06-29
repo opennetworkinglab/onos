@@ -19,10 +19,12 @@ package org.onosproject.segmentrouting;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cli.net.IpProtocol;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
@@ -39,19 +41,38 @@ public class PolicyHandler {
 
     protected final Logger log = getLogger(getClass());
 
-    // FIXME: references to manager components should be avoided
-    private final SegmentRoutingManager srManager;
+    private ApplicationId appId;
+    private DeviceConfiguration deviceConfiguration;
+    private FlowObjectiveService flowObjectiveService;
+    private TunnelHandler tunnelHandler;
     private final EventuallyConsistentMap<String, Policy> policyStore;
+
+    public enum Result {
+        SUCCESS,
+        POLICY_EXISTS,
+        ID_EXISTS,
+        TUNNEL_NOT_FOUND,
+        POLICY_NOT_FOUND,
+        UNSUPPORTED_TYPE
+    }
 
     /**
      * Creates a reference.
      *
-     * @param srManager segment routing manager
+     * @param appId segment routing application ID
+     * @param deviceConfiguration DeviceConfiguration reference
+     * @param flowObjectiveService FlowObjectiveService reference
      * @param policyStore policy store
      */
-    public PolicyHandler(SegmentRoutingManager srManager,
+    public PolicyHandler(ApplicationId appId,
+                         DeviceConfiguration deviceConfiguration,
+                         FlowObjectiveService flowObjectiveService,
+                         TunnelHandler tunnelHandler,
                          EventuallyConsistentMap<String, Policy> policyStore) {
-        this.srManager = srManager;
+        this.appId = appId;
+        this.deviceConfiguration = deviceConfiguration;
+        this.flowObjectiveService = flowObjectiveService;
+        this.tunnelHandler = tunnelHandler;
         this.policyStore = policyStore;
     }
 
@@ -70,79 +91,89 @@ public class PolicyHandler {
 
     /**
      * Creates a policy using the policy information given.
-     *
-     * @param policy policy reference to create
+     *  @param policy policy reference to create
+     *  @return ID_EXISTS if the same policy ID exists,
+     *  POLICY_EXISTS if the same policy exists, TUNNEL_NOT_FOUND if the tunnel
+     *  does not exists, UNSUPPORTED_TYPE if the policy type is not supported,
+     *  SUCCESS if the policy is created successfully
      */
-    public void createPolicy(Policy policy) {
+    public Result createPolicy(Policy policy) {
 
         if (policyStore.containsKey(policy.id())) {
             log.warn("The policy id {} exists already", policy.id());
-            return;
+            return Result.ID_EXISTS;
         }
 
         if (policyStore.containsValue(policy)) {
             log.warn("The same policy exists already");
-            return;
+            return Result.POLICY_EXISTS;
         }
 
         if (policy.type() == Policy.Type.TUNNEL_FLOW) {
 
             TunnelPolicy tunnelPolicy = (TunnelPolicy) policy;
-            Tunnel tunnel = srManager.getTunnel(tunnelPolicy.tunnelId());
+            Tunnel tunnel = tunnelHandler.getTunnel(tunnelPolicy.tunnelId());
             if (tunnel == null) {
-                log.error("Tunnel {} does not exists");
-                return;
+                return Result.TUNNEL_NOT_FOUND;
             }
 
             ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                     .builder()
-                    .fromApp(srManager.appId)
+                    .fromApp(appId)
                     .makePermanent()
                     .nextStep(tunnel.groupId())
                     .withPriority(tunnelPolicy.priority())
                     .withSelector(buildSelector(policy))
                     .withFlag(ForwardingObjective.Flag.VERSATILE);
 
-            DeviceId source = srManager.deviceConfiguration.getDeviceId(tunnel.labelIds().get(0));
-            srManager.flowObjectiveService.forward(source, fwdBuilder.add());
+            DeviceId source = deviceConfiguration.getDeviceId(tunnel.labelIds().get(0));
+            flowObjectiveService.forward(source, fwdBuilder.add());
 
         } else {
             log.warn("Policy type {} is not supported yet.", policy.type());
+            return Result.UNSUPPORTED_TYPE;
         }
 
         policyStore.put(policy.id(), policy);
+
+        return Result.SUCCESS;
     }
 
     /**
      * Removes the policy given.
      *
      * @param policyInfo policy information to remove
+     * @return POLICY_NOT_FOUND if the policy to remove does not exists,
+     * SUCCESS if it is removed successfully
      */
-    public void removePolicy(Policy policyInfo) {
+    public Result removePolicy(Policy policyInfo) {
 
         if (policyStore.get(policyInfo.id()) != null) {
             Policy policy = policyStore.get(policyInfo.id());
             if (policy.type() == Policy.Type.TUNNEL_FLOW) {
                 TunnelPolicy tunnelPolicy = (TunnelPolicy) policy;
-                Tunnel tunnel = srManager.getTunnel(tunnelPolicy.tunnelId());
+                Tunnel tunnel = tunnelHandler.getTunnel(tunnelPolicy.tunnelId());
 
                 ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                         .builder()
-                        .fromApp(srManager.appId)
+                        .fromApp(appId)
                         .makePermanent()
                         .withSelector(buildSelector(policy))
                         .withPriority(tunnelPolicy.priority())
                         .nextStep(tunnel.groupId())
                         .withFlag(ForwardingObjective.Flag.VERSATILE);
 
-                DeviceId source = srManager.deviceConfiguration.getDeviceId(tunnel.labelIds().get(0));
-                srManager.flowObjectiveService.forward(source, fwdBuilder.remove());
+                DeviceId source = deviceConfiguration.getDeviceId(tunnel.labelIds().get(0));
+                flowObjectiveService.forward(source, fwdBuilder.remove());
 
                 policyStore.remove(policyInfo.id());
             }
         } else {
             log.warn("Policy {} was not found", policyInfo.id());
+            return Result.POLICY_NOT_FOUND;
         }
+
+        return Result.SUCCESS;
     }
 
 

@@ -23,6 +23,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.DefaultTunnel;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.Tunnel;
+import org.onosproject.segmentrouting.TunnelHandler;
 
 /**
  * Command to remove a tunnel.
@@ -38,11 +39,20 @@ public class TunnelRemoveCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
 
         Tunnel tunnel = new DefaultTunnel(tunnelId, Lists.newArrayList());
-        srService.removeTunnel(tunnel);
+        TunnelHandler.Result result = srService.removeTunnel(tunnel);
+        switch (result) {
+            case TUNNEL_IN_USE:
+                print("ERROR: the tunnel is still in use");
+                break;
+            case TUNNEL_NOT_FOUND:
+                print("ERROR: the tunnel is not found");
+                break;
+            default:
+                break;
+        }
     }
 }
