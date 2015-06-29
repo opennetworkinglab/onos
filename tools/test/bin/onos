@@ -11,7 +11,7 @@
 
 [ -n "$1" ] && OCI=$(find_node $1) && shift
 
-if which -s client && [ -z "$ONOS_USE_SSH" ]; then
+if which client 2>/dev/null && [ -z "$ONOS_USE_SSH" ]; then
     # Use Karaf client only if we can and are allowed to
     unset KARAF_HOME
     client -h $OCI -u karaf "$@" 2>/dev/null
