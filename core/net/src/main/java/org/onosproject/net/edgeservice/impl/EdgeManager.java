@@ -181,7 +181,7 @@ public class EdgeManager implements EdgePortService {
 
     // Initial loading of the edge port cache.
     private void loadAllEdgePorts() {
-        deviceService.getDevices().forEach(d -> deviceService.getPorts(d.id())
+        deviceService.getAvailableDevices().forEach(d -> deviceService.getPorts(d.id())
                 .forEach(p -> addEdgePort(new ConnectPoint(d.id(), p.number()))));
     }
 
