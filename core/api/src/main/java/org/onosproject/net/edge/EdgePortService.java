@@ -23,7 +23,9 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 /**
- * Service for interacting with an inventory of network edge ports.
+ * Service for interacting with an inventory of network edge ports. A port
+ * is considered an edge port if it is an active port and does not have an
+ * infrastructure link associated with it.
  */
 public interface EdgePortService {
 
