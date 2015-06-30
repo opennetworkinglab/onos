@@ -17,8 +17,6 @@ package org.onosproject.net;
 
 import com.google.common.primitives.UnsignedLongs;
 
-import java.util.Objects;
-
 /**
  * Representation of a port number.
  */
@@ -167,7 +165,7 @@ public final class PortNumber {
 
     @Override
     public int hashCode() {
-        return Objects.hash(number);
+        return Long.hashCode(number);
     }
 
     @Override
