@@ -35,6 +35,7 @@ public interface ClusterCommunicationService {
      * @param subject    message subject
      * @param subscriber message subscriber
      * @param executor executor to use for running handler.
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     void addSubscriber(MessageSubject subject, ClusterMessageHandler subscriber, ExecutorService executor);

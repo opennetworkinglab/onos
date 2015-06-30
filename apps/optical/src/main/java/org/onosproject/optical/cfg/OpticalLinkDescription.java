@@ -21,6 +21,8 @@ import org.onlab.util.HexString;
 
 /**
  * Public class corresponding to JSON described data model.
+ *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 public class OpticalLinkDescription {

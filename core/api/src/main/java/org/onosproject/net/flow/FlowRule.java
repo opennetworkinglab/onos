@@ -32,6 +32,8 @@ public interface FlowRule {
      * The FlowRule type is used to determine in which table the flow rule needs
      * to be put for multi-table support switch. For single table switch,
      * Default is used.
+     *
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     static enum Type {

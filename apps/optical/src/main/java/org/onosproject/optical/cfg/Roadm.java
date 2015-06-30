@@ -17,6 +17,8 @@ package org.onosproject.optical.cfg;
 
 /**
  * ROADM java data object converted from a JSON file.
+ *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 class Roadm {

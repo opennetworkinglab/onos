@@ -57,7 +57,7 @@ implements GraphDescription {
      * @param links collection of infrastructure links
      *
      * @param annotations optional key/value annotations map
-     *
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     public DefaultGraphDescription(long nanos, Iterable<Device> devices,

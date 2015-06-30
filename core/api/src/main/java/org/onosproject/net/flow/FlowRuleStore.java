@@ -51,6 +51,7 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * Stores a new flow rule without generating events.
      *
      * @param rule the flow rule to add
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     void storeFlowRule(FlowRule rule);

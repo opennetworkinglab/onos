@@ -109,6 +109,8 @@ import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.P
 
 /**
  * Facility for creating messages bound for the topology viewer.
+ *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {

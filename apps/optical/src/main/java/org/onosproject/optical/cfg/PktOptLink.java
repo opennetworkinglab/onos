@@ -17,6 +17,8 @@ package org.onosproject.optical.cfg;
 
 /**
  * Packet-optical link Java data object.
+ *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 class PktOptLink {

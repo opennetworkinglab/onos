@@ -38,6 +38,7 @@ public final class JsonUtils {
      * @param sid     sequence ID
      * @param payload event payload
      * @return the object node representation
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     public static ObjectNode envelope(String type, long sid, ObjectNode payload) {

@@ -105,6 +105,10 @@ public final class MastershipBasedTimestamp implements Timestamp {
     }
 
     // Default constructor for serialization
+
+    /**
+     * @deprecated in Cardinal Release
+     */
     @Deprecated
     protected MastershipBasedTimestamp() {
         this.termNumber = -1;

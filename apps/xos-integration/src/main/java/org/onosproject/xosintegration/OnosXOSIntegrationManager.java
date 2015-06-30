@@ -199,6 +199,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * with no additional URI.
      *
      * @return web resource builder
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     private WebResource.Builder getClientBuilder() {
@@ -210,6 +211,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * with an optional additional URI.
      *
      * @return web resource builder
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     private WebResource.Builder getClientBuilder(String uri) {
@@ -227,6 +229,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * Performs a REST GET operation on the base XOS REST URI.
      *
      * @return JSON string fetched by the GET operation
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     private String getRest() {
@@ -238,6 +241,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * an optional additional URI.
      *
      * @return JSON string fetched by the GET operation
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     private String getRest(String uri) {
@@ -259,6 +263,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * XOS REST URI with an optional additional URI.
      *
      * @param json JSON string to post
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     private String postRest(String json) {
@@ -284,6 +289,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
      * XOS REST URI with an optional additional URI.
      *
      * @param uri optional additional URI
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     private void deleteRest(String uri) {

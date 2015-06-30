@@ -108,6 +108,9 @@ public final class Timestamped<T> {
     }
 
     // Default constructor for serialization
+    /**
+     * @deprecated in Cardinal Release
+     */
     @Deprecated
     private Timestamped() {
         this.value = null;

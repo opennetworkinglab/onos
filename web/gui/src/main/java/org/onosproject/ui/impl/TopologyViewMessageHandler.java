@@ -197,6 +197,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // ==================================================================
 
+    /**
+     * @deprecated in Cardinal Release
+     */
     @Deprecated
     private final class TopoStart extends RequestHandler {
         private TopoStart() {
@@ -213,6 +216,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    /**
+     * @deprecated in Cardinal Release
+     */
     @Deprecated
     private final class TopoHeartbeat extends RequestHandler {
         private TopoHeartbeat() {
@@ -225,6 +231,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    /**
+     * @deprecated in Cardinal Release
+     */
     @Deprecated
     private final class TopoStop extends RequestHandler {
         private TopoStop() {
@@ -238,6 +247,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    /**
+     * @deprecated in Cardinal Release
+     */
     @Deprecated
     private final class ReqSummary extends RequestHandler {
         private ReqSummary() {

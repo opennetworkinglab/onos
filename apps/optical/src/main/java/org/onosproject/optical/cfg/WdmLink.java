@@ -17,6 +17,8 @@ package org.onosproject.optical.cfg;
 
 /**
  * WDM Link Java data object converted from a JSON file.
+ *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 class WdmLink {

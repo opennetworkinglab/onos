@@ -75,6 +75,7 @@ public interface IPacket {
      * @param length
      *            length of the data to deserialize
      * @return the deserialized data
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     IPacket deserialize(byte[] data, int offset, int length);

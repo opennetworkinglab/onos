@@ -57,6 +57,7 @@ import static org.onosproject.net.DeviceId.deviceId;
  * optical links and any other state that needs to be configured for correct network
  * operations.
  *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 @JsonIgnoreProperties(ignoreUnknown = true)

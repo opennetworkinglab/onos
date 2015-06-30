@@ -284,6 +284,7 @@ public final class Instructions {
      *
      * @param etherType Ethernet type to set
      * @return a L2 modification.
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     public static Instruction popMpls(int etherType) {
