@@ -41,6 +41,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.slf4j.Logger;
 
 /**
@@ -110,7 +111,8 @@ public class LambdaForwarding {
             inport = 10;
             outport = 20;
             sbuilder.matchInPort(PortNumber.portNumber(inport));
-            tbuilder.setOutput(PortNumber.portNumber(outport)).setLambda(lambda);
+            tbuilder.setOutput(PortNumber.portNumber(outport))
+                    .add(Instructions.modL0Lambda(new IndexedLambda(lambda)));
             break;
         case 2:
             inport = 21;
@@ -124,7 +126,8 @@ public class LambdaForwarding {
             outport = 31;
             sbuilder.add(Criteria.matchLambda(new IndexedLambda(lambda))).
                     matchInPort(PortNumber.portNumber(inport));
-            tbuilder.setOutput(PortNumber.portNumber(outport)).setLambda(lambda);
+            tbuilder.setOutput(PortNumber.portNumber(outport))
+                    .add(Instructions.modL0Lambda(new IndexedLambda(lambda)));
             break;
         default:
         }

@@ -37,6 +37,7 @@ import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.openflow.controller.Dpid;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
@@ -301,7 +302,8 @@ public class FlowEntryBuilder {
                     if (exp.getExperimenter() == 0x80005A06 ||
                             exp.getExperimenter() == 0x748771) {
                         OFActionCircuit ct = (OFActionCircuit) exp;
-                        builder.setLambda(((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber());
+                        short lambda = ((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber();
+                        builder.add(Instructions.modL0Lambda(Lambda.indexedLambda(lambda)));
                     } else {
                         log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                     }

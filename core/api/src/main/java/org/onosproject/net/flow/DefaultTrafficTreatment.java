@@ -330,6 +330,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.decMplsTtl());
         }
 
+        @Deprecated
         @Override
         public Builder setLambda(short lambda) {
             return add(Instructions.modL0Lambda(new IndexedLambda(lambda)));

@@ -23,9 +23,11 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
@@ -177,7 +179,8 @@ public class GroupBucketEntryBuilder {
                     if (exp.getExperimenter() == 0x80005A06 ||
                             exp.getExperimenter() == 0x748771) {
                         OFActionCircuit ct = (OFActionCircuit) exp;
-                        builder.setLambda(((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber());
+                        short lambda = ((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber();
+                        builder.add(Instructions.modL0Lambda(Lambda.indexedLambda(lambda)));
                     } else {
                         log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                     }

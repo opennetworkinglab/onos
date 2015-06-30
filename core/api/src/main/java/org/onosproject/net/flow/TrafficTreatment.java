@@ -230,7 +230,9 @@ public interface TrafficTreatment {
          *
          * @param lambda optical channel ID
          * @return a treatment builder
+         * @deprecated in Drake Release
          */
+        @Deprecated
         Builder setLambda(short lambda);
 
         /**

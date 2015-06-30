@@ -69,7 +69,7 @@ public class DefaultTrafficTreatmentTest {
                 .setEthSrc(MacAddress.BROADCAST)
                 .setIpDst(IpAddress.valueOf("1.1.1.1"))
                 .setIpSrc(IpAddress.valueOf("2.2.2.2"))
-                .setLambda((short) 4)
+                .add(Instructions.modL0Lambda(new IndexedLambda(4)))
                 .setOutput(PortNumber.portNumber(2))
                 .setVlanId(VlanId.vlanId((short) 4))
                 .setVlanPcp((byte) 3);
