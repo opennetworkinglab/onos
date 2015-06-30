@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 package org.onosproject.reactive.routing;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.nio.ByteBuffer;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -46,6 +43,10 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
+
+import java.nio.ByteBuffer;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * This is reactive routing to handle 3 cases:
@@ -113,8 +114,8 @@ public class SdnIpReactiveRouting {
             }
             ConnectPoint srcConnectPoint = pkt.receivedFrom();
 
-            switch (ethPkt.getEtherType()) {
-            case 0x806:
+            switch (EthType.EtherType.lookup(ethPkt.getEtherType())) {
+            case ARP:
                 ARP arpPacket = (ARP) ethPkt.getPayload();
                 Ip4Address targetIpAddress = Ip4Address
                         .valueOf(arpPacket.getTargetProtocolAddress());
@@ -141,7 +142,7 @@ public class SdnIpReactiveRouting {
                             ByteBuffer.wrap(eth.serialize())));
                 }
                 break;
-            case 0x800:
+            case IPV4:
                 // Parse packet
                 IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
                 IpAddress dstIp =
