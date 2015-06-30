@@ -22,6 +22,7 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -60,12 +61,15 @@ public class DefaultTrafficSelectorTest {
         final short one = 1;
         final short two = 2;
 
-        final TrafficSelector selector1 =
-                DefaultTrafficSelector.builder().matchLambda(one).build();
-        final TrafficSelector sameAsSelector1 =
-                DefaultTrafficSelector.builder().matchLambda(one).build();
-        final TrafficSelector selector2 =
-                DefaultTrafficSelector.builder().matchLambda(two).build();
+        final TrafficSelector selector1 = DefaultTrafficSelector.builder()
+                .add(Criteria.matchLambda(new IndexedLambda(one)))
+                .build();
+        final TrafficSelector sameAsSelector1 = DefaultTrafficSelector.builder()
+                .add(Criteria.matchLambda(new IndexedLambda(one)))
+                .build();
+        final TrafficSelector selector2 = DefaultTrafficSelector.builder()
+                .add(Criteria.matchLambda(new IndexedLambda(two)))
+                .build();
 
         new EqualsTester()
                 .addEqualityGroup(selector1, sameAsSelector1)
@@ -260,11 +264,11 @@ public class DefaultTrafficSelectorTest {
         assertThat(selector, hasCriterionWithType(Type.IPV6_EXTHDR));
 
         selector = DefaultTrafficSelector.builder()
-                .matchLambda(shortValue).build();
+                .add(Criteria.matchLambda(new IndexedLambda(shortValue))).build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
 
         selector = DefaultTrafficSelector.builder()
-                .matchOpticalSignalType(shortValue).build();
+                .add(Criteria.matchOpticalSignalType(shortValue)).build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGTYPE));
     }
 
@@ -277,7 +281,7 @@ public class DefaultTrafficSelectorTest {
         final short shortValue = 33;
 
         final TrafficSelector baseSelector = DefaultTrafficSelector.builder()
-                .matchLambda(shortValue).build();
+                .add(Criteria.matchLambda(new IndexedLambda(shortValue))).build();
         selector = DefaultTrafficSelector.builder(baseSelector)
                 .build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));

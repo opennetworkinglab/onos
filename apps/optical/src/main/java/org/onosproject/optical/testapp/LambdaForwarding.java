@@ -28,6 +28,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -39,6 +40,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.slf4j.Logger;
 
 /**
@@ -113,14 +115,14 @@ public class LambdaForwarding {
         case 2:
             inport = 21;
             outport = 11;
-            sbuilder.matchLambda(lambda).
+            sbuilder.add(Criteria.matchLambda(new IndexedLambda(lambda))).
                     matchInPort(PortNumber.portNumber(inport)); // match sigtype
             tbuilder.setOutput(PortNumber.portNumber(outport));
             break;
         case 3:
             inport = 30;
             outport = 31;
-            sbuilder.matchLambda(lambda).
+            sbuilder.add(Criteria.matchLambda(new IndexedLambda(lambda))).
                     matchInPort(PortNumber.portNumber(inport));
             tbuilder.setOutput(PortNumber.portNumber(outport)).setLambda(lambda);
             break;

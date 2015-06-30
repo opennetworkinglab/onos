@@ -22,6 +22,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -300,7 +301,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchLambda(short lambda) {
-            return add(Criteria.matchLambda(lambda));
+            return add(Criteria.matchLambda(new IndexedLambda(lambda)));
         }
 
         @Deprecated
