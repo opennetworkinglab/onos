@@ -15,34 +15,35 @@
  */
 package org.onosproject.store.ecmap;
 
-import com.google.common.base.MoreObjects;
-import org.onosproject.store.Timestamp;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Describes a single put event in an EventuallyConsistentMap.
+ * Describes a single update event in an EventuallyConsistentMap.
  */
-final class PutEntry<K, V> extends AbstractEntry<K, V> {
-    private final V value;
+final class UpdateEntry<K, V> implements Comparable<UpdateEntry<K, V>> {
+    private final K key;
+    private final MapValue<V> value;
 
     /**
-     * Creates a new put entry.
+     * Creates a new update entry.
      *
      * @param key key of the entry
      * @param value value of the entry
-     * @param timestamp timestamp of the put event
      */
-    public PutEntry(K key, V value, Timestamp timestamp) {
-        super(key, timestamp);
+    public UpdateEntry(K key, MapValue<V> value) {
+        this.key = checkNotNull(key);
         this.value = checkNotNull(value);
     }
 
-    // Needed for serialization.
-    @SuppressWarnings("unused")
-    private PutEntry() {
-        super();
-        this.value = null;
+    /**
+     * Returns the key.
+     *
+     * @return the key
+     */
+    public K key() {
+        return key;
     }
 
     /**
@@ -50,8 +51,13 @@ final class PutEntry<K, V> extends AbstractEntry<K, V> {
      *
      * @return the value
      */
-    public V value() {
+    public MapValue<V> value() {
         return value;
+    }
+
+    @Override
+    public int compareTo(UpdateEntry<K, V> o) {
+        return this.value.timestamp().compareTo(o.value.timestamp());
     }
 
     @Override
@@ -59,7 +65,12 @@ final class PutEntry<K, V> extends AbstractEntry<K, V> {
         return MoreObjects.toStringHelper(getClass())
                 .add("key", key())
                 .add("value", value)
-                .add("timestamp", timestamp())
                 .toString();
+    }
+
+    @SuppressWarnings("unused")
+    private UpdateEntry() {
+        this.key = null;
+        this.value = null;
     }
 }

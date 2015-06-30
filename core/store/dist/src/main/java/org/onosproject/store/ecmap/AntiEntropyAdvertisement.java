@@ -16,11 +16,11 @@
 package org.onosproject.store.ecmap;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
+
 import org.onosproject.cluster.NodeId;
-import org.onosproject.store.Timestamp;
 
 import java.util.Map;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -29,22 +29,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AntiEntropyAdvertisement<K> {
 
     private final NodeId sender;
-    private final Map<K, Timestamp> timestamps;
-    private final Map<K, Timestamp> tombstones;
+    private final Map<K, MapValue.Digest> digest;
 
     /**
      * Creates a new anti entropy advertisement message.
      *
      * @param sender the sender's node ID
-     * @param timestamps map of item key to timestamp for current items
-     * @param tombstones map of item key to timestamp for removed items
+     * @param digest for map entries
      */
     public AntiEntropyAdvertisement(NodeId sender,
-                                    Map<K, Timestamp> timestamps,
-                                    Map<K, Timestamp> tombstones) {
+                                    Map<K, MapValue.Digest> digest) {
         this.sender = checkNotNull(sender);
-        this.timestamps = checkNotNull(timestamps);
-        this.tombstones = checkNotNull(tombstones);
+        this.digest = ImmutableMap.copyOf(checkNotNull(digest));
     }
 
     /**
@@ -57,36 +53,19 @@ public class AntiEntropyAdvertisement<K> {
     }
 
     /**
-     * Returns the map of current item timestamps.
+     * Returns the digest for map entries.
      *
-     * @return current item timestamps
+     * @return mapping from key to associated digest
      */
-    public Map<K, Timestamp> timestamps() {
-        return timestamps;
-    }
-
-    /**
-     * Returns the map of removed item timestamps.
-     *
-     * @return removed item timestamps
-     */
-    public Map<K, Timestamp> tombstones() {
-        return tombstones;
-    }
-
-    // For serializer
-    @SuppressWarnings("unused")
-    private AntiEntropyAdvertisement() {
-        this.sender = null;
-        this.timestamps = null;
-        this.tombstones = null;
+    public Map<K, MapValue.Digest> digest() {
+        return digest;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("timestampsSize", timestamps.size())
-                .add("tombstonesSize", tombstones.size())
+                .add("sender", sender)
+                .add("totalEntries", digest.size())
                 .toString();
     }
 }

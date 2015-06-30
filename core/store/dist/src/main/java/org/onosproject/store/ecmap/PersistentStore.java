@@ -16,9 +16,6 @@
 
 package org.onosproject.store.ecmap;
 
-import org.onosproject.store.Timestamp;
-import org.onosproject.store.impl.Timestamped;
-
 import java.util.Map;
 
 /**
@@ -30,24 +27,14 @@ interface PersistentStore<K, V> {
      * Read the contents of the disk into the given maps.
      *
      * @param items items map
-     * @param tombstones tombstones map
      */
-    void readInto(Map<K, Timestamped<V>> items, Map<K, Timestamp> tombstones);
+    void readInto(Map<K, MapValue<V>> items);
 
     /**
-     * Puts a new key,value pair into the map on disk.
+     * Updates a key,value pair in the persistent store.
      *
      * @param key the key
      * @param value the value
-     * @param timestamp the timestamp of the update
      */
-    void put(K key, V value, Timestamp timestamp);
-
-    /**
-     * Removes a key from the map on disk.
-     *
-     * @param key the key
-     * @param timestamp the timestamp of the update
-     */
-    void remove(K key, Timestamp timestamp);
+    void update(K key, MapValue<V> value);
 }

@@ -16,13 +16,10 @@
 
 package org.onosproject.store.ecmap;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Hasher;
 import org.mapdb.Serializer;
-import org.onosproject.store.Timestamp;
-import org.onosproject.store.impl.Timestamped;
 import org.onosproject.store.serializers.KryoSerializer;
 
 import java.io.File;
@@ -42,7 +39,6 @@ class MapDbPersistentStore<K, V> implements PersistentStore<K, V> {
     private final DB database;
 
     private final Map<byte[], byte[]> items;
-    private final Map<byte[], byte[]> tombstones;
 
     /**
      * Creates a new MapDB based persistent store.
@@ -65,102 +61,32 @@ class MapDbPersistentStore<K, V> implements PersistentStore<K, V> {
                 .valueSerializer(Serializer.BYTE_ARRAY)
                 .hasher(Hasher.BYTE_ARRAY)
                 .makeOrGet();
-
-        tombstones = database.createHashMap("tombstones")
-                .keySerializer(Serializer.BYTE_ARRAY)
-                .valueSerializer(Serializer.BYTE_ARRAY)
-                .hasher(Hasher.BYTE_ARRAY)
-                .makeOrGet();
     }
 
     @Override
-    public void readInto(Map<K, Timestamped<V>> items, Map<K, Timestamp> tombstones) {
+    public void readInto(Map<K, MapValue<V>> items) {
         this.items.forEach((keyBytes, valueBytes) ->
                               items.put(serializer.decode(keyBytes),
-                                               serializer.decode(valueBytes)));
-
-        this.tombstones.forEach((keyBytes, valueBytes) ->
-                                   tombstones.put(serializer.decode(keyBytes),
-                                                    serializer.decode(valueBytes)));
+                                        serializer.decode(valueBytes)));
     }
 
     @Override
-    public void put(K key, V value, Timestamp timestamp) {
-        executor.submit(() -> putInternal(key, value, timestamp));
+    public void update(K key, MapValue<V> value) {
+        executor.submit(() -> updateInternal(key, value));
     }
 
-    private void putInternal(K key, V value, Timestamp timestamp) {
+    private void updateInternal(K key, MapValue<V> newValue) {
         byte[] keyBytes = serializer.encode(key);
-        byte[] removedBytes = tombstones.get(keyBytes);
-
-        Timestamp removed = removedBytes == null ? null :
-                            serializer.decode(removedBytes);
-        if (removed != null && removed.isNewerThan(timestamp)) {
-            return;
-        }
-
-        final MutableBoolean updated = new MutableBoolean(false);
 
         items.compute(keyBytes, (k, existingBytes) -> {
-            Timestamped<V> existing = existingBytes == null ? null :
+            MapValue<V> existing = existingBytes == null ? null :
                                       serializer.decode(existingBytes);
-            if (existing != null && existing.isNewerThan(timestamp)) {
-                updated.setFalse();
-                return existingBytes;
+            if (existing == null || newValue.isNewerThan(existing)) {
+                return serializer.encode(newValue);
             } else {
-                updated.setTrue();
-                return serializer.encode(new Timestamped<>(value, timestamp));
+                return existingBytes;
             }
         });
-
-        boolean success = updated.booleanValue();
-
-        if (success && removed != null) {
-            tombstones.remove(keyBytes, removedBytes);
-        }
-
         database.commit();
     }
-
-    @Override
-    public void remove(K key, Timestamp timestamp) {
-        executor.submit(() -> removeInternal(key, timestamp));
-    }
-
-    private void removeInternal(K key, Timestamp timestamp) {
-        byte[] keyBytes = serializer.encode(key);
-
-        final MutableBoolean updated = new MutableBoolean(false);
-
-        items.compute(keyBytes, (k, existingBytes) -> {
-            Timestamp existing = existingBytes == null ? null :
-                                 serializer.decode(existingBytes);
-            if (existing != null && existing.isNewerThan(timestamp)) {
-                updated.setFalse();
-                return existingBytes;
-            } else {
-                updated.setTrue();
-                // remove from items map
-                return null;
-            }
-        });
-
-        if (!updated.booleanValue()) {
-            return;
-        }
-
-        byte[] timestampBytes = serializer.encode(timestamp);
-        byte[] removedBytes = tombstones.get(keyBytes);
-
-        Timestamp removedTimestamp = removedBytes == null ? null :
-                                     serializer.decode(removedBytes);
-        if (removedTimestamp == null) {
-            tombstones.putIfAbsent(keyBytes, timestampBytes);
-        } else if (timestamp.isNewerThan(removedTimestamp)) {
-            tombstones.replace(keyBytes, removedBytes, timestampBytes);
-        }
-
-        database.commit();
-    }
-
 }
