@@ -15,10 +15,15 @@
  */
 package org.onosproject.rest;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.HashSet;
 
+import javax.ws.rs.core.MediaType;
+
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -42,12 +47,14 @@ import org.onosproject.net.intent.MockIdGenerator;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.containsString;
@@ -357,5 +364,30 @@ public class IntentsResourceTest extends ResourceTest {
             assertThat(ex.getMessage(),
                     containsString("returned a response status of"));
         }
+    }
+
+    /**
+     * Tests creating an intent with POST.
+     */
+    @Test
+    public void testPost() {
+        expect(mockCoreService.getAppId((short) 2))
+                .andReturn(new DefaultApplicationId(2, "app"));
+        replay(mockCoreService);
+
+        mockIntentService.submit(anyObject());
+        expectLastCall();
+        replay(mockIntentService);
+
+        InputStream jsonStream = IntentsResourceTest.class
+                .getResourceAsStream("post-intent.json");
+        WebResource rs = resource();
+
+        ClientResponse response = rs.path("intents")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, jsonStream);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/intents/2/"));
     }
 }

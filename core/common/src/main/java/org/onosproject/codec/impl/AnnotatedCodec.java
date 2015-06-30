@@ -55,7 +55,7 @@ public abstract class AnnotatedCodec<T extends Annotated> extends JsonCodec<T> {
 
         JsonCodec<Annotations> codec = context.codec(Annotations.class);
         if (objNode.has("annotations") && objNode.isObject()) {
-            return codec.decode((ObjectNode) objNode.get("annotations"), context);
+            return codec.decode(get(objNode, "annotations"), context);
         } else {
             return DefaultAnnotations.EMPTY;
         }

@@ -15,6 +15,8 @@
  */
 package org.onosproject.codec.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 
@@ -26,6 +28,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.util.Bandwidth;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
@@ -43,9 +46,13 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentServiceAdapter;
 import org.onosproject.net.intent.PointToPointIntent;
@@ -59,14 +66,22 @@ import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.LambdaResource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.codec.impl.IntentJsonMatcher.matchesIntent;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.hid;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 
 /**
  * Unit tests for the host to host intent class codec.
@@ -81,11 +96,16 @@ public class IntentCodecTest extends AbstractIntentTest {
     final TrafficTreatment emptyTreatment =
             DefaultTrafficTreatment.emptyTreatment();
     private final MockCodecContext context = new MockCodecContext();
+    final CoreService mockCoreService = createMock(CoreService.class);
 
     @Before
     public void setUpIntentService() {
         final IntentService mockIntentService = new IntentServiceAdapter();
         context.registerService(IntentService.class, mockIntentService);
+        context.registerService(CoreService.class, mockCoreService);
+        expect(mockCoreService.getAppId((short) 2))
+                .andReturn(new DefaultApplicationId(2, "app"));
+        replay(mockCoreService);
     }
 
     /**
@@ -161,13 +181,13 @@ public class IntentCodecTest extends AbstractIntentTest {
 
         final List<Constraint> constraints =
                 ImmutableList.of(
-                    new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(1.0))),
-                    new LambdaConstraint(LambdaResource.valueOf(3)),
-                    new AnnotationConstraint("key", 33.0),
-                    new AsymmetricPathConstraint(),
-                    new LatencyConstraint(Duration.ofSeconds(2)),
-                    new ObstacleConstraint(did1, did2),
-                    new WaypointConstraint(did3));
+                        new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(1.0))),
+                        new LambdaConstraint(LambdaResource.valueOf(3)),
+                        new AnnotationConstraint("key", 33.0),
+                        new AsymmetricPathConstraint(),
+                        new LatencyConstraint(Duration.ofSeconds(2)),
+                        new ObstacleConstraint(did1, did2),
+                        new WaypointConstraint(did3));
 
         final PointToPointIntent intent =
                 PointToPointIntent.builder()
@@ -187,5 +207,82 @@ public class IntentCodecTest extends AbstractIntentTest {
         final ObjectNode intentJson = intentCodec.encode(intent, context);
         assertThat(intentJson, matchesIntent(intent));
 
+    }
+
+    /**
+     * Reads in a rule from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded flow rule
+     * @throws IOException if processing the resource fails
+     */
+    private Intent getIntent(String resourceName, JsonCodec intentCodec) throws IOException {
+        InputStream jsonStream = FlowRuleCodecTest.class
+                .getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        assertThat(json, notNullValue());
+        Intent intent = (Intent) intentCodec.decode((ObjectNode) json, context);
+        assertThat(intent, notNullValue());
+        return intent;
+    }
+
+    /**
+     * Tests the point to point intent JSON codec.
+     *
+     * @throws IOException if JSON processing fails
+     */
+    @Test
+    public void decodePointToPointIntent() throws IOException {
+        JsonCodec<Intent> intentCodec = context.codec(Intent.class);
+        assertThat(intentCodec, notNullValue());
+
+        Intent intent = getIntent("PointToPointIntent.json", intentCodec);
+        assertThat(intent, notNullValue());
+        assertThat(intent, instanceOf(PointToPointIntent.class));
+
+        PointToPointIntent pointIntent = (PointToPointIntent) intent;
+        assertThat(pointIntent.priority(), is(55));
+        assertThat(pointIntent.ingressPoint().deviceId(), is(did("0000000000000001")));
+        assertThat(pointIntent.ingressPoint().port(), is(PortNumber.portNumber(1)));
+        assertThat(pointIntent.egressPoint().deviceId(), is(did("0000000000000007")));
+        assertThat(pointIntent.egressPoint().port(), is(PortNumber.portNumber(2)));
+
+        assertThat(pointIntent.constraints(), hasSize(1));
+
+        assertThat(pointIntent.selector(), notNullValue());
+        assertThat(pointIntent.selector().criteria(), hasSize(1));
+        Criterion criterion1 = pointIntent.selector().criteria().iterator().next();
+        assertThat(criterion1, instanceOf(EthCriterion.class));
+        EthCriterion ethCriterion = (EthCriterion) criterion1;
+        assertThat(ethCriterion.mac().toString(), is("11:22:33:44:55:66"));
+        assertThat(ethCriterion.type().name(), is("ETH_DST"));
+
+        assertThat(pointIntent.treatment(), notNullValue());
+        assertThat(pointIntent.treatment().allInstructions(), hasSize(1));
+        Instruction instruction1 = pointIntent.treatment().allInstructions().iterator().next();
+        assertThat(instruction1, instanceOf(ModEtherInstruction.class));
+        ModEtherInstruction ethInstruction = (ModEtherInstruction) instruction1;
+        assertThat(ethInstruction.mac().toString(), is("22:33:44:55:66:77"));
+        assertThat(ethInstruction.type().toString(), is("L2MODIFICATION"));
+        assertThat(ethInstruction.subtype().toString(), is("ETH_SRC"));
+    }
+
+    /**
+     * Tests the host to host intent JSON codec.
+     *
+     * @throws IOException
+     */
+    @Test
+    public void decodeHostToHostIntent() throws IOException {
+        JsonCodec<Intent> intentCodec = context.codec(Intent.class);
+        assertThat(intentCodec, notNullValue());
+
+        Intent intent = getIntent("HostToHostIntent.json", intentCodec);
+        assertThat(intent, notNullValue());
+        assertThat(intent, instanceOf(HostToHostIntent.class));
+
+        HostToHostIntent hostIntent = (HostToHostIntent) intent;
+        assertThat(hostIntent.priority(), is(7));
+        assertThat(hostIntent.constraints(), hasSize(1));
     }
 }

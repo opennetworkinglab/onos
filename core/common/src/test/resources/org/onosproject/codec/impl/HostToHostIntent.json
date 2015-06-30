@@ -1,0 +1,19 @@
+{
+  "type": "HostToHostIntent",
+  "appId": 2,
+  "selector": {"criteria": []},
+  "treatment": {
+    "instructions": [],
+    "deferred": []
+  },
+  "priority": 7,
+  "constraints": [
+    {
+      "inclusive": false,
+      "types": ["OPTICAL"],
+      "type": "LinkTypeConstraint"
+    }
+  ],
+  "one": "00:00:00:00:00:02/-1",
+  "two": "00:00:00:00:00:05/-1"
+}

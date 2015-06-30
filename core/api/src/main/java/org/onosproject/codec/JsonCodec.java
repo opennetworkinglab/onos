@@ -87,4 +87,29 @@ public abstract class JsonCodec<T> {
         return result;
     }
 
+    /**
+     * Gets a child Object Node from a parent by name. If the child is not found
+     * or does nor represent an object, null is returned.
+     *
+     * @param parent parent object
+     * @param childName name of child to query
+     * @return child object if found, null if not found or if not an object
+     */
+    protected static ObjectNode get(ObjectNode parent, String childName) {
+        JsonNode node = parent.path(childName);
+        return node.isObject() && !node.isNull() ? (ObjectNode) node : null;
+    }
+
+    /**
+     * Gets a child Object Node from a parent by index. If the child is not found
+     * or does nor represent an object, null is returned.
+     *
+     * @param parent parent object
+     * @param childIndex index of child to query
+     * @return child object if found, null if not found or if not an object
+     */
+    protected static ObjectNode get(JsonNode parent, int childIndex) {
+        JsonNode node = parent.path(childIndex);
+        return node.isObject() && !node.isNull() ? (ObjectNode) node : null;
+    }
 }

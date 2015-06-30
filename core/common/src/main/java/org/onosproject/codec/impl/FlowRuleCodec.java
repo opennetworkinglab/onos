@@ -75,14 +75,14 @@ public final class FlowRuleCodec extends JsonCodec<FlowRule> {
                 DEVICE_ID + MISSING_MEMBER_MESSAGE).asText());
         resultBuilder.forDevice(deviceId);
 
-        ObjectNode treatmentJson = (ObjectNode) json.get(TREATMENT);
+        ObjectNode treatmentJson = get(json, TREATMENT);
         if (treatmentJson != null) {
             JsonCodec<TrafficTreatment> treatmentCodec =
                     context.codec(TrafficTreatment.class);
             resultBuilder.withTreatment(treatmentCodec.decode(treatmentJson, context));
         }
 
-        ObjectNode selectorJson = (ObjectNode) json.get(SELECTOR);
+        ObjectNode selectorJson = get(json, SELECTOR);
         if (selectorJson != null) {
             JsonCodec<TrafficSelector> selectorCodec =
                     context.codec(TrafficSelector.class);

@@ -1,0 +1,38 @@
+{
+  "type": "PointToPointIntent",
+  "appId": 2,
+  "selector": {
+    "criteria": [
+      {
+        "type": "ETH_DST",
+        "mac": "11:22:33:44:55:66"
+      }
+    ]
+  },
+  "treatment": {
+    "instructions": [
+      {
+        "type": "L2MODIFICATION",
+        "subtype": "ETH_SRC",
+        "mac": "22:33:44:55:66:77"
+      }
+    ],
+    "deferred": []
+  },
+  "priority": 55,
+  "constraints": [
+    {
+      "inclusive": false,
+      "types": ["OPTICAL"],
+      "type": "LinkTypeConstraint"
+    }
+  ],
+  "ingressPoint": {
+    "port": "1",
+    "device": "of:0000000000000001"
+  },
+  "egressPoint": {
+    "port": "2",
+    "device": "of:0000000000000007"
+  }
+}

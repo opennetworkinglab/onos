@@ -68,7 +68,7 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
         if (instructionsJson != null) {
             IntStream.range(0, instructionsJson.size())
                     .forEach(i -> builder.add(
-                            instructionsCodec.decode((ObjectNode) instructionsJson.get(i),
+                            instructionsCodec.decode(get(instructionsJson, i),
                                     context)));
         }
         return builder.build();

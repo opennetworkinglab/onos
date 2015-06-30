@@ -1,0 +1,5 @@
+{
+  "type":"AnnotationConstraint",
+  "key":"key",
+  "threshold":123.0
+}

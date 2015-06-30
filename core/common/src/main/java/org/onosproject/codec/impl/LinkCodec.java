@@ -70,8 +70,8 @@ public final class LinkCodec extends AnnotatedCodec<Link> {
         // TODO: add providerId to JSON if we need to recover them.
         ProviderId pid = new ProviderId("json", "LinkCodec");
 
-        ConnectPoint src = codec.decode((ObjectNode) json.get(SRC), context);
-        ConnectPoint dst = codec.decode((ObjectNode) json.get(DST), context);
+        ConnectPoint src = codec.decode(get(json, SRC), context);
+        ConnectPoint dst = codec.decode(get(json, DST), context);
         Type type = Type.valueOf(json.get(TYPE).asText());
         Annotations annotations = extractAnnotations(json, context);
 

@@ -1,0 +1,5 @@
+{
+  "inclusive":false,
+  "types":["DIRECT","OPTICAL"],
+  "type":"LinkTypeConstraint"
+}

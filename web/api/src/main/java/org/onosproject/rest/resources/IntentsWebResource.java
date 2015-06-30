@@ -15,12 +15,18 @@
  */
 package org.onosproject.rest.resources;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -175,6 +181,33 @@ public class IntentsWebResource extends AbstractWebResource {
             // clean up the listener
             service.removeListener(listener);
         }
+    }
+
+    /**
+     * Creates an intent from a POST of a JSON string and attempts to apply it.
+     *
+     * @param stream input JSON
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createIntent(InputStream stream) {
+        URI location;
+        try {
+            IntentService service = get(IntentService.class);
+            ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            Intent intent = codec(Intent.class).decode(root, this);
+            service.submit(intent);
+            location = new URI(Short.toString(intent.appId().id()) + "/"
+                    + Long.toString(intent.id().fingerprint()));
+        } catch (IOException | URISyntaxException ex) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response
+                .created(location)
+                .build();
     }
 
 }

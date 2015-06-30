@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest;
 
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -106,10 +107,6 @@ public class FlowsResourceTest extends ResourceTest {
 
     final MockFlowEntry flow5 = new MockFlowEntry(deviceId2, 5);
     final MockFlowEntry flow6 = new MockFlowEntry(deviceId2, 6);
-
-    private static final String FLOW_JSON = "{\"priority\":1,\"isPermanent\":true,"
-            + "\"treatment\":{\"instructions\":[ {\"type\":\"OUTPUT\",\"port\":2}]},"
-            + "\"selector\":{\"criteria\":[ {\"type\":\"ETH_TYPE\",\"ethType\":2054}]}}";
 
     /**
      * Mock class for a flow entry.
@@ -582,11 +579,12 @@ public class FlowsResourceTest extends ResourceTest {
         replay(mockFlowService);
 
         WebResource rs = resource();
-
+        InputStream jsonStream = IntentsResourceTest.class
+                .getResourceAsStream("post-flow.json");
 
         ClientResponse response = rs.path("flows/of:0000000000000001")
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, FLOW_JSON);
+                .post(ClientResponse.class, jsonStream);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/flows/of:0000000000000001/"));

@@ -63,7 +63,7 @@ public final class TrafficSelectorCodec extends JsonCodec<TrafficSelector> {
         if (criteriaJson != null) {
             IntStream.range(0, criteriaJson.size())
                     .forEach(i -> builder.add(
-                            criterionCodec.decode((ObjectNode) criteriaJson.get(i),
+                            criterionCodec.decode(get(criteriaJson, i),
                                     context)));
         }
         return builder.build();
