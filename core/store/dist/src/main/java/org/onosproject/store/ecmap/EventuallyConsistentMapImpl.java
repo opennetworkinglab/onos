@@ -244,6 +244,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 // Add the map's internal helper classes to the user-supplied serializer
                 serializerPool = builder
                         .register(KryoNamespaces.BASIC)
+                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                         .register(LogicalTimestamp.class)
                         .register(WallClockTimestamp.class)
                         .register(AntiEntropyAdvertisement.class)
