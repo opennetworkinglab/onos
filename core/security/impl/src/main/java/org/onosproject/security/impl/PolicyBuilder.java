@@ -27,7 +27,6 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.HostClockService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentClockService;
@@ -136,8 +135,6 @@ public final class PolicyBuilder {
                 new PermissionInfo(ServicePermission.class.getName(),
                         HostService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
-                        HostClockService.class.getName(), ServicePermission.GET),
-                new PermissionInfo(ServicePermission.class.getName(),
                         IntentService.class.getName(), ServicePermission.GET),
                 new PermissionInfo(ServicePermission.class.getName(),
                         IntentClockService.class.getName(), ServicePermission.GET),
@@ -209,8 +206,6 @@ public final class PolicyBuilder {
                 GroupService.class.getName()));
         serviceDirectory.put(Permission.GROUP_EVENT, ImmutableSet.of(
                 GroupService.class.getName()));
-        serviceDirectory.put(Permission.HOST_READ, ImmutableSet.of(
-                HostService.class.getName(), HostClockService.class.getName()));
         serviceDirectory.put(Permission.HOST_WRITE, ImmutableSet.of(
                 HostService.class.getName()));
         serviceDirectory.put(Permission.HOST_EVENT, ImmutableSet.of(

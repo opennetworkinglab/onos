@@ -51,6 +51,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultEdgeLink;
+import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DefaultPort;
@@ -267,6 +268,7 @@ public final class KryoNamespaces {
                     DefaultControllerNode.class,
                     DefaultDevice.class,
                     DefaultDeviceDescription.class,
+                    DefaultHost.class,
                     DefaultLinkDescription.class,
                     Port.class,
                     DefaultPortDescription.class,
