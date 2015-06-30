@@ -399,6 +399,7 @@ public final class Criteria {
      *
      * @param sigType optical signal type (8 bits unsigned integer)
      * @return match criterion
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     public static Criterion matchOpticalSignalType(short sigType) {

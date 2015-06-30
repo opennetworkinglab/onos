@@ -22,6 +22,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Implementation of optical signal type criterion (8 bits unsigned
  * integer).
+ *
+ * @deprecated in Cardinal Release
  */
 @Deprecated
 public final class OpticalSignalTypeCriterion implements Criterion {

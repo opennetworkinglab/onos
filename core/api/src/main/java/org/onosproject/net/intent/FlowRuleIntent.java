@@ -42,6 +42,7 @@ public class FlowRuleIntent extends Intent {
      *
      * @param appId     application id
      * @param flowRules flow rules to be set.
+     * @deprecated in Cardinal Release
      */
     @Deprecated
     public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules) {

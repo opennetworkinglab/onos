@@ -197,6 +197,7 @@ public interface TrafficTreatment {
          *
          * @param etherType an ether type
          * @return a treatment builder.
+         * @deprecated in Drake Release
          */
         @Deprecated
         Builder popMpls(int etherType);
@@ -246,6 +247,7 @@ public interface TrafficTreatment {
          *
          * @param type the table type
          * @return a treatement builder
+         * @deprecated in Cardinal Release
          */
         @Deprecated
         Builder transition(FlowRule.Type type);
