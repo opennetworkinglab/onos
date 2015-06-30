@@ -16,29 +16,30 @@
  *
  */
 
-package org.onosproject.aaa.packet;
-
-import org.onlab.packet.BasePacket;
-import org.onlab.packet.IPacket;
+package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static org.onlab.packet.PacketUtils.checkHeaderLength;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
- *
+ * EAP (Extensible Authentication Protocol) packet.
  */
 public class EAP extends BasePacket {
+    private static final int HEADER_LENGTH = 4;
+
     public static final short MIN_LEN = 0x4;
     public static final short EAP_HDR_LEN_REQ_RESP = 5;
     public static final short EAP_HDR_LEN_SUC_FAIL = 4;
 
-    /* EAP Code */
+    // EAP Code
     public static final byte REQUEST  = 0x1;
     public static final byte RESPONSE = 0x2;
     public static final byte SUCCESS  = 0x3;
     public static final byte FAILURE  = 0x4;
 
-    /* EAP Attribute Type */
+    // EAP Attribute Type
     public static final byte ATTR_IDENTITY = 0x1;
     public static final byte ATTR_NOTIFICATION = 0x2;
     public static final byte ATTR_NAK = 0x3;
@@ -55,7 +56,8 @@ public class EAP extends BasePacket {
 
 
     /**
-     * Get the EAP code.
+     * Gets the EAP code.
+     *
      * @return EAP code
      */
     public byte getCode() {
@@ -64,7 +66,8 @@ public class EAP extends BasePacket {
 
 
     /**
-     * Set the EAP code.
+     * Sets the EAP code.
+     *
      * @param code EAP code
      * @return this
      */
@@ -74,7 +77,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Get the EAP identifier.
+     * Gets the EAP identifier.
+     *
      * @return EAP identifier
      */
     public byte getIdentifier() {
@@ -82,7 +86,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Set the EAP identifier.
+     * Sets the EAP identifier.
+     *
      * @param identifier
      * @return this
      */
@@ -92,7 +97,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Get the get packet length.
+     * Gets the get packet length.
+     *
      * @return packet length
      */
     public short getLength() {
@@ -100,7 +106,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Set the packet length.
+     * Sets the packet length.
+     *
      * @param length packet length
      * @return this
      */
@@ -110,7 +117,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Get the data type.
+     * Gets the data type.
+     *
      * @return data type
      */
     public byte getDataType() {
@@ -118,7 +126,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Set the data type.
+     * Sets the data type.
+     *
      * @param type data type
      * @return this
      */
@@ -128,7 +137,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Get the EAP data.
+     * Gets the EAP data.
+     *
      * @return EAP data
      */
     public byte[] getData() {
@@ -136,7 +146,8 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Set the EAP data.
+     * Sets the EAP data.
+     *
      * @param data EAP data to be set
      * @return this
      */
@@ -146,7 +157,7 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Default EAP constructor that set the EAP code to 0.
+     * Default EAP constructor that sets the EAP code to 0.
      */
     public EAP() {
         this.code = 0;
@@ -154,6 +165,7 @@ public class EAP extends BasePacket {
 
     /**
      * EAP constructor that initially sets all fields.
+     *
      * @param code EAP code
      * @param identifier EAP identifier
      * @param type packet type
@@ -172,10 +184,36 @@ public class EAP extends BasePacket {
     }
 
     /**
-     * Serializes the packet, based on the code/type using the payload
-     * to compute its length.
-     * @return the serialized payload
+     * Deserializer for EAP packets.
+     *
+     * @return deserializer
      */
+    public static Deserializer<EAP> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, HEADER_LENGTH);
+
+            EAP eap = new EAP();
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            eap.code = bb.get();
+            eap.identifier = bb.get();
+            eap.length = bb.getShort();
+
+            checkHeaderLength(length, HEADER_LENGTH + eap.length);
+
+            int dataLength;
+            if (eap.code == REQUEST || eap.code == RESPONSE) {
+                eap.type = bb.get();
+                dataLength = eap.length - 5;
+            } else {
+                dataLength = eap.length - 4;
+            }
+
+            eap.data = new byte[dataLength];
+            bb.get(eap.data);
+            return eap;
+        };
+    }
+
     @Override
     public byte[] serialize() {
         final byte[] data = new byte[this.length];

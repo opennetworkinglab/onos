@@ -16,6 +16,7 @@
 package org.onosproject.aaa;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -23,19 +24,20 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.EAP;
+import org.onlab.packet.EAPOL;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.RADIUS;
+import org.onlab.packet.RADIUSAttribute;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
-import org.onosproject.aaa.packet.EAP;
-import org.onosproject.aaa.packet.EAPEthernet;
-import org.onosproject.aaa.packet.EAPOL;
-import org.onosproject.aaa.packet.RADIUS;
-import org.onosproject.aaa.packet.RADIUSAttribute;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -45,11 +47,9 @@ import org.onosproject.net.Host;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -57,7 +57,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.topology.TopologyService;
 import org.onosproject.xosintegration.VoltTenantService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -67,7 +66,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -77,7 +75,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
- * AAA application for Onos.
+ * AAA application for ONOS.
  */
 @Component(immediate = true)
 public class AAA {
@@ -86,20 +84,9 @@ public class AAA {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    // topology information
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
-
     // to receive Packet-in events that we'll respond to
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowService;
-
-    // to submit/withdraw intents for traffic manipulation
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentService intentService;
 
     // end host information
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -107,7 +94,6 @@ public class AAA {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VoltTenantService voltTenantService;
-
 
     // for verbose output
     private final Logger log = getLogger(getClass());
@@ -130,13 +116,13 @@ public class AAA {
     private static final int DEFAULT_RADIUS_UPLINK = 2;
     // RADIUS server shared secret
     private static final String DEFAULT_RADIUS_SECRET = "ONOSecret";
-    //RADIUS MAC address
+    // RADIUS MAC address
     private static final String RADIUS_MAC_ADDRESS =  "00:00:00:00:01:10";
-    //NAS MAC address
+    // NAS MAC address
     private static final String NAS_MAC_ADDRESS = "00:00:00:00:10:01";
-    //Radius Switch Id
+    // Radius Switch Id
     private static final String DEFAULT_RADIUS_SWITCH = "of:5e3e486e73000187";
-    //Radius Port Number
+    // Radius Port Number
     private static final String DEFAULT_RADIUS_PORT = "5";
 
     @Property(name = "radiusIpAddress", value = DEFAULT_RADIUS_IP,
@@ -221,13 +207,12 @@ public class AAA {
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
 
-        selector.matchEthType(EAPEthernet.TYPE_PAE);
+        selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.requestPackets(selector.build(),
                 PacketPriority.CONTROL, appId);
 
         // Instantiate the map of the state machines
-        Map<String, StateMachine> stateMachines = new HashMap<String, StateMachine>();
-        stateMachineMap = Collections.synchronizedMap(stateMachines);
+        stateMachineMap = Collections.synchronizedMap(Maps.newHashMap());
 
         hostService.startMonitoringIp(IpAddress.valueOf(radiusIpAddress));
 
@@ -239,6 +224,38 @@ public class AAA {
         // de-register and null our handler
         packetService.removeProcessor(processor);
         processor = null;
+    }
+
+    /**
+     * Builds an EAPOL packet based on the given parameters.
+     *
+     * @param dstMac destination MAC address
+     * @param srcMac source MAC address
+     * @param eapolType EAPOL type
+     * @param eap EAP payload
+     * @return Ethernet frame
+     */
+    private static Ethernet buildEapolResponse(MacAddress dstMac, MacAddress srcMac,
+                                              short vlan, byte eapolType, EAP eap) {
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(dstMac.toBytes());
+        eth.setSourceMACAddress(srcMac.toBytes());
+        eth.setEtherType(EthType.EtherType.EAPOL.ethType().toShort());
+        if (vlan != Ethernet.VLAN_UNTAGGED) {
+            eth.setVlanID(vlan);
+        }
+        //eapol header
+        EAPOL eapol = new EAPOL();
+        eapol.setEapolType(eapolType);
+        eapol.setPacketLength(eap.getLength());
+
+        //eap part
+        eapol.setPayload(eap);
+
+        eth.setPayload(eapol);
+        eth.setPad(true);
+        return eth;
     }
 
     // our handler defined as a private inner class
@@ -256,22 +273,27 @@ public class AAA {
             if (ethPkt == null) {
                 return;
             }
-            //identify if incoming packet comes from supplicant (EAP) or RADIUS
-            switch (ethPkt.getEtherType()) {
-                case (short) 0x888e:
-                    handleSupplicantPacket(ethPkt, context);
+            // identify if incoming packet comes from supplicant (EAP) or RADIUS
+            switch (EthType.EtherType.lookup(ethPkt.getEtherType())) {
+                case EAPOL:
+                    handleSupplicantPacket(context.inPacket());
                     break;
-                case 0x800:
+                case IPV4:
                     IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
                     Ip4Address srcIp = Ip4Address.valueOf(ipv4Packet.getSourceAddress());
                     Ip4Address radiusIp4Address = Ip4Address.valueOf(parsedRadiusIpAddress);
                     if (srcIp.equals(radiusIp4Address) && ipv4Packet.getProtocol() == IPv4.PROTOCOL_UDP) {
                         // TODO: check for port as well when it's configurable
                         UDP udpPacket = (UDP) ipv4Packet.getPayload();
-                        // RADIUS radiusPacket = (RADIUS) udpPacket.getPayload();
+
                         byte[] datagram = udpPacket.getPayload().serialize();
-                        RADIUS radiusPacket = new RADIUS();
-                        radiusPacket = (RADIUS) radiusPacket.deserialize(datagram, 0, datagram.length);
+                        RADIUS radiusPacket;
+                        try {
+                            radiusPacket = RADIUS.deserializer().deserialize(datagram, 0, datagram.length);
+                        } catch (DeserializationException e) {
+                            log.warn("Unable to deserialize RADIUS packet:", e);
+                            return;
+                        }
                         handleRadiusPacket(radiusPacket);
                     }
                     break;
@@ -282,33 +304,33 @@ public class AAA {
 
 
         /**
-         * Handle PAE packets (supplicant).
-         * @param ethPkt Ethernet packet coming from the supplicant.
+         * Handles PAE packets (supplicant).
+         *
+         * @param inPacket Ethernet packet coming from the supplicant
          */
-        private void handleSupplicantPacket(Ethernet ethPkt, PacketContext context) {
+        private void handleSupplicantPacket(InboundPacket inPacket) {
+            Ethernet ethPkt = inPacket.parsed();
             // Where does it come from?
             MacAddress srcMAC = ethPkt.getSourceMAC();
 
-            DeviceId deviceId = context.inPacket().receivedFrom().deviceId();
-            PortNumber portNumber = context.inPacket().receivedFrom().port();
+            DeviceId deviceId = inPacket.receivedFrom().deviceId();
+            PortNumber portNumber = inPacket.receivedFrom().port();
             String sessionId = deviceId.toString() + portNumber.toString();
             StateMachine stateMachine = getStateMachine(sessionId);
-            //Reserialize the data of the eth packet into our EAPOL format
-            // this code will go once it is in the onos repository.
-            byte[] bullshit = ethPkt.getPayload().serialize();
-            EAPOL eapol = (EAPOL) new EAPOL().deserialize(bullshit, 0, bullshit.length);
+
+            EAPOL eapol = (EAPOL) ethPkt.getPayload();
 
             switch (eapol.getEapolType()) {
                 case EAPOL.EAPOL_START:
                     try {
                         stateMachine.start();
-                        stateMachine.supplicantConnectpoint = context.inPacket().receivedFrom();
+                        stateMachine.supplicantConnectpoint = inPacket.receivedFrom();
 
                         //send an EAP Request/Identify to the supplicant
                         EAP eapPayload = new EAP(EAP.REQUEST, stateMachine.getIdentifier(), EAP.ATTR_IDENTITY, null);
-                        Ethernet eth =  EAPOL.buildEapolResponse(srcMAC, MacAddress.valueOf(1L),
-                                                                 ethPkt.getVlanID(), EAPOL.EAPOL_PACKET,
-                                                                 eapPayload);
+                        Ethernet eth =  buildEapolResponse(srcMAC, MacAddress.valueOf(1L),
+                                                           ethPkt.getVlanID(), EAPOL.EAPOL_PACKET,
+                                                           eapPayload);
                         stateMachine.supplicantAddress = srcMAC;
                         stateMachine.vlanId = ethPkt.getVlanID();
 
@@ -319,7 +341,7 @@ public class AAA {
 
                     break;
                 case EAPOL.EAPOL_PACKET:
-                    //check if this is a Response/Idenfity or  a Response/TLS
+                    //check if this is a Response/Identify or  a Response/TLS
                     EAP eapPacket = (EAP) eapol.getPayload();
 
                     byte dataType = eapPacket.getDataType();
@@ -406,7 +428,8 @@ public class AAA {
         }
 
         /**
-         * Handle RADIUS packets.
+         * Handles RADIUS packets.
+         *
          * @param radiusPacket RADIUS packet coming from the RADIUS server.
          */
         private void handleRadiusPacket(RADIUS radiusPacket) {
@@ -416,7 +439,6 @@ public class AAA {
                 return;
             }
 
-            byte[] eapMessage = null;
             EAP eapPayload = new EAP();
             Ethernet eth = null;
             switch (radiusPacket.getCode()) {
@@ -424,18 +446,18 @@ public class AAA {
                     byte[] challengeState = radiusPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_STATE).getValue();
                     eapPayload = radiusPacket.decapsulateMessage();
                     stateMachine.setChallengeInfo(eapPayload.getIdentifier(), challengeState);
-                    eth = EAPOL.buildEapolResponse(stateMachine.supplicantAddress,
+                    eth = buildEapolResponse(stateMachine.supplicantAddress,
                             MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET, eapPayload);
                     this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
                     break;
                 case RADIUS.RADIUS_CODE_ACCESS_ACCEPT:
                     try {
                         //send an EAPOL - Success to the supplicant.
-                        eapMessage =
+                        byte[] eapMessage =
                                 radiusPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_EAP_MESSAGE).getValue();
                         eapPayload = new EAP();
                         eapPayload = (EAP) eapPayload.deserialize(eapMessage, 0, eapMessage.length);
-                        eth = EAPOL.buildEapolResponse(stateMachine.supplicantAddress,
+                        eth = buildEapolResponse(stateMachine.supplicantAddress,
                                 MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET, eapPayload);
                         this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
 
@@ -539,10 +561,11 @@ public class AAA {
 
         }
 
-
         /**
          * Send the ethernet packet to the supplicant.
+         *
          * @param ethernetPkt the ethernet packet
+         * @param connectPoint the connect point to send out
          */
         private void sendPacketToSupplicant(Ethernet ethernetPkt, ConnectPoint connectPoint) {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();

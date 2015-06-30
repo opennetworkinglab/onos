@@ -16,10 +16,8 @@
  *
  */
 
-package org.onosproject.aaa.packet;
+package org.onlab.packet;
 
-import org.onlab.packet.BasePacket;
-import org.onlab.packet.IPacket;
 import org.slf4j.Logger;
 
 import javax.crypto.Mac;
@@ -30,25 +28,28 @@ import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import static org.onlab.packet.PacketUtils.checkHeaderLength;
+import static org.onlab.packet.PacketUtils.checkInput;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- *
+ * RADIUS packet.
  */
 public class RADIUS extends BasePacket {
     protected byte code;
     protected byte identifier;
     protected short length = RADIUS_MIN_LENGTH;
     protected byte[] authenticator = new byte[16];
-    protected ArrayList<RADIUSAttribute> attributes = new ArrayList<>();
+    protected List<RADIUSAttribute> attributes = new ArrayList<>();
 
-    /* RADIUS parameters */
+    // RADIUS parameters
     public static final short RADIUS_MIN_LENGTH = 20;
     public static final short MAX_ATTR_VALUE_LENGTH = 253;
     public static final short RADIUS_MAX_LENGTH = 4096;
 
-    /* RADIUS packet types */
+    // RADIUS packet types
     public static final byte RADIUS_CODE_ACCESS_REQUEST = 0x01;
     public static final byte RADIUS_CODE_ACCESS_ACCEPT = 0x02;
     public static final byte RADIUS_CODE_ACCESS_REJECT = 0x03;
@@ -58,43 +59,92 @@ public class RADIUS extends BasePacket {
 
     private final Logger log = getLogger(getClass());
 
+    /**
+     * Default constructor.
+     */
     public RADIUS() {
     }
 
+    /**
+     * Constructs a RADIUS packet with the given code and identifier.
+     *
+     * @param code code
+     * @param identifier identifier
+     */
     public RADIUS(byte code, byte identifier) {
         this.code = code;
         this.identifier = identifier;
     }
 
+    /**
+     * Gets the code.
+     *
+     * @return code
+     */
     public byte getCode() {
         return this.code;
     }
 
+    /**
+     * Sets the code.
+     *
+     * @param code code
+     */
     public void setCode(byte code) {
         this.code = code;
     }
 
+    /**
+     * Gets the identifier.
+     *
+     * @return identifier
+     */
     public byte getIdentifier() {
         return this.identifier;
     }
 
+    /**
+     * Sets the identifier.
+     *
+     * @param identifier identifier
+     */
     public void setIdentifier(byte identifier) {
         this.identifier = identifier;
     }
 
+    /**
+     * Gets the authenticator.
+     *
+     * @return authenticator
+     */
     public byte[] getAuthenticator() {
         return this.authenticator;
     }
 
-    public void setAuthenticator(byte[] a) {
-        this.authenticator = a;
+    /**
+     * Sets the authenticator.
+     *
+     * @param authenticator authenticator
+     */
+    public void setAuthenticator(byte[] authenticator) {
+        this.authenticator = authenticator;
     }
 
+    /**
+     * Generates an authenticator code.
+     *
+     * @return the authenticator
+     */
     public byte[] generateAuthCode() {
         new SecureRandom().nextBytes(this.authenticator);
         return this.authenticator;
     }
 
+    /**
+     * Checks if the packet's code field is valid.
+     *
+     * @return whether the code is valid
+     */
     public boolean isValidCode() {
         return this.code == RADIUS_CODE_ACCESS_REQUEST ||
                 this.code == RADIUS_CODE_ACCESS_ACCEPT ||
@@ -104,11 +154,17 @@ public class RADIUS extends BasePacket {
                 this.code == RADIUS_CODE_ACCESS_CHALLENGE;
     }
 
+    /**
+     * Adds a message authenticator to the packet based on the given key.
+     *
+     * @param key key to generate message authenticator
+     * @return the messgae authenticator RADIUS attribute
+     */
     public RADIUSAttribute addMessageAuthenticator(String key) {
-        /* Message-Authenticator = HMAC-MD5 (Type, Identifier, Length, Request Authenticator, Attributes)
-           When the message integrity check is calculated the signature string should be considered to be
-           sixteen octets of zero.
-         */
+        // Message-Authenticator = HMAC-MD5 (Type, Identifier, Length,
+        // Request Authenticator, Attributes)
+        // When the message integrity check is calculated the signature string
+        // should be considered to be sixteen octets of zero.
         byte[] hashOutput = new byte[16];
         Arrays.fill(hashOutput, (byte) 0);
 
@@ -136,6 +192,13 @@ public class RADIUS extends BasePacket {
         return authAttribute;
     }
 
+    /**
+     * Checks the message authenticator in the packet with one generated from
+     * the given key.
+     *
+     * @param key key to generate message authenticator
+     * @return whether the message authenticators match or not
+     */
     public boolean checkMessageAuthenticator(String key) {
         byte[] newHash = new byte[16];
         Arrays.fill(newHash, (byte) 0);
@@ -156,8 +219,10 @@ public class RADIUS extends BasePacket {
     }
 
     /**
-     * @param message
-     *            EAP message object to be embedded in the RADIUS EAP-Message attributed
+     * Encapsulates an EAP packet in this RADIUS packet.
+     *
+     * @param message EAP message object to be embedded in the RADIUS
+     *                EAP-Message attributed
      */
     public void encapsulateMessage(EAP message) {
         if (message.length <= MAX_ATTR_VALUE_LENGTH) {
@@ -193,6 +258,8 @@ public class RADIUS extends BasePacket {
     }
 
     /**
+     * Decapsulates an EAP packet from the RADIUS packet.
+     *
      * @return An EAP object containing the reassembled EAP message
      */
     public EAP decapsulateMessage() {
@@ -212,8 +279,9 @@ public class RADIUS extends BasePacket {
     }
 
     /**
-     * @param attrType
-     *            the type field of the required attributes
+     * Gets a list of attributes from the RADIUS packet.
+     *
+     * @param attrType the type field of the required attributes
      * @return List of the attributes that matches the type or an empty list if there is none
      */
     public ArrayList<RADIUSAttribute> getAttributeList(byte attrType) {
@@ -227,8 +295,9 @@ public class RADIUS extends BasePacket {
     }
 
     /**
-     * @param attrType
-     *            the type field of the required attribute
+     * Gets an attribute from the RADIUS packet.
+     *
+     * @param attrType the type field of the required attribute
      * @return the first attribute that matches the type or null if does not exist
      */
     public RADIUSAttribute getAttribute(byte attrType) {
@@ -241,10 +310,10 @@ public class RADIUS extends BasePacket {
     }
 
     /**
-     * @param attrType
-     *            the type field of the attribute to set
-     * @param value
-     *            value to be set
+     * Sets an attribute in the RADIUS packet.
+     *
+     * @param attrType the type field of the attribute to set
+     * @param value value to be set
      * @return reference to the attribute object
      */
     public RADIUSAttribute setAttribute(byte attrType, byte[] value) {
@@ -255,6 +324,13 @@ public class RADIUS extends BasePacket {
         return newAttribute;
     }
 
+    /**
+     * Updates an attribute in the RADIUS packet.
+     *
+     * @param attrType the type field of the attribute to update
+     * @param value the value to update to
+     * @return reference to the attribute object
+     */
     public RADIUSAttribute updateAttribute(byte attrType, byte[] value) {
         for (int i = 0; i < this.attributes.size(); i++) {
             if (this.attributes.get(i).getType() == attrType) {
@@ -266,6 +342,40 @@ public class RADIUS extends BasePacket {
             }
         }
         return null;
+    }
+
+    /**
+     * Deserializer for RADIUS packets.
+     *
+     * @return deserializer
+     */
+    public static Deserializer<RADIUS> deserializer() {
+        return (data, offset, length) -> {
+            checkInput(data, offset, length, RADIUS_MIN_LENGTH);
+
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
+            RADIUS radius = new RADIUS();
+            radius.code = bb.get();
+            radius.identifier = bb.get();
+            radius.length = bb.getShort();
+            bb.get(radius.authenticator, 0, 16);
+
+            checkHeaderLength(length, radius.length);
+
+            int remainingLength = radius.length - RADIUS_MIN_LENGTH;
+            while (remainingLength > 0 && bb.hasRemaining()) {
+
+                RADIUSAttribute attr = new RADIUSAttribute();
+                attr.setType(bb.get());
+                attr.setLength(bb.get());
+                short attrLength = (short) (attr.length & 0xff);
+                attr.value = new byte[attrLength - 2];
+                bb.get(attr.value, 0, attrLength - 2);
+                radius.attributes.add(attr);
+                remainingLength -= attr.length;
+            }
+            return radius;
+        };
     }
 
     @Override

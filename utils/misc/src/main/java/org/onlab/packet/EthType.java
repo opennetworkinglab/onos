@@ -35,8 +35,9 @@ public class EthType {
         VLAN(0x8100, "vlan", null),
         BDDP(0x8942, "bddp", org.onlab.packet.LLDP.deserializer()),
         MPLS_UNICAST(0x8847, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
-        MPLS_MULTICAST(0x8848, "mpls_unicast", org.onlab.packet.MPLS.deserializer());
-
+        MPLS_MULTICAST(0x8848, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
+        EAPOL(0x888e, "eapol", org.onlab.packet.EAPOL.deserializer()),
+        UNKNOWN(0, "unknown", null);
 
 
         private final EthType etherType;
@@ -67,6 +68,15 @@ public class EthType {
 
         public Deserializer<?> deserializer() {
             return deserializer;
+        }
+
+        public static EtherType lookup(short etherType) {
+            for (EtherType ethType : EtherType.values()) {
+                if (ethType.ethType().toShort() == etherType) {
+                    return ethType;
+                }
+            }
+            return UNKNOWN;
         }
 
     }

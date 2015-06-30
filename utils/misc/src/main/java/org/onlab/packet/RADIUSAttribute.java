@@ -16,16 +16,17 @@
  *
  */
 
-package org.onosproject.aaa.packet;
+package org.onlab.packet;
 
-import java.nio.ByteBuffer;
-
+/**
+ * An attribute in a RADIUS packet.
+ */
 public class RADIUSAttribute {
     protected byte type;
     protected byte length;
     protected byte[] value;
 
-    /* RADIUS attribute types */
+    // RADIUS attribute types
     public static final byte RADIUS_ATTR_USERNAME = 1;
     public static final byte RADIUS_ATTR_NAS_IP = 4;
     public static final byte RADIUS_ATTR_NAS_PORT = 5;
@@ -40,15 +41,30 @@ public class RADIUSAttribute {
     public static final byte RADIUS_ATTR_MESSAGE_AUTH = 80;
     public static final byte RADIUS_ATTR_NAS_PORT_ID = 87;
 
+    /**
+     * Default constructor.
+     */
     public RADIUSAttribute() {
     }
 
+    /**
+     * Constructs a RADIUS attribute with the give type, length and value.
+     *
+     * @param type type
+     * @param length length
+     * @param value value
+     */
     public RADIUSAttribute(final byte type, final byte length, final byte[] value) {
         this.type = type;
         this.length = length;
         this.value = value;
     }
 
+    /**
+     * Checks if the attribute type is valid.
+     *
+     * @return whether the type is valid or not
+     */
     public boolean isValidType() {
         return this.type == RADIUS_ATTR_USERNAME ||
                 this.type == RADIUS_ATTR_NAS_IP ||
@@ -64,6 +80,8 @@ public class RADIUSAttribute {
     }
 
     /**
+     * Gets the attribute type.
+     *
      * @return the type
      */
     public byte getType() {
@@ -71,8 +89,9 @@ public class RADIUSAttribute {
     }
 
     /**
-     * @param type
-     *            the code to set
+     * Sets the attribute type.
+     *
+     * @param type the code to set
      * @return this
      */
     public RADIUSAttribute setType(final byte type) {
@@ -81,6 +100,8 @@ public class RADIUSAttribute {
     }
 
     /**
+     * Gets the attribute length.
+     *
      * @return the length
      */
     public byte getLength() {
@@ -88,8 +109,9 @@ public class RADIUSAttribute {
     }
 
     /**
-     * @param length
-     *            the length to set
+     * Sets the attribute length.
+     *
+     * @param length the length to set
      * @return this
      */
     public RADIUSAttribute setLength(final byte length) {
@@ -98,6 +120,8 @@ public class RADIUSAttribute {
     }
 
     /**
+     * Gets the attribute value.
+     *
      * @return the value
      */
     public byte[] getValue() {
@@ -105,8 +129,9 @@ public class RADIUSAttribute {
     }
 
     /**
-     * @param value
-     *            the data to set
+     * Sets the attribute value.
+     *
+     * @param value the data to set
      * @return this
      */
     public RADIUSAttribute setValue(final byte[] value) {
@@ -114,12 +139,4 @@ public class RADIUSAttribute {
         return this;
     }
 
-    public byte[] serialize() {
-        final byte[] data = new byte[this.length];
-        final ByteBuffer bb = ByteBuffer.wrap(data);
-        bb.put(this.type);
-        bb.put(this.length);
-        bb.put(this.value);
-        return data;
-    }
 }
