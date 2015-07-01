@@ -155,7 +155,7 @@ public class OpticalPathProvisioner {
             // TODO change the coordination approach between packet intents and optical intents
             // Low speed LLDP may cause multiple calls which are not expected
 
-            if (!IntentState.FAILED.equals(intentService.getIntentState(intent.key()))) {
+            if (intentService.getIntentState(intent.key()) != IntentState.FAILED) {
                 return;
             }
 
