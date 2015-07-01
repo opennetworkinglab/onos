@@ -9,7 +9,6 @@
 remote=$ONOS_USER@${1:-$OCI}
 
 ssh -t $remote "
-    set -x
     # Wait until we reach the run-level 100
     for i in \$(seq 1 45); do
         $ONOS_INSTALL_DIR/bin/onos bundle:list 2>/dev/null | \
