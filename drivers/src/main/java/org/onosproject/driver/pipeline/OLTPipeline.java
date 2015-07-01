@@ -16,6 +16,9 @@
 package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -31,6 +34,7 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -43,6 +47,7 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
@@ -65,6 +70,9 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private ServiceDirectory serviceDirectory;
     private FlowRuleService flowRuleService;
     private DeviceId deviceId;
+    private CoreService coreService;
+
+    private ApplicationId appId;
 
     private DeviceProvider provider = new AnnotationProvider();
 
@@ -76,6 +84,7 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         DeviceProviderRegistry registry =
                serviceDirectory.get(DeviceProviderRegistry.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
+        coreService = serviceDirectory.get(CoreService.class);
 
         try {
             DeviceProviderService providerService = registry.register(provider);
@@ -85,6 +94,22 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             registry.unregister(provider);
         }
 
+        appId = coreService.registerApplication(
+                "org.onosproject.driver.OLTPipeline");
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.EAPOL.ethType().toShort())
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .punt()
+                .build();
+
+        FlowRule flowRule = new DefaultFlowRule(deviceId, selector, treatment,
+                                                PacketPriority.CONTROL.priorityValue(),
+                                                appId, 0, true, null);
+
+        flowRuleService.applyFlowRules(flowRule);
     }
 
     @Override

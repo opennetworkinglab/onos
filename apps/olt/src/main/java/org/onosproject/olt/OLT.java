@@ -98,7 +98,7 @@ public class OLT {
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.olt");
 
-        deviceService.addListener(deviceListener);
+        /*deviceService.addListener(deviceListener);
 
         deviceService.getPorts(DeviceId.deviceId(oltDevice)).stream().forEach(
                 port -> {
@@ -110,7 +110,7 @@ public class OLT {
                         }
                     }
                 }
-        );
+        );*/
 
 
         deviceService.getPorts(DeviceId.deviceId(gfastDevice)).stream().forEach(
