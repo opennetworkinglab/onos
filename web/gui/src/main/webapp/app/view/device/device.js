@@ -22,7 +22,7 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, fs, mast, ps, wss, is, bns, ns, ttip;
+    var $log, $scope, fs, mast, ps, wss, is, ns;
 
     // internal state
     var detailsPanel,
@@ -35,12 +35,8 @@
         ctnrPdg = 24,
         scrollSize = 17,
         portsTblPdg = 50,
-        flowPath = 'flow',
-        portPath = 'port',
-        groupPath = 'group',
 
         pName = 'device-details-panel',
-        bName = 'dev-dets-p',
         detailsReq = 'deviceDetailsRequest',
         detailsResp = 'deviceDetailsResponse',
 
@@ -85,7 +81,6 @@
         tblDiv.append('div').classed('left', true).append('table');
         tblDiv.append('div').classed('right', true).append('table');
 
-        top.append('div').classed('actionBtns', true);
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
@@ -103,7 +98,7 @@
         addCell('value', value);
     }
 
-    function populateTop(tblDiv, btnsDiv, details) {
+    function populateTop(tblDiv, details) {
         var leftTbl = tblDiv.select('.left')
                         .select('table')
                         .append('tbody'),
@@ -118,34 +113,6 @@
             // properties are split into two tables
             addProp(i < 3 ? leftTbl : rightTbl, i, details[prop]);
         });
-
-        bns.button(
-            btnsDiv,
-            bName + '-flows',
-            'flowTable',
-            function () {
-                ns.navTo(flowPath, { devId: details.id });
-            },
-            'Show flow view for this device'
-        );
-        bns.button(
-            btnsDiv,
-            bName + '-ports',
-            'portTable',
-            function () {
-                ns.navTo(portPath, { devId: details.id });
-            },
-            'Show port view for this device'
-        );
-        bns.button(
-            btnsDiv,
-            bName + '-groups',
-            'groupTable',
-            function () {
-                ns.navTo(groupPath, { devId: details.id });
-            },
-            'Show group view for this device'
-        );
     }
 
     function addPortRow(tbody, port) {
@@ -187,15 +154,14 @@
     }
 
     function populateDetails(details) {
-        var topTbs, btnsDiv, btmTbl, ports;
+        var topTbs, btmTbl, ports;
         setUpPanel();
 
         topTbs = top.select('.top-tables');
-        btnsDiv = top.select('.actionBtns');
         btmTbl = bottom.select('table');
         ports = details.ports;
 
-        populateTop(topTbs, btnsDiv, details);
+        populateTop(topTbs, details);
         populateBottom(btmTbl, ports);
 
         detailsPanel.height(pHeight);
@@ -223,10 +189,10 @@
     .controller('OvDeviceCtrl',
         ['$log', '$scope', 'TableBuilderService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
-            'ButtonService', 'NavService', 'TooltipService',
+            'NavService',
 
         function (_$log_, _$scope_,
-                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _bns_, _ns_, _ttip_) {
+                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_) {
             $log = _$log_;
             $scope = _$scope_;
             fs = _fs_;
@@ -234,9 +200,7 @@
             ps = _ps_;
             wss = _wss_;
             is = _is_;
-            bns = _bns_;
             ns = _ns_;
-            ttip = _ttip_;
             var handlers = {};
             $scope.panelData = [];
 
@@ -259,6 +223,12 @@
             // details panel handlers
             handlers[detailsResp] = respDetailsCb;
             wss.bindHandlers(handlers);
+
+            $scope.nav = function (path) {
+                if ($scope.selId) {
+                    ns.navTo(path, { devId: $scope.selId });
+                }
+            };
 
             $scope.$on('$destroy', function () {
                 wss.unbindHandlers(handlers);
@@ -293,7 +263,7 @@
                         return {
                             h: $window.innerHeight,
                             w: $window.innerWidth
-                        }
+                        };
                     }, function () {
                         if (!fs.isEmptyObject(scope.panelData)) {
                             heightCalc();

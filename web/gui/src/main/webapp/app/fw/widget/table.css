@@ -115,6 +115,12 @@ div.ctrl-btns div {
     cursor: pointer;
 }
 
+div.ctrl-btns div.separator  {
+    cursor: auto;
+    width: 24px;
+    border: none;
+}
+
 /* Inactive */
 .light .ctrl-btns div g.icon rect,
 .light .ctrl-btns div:hover g.icon rect {

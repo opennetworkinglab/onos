@@ -23,7 +23,21 @@
 }
 
 #ov-flow div.ctrl-btns {
-    width: 45px;
+    width: 240px;
+}
+
+.light #ov-flow .current-view use {
+    fill: white;
+}
+.dark #ov-flow .current-view use {
+    fill: #304860;
+}
+
+.light #ov-flow .current-view rect {
+    fill: deepskyblue;
+}
+.dark #ov-flow .current-view rect {
+    fill: #eee;
 }
 
 .light #ov-flow tr:nth-child(6n + 1),

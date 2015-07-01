@@ -22,20 +22,21 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, tbs;
+    var $log, $scope, $location, fs, tbs, ns;
 
     angular.module('ovGroup', [])
     .controller('OvGroupCtrl',
         ['$log', '$scope', '$location', '$sce',
-            'FnService', 'TableBuilderService',
+            'FnService', 'TableBuilderService', 'NavService',
 
-        function (_$log_, _$scope_, _$location_, $sce, _fs_, _tbs_) {
+        function (_$log_, _$scope_, _$location_, $sce, _fs_, _tbs_, _ns_) {
             var params;
             $log = _$log_;
             $scope = _$scope_;
             $location = _$location_;
             fs = _fs_;
             tbs = _tbs_;
+            ns = _ns_;
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {
@@ -55,6 +56,12 @@
                     });
                 }
             });
+
+            $scope.nav = function (path) {
+                if ($scope.devId) {
+                    ns.navTo(path, { devId: $scope.devId });
+                }
+            };
 
             $log.log('OvGroupCtrl has been created');
         }]);

@@ -23,9 +23,23 @@
 }
 
 #ov-port div.ctrl-btns {
-    width: 45px;
+    width: 240px;
 }
 
-#ov-port tr:not(.no-data) td {
+.light #ov-port .current-view use {
+    fill: white;
+}
+.dark #ov-port .current-view use {
+    fill: #304860;
+}
+
+.light #ov-port .current-view rect {
+    fill: deepskyblue;
+}
+.dark #ov-port .current-view rect {
+    fill: #eee;
+}
+
+#ov-port td {
     text-align: right;
 }

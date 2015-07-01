@@ -47,6 +47,9 @@
 
         devIcon_SWITCH: 'switch',
         devIcon_ROADM: 'roadm',
+        flowTable: 'flowTable',
+        portTable: 'portTable',
+        groupTable: 'groupTable',
 
         hostIcon_endstation: 'endstation',
         hostIcon_router: 'router',

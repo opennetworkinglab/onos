@@ -4,8 +4,21 @@
         <h2>Devices ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
-                 icon icon-size="36" icon-id="refresh"
+                 icon icon-id="refresh" icon-size="36"
                  ng-click="toggleRefresh()"></div>
+            <div class="separator"></div>
+
+            <div ng-class="{active: !!selId}"
+                 icon icon-id="flowTable" icon-size="36"
+                 ng-click="nav('flow')"></div>
+
+            <div ng-class="{active: !!selId}"
+                 icon icon-id="portTable" icon-size="36"
+                 ng-click="nav('port')"></div>
+
+            <div ng-class="{active: !!selId}"
+                 icon icon-id="groupTable" icon-size="36"
+                 ng-click="nav('group')"></div>
         </div>
     </div>
 

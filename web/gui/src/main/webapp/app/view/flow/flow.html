@@ -9,6 +9,19 @@
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="36" icon-id="refresh"
                  ng-click="toggleRefresh()"></div>
+
+            <div class="separator"></div>
+
+            <div class="current-view"
+                 icon icon-id="flowTable" icon-size="36"></div>
+
+            <div class="active"
+                 icon icon-id="portTable" icon-size="36"
+                 ng-click="nav('port')"></div>
+
+            <div class="active"
+                 icon icon-id="groupTable" icon-size="36"
+                 ng-click="nav('group')"></div>
         </div>
     </div>
 
