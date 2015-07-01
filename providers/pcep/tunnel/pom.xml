@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>onos-pcep-provider-tunnel</artifactId>
 	<packaging>bundle</packaging>
-
+    <description>PCEP-based tunnel provider</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.onosproject</groupId>

@@ -28,6 +28,7 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-build-conf</artifactId>
     <version>1.0</version>
+    <description>Various ONOS build settings</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

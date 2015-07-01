@@ -8,6 +8,7 @@
   </parent>
   <artifactId>onos-pcep-provider-topology</artifactId>
   <packaging>bundle</packaging>
+  <description>PCEP topology provider</description>
   	<dependencies>
 		<dependency>
 			<groupId>org.onosproject</groupId>

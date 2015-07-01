@@ -27,7 +27,7 @@
 
     <artifactId>onos-branding</artifactId>
     <packaging>bundle</packaging>
-
+    <description>Custom Karaf CLI motd</description>
     <build>
         <plugins>
             <plugin>

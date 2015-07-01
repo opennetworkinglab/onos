@@ -8,6 +8,7 @@
   </parent>
   <artifactId>onos-pcep-providers</artifactId>
   <packaging>pom</packaging>
+  <description>PCEP protocol providers root</description>
   <modules>
   	<module>topology</module>
   	<module>tunnel</module>

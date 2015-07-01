@@ -7,4 +7,6 @@
   </parent>
   <artifactId>onos-app-pcep-api</artifactId>
   <packaging>bundle</packaging>
+
+  <description>PCEP protocol API</description>
 </project>

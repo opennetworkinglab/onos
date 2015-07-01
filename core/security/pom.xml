@@ -17,4 +17,5 @@
         <module>impl</module>
     </modules>
 
+    <description>Security-mode ONOS project root</description>
 </project>

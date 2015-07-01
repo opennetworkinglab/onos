@@ -29,6 +29,8 @@
 
     <artifactId>onos-security-impl</artifactId>
 
+    <description>Security-mode ONOS components</description>
+
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
