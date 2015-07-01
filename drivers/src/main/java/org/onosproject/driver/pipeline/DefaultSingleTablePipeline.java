@@ -57,9 +57,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
     }
 
     @Override
-    public void filter(FilteringObjective filter) {
-        throw new UnsupportedOperationException("Single table does not filter.");
-    }
+    public void filter(FilteringObjective filter) {}
 
     @Override
     public void forward(ForwardingObjective fwd) {
@@ -126,8 +124,6 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
     }
 
     @Override
-    public void next(NextObjective nextObjective) {
-        throw new UnsupportedOperationException("Single table does not next hop.");
-    }
+    public void next(NextObjective nextObjective) {}
 
 }
