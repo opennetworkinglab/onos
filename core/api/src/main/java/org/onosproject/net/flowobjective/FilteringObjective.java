@@ -65,6 +65,7 @@ public interface FilteringObjective extends Objective {
 
     /**
      * Obtain this filtering type.
+     *
      * @return the type
      */
     Type type();
@@ -99,18 +100,21 @@ public interface FilteringObjective extends Objective {
 
         /**
          * Permit this filtering condition set.
+         *
          * @return a filtering builder
          */
         Builder permit();
 
         /**
          * Deny this filtering condition set.
+         *
          * @return a filtering builder
          */
         Builder deny();
 
         /**
          * Assigns an application id.
+         *
          * @param appId an application id
          * @return a filtering builder
          */
