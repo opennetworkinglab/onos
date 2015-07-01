@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -150,18 +151,21 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         private final DeviceId deviceId;
         private final Objective objective;
 
-        private int numAttempts = 0;
+        private final int numAttempts;
 
         public ObjectiveInstaller(DeviceId deviceId, Objective objective) {
-            this.deviceId = deviceId;
-            this.objective = objective;
+            this(deviceId, objective, 1);
+        }
+
+        public ObjectiveInstaller(DeviceId deviceId, Objective objective, int attemps) {
+            this.deviceId = checkNotNull(deviceId);
+            this.objective = checkNotNull(objective);
+            this.numAttempts = checkNotNull(attemps);
         }
 
         @Override
         public void run() {
             try {
-                numAttempts++;
-
                 Pipeliner pipeliner = getDevicePipeliner(deviceId);
 
                 if (pipeliner != null) {
@@ -174,7 +178,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     }
                 } else if (numAttempts < INSTALL_RETRY_ATTEMPTS) {
                     Thread.sleep(INSTALL_RETRY_INTERVAL);
-                    executorService.submit(this);
+                    executorService.submit(new ObjectiveInstaller(deviceId, objective, numAttempts + 1));
                 } else {
                     // Otherwise we've tried a few times and failed, report an
                     // error back to the user.
