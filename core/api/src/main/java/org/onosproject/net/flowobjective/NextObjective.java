@@ -26,7 +26,7 @@ import java.util.Collection;
  * into the appropriate group or actions needed to implement
  * the egress function.
  *
- * A next objective is made up of a collection of traffic treatements
+ * A next objective is made up of a collection of traffic treatments
  * associated with a type. These types are:
  *
  * - Hashed
