@@ -967,7 +967,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
     @Override
     public boolean mp2pIntentExists(IpPrefix ipPrefix) {
         checkNotNull(ipPrefix);
-        return routeIntents.get(ipPrefix) == null ? false : true;
+        return routeIntents.get(ipPrefix) != null;
     }
 
     /**
