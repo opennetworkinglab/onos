@@ -16,12 +16,14 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -36,6 +38,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
@@ -234,6 +238,21 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         // apply the intent's treatments
         TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder(intent
                 .treatment());
+
+        // check if the treatement is popVlan or setVlan (rewrite),
+        // than selector needs to match any VlanId
+        for (Instruction instruct : intent.treatment().allInstructions()) {
+            if (instruct instanceof L2ModificationInstruction) {
+                L2ModificationInstruction l2Mod = (L2ModificationInstruction) instruct;
+                if (l2Mod.subtype() == L2ModificationInstruction.L2SubType.VLAN_PUSH) {
+                    break;
+                }
+                if (l2Mod.subtype() == L2ModificationInstruction.L2SubType.VLAN_POP ||
+                        l2Mod.subtype() == L2ModificationInstruction.L2SubType.VLAN_ID) {
+                    selector.matchVlanId(VlanId.ANY);
+                }
+            }
+        }
 
         if (intent.egressLabel().isPresent()) {
             treat.setMpls(intent.egressLabel().get());

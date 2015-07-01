@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -60,6 +61,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-t", aliases = "--ethType", description = "Ethernet Type",
             required = false, multiValued = false)
     private String ethTypeString = null;
+
+    @Option(name = "-v", aliases = "--vlan", description = "VLAN ID",
+            required = false, multiValued = false)
+    private String vlanString = null;
 
     @Option(name = "--ipProto", description = "IP Protocol",
             required = false, multiValued = false)
@@ -143,6 +148,17 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private String setIpDstString = null;
 
+    @Option(name = "--setVlan", description = "Rewrite VLAN ID",
+            required = false, multiValued = false)
+    private String setVlan = null;
+
+    @Option(name = "--popVlan", description = "Pop VLAN Tag",
+            required = false, multiValued = false)
+    private boolean popVlan = false;
+
+    @Option(name = "--pushVlan", description = "Push VLAN ID",
+            required = false, multiValued = false)
+    private String pushVlan = null;
 
     // Priorities
     @Option(name = "-p", aliases = "--priority", description = "Priority",
@@ -201,6 +217,9 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
         if (ethType != null) {
             selectorBuilder.matchEthType(ethType);
+        }
+        if (!isNullOrEmpty(vlanString)) {
+            selectorBuilder.matchVlanId(VlanId.vlanId(Short.parseShort(vlanString)));
         }
         if (!isNullOrEmpty(srcMacString)) {
             selectorBuilder.matchEthSrc(MacAddress.valueOf(srcMacString));
@@ -287,6 +306,19 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
         if (!isNullOrEmpty(setIpDstString)) {
             treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpDstString));
+            emptyTreatment = false;
+        }
+        if (!isNullOrEmpty(setVlan)) {
+            treatmentBuilder.setVlanId(VlanId.vlanId(Short.parseShort(setVlan)));
+            emptyTreatment = false;
+        }
+        if (popVlan) {
+            treatmentBuilder.popVlan();
+            emptyTreatment = false;
+        }
+        if (!isNullOrEmpty(pushVlan)) {
+            treatmentBuilder.pushVlan();
+            treatmentBuilder.setVlanId(VlanId.vlanId(Short.parseShort(pushVlan)));
             emptyTreatment = false;
         }
 
