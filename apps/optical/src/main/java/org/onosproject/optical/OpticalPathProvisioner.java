@@ -214,7 +214,7 @@ public class OpticalPathProvisioner {
          */
         private List<ConnectPoint> getCrossConnectPoints(Path path) {
             boolean scanning = false;
-            List<ConnectPoint> connectPoints = new LinkedList<ConnectPoint>();
+            List<ConnectPoint> connectPoints = new LinkedList<>();
 
             for (Link link : path.links()) {
                 if (!isCrossConnectLink(link)) {
