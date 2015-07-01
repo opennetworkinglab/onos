@@ -51,6 +51,7 @@ public interface FlowObjectiveService {
 
     /**
      * Obtains a globally unique next objective.
+     *
      * @return an integer
      */
     int allocateNextId();
