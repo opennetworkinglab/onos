@@ -57,7 +57,7 @@ public interface Serializer {
         KryoNamespace.Builder builder = new KryoNamespace.Builder();
         namespaces.forEach(builder::register);
         Lists.newArrayList(classes).forEach(builder::register);
-        builder.register(MapEvent.class, MapEvent.Type.class);
+        builder.register(MapEvent.class, MapEvent.Type.class, Versioned.class);
         KryoNamespace namespace = builder.build();
         return new Serializer() {
             @Override
