@@ -121,9 +121,9 @@ public class AAA {
     // NAS MAC address
     private static final String NAS_MAC_ADDRESS = "00:00:00:00:10:01";
     // Radius Switch Id
-    private static final String DEFAULT_RADIUS_SWITCH = "of:5e3e486e73000187";
+    private static final String DEFAULT_RADIUS_SWITCH = "of:90e2ba82f97791e9";
     // Radius Port Number
-    private static final String DEFAULT_RADIUS_PORT = "5";
+    private static final String DEFAULT_RADIUS_PORT = "129";
 
     @Property(name = "radiusIpAddress", value = DEFAULT_RADIUS_IP,
             label = "RADIUS IP Address")

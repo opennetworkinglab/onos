@@ -101,6 +101,10 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .matchEthType(EthType.EtherType.EAPOL.ethType().toShort())
                 .build();
 
+        TrafficSelector arpSelector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                .build();
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .punt()
                 .build();
@@ -109,7 +113,11 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                                 PacketPriority.CONTROL.priorityValue(),
                                                 appId, 0, true, null);
 
-        flowRuleService.applyFlowRules(flowRule);
+        FlowRule arpRule = new DefaultFlowRule(deviceId, arpSelector, treatment,
+                                                PacketPriority.CONTROL.priorityValue(),
+                                                appId, 0, true, null);
+
+        flowRuleService.applyFlowRules(flowRule, arpRule);
     }
 
     @Override

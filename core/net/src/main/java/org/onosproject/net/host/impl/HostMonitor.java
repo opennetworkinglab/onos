@@ -253,6 +253,8 @@ public class HostMonitor implements TimerTask {
             ethernet.setVlanID(vlan.toShort());
         }
 
+        ethernet.setPad(true);
+
         return ethernet;
     }
 

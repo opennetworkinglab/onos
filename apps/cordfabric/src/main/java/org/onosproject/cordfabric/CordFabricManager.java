@@ -133,23 +133,47 @@ public class CordFabricManager implements FabricService {
                 .build();
 
         TrafficSelector toRadius = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.portNumber(2))
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(radiusPort)
                 .build();
 
-        TrafficTreatment puntToController = DefaultTrafficTreatment.builder()
-                .punt()
+        TrafficSelector fromRadius = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.portNumber(5))
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                .matchUdpDst(radiusPort)
                 .build();
 
-        ForwardingObjective radiusToController = DefaultForwardingObjective.builder()
+        TrafficTreatment toOlt = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(2))
+                .build();
+
+
+        TrafficTreatment sentToRadius = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(5))
+                .build();
+
+        ForwardingObjective radiusToServer = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withPriority(PRIORITY)
                 .withSelector(toRadius)
-                .withTreatment(puntToController)
+                .withTreatment(sentToRadius)
                 .add();
+
+        ForwardingObjective serverToRadius = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(fromRadius)
+                .withTreatment(toOlt)
+                .add();
+
+
 
         ForwardingObjective upCtrl = DefaultForwardingObjective.builder()
                 .fromApp(appId)
@@ -173,7 +197,8 @@ public class CordFabricManager implements FabricService {
 
         flowObjectiveService.forward(fabricDeviceId, upCtrl);
         flowObjectiveService.forward(fabricDeviceId, downCtrl);
-        flowObjectiveService.forward(fabricDeviceId, radiusToController);
+        flowObjectiveService.forward(fabricDeviceId, radiusToServer);
+        flowObjectiveService.forward(fabricDeviceId, serverToRadius);
     }
 
     @Override
