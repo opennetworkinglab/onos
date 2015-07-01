@@ -3,7 +3,6 @@ package org.onosproject.security.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections.FastHashMap;
 import org.onosproject.core.Permission;
 import org.onosproject.security.AppPermission;
 import org.osgi.service.permissionadmin.PermissionInfo;
@@ -47,8 +46,9 @@ import org.osgi.framework.AdaptPermission;
 
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public final class PolicyBuilder {
@@ -56,7 +56,7 @@ public final class PolicyBuilder {
     private PolicyBuilder(){
     }
 
-    public static PermissionInfo[] getApplicationPermissions(HashMap<Permission, Set<String>> serviceDirectory,
+    public static PermissionInfo[] getApplicationPermissions(Map<Permission, Set<String>> serviceDirectory,
                                                              Set<Permission> permissions) {
         Set<PermissionInfo> permSet = Sets.newHashSet();
         Collections.addAll(permSet, getDefaultPerms());
@@ -69,7 +69,7 @@ public final class PolicyBuilder {
         return permSet.toArray(permissionInfos);
     }
 
-    public static PermissionInfo[] getAdminApplicationPermissions(HashMap<Permission, Set<String>> serviceDirectory) {
+    public static PermissionInfo[] getAdminApplicationPermissions(Map<Permission, Set<String>> serviceDirectory) {
         Set<PermissionInfo> permSet = Sets.newHashSet();
         Collections.addAll(permSet, getDefaultPerms());
         Collections.addAll(permSet, getAdminDefaultPerms());
@@ -166,9 +166,9 @@ public final class PolicyBuilder {
     }
 
 
-    public static HashMap<Permission, Set<String>> getServiceDirectory() {
+    public static Map<Permission, Set<String>> getServiceDirectory() {
 
-        HashMap<Permission, Set<String>> serviceDirectory = new FastHashMap();
+        Map<Permission, Set<String>> serviceDirectory = new ConcurrentHashMap<>();
 
         serviceDirectory.put(Permission.APP_READ, ImmutableSet.of(
                 ApplicationService.class.getName(), CoreService.class.getName()));

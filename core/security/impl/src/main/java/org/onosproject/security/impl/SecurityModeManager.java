@@ -1,6 +1,5 @@
 package org.onosproject.security.impl;
 
-import org.apache.commons.collections.FastHashMap;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -33,9 +32,10 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 import java.security.AccessControlException;
 import java.security.AllPermission;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.osgi.service.permissionadmin.PermissionAdmin;
@@ -75,9 +75,9 @@ public class SecurityModeManager {
 
     private PermissionAdmin permissionAdmin = null;
 
-    private HashMap<String, ApplicationId> appTracker = null;
+    private Map<String, ApplicationId> appTracker = null;
 
-    private HashMap<Permission, Set<String>> serviceDirectory = null;
+    private Map<Permission, Set<String>> serviceDirectory = null;
 
 
     @Activate
@@ -93,7 +93,7 @@ public class SecurityModeManager {
         bundleContext.addBundleListener(securityBundleListener);
         appAdminService.addListener(securityApplicationListener);
         logReaderService.addLogListener(securityLogListener);
-        appTracker = new FastHashMap();
+        appTracker = new ConcurrentHashMap<>();
 
         permissionAdmin = getPermissionAdmin(bundleContext);
         if (permissionAdmin == null) {
