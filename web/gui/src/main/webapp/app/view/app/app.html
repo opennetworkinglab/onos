@@ -5,6 +5,7 @@
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="36" icon-id="refresh"
+                 tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
             <div class="separator"></div>
 
@@ -14,18 +15,22 @@
                        file-model="appFile">
             </form>
             <div icon icon-size="36" icon-id="plus"
-                 class="active" trigger-form>
+                 class="active" trigger-form
+                 tooltip tt-msg="uploadTip">
             </div>
             <div icon icon-size="36" icon-id="play"
                  ng-click="appAction('activate')"
+                 tooltip tt-msg="activateTip"
                  ng-class="{active: ctrlBtnState.installed}">
             </div>
             <div icon icon-size="36" icon-id="stop"
                  ng-click="appAction('deactivate')"
+                 tooltip tt-msg="deactivateTip"
                  ng-class="{active: ctrlBtnState.active}">
             </div>
             <div icon icon-size="36" icon-id="garbage"
                  ng-click="appAction('uninstall')"
+                 tooltip tt-msg="uninstallTip"
                  ng-class="{active: ctrlBtnState.selection}">
             </div>
         </div>

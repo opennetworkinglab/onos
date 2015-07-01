@@ -50,6 +50,7 @@
         o.scope.tableData = [];
         o.scope.sortParams = {};
         o.scope.autoRefresh = true;
+        o.scope.autoRefreshTip = 'Toggle auto refresh';
 
         function respCb(data) {
             o.scope.tableData = data[root];

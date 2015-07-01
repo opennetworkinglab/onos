@@ -37,6 +37,8 @@
             fs = _fs_;
             tbs = _tbs_;
             ns = _ns_;
+            $scope.flowTip = 'Show flow view for this device';
+            $scope.groupTip = 'Show group view for this device';
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {

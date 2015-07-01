@@ -34,6 +34,10 @@
 
     function ($log, $scope, $http, fs, tbs, wss, ufs) {
         $scope.ctrlBtnState = {};
+        $scope.uploadTip = 'Upload an application';
+        $scope.activateTip = 'Activate selected application';
+        $scope.deactivateTip = 'Deactivate selected application';
+        $scope.uninstallTip = 'Uninstall selected application';
 
         function selCb($event, row) {
             // selId comes from tableBuilder

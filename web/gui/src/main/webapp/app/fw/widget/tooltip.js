@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, fs;
+    var $log, $rootScope, fs;
 
     // constants
     var hoverHeight = 35,
@@ -65,6 +65,14 @@
 
     // === API functions ------------------------------------------------
 
+    function addTooltip(elem, tooltip) {
+        elem.on('mouseover', function () { showTooltip(this, tooltip); });
+        elem.on('mouseout', function () { cancelTooltip(this); });
+        $rootScope.$on('$routeChangeStart', function () {
+            cancelTooltip(elem.node());
+        });
+    }
+
     function showTooltip(el, msg) {
         // tooltips don't make sense on mobile devices
         if (!el || !msg || fs.isMobile()) {
@@ -105,17 +113,34 @@
     }
 
     angular.module('onosWidget')
-        .factory('TooltipService', ['$log', 'FnService',
 
-        function (_$log_, _fs_) {
-            $log = _$log_;
-            fs = _fs_;
+        .directive('tooltip', ['$rootScope', 'FnService',
+            function (_$rootScope_, _fs_) {
+                $rootScope = _$rootScope_;
+                fs = _fs_;
 
-            init();
+                init();
 
-            return {
-                showTooltip: showTooltip,
-                cancelTooltip: cancelTooltip
-            };
-        }]);
+                return {
+                    restrict: 'A',
+                    link: function (scope, elem, attrs) {
+                        addTooltip(d3.select(elem[0]), scope[attrs.ttMsg]);
+                    }
+                };
+        }])
+
+        .factory('TooltipService', ['$log', '$rootScope', 'FnService',
+            function (_$log_, _$rootScope_, _fs_) {
+                $log = _$log_;
+                $rootScope = _$rootScope_;
+                fs = _fs_;
+
+                init();
+
+                return {
+                    addTooltip: addTooltip,
+                    showTooltip: showTooltip,
+                    cancelTooltip: cancelTooltip
+                };
+            }]);
 }());

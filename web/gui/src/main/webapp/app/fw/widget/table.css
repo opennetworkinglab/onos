@@ -163,10 +163,17 @@ div.ctrl-btns div.separator  {
 }
 
 /* Refresh button specific */
+.light .ctrl-btns div.refresh.active g.icon rect {
+    fill: #964949;
+}
+
+.dark .ctrl-btns div.refresh.active g.icon rect {
+    fill: #9B4641;
+}
 .light .ctrl-btns div.refresh:hover g.icon rect {
-    fill: #800;
+    fill: #964949;
 }
 
 .dark .ctrl-btns div.refresh:hover g.icon rect {
-    fill: #CE5650;
+    fill: #9B4641;
 }

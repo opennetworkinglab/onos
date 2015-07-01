@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $rootScope, fs, is, tts;
+    var $log, fs, is, tts;
 
     // configuration
     var btnSize = 25,
@@ -49,15 +49,6 @@
         return btnSize + 2 * btnPadding;
     }
 
-    function addTooltip(elem, tooltip) {
-        elem.on('mouseover', function () { tts.showTooltip(this, tooltip); });
-        elem.on('mouseout', function () { tts.cancelTooltip(this); });
-        $rootScope.$on('$routeChangeStart', function () {
-            tts.cancelTooltip(elem.node());
-        });
-    }
-
-
     // === BUTTON =================================================
 
     // div is where to put the button (d3.selection of a DIV element)
@@ -72,7 +63,7 @@
             cbFnc = fs.isF(cb) || noop;
 
         is.loadIcon(btnDiv, gid, btnSize, true);
-        if (tooltip) { addTooltip(btnDiv, tooltip); }
+        if (tooltip) { tts.addTooltip(btnDiv, tooltip); }
 
         btnDiv.on('click', cbFnc);
 
@@ -100,7 +91,7 @@
 
         is.loadIcon(togDiv, gid, btnSize, true);
         togDiv.classed('selected', sel);
-        if (tooltip) { addTooltip(togDiv, tooltip); }
+        if (tooltip) { tts.addTooltip(togDiv, tooltip); }
 
         function _toggle(b, nocb) {
             sel = (b === undefined) ? !sel : !!b;
@@ -190,7 +181,7 @@
             rbdiv.classed('selected', initSel);
             rbdiv.on('click', rbclick);
             is.loadIcon(rbdiv, btn.gid, btnSize, true);
-            if (btn.tooltip) { addTooltip(rbdiv, btn.tooltip); }
+            if (btn.tooltip) { tts.addTooltip(rbdiv, btn.tooltip); }
             angular.extend(btn, {
                 el: rbdiv,
                 id: rid,
@@ -254,11 +245,10 @@
 
     angular.module('onosWidget')
     .factory('ButtonService',
-        ['$log', '$rootScope', 'FnService', 'IconService', 'TooltipService',
+        ['$log', 'FnService', 'IconService', 'TooltipService',
 
-        function (_$log_, _$rootScope_, _fs_, _is_, _tts_) {
+        function (_$log_, _fs_, _is_, _tts_) {
             $log = _$log_;
-            $rootScope = _$rootScope_;
             fs = _fs_;
             is = _is_;
             tts = _tts_;

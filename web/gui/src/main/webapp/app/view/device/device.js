@@ -203,6 +203,9 @@
             ns = _ns_;
             var handlers = {};
             $scope.panelData = [];
+            $scope.flowTip = 'Show flow view for selected device';
+            $scope.portTip = 'Show port view for selected device';
+            $scope.groupTip = 'Show group view for selected device';
 
             function selCb($event, row) {
                 selRow = angular.element($event.currentTarget);
