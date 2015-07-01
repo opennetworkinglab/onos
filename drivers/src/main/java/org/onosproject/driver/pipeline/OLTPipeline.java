@@ -16,10 +16,19 @@
 package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceProvider;
+import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -34,8 +43,11 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -45,21 +57,35 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private final Logger log = getLogger(getClass());
 
+    static final ProviderId PID = new ProviderId("olt", "org.onosproject.olt", true);
+
+    static final String DEVICE = "isAccess";
+    static final String OLT = "true";
+
     private ServiceDirectory serviceDirectory;
     private FlowRuleService flowRuleService;
     private DeviceId deviceId;
+
+    private DeviceProvider provider = new AnnotationProvider();
 
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
         this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
-
+        DeviceProviderRegistry registry =
+               serviceDirectory.get(DeviceProviderRegistry.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
 
+        try {
+            DeviceProviderService providerService = registry.register(provider);
+            providerService.deviceConnected(deviceId,
+                                            description(deviceId, DEVICE, OLT));
+        } finally {
+            registry.unregister(provider);
+        }
+
     }
-
-
 
     @Override
     public void filter(FilteringObjective filter) {
@@ -145,6 +171,54 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     @Override
     public void next(NextObjective nextObjective) {
         throw new UnsupportedOperationException("Single table does not next hop.");
+    }
+
+    /**
+     * Build a device description.
+     * @param deviceId a deviceId
+     * @param key the key of the annotation
+     * @param value the value for the annotation
+     * @return a device description
+     */
+    private DeviceDescription description(DeviceId deviceId, String key, String value) {
+        DeviceService deviceService = serviceDirectory.get(DeviceService.class);
+        Device device = deviceService.getDevice(deviceId);
+
+        checkNotNull(device, "Device not found in device service.");
+
+        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+        if (value != null) {
+            builder.set(key, value);
+        } else {
+            builder.remove(key);
+        }
+        return new DefaultDeviceDescription(device.id().uri(), device.type(),
+                                            device.manufacturer(), device.hwVersion(),
+                                            device.swVersion(), device.serialNumber(),
+                                            device.chassisId(), builder.build());
+    }
+
+    /**
+     * Simple ancillary provider used to annotate device.
+     */
+    private static final class AnnotationProvider
+            extends AbstractProvider implements DeviceProvider {
+        private AnnotationProvider() {
+            super(PID);
+        }
+
+        @Override
+        public void triggerProbe(DeviceId deviceId) {
+        }
+
+        @Override
+        public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
+        }
+
+        @Override
+        public boolean isReachable(DeviceId deviceId) {
+            return false;
+        }
     }
 
 }
