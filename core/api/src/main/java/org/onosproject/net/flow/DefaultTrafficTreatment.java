@@ -18,7 +18,6 @@ package org.onosproject.net.flow;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.apache.commons.collections.ListUtils;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -81,7 +80,10 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                                    Instructions.MetadataInstruction meta) {
         this.immediate = ImmutableList.copyOf(checkNotNull(immediate));
         this.deferred = ImmutableList.copyOf(checkNotNull(deferred));
-        this.all = ListUtils.union(this.immediate, this.deferred);
+        this.all = new ImmutableList.Builder<Instruction>()
+                .addAll(immediate)
+                .addAll(deferred)
+                .build();
         this.table = table;
         this.meta = meta;
         this.hasClear = clear;
