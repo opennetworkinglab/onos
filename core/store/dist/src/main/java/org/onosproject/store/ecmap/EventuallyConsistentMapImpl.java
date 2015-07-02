@@ -314,7 +314,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
         // TODO prevent calls here if value is important for timestamp
-        MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, null));
+        MapValue<V> tombstone = MapValue.tombstone(timestampProvider.apply(key, null));
         MapValue<V> previousValue = removeInternal(key, Optional.empty(), tombstone);
         if (previousValue != null) {
             notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, previousValue.get()));
@@ -330,7 +330,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, value));
+        MapValue<V> tombstone = MapValue.tombstone(timestampProvider.apply(key, value));
         MapValue<V> previousValue = removeInternal(key, Optional.of(value), tombstone);
         if (previousValue != null) {
             notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, previousValue.get()));
@@ -561,7 +561,7 @@ public class EventuallyConsistentMapImpl<K, V>
             if (remoteValueDigest != null && remoteValueDigest.isTombstone()) {
                 MapValue<V> previousValue = removeInternal(key,
                                                            Optional.empty(),
-                                                           new MapValue<>(null, remoteValueDigest.timestamp()));
+                                                           MapValue.tombstone(remoteValueDigest.timestamp()));
                 if (previousValue != null && previousValue.isAlive()) {
                     externalEvents.add(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
                 }

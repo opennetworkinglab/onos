@@ -12,6 +12,17 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
     private final Timestamp timestamp;
     private final V value;
 
+    /**
+     * Creates a tombstone value with the specified timestamp.
+     * @param timestamp timestamp for tombstone
+     * @return tombstone MapValue
+     *
+     * @param <U> value type
+     */
+    public static <U> MapValue<U> tombstone(Timestamp timestamp) {
+        return new MapValue<>(null, timestamp);
+    }
+
     public MapValue(V value, Timestamp timestamp) {
         this.value = value;
         this.timestamp = timestamp;
