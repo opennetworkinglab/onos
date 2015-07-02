@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -55,10 +56,8 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -154,7 +153,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         log.debug("Compiling optical circuit intent between {} and {}", src, dst);
 
         // Reserve OduClt ports
-        if (!deviceResourceService.requestPorts(new HashSet(Arrays.asList(srcPort, dstPort)), intent)) {
+        if (!deviceResourceService.requestPorts(Sets.newHashSet(srcPort, dstPort), intent)) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
 
