@@ -18,6 +18,5 @@ package org.onosproject.net.resource.link;
 /**
  * Abstraction of link resource.
  */
-public abstract class LinkResource {
-
+public interface LinkResource {
 }

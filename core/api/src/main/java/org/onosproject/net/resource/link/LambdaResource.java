@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Representation of lambda resource.
  */
-public final class LambdaResource extends LinkResource {
+public final class LambdaResource implements LinkResource {
 
     private final IndexedLambda lambda;
 

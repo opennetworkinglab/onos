@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * Representation of MPLS label resource.
  */
-public final class MplsLabel extends LinkResource {
+public final class MplsLabel implements LinkResource {
 
     private final org.onlab.packet.MplsLabel mplsLabel;
 

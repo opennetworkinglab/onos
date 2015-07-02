@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Representation of bandwidth resource in bps.
  */
-public final class BandwidthResource extends LinkResource {
+public final class BandwidthResource implements LinkResource {
 
     private final Bandwidth bandwidth;
 
