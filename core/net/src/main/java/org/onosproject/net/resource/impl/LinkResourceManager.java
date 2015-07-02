@@ -287,7 +287,7 @@ public class LinkResourceManager implements LinkResourceService {
 
         Set<ResourceAllocation> allocatedRes = allocations.getResourceAllocation(link);
         Set<ResourceRequest> result = Sets.newHashSet(getAvailableResources(link));
-        result.addAll(allocatedRes);
+        result.removeAll(allocatedRes);
         return result;
     }
 
