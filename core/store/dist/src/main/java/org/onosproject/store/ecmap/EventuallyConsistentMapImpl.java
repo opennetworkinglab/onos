@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Timer;
@@ -312,7 +313,9 @@ public class EventuallyConsistentMapImpl<K, V>
     public V remove(K key) {
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
-        return removeInternal(key, Optional.empty());
+        MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, null));
+        MapValue<V> previousValue = removeInternal(key, Optional.empty(), tombstone);
+        return previousValue != null ? previousValue.get() : null;
     }
 
     @Override
@@ -320,34 +323,39 @@ public class EventuallyConsistentMapImpl<K, V>
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        removeInternal(key, Optional.of(value));
+        MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, null));
+        removeInternal(key, Optional.of(value), tombstone);
     }
 
-    private V removeInternal(K key, Optional<V> value) {
+    private MapValue<V> removeInternal(K key, Optional<V> value, MapValue<V> tombstone) {
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
 
-        MapValue<V> newValue = new MapValue<>(null, timestampProvider.apply(key, value.orElse(null)));
+        checkState(tombstone.isTombstone());
         AtomicBoolean updated = new AtomicBoolean(false);
-        AtomicReference<V> previousValue = new AtomicReference<>();
+        AtomicReference<MapValue<V>> previousValue = new AtomicReference<>();
         items.compute(key, (k, existing) -> {
-            if (existing != null && existing.isAlive()) {
-                updated.set(!value.isPresent() ||  value.get().equals(existing.get()));
-                previousValue.set(existing.get());
+            boolean valueMatches = true;
+            if (value.isPresent() && existing != null && existing.isAlive()) {
+                valueMatches = Objects.equals(value.get(), existing.get());
             }
-            updated.set(existing == null || newValue.isNewerThan(existing));
-            return updated.get() ? newValue : existing;
+            updated.set(valueMatches && (existing == null || tombstone.isNewerThan(existing)));
+            if (updated.get()) {
+                previousValue.set(existing);
+            }
+            return updated.get() ? tombstone : existing;
         });
         if (updated.get()) {
-            notifyPeers(new UpdateEntry<>(key, newValue), peerUpdateFunction.apply(key, previousValue.get()));
-            notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
-            if (persistent) {
-                persistentStore.update(key, newValue);
+            notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, null));
+            if (previousValue.get() != null && previousValue.get().isAlive()) {
+                notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get().get()));
             }
-            return previousValue.get();
+            if (persistent) {
+                persistentStore.update(key, tombstone);
+            }
         }
-        return null;
+        return previousValue.get();
     }
 
     @Override
@@ -540,12 +548,13 @@ public class EventuallyConsistentMapImpl<K, V>
             if (remoteValueDigest == null || localValue.isNewerThan(remoteValueDigest.timestamp())) {
                 // local value is more recent, push to sender
                 queueUpdate(new UpdateEntry<>(key, localValue), ImmutableList.of(sender));
-            } else {
-                if (remoteValueDigest.isTombstone()
-                        && remoteValueDigest.timestamp().isNewerThan(localValue.timestamp())) {
-                    if (updateInternal(key, new MapValue<>(null, remoteValueDigest.timestamp()))) {
-                        externalEvents.add(new EventuallyConsistentMapEvent<>(REMOVE, key, null));
-                    }
+            }
+            if (remoteValueDigest != null && remoteValueDigest.isTombstone()) {
+                MapValue<V> previousValue = removeInternal(key,
+                                                           Optional.empty(),
+                                                           new MapValue<>(null, remoteValueDigest.timestamp()));
+                if (previousValue != null && previousValue.isAlive()) {
+                    externalEvents.add(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
                 }
             }
         });
@@ -559,10 +568,13 @@ public class EventuallyConsistentMapImpl<K, V>
         updates.forEach(update -> {
             final K key = update.key();
             final MapValue<V> value = update.value();
-
-            if (updateInternal(key, value)) {
-                final EventuallyConsistentMapEvent.Type type = value.isTombstone() ? REMOVE : PUT;
-                notifyListeners(new EventuallyConsistentMapEvent<>(type, key, value.get()));
+            if (value.isTombstone()) {
+                MapValue<V> previousValue = removeInternal(key, Optional.empty(), value);
+                if (previousValue != null && previousValue.get() != null) {
+                    notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                }
+            } else if (updateInternal(key, value)) {
+                notifyListeners(new EventuallyConsistentMapEvent<>(PUT, key, value.get()));
             }
         });
     }

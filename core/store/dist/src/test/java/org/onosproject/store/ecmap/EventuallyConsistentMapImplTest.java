@@ -327,8 +327,6 @@ public class EventuallyConsistentMapImplTest {
         listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY1, null));
-        listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
                 EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));

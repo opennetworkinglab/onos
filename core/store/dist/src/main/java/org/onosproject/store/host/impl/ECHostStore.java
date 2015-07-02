@@ -1,5 +1,6 @@
 package org.onosproject.store.host.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
@@ -11,7 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -50,13 +50,9 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import static com.google.common.collect.Multimaps.newSetMultimap;
-import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static com.google.common.collect.Sets.newConcurrentHashSet;
 
 /**
  * Manages the inventory of hosts using a {@code EventuallyConsistentMap}.
@@ -76,9 +72,10 @@ public class ECHostStore
     protected LogicalClockService clockService;
 
     // Hosts tracked by their location
-    private final Multimap<ConnectPoint, Host> locations
-        = synchronizedSetMultimap(newSetMultimap(new ConcurrentHashMap<>(),
-                                                 () -> newConcurrentHashSet()));
+    private final SetMultimap<ConnectPoint, Host> locations =
+            Multimaps.synchronizedSetMultimap(
+                    HashMultimap.<ConnectPoint, Host>create());
+
     private final SetMultimap<ConnectPoint, PortAddresses> portAddresses =
             Multimaps.synchronizedSetMultimap(
                     HashMultimap.<ConnectPoint, PortAddresses>create());
@@ -252,7 +249,7 @@ public class ECHostStore
 
         @Override
         public void event(EventuallyConsistentMapEvent<HostId, DefaultHost> event) {
-            DefaultHost host = event.value();
+            DefaultHost host = checkNotNull(event.value());
             if (event.type() == PUT) {
                 locations.put(host.location(), host);
             } else if (event.type() == REMOVE) {
