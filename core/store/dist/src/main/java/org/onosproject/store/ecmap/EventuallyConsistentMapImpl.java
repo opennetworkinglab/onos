@@ -313,6 +313,7 @@ public class EventuallyConsistentMapImpl<K, V>
     public V remove(K key) {
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
+        // TODO prevent calls here if value is important for timestamp
         MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, null));
         MapValue<V> previousValue = removeInternal(key, Optional.empty(), tombstone);
         return previousValue != null ? previousValue.get() : null;
@@ -323,7 +324,7 @@ public class EventuallyConsistentMapImpl<K, V>
         checkState(!destroyed, destroyedMessage);
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, null));
+        MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, value));
         removeInternal(key, Optional.of(value), tombstone);
     }
 
