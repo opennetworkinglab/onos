@@ -15,15 +15,6 @@
  */
 package org.onosproject.provider.pcep.topology.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.pcep.api.PcepDpid.uri;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,10 +28,12 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
 import org.onosproject.net.Link.Type;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.PortNumber;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OmsPort;
+import org.onosproject.net.Port;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -48,6 +41,9 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
+import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
@@ -67,6 +63,14 @@ import org.onosproject.pcep.api.PcepSwitch;
 import org.onosproject.pcep.api.PcepSwitchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.pcep.api.PcepDpid.uri;
 
 /**
  * Provider which uses an PCEP controller to detect network infrastructure
@@ -109,8 +113,8 @@ public class PcepTopologyProvider extends AbstractProvider
 
     private DeviceProviderService deviceProviderService;
     private LinkProviderService linkProviderService;
-    // List<Long> srcportList = new ArrayList<Long>();
-    HashSet<Long> portSet = new HashSet<>();
+
+    private HashMap<Long, List<PortDescription>> portMap = new HashMap<>();
     private InternalLinkProvider listener = new InternalLinkProvider();
 
     @Activate
@@ -129,36 +133,50 @@ public class PcepTopologyProvider extends AbstractProvider
         controller.removeLinkListener(listener);
     }
 
-    private List<PortDescription> buildPortDescriptions(List<Long> ports,
+    private List<PortDescription> buildPortDescriptions(PcepDpid dpid,
+                                                        Port port,
                                                         PortType portType) {
-        final List<PortDescription> portDescs = new ArrayList<>();
-        for (long port : ports) {
-            portDescs.add(buildPortDescription(port, portType));
+
+        List<PortDescription> portList;
+
+        if (portMap.containsKey(dpid.value())) {
+            portList = portMap.get(dpid.value());
+        } else {
+            portList = new ArrayList<>();
         }
-        return portDescs;
+        if (port != null && portType != null) {
+            portList.add(buildPortDescription(port, portType));
+        }
+
+        portMap.put(dpid.value(), portList);
+        return portList;
     }
 
-    private PortDescription buildPortDescription(long port, PortType portType) {
-        final PortNumber portNo = PortNumber.portNumber(port);
-        final boolean enabled = true;
-        DefaultAnnotations extendedAttributes = DefaultAnnotations.builder()
-                .set("portType", String.valueOf(portType)).build();
-        return new DefaultPortDescription(portNo, enabled, extendedAttributes);
-    }
+    private PortDescription buildPortDescription(Port port, PortType portType) {
+        PortDescription portDescription;
 
-    private DefaultAnnotations buildLinkAnnotations(PcepLink linkDesc) {
-        DefaultAnnotations extendedAttributes = DefaultAnnotations
-                .builder()
-                .set("subType", String.valueOf(linkDesc.linkSubType()))
-                .set("workState", linkDesc.linkState())
-                .set("distance", String.valueOf(linkDesc.linkDistance()))
-                .set("capType", linkDesc.linkCapacityType().toLowerCase())
-                .set("avail_" + linkDesc.linkCapacityType().toLowerCase(),
-                     String.valueOf(linkDesc.linkAvailValue()))
-                .set("max_" + linkDesc.linkCapacityType().toLowerCase(),
-                     String.valueOf(linkDesc.linkMaxValue())).build();
-
-        return extendedAttributes;
+        switch (portType) {
+            case OCH_PORT:
+                OchPort ochp = (OchPort) port;
+                portDescription = new OchPortDescription(ochp.number(), ochp.isEnabled(),
+                        ochp.signalType(), ochp.isTunable(),
+                        ochp.lambda());
+                break;
+            case ODU_PORT:
+                OduCltPort odup = (OduCltPort) port;
+                portDescription = new OduCltPortDescription(odup.number(), odup.isEnabled(),
+                        odup.signalType());
+                break;
+            case OMS_PORT:
+                OmsPort op = (OmsPort) port;
+                portDescription = new OmsPortDescription(op.number(), op.isEnabled(), op.minFrequency(),
+                        op.maxFrequency(), op.grid());
+                break;
+            default:
+                portDescription = new DefaultPortDescription(port.number(), port.isEnabled());
+                break;
+        }
+        return portDescription;
     }
 
     /**
@@ -169,60 +187,37 @@ public class PcepTopologyProvider extends AbstractProvider
      */
     private LinkDescription buildLinkDescription(PcepLink pceLink) {
         LinkDescription ld;
-
+        checkNotNull(pceLink);
         DeviceId srcDeviceID = deviceId(uri(pceLink.linkSrcDeviceID()));
         DeviceId dstDeviceID = deviceId(uri(pceLink.linkDstDeviceId()));
 
-        if (deviceService.getDevice(srcDeviceID) == null
-                || deviceService.getDevice(dstDeviceID) == null) {
-            log.info("the device of the link is not exited" + srcDeviceID
-                    + dstDeviceID);
-            return null;
-        }
-        // update port info
-        long srcPort = pceLink.linkSrcPort();
-        portSet.add(srcPort);
-        List<Long> srcportList = new ArrayList<Long>();
-        srcportList.addAll(portSet);
         deviceProviderService
                 .updatePorts(srcDeviceID,
-                             buildPortDescriptions(srcportList,
-                                                   pceLink.portType()));
+                        buildPortDescriptions(pceLink.linkSrcDeviceID(),
+                                pceLink.linkSrcPort(), pceLink.portType()));
 
-        ConnectPoint src = new ConnectPoint(srcDeviceID,
-                                            PortNumber.portNumber(pceLink
-                                                    .linkSrcPort()));
+        deviceProviderService
+                .updatePorts(dstDeviceID,
+                        buildPortDescriptions(pceLink.linkDstDeviceId(),
+                                pceLink.linkDstPort(), pceLink.portType()));
 
-        ConnectPoint dst = new ConnectPoint(dstDeviceID,
-                                            PortNumber.portNumber(pceLink
-                                                    .linkDstPort()));
-        DefaultAnnotations extendedAttributes = buildLinkAnnotations(pceLink);
+        ConnectPoint src = new ConnectPoint(srcDeviceID, pceLink.linkSrcPort().number());
 
+        ConnectPoint dst = new ConnectPoint(dstDeviceID, pceLink.linkDstPort().number());
+
+        DefaultAnnotations extendedAttributes = DefaultAnnotations
+                .builder()
+                .set("subType", String.valueOf(pceLink.linkSubType()))
+                .set("workState", pceLink.linkState())
+                .set("distance", String.valueOf(pceLink.linkDistance()))
+                .set("capType", pceLink.linkCapacityType().toLowerCase())
+                .set("avail_" + pceLink.linkCapacityType().toLowerCase(),
+                        String.valueOf(pceLink.linkAvailValue()))
+                .set("max_" + pceLink.linkCapacityType().toLowerCase(),
+                        String.valueOf(pceLink.linkMaxValue())).build();
         // construct the link
-        ld = new DefaultLinkDescription(src, dst, Type.OPTICAL,
-                                        extendedAttributes);
+        ld = new DefaultLinkDescription(src, dst, Type.OPTICAL, extendedAttributes);
         return ld;
-    }
-
-    private void processLinkUpdate(LinkDescription linkDescription) {
-
-        // dst changed, delete the original link,if the dst device is not in
-        // other links ,delete it.
-        if (linkService.getLink(linkDescription.src(), linkDescription.dst()) == null) {
-            // in face,one src one link
-            Set<Link> links = linkService
-                    .getIngressLinks(linkDescription.src());
-            for (Link link : links) {
-                linkProviderService.linkVanished((LinkDescription) link);
-                if (linkService.getDeviceLinks(link.dst().deviceId()).size() == 0) {
-                    deviceProviderService.deviceDisconnected(link.dst()
-                            .deviceId());
-                }
-            }
-
-        }
-        linkProviderService.linkDetected(linkDescription);
-
     }
 
     private class InternalLinkProvider
@@ -230,48 +225,44 @@ public class PcepTopologyProvider extends AbstractProvider
 
         @Override
         public void switchAdded(PcepDpid dpid) {
-            // TODO Auto-generated method stub
-
             if (deviceProviderService == null) {
                 return;
             }
-            DeviceId devicdId = deviceId(uri(dpid));
+            DeviceId deviceId = deviceId(uri(dpid));
             PcepSwitch sw = controller.getSwitch(dpid);
             checkNotNull(sw, "device should not null.");
             // The default device type is switch.
             ChassisId cId = new ChassisId(dpid.value());
-            Device.Type deviceType = null;
+            Device.Type deviceType;
 
             switch (sw.getDeviceType()) {
-            case ROADM:
-                deviceType = Device.Type.ROADM;
-                break;
-            case OTN:
-                deviceType = Device.Type.SWITCH;
-                break;
-            case ROUTER:
-                deviceType = Device.Type.ROUTER;
-                break;
-            default:
-                deviceType = Device.Type.OTHER;
+                case ROADM:
+                    deviceType = Device.Type.ROADM;
+                    break;
+                case OTN:
+                    deviceType = Device.Type.SWITCH;
+                    break;
+                case ROUTER:
+                    deviceType = Device.Type.ROUTER;
+                    break;
+                default:
+                    deviceType = Device.Type.OTHER;
             }
 
             DeviceDescription description = new DefaultDeviceDescription(
-                                                                         devicdId.uri(),
-                                                                         deviceType,
-                                                                         sw.manufacturerDescription(),
-                                                                         sw.hardwareDescription(),
-                                                                         sw.softwareDescription(),
-                                                                         sw.serialNumber(),
-                                                                         cId);
-            deviceProviderService.deviceConnected(devicdId, description);
+                    deviceId.uri(),
+                    deviceType,
+                    sw.manufacturerDescription(),
+                    sw.hardwareDescription(),
+                    sw.softwareDescription(),
+                    sw.serialNumber(),
+                    cId);
+            deviceProviderService.deviceConnected(deviceId, description);
 
         }
 
         @Override
         public void switchRemoved(PcepDpid dpid) {
-            // TODO Auto-generated method stub
-
             if (deviceProviderService == null || linkProviderService == null) {
                 return;
             }
@@ -296,19 +287,17 @@ public class PcepTopologyProvider extends AbstractProvider
                 return;
             }
             switch (operType) {
-            case ADD:
-                linkProviderService.linkDetected(ld);
-                break;
-            case UPDATE:
-                processLinkUpdate(ld);
-                break;
+                case ADD:
+                case UPDATE:
+                    linkProviderService.linkDetected(ld);
+                    break;
 
-            case DELETE:
-                linkProviderService.linkVanished(ld);
-                break;
+                case DELETE:
+                    linkProviderService.linkVanished(ld);
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
 
             }
         }
