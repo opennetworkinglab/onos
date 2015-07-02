@@ -15,15 +15,40 @@
  */
 package org.onosproject.net.resource.link;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.onosproject.net.Link;
+import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceRequest;
 
 /**
  * Representation of allocated link resources.
  */
-public interface LinkResourceAllocations extends LinkResourceRequest {
+public interface LinkResourceAllocations extends ResourceAllocation {
+
+    /**
+     * Returns the {@link IntentId} associated with the request.
+     *
+     * @return the {@link IntentId} associated with the request
+     */
+    IntentId intentId();
+
+    /**
+     * Returns the set of target links.
+     *
+     * @return the set of target links
+     */
+    Collection<Link> links();
+
+    /**
+     * Returns the set of resource requests.
+     *
+     * @return the set of resource requests
+     */
+    Set<ResourceRequest> resources();
+
     /**
      * Returns allocated resource for the given link.
      *

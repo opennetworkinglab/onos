@@ -21,5 +21,11 @@ import com.google.common.annotations.Beta;
  * Abstraction of allocated resource.
  */
 @Beta
-public interface ResourceAllocation extends ResourceRequest {
+public interface ResourceAllocation {
+    /**
+     * Returns the resource type.
+     *
+     * @return the resource type
+     */
+    ResourceType type();
 }

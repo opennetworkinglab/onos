@@ -59,17 +59,14 @@ public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
         this.allocations = builder.build();
     }
 
-    @Override
     public IntentId intentId() {
         return request.intentId();
     }
 
-    @Override
     public Collection<Link> links() {
         return request.links();
     }
 
-    @Override
     public Set<ResourceRequest> resources() {
         return request.resources();
     }

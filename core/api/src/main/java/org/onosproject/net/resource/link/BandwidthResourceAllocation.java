@@ -19,31 +19,59 @@ import com.google.common.base.MoreObjects;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
 
+import java.util.Objects;
+
 /**
  * Representation of allocated bandwidth resource.
  */
-public class BandwidthResourceAllocation extends BandwidthResourceRequest
-        implements ResourceAllocation {
+public class BandwidthResourceAllocation implements ResourceAllocation {
+    private final BandwidthResource bandwidth;
+
+    /**
+     * Creates a new {@link BandwidthResourceRequest} with {@link BandwidthResource}
+     * object.
+     *
+     * @param bandwidth {@link BandwidthResource} object to be requested
+     */
+    public BandwidthResourceAllocation(BandwidthResource bandwidth) {
+        this.bandwidth = bandwidth;
+    }
+
+    /**
+     * Returns the bandwidth resource.
+     *
+     * @return the bandwidth resource
+     */
+    public BandwidthResource bandwidth() {
+        return bandwidth;
+    }
 
     @Override
     public ResourceType type() {
         return ResourceType.BANDWIDTH;
     }
 
-    /**
-     * Creates a new {@link BandwidthResourceAllocation} with {@link BandwidthResource}
-     * object.
-     *
-     * @param bandwidth allocated bandwidth
-     */
-    public BandwidthResourceAllocation(BandwidthResource bandwidth) {
-        super(bandwidth);
+    @Override
+    public int hashCode() {
+        return Objects.hash(bandwidth);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final BandwidthResourceAllocation other = (BandwidthResourceAllocation) obj;
+        return Objects.equals(this.bandwidth, other.bandwidth());
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("bandwidth", bandwidth())
+                .add("bandwidth", bandwidth)
                 .toString();
     }
 }

@@ -25,8 +25,7 @@ import java.util.Objects;
 /**
  * Representation of allocated MPLS label resource.
  */
-public class MplsLabelResourceAllocation extends MplsLabelResourceRequest
-        implements ResourceAllocation {
+public class MplsLabelResourceAllocation implements ResourceAllocation {
     private final MplsLabel mplsLabel;
 
     @Override

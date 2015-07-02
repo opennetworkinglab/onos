@@ -24,8 +24,7 @@ import java.util.Objects;
 /**
  * Representation of allocated lambda resource.
  */
-public class LambdaResourceAllocation extends LambdaResourceRequest
-        implements ResourceAllocation {
+public class LambdaResourceAllocation implements ResourceAllocation {
     private final LambdaResource lambda;
 
     @Override
