@@ -46,6 +46,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
@@ -458,6 +460,16 @@ public abstract class Tools {
         byte[] bytes = new byte[length];
         buffer.duplicate().get(bytes);
         return bytes;
+    }
+
+    /**
+     * Converts an Iterable to a Stream.
+     *
+     * @param it Iterable to convert
+     * @return Iterable as a Stream
+     */
+    public static <T> Stream<T> stream(Iterable<T> it) {
+        return StreamSupport.stream(it.spliterator(), false);
     }
 
     // Auxiliary path visitor for recursive directory structure copying.
