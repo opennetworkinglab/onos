@@ -316,6 +316,12 @@ public class EventuallyConsistentMapImpl<K, V>
         // TODO prevent calls here if value is important for timestamp
         MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, null));
         MapValue<V> previousValue = removeInternal(key, Optional.empty(), tombstone);
+        if (previousValue != null) {
+            notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, previousValue.get()));
+            if (previousValue.isAlive()) {
+                notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+            }
+        }
         return previousValue != null ? previousValue.get() : null;
     }
 
@@ -325,7 +331,13 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
         MapValue<V> tombstone = new MapValue<>(null, timestampProvider.apply(key, value));
-        removeInternal(key, Optional.of(value), tombstone);
+        MapValue<V> previousValue = removeInternal(key, Optional.of(value), tombstone);
+        if (previousValue != null) {
+            notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, previousValue.get()));
+            if (previousValue.isAlive()) {
+                notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+            }
+        }
     }
 
     private MapValue<V> removeInternal(K key, Optional<V> value, MapValue<V> tombstone) {
@@ -348,10 +360,6 @@ public class EventuallyConsistentMapImpl<K, V>
             return updated.get() ? tombstone : existing;
         });
         if (updated.get()) {
-            notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, null));
-            if (previousValue.get() != null && previousValue.get().isAlive()) {
-                notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get().get()));
-            }
             if (persistent) {
                 persistentStore.update(key, tombstone);
             }
@@ -503,7 +511,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 peer)
                 .whenComplete((result, error) -> {
                     if (error != null) {
-                        log.warn("Failed to send anti-entropy advertisement to {}", peer);
+                        log.debug("Failed to send anti-entropy advertisement to {}", peer, error);
                     }
                 });
     }
