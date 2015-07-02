@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.resource.impl;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -284,9 +285,8 @@ public class LinkResourceManager implements LinkResourceService {
             LinkResourceAllocations allocations) {
         checkPermission(Permission.LINK_READ);
 
-        Set<ResourceRequest> result = new HashSet<>();
         Set<ResourceAllocation> allocatedRes = allocations.getResourceAllocation(link);
-        result = (Set<ResourceRequest>) getAvailableResources(link);
+        Set<ResourceRequest> result = Sets.newHashSet(getAvailableResources(link));
         result.addAll(allocatedRes);
         return result;
     }
