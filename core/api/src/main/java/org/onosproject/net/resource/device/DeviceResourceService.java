@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.resource.device;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Port;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
@@ -24,6 +25,7 @@ import java.util.Set;
 /**
  * Service for providing device resources.
  */
+@Beta
 public interface DeviceResourceService {
     /**
      * Request a set of ports needed to satisfy the intent.
