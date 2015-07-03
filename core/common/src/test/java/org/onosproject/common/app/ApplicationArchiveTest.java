@@ -72,6 +72,7 @@ public class ApplicationArchiveTest {
         InputStream stream = getClass().getResourceAsStream("app.zip");
         ApplicationDescription app = aar.saveApplication(stream);
         validate(app);
+        stream.close();
     }
 
     @Test
@@ -79,6 +80,7 @@ public class ApplicationArchiveTest {
         InputStream stream = getClass().getResourceAsStream("app.xml");
         ApplicationDescription app = aar.saveApplication(stream);
         validate(app);
+        stream.close();
     }
 
     @Test
@@ -110,6 +112,7 @@ public class ApplicationArchiveTest {
         byte[] orig = ByteStreams.toByteArray(getClass().getResourceAsStream("app.zip"));
         byte[] loaded = ByteStreams.toByteArray(stream);
         assertArrayEquals("incorrect stream", orig, loaded);
+        stream.close();
     }
 
     @Test
@@ -119,6 +122,7 @@ public class ApplicationArchiveTest {
         byte[] orig = ByteStreams.toByteArray(getClass().getResourceAsStream("app.xml"));
         byte[] loaded = ByteStreams.toByteArray(stream);
         assertArrayEquals("incorrect stream", orig, loaded);
+        stream.close();
     }
 
     @Test
