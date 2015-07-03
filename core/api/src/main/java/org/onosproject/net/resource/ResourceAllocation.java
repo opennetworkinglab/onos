@@ -15,9 +15,11 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Abstraction of allocated resource.
  */
+@Beta
 public interface ResourceAllocation extends ResourceRequest {
-
 }

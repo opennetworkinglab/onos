@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Abstraction of resource request.
  */
+@Beta
 public interface ResourceRequest {
     /**
      * Returns the resource type.

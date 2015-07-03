@@ -15,9 +15,11 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Resource identifier.
  */
+@Beta
 public interface ResourceId {
-
 }

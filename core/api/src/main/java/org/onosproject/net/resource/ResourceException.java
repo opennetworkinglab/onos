@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Represents a resource related error.
  */
+@Beta
 public class ResourceException extends RuntimeException {
 
     /**

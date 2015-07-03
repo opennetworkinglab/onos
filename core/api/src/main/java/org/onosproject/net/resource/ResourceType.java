@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Represents types for link resources.
  */
+@Beta
 public enum ResourceType {
     /**
      * Lambda resource type.

@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.resource;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Exception thrown for resource allocation errors.
  */
+@Beta
 public class ResourceAllocationException extends ResourceException {
     public ResourceAllocationException() {
         super();
