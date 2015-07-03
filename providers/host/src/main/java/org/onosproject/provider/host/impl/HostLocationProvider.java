@@ -190,7 +190,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private void withdrawIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
 
         // IPv6 Neighbor Solicitation packet.
         selector.matchEthType(Ethernet.TYPE_IPV6);

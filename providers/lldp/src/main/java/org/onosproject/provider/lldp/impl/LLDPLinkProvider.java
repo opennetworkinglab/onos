@@ -145,7 +145,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         // to load configuration at startup
         modified(context);
         if (disableLinkDiscovery) {
-            log.info("Link Discovery has been permanently disabled by configuration");
+            log.info("LinkDiscovery has been permanently disabled by configuration");
             return;
         }
 

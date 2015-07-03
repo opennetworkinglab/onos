@@ -54,7 +54,6 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.xosintegration.VoltTenantService;
@@ -71,6 +70,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.onosproject.net.packet.PacketPriority.CONTROL;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -117,7 +117,7 @@ public class AAA {
     // RADIUS server shared secret
     private static final String DEFAULT_RADIUS_SECRET = "ONOSecret";
     // RADIUS MAC address
-    private static final String RADIUS_MAC_ADDRESS =  "00:00:00:00:01:10";
+    private static final String RADIUS_MAC_ADDRESS = "00:00:00:00:01:10";
     // NAS MAC address
     private static final String NAS_MAC_ADDRESS = "00:00:00:00:10:01";
     // Radius Switch Id
@@ -130,7 +130,7 @@ public class AAA {
     private String radiusIpAddress = DEFAULT_RADIUS_IP;
 
     @Property(name = "nasIpAddress", value = DEFAULT_NAS_IP,
-            label = "NAP IP Address")
+            label = "NAS IP Address")
     private String nasIpAddress = DEFAULT_NAS_IP;
 
     @Property(name = "radiusMacAddress", value = RADIUS_MAC_ADDRESS,
@@ -138,7 +138,7 @@ public class AAA {
     private String radiusMacAddress = RADIUS_MAC_ADDRESS;
 
     @Property(name = "nasMacAddress", value = NAS_MAC_ADDRESS,
-            label = "NAP MAC Address")
+            label = "NAS MAC Address")
     private String nasMacAddress = NAS_MAC_ADDRESS;
 
     @Property(name = "radiusSecret", value = DEFAULT_RADIUS_SECRET,
@@ -205,12 +205,7 @@ public class AAA {
         appId = coreService.registerApplication("org.onosproject.aaa");
         // register our event handler
         packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-
-        selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
-        packetService.requestPackets(selector.build(),
-                PacketPriority.CONTROL, appId);
-
+        requestIntercepts();
         // Instantiate the map of the state machines
         stateMachineMap = Collections.synchronizedMap(Maps.newHashMap());
 
@@ -221,22 +216,45 @@ public class AAA {
     @Deactivate
     public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
+
+        appId = coreService.registerApplication("org.onosproject.aaa");
+        withdrawIntercepts();
         // de-register and null our handler
         packetService.removeProcessor(processor);
         processor = null;
     }
 
     /**
+     * Request packet in via PacketService.
+     */
+    private void requestIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
+        packetService.requestPackets(selector.build(),
+                                     CONTROL, appId);
+    }
+
+    /**
+     * Cancel request for packet in via PacketService.
+     */
+    private void withdrawIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
+        packetService.cancelPackets(selector.build(), CONTROL, appId);
+    }
+
+    /**
      * Builds an EAPOL packet based on the given parameters.
      *
-     * @param dstMac destination MAC address
-     * @param srcMac source MAC address
+     * @param dstMac    destination MAC address
+     * @param srcMac    source MAC address
+     * @param vlan      vlan identifier
      * @param eapolType EAPOL type
-     * @param eap EAP payload
+     * @param eap       EAP payload
      * @return Ethernet frame
      */
     private static Ethernet buildEapolResponse(MacAddress dstMac, MacAddress srcMac,
-                                              short vlan, byte eapolType, EAP eap) {
+                                               short vlan, byte eapolType, EAP eap) {
 
         Ethernet eth = new Ethernet();
         eth.setDestinationMACAddress(dstMac.toBytes());
@@ -328,9 +346,9 @@ public class AAA {
 
                         //send an EAP Request/Identify to the supplicant
                         EAP eapPayload = new EAP(EAP.REQUEST, stateMachine.getIdentifier(), EAP.ATTR_IDENTITY, null);
-                        Ethernet eth =  buildEapolResponse(srcMAC, MacAddress.valueOf(1L),
-                                                           ethPkt.getVlanID(), EAPOL.EAPOL_PACKET,
-                                                           eapPayload);
+                        Ethernet eth = buildEapolResponse(srcMAC, MacAddress.valueOf(1L),
+                                                          ethPkt.getVlanID(), EAPOL.EAPOL_PACKET,
+                                                          eapPayload);
                         stateMachine.supplicantAddress = srcMAC;
                         stateMachine.vlanId = ethPkt.getVlanID();
 
@@ -350,13 +368,13 @@ public class AAA {
                             try {
                                 //request id access to RADIUS
                                 RADIUS radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
-                                        eapPacket.getIdentifier());
+                                                                  eapPacket.getIdentifier());
                                 radiusPayload.setIdentifier(stateMachine.getIdentifier());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                        eapPacket.getData());
+                                                           eapPacket.getData());
                                 stateMachine.setUsername(eapPacket.getData());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                        AAA.this.parsedNasIpAddress.getAddress());
+                                                           AAA.this.parsedNasIpAddress.getAddress());
 
                                 radiusPayload.encapsulateMessage(eapPacket);
 
@@ -377,17 +395,17 @@ public class AAA {
                             if (eapPacket.getIdentifier() == stateMachine.getChallengeIdentifier()) {
                                 //send the RADIUS challenge response
                                 RADIUS radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
-                                        eapPacket.getIdentifier());
+                                                                  eapPacket.getIdentifier());
                                 radiusPayload.setIdentifier(stateMachine.getChallengeIdentifier());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                        stateMachine.getUsername());
+                                                           stateMachine.getUsername());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                        AAA.this.parsedNasIpAddress.getAddress());
+                                                           AAA.this.parsedNasIpAddress.getAddress());
 
                                 radiusPayload.encapsulateMessage(eapPacket);
 
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                        stateMachine.getChallengeState());
+                                                           stateMachine.getChallengeState());
                                 radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
                                 sendRadiusMessage(radiusPayload);
                             }
@@ -396,17 +414,17 @@ public class AAA {
                             try {
                                 //request id access to RADIUS
                                 RADIUS radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
-                                        eapPacket.getIdentifier());
+                                                                  eapPacket.getIdentifier());
                                 radiusPayload.setIdentifier(stateMachine.getIdentifier());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                        stateMachine.getUsername());
+                                                           stateMachine.getUsername());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                        AAA.this.parsedNasIpAddress.getAddress());
+                                                           AAA.this.parsedNasIpAddress.getAddress());
 
                                 radiusPayload.encapsulateMessage(eapPacket);
 
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                        stateMachine.getChallengeState());
+                                                           stateMachine.getChallengeState());
                                 stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
 
                                 radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
@@ -447,7 +465,8 @@ public class AAA {
                     eapPayload = radiusPacket.decapsulateMessage();
                     stateMachine.setChallengeInfo(eapPayload.getIdentifier(), challengeState);
                     eth = buildEapolResponse(stateMachine.supplicantAddress,
-                            MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET, eapPayload);
+                                             MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET,
+                                             eapPayload);
                     this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
                     break;
                 case RADIUS.RADIUS_CODE_ACCESS_ACCEPT:
@@ -458,7 +477,8 @@ public class AAA {
                         eapPayload = new EAP();
                         eapPayload = (EAP) eapPayload.deserialize(eapMessage, 0, eapMessage.length);
                         eth = buildEapolResponse(stateMachine.supplicantAddress,
-                                MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET, eapPayload);
+                                                 MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET,
+                                                 eapPayload);
                         this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
 
                         stateMachine.authorizeAccess();
@@ -556,7 +576,7 @@ public class AAA {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(PortNumber.portNumber(Integer.parseInt(radiusPort))).build();
             OutboundPacket packet = new DefaultOutboundPacket(DeviceId.deviceId(radiusSwitch),
-                    treatment, ByteBuffer.wrap(ethPkt.serialize()));
+                                                              treatment, ByteBuffer.wrap(ethPkt.serialize()));
             packetService.emit(packet);
 
         }
@@ -564,13 +584,13 @@ public class AAA {
         /**
          * Send the ethernet packet to the supplicant.
          *
-         * @param ethernetPkt the ethernet packet
+         * @param ethernetPkt  the ethernet packet
          * @param connectPoint the connect point to send out
          */
         private void sendPacketToSupplicant(Ethernet ethernetPkt, ConnectPoint connectPoint) {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
             OutboundPacket packet = new DefaultOutboundPacket(connectPoint.deviceId(),
-                    treatment, ByteBuffer.wrap(ethernetPkt.serialize()));
+                                                              treatment, ByteBuffer.wrap(ethernetPkt.serialize()));
             packetService.emit(packet);
         }
 

@@ -81,21 +81,38 @@ public class VirtualPublicHosts {
 
         packetService.addProcessor(processor,
                                    PacketProcessor.ADVISOR_MAX + 6);
-
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        // Only IPv4 is supported in current vBNG.
-        selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selector.build(),
-                                   PacketPriority.REACTIVE, appId);
-
+        requestIntercepts();
         log.info("vBNG virtual public hosts started");
     }
 
     @Deactivate
     public void deactivate() {
+        withdrawIntercepts();
         packetService.removeProcessor(processor);
         processor = null;
         log.info("vBNG virtual public hosts Stopped");
+    }
+
+    /**
+     * Request packet in via PacketService.
+     */
+    private void requestIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        // Only IPv4 is supported in current vBNG.
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selector.build(),
+                                     PacketPriority.REACTIVE, appId);
+    }
+
+    /**
+     * Cancel request for packet in via PacketService.
+     */
+    private void withdrawIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        // Only IPv4 is supported in current vBNG.
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.cancelPackets(selector.build(),
+                                    PacketPriority.REACTIVE, appId);
     }
 
     /**

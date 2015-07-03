@@ -203,7 +203,7 @@ public class ReactiveForwarding {
     }
 
     /**
-     * Request packet in via PacketService.
+     * Cancel request for packet in via PacketService.
      */
     private void withdrawIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();

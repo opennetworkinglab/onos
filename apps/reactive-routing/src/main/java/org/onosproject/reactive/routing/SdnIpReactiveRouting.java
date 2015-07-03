@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.onosproject.reactive.routing;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,7 +38,6 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.RoutingService;
@@ -46,6 +46,9 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 
+import static org.onlab.packet.Ethernet.TYPE_ARP;
+import static org.onlab.packet.Ethernet.TYPE_IPV4;
+import static org.onosproject.net.packet.PacketPriority.REACTIVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -83,24 +86,44 @@ public class SdnIpReactiveRouting {
         appId = coreService.registerApplication(APP_NAME);
         packetService.addProcessor(processor,
                                    PacketProcessor.ADVISOR_MAX + 2);
-
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        // TODO: to support IPv6 later
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        packetService.requestPackets(selector.build(),
-                                     PacketPriority.REACTIVE, appId);
-        selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selector.build(),
-                                     PacketPriority.REACTIVE, appId);
-
+        requestIntercepts();
         log.info("SDN-IP Reactive Routing Started");
     }
 
     @Deactivate
     public void deactivate() {
+        withdrawIntercepts();
         packetService.removeProcessor(processor);
         processor = null;
         log.info("SDN-IP Reactive Routing Stopped");
+    }
+
+    /**
+     * Request packet in via the PacketService.
+     */
+    private void requestIntercepts() {
+        //TODO: to support IPv6 later
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(TYPE_IPV4);
+        packetService.requestPackets(selector.build(),
+                                     REACTIVE, appId);
+        selector.matchEthType(TYPE_ARP);
+        packetService.requestPackets(selector.build(),
+                                     REACTIVE, appId);
+    }
+
+    /**
+     * Cancel request for packet in via PacketService.
+     */
+    private void withdrawIntercepts() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(TYPE_IPV4);
+        packetService.requestPackets(selector.build(),
+                                     REACTIVE, appId);
+        selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(TYPE_ARP);
+        packetService.requestPackets(selector.build(),
+                                     REACTIVE, appId);
     }
 
     private class ReactiveRoutingProcessor implements PacketProcessor {
@@ -169,9 +192,9 @@ public class SdnIpReactiveRouting {
     /**
      * Emits the specified packet onto the network.
      *
-     * @param context the packet context
+     * @param context      the packet context
      * @param connectPoint the connect point where the packet should be
-     *        sent out
+     *                     sent out
      */
     private void forwardPacketToDst(PacketContext context,
                                     ConnectPoint connectPoint) {

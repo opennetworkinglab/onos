@@ -23,8 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.ICMP6;
-import org.onlab.packet.IPv6;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -32,7 +30,6 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
@@ -42,6 +39,12 @@ import org.slf4j.Logger;
 import java.util.Dictionary;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.packet.Ethernet.TYPE_ARP;
+import static org.onlab.packet.Ethernet.TYPE_IPV6;
+import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
+import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
+import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
+import static org.onosproject.net.packet.PacketPriority.CONTROL;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,8 +89,8 @@ public class ProxyArp {
 
     @Deactivate
     public void deactivate() {
-        // TODO revoke all packet requests when deactivate
         cfgService.unregisterProperties(getClass(), false);
+        withdrawIntercepts();
         packetService.removeProcessor(processor);
         processor = null;
         log.info("Stopped");
@@ -95,7 +98,6 @@ public class ProxyArp {
 
     @Modified
     public void modified(ComponentContext context) {
-        // TODO revoke unnecessary packet requests when config being modified
         readComponentConfiguration(context);
         requestPackests();
     }
@@ -106,27 +108,58 @@ public class ProxyArp {
     private void requestPackests() {
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_ARP);
+        selectorBuilder.matchEthType(TYPE_ARP);
         packetService.requestPackets(selectorBuilder.build(),
-                                     PacketPriority.CONTROL, appId);
+                                     CONTROL, appId);
 
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(NEIGHBOR_SOLICITATION);
         if (ipv6NeighborDiscovery) {
             // IPv6 Neighbor Solicitation packet.
-            selectorBuilder = DefaultTrafficSelector.builder();
-            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
             packetService.requestPackets(selectorBuilder.build(),
-                                         PacketPriority.CONTROL, appId);
-
-            // IPv6 Neighbor Advertisement packet.
-            selectorBuilder = DefaultTrafficSelector.builder();
-            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
-            selectorBuilder.matchIPProtocol(IPv6.PROTOCOL_ICMP6);
-            selectorBuilder.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
-            packetService.requestPackets(selectorBuilder.build(),
-                                         PacketPriority.CONTROL, appId);
+                                         CONTROL, appId);
+        } else {
+            packetService.cancelPackets(selectorBuilder.build(),
+                                        CONTROL, appId);
         }
+
+        // IPv6 Neighbor Advertisement packet.
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(NEIGHBOR_ADVERTISEMENT);
+        if (ipv6NeighborDiscovery) {
+            packetService.requestPackets(selectorBuilder.build(),
+                                         CONTROL, appId);
+        } else {
+            packetService.cancelPackets(selectorBuilder.build(),
+                                        CONTROL, appId);
+        }
+
+
+    }
+
+    /**
+     * Cancel requested packet in via packet service.
+     */
+    private void withdrawIntercepts() {
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(TYPE_ARP);
+        packetService.cancelPackets(selectorBuilder.build(), CONTROL, appId);
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(NEIGHBOR_SOLICITATION);
+        packetService.cancelPackets(selectorBuilder.build(), CONTROL, appId);
+        selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(TYPE_IPV6);
+        selectorBuilder.matchIPProtocol(PROTOCOL_ICMP6);
+        selectorBuilder.matchIcmpv6Type(NEIGHBOR_ADVERTISEMENT);
+        packetService.cancelPackets(selectorBuilder.build(), CONTROL, appId);
+
     }
 
     /**
@@ -187,7 +220,7 @@ public class ProxyArp {
             if (ethPkt == null) {
                 return;
             }
-            if (!ipv6NeighborDiscovery && (ethPkt.getEtherType() == Ethernet.TYPE_IPV6)) {
+            if (!ipv6NeighborDiscovery && (ethPkt.getEtherType() == TYPE_IPV6)) {
                 return;
             }
             //handle the arp packet.
