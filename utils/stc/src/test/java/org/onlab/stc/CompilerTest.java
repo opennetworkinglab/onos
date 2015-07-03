@@ -72,7 +72,7 @@ public class CompilerTest {
         assertEquals("incorrect step count", 24, flow.getVertexes().size());
         assertEquals("incorrect dependency count", 17, flow.getEdges().size());
         assertEquals("incorrect logDir",
-                     TEST_DIR.getAbsolutePath() + "/foo", compiler.logDir().getPath());
+                     new File(TEST_DIR.getAbsolutePath(), "foo"), compiler.logDir());
 
         Step step = compiler.getStep("there");
         assertEquals("incorrect edge count", 2, flow.getEdgesFrom(step).size());
