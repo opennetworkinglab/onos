@@ -46,22 +46,20 @@ public class BlockAllocatorBasedIdGenerator implements IdGenerator {
     @Override
     public long getNewId() {
         try {
+            if (!initialized.get()) {
+                synchronized (allocator) {
+                    if (!initialized.get()) {
+                        idBlock = allocator.allocateUniqueIdBlock();
+                        initialized.set(true);
+                    }
+                }
+            }
             return idBlock.getNextId();
         } catch (UnavailableIdException e) {
             synchronized (allocator) {
                 idBlock = allocator.allocateUniqueIdBlock();
             }
             return idBlock.getNextId();
-        } catch (NullPointerException e) {
-            synchronized (allocator) {
-                if (!initialized.get()) {
-                    idBlock = allocator.allocateUniqueIdBlock();
-                    initialized.set(true);
-                    return idBlock.getNextId();
-                } else {
-                    throw e;
-                }
-            }
         }
     }
 }
