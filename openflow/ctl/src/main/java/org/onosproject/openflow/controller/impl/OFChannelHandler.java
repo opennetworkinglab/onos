@@ -188,12 +188,13 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     throws IOException {
                 // TODO We could check for the optional bitmap, but for now
                 // we are just checking the version number.
-                if (m.getVersion() == OFVersion.OF_13) {
-                    log.debug("Received {} Hello from {}", m.getVersion(),
+                if (m.getVersion().getWireVersion() >= OFVersion.OF_13.getWireVersion()) {
+                    log.debug("Received {} Hello from {} - switching to OF "
+                            + "version 1.3", m.getVersion(),
                             h.channel.getRemoteAddress());
                     h.sendHandshakeHelloMessage();
                     h.ofVersion = OFVersion.OF_13;
-                } else if (m.getVersion() == OFVersion.OF_10) {
+                } else if (m.getVersion().getWireVersion() >= OFVersion.OF_10.getWireVersion()) {
                     log.debug("Received {} Hello from {} - switching to OF "
                             + "version 1.0", m.getVersion(),
                             h.channel.getRemoteAddress());
