@@ -37,7 +37,7 @@ import static org.onlab.util.Tools.nullIsIllegal;
 /**
  * Decoding portion of the instruction codec.
  */
-public final class DecodeInstructionCodec {
+public final class DecodeInstructionCodecHelper {
     private final ObjectNode json;
 
     /**
@@ -45,7 +45,7 @@ public final class DecodeInstructionCodec {
      *
      * @param json JSON object to decode
      */
-    public DecodeInstructionCodec(ObjectNode json) {
+    public DecodeInstructionCodecHelper(ObjectNode json) {
         this.json = json;
     }
 

@@ -38,7 +38,7 @@ import static org.onlab.util.Tools.nullIsIllegal;
 /**
  * Decode portion of the criterion codec.
  */
-public final class DecodeCriterionCodec {
+public final class DecodeCriterionCodecHelper {
 
     private final ObjectNode json;
 
@@ -56,7 +56,7 @@ public final class DecodeCriterionCodec {
      *
      * @param json JSON object to decode
      */
-    public DecodeCriterionCodec(ObjectNode json) {
+    public DecodeCriterionCodecHelper(ObjectNode json) {
         this.json = json;
         decoderMap = new HashMap<>();
 

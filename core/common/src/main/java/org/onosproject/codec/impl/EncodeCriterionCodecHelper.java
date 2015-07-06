@@ -52,7 +52,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Encode portion of the criterion codec.
  */
-public final class EncodeCriterionCodec {
+public final class EncodeCriterionCodecHelper {
 
     private final Criterion criterion;
     private final CodecContext context;
@@ -66,7 +66,7 @@ public final class EncodeCriterionCodec {
      * @param criterion Criterion to encode
      * @param context context of the JSON encoding
      */
-    public EncodeCriterionCodec(Criterion criterion, CodecContext context) {
+    public EncodeCriterionCodecHelper(Criterion criterion, CodecContext context) {
         this.criterion = criterion;
         this.context = context;
 

@@ -45,8 +45,8 @@ public final class ConstraintCodec extends JsonCodec<Constraint> {
     public ObjectNode encode(Constraint constraint, CodecContext context) {
         checkNotNull(constraint, "Constraint cannot be null");
 
-        final EncodeConstraintCodec encodeCodec =
-                new EncodeConstraintCodec(constraint, context);
+        final EncodeConstraintCodecHelper encodeCodec =
+                new EncodeConstraintCodecHelper(constraint, context);
 
         return encodeCodec.encode();
     }
@@ -55,8 +55,8 @@ public final class ConstraintCodec extends JsonCodec<Constraint> {
     public Constraint decode(ObjectNode json, CodecContext context) {
         checkNotNull(json, "JSON cannot be null");
 
-        final DecodeConstraintCodec decodeCodec =
-                new DecodeConstraintCodec(json);
+        final DecodeConstraintCodecHelper decodeCodec =
+                new DecodeConstraintCodecHelper(json);
 
         return decodeCodec.decode();
     }

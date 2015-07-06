@@ -43,7 +43,7 @@ import static org.onlab.util.Tools.nullIsIllegal;
 /**
  * Constraint JSON decoder.
  */
-public final class DecodeConstraintCodec {
+public final class DecodeConstraintCodecHelper {
     private final ObjectNode json;
 
     /**
@@ -51,7 +51,7 @@ public final class DecodeConstraintCodec {
      *
      * @param json object node to decode
      */
-    public DecodeConstraintCodec(ObjectNode json) {
+    public DecodeConstraintCodecHelper(ObjectNode json) {
         this.json = json;
     }
 

@@ -72,7 +72,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void checkCriterionTypes() throws Exception {
-        EncodeCriterionCodec encoder = new EncodeCriterionCodec(
+        EncodeCriterionCodecHelper encoder = new EncodeCriterionCodecHelper(
                 Criteria.dummy(), context);
         EnumMap<Criterion.Type, Object> formatMap =
                 getField(encoder, "formatMap");

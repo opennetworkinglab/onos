@@ -30,8 +30,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * JSON encoding of Instructions.
  */
-public final class EncodeInstructionCodec {
-    protected static final Logger log = LoggerFactory.getLogger(EncodeInstructionCodec.class);
+public final class EncodeInstructionCodecHelper {
+    protected static final Logger log = LoggerFactory.getLogger(EncodeInstructionCodecHelper.class);
     private final Instruction instruction;
     private final CodecContext context;
 
@@ -41,7 +41,7 @@ public final class EncodeInstructionCodec {
      * @param instruction instruction to encode
      * @param context codec context for the encoding
      */
-    public EncodeInstructionCodec(Instruction instruction, CodecContext context) {
+    public EncodeInstructionCodecHelper(Instruction instruction, CodecContext context) {
         this.instruction = instruction;
         this.context = context;
     }

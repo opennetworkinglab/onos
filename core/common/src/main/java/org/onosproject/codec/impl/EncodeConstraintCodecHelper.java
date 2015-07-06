@@ -35,7 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of encoder for constraint JSON codec.
  */
-public final class EncodeConstraintCodec {
+public final class EncodeConstraintCodecHelper {
 
     private final Constraint constraint;
     private final CodecContext context;
@@ -46,7 +46,7 @@ public final class EncodeConstraintCodec {
      * @param constraint constraint to encode
      * @param context to use for look ups
      */
-    public EncodeConstraintCodec(Constraint constraint, CodecContext context) {
+    public EncodeConstraintCodecHelper(Constraint constraint, CodecContext context) {
         this.constraint = constraint;
         this.context = context;
     }

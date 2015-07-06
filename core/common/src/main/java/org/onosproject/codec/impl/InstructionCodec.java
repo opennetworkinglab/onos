@@ -56,7 +56,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     public ObjectNode encode(Instruction instruction, CodecContext context) {
         checkNotNull(instruction, "Instruction cannot be null");
 
-        return new EncodeInstructionCodec(instruction, context).encode();
+        return new EncodeInstructionCodecHelper(instruction, context).encode();
     }
 
     @Override
@@ -65,6 +65,6 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
             return null;
         }
 
-        return new DecodeInstructionCodec(json).decode();
+        return new DecodeInstructionCodecHelper(json).decode();
     }
 }
