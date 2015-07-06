@@ -84,8 +84,7 @@ public class SdnIpReactiveRouting {
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
-        packetService.addProcessor(processor,
-                                   PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
         requestIntercepts();
         log.info("SDN-IP Reactive Routing Started");
     }
@@ -105,11 +104,9 @@ public class SdnIpReactiveRouting {
         //TODO: to support IPv6 later
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(TYPE_IPV4);
-        packetService.requestPackets(selector.build(),
-                                     REACTIVE, appId);
+        packetService.requestPackets(selector.build(), REACTIVE, appId);
         selector.matchEthType(TYPE_ARP);
-        packetService.requestPackets(selector.build(),
-                                     REACTIVE, appId);
+        packetService.requestPackets(selector.build(), REACTIVE, appId);
     }
 
     /**
@@ -118,12 +115,10 @@ public class SdnIpReactiveRouting {
     private void withdrawIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(TYPE_IPV4);
-        packetService.requestPackets(selector.build(),
-                                     REACTIVE, appId);
+        packetService.cancelPackets(selector.build(), REACTIVE, appId);
         selector = DefaultTrafficSelector.builder();
         selector.matchEthType(TYPE_ARP);
-        packetService.requestPackets(selector.build(),
-                                     REACTIVE, appId);
+        packetService.cancelPackets(selector.build(), REACTIVE, appId);
     }
 
     private class ReactiveRoutingProcessor implements PacketProcessor {
