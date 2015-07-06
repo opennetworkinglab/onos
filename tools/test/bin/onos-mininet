@@ -1,0 +1,56 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Starts or interacts with mininet in a remote screen session.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+cmd="$1" && shift
+log="screenlog.0"
+remote="$ONOS_USER@$OCN"
+mininet="ssh -t -t $remote screen -L -S mininet"
+
+case $cmd in
+send)
+    $mininet -X "stuff \"$@\\n\"" 2>/dev/null
+    ;;
+
+sendAndExpect)
+    $mininet -X "stuff \"$1\\n\"" 2>/dev/null
+    shift
+    onos-mininet expect "$@"
+    ;;
+
+wait)
+    ssh $remote "
+        sleep 1 && while test ! -f $log; do sleep 1; done
+        while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        sleep ${1-:1}
+    "
+    ;;
+
+expect)
+    aux=/tmp/mininet.$$.log
+    ssh $remote "
+        sleep 1 && while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        tac $log | awk '{ print \$0; } /^mininet>/ { if (on) { exit 0; } on=1; }' | tac > $aux
+        cat $aux
+        set -x
+        egrep \"$@\" $aux
+    "
+    ;;
+
+start)
+    ssh $remote rm -f $log
+    $mininet "$@"
+    scp $remote:$log /tmp/mininet.log
+    ssh $remote rm -f $log
+    ;;
+
+stop)
+    $mininet -X "stuff \"^C\\n\"" 2>/dev/null && \
+        $mininet -X "stuff \"^C\\n\"" 2>/dev/null && \
+        $mininet -X "stuff \"exit\\n\"" 2>/dev/null
+    ;;
+esac

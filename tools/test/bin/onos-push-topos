@@ -1,0 +1,11 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes test topologies a remote mininet test machine.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCN}
+
+scp -qr $ONOS_ROOT/tools/test/topos $ONOS_USER@$node:

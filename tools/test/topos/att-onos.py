@@ -26,7 +26,7 @@ def run(controllers=[ '127.0.0.1' ]):
     ctrl_count = 0
     for controllerIP in controllers:
         net.addController( 'c%d' % ctrl_count, RemoteController, ip=controllerIP )
-        ctrl_count = ctrl_count + 1
+	ctrl_count = ctrl_count + 1
     net.build()
     net.start()
     CLI( net )

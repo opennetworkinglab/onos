@@ -100,12 +100,12 @@ function cell {
     if [ -n "$1" ]; then
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
-        unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES ONOS_USER ONOS_GROUP
-        unset OCI OCN OCT
-        unset ONOS_FEATURES # deprecated
+        unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
+        unset OCI OCN OCT ONOS_INSTANCES ONOS_USER ONOS_GROUP ONOS_FEATURES
         unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
         export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
+        export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
         setPrimaryInstance 1 >/dev/null
         cell
     else
@@ -113,7 +113,7 @@ function cell {
         env | egrep "OCI"
         env | egrep "OC[0-9]+" | sort
         env | egrep "OC[NT]"
-        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL'
+        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES'
     fi
 }
 

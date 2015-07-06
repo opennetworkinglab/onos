@@ -15,17 +15,41 @@
   -->
 <scenario name="basic-net" description="Basic network functionality test">
     <group name="Basic-Net">
+        <step name="Push-Topos" exec="onos-push-topos ${OCN}"/>
+
         <step name="Install-Apps"
-              exec="onos ${OC1} app activate org.onosproject.proxyarp org.onosproject.fwd"/>
+              exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
         <step name="Check-Apps" requires="Install-Apps"
               exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd"/>
 
-        <step name="Config-Topo"
-              exec="onos-topo-cfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls.json"/>
-        <step name="Check-Summary" requires="Config-Topo"
-              exec="onos-check-summary ${OC1} [0-9]* 25 0 25"/>
+        <step name="Wipe-Out-Data" requires="~Check-Apps"
+              exec="onos ${OC1} wipe-out please"/>
 
-        <step name="Start-Mininet" requires="Install-Apps,Check-Summary"
-              exec="echo onos-start-mininet not implemented yet"/>
+        <step name="Check-Summary" requires="~Wipe-Out-Data"
+              exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
+
+        <step name="Start-Mininet" requires="Install-Apps,Check-Summary,Push-Topos"
+              exec="onos-mininet start topos/att-onos ${ONOS_INSTANCES}"/>
+
+        <step name="Wait-For-Mininet" requires="Install-Apps,Check-Summary"
+              exec="onos-mininet wait 15"/>
+
+        <step name="Check-Summary-Again" requires="Wait-For-Mininet"
+              exec="onos-check-summary ${OC1} [0-9]* 25 112 0"/>
+
+        <step name="Config-Topo" requires="Check-Summary-Again"
+              exec="onos-topo-cfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls.json"/>
+
+        <step name="Check-Summary-Yet-Again" requires="~Config-Topo"
+              exec="onos-check-summary ${OC1} [0-9]* 25 112 25"/>
+
+        <step name="Ping-All" requires="Wait-For-Mininet,~Check-Summary-Again"
+              exec="onos-mininet send py net.pingAll(1)"/>
+
+        <step name="Verify-Ping-All" requires="~Ping-All"
+              exec="onos-mininet expect Results: .* dropped"/>
+
+        <step name="Stop-Mininet" requires="~Verify-Ping-All"
+              exec="onos-mininet stop"/>
     </group>
 </scenario>
