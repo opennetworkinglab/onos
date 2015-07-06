@@ -62,6 +62,7 @@ public class DistributedFlowObjectiveStore
                 .withSerializer(Serializer.using(
                         new KryoNamespace.Builder()
                                 .register(byte[].class)
+                                .register(Versioned.class)
                                 .build()))
                 .build();
 

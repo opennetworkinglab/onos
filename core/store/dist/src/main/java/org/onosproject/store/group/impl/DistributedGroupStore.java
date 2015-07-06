@@ -434,6 +434,31 @@ public class DistributedGroupStore
         storeGroupDescriptionInternal(groupDesc);
     }
 
+    private Group getMatchingExtraneousGroupbyId(DeviceId deviceId, Integer groupId) {
+        ConcurrentMap<GroupId, Group> extraneousMap =
+                extraneousGroupEntriesById.get(deviceId);
+        if (extraneousMap == null) {
+            return null;
+        }
+        return extraneousMap.get(new DefaultGroupId(groupId));
+    }
+
+    private Group getMatchingExtraneousGroupbyBuckets(DeviceId deviceId,
+                                                      GroupBuckets buckets) {
+        ConcurrentMap<GroupId, Group> extraneousMap =
+                extraneousGroupEntriesById.get(deviceId);
+        if (extraneousMap == null) {
+            return null;
+        }
+
+        for (Group extraneousGroup:extraneousMap.values()) {
+            if (extraneousGroup.buckets().equals(buckets)) {
+                return extraneousGroup;
+            }
+        }
+        return null;
+    }
+
     private void storeGroupDescriptionInternal(GroupDescription groupDesc) {
         // Check if a group is existing with the same key
         if (getGroup(groupDesc.deviceId(), groupDesc.appCookie()) != null) {
@@ -454,6 +479,74 @@ public class DistributedGroupStore
                                                         groupDesc.appCookie()),
                                 group);
             return;
+        }
+
+        Group matchingExtraneousGroup = null;
+        if (groupDesc.givenGroupId() != null) {
+            //Check if there is a extraneous group existing with the same Id
+            matchingExtraneousGroup = getMatchingExtraneousGroupbyId(
+                                groupDesc.deviceId(), groupDesc.givenGroupId());
+            if (matchingExtraneousGroup != null) {
+                log.debug("storeGroupDescriptionInternal: Matching extraneous group found in Device {} for group id {}",
+                          groupDesc.deviceId(),
+                          groupDesc.givenGroupId());
+                //Check if the group buckets matches with user provided buckets
+                if (matchingExtraneousGroup.buckets().equals(groupDesc.buckets())) {
+                    //Group is already existing with the same buckets and Id
+                    // Create a group entry object
+                    log.debug("storeGroupDescriptionInternal: Buckets also matching in Device {} for group id {}",
+                              groupDesc.deviceId(),
+                              groupDesc.givenGroupId());
+                    StoredGroupEntry group = new DefaultGroup(
+                              matchingExtraneousGroup.id(), groupDesc);
+                    // Insert the newly created group entry into key and id maps
+                    getGroupStoreKeyMap().
+                        put(new GroupStoreKeyMapKey(groupDesc.deviceId(),
+                                                    groupDesc.appCookie()), group);
+                    // Ensure it also inserted into group id based table to
+                    // avoid any chances of duplication in group id generation
+                    getGroupIdTable(groupDesc.deviceId()).
+                        put(matchingExtraneousGroup.id(), group);
+                    addOrUpdateGroupEntry(matchingExtraneousGroup);
+                    removeExtraneousGroupEntry(matchingExtraneousGroup);
+                    return;
+                } else {
+                    //Group buckets are not matching. Update group
+                    //with user provided buckets.
+                    //TODO
+                    log.debug("storeGroupDescriptionInternal: Buckets are not matching in Device {} for group id {}",
+                              groupDesc.deviceId(),
+                              groupDesc.givenGroupId());
+                }
+            }
+        } else {
+            //Check if there is an extraneous group with user provided buckets
+            matchingExtraneousGroup = getMatchingExtraneousGroupbyBuckets(
+                                        groupDesc.deviceId(), groupDesc.buckets());
+            if (matchingExtraneousGroup != null) {
+                //Group is already existing with the same buckets.
+                //So reuse this group.
+                log.debug("storeGroupDescriptionInternal: Matching extraneous group found in Device {}",
+                          groupDesc.deviceId());
+                //Create a group entry object
+                StoredGroupEntry group = new DefaultGroup(
+                         matchingExtraneousGroup.id(), groupDesc);
+                // Insert the newly created group entry into key and id maps
+                getGroupStoreKeyMap().
+                    put(new GroupStoreKeyMapKey(groupDesc.deviceId(),
+                                                groupDesc.appCookie()), group);
+                // Ensure it also inserted into group id based table to
+                // avoid any chances of duplication in group id generation
+                getGroupIdTable(groupDesc.deviceId()).
+                    put(matchingExtraneousGroup.id(), group);
+                addOrUpdateGroupEntry(matchingExtraneousGroup);
+                removeExtraneousGroupEntry(matchingExtraneousGroup);
+                return;
+            } else {
+                //TODO: Check if there are any empty groups that can be used here
+                log.debug("storeGroupDescriptionInternal: No matching extraneous groups found in Device {}",
+                          groupDesc.deviceId());
+            }
         }
 
         GroupId id = null;
@@ -883,13 +976,8 @@ public class DistributedGroupStore
         ConcurrentMap<GroupId, Group> extraneousIdTable =
                 getExtraneousGroupIdTable(group.deviceId());
         extraneousIdTable.put(group.id(), group);
-        // Check the reference counter
-        if (group.referenceCount() == 0) {
-            log.debug("Flow reference counter is zero and triggering remove",
-                    group.id(),
-                    group.deviceId());
-            notifyDelegate(new GroupEvent(Type.GROUP_REMOVE_REQUESTED, group));
-        }
+        // Don't remove the extraneous groups, instead re-use it when
+        // a group request comes with the same set of buckets
     }
 
     @Override
