@@ -80,6 +80,10 @@ import org.slf4j.LoggerFactory;
  */
 class OFChannelHandler extends IdleStateAwareChannelHandler {
     private static final Logger log = LoggerFactory.getLogger(OFChannelHandler.class);
+
+    private static final String RESET_BY_PEER = "Connection reset by peer";
+    private static final String BROKEN_PIPE = "Broken pipe";
+
     private final Controller controller;
     private OpenFlowSwitchDriver sw;
     private long thisdpid; // channelHandler cached value of connected switch id
@@ -1094,11 +1098,14 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         } else if (e.getCause() instanceof ClosedChannelException) {
             log.debug("Channel for sw {} already closed", getSwitchInfoString());
         } else if (e.getCause() instanceof IOException) {
-            log.error("Disconnecting switch {} due to IO Error: {}",
-                    getSwitchInfoString(), e.getCause().getMessage());
-            if (log.isDebugEnabled()) {
-                // still print stack trace if debug is enabled
-                log.debug("StackTrace for previous Exception: ", e.getCause());
+            if (!e.getCause().getMessage().equals(RESET_BY_PEER) &&
+                    !e.getCause().getMessage().equals(BROKEN_PIPE)) {
+                log.error("Disconnecting switch {} due to IO Error: {}",
+                          getSwitchInfoString(), e.getCause().getMessage());
+                if (log.isDebugEnabled()) {
+                    // still print stack trace if debug is enabled
+                    log.debug("StackTrace for previous Exception: ", e.getCause());
+                }
             }
             ctx.getChannel().close();
         } else if (e.getCause() instanceof SwitchStateException) {
