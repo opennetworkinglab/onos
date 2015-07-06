@@ -227,6 +227,19 @@
     // === DEFINE THE MODULE
 
     angular.module('onosSvg')
+        .directive('icon', ['IconService', function (is) {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attrs) {
+                    attrs.$observe('iconId', function () {
+                        var div = d3.select(element[0]);
+                        div.selectAll('*').remove();
+                        is.loadEmbeddedIcon(div, attrs.iconId, attrs.iconSize);
+                    });
+                }
+            };
+        }])
+
         .factory('IconService', ['$log', 'FnService', 'GlyphService',
             'SvgUtilService',
 

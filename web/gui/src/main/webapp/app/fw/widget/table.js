@@ -189,44 +189,26 @@
 
         .directive('onosSortableHeader', ['$log', 'IconService',
             function (_$log_, _is_) {
-            return {
-                scope: {
-                    sortCallback: '&',
-                    sortParams: '='
-                },
-                link: function (scope, element) {
-                    $log = _$log_;
-                    is = _is_;
-                    var header = d3.select(element[0]);
-                        sortIconAPI = is.sortIcons();
+            return function (scope, element) {
+                $log = _$log_;
+                is = _is_;
+                var header = d3.select(element[0]);
+                    sortIconAPI = is.sortIcons();
 
-                    // when a header is clicked, change its sort direction
-                    // and get sorting order to send to the server.
-                    header.selectAll('td').on('click', function () {
-                        var col = d3.select(this);
+                header.selectAll('td').on('click', function () {
+                    var col = d3.select(this);
 
-                        if (col.attr('sortable') === '') {
-                            updateSortDirection(col);
-                            scope.$apply(function () {
-                                scope.sortParams = sortRequestParams();
-                            });
-                            scope.sortCallback({
-                                requestParams: scope.sortParams
-                            });
-                        }
-                    });
-                }
-            };
-        }])
+                    if (col.attr('sortable') === '') {
+                        updateSortDirection(col);
+                        scope.sortParams = sortRequestParams();
+                        scope.sortCallback(scope.sortParams);
+                    }
+                });
 
-        .factory('TableService', ['IconService',
-
-            function (is) {
-                sortIconAPI = is.sortIcons();
-
-                return {
-                    resetSort: resetSort
-                };
+                scope.$on('$destroy', function () {
+                    resetSort();
+                });
+            }
         }]);
 
 }());

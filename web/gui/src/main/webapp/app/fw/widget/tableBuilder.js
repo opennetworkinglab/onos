@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $interval, fs, wss, ts;
+    var $log, $interval, fs, wss;
 
     // constants
     var refreshInterval = 2000;
@@ -98,7 +98,6 @@
         // Cleanup on destroyed scope
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
-            ts.resetSort();
             stopRefresh();
         });
 
@@ -108,14 +107,13 @@
 
     angular.module('onosWidget')
         .factory('TableBuilderService',
-        ['$log', '$interval', 'FnService', 'WebSocketService', 'TableService',
+        ['$log', '$interval', 'FnService', 'WebSocketService',
 
-            function (_$log_, _$interval_, _fs_, _wss_, _ts_) {
+            function (_$log_, _$interval_, _fs_, _wss_) {
                 $log = _$log_;
                 $interval = _$interval_;
                 fs = _fs_;
                 wss = _wss_;
-                ts = _ts_;
 
                 return {
                     buildTable: buildTable

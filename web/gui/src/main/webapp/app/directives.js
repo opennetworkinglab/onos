@@ -59,25 +59,5 @@
                     });
                 }
             };
-        }])
-
-
-        // create icon directive, so that we can inject icons into
-        // HTML tables etc.
-        .directive('icon', ['IconService', function (is) {
-            return {
-                restrict: 'A',
-                scope: {
-                    iconId: '@',
-                    iconSize: '@'
-                },
-                link: function (scope, element, attrs) {
-                    attrs.$observe('iconId', function () {
-                        var div = d3.select(element[0]);
-                        div.selectAll('*').remove();
-                        is.loadEmbeddedIcon(div, scope.iconId, scope.iconSize);
-                    });
-                }
-            };
         }]);
 }());
