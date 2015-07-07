@@ -321,7 +321,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             .withName(name)
             .withElectionTimeout(electionTimeoutMillis(replicas))
             .withHeartbeatInterval(heartbeatTimeoutMillis(replicas))
-            .withConsistency(Consistency.DEFAULT)
+            .withConsistency(Consistency.STRONG)
             .withLog(log)
             .withDefaultSerializer(new DatabaseSerializer())
             .withReplicas(replicas);

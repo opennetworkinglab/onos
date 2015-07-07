@@ -71,7 +71,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netty4.version>4.0.23.Final</netty4.version>
-        <copycat.version>0.5.0.onos12-SNAPSHOT</copycat.version>
+        <copycat.version>0.4.1.onos</copycat.version>
         <openflowj.version>0.4.0.onos</openflowj.version>
         <karaf.version>3.0.3</karaf.version>
         <jersey.version>1.19</jersey.version>
