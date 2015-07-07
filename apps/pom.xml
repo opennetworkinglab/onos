@@ -40,7 +40,6 @@
         <module>sdnip</module>
         <module>optical</module>
         <module>metrics</module>
-        <module>oecfg</module>
         <module>routing</module>
         <module>routing-api</module>
         <module>reactive-routing</module>
