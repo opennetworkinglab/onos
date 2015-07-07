@@ -194,8 +194,8 @@ public class GossipIntentStore
         NodeId master = partitionService.getLeader(key);
         NodeId origin = (data != null) ? data.origin() : null;
         if (master == null || origin == null) {
-            log.warn("Intent {} has no home; master = {}, origin = {}",
-                     key, master, origin);
+            log.debug("Intent {} missing master and/or origin; master = {}, origin = {}",
+                      key, master, origin);
         }
 
         NodeId me = clusterService.getLocalNode().id();
@@ -208,7 +208,7 @@ public class GossipIntentStore
         } else if (isOrigin) {
             return master != null ? ImmutableList.of(master) : getRandomNode();
         } else {
-            log.warn("Not master or origin for intent {}", key);
+            log.warn("No master or origin for intent {}", key);
             return master != null ? ImmutableList.of(master) : getRandomNode();
         }
     }

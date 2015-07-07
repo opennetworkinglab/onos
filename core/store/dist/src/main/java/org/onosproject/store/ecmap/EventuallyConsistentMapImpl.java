@@ -353,6 +353,9 @@ public class EventuallyConsistentMapImpl<K, V>
             if (value.isPresent() && existing != null && existing.isAlive()) {
                 valueMatches = Objects.equals(value.get(), existing.get());
             }
+            if (existing == null) {
+                log.debug("ECMap Remove: Existing value for key {} is already null", k);
+            }
             updated.set(valueMatches && (existing == null || tombstone.isNewerThan(existing)));
             if (updated.get()) {
                 previousValue.set(existing);
