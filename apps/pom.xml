@@ -33,6 +33,7 @@
 
     <modules>
         <module>aaa</module>
+        <module>acl</module>
         <module>fwd</module>
         <module>mobility</module>
         <module>proxyarp</module>
