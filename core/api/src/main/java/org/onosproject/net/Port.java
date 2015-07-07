@@ -53,7 +53,12 @@ public interface Port extends Annotated {
          * Signifies optical fiber-based WDM port (called W-port).
          * Optical Multiplexing Section (See ITU G.709).
          */
-        OMS
+        OMS,
+
+        /**
+         * Signifies virtual port.
+         */
+        VIRTUAL
     }
 
     /**

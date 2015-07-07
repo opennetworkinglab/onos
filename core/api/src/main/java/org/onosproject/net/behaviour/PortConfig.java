@@ -17,11 +17,12 @@ package org.onosproject.net.behaviour;
 
 import com.google.common.primitives.UnsignedInteger;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
  * Means to configure a logical port at the device.
  */
-public interface PortConfig {
+public interface PortConfig extends HandlerBehaviour {
 
     /**
      * Apply QoS configuration on a device.
