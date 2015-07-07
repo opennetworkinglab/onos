@@ -24,7 +24,7 @@ import java.util.Objects;
  * Cluster messages have associated subjects that dictate how they get handled
  * on the receiving side.
  */
-public class MessageSubject {
+public final class MessageSubject {
 
     private final String value;
 
