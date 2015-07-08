@@ -223,6 +223,14 @@ public class ProxyArp {
             if (!ipv6NeighborDiscovery && (ethPkt.getEtherType() == TYPE_IPV6)) {
                 return;
             }
+
+            // Do not ARP for multicast packets.  Let mfwd handle them.
+            if (ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
+                if (ethPkt.getDestinationMAC().isMulticast()) {
+                    return;
+                }
+            }
+
             //handle the arp packet.
             proxyArpService.handlePacket(context);
         }
