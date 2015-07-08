@@ -187,12 +187,18 @@ import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class KryoNamespaces {
 
     public static final KryoNamespace BASIC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(byte[].class)
+            .register(AtomicBoolean.class)
+            .register(AtomicInteger.class)
+            .register(AtomicLong.class)
             .register(new ImmutableListSerializer(),
                       ImmutableList.class,
                       ImmutableList.of(1).getClass(),
