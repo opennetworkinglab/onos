@@ -323,6 +323,8 @@ public class NullProviders {
             return new RerouteTopologySimulator();
         } else if (topoShape.matches("tree([,].*|$)")) {
             return new TreeTopologySimulator();
+        } else if (topoShape.matches("agglink([,].*|$)")) {
+            return new AggLinkTopologySimulator();
         } else if (topoShape.matches("spineleaf([,].*|$)")) {
             return new SpineLeafTopologySimulator();
         } else if (topoShape.matches("mesh([,].*|$)")) {
