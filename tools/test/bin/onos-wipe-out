@@ -1,0 +1,11 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Wipes out all data from the ONOS cluster. Temporary until wipe-out is fixed.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+while ! onos-check-summary $OCI '.*' 0 0 0 0 0; do
+    onos $OCI wipe-out please
+done

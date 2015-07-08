@@ -13,18 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="smoke-test" description="ONOS smoke test">
-    <import file="${ONOS_SCENARIOS}/prerequisites.xml"/>
+<scenario name="net-pingall" description="Network pingall test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-Pingall">
+        <step name="Ping-All-And-Verify"
+              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect Results: .* dropped"/>
 
-    <import file="${ONOS_SCENARIOS}/setup.xml"/>
-    <dependency name="Setup" requires="Prerequisites"/>
+        <step name="Check-Summary-For-Hosts" requires="~Ping-All-And-Verify"
+              exec="onos-check-summary ${OC1} [0-9]* 25 112 25"/>
 
-    <import file="${ONOS_SCENARIOS}/net-smoke.xml"/>
-    <dependency name="Net-Smoke" requires="Setup"/>
-
-    <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
-    <dependency name="Archetypes" requires="~Net-Smoke,Setup"/>
-
-    <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke"/>
+        <step name="Config-Topo" requires="Check-Summary-For-Hosts"
+              exec="onos-topo-cfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls.json"/>
+    </group>
 </scenario>

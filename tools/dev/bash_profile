@@ -30,6 +30,8 @@ export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
 # Setup cell enviroment
 export ONOS_CELL=${ONOS_CELL:-local}
 
+export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
+
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {

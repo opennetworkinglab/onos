@@ -17,8 +17,9 @@ send)
     ;;
 
 sendAndExpect)
-    $mininet -X "stuff \"$1\\n\"" 2>/dev/null
-    shift
+    cmd=""
+    for a in $*; do shift; if [ "$a" = "--expect" ]; then break; fi; cmd="$cmd $a"; done
+    $mininet -X "stuff \"$cmd\\n\"" 2>/dev/null
     onos-mininet expect "$@"
     ;;
 
@@ -33,7 +34,9 @@ wait)
 expect)
     aux=/tmp/mininet.$$.log
     ssh $remote "
-        sleep 1 && while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        sleep 1
+        if [ ! -f $log ]; then exit 1; fi;
+        while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
         tac $log | awk '{ print \$0; } /^mininet>/ { if (on) { exit 0; } on=1; }' | tac > $aux
         cat $aux
         set -x
@@ -42,10 +45,12 @@ expect)
     ;;
 
 start)
-    ssh $remote rm -f $log
+    ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
+    (
     $mininet "$@"
     scp $remote:$log /tmp/mininet.log
     ssh $remote rm -f $log
+    ) &
     ;;
 
 stop)
