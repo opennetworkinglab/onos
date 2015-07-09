@@ -104,6 +104,7 @@
             return {x:x4, y:y4};
         }
 
+        // FIXME: x and y position calculated here, use link.position
         function lineSeg(d) {
             return {
                 x1: d.source.x,
@@ -200,6 +201,7 @@
         td3.applyPortLabels(data, api.portLabelG());
     }
 
+    // FIXME: x and y position calculated here somewhere
     function locatePortLabel(link, src) {
         var near = src ? 'source' : 'target',
             far = src ? 'target' : 'source',

@@ -367,6 +367,7 @@
             .classed('linkLabel', true)
             .attr('id', function (d) { return d.id; });
 
+        // FIXME: x and y position calculated here, use link.position obj
         entering.each(function (d) {
             var el = d3.select(this),
                 rect,
@@ -410,6 +411,7 @@
         return box;
     }
 
+    // FIXME: x and y position calculated here
     function transformLabel(p) {
         var dx = p.x2 - p.x1,
             dy = p.y2 - p.y1,
