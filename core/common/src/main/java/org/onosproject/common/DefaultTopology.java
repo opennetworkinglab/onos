@@ -322,8 +322,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
         return builder.build();
     }
+
     /**
-     /**
+     * /**
      * Returns the set of pre-computed shortest disjoint path pairs between source and
      * destination devices.
      *
@@ -331,7 +332,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @param dst destination device
      * @return set of shortest disjoint path pairs
      */
-    Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst) {
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst) {
         return getDisjointPaths(src, dst, null);
     }
 
@@ -344,7 +345,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @param weight link weight function
      * @return set of disjoint shortest path pairs
      */
-    Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
         final DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         final DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
         Set<TopologyVertex> vertices = graph.getVertexes();
@@ -366,12 +367,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
      * destination devices.
      *
-     * @param src           source device
-     * @param dst           destination device
-     * @param riskProfile   map representing risk groups for each edge
-     * @return  set of shortest disjoint paths
+     * @param src         source device
+     * @param dst         destination device
+     * @param riskProfile map representing risk groups for each edge
+     * @return set of shortest disjoint paths
      */
-    Set<DisjointPath> getSRLGDisjointPathsD(DeviceId src, DeviceId dst, Map<TopologyEdge, Object> riskProfile) {
+    public Set<DisjointPath> getSRLGDisjointPathsD(DeviceId src, DeviceId dst, Map<TopologyEdge, Object> riskProfile) {
         return getSRLGDisjointPathsD(src, dst, null, riskProfile);
     }
 
@@ -379,13 +380,13 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
      * destination devices.
      *
-     * @param src       source device
-     * @param dst       destination device
-     * @param weight    edge weight object
-     * @param riskProfile   map representing risk groups for each edge
+     * @param src         source device
+     * @param dst         destination device
+     * @param weight      edge weight object
+     * @param riskProfile map representing risk groups for each edge
      * @return set of shortest disjoint paths
      */
-    Set<DisjointPath> getSRLGDisjointPathsD(DeviceId src, DeviceId dst, LinkWeight weight, Map<TopologyEdge,
+    public Set<DisjointPath> getSRLGDisjointPathsD(DeviceId src, DeviceId dst, LinkWeight weight, Map<TopologyEdge,
             Object> riskProfile) {
         final DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         final DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
@@ -409,14 +410,14 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
      * destination devices.
      *
-     * @param src       source device
-     * @param dst       destination device
-     * @param weight    edge weight object
-     * @param riskProfile   map representing risk groups for each link
+     * @param src         source device
+     * @param dst         destination device
+     * @param weight      edge weight object
+     * @param riskProfile map representing risk groups for each link
      * @return set of shortest disjoint paths
      */
-    Set<DisjointPath> getSRLGDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
-                                           Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getSRLGDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+                                                  Map<Link, Object> riskProfile) {
         Map<TopologyEdge, Object> riskProfile2 = new HashMap<>();
         for (Link l : riskProfile.keySet()) {
             riskProfile2.put(new TopologyEdge() {
@@ -450,12 +451,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
      * destination devices.
      *
-     * @param src       source device
-     * @param dst       destination device
-     * @param riskProfile   map representing risk groups for each link
+     * @param src         source device
+     * @param dst         destination device
+     * @param riskProfile map representing risk groups for each link
      * @return set of shortest disjoint paths
      */
-    Set<DisjointPath> getSRLGDisjointPaths(DeviceId src, DeviceId dst, Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getSRLGDisjointPaths(DeviceId src, DeviceId dst, Map<Link, Object> riskProfile) {
         return getSRLGDisjointPaths(src, dst, null, riskProfile);
     }
 

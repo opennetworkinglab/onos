@@ -21,7 +21,9 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
@@ -36,6 +38,7 @@ import org.onosproject.net.topology.PathService;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -89,6 +92,28 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
 
         @Override
         public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
+                                                      Map<Link, Object> riskProfile) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
+                                                      Map<Link, Object> riskProfile) {
             return null;
         }
     }

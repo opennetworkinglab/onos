@@ -17,9 +17,11 @@ package org.onosproject.net.topology;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -87,6 +89,27 @@ public class TopologyServiceAdapter implements TopologyService {
 
     @Override
     public void removeListener(TopologyListener listener) {
+    }
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+        return null;
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+        return null;
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                  Map<Link, Object> riskProfile) {
+        return null;
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight,
+                                                  Map<Link, Object> riskProfile) {
+        return null;
     }
 
 }

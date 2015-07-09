@@ -82,4 +82,30 @@ public class PathsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{src}/{dst}/disjoint")
+
+    public Response getDisjointPath(@PathParam("src") String src,
+                            @PathParam("dst") String dst) {
+        PathService pathService = get(PathService.class);
+
+        ElementId srcElement = isHostId(src);
+        ElementId dstElement = isHostId(dst);
+
+        if (srcElement == null) {
+            // Doesn't look like a host, assume it is a device
+            srcElement = DeviceId.deviceId(src);
+        }
+
+        if (dstElement == null) {
+            // Doesn't look like a host, assume it is a device
+            dstElement = DeviceId.deviceId(dst);
+        }
+        Set<org.onosproject.net.DisjointPath> paths =
+                pathService.getDisjointPaths(srcElement, dstElement);
+        ObjectNode root =
+                    encodeArray(org.onosproject.net.DisjointPath.class, "paths", paths);
+        return ok(root).build();
+    }
 }

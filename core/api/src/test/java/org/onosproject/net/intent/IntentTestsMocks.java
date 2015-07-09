@@ -22,6 +22,7 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
@@ -64,6 +65,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -184,6 +186,28 @@ public class IntentTestsMocks {
                 }
             }
             return paths;
+        }
+
+        @Override
+        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
+                                                      Map<Link, Object> riskProfile) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
+                                                      Map<Link, Object> riskProfile) {
+            return null;
         }
     }
 
@@ -424,7 +448,7 @@ public class IntentTestsMocks {
             }
             final MockFlowRule other = (MockFlowRule) obj;
             return Objects.equals(this.timestamp, other.timestamp) &&
-                   this.id == other.id;
+                    this.id == other.id;
         }
 
         @Override
@@ -450,7 +474,7 @@ public class IntentTestsMocks {
 
         public MockIntent(Long number) {
             super(NetTestTools.APP_ID, null, Collections.emptyList(),
-                    Intent.DEFAULT_INTENT_PRIORITY);
+                  Intent.DEFAULT_INTENT_PRIORITY);
             this.number = number;
         }
 

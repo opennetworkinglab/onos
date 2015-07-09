@@ -20,11 +20,13 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /**
  * Manages inventory of topology snapshots; not intended for direct use.
@@ -110,6 +112,59 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      */
     Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                        LinkWeight weight);
+
+    /**
+     * Computes and returns the set of disjoint shortest path pairs
+     * between src and dst.
+     *
+     * @param topology topology descriptor
+     * @param src      source device
+     * @param dst      destination device
+     * @param weight   link weight function
+     * @return set of shortest paths
+     */
+    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                       LinkWeight weight);
+
+    /**
+     * Computes and returns the set of disjoint shortest path pairs
+     * between src and dst.
+     *
+     * @param topology topology descriptor
+     * @param src      source device
+     * @param dst      destination device
+     * @return set of shortest paths
+     */
+    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst);
+
+    /**
+     * Computes and returns the set of SRLG disjoint shortest path pairs between source
+     * and dst, given a mapping of edges to SRLG risk groups.
+     *
+     * @param topology topology descriptor
+     * @param src      source device
+     * @param dst      destination device
+     * @param weight   link weight function
+     * @param riskProfile   map of edges to objects. Edges that map to the same object will
+     * be treated as if they were in the same risk group.
+     * @return set of shortest paths
+     */
+    Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                           LinkWeight weight, Map<Link, Object> riskProfile);
+
+    /**
+     * Returns the set of pre-computed SRLG shortest paths between src and dest.
+     *
+     * @param topology topology descriptor
+     * @param src      source device
+     * @param dst      destination device
+     * @param riskProfile   map of edges to objects. Edges that map to the same object will
+     * be treated as if they were in the same risk group.
+     * @return set of shortest paths
+     */
+    Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                           Map<Link, Object> riskProfile);
+
 
     /**
      * Indicates whether the given connect point is part of the network fabric.

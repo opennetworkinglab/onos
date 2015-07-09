@@ -23,6 +23,7 @@ import org.onosproject.common.DefaultTopology;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
@@ -39,6 +40,7 @@ import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -111,6 +113,29 @@ public class SimpleTopologyStore
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                               LinkWeight weight) {
         return defaultTopology(topology).getPaths(src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+        return defaultTopology(topology).getDisjointPaths(src, dst);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                              LinkWeight weight) {
+        return defaultTopology(topology).getDisjointPaths(src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                  Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getSRLGDisjointPaths(src, dst, riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                  LinkWeight weight, Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getSRLGDisjointPaths(src, dst, weight, riskProfile);
     }
 
     @Override

@@ -19,9 +19,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
@@ -148,6 +150,28 @@ public class PathManagerTest {
         @Override
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
             return paths;
+        }
+
+        @Override
+        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                      Map<Link, Object> riskProfile) {
+            return null;
+        }
+
+        @Override
+        public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight,
+                                                      Map<Link, Object> riskProfile) {
+            return null;
         }
     }
 

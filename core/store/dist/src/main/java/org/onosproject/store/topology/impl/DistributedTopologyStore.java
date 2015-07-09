@@ -21,6 +21,7 @@ import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.DefaultGraphDescription;
@@ -74,7 +76,6 @@ public class DistributedTopologyStore
         implements TopologyStore {
 
     private final Logger log = getLogger(getClass());
-
     private volatile DefaultTopology current =
             new DefaultTopology(ProviderId.NONE,
                                 new DefaultGraphDescription(0L, System.currentTimeMillis(),
@@ -164,6 +165,29 @@ public class DistributedTopologyStore
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                               LinkWeight weight) {
         return defaultTopology(topology).getPaths(src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+        return defaultTopology(topology).getDisjointPaths(src, dst);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                              LinkWeight weight) {
+        return defaultTopology(topology).getDisjointPaths(src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                  Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getSRLGDisjointPaths(src, dst, riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                  LinkWeight weight, Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getSRLGDisjointPaths(src, dst, weight, riskProfile);
     }
 
     @Override

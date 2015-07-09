@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -159,6 +161,42 @@ public class TopologyManager
         checkNotNull(dst, DEVICE_ID_NULL);
         checkNotNull(weight, "Link weight cannot be null");
         return store.getPaths(topology, src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        return store.getDisjointPaths(topology, src, dst);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        checkNotNull(weight, "Link weight cannot be null");
+        return store.getDisjointPaths(topology, src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                                  Map<Link, Object> riskProfile) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        return store.getSRLGDisjointPaths(topology, src, dst, riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight,
+                                                  Map<Link, Object> riskProfile) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        checkNotNull(weight, "Link weight cannot be null");
+        return store.getSRLGDisjointPaths(topology, src, dst, weight, riskProfile);
     }
 
     @Override

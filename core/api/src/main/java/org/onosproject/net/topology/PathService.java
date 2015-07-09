@@ -15,9 +15,12 @@
  */
 package org.onosproject.net.topology;
 
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -47,5 +50,52 @@ public interface PathService {
      * @return set of all shortest paths between the two element
      */
     Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight);
+
+    /**
+     * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
+     * between the specified source and destination devices.
+     *
+     * @param src      source device
+     * @param dst      destination device
+     * @return set of all shortest paths between the two devices
+     */
+    Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst);
+
+    /**
+     * Returns the set of all disjoint shortest path pairs, computed using the supplied
+     * edge-weight entity, between the specified source and destination devices.
+     *
+     * @param src      source device
+     * @param dst      destination device
+     * @param weight   edge-weight entity
+     * @return set of all shortest paths between the two devices
+     */
+    Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
+                                       LinkWeight weight);
+
+    /**
+     * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
+     * between the specified source and destination devices.
+     *
+     * @param src      source device
+     * @param dst      destination device
+     * @param riskProfile map of edges to risk profiles
+     * @return set of all shortest paths between the two devices
+     */
+    Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
+                                           Map<Link, Object> riskProfile);
+
+    /**
+     * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
+     * between the specified source and destination devices.
+     *
+     * @param src      source device
+     * @param dst      destination device
+     * @param weight    edge-weight entity
+     * @param riskProfile map of edges to risk profiles
+     * @return set of all shortest paths between the two devices
+     */
+    Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
+                                           LinkWeight weight, Map<Link, Object> riskProfile);
 
 }
