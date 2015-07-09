@@ -366,11 +366,17 @@ class LINCSwitch(OpticalSwitch):
         with open('Topology.json', 'w') as outfile:
             json.dump(opticalJSON, outfile, indent=4, separators=(',', ': '))
 
-        info('*** Converting Topology.json to linc-oe format (TopoConfig.json) file\n')
-        output = quietRun('%s/tools/test/bin/onos-oecfg ./Topology.json > TopoConfig.json' % LINCSwitch.onosDir, shell=True)
-        if output:
-            error('***ERROR: Error creating topology file: %s ' % output + '\n')
-            return False
+        info('*** Converting Topology.json to linc-oe format (TopoConfig.json) file (no oecfg) \n')
+        
+        topoConfigJson = {};
+        dpIdToName = {};
+
+        topoConfigJson["switchConfig"] = getSwitchConfig(dpIdToName);
+        topoConfigJson["linkConfig"] = getLinkConfig(dpIdToName);
+
+        #Writing to TopoConfig.json
+        with open( 'TopoConfig.json', 'w' ) as outfile:
+            json.dump( topoConfigJson, outfile, indent=4, separators=(',', ': ') )
 
         info('*** Creating sys.config...\n')
         output = quietRun('%s/config_generator TopoConfig.json %s/sys.config.template %s %s'
@@ -451,6 +457,87 @@ class LINCSwitch(OpticalSwitch):
             # if there is more output than this, there is an issue
             if output.strip('{}'):
                 warn('***WARNING: Could not push topology file to ONOS: %s\n' % output)
+
+    #converts node ids to linc-oe format, with colons every two chars
+    def dpId(id):
+        nodeDpid = ""
+        id = id.split("/", 1)[0]
+        for i in range(3, len(id) - 1, 2):
+            nodeDpid += (id[i:(i + 2):]) + ":"
+        return nodeDpid[0:(len(nodeDpid) - 1)];
+
+    def getSwitchConfig (dpIdToName):
+        switchConfig = [];
+        #Iterate through all switches and convert the ROADM switches to linc-oe format
+        for switch in opticalJSON["devices"]:
+            if switch.get("type", "none") == "ROADM":
+                builtSwitch = {}
+
+                #set basic switch params based on annotations
+                builtSwitch["allowed"] = True;
+                builtSwitch["latitude"] = switch["annotations"].get("latitude", 0.0);
+                builtSwitch["longitude"] = switch["annotations"].get("longitude", 0.0);
+
+                #assumed that all switches have this entry
+                nodeId = switch["uri"]
+
+                #convert the nodeId to linc-oe format
+                nodeDpid = dpId(nodeId);
+
+                builtSwitch["name"] = switch.get("name", "none");
+
+                #keep track of the name corresponding to each switch dpid
+                dpIdToName[nodeDpid] = builtSwitch["name"];
+
+                builtSwitch["nodeDpid"] = nodeDpid
+
+                #set switch params and type
+                builtSwitch["params"] = {};
+                builtSwitch["params"]["numregens"] = switch["annotations"].get("optical.regens", 0);
+                builtSwitch["type"] = "Roadm"
+
+                #append to list of switches
+                switchConfig.append(builtSwitch);
+        return switchConfig
+
+
+    def getLinkConfig (dpIdToName):
+        newLinkConfig = [];
+        #Iterate through all optical links and convert them to linc-oe format
+        for link in opticalJSON["links"]:
+            if link.get("type", "none") == "OPTICAL":
+                builtLink = {}
+
+                #set basic link params for src and dst
+                builtLink["allowed"] = True;
+                builtLink["nodeDpid1"] = dpId(link["src"])
+                builtLink["nodeDpid2"] = dpId(link["dst"])
+
+                #set more params such as name/bandwidth/port/waves if they exist
+                params = {}
+                params["nodeName1"] = dpIdToName.get(builtLink["nodeDpid1"], "none")
+                params["nodeName2"] = dpIdToName.get(builtLink["nodeDpid2"], "none")
+                
+                params["port1"] = int(link["src"].split("/")[1])
+                params["port2"]  = int(link["dst"].split("/")[1])
+
+                if "bandwidth" in link["annotations"]:
+                    params["bandwidth"] = link["annotations"]["bandwidth"]
+
+                if "optical.waves" in link["annotations"]:
+                    params["numWaves"] = link["annotations"]["optical.waves"]
+                
+                builtLink["params"] = params
+
+                #set type of link (WDM or pktOpt)
+                if link["annotations"].get("optical.type", "cross-connect") == "WDM":
+                    builtLink["type"] = "wdmLink"
+                else:
+                    builtLink["type"] = "pktOptLink"
+
+                newLinkConfig.append(builtLink);
+        return newLinkConfig
+
 
     @staticmethod
     def waitStarted(net, timeout=TIMEOUT):
@@ -558,6 +645,8 @@ class LINCSwitch(OpticalSwitch):
 
     def terminate(self):
         pass
+
+
 
 class LINCLink(Link):
     """
