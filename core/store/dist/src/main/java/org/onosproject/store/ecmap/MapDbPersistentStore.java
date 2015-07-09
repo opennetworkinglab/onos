@@ -75,6 +75,11 @@ class MapDbPersistentStore<K, V> implements PersistentStore<K, V> {
         executor.submit(() -> updateInternal(key, value));
     }
 
+    @Override
+    public void remove(K key) {
+        executor.submit(() -> removeInternal(key));
+    }
+
     private void updateInternal(K key, MapValue<V> newValue) {
         byte[] keyBytes = serializer.encode(key);
 
@@ -87,6 +92,12 @@ class MapDbPersistentStore<K, V> implements PersistentStore<K, V> {
                 return existingBytes;
             }
         });
+        database.commit();
+    }
+
+    private void removeInternal(K key) {
+        byte[] keyBytes = serializer.encode(key);
+        items.remove(keyBytes);
         database.commit();
     }
 }
