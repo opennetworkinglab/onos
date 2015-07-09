@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flowobjective.impl;
+package org.onosproject.net.flowobjective.impl.composition;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,6 +41,8 @@ import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
@@ -54,6 +56,7 @@ import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -65,11 +68,27 @@ import static org.onosproject.security.AppGuard.checkPermission;
 
 
 /**
- * Provides implementation of the flow objective programming service.
+ * Provides implementation of the flow objective programming service with composition feature.
+ *
+ * Note: This is an experimental, alternative implementation of the FlowObjectiveManager
+ * that supports composition. It can be enabled by setting the enable flag below to true,
+ * and you should also add "enabled = false" to the FlowObjectiveManager.
+ *
+ * The implementation relies a FlowObjectiveCompositionTree that is not yet distributed,
+ * so it will not have high availability and may break if device mastership changes.
+ * Therefore, it is safest to use this component in a single instance scenario.
+ * This comment will be removed when a distributed implementation is available.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
-public class FlowObjectiveManager implements FlowObjectiveService {
+public class FlowObjectiveCompositionManager implements FlowObjectiveService {
+
+    public enum PolicyOperator {
+        Parallel,
+        Sequential,
+        Override,
+        Application
+    }
 
     public static final int INSTALL_RETRY_ATTEMPTS = 5;
     public static final long INSTALL_RETRY_INTERVAL = 1000; // ms
@@ -121,6 +140,9 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private ExecutorService executorService;
 
+    private String policy;
+    private Map<DeviceId, FlowObjectiveCompositionTree> deviceCompositionTreeMap;
+
     @Activate
     protected void activate() {
         executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d"));
@@ -128,6 +150,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);
         deviceService.getDevices().forEach(device -> setupPipelineHandler(device.id()));
+        deviceCompositionTreeMap = Maps.newConcurrentMap();
         log.info("Started");
     }
 
@@ -139,6 +162,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         executorService.shutdown();
         pipeliners.clear();
         driverHandlers.clear();
+        deviceCompositionTreeMap.clear();
         log.info("Stopped");
     }
 
@@ -194,39 +218,51 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void filter(DeviceId deviceId, FilteringObjective filteringObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-        executorService.submit(new ObjectiveInstaller(deviceId, filteringObjective));
+
+        List<FilteringObjective> filteringObjectives
+                = this.deviceCompositionTreeMap.get(deviceId).updateFilter(filteringObjective);
+        for (FilteringObjective tmp : filteringObjectives) {
+            executorService.submit(new ObjectiveInstaller(deviceId, tmp));
+        }
     }
 
     @Override
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
+
         if (queueObjective(deviceId, forwardingObjective)) {
             return;
         }
-        executorService.submit(new ObjectiveInstaller(deviceId, forwardingObjective));
+        List<ForwardingObjective> forwardingObjectives
+                = this.deviceCompositionTreeMap.get(deviceId).updateForward(forwardingObjective);
+        for (ForwardingObjective tmp : forwardingObjectives) {
+            executorService.submit(new ObjectiveInstaller(deviceId, tmp));
+        }
     }
 
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-        executorService.submit(new ObjectiveInstaller(deviceId, nextObjective));
+
+        List<NextObjective> nextObjectives = this.deviceCompositionTreeMap.get(deviceId).updateNext(nextObjective);
+        for (NextObjective tmp : nextObjectives) {
+            executorService.submit(new ObjectiveInstaller(deviceId, tmp));
+        }
     }
 
     @Override
     public int allocateNextId() {
         checkPermission(Permission.FLOWRULE_WRITE);
+
         return flowObjectiveStore.allocateNextId();
     }
-
-    @Override
-    public void initPolicy(String policy) {}
 
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
         if (fwd.nextId() != null &&
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {
             log.trace("Queuing forwarding objective for nextId {}", fwd.nextId());
             if (pendingForwards.putIfAbsent(fwd.nextId(),
-                                            Sets.newHashSet(new PendingNext(deviceId, fwd))) != null) {
+                    Sets.newHashSet(new PendingNext(deviceId, fwd))) != null) {
                 Set<PendingNext> pending = pendingForwards.get(fwd.nextId());
                 pending.add(new PendingNext(deviceId, fwd));
             }
@@ -235,9 +271,18 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         return false;
     }
 
+    @Override
+    public void initPolicy(String policy) {
+        this.policy = policy;
+        deviceService.getDevices().forEach(device ->
+                this.deviceCompositionTreeMap.put(device.id(), FlowObjectiveCompositionUtil.parsePolicyString(policy)));
+        log.info("Initialize policy {}", policy);
+    }
+
     // Retrieves the device pipeline behaviour from the cache.
     private Pipeliner getDevicePipeliner(DeviceId deviceId) {
-        return pipeliners.get(deviceId);
+        Pipeliner pipeliner = pipeliners.get(deviceId);
+        return pipeliner;
     }
 
     private void setupPipelineHandler(DeviceId deviceId) {
@@ -248,16 +293,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
         // Attempt to lookup the handler in the cache
         DriverHandler handler = driverHandlers.get(deviceId);
-        cTime = now();
-
         if (handler == null) {
             try {
                 // Otherwise create it and if it has pipeline behaviour, cache it
                 handler = driverService.createHandler(deviceId);
-                dTime = now();
                 if (!handler.driver().hasBehaviour(Pipeliner.class)) {
                     log.warn("Pipeline behaviour not supported for device {}",
-                             deviceId);
+                            deviceId);
                     return;
                 }
             } catch (ItemNotFoundException e) {
@@ -266,15 +308,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             driverHandlers.put(deviceId, handler);
-            eTime = now();
         }
 
         // Always (re)initialize the pipeline behaviour
         log.info("Driver {} bound to device {} ... initializing driver",
-                 handler.driver().name(), deviceId);
-        hTime = now();
+                handler.driver().name(), deviceId);
         Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
-        hbTime = now();
         pipeliner.init(deviceId, context);
         pipeliners.putIfAbsent(deviceId, pipeliner);
     }
@@ -286,11 +325,9 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case MASTER_CHANGED:
                     log.debug("mastership changed on device {}", event.subject());
-                    start = now();
                     if (deviceService.isAvailable(event.subject())) {
                         setupPipelineHandler(event.subject());
                     }
-                    stopWatch();
                     break;
                 case BACKUPS_CHANGED:
                     break;
@@ -308,13 +345,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.debug("Device either added or availability changed {}",
-                              event.subject().id());
-                    start = now();
+                            event.subject().id());
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.debug("Device is now available {}", event.subject().id());
                         setupPipelineHandler(event.subject().id());
                     }
-                    stopWatch();
                     break;
                 case DEVICE_UPDATED:
                     break;
@@ -332,31 +367,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     break;
             }
         }
-    }
-
-    // Temporary mechanism to monitor pipeliner setup time-cost; there are
-    // intermittent time where this takes in excess of 2 seconds. Why?
-    private long start = 0, totals = 0, count = 0;
-    private long cTime, dTime, eTime, hTime, hbTime;
-    private static final long LIMIT = 500;
-
-    private long now() {
-        return System.currentTimeMillis();
-    }
-
-    private void stopWatch() {
-        long duration = System.currentTimeMillis() - start;
-        totals += duration;
-        count += 1;
-        if (duration > LIMIT) {
-            log.info("Pipeline setup took {} ms; avg {} ms; cTime={}, dTime={}, eTime={}, hTime={}, hbTime={}",
-                     duration, totals / count, diff(cTime), diff(dTime), diff(eTime), diff(hTime), diff(hbTime));
-        }
-    }
-
-    private long diff(long bTime) {
-        long diff = bTime - start;
-        return diff < 0 ? 0 : diff;
     }
 
     // Processing context for initializing pipeline driver behaviours.
@@ -411,5 +421,19 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         public ForwardingObjective forwardingObjective() {
             return fwd;
         }
+    }
+
+    public static String forwardingObjectiveToString(ForwardingObjective forwardingObjective) {
+        String str = forwardingObjective.priority() + " ";
+        str += "selector( ";
+        for (Criterion criterion : forwardingObjective.selector().criteria()) {
+            str += criterion + " ";
+        }
+        str += ") treatment( ";
+        for (Instruction instruction : forwardingObjective.treatment().allInstructions()) {
+            str += instruction + " ";
+        }
+        str += ")";
+        return str;
     }
 }

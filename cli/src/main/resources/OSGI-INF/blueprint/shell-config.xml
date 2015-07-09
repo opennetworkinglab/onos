@@ -30,6 +30,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.FlowObjectiveCompositionCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.app.ApplicationsListCommand"/>
         </command>
 
