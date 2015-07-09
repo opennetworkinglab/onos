@@ -18,6 +18,7 @@ package org.onosproject.openflow.controller.driver;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.Device;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.RoleState;
@@ -95,7 +96,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     }
 
     @Override
-    public final void sendMsg(OFMessage m) {
+    public void sendMsg(OFMessage m) {
         if (role == RoleState.MASTER && channel.isConnected()) {
             channel.write(Collections.singletonList(m));
         }
@@ -413,8 +414,8 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
 
     @Override
-    public boolean isOptical() {
-        return false;
+    public Device.Type deviceType() {
+        return Device.Type.SWITCH;
     }
 
 

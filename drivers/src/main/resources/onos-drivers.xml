@@ -105,5 +105,11 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CpqdOFDPA1Pipeline"/>
     </driver>
+    <driver name="calient" extends="default"
+            manufacturer="calient inc" hwVersion="calient hardware"
+            swVersion="ocs switch">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
+    </driver>
 </drivers>
 

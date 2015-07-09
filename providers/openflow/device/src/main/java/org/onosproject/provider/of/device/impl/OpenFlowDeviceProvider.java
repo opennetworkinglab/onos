@@ -29,9 +29,10 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onlab.util.Frequency;
+import org.onlab.util.Spectrum;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
@@ -44,6 +45,7 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractProvider;
@@ -57,6 +59,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
+import org.projectfloodlight.openflow.protocol.OFCalientPortDescStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
@@ -290,8 +293,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
 
-            Device.Type deviceType = sw.isOptical() ? Device.Type.ROADM :
-                    Device.Type.SWITCH;
             ChassisId cId = new ChassisId(dpid.value());
 
             SparseAnnotations annotations = DefaultAnnotations.builder()
@@ -300,7 +301,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     .build();
 
             DeviceDescription description =
-                    new DefaultDeviceDescription(did.uri(), deviceType,
+                    new DefaultDeviceDescription(did.uri(), sw.deviceType(),
                                                  sw.manufacturerDescription(),
                                                  sw.hardwareDescription(),
                                                  sw.softwareDescription(),
@@ -380,16 +381,33 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {
             final List<PortDescription> portDescs = new ArrayList<>(sw.getPorts().size());
             sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
-            if (sw.isOptical()) {
-                OpenFlowOpticalSwitch opsw = (OpenFlowOpticalSwitch) sw;
-                opsw.getPortTypes().forEach(type -> {
-                    opsw.getPortsOf(type).forEach(
-                        op -> {
-                            portDescs.add(buildPortDescription(type, (OFPortOptical) op));
-                        }
-                    );
-                });
+
+            OpenFlowOpticalSwitch opsw;
+            switch (sw.deviceType()) {
+                case ROADM:
+                    opsw = (OpenFlowOpticalSwitch) sw;
+                    opsw.getPortTypes().forEach(type -> {
+                        opsw.getPortsOf(type).forEach(
+                                op -> {
+                                    portDescs.add(buildPortDescription(type, (OFPortOptical) op));
+                                }
+                        );
+                    });
+                    break;
+                case FIBER_SWITCH:
+                    opsw = (OpenFlowOpticalSwitch) sw;
+                    opsw.getPortTypes().forEach(type -> {
+                        opsw.getPortsOf(type).forEach(
+                                op -> {
+                                    portDescs.add(buildPortDescription((OFCalientPortDescStatsEntry) op));
+                                }
+                        );
+                    });
+                    break;
+                default:
+                    break;
             }
+
             return portDescs;
         }
 
@@ -452,6 +470,28 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 LOG.debug("Unsupported optical port properties");
             }
             return new DefaultPortDescription(portNo, enabled, FIBER, 0, annotations);
+        }
+
+        /**
+         * Build a portDescription from a given port description describing a fiber switch optical port.
+         *
+         * @param port description property type.
+         * @param port the port to build from.
+         * @return portDescription for the port.
+         */
+        private PortDescription buildPortDescription(OFCalientPortDescStatsEntry port) {
+            PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+
+            // FIXME when Calient OF agent reports port status
+            boolean enabled = true;
+            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+
+            // Wavelength range: 1260 - 1630 nm (S160 data sheet)
+            // Grid is irrelevant for this type of switch
+            Frequency minFreq = Spectrum.O_BAND_MAX;
+            Frequency maxFreq = Spectrum.U_BAND_MIN;
+            Frequency grid = Frequency.ofGHz(100);
+            return new OmsPortDescription(portNo, enabled, minFreq, maxFreq, grid, annotations);
         }
 
         private PortDescription buildPortDescription(OFPortStatus status) {

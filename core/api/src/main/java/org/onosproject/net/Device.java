@@ -26,7 +26,7 @@ public interface Device extends Element {
      * Coarse classification of the type of the infrastructure device.
      */
     public enum Type {
-        SWITCH, ROUTER, ROADM, OTN, ROADM_OTN, FIREWALL, BALANCER, IPS, IDS, CONTROLLER, VIRTUAL, OTHER
+        SWITCH, ROUTER, ROADM, OTN, ROADM_OTN, FIREWALL, BALANCER, IPS, IDS, CONTROLLER, VIRTUAL, FIBER_SWITCH, OTHER
     }
 
     /**

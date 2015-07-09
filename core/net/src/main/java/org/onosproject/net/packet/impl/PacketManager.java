@@ -194,8 +194,7 @@ public class PacketManager
      * @param request the packet request
      */
     private void pushRule(Device device, PacketRequest request) {
-        // Everything is pre-provisioned on ROADMs
-        if (device.type().equals(Device.Type.ROADM)) {
+        if (!device.type().equals(Device.Type.SWITCH)) {
             return;
         }
 
@@ -217,8 +216,7 @@ public class PacketManager
      * @param request the packet request
      */
     private void removeRule(Device device, PacketRequest request) {
-        // Everything is pre-provisioned on ROADMs
-        if (device.type().equals(Device.Type.ROADM)) {
+        if (!device.type().equals(Device.Type.SWITCH)) {
             return;
         }
 

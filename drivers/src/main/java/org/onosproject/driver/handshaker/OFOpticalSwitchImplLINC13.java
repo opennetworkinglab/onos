@@ -15,6 +15,7 @@
  */
 package org.onosproject.driver.handshaker;
 
+import org.onosproject.net.Device;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -156,8 +157,8 @@ public class OFOpticalSwitchImplLINC13
     }
 
     @Override
-    public boolean isOptical() {
-        return true;
+    public Device.Type deviceType() {
+        return Device.Type.ROADM;
     }
 
     @Override
