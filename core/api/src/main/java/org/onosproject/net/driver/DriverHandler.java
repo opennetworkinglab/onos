@@ -43,4 +43,15 @@ public interface DriverHandler {
      */
     <T extends Behaviour> T behaviour(Class<T> behaviourClass);
 
+    /**
+     * Returns the reference to the implementation of the specified service.
+     * Provides access to run-time context.
+     *
+     * @param serviceClass service class
+     * @param <T>          type of service
+     * @return service implementation
+     * @throws org.onlab.osgi.ServiceNotFoundException if service is unavailable
+     */
+    <T> T get(Class<T> serviceClass);
+
 }
