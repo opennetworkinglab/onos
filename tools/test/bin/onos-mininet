@@ -44,6 +44,10 @@ expect)
     "
     ;;
 
+attach)
+    $mininet -x
+    ;;
+
 start)
     ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
     (
