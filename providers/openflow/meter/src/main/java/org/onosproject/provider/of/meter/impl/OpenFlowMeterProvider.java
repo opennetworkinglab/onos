@@ -19,6 +19,9 @@ package org.onosproject.provider.of.meter.impl;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.meter.MeterOperation;
+import org.onosproject.net.meter.MeterOperations;
 import org.onosproject.net.meter.MeterProvider;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -44,5 +47,15 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
      */
     public OpenFlowMeterProvider() {
         super(new ProviderId("of", "org.onosproject.provider.meter"));
+    }
+
+    @Override
+    public void performMeterOperation(DeviceId deviceId, MeterOperations meterOps) {
+
+    }
+
+    @Override
+    public void performMeterOperation(DeviceId deviceId, MeterOperation meterOp) {
+
     }
 }

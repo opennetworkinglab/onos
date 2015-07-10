@@ -15,10 +15,34 @@
  */
 package org.onosproject.net.meter;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.Provider;
 
 /**
  * Abstraction of a Meter provider.
  */
 public interface MeterProvider extends Provider {
+
+    /**
+     * Performs a batch of meter operation on the specified device with the
+     * specified parameters.
+     *
+     * @param deviceId device identifier on which the batch of group
+     * operations to be executed
+     * @param meterOps immutable list of meter operation
+     */
+    void performMeterOperation(DeviceId deviceId,
+                               MeterOperations meterOps);
+
+
+    /**
+     * Performs a meter operation on the specified device with the
+     * specified parameters.
+     *
+     * @param deviceId device identifier on which the batch of group
+     * operations to be executed
+     * @param meterOp a meter operation
+     */
+    void performMeterOperation(DeviceId deviceId,
+                               MeterOperation meterOp);
 }
