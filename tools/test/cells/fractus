@@ -1,0 +1,10 @@
+# Fractus-based cluster (1-node)
+
+# Use the 10G NIC for cluster communications
+export ONOS_NIC="128.84.105.*"
+
+
+# Use the 1G NICs for external access
+export OC1=128.84.105.220
+
+export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility"
