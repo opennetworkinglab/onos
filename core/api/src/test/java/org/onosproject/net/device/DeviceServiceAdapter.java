@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
 import org.onosproject.net.Device;
+import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
@@ -89,6 +90,16 @@ public class DeviceServiceAdapter implements DeviceService {
 
     @Override
     public void removeListener(DeviceListener listener) {
+    }
+
+    @Override
+    public Iterable<Device> getDevices(Type type) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Iterable<Device> getAvailableDevices(Type type) {
+        return Collections.emptyList();
     }
 
 }
