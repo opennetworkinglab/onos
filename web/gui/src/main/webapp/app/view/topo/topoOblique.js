@@ -39,6 +39,7 @@
      nodeLock(b)                    // test-and-set nodeLock state
      opacifyMap(b)                  // show or hide map layer
      inLayer(d, layer)              // return true if d in layer {'pkt'|'opt'}
+     calcLinkPos()                  // recomputes link pos based on node data
      */
 
     // configuration
@@ -155,6 +156,7 @@
             .attr(api.tickStuff.nodeAttr);
         api.link().transition()
             .duration(time)
+            .call(api.calcLinkPos)
             .attr(api.tickStuff.linkAttr);
         api.linkLabel().transition()
             .duration(time)

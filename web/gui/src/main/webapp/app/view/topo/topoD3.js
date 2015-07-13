@@ -367,17 +367,10 @@
             .classed('linkLabel', true)
             .attr('id', function (d) { return d.id; });
 
-        // FIXME: x and y position calculated here, use link.position obj
         entering.each(function (d) {
             var el = d3.select(this),
                 rect,
-                text,
-                parms = {
-                    x1: d.ldata.source.x,
-                    y1: d.ldata.source.y,
-                    x2: d.ldata.target.x,
-                    y2: d.ldata.target.y
-                };
+                text;
 
             if (d.ldata.type() === 'hostLink') {
                 el.classed('hostLinkLabel', true);
@@ -390,7 +383,7 @@
             rect.attr(rectAroundText(el));
             text.attr('dy', linkLabelOffset);
 
-            el.attr('transform', transformLabel(parms));
+            el.attr('transform', transformLabel(d.ldata.position));
         });
 
         // Remove any labels that are no longer required.
@@ -411,7 +404,6 @@
         return box;
     }
 
-    // FIXME: x and y position calculated here
     function transformLabel(p) {
         var dx = p.x2 - p.x1,
             dy = p.y2 - p.y1,

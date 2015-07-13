@@ -209,7 +209,7 @@
                     t = lnk.fromTarget,
                     ws = (s && s.linkWidth) || 0,
                     wt = (t && t.linkWidth) || 0;
-                return Math.max(ws, wt);
+                return lnk.position.multiLink ? 5 : Math.max(ws, wt);
             }
         });
         return lnk;

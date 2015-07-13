@@ -104,16 +104,6 @@
             return {x:x4, y:y4};
         }
 
-        // FIXME: x and y position calculated here, use link.position
-        function lineSeg(d) {
-            return {
-                x1: d.source.x,
-                y1: d.source.y,
-                x2: d.target.x,
-                y2: d.target.y
-            };
-        }
-
         function lineHit(line, p, m) {
             if (p.x < line.x1 && p.x < line.x2) return false;
             if (p.x > line.x1 && p.x > line.x2) return false;
@@ -131,7 +121,7 @@
                     return; // skip hidden host links
                 }
 
-                var line = lineSeg(d),
+                var line = d.position,
                     point = pdrop(line, mouse),
                     hit = lineHit(line, point, mouse),
                     dist;
@@ -201,23 +191,22 @@
         td3.applyPortLabels(data, api.portLabelG());
     }
 
-    // FIXME: x and y position calculated here somewhere
     function locatePortLabel(link, src) {
-        var near = src ? 'source' : 'target',
-            far = src ? 'target' : 'source',
-            ln = link[near],
-            lf = link[far],
-            offset = 32;
+        var offset = 32,
+            pos = link.position,
+            nearX = src ? pos.x1 : pos.x2,
+            nearY = src ? pos.y1 : pos.y2,
+            farX = src ? pos.x2 : pos.x1,
+            farY = src ? pos.y2 : pos.y1;
 
         function dist(x, y) { return Math.sqrt(x*x + y*y); }
 
-        var dx = lf.x - ln.x,
-            dy = lf.y - ln.y,
+        var dx = farX - nearX,
+            dy = farY - nearY,
             k = offset / dist(dx, dy);
 
-        return {x: k * dx + ln.x, y: k * dy + ln.y};
+        return {x: k * dx + nearX, y: k * dy + nearY};
     }
-
 
     function selectLink(ldata) {
         // if the new link is same as old link, do nothing

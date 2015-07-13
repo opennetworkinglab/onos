@@ -575,6 +575,82 @@
 
     // ==========================
 
+    function getDefaultPos(link) {
+        return {
+            x1: link.source.x,
+            y1: link.source.y,
+            x2: link.target.x,
+            y2: link.target.y
+        };
+    }
+
+    // returns amount of adjustment along the normal for given link
+    function amt(numLinks, linkIdx) {
+        var gap = 6;
+        return (linkIdx - ((numLinks - 1) / 2)) * gap;
+    }
+
+    function calcMovement(d, amt, flipped) {
+        var pos = getDefaultPos(d),
+            mult = flipped ? -amt : amt,
+            dx = pos.x2 - pos.x1,
+            dy = pos.y2 - pos.y1,
+            length = Math.sqrt((dx * dx) + (dy * dy));
+
+        return {
+            x1: pos.x1 + (mult * dy / length),
+            y1: pos.y1 + (mult * -dx / length),
+            x2: pos.x2 + (mult * dy / length),
+            y2: pos.y2 + (mult * -dx / length)
+        };
+    }
+
+    function calcPosition() {
+        var lines = this,
+            linkSrcId;
+        lines.each(function (d) {
+            if (d.type() === 'hostLink') {
+                d.position = getDefaultPos(d);
+            }
+        });
+
+        function normalizeLinkSrc(link) {
+            // ensure source device is consistent across set of links
+            // temporary measure until link modeling is refactored
+            if (!linkSrcId) {
+                linkSrcId = link.source.id;
+                return false;
+            }
+
+            return link.source.id !== linkSrcId;
+        }
+
+        angular.forEach(network.linksByDevice, function (linkArr) {
+            var numLinks = linkArr.length,
+                link;
+
+            if (numLinks === 1) {
+                link = linkArr[0];
+                link.position = getDefaultPos(link);
+            } else if (numLinks >= 5) {
+                // this code is inefficient, in the future the way links
+                // are modeled will be changed
+                angular.forEach(linkArr, function (link) {
+                    link.position = getDefaultPos(link);
+                    link.position.multiLink = true;
+                });
+            } else {
+                // calculate position of links
+                linkSrcId = null;
+                angular.forEach(linkArr, function (link, index) {
+                    var offsetAmt = amt(numLinks, index),
+                        needToFlip = normalizeLinkSrc(link);
+                    link.position = calcMovement(link, offsetAmt, needToFlip);
+                });
+            }
+        });
+    }
+
     function updateLinks() {
         if (fLinksTimer) {
             $timeout.cancel(fLinksTimer);
@@ -602,14 +678,14 @@
         });
 
         // operate on entering links:
-        // FIXME: x and y position calculated here - calculate position and add it to the link
         var entering = link.enter()
             .append('line')
+            .call(calcPosition)
             .attr({
-                x1: function (d) { return d.source.x; },
-                y1: function (d) { return d.source.y; },
-                x2: function (d) { return d.target.x; },
-                y2: function (d) { return d.target.y; },
+                x1: function (d) { return d.position.x1; },
+                y1: function (d) { return d.position.y1; },
+                x2: function (d) { return d.position.x2; },
+                y2: function (d) { return d.position.y2; },
                 stroke: linkConfig[th].inColor,
                 'stroke-width': linkConfig.inWidth
             });
@@ -664,24 +740,17 @@
         nodeAttr: {
             transform: function (d) { return sus.translate(d.x, d.y); }
         },
-        // FIXME: x and y position calculated here, will be deleted
         linkAttr: {
-            x1: function (d) { return d.source.x; },
-            y1: function (d) { return d.source.y; },
-            x2: function (d) { return d.target.x; },
-            y2: function (d) { return d.target.y; }
+            x1: function (d) { return d.position.x1; },
+            y1: function (d) { return d.position.y1; },
+            x2: function (d) { return d.position.x2; },
+            y2: function (d) { return d.position.y2; }
         },
         linkLabelAttr: {
             transform: function (d) {
                 var lnk = tms.findLinkById(d.key);
                 if (lnk) {
-                    // FIXME: x and y position calculated here, use link.position object
-                    return td3.transformLabel({
-                        x1: lnk.source.x,
-                        y1: lnk.source.y,
-                        x2: lnk.target.x,
-                        y2: lnk.target.y
-                    });
+                    return td3.transformLabel(lnk.position);
                 }
             }
         }
@@ -693,8 +762,8 @@
             node.attr(tickStuff.nodeAttr);
         }
         if (link) {
-            // FIXME: instead of tickStuff here, use link.position object
-            link.attr(tickStuff.linkAttr);
+            link.call(calcPosition)
+                .attr(tickStuff.linkAttr);
         }
         if (linkLabel) {
             linkLabel.attr(tickStuff.linkLabelAttr);
@@ -827,7 +896,8 @@
                 return old;
             },
             opacifyMap: uplink.opacifyMap,
-            inLayer: fltr.inLayer
+            inLayer: fltr.inLayer,
+            calcLinkPos: calcPosition
         };
     }
 
