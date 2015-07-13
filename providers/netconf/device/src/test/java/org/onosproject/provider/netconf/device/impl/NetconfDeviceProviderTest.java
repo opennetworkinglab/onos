@@ -19,10 +19,10 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertFalse;
 import static org.onlab.util.Tools.delay;
+import static org.onosproject.provider.netconf.device.impl.NetconfDeviceProviderTestConstant.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -57,11 +57,8 @@ import com.tailf.jnc.JNCException;
 
 /**
  * Test Case to Validate Netconf Device Provider.
- *
  */
 public class NetconfDeviceProviderTest {
-    // private NetconfDevice device;
-
     TestDeviceCreator create;
 
     private final Logger log = getLogger(NetconfDeviceProviderTest.class);
@@ -70,12 +67,7 @@ public class NetconfDeviceProviderTest {
 
     private DeviceProviderService providerService;
 
-    private static final int EVENTINTERVAL = 5;
-
-    private static final String SCHEME = "netconf";
-
-    private static final DeviceId DID1 = DeviceId
-            .deviceId("of:0000000000000001");
+    private static final DeviceId DID1 = DeviceId.deviceId(DEVICE_ID);
 
     private final NetconfDeviceProvider provider = new NetconfDeviceProvider();
     private final TestDeviceRegistry registry = new TestDeviceRegistry();
@@ -90,22 +82,10 @@ public class NetconfDeviceProviderTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Dictionary<String, String> getDictionaryMock(ComponentContext componentContext) {
-        Dictionary<String, String> dictionary = EasyMock
-                .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs"))
-                .andReturn("cisco:cisco@10.18.11.14:22:active,"
-                                   + "sanjay:b33rb3lly@10.18.24.122:2022:inactive");
-        replay(dictionary);
-        expect(componentContext.getProperties()).andReturn(dictionary);
-        return dictionary;
-    }
-
-    @SuppressWarnings("unchecked")
     private Dictionary<String, String> getDictionaryMockWithoutValues(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs")).andReturn("");
+        expect(dictionary.get(DEV_CONFIG)).andReturn(NULL);
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
         return dictionary;
@@ -115,7 +95,7 @@ public class NetconfDeviceProviderTest {
     private Dictionary<String, String> getDictionaryMockWithDeviceEntryNull(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs")).andReturn("null,null");
+        expect(dictionary.get(DEV_CONFIG)).andReturn(NULL_NULL);
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
         return dictionary;
@@ -125,8 +105,8 @@ public class NetconfDeviceProviderTest {
     private Dictionary<String, String> getDictionaryMockDeviceEntryNumberFomatEx(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs"))
-                .andReturn("cisco:cisco@10.18.11.14:cisco:active")
+        expect(dictionary.get(DEV_CONFIG))
+                .andReturn(CONFIG_WITH_INVALID_ENTRY_NUMBER)
                 .andThrow(new NumberFormatException());
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
@@ -137,8 +117,7 @@ public class NetconfDeviceProviderTest {
     private Dictionary<String, String> getDictionaryMockWithoutUsernameAndPassword(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs"))
-                .andReturn("null:null@null:0:active");
+        expect(dictionary.get(DEV_CONFIG)).andReturn(CONFIG_WITH_NULL_ENTRY);
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
         return dictionary;
@@ -148,9 +127,8 @@ public class NetconfDeviceProviderTest {
     private Dictionary<String, String> getDictionaryMockWithDifferentDeviceState(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs"))
-                .andReturn("cisco:cisco@10.18.11.14:22:active,cisco:cisco@10.18.11.18:22:inactive,"
-                                   + "cisco:cisco@10.18.11.14:22:invalid,cisco:cisco@10.18.11.14:22:null");
+        expect(dictionary.get(DEV_CONFIG))
+                .andReturn(CONFIG_WITH_DIFFERENT_DEVICE_STATE);
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
         return dictionary;
@@ -160,8 +138,8 @@ public class NetconfDeviceProviderTest {
     private Dictionary<String, String> getDictionaryMockDeviceWithArrayOutOFBoundEx(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs"))
-                .andReturn("@10.18.11.14:22:active")
+        expect(dictionary.get(DEV_CONFIG))
+                .andReturn(CONFIG_WITH_ARRAY_OUT_OF_BOUNDEX)
                 .andThrow(new ArrayIndexOutOfBoundsException());
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
@@ -172,21 +150,23 @@ public class NetconfDeviceProviderTest {
     private Dictionary<String, String> getDictionaryMockDeviceEntryForDeactivate(ComponentContext componentContext) {
         Dictionary<String, String> dictionary = EasyMock
                 .createMock(Dictionary.class);
-        expect(dictionary.get("devConfigs"))
-                .andReturn("netconf:cisco@10.18.11.14:22:active")
+        expect(dictionary.get(DEV_CONFIG))
+                .andReturn(CONFIG_ENTRY_FOR_DEACTIVATE)
                 .andThrow(new ArrayIndexOutOfBoundsException());
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
         return dictionary;
     }
 
-    @Ignore("Test fails if the hard coded host actually exists.")
-    @Test(expected = SocketTimeoutException.class)
-    public void testSSHAuthentication() throws JNCException, IOException {
-        NetconfDevice netconfDevice = new NetconfDevice("10.18.14.19", 22,
-                                                        "cisco", "cisco");
-        netconfDevice.setConnectTimeout(1000);
-        TestDeviceCreator objForTestDev = new TestDeviceCreator(netconfDevice,
+    @Ignore
+    @Test(expected = IOException.class)
+    public void testSSHAuthentication() throws IOException, JNCException {
+        TestDeviceCreator objForTestDev = new TestDeviceCreator(
+                                                                new NetconfDevice(
+                                                                                  DEVICE_IP,
+                                                                                  DEVICE_PORT,
+                                                                                  DEVICE_USERNAME,
+                                                                                  DEVICE_PASSWORD),
                                                                 true);
         objForTestDev.run();
     }
@@ -195,16 +175,6 @@ public class NetconfDeviceProviderTest {
     public void tearDown() {
         provider.providerRegistry = null;
         provider.cfgService = null;
-    }
-
-    @Test
-    public void testActiveWithComponentContext() {
-
-        ComponentContext componentContext = EasyMock
-                .createMock(ComponentContext.class);
-        getDictionaryMock(componentContext);
-        replay(componentContext);
-        provider.activate(componentContext);
     }
 
     // To check if deviceCfgValue is empty or null
@@ -273,7 +243,7 @@ public class NetconfDeviceProviderTest {
     public void isReachableWithInvalidDeviceId() {
         assertFalse("Initially the Device ID Should not be reachable",
                     provider.isReachable(DID1));
-        NetconfDevice device = new NetconfDevice("", 0, "", "");
+        NetconfDevice device = new NetconfDevice(NULL, ZERO, NULL, NULL);
         provider.netconfDeviceMap.put(DID1, device);
         assertFalse("Particular Device ID cannot be Reachable",
                     provider.isReachable(DID1));
@@ -286,7 +256,7 @@ public class NetconfDeviceProviderTest {
                 .createMock(ComponentContext.class);
         getDictionaryMockDeviceEntryForDeactivate(componentContext);
         replay(componentContext);
-        testActiveWithComponentContext();
+        testActiveWithDeviceEntryWithDifferentDeviceState();
         provider.deactivate(componentContext);
     }
 
@@ -312,7 +282,6 @@ public class NetconfDeviceProviderTest {
 
         /**
          * For each Netconf Device, remove the entry from the device store.
-         * @throws URISyntaxException
          */
         private void removeDevices() {
             if (device == null) {
@@ -343,8 +312,7 @@ public class NetconfDeviceProviderTest {
          * Initialize Netconf Device object, and notify core saying device
          * connected.
          */
-        private void advertiseDevices()
-                throws JNCException, IOException, SocketTimeoutException {
+        private void advertiseDevices() throws JNCException, IOException {
             try {
                 if (device == null) {
                     log.warn("The Request Netconf Device is null, cannot proceed further");
@@ -356,9 +324,10 @@ public class NetconfDeviceProviderTest {
                 DeviceDescription desc = new DefaultDeviceDescription(
                                                                       did.uri(),
                                                                       Device.Type.OTHER,
-                                                                      "", "",
-                                                                      "", "",
-                                                                      cid);
+                                                                      NULL,
+                                                                      NULL,
+                                                                      NULL,
+                                                                      NULL, cid);
                 log.info("Persisting Device" + did.uri().toString());
 
                 netconfDeviceMap.put(did, device);
@@ -372,22 +341,20 @@ public class NetconfDeviceProviderTest {
                         + " couldn't persist the device onto the store", e);
             } catch (JNCException e) {
                 throw e;
-            } catch (SocketTimeoutException e) {
-                throw e;
             } catch (IOException e) {
                 throw e;
             } catch (Exception e) {
                 log.error("Error while initializing session for the device: "
-                        + (device != null ? device.deviceInfo() : null), e);
+                        + device.deviceInfo(), e);
             }
         }
 
         private DeviceId getDeviceId() throws URISyntaxException {
             String additionalSSP = new StringBuilder(device.getUsername())
-                    .append("@").append(device.getSshHost()).append(":")
-                    .append(device.getSshPort()).toString();
-            DeviceId did = DeviceId.deviceId(new URI(SCHEME, additionalSSP,
-                                                     null));
+                    .append(AT_THE_RATE).append(device.getSshHost())
+                    .append(COLON).append(device.getSshPort()).toString();
+            DeviceId did = DeviceId.deviceId(new URI(SCHEME_NETCONF,
+                                                     additionalSSP, null));
             return did;
         }
     }
