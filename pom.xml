@@ -49,6 +49,7 @@
         <module>apps</module>
         <module>incubator</module>
         <module>features</module>
+        <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
     </modules>
 
