@@ -109,7 +109,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                              @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         return ok(service.getConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                                    service.getConfigClass(configKey)).node()).build();
+                                    service.getConfigClass(subjectKey, configKey)).node()).build();
     }
 
     @SuppressWarnings("unchecked")
@@ -183,7 +183,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         consumeSubjectJson(service, root,
-                           service.getSubjectFactory(subjectKey).createSubject(subject));
+                           service.getSubjectFactory(subjectKey).createSubject(subject),
+                           subjectKey);
         return Response.ok().build();
     }
 
@@ -209,7 +210,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         service.applyConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                            service.getConfigClass(configKey), root);
+                            service.getConfigClass(subjectKey, configKey), root);
         return Response.ok().build();
     }
 
@@ -217,13 +218,15 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                              SubjectFactory subjectFactory) {
         classNode.fieldNames().forEachRemaining(s ->
             consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                               subjectFactory.createSubject(s)));
+                               subjectFactory.createSubject(s),
+                               subjectFactory.subjectKey()));
     }
 
     private void consumeSubjectJson(NetworkConfigService service,
-                                    ObjectNode subjectNode, Object subject) {
+                                    ObjectNode subjectNode, Object subject,
+                                    String subjectKey) {
         subjectNode.fieldNames().forEachRemaining(c ->
-            service.applyConfig(subject, service.getConfigClass(c),
+            service.applyConfig(subject, service.getConfigClass(subjectKey, c),
                                 (ObjectNode) subjectNode.path(c)));
     }
 
@@ -265,7 +268,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.removeConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                service.getConfigClass(configKey));
+                service.getConfigClass(subjectKey, configKey));
         return Response.ok().build();
     }
 

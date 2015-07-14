@@ -58,7 +58,7 @@ public interface NetworkConfigService {
      * @param configKey subject class name
      * @return subject class
      */
-    Class<? extends Config> getConfigClass(String configKey);
+    Class<? extends Config> getConfigClass(String subjectKey, String configKey);
 
     /**
      * Returns the set of subjects for which some configuration is available.

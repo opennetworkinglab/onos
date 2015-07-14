@@ -50,6 +50,14 @@ public final class SubjectFactories {
                 }
             };
 
+    public static final SubjectFactory<ConnectPoint> CONNECT_POINT_SUBJECT_FACTORY =
+            new SubjectFactory<ConnectPoint>(ConnectPoint.class, "ports") {
+                @Override
+                public ConnectPoint createSubject(String key) {
+                    return ConnectPoint.deviceConnectPoint(key);
+                }
+            };
+
     public static final SubjectFactory<HostId> HOST_SUBJECT_FACTORY =
             new SubjectFactory<HostId>(HostId.class, "hosts") {
                 @Override

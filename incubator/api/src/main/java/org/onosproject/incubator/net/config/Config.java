@@ -151,6 +151,33 @@ public abstract class Config<S> {
     }
 
     /**
+     * Gets the specified property as an integer.
+     *
+     * @param name         property name
+     * @param defaultValue default value if property not set
+     * @return property value or default value
+     */
+    protected int get(String name, int defaultValue) {
+        return node.path(name).asInt(defaultValue);
+    }
+
+    /**
+     * Sets the specified property as an integer or clears it if null value given.
+     *
+     * @param name  property name
+     * @param value new value or null to clear the property
+     * @return self
+     */
+    protected Config<S> setOrClear(String name, Integer value) {
+        if (value != null) {
+            node.put(name, value.intValue());
+        } else {
+            node.remove(name);
+        }
+        return this;
+    }
+
+    /**
      * Gets the specified property as a long.
      *
      * @param name         property name
@@ -231,4 +258,5 @@ public abstract class Config<S> {
         }
         return this;
     }
+
 }

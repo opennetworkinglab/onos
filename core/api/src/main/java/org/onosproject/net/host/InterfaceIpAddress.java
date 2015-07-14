@@ -15,11 +15,12 @@
  */
 package org.onosproject.net.host;
 
-import java.util.Objects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -138,6 +139,24 @@ public class InterfaceIpAddress {
         return peerAddress;
     }
 
+    /**
+     * Converts a CIDR string literal to an interface IP address.
+     * E.g. 10.0.0.1/24
+     *
+     * @param value an IP address value in string form
+     * @return an interface IP address
+     * @throws IllegalArgumentException if the argument is invalid
+     */
+    public static InterfaceIpAddress valueOf(String value) {
+        String[] splits = value.split("/");
+        checkArgument(splits.length == 2, "Invalid IP address and prefix length format");
+
+        // NOTE: IpPrefix will mask-out the bits after the prefix length.
+        IpPrefix subnet = IpPrefix.valueOf(value);
+        IpAddress addr = IpAddress.valueOf(splits[0]);
+        return new InterfaceIpAddress(addr, subnet);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -163,10 +182,11 @@ public class InterfaceIpAddress {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("ipAddress", ipAddress)
+        /*return toStringHelper(this).add("ipAddress", ipAddress)
             .add("subnetAddress", subnetAddress)
             .add("broadcastAddress", broadcastAddress)
             .add("peerAddress", peerAddress)
-            .omitNullValues().toString();
+            .omitNullValues().toString();*/
+        return ipAddress.toString() + "/" + subnetAddress.prefixLength();
     }
 }

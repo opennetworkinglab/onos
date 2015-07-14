@@ -86,13 +86,15 @@ public class NetworkConfigLoader {
                             SubjectFactory subjectFactory) {
         classNode.fieldNames().forEachRemaining(s ->
                                                         consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                                                                           subjectFactory.createSubject(s)));
+                                                                           subjectFactory.createSubject(s),
+                                                                           subjectFactory.subjectKey()));
     }
 
     private static void consumeSubjectJson(NetworkConfigService service,
-                                           ObjectNode subjectNode, Object subject) {
+                                           ObjectNode subjectNode, Object subject, String subjectKey) {
         subjectNode.fieldNames().forEachRemaining(c ->
-                                                          service.applyConfig(subject, service.getConfigClass(c),
+                                                          service.applyConfig(subject,
+                                                                              service.getConfigClass(subjectKey, c),
                                                                               (ObjectNode) subjectNode.path(c)));
     }
 

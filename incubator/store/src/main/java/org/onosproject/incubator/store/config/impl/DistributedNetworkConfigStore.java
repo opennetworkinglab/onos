@@ -16,6 +16,7 @@
 package org.onosproject.incubator.store.config.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -81,7 +82,7 @@ public class DistributedNetworkConfigStore
     public void activate() {
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
-                .register(ConfigKey.class, ObjectNode.class,
+                .register(ConfigKey.class, ObjectNode.class, ArrayNode.class,
                           JsonNodeFactory.class, LinkedHashMap.class,
                           TextNode.class, BooleanNode.class,
                           LongNode.class, DoubleNode.class, ShortNode.class);

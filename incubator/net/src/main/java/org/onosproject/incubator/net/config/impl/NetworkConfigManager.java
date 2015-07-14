@@ -64,7 +64,7 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     // Secondary indeces to retrieve subject and config classes by keys
     private final Map<String, SubjectFactory> subjectClasses = Maps.newConcurrentMap();
     private final Map<Class, SubjectFactory> subjectClassKeys = Maps.newConcurrentMap();
-    private final Map<String, Class<? extends Config>> configClasses = Maps.newConcurrentMap();
+    private final Map<ConfigIdentifier, Class<? extends Config>> configClasses = Maps.newConcurrentMap();
 
     private final ListenerRegistry<NetworkConfigEvent, NetworkConfigListener>
             listenerRegistry = new ListenerRegistry<>();
@@ -98,7 +98,7 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     public void registerConfigFactory(ConfigFactory configFactory) {
         checkNotNull(configFactory, NULL_FACTORY_MSG);
         factories.put(key(configFactory), configFactory);
-        configClasses.put(configFactory.configKey(), configFactory.configClass());
+        configClasses.put(identifier(configFactory), configFactory.configClass());
 
         SubjectFactory subjectFactory = configFactory.subjectFactory();
         subjectClasses.putIfAbsent(subjectFactory.subjectKey(), subjectFactory);
@@ -160,8 +160,8 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     }
 
     @Override
-    public Class<? extends Config> getConfigClass(String configKey) {
-        return configClasses.get(configKey);
+    public Class<? extends Config> getConfigClass(String subjectKey, String configKey) {
+        return configClasses.get(new ConfigIdentifier(subjectKey, configKey));
     }
 
     @Override
@@ -270,4 +270,35 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
         }
     }
 
+    private static ConfigIdentifier identifier(ConfigFactory factory) {
+        return new ConfigIdentifier(factory.subjectFactory().subjectKey(), factory.configKey());
+    }
+
+    private static final class ConfigIdentifier {
+        final String subjectKey;
+        final String configKey;
+
+        private ConfigIdentifier(String subjectKey, String configKey) {
+            this.subjectKey = subjectKey;
+            this.configKey = configKey;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(subjectKey, configKey);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ConfigIdentifier) {
+                final ConfigIdentifier other = (ConfigIdentifier) obj;
+                return Objects.equals(this.subjectKey, other.subjectKey)
+                        && Objects.equals(this.configKey, other.configKey);
+            }
+            return false;
+        }
+    }
 }

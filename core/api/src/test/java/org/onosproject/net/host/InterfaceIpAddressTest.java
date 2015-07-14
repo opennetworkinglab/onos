@@ -54,22 +54,28 @@ public class InterfaceIpAddressTest {
         // Regular interface address with default broadcast address
         fromAddr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS);
         toAddr = new InterfaceIpAddress(fromAddr);
-        assertThat(toAddr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16}"));
+        assertThat(toAddr.ipAddress(), is(fromAddr.ipAddress()));
+        assertThat(toAddr.subnetAddress(), is(fromAddr.subnetAddress()));
+        assertThat(toAddr.broadcastAddress(), is(fromAddr.broadcastAddress()));
+        assertThat(toAddr.peerAddress(), is(fromAddr.peerAddress()));
 
         // Interface address with non-default broadcast address
         fromAddr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS,
                                           BROADCAST_ADDRESS);
         toAddr = new InterfaceIpAddress(fromAddr);
-        assertThat(toAddr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16, broadcastAddress=1.2.0.255}"));
+        assertThat(toAddr.ipAddress(), is(fromAddr.ipAddress()));
+        assertThat(toAddr.subnetAddress(), is(fromAddr.subnetAddress()));
+        assertThat(toAddr.broadcastAddress(), is(fromAddr.broadcastAddress()));
+        assertThat(toAddr.peerAddress(), is(fromAddr.peerAddress()));
 
         // Point-to-point address with peer IP address
         fromAddr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS, null,
                                           PEER_ADDRESS);
         toAddr = new InterfaceIpAddress(fromAddr);
-        assertThat(toAddr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16, peerAddress=5.6.7.8}"));
+        assertThat(toAddr.ipAddress(), is(fromAddr.ipAddress()));
+        assertThat(toAddr.subnetAddress(), is(fromAddr.subnetAddress()));
+        assertThat(toAddr.broadcastAddress(), is(fromAddr.broadcastAddress()));
+        assertThat(toAddr.peerAddress(), is(fromAddr.peerAddress()));
     }
 
     /**
@@ -89,8 +95,10 @@ public class InterfaceIpAddressTest {
     public void testConstructorForDefaultBroadcastAddress() {
         InterfaceIpAddress addr =
             new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS);
-        assertThat(addr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16}"));
+        assertThat(addr.ipAddress(), is(IP_ADDRESS));
+        assertThat(addr.subnetAddress(), is(SUBNET_ADDRESS));
+        assertThat(addr.broadcastAddress(), nullValue());
+        assertThat(addr.peerAddress(), nullValue());
     }
 
     /**
@@ -102,8 +110,11 @@ public class InterfaceIpAddressTest {
         InterfaceIpAddress addr =
             new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS,
                                    BROADCAST_ADDRESS);
-        assertThat(addr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16, broadcastAddress=1.2.0.255}"));
+
+        assertThat(addr.ipAddress(), is(IP_ADDRESS));
+        assertThat(addr.subnetAddress(), is(SUBNET_ADDRESS));
+        assertThat(addr.broadcastAddress(), is(BROADCAST_ADDRESS));
+        assertThat(addr.peerAddress(), nullValue());
     }
 
     /**
@@ -115,8 +126,11 @@ public class InterfaceIpAddressTest {
         InterfaceIpAddress addr =
             new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS, null,
                                    PEER_ADDRESS);
-        assertThat(addr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16, peerAddress=5.6.7.8}"));
+
+        assertThat(addr.ipAddress(), is(IP_ADDRESS));
+        assertThat(addr.subnetAddress(), is(SUBNET_ADDRESS));
+        assertThat(addr.broadcastAddress(), nullValue());
+        assertThat(addr.peerAddress(), is(PEER_ADDRESS));
     }
 
     /**
@@ -229,28 +243,4 @@ public class InterfaceIpAddressTest {
         assertThat(addr3, is(not(addr4)));
     }
 
-    /**
-     * Tests object string representation.
-     */
-    @Test
-    public void testToString() {
-        InterfaceIpAddress addr;
-
-        // Regular interface address with default broadcast address
-        addr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS);
-        assertThat(addr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16}"));
-
-        // Interface address with non-default broadcast address
-        addr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS,
-                                      BROADCAST_ADDRESS);
-        assertThat(addr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16, broadcastAddress=1.2.0.255}"));
-
-        // Point-to-point address with peer IP address
-        addr = new InterfaceIpAddress(IP_ADDRESS, SUBNET_ADDRESS, null,
-                                      PEER_ADDRESS);
-        assertThat(addr.toString(),
-                   is("InterfaceIpAddress{ipAddress=1.2.3.4, subnetAddress=1.2.0.0/16, peerAddress=5.6.7.8}"));
-    }
 }

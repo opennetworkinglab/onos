@@ -26,6 +26,8 @@ import org.onosproject.incubator.net.config.NetworkConfigRegistry;
 import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
+import org.onosproject.incubator.net.config.basics.BasicPortConfig;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
@@ -34,7 +36,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-import static org.onosproject.incubator.net.config.basics.SubjectFactories.*;
+import static org.onosproject.incubator.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
+import static org.onosproject.incubator.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
+import static org.onosproject.incubator.net.config.basics.SubjectFactories.HOST_SUBJECT_FACTORY;
+import static org.onosproject.incubator.net.config.basics.SubjectFactories.LINK_SUBJECT_FACTORY;
 
 /**
  * Component for registration of builtin basic network configurations.
@@ -51,6 +56,14 @@ public class BasicNetworkConfigs {
                 @Override
                 public BasicDeviceConfig createConfig() {
                     return new BasicDeviceConfig();
+                }
+            },
+            new ConfigFactory<ConnectPoint, BasicPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                                                                BasicPortConfig.class,
+                                                                "basic") {
+                @Override
+                public BasicPortConfig createConfig() {
+                    return new BasicPortConfig();
                 }
             },
             new ConfigFactory<HostId, BasicHostConfig>(HOST_SUBJECT_FACTORY,
