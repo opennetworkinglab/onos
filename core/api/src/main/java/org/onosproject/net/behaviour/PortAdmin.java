@@ -15,26 +15,19 @@
  */
 package org.onosproject.net.behaviour;
 
-import com.google.common.primitives.UnsignedInteger;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
- * Means to configure a logical port at the device.
+ * Means to administratively enable/disable a logical port at the device.
  */
-public interface PortConfig extends HandlerBehaviour {
+public interface PortAdmin extends HandlerBehaviour {
 
     /**
-     * Apply QoS configuration on a device.
-     * @param port a port description
-     * @param queueId an unsigned integer
+     * Enable/disable administratively a port.
+     *
+     * @param port a port description containing the desired port state
      */
-    void applyQoS(PortDescription port, UnsignedInteger queueId);
-
-    /**
-     * Remove a QoS configuration.
-     * @param port a port description
-     */
-    void removeQoS(PortDescription port);
+    void enable(PortDescription port);
 
 }
