@@ -42,7 +42,10 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public DefaultDatabase(ResourceManager context) {
         super(context);
-        this.stateMachine = new DefaultStateMachine(context, DatabaseState.class, DefaultDatabaseState.class);
+        this.stateMachine = new DefaultStateMachine(context,
+                DatabaseState.class,
+                DefaultDatabaseState.class,
+                DefaultDatabase.class.getClassLoader());
     }
 
     /**
