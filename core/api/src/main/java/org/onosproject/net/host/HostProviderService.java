@@ -25,7 +25,7 @@ public interface HostProviderService extends ProviderService<HostProvider> {
 
     /**
      * Notifies the core when a host has been detected on a network along with
-     * information that identifies the hoot location.
+     * information that identifies the host location.
      *
      * @param hostId          id of the host that been detected
      * @param hostDescription description of host and its location
