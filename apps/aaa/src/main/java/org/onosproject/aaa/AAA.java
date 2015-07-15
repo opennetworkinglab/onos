@@ -232,6 +232,14 @@ public class AAA {
         selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.requestPackets(selector.build(),
                                      CONTROL, appId);
+
+        TrafficSelector radSelector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+                .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                .matchUdpDst((short) 1812)
+                .matchUdpSrc((short) 1812)
+                .build();
+        packetService.requestPackets(radSelector, CONTROL, appId);
     }
 
     /**
@@ -241,6 +249,14 @@ public class AAA {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.cancelPackets(selector.build(), CONTROL, appId);
+
+        TrafficSelector radSelector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+                .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                .matchUdpDst((short) 1812)
+                .matchUdpSrc((short) 1812)
+                .build();
+        packetService.cancelPackets(radSelector, CONTROL, appId);
     }
 
     /**
