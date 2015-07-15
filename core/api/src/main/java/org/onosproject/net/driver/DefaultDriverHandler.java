@@ -15,6 +15,9 @@
  */
 package org.onosproject.net.driver;
 
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
@@ -23,6 +26,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class DefaultDriverHandler implements DriverHandler {
 
     private final DefaultDriverData data;
+
+    // Reference to service directory to provide run-time context.
+    protected static ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
 
     /**
      * Creates new driver handler with the attached driver data.
@@ -49,10 +55,13 @@ public class DefaultDriverHandler implements DriverHandler {
     }
 
     @Override
+    public <T> T get(Class<T> serviceClass) {
+        return serviceDirectory.get(serviceClass);
+    }
+
+    @Override
     public String toString() {
-        return toStringHelper(this)
-                .add("data", data)
-                .toString();
+        return toStringHelper(this).add("data", data).toString();
     }
 
 }

@@ -155,6 +155,9 @@ public class ReactiveForwarding {
                     "default is false")
     private boolean matchIcmpFields = false;
 
+    @Property(name = "ignoreIPv4Multicast", boolValue = false,
+            label = "Ignore (do not forward) IPv4 multicast packets; default is false")
+    private boolean ignoreIpv4McastPackets = false;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -319,6 +322,14 @@ public class ReactiveForwarding {
             log.info("Configured. Flow Priority is configured to {}",
                      flowPriority);
         }
+
+        boolean ignoreIpv4McastPacketsEnabled =
+                isPropertyEnabled(properties, "ignoreIpv4McastPackets");
+        if (ignoreIpv4McastPackets != ignoreIpv4McastPacketsEnabled) {
+            ignoreIpv4McastPackets = ignoreIpv4McastPacketsEnabled;
+            log.info("Configured. Ignore IPv4 multicast packets is {}",
+                    ignoreIpv4McastPackets ? "enabled" : "disabled");
+        }
     }
 
     /**
@@ -398,6 +409,13 @@ public class ReactiveForwarding {
             // Do not process link-local addresses in any way.
             if (id.mac().isLinkLocal()) {
                 return;
+            }
+
+            // Do not process IPv4 multicast packets, let mfwd handle them
+            if (ignoreIpv4McastPackets && ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
+                if (id.mac().isMulticast()) {
+                    return;
+                }
             }
 
             // Do we know who this is for? If not, flood and bail.

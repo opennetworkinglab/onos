@@ -21,13 +21,13 @@ import com.google.common.annotations.Beta;
  * Delegate for notification when configuration changes have been applied.
  */
 @Beta
-public interface ConfigApplyDelegate<S> {
+public interface ConfigApplyDelegate {
 
     /**
      * Processes changes applied to the specified configuration.
      *
      * @param config changed configuration
      */
-    void onApply(Config<S> config);
+    void onApply(Config config);
 
 }

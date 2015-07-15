@@ -44,12 +44,29 @@ public interface DeviceService {
     Iterable<Device> getDevices();
 
     /**
+     * Returns a collection of the currently known infrastructure
+     * devices by device type.
+     *
+     * @param type device type
+     * @return collection of devices
+     */
+    Iterable<Device> getDevices(Device.Type type);
+
+    /**
      * Returns an iterable collection of all devices
      * currently available to the system.
      *
      * @return device collection
      */
     Iterable<Device> getAvailableDevices();
+
+    /**
+     * Returns an iterable collection of all devices currently available to the system by device type.
+     *
+     * @param type device type
+     * @return device collection
+     */
+    Iterable<Device> getAvailableDevices(Device.Type type);
 
     /**
      * Returns the device with the specified identifier.

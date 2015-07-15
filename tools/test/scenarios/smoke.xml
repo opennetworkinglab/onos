@@ -14,17 +14,17 @@
   ~ limitations under the License.
   -->
 <scenario name="smoke-test" description="ONOS smoke test">
-    <import file="${ONOS_ROOT}/tools/test/scenarios/prerequisites.xml"/>
+    <import file="${ONOS_SCENARIOS}/prerequisites.xml"/>
 
-    <import file="${ONOS_ROOT}/tools/test/scenarios/setup.xml"/>
+    <import file="${ONOS_SCENARIOS}/setup.xml"/>
     <dependency name="Setup" requires="Prerequisites"/>
 
-    <import file="${ONOS_ROOT}/tools/test/scenarios/basic-net.xml"/>
-    <dependency name="Basic-Net" requires="Setup"/>
+    <import file="${ONOS_SCENARIOS}/net-smoke.xml"/>
+    <dependency name="Net-Smoke" requires="Setup"/>
 
-    <import file="${ONOS_ROOT}/tools/test/scenarios/archetypes.xml"/>
-    <dependency name="Archetypes" requires="~Basic-Net,Setup"/>
+    <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
+    <dependency name="Archetypes" requires="~Net-Smoke,Setup"/>
 
-    <import file="${ONOS_ROOT}/tools/test/scenarios/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Archetypes,~Setup,~Basic-Net"/>
+    <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
+    <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke"/>
 </scenario>

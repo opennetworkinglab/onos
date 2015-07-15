@@ -164,7 +164,9 @@ public class NetconfDevice {
                     + deviceInfo(), e);
         } finally {
             log.debug("Closing the session after successful execution");
-            ssh.close();
+            if (ssh != null) {
+                ssh.close();
+            }
         }
     }
 

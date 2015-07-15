@@ -6,6 +6,8 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+export MAX_WAIT=45
+
 cmd="$1" && shift
 log="screenlog.0"
 remote="$ONOS_USER@$OCN"
@@ -17,15 +19,17 @@ send)
     ;;
 
 sendAndExpect)
-    $mininet -X "stuff \"$1\\n\"" 2>/dev/null
-    shift
+    cmd=""
+    for a in $*; do shift; if [ "$a" = "--expect" ]; then break; fi; cmd="$cmd $a"; done
+    $mininet -X "stuff \"$cmd\\n\"" 2>/dev/null
     onos-mininet expect "$@"
     ;;
 
 wait)
     ssh $remote "
-        sleep 1 && while test ! -f $log; do sleep 1; done
-        while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        let count=0
+        sleep 1 && while test ! -f $log; do if test \$count -ge $MAX_WAIT; then exit 1; fi; sleep 1; let count=count+1; done
+        while ! (tail -n1 $log | egrep -q '^mininet>'); do if [ \$count -ge $MAX_WAIT ]; then exit 1; fi; sleep 1; done
         sleep ${1-:1}
     "
     ;;
@@ -33,7 +37,10 @@ wait)
 expect)
     aux=/tmp/mininet.$$.log
     ssh $remote "
-        sleep 1 && while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        sleep 1
+        if [ ! -f $log ]; then exit 1; fi;
+        let count=0
+        while ! (tail -n1 $log | egrep -q '^mininet>'); do if test \$count -ge $MAX_WAIT; then exit 1; fi; sleep 1; let count=count+1; done
         tac $log | awk '{ print \$0; } /^mininet>/ { if (on) { exit 0; } on=1; }' | tac > $aux
         cat $aux
         set -x
@@ -41,11 +48,17 @@ expect)
     "
     ;;
 
+attach)
+    $mininet -x
+    ;;
+
 start)
-    ssh $remote rm -f $log
+    ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
+    (
     $mininet "$@"
     scp $remote:$log /tmp/mininet.log
     ssh $remote rm -f $log
+    ) &
     ;;
 
 stop)

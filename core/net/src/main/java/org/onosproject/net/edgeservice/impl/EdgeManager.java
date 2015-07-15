@@ -174,6 +174,8 @@ public class EdgeManager implements EdgePortService {
                     }
                 });
             } else {
+                //FIXME special case of preexisting edgeport & no triggerless events could cause this to never hit and
+                //never discover an edgeport that should have been discovered.
                 loadAllEdgePorts();
             }
         }
@@ -198,6 +200,7 @@ public class EdgeManager implements EdgePortService {
 
     // Processes a device event by adding or removing its end-points in our cache.
     private void processDeviceEvent(DeviceEvent event) {
+        //FIXME handle the case where a device is suspended, this may or may not come up
         DeviceEvent.Type type = event.type();
         DeviceId id = event.subject().id();
 

@@ -82,7 +82,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector)
-                .withTreatment(fwd.treatment())
+                .withTreatment(treatment)
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority());
 

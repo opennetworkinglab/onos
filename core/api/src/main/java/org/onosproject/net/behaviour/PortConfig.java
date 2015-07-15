@@ -16,7 +16,7 @@
 package org.onosproject.net.behaviour;
 
 import com.google.common.primitives.UnsignedInteger;
-import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.PortDescription;
 
 /**
  * Means to configure a logical port at the device.
@@ -25,22 +25,22 @@ public interface PortConfig {
 
     /**
      * Apply QoS configuration on a device.
-     * @param port a port number
+     * @param port a port description
      * @param queueId an unsigned integer
      */
-    void applyQoS(PortNumber port, UnsignedInteger queueId);
+    void applyQoS(PortDescription port, UnsignedInteger queueId);
 
     /**
      * Remove a QoS configuration.
-     * @param port a port number
+     * @param port a port description
      */
-    void removeQoS(PortNumber port);
+    void removeQoS(PortDescription port);
 
     /**
      * Enable/disable administratively a port.
-     * @param port a port number
-     * @param state a boolean indicating state
+     *
+     * @param port a port description containing the desired port state
      */
-    void setEnabled(PortNumber port, boolean state);
+    void enable(PortDescription port);
 
 }

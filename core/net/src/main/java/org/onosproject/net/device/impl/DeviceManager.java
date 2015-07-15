@@ -15,7 +15,25 @@
  */
 package org.onosproject.net.device.impl;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,14 +43,15 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.Device;
+import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
@@ -56,20 +75,7 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.MastershipRole.*;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppGuard.checkPermission;
+import com.google.common.collect.Lists;
 
 
 /**
@@ -690,5 +696,35 @@ public class DeviceManager
         public void notify(DeviceEvent event) {
             post(event);
         }
+    }
+
+    @Override
+    public Iterable<Device> getDevices(Type type) {
+        checkPermission(Permission.DEVICE_READ);
+        Set<Device> results = new HashSet<>();
+        Iterable<Device> devices = store.getDevices();
+        if (devices != null) {
+            devices.forEach(d -> {
+                if (type.equals(d.type())) {
+                    results.add(d);
+                }
+            });
+        }
+        return results;
+    }
+
+    @Override
+    public Iterable<Device> getAvailableDevices(Type type) {
+        checkPermission(Permission.DEVICE_READ);
+        Set<Device> results = new HashSet<>();
+        Iterable<Device> availableDevices = store.getAvailableDevices();
+        if (availableDevices != null) {
+            availableDevices.forEach(d -> {
+                if (type.equals(d.type())) {
+                    results.add(d);
+                }
+            });
+        }
+        return results;
     }
 }

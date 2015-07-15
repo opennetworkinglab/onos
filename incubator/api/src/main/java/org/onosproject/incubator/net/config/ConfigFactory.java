@@ -21,24 +21,31 @@ import com.google.common.annotations.Beta;
 /**
  * Base abstract factory for creating configurations for the specified subject type.
  *
- * @param <S> subject class
+ * @param <S> type of subject
+ * @param <C> type of configuration
  */
 @Beta
-public abstract class ConfigFactory<S> {
+public abstract class ConfigFactory<S, C extends Config<S>> {
 
-    private final Class<S> subjectClass;
-    private final String key;
+    private final SubjectFactory<S> subjectFactory;
+    private final Class<C> configClass;
+    private final String configKey;
 
     /**
      * Creates a new configuration factory for the specified class of subjects
-     * and bound to the given subject configuration key.
+     * capable of generating the configurations of the specified class. The
+     * subject and configuration class keys are used merely as keys for use in
+     * composite JSON trees.
      *
-     * @param subjectClass subject class
-     * @param key          subject configuration key
+     * @param subjectFactory subject factory
+     * @param configClass  configuration class
+     * @param configKey    configuration class key
      */
-    protected ConfigFactory(Class<S> subjectClass, String key) {
-        this.subjectClass = subjectClass;
-        this.key = key;
+    protected ConfigFactory(SubjectFactory<S> subjectFactory,
+                            Class<C> configClass, String configKey) {
+        this.subjectFactory = subjectFactory;
+        this.configClass = configClass;
+        this.configKey = configKey;
     }
 
     /**
@@ -46,17 +53,28 @@ public abstract class ConfigFactory<S> {
      *
      * @return subject type
      */
-    public Class<S> subjectClass() {
-        return subjectClass;
+    public SubjectFactory<S> subjectFactory() {
+        return subjectFactory;
     }
 
     /**
-     * Returns the key to which produced configurations should be bound.
+     * Returns the class of the configuration which this factory generates.
      *
-     * @return subject configuration key
+     * @return configuration type
      */
-    public String key() {
-        return key;
+    public Class<C> configClass() {
+        return configClass;
+    }
+
+    /**
+     * Returns the unique key (within subject class) of this configuration.
+     * This is primarily aimed for use in composite JSON trees in external
+     * representations and has no bearing on the internal behaviours.
+     *
+     * @return configuration key
+     */
+    public String configKey() {
+        return configKey;
     }
 
     /**
@@ -65,6 +83,6 @@ public abstract class ConfigFactory<S> {
      *
      * @return new uninitialized configuration
      */
-    public abstract Config<S> createConfig();
+    public abstract C createConfig();
 
 }

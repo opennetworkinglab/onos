@@ -370,13 +370,7 @@
         entering.each(function (d) {
             var el = d3.select(this),
                 rect,
-                text,
-                parms = {
-                    x1: d.ldata.source.x,
-                    y1: d.ldata.source.y,
-                    x2: d.ldata.target.x,
-                    y2: d.ldata.target.y
-                };
+                text;
 
             if (d.ldata.type() === 'hostLink') {
                 el.classed('hostLinkLabel', true);
@@ -389,7 +383,7 @@
             rect.attr(rectAroundText(el));
             text.attr('dy', linkLabelOffset);
 
-            el.attr('transform', transformLabel(parms));
+            el.attr('transform', transformLabel(d.ldata.position));
         });
 
         // Remove any labels that are no longer required.

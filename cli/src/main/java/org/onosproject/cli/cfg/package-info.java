@@ -15,6 +15,6 @@
  */
 
 /**
- * CLI commands for managing centralized component configuration.
+ * CLI commands for managing centralized component and network configurations.
  */
 package org.onosproject.cli.cfg;

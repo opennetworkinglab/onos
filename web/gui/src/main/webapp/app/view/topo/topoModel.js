@@ -36,7 +36,7 @@
      */
 
     // shorthand
-    var lu, rlk, nodes, links;
+    var lu, rlk, nodes, links, linksByDevice;
 
     var dim;    // dimensions of layout [w,h]
 
@@ -185,6 +185,12 @@
             fromSource: link,
             srcPort: link.srcPort,
             tgtPort: link.dstPort,
+            position: {
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 0
+            },
 
             // functions to aggregate dual link state
             type: function () {
@@ -203,7 +209,7 @@
                     t = lnk.fromTarget,
                     ws = (s && s.linkWidth) || 0,
                     wt = (t && t.linkWidth) || 0;
-                return Math.max(ws, wt);
+                return lnk.position.multiLink ? 5 : Math.max(ws, wt);
             }
         });
         return lnk;
@@ -292,6 +298,11 @@
 
                 } else {
                     result.removeRawLink = function () {
+                        // remove link out of aggregate linksByDevice list
+                        var linksForDevPair = linksByDevice[ldata.devicePair],
+                            rmvIdx = fs.find(ldata.key, linksForDevPair, 'key');
+                        linksForDevPair.splice(rmvIdx, 1);
+
                         if (link) {
                             // remove fromSource
                             ldata.fromSource = null;
@@ -393,6 +404,7 @@
                 rlk = api.network.revLinkToKey;
                 nodes = api.network.nodes;
                 links = api.network.links;
+                linksByDevice = api.network.linksByDevice;
             }
 
             function newDim(_dim_) {

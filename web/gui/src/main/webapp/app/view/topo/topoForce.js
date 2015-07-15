@@ -24,8 +24,7 @@
 
     // injected refs
     var $log, $timeout, fs, sus, is, ts, flash, wss,
-        tis, tms, td3, tss, tts, tos, fltr, tls,
-        icfg, uplink, svg;
+        tis, tms, td3, tss, tts, tos, fltr, tls, uplink, svg;
 
     // configuration
     var linkConfig = {
@@ -50,6 +49,7 @@
         network = {
             nodes: [],
             links: [],
+            linksByDevice: {},
             lookup: {},
             revLinkToKey: {}
         },
@@ -215,6 +215,7 @@
         d = tms.createLink(data);
         if (d) {
             network.links.push(d);
+            aggregateLink(d, data);
             lu[d.key] = d;
             updateLinks();
             fStart();
@@ -241,10 +242,40 @@
 
     // ========================
 
+    function makeNodeKey(node1, node2) {
+        return node1 + '-' + node2;
+    }
+
+    function findNodePair(key, keyRev) {
+        if (network.linksByDevice[key]) {
+            return key;
+        } else if (network.linksByDevice[keyRev]) {
+            return keyRev;
+        } else {
+            return false;
+        }
+    }
+
+    function aggregateLink(ldata, link) {
+        var key = makeNodeKey(link.src, link.dst),
+            keyRev = makeNodeKey(link.dst, link.src),
+            found = findNodePair(key, keyRev);
+
+        if (found) {
+            network.linksByDevice[found].push(ldata);
+            ldata.devicePair = found;
+        } else {
+            network.linksByDevice[key] = [ ldata ];
+            ldata.devicePair = key;
+        }
+    }
+
     function addLinkUpdate(ldata, link) {
         // add link event, but we already have the reverse link installed
         ldata.fromTarget = link;
         rlk[link.id] = ldata.key;
+        // possible solution to el being undefined in restyleLinkElement:
+        //_updateLinks();
         restyleLinkElement(ldata);
     }
 
@@ -267,7 +298,12 @@
             delay = immediate ? 0 : 1000;
 
         // FIXME: understand why el is sometimes undefined on addLink events...
-        if (el) {
+        // Investigated:
+        // el is undefined when it's a reverse link that is being added.
+        // updateLinks (which sets ldata.el) isn't called before this is called.
+        // Calling _updateLinks in addLinkUpdate fixes it, but there might be
+        // a more efficient way to fix it.
+        if (el && !el.empty()) {
             el.classed('link', true);
             el.classed('inactive', !online);
             el.classed(allLinkTypes, false);
@@ -383,7 +419,7 @@
         d.metaUi = metaUi;
         wss.sendEvent('updateMeta', {
             id: d.id,
-            'class': d.class,
+            class: d.class,
             memento: metaUi
         });
     }
@@ -503,7 +539,11 @@
             .attr({
                 id: function (d) { return sus.safeId(d.id); },
                 class: mkSvgClass,
-                transform: function (d) { return sus.translate(d.x, d.y); },
+                transform: function (d) {
+                    // sometimes says d.x and d.y are NaN?
+                    // I have a feeling it's a timing issue
+                    return sus.translate(d.x, d.y);
+                },
                 opacity: 0
             })
             .call(drag)
@@ -535,6 +575,82 @@
 
     // ==========================
 
+    function getDefaultPos(link) {
+        return {
+            x1: link.source.x,
+            y1: link.source.y,
+            x2: link.target.x,
+            y2: link.target.y
+        };
+    }
+
+    // returns amount of adjustment along the normal for given link
+    function amt(numLinks, linkIdx) {
+        var gap = 6;
+        return (linkIdx - ((numLinks - 1) / 2)) * gap;
+    }
+
+    function calcMovement(d, amt, flipped) {
+        var pos = getDefaultPos(d),
+            mult = flipped ? -amt : amt,
+            dx = pos.x2 - pos.x1,
+            dy = pos.y2 - pos.y1,
+            length = Math.sqrt((dx * dx) + (dy * dy));
+
+        return {
+            x1: pos.x1 + (mult * dy / length),
+            y1: pos.y1 + (mult * -dx / length),
+            x2: pos.x2 + (mult * dy / length),
+            y2: pos.y2 + (mult * -dx / length)
+        };
+    }
+
+    function calcPosition() {
+        var lines = this,
+            linkSrcId;
+        lines.each(function (d) {
+            if (d.type() === 'hostLink') {
+                d.position = getDefaultPos(d);
+            }
+        });
+
+        function normalizeLinkSrc(link) {
+            // ensure source device is consistent across set of links
+            // temporary measure until link modeling is refactored
+            if (!linkSrcId) {
+                linkSrcId = link.source.id;
+                return false;
+            }
+
+            return link.source.id !== linkSrcId;
+        }
+
+        angular.forEach(network.linksByDevice, function (linkArr) {
+            var numLinks = linkArr.length,
+                link;
+
+            if (numLinks === 1) {
+                link = linkArr[0];
+                link.position = getDefaultPos(link);
+            } else if (numLinks >= 5) {
+                // this code is inefficient, in the future the way links
+                // are modeled will be changed
+                angular.forEach(linkArr, function (link) {
+                    link.position = getDefaultPos(link);
+                    link.position.multiLink = true;
+                });
+            } else {
+                // calculate position of links
+                linkSrcId = null;
+                angular.forEach(linkArr, function (link, index) {
+                    var offsetAmt = amt(numLinks, index),
+                        needToFlip = normalizeLinkSrc(link);
+                    link.position = calcMovement(link, offsetAmt, needToFlip);
+                });
+            }
+        });
+    }
+
     function updateLinks() {
         if (fLinksTimer) {
             $timeout.cancel(fLinksTimer);
@@ -548,6 +664,9 @@
         link = linkG.selectAll('.link')
             .data(network.links, function (d) { return d.key; });
 
+        // This seems to do nothing? I've only triggered it on timeout errors
+        // when adding links, link var is empty because there aren't any links
+        // when removing links, link var is empty already
         // operate on existing links:
         link.each(function (d) {
             // this is supposed to be an existing link, but we have observed
@@ -561,11 +680,12 @@
         // operate on entering links:
         var entering = link.enter()
             .append('line')
+            .call(calcPosition)
             .attr({
-                x1: function (d) { return d.source.x; },
-                y1: function (d) { return d.source.y; },
-                x2: function (d) { return d.target.x; },
-                y2: function (d) { return d.target.y; },
+                x1: function (d) { return d.position.x1; },
+                y1: function (d) { return d.position.y1; },
+                x2: function (d) { return d.position.x2; },
+                y2: function (d) { return d.position.y2; },
                 stroke: linkConfig[th].inColor,
                 'stroke-width': linkConfig.inWidth
             });
@@ -621,21 +741,16 @@
             transform: function (d) { return sus.translate(d.x, d.y); }
         },
         linkAttr: {
-            x1: function (d) { return d.source.x; },
-            y1: function (d) { return d.source.y; },
-            x2: function (d) { return d.target.x; },
-            y2: function (d) { return d.target.y; }
+            x1: function (d) { return d.position.x1; },
+            y1: function (d) { return d.position.y1; },
+            x2: function (d) { return d.position.x2; },
+            y2: function (d) { return d.position.y2; }
         },
         linkLabelAttr: {
             transform: function (d) {
                 var lnk = tms.findLinkById(d.key);
                 if (lnk) {
-                    return td3.transformLabel({
-                        x1: lnk.source.x,
-                        y1: lnk.source.y,
-                        x2: lnk.target.x,
-                        y2: lnk.target.y
-                    });
+                    return td3.transformLabel(lnk.position);
                 }
             }
         }
@@ -643,9 +758,16 @@
 
     function tick() {
         // guard against null (which can happen when our view pages out)...
-        if (node) node.attr(tickStuff.nodeAttr);
-        if (link) link.attr(tickStuff.linkAttr);
-        if (linkLabel) linkLabel.attr(tickStuff.linkLabelAttr);
+        if (node) {
+            node.attr(tickStuff.nodeAttr);
+        }
+        if (link) {
+            link.call(calcPosition)
+                .attr(tickStuff.linkAttr);
+        }
+        if (linkLabel) {
+            linkLabel.attr(tickStuff.linkLabelAttr);
+        }
     }
 
 
@@ -734,7 +856,7 @@
             showHosts: function () { return showHosts; },
             restyleLinkElement: restyleLinkElement,
             updateLinkLabelModel: updateLinkLabelModel
-        }
+        };
     }
 
     function mkSelectApi(uplink) {
@@ -755,7 +877,7 @@
             hovered: tss.hovered,
             validateSelectionContext: tss.validateSelectionContext,
             selectOrder: tss.selectOrder
-        }
+        };
     }
 
     function mkObliqueApi(uplink, fltr) {
@@ -774,7 +896,8 @@
                 return old;
             },
             opacifyMap: uplink.opacifyMap,
-            inLayer: fltr.inLayer
+            inLayer: fltr.inLayer,
+            calcLinkPos: calcPosition
         };
     }
 
@@ -797,19 +920,18 @@
 
     angular.module('ovTopo')
     .factory('TopoForceService',
-        ['$log', '$timeout', 'FnService', 'SvgUtilService', 'IconService',
+        ['$log', '$timeout', 'FnService', 'SvgUtilService',
             'ThemeService', 'FlashService', 'WebSocketService',
             'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
 
-        function (_$log_, _$timeout_, _fs_, _sus_, _is_, _ts_, _flash_, _wss_,
+        function (_$log_, _$timeout_, _fs_, _sus_, _ts_, _flash_, _wss_,
                   _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
             $log = _$log_;
             $timeout = _$timeout_;
             fs = _fs_;
             sus = _sus_;
-            is = _is_;
             ts = _ts_;
             flash = _flash_;
             wss = _wss_;
@@ -821,8 +943,6 @@
             tos = _tos_;
             fltr = _fltr_;
             tls = _tls_;
-
-            icfg = is.iconConfig();
 
             var themeListener = ts.addListener(function () {
                 updateLinks();
@@ -902,12 +1022,24 @@
                 // clean up internal state
                 network.nodes = [];
                 network.links = [];
+                network.linksByDevice = {};
                 network.lookup = {};
                 network.revLinkToKey = {};
 
                 linkG = linkLabelG = nodeG = portLabelG = null;
                 link = linkLabel = node = null;
                 force = drag = null;
+
+                // clean up $timeout promises
+                if (fTimer) {
+                    $timeout.cancel(fTimer);
+                }
+                if (fNodesTimer) {
+                    $timeout.cancel(fNodesTimer);
+                }
+                if (fLinksTimer) {
+                    $timeout.cancel(fLinksTimer);
+                }
             }
 
             return {

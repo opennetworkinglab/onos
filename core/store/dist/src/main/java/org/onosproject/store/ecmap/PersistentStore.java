@@ -37,4 +37,11 @@ interface PersistentStore<K, V> {
      * @param value the value
      */
     void update(K key, MapValue<V> value);
+
+    /**
+     * Removes a key from persistent store.
+     *
+     * @param key the key to remove
+     */
+    void remove(K key);
 }

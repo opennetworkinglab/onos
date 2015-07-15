@@ -20,7 +20,11 @@ import com.google.common.annotations.Beta;
 import java.util.Set;
 
 /**
- * Service for tracking network configuration factories.
+ * Service for tracking network configuration factories. It is the basis for
+ * extensibility to allow various core subsystems or apps to register their
+ * own configuration factories that permit use to inject additional meta
+ * information about how various parts of the network should be viewed and
+ * treated.
  */
 @Beta
 public interface NetworkConfigRegistry {
@@ -40,34 +44,32 @@ public interface NetworkConfigRegistry {
     void unregisterConfigFactory(ConfigFactory configFactory);
 
     /**
-     * Returns set of configuration factories available for the specified
+     * Returns set of all registered configuration factories.
+     *
+     * @return set of config factories
+     */
+    Set<ConfigFactory> getConfigFactories();
+
+    /**
+     * Returns set of all configuration factories registered for the specified
      * class of subject.
      *
      * @param subjectClass subject class
-     * @param <T> type of subject
+     * @param <S>          type of subject
+     * @param <C>          type of configuration
      * @return set of config factories
      */
-    <T> Set<ConfigFactory<T>> getConfigFactories(Class<T> subjectClass);
+    <S, C extends Config<S>> Set<ConfigFactory<S, C>> getConfigFactories(Class<S> subjectClass);
 
     /**
-     * Returns the configuration type registered for the specified
-     * subject type and key.
-     *
-     * @param subjectClass subject class
-     * @param configKey    configuration key
-     * @param <T> type of subject
-     * @return config factory
-     */
-    <T> ConfigFactory<T> getConfigFactory(Class<T> subjectClass, String configKey);
-
-    /**
-     * Returns the configuration type registered for the specified
-     * configuration class.
+     * Returns the configuration factory that produces the specified class of
+     * configurations.
      *
      * @param configClass configuration class
-     * @param <T> type of subject
+     * @param <S>         type of subject
+     * @param <C>         type of configuration
      * @return config factory
      */
-    <T> ConfigFactory<T> getConfigFactory(Class<Config<T>> configClass);
+    <S, C extends Config<S>> ConfigFactory<S, C> getConfigFactory(Class<C> configClass);
 
 }

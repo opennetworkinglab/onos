@@ -51,6 +51,14 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.cfg.NetworkConfigRegistryCommand"/>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.cfg.NetworkConfigCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.MetricsListCommand"/>
         </command>
 

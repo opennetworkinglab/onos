@@ -67,6 +67,7 @@
 
                 org.onosproject.rest.resources.ApplicationsWebResource,
                 org.onosproject.rest.resources.ComponentConfigWebResource,
+                org.onosproject.rest.resources.NetworkConfigWebResource,
                 org.onosproject.rest.resources.ClusterWebResource,
                 org.onosproject.rest.resources.DevicesWebResource,
                 org.onosproject.rest.resources.LinksWebResource,

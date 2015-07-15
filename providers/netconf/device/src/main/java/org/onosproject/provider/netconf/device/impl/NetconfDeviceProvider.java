@@ -339,7 +339,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                         + device.deviceInfo(), e);
             } catch (Exception e) {
                 log.error("Error while initializing session for the device: "
-                        + device.deviceInfo(), e);
+                        + (device != null ? device.deviceInfo() : null), e);
             }
         }
 
