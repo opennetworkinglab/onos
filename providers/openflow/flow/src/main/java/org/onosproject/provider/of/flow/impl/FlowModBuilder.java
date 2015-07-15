@@ -44,6 +44,7 @@ import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
@@ -72,6 +73,7 @@ import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
@@ -392,6 +394,11 @@ public abstract class FlowModBuilder {
                 byte signalType = OpenFlowValueMapper.lookupOchSignalType(sc.signalType());
                 mBuilder.setExact(MatchField.OCH_SIGTYPE, U8.of(signalType));
                 break;
+            case TUNNEL_ID:
+                TunnelIdCriterion tunnelId = (TunnelIdCriterion) c;
+                mBuilder.setExact(MatchField.TUNNEL_ID,
+                                  U64.of(tunnelId.tunnelId()));
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
@@ -400,7 +407,6 @@ public abstract class FlowModBuilder {
             case MPLS_BOS:
             case MPLS_TC:
             case PBB_ISID:
-            case TUNNEL_ID:
             default:
                 log.warn("Match type {} not yet implemented.", c.type());
             }

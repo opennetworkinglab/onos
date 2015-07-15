@@ -311,6 +311,14 @@ public interface TrafficTreatment {
         Builder writeMetadata(long value, long mask);
 
         /**
+         * Sets the tunnel id.
+         *
+         * @param tunnelId a tunnel id.
+         * @return a treatment builder.
+         */
+        Builder setTunnelId(long tunnelId);
+
+        /**
          * Builds an immutable traffic treatment descriptor.
          * <p>
          * If the treatment is empty when build() is called, it will add a default

@@ -294,6 +294,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public TrafficSelector.Builder matchTunnelId(long tunnelId) {
+            return add(Criteria.matchTunnelId(tunnelId));
+        }
+
+        @Override
         public Builder matchIPv6ExthdrFlags(short exthdrFlags) {
             return add(Criteria.matchIPv6ExthdrFlags(exthdrFlags));
         }

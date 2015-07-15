@@ -385,6 +385,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder setTunnelId(long tunnelId) {
+            return add(Instructions.modTunnelId(tunnelId));
+        }
+
+        @Override
         public TrafficTreatment build() {
             //Don't add DROP instruction by default when instruction
             //set is empty. This will be handled in DefaultSingleTablePipeline

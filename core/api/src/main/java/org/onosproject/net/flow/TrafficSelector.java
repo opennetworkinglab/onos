@@ -301,6 +301,14 @@ public interface TrafficSelector {
         Builder matchMplsLabel(MplsLabel mplsLabel);
 
         /**
+         * Matches a tunnel id.
+         *
+         * @param tunnelId a tunnel id
+         * @return a selection builder
+         */
+        Builder matchTunnelId(long tunnelId);
+
+        /**
          * Matches on IPv6 Extension Header pseudo-field flags.
          *
          * @param exthdrFlags the IPv6 Extension Header pseudo-field flags

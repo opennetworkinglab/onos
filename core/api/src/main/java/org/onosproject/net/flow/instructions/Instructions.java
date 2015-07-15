@@ -350,6 +350,17 @@ public final class Instructions {
     }
 
     /**
+     * Creates a Tunnel ID modification.
+     *
+     * @param tunnelId the Tunnel ID to modify to
+     * @return a L2 modification
+     */
+    public static L2ModificationInstruction modTunnelId(long tunnelId) {
+        checkNotNull(tunnelId, "Tunnel id cannot be null");
+        return new L2ModificationInstruction.ModTunnelIdInstruction(tunnelId);
+    }
+
+    /**
      *  Drop instruction.
      */
     public static final class DropInstruction implements Instruction {

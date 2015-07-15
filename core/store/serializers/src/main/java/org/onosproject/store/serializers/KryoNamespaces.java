@@ -119,6 +119,7 @@ import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
@@ -320,6 +321,7 @@ public final class KryoNamespaces {
                     IPv6NDTargetAddressCriterion.class,
                     IPv6NDLinkLayerAddressCriterion.class,
                     MplsCriterion.class,
+                    TunnelIdCriterion.class,
                     IPv6ExthdrFlagsCriterion.class,
                     LambdaCriterion.class,
                     IndexedLambdaCriterion.class,
@@ -346,6 +348,7 @@ public final class KryoNamespaces {
                     L2ModificationInstruction.PopVlanInstruction.class,
                     L2ModificationInstruction.ModMplsLabelInstruction.class,
                     L2ModificationInstruction.ModMplsTtlInstruction.class,
+                    L2ModificationInstruction.ModTunnelIdInstruction.class,
                     L3ModificationInstruction.class,
                     L3ModificationInstruction.L3SubType.class,
                     L3ModificationInstruction.ModIPInstruction.class,

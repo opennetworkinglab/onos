@@ -72,6 +72,7 @@ import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
@@ -402,6 +403,11 @@ public class FlowEntryBuilder {
             OFOxm<U32> labelId = (OFOxm<U32>) oxm;
             builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
             break;
+        case TUNNEL_ID:
+            @SuppressWarnings("unchecked")
+            OFOxm<U64> tunnelId = (OFOxm<U64>) oxm;
+            builder.setTunnelId(tunnelId.getValue().getValue());
+            break;
         case ARP_OP:
         case ARP_SHA:
         case ARP_SPA:
@@ -451,7 +457,6 @@ public class FlowEntryBuilder {
         case SCTP_SRC:
         case TCP_DST:
         case TCP_SRC:
-        case TUNNEL_ID:
         case UDP_DST:
         case UDP_SRC:
         default:
@@ -640,7 +645,7 @@ public class FlowEntryBuilder {
                 break;
             case IPV6_EXTHDR:
                 builder.matchIPv6ExthdrFlags((short) match.get(MatchField.IPV6_EXTHDR)
-                                            .getValue());
+                        .getValue());
                 break;
             case OCH_SIGID:
                 CircuitSignalID sigId = match.get(MatchField.OCH_SIGID);
@@ -653,13 +658,16 @@ public class FlowEntryBuilder {
                 U8 sigType = match.get(MatchField.OCH_SIGTYPE);
                 builder.add(matchOchSignalType(lookupOchSignalType((byte) sigType.getValue())));
                 break;
+            case TUNNEL_ID:
+                long tunnelId = match.get(MatchField.TUNNEL_ID).getValue();
+                builder.matchTunnelId(tunnelId);
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
             case ARP_THA:
             case ARP_TPA:
             case MPLS_TC:
-            case TUNNEL_ID:
             default:
                 log.warn("Match type {} not yet implemented.", field.id);
             }

@@ -198,6 +198,12 @@ public class CriteriaTest {
     Criterion sameAsMatchMpls1 = Criteria.matchMplsLabel(mpls1);
     Criterion matchMpls2 = Criteria.matchMplsLabel(mpls2);
 
+    long tunnelId1 = 1;
+    long tunnelId2 = 2;
+    Criterion matchTunnelId1 = Criteria.matchTunnelId(tunnelId1);
+    Criterion sameAsMatchTunnelId1 = Criteria.matchTunnelId(tunnelId1);
+    Criterion matchTunnelId2 = Criteria.matchTunnelId(tunnelId2);
+
     int ipv6ExthdrFlags1 =
         Criterion.IPv6ExthdrFlags.NONEXT.getValue() |
         Criterion.IPv6ExthdrFlags.ESP.getValue() |
@@ -990,6 +996,33 @@ public class CriteriaTest {
                 .addEqualityGroup(matchMpls1, sameAsMatchMpls1)
                 .addEqualityGroup(matchMpls2)
                 .testEquals();
+    }
+
+    // TunnelIdCriterion class
+
+    /**
+     * Test the matchTunnelId method.
+     */
+    @Test
+    public void testMatchTunnelIdMethod() {
+        Criterion matchTunnelId = Criteria.matchTunnelId(tunnelId1);
+        TunnelIdCriterion tunnelIdCriterion =
+                checkAndConvert(matchTunnelId,
+                                Criterion.Type.TUNNEL_ID,
+                                TunnelIdCriterion.class);
+        assertThat(tunnelIdCriterion.tunnelId(), is(equalTo(tunnelId1)));
+
+    }
+
+    /**
+     * Test the equals() method of the TunnelIdCriterion class.
+     */
+    @Test
+    public void testTunnelIdCriterionEquals() {
+       new EqualsTester()
+               .addEqualityGroup(matchTunnelId1, sameAsMatchTunnelId1)
+               .addEqualityGroup(matchTunnelId2)
+               .testEquals();
     }
 
     // IPv6ExthdrFlagsCriterion class

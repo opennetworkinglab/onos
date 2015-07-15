@@ -35,6 +35,7 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLa
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
@@ -336,6 +337,10 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 PushHeaderInstructions pushVlanInstruction = (PushHeaderInstructions) l2m;
                 return factory().actions().pushVlan(
                         EthType.of(pushVlanInstruction.ethernetType().toShort()));
+            case TUNNEL_ID:
+                ModTunnelIdInstruction tunnelId = (ModTunnelIdInstruction) l2m;
+                oxm = factory().oxms().tunnelId(U64.of(tunnelId.tunnelId()));
+                break;
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;
