@@ -157,7 +157,8 @@
         api.link().transition()
             .duration(time)
             .call(api.calcLinkPos)
-            .attr(api.tickStuff.linkAttr);
+            .attr(api.tickStuff.linkAttr)
+            .call(api.applyNumLinkLabels);
         api.linkLabel().transition()
             .duration(time)
             .attr(api.tickStuff.linkLabelAttr);

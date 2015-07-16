@@ -579,6 +579,26 @@ html[data-platform='iPad'] #topo-p-detail {
     fill: #eee;
 }
 
+/* Number of Links Labels */
+#ov-topo line.numLinkHash {
+    stroke-width: 3;
+}
+
+#ov-topo text.numLinkText {
+    font-size: 15pt;
+}
+
+#ov-topo text.numLinkText {
+    text-anchor: middle;
+}
+
+.light #ov-topo text.numLinkText {
+    fill: #444;
+}
+.dark #ov-topo text.numLinkText {
+    fill: #eee;
+}
+
 /* ------------------------------------------------- */
 /* Sprite Layer */
 

@@ -301,7 +301,10 @@
                         // remove link out of aggregate linksByDevice list
                         var linksForDevPair = linksByDevice[ldata.devicePair],
                             rmvIdx = fs.find(ldata.key, linksForDevPair, 'key');
-                        linksForDevPair.splice(rmvIdx, 1);
+                        if (rmvIdx >= 0) {
+                            linksForDevPair.splice(rmvIdx, 1);
+                        }
+                        ldata.position.multilink = linksForDevPair.length >= 5;
 
                         if (link) {
                             // remove fromSource

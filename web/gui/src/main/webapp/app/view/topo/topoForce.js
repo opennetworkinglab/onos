@@ -61,10 +61,11 @@
         fTimer,                 // timer for delayed force layout
         fNodesTimer,            // timer for delayed nodes update
         fLinksTimer,            // timer for delayed links update
-        dim;                    // the dimensions of the force layout [w,h]
+        dim,                    // the dimensions of the force layout [w,h]
+        linkNums = [];          // array of link number labels
 
     // SVG elements;
-    var linkG, linkLabelG, portLabelG, nodeG;
+    var linkG, linkLabelG, numLinkLblsG, portLabelG, nodeG;
 
     // D3 selections;
     var link, linkLabel, node;
@@ -608,6 +609,7 @@
     function calcPosition() {
         var lines = this,
             linkSrcId;
+        linkNums = [];
         lines.each(function (d) {
             if (d.type() === 'hostLink') {
                 d.position = getDefaultPos(d);
@@ -625,13 +627,14 @@
             return link.source.id !== linkSrcId;
         }
 
-        angular.forEach(network.linksByDevice, function (linkArr) {
+        angular.forEach(network.linksByDevice, function (linkArr, key) {
             var numLinks = linkArr.length,
                 link;
 
             if (numLinks === 1) {
                 link = linkArr[0];
                 link.position = getDefaultPos(link);
+                link.position.multiLink = false;
             } else if (numLinks >= 5) {
                 // this code is inefficient, in the future the way links
                 // are modeled will be changed
@@ -639,13 +642,18 @@
                     link.position = getDefaultPos(link);
                     link.position.multiLink = true;
                 });
+                linkNums.push({
+                    id: key,
+                    num: numLinks,
+                    linkCoords: linkArr[0].position
+                });
             } else {
-                // calculate position of links
                 linkSrcId = null;
                 angular.forEach(linkArr, function (link, index) {
                     var offsetAmt = amt(numLinks, index),
                         needToFlip = normalizeLinkSrc(link);
                     link.position = calcMovement(link, offsetAmt, needToFlip);
+                    link.position.multiLink = false;
                 });
             }
         });
@@ -695,6 +703,9 @@
 
         // operate on both existing and new links:
         //link.each(...)
+
+        // add labels for how many links are in a thick line
+        td3.applyNumLinkLabels(linkNums, numLinkLblsG);
 
         // apply or remove labels
         td3.applyLinkLabels();
@@ -764,6 +775,7 @@
         if (link) {
             link.call(calcPosition)
                 .attr(tickStuff.linkAttr);
+            td3.applyNumLinkLabels(linkNums, numLinkLblsG);
         }
         if (linkLabel) {
             linkLabel.attr(tickStuff.linkLabelAttr);
@@ -855,7 +867,8 @@
             posNode: tms.positionNode,
             showHosts: function () { return showHosts; },
             restyleLinkElement: restyleLinkElement,
-            updateLinkLabelModel: updateLinkLabelModel
+            updateLinkLabelModel: updateLinkLabelModel,
+            linkConfig: function () { return linkConfig; }
         };
     }
 
@@ -897,7 +910,10 @@
             },
             opacifyMap: uplink.opacifyMap,
             inLayer: fltr.inLayer,
-            calcLinkPos: calcPosition
+            calcLinkPos: calcPosition,
+            applyNumLinkLabels: function () {
+                td3.applyNumLinkLabels(linkNums, numLinkLblsG);
+            }
         };
     }
 
@@ -975,6 +991,7 @@
 
                 linkG = forceG.append('g').attr('id', 'topo-links');
                 linkLabelG = forceG.append('g').attr('id', 'topo-linkLabels');
+                numLinkLblsG = forceG.append('g').attr('id', 'topo-numLinkLabels');
                 nodeG = forceG.append('g').attr('id', 'topo-nodes');
                 portLabelG = forceG.append('g').attr('id', 'topo-portLabels');
 
@@ -1026,7 +1043,9 @@
                 network.lookup = {};
                 network.revLinkToKey = {};
 
-                linkG = linkLabelG = nodeG = portLabelG = null;
+                linkNums = [];
+
+                linkG = linkLabelG = numLinkLblsG = nodeG = portLabelG = null;
                 link = linkLabel = node = null;
                 force = drag = null;
 
