@@ -43,10 +43,19 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean inMemory = false;
 
+    @Option(name = "-g", aliases = "--getFirst", description = "get the counter's value before adding",
+            required = false, multiValued = false)
+    private boolean getFirst = false;
+
     @Argument(index = 0, name = "counter",
             description = "Counter name",
             required = true, multiValued = false)
     String counter = null;
+
+    @Argument(index = 1, name = "delta",
+            description = "Long to add to the counter",
+            required = false, multiValued = false)
+    Long delta = null;
 
     AsyncAtomicCounter atomicCounter;
 
@@ -64,10 +73,22 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
                     .withName(counter)
                     .buildAsyncCounter();
         }
-
-        CompletableFuture<Long> result = atomicCounter.incrementAndGet();
+        CompletableFuture<Long> result;
+        if (delta != null) {
+            if (getFirst) {
+                result = atomicCounter.getAndAdd(delta);
+            } else {
+                result = atomicCounter.addAndGet(delta);
+            }
+        } else {
+            if (getFirst) {
+                result = atomicCounter.getAndIncrement();
+            } else {
+                result = atomicCounter.incrementAndGet();
+            }
+        }
         try {
-            print("%s was incremented to %d", counter, result.get(3, TimeUnit.SECONDS));
+            print("%s was updated to %d", counter, result.get(3, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
             return;
         } catch (ExecutionException e) {
