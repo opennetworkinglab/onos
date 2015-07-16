@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns, mast;
+    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns, mast, ns;
 
     // constants
     var pCls = 'topo-p',
@@ -33,7 +33,8 @@
             width: 260
         },
         sumMax = 240,
-        padTop = 20;
+        padTop = 20,
+        devPath = 'device';
 
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
@@ -218,14 +219,22 @@
         detail.setup();
 
         var svg = detail.appendHeader('div')
-                .classed('icon', true)
+                .classed('icon clickable', true)
                 .append('svg'),
-            title = detail.appendHeader('h2'),
+            title = detail.appendHeader('h2')
+                .classed('clickable', true),
             table = detail.appendBody('table'),
             tbody = table.append('tbody');
 
         gs.addGlyph(svg, (data.type || 'unknown'), 40);
         title.text(data.id);
+        svg.on('click', function () {
+            ns.navTo(devPath, { devId: data.id });
+        });
+        title.on('click', function () {
+            ns.navTo(devPath, { devId: data.id });
+        });
+
         listProps(tbody, data);
         addBtnFooter();
     }
@@ -475,9 +484,10 @@
     .factory('TopoPanelService',
         ['$log', '$window', '$rootScope', 'FnService', 'PanelService', 'GlyphService',
             'FlashService', 'WebSocketService', 'ButtonService', 'MastService',
+            'NavService',
 
         function (_$log_, _$window_, _$rootScope_,
-                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_, _mast_) {
+                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_, _mast_, _ns_) {
             $log = _$log_;
             $window = _$window_;
             $rootScope = _$rootScope_;
@@ -488,6 +498,7 @@
             wss = _wss_;
             bns = _bns_;
             mast = _mast_;
+            ns = _ns_;
 
             return {
                 initPanels: initPanels,

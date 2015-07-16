@@ -41,7 +41,8 @@
         consumeClick = false;   // used to coordinate with SVG click handler
 
     // constants
-    var flowPath = 'flow',
+    var devPath = 'device',
+        flowPath = 'flow',
         portPath ='port',
         groupPath = 'group';
 
@@ -251,6 +252,14 @@
         // TODO: have the server return explicit class and ID of each node
         // for now, we assume the node is a device if it has a URI
         if ((data.props).hasOwnProperty('URI')) {
+            tps.addAction({
+                id: 'device-table-btn',
+                gid: data.type,
+                cb: function () {
+                    ns.navTo(devPath, { devId: data.props['URI'] });
+                },
+                tt: 'Show device view'
+            });
             tps.addAction({
                 id: 'flows-table-btn',
                 gid: 'flowTable',
