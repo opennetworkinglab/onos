@@ -1,20 +1,7 @@
 package org.onosproject.store.cluster.impl;
 
-import static java.net.NetworkInterface.getNetworkInterfaces;
-import static java.util.Collections.list;
-import static org.onosproject.cluster.DefaultControllerNode.DEFAULT_PORT;
-import static org.onosproject.store.consistent.impl.DatabaseManager.PARTITION_DEFINITION_FILE;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,8 +15,20 @@ import org.onosproject.store.consistent.impl.DatabaseDefinition;
 import org.onosproject.store.consistent.impl.DatabaseDefinitionStore;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.net.NetworkInterface.getNetworkInterfaces;
+import static java.util.Collections.list;
+import static org.onosproject.cluster.DefaultControllerNode.DEFAULT_PORT;
+import static org.onosproject.store.consistent.impl.DatabaseManager.PARTITION_DEFINITION_FILE;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of ClusterDefinitionService.
@@ -113,7 +112,10 @@ public class ClusterDefinitionManager implements ClusterDefinitionService {
             Enumeration<InetAddress> inetAddresses = iface.getInetAddresses();
             while (inetAddresses.hasMoreElements()) {
                 IpAddress ip = IpAddress.valueOf(inetAddresses.nextElement());
-                if (matchInterface(ip.toString(), clusterDefinition.getIpPrefix())) {
+                if (clusterDefinition.getNodes().stream()
+                        .map(NodeInfo::getIp)
+                        .map(IpAddress::valueOf)
+                        .anyMatch(nodeIp -> ip.equals(nodeIp))) {
                     return ip;
                 }
             }
