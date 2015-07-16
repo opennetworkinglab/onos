@@ -24,6 +24,7 @@ import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.link.LinkAdminService;
 
 /**
@@ -86,7 +87,9 @@ public class WipeOutCommand extends ClustersListCommand {
         print("Wiping intents");
         IntentService intentService = get(IntentService.class);
         for (Intent intent : intentService.getIntents()) {
-            intentService.withdraw(intent);
+            if (intentService.getIntentState(intent.key()) != IntentState.WITHDRAWN) {
+                intentService.withdraw(intent);
+            }
             intentService.purge(intent);
         }
     }
