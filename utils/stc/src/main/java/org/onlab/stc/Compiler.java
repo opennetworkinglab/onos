@@ -31,6 +31,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.stc.Scenario.loadScenario;
 
 /**
@@ -67,6 +69,7 @@ public class Compiler {
 
     private final Map<String, Step> steps = Maps.newHashMap();
     private final Map<String, Step> inactiveSteps = Maps.newHashMap();
+    private final Map<String, String> requirements = Maps.newHashMap();
     private final Set<Dependency> dependencies = Sets.newHashSet();
     private final List<Integer> parallels = Lists.newArrayList();
 
@@ -100,6 +103,7 @@ public class Compiler {
      */
     public void compile() {
         compile(scenario.definition(), null, null);
+        compileRequirements();
 
         // Produce the process flow
         processFlow = new ProcessFlow(ImmutableSet.copyOf(steps.values()),
@@ -150,6 +154,7 @@ public class Compiler {
                          String namespace, Group parentGroup) {
         String opfx = pfx;
         pfx = pfx + ">";
+        print("pfx=%s namespace=%s", pfx, namespace);
 
         // Scan all imports
         cfg.configurationsAt(IMPORT)
@@ -175,6 +180,26 @@ public class Compiler {
     }
 
     /**
+     * Compiles requirements for all steps and groups accrued during the
+     * overall compilation process.
+     */
+    private void compileRequirements() {
+        requirements.forEach((name, requires) ->
+                                     compileRequirements(getStep(name), requires));
+    }
+
+    private void compileRequirements(Step src, String requires) {
+        split(requires).forEach(n -> {
+            boolean isSoft = n.startsWith("~");
+            String name = n.replaceFirst("^~", "");
+            Step dst = getStep(name);
+            if (dst != null) {
+                dependencies.add(new Dependency(src, dst, isSoft));
+            }
+        });
+    }
+
+    /**
      * Processes an import directive.
      *
      * @param cfg         hierarchical definition
@@ -189,7 +214,7 @@ public class Compiler {
         print("import file=%s namespace=%s", file, newNamespace);
         try {
             Scenario importScenario = loadScenario(new FileInputStream(file));
-            compile(importScenario.definition(), namespace, parentGroup);
+            compile(importScenario.definition(), newNamespace, parentGroup);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to import scenario", e);
         }
@@ -246,6 +271,7 @@ public class Compiler {
      */
     private boolean registerStep(Step step, HierarchicalConfiguration cfg,
                                  String namespace, Group parentGroup) {
+        checkState(!steps.containsKey(step.name()), "Step %s already exists", step.name());
         String ifClause = expand(cfg.getString(IF));
         String unlessClause = expand(cfg.getString(UNLESS));
 
@@ -259,6 +285,7 @@ public class Compiler {
         if (parentGroup != null) {
             parentGroup.addChild(step);
         }
+
         steps.put(step.name(), step);
         processRequirements(step, expand(cfg.getString(REQUIRES)), namespace);
         previous = step.name();
@@ -323,15 +350,15 @@ public class Compiler {
      * @param namespace optional namespace
      */
     private void processRequirements(Step src, String requires, String namespace) {
-        split(requires).forEach(n -> {
+        String reqs = requirements.get(src.name());
+        for (String n : split(requires)) {
             boolean isSoft = n.startsWith("~");
             String name = n.replaceFirst("^~", "");
             name = previous != null && name.equals("^") ? previous : name;
-            Step dst = getStep(name, namespace);
-            if (!inactiveSteps.containsValue(dst)) {
-                dependencies.add(new Dependency(src, dst, isSoft));
-            }
-        });
+            name = (isSoft ? "~" : "") + expand(prefix(name, namespace));
+            reqs = reqs == null ? name : (reqs + "," + name);
+        }
+        requirements.put(src.name(), reqs);
     }
 
     /**
@@ -357,7 +384,7 @@ public class Compiler {
      * @return composite name
      */
     private String prefix(String name, String namespace) {
-        return namespace != null ? namespace + "." + name : name;
+        return isNullOrEmpty(namespace) ? name : namespace + "." + name;
     }
 
     /**
