@@ -13,9 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="net-link-up-down" description="Network link up-down test">
+<scenario name="net-link-down-up" description="Network link up-down test">
     <!-- TODO: parametrize this via recipes -->
-    <group name="Net-Link-Up-Down">
+    <group name="Net-Link-Down-Up">
         <step name="Ping-1"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
         <step name="Link-1-Down" requires="Ping-1"

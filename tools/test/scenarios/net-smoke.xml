@@ -17,13 +17,16 @@
     <group name="Net-Smoke">
         <import file="${ONOS_SCENARIOS}/net-setup.xml"/>
 
-        <import file="${ONOS_SCENARIOS}/net-pingall.xml"/>
-        <dependency name="Net-Pingall" requires="Net-Setup"/>
+        <import file="${ONOS_SCENARIOS}/net-pingall.xml" namespace="Reactive-Forwarding"/>
+        <dependency name="Reactive-Forwarding.Net-Pingall" requires="Net-Setup"/>
 
-        <import file="${ONOS_SCENARIOS}/net-link-up-down.xml"/>
-        <dependency name="Net-Link-Up-Down" requires="~Net-Pingall"/>
+        <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Reactive-Forwarding"/>
+        <dependency name="Reactive-Forwarding.Net-Link-Down-Up" requires="~Reactive-Forwarding.Net-Pingall"/>
+
+        <import file="${ONOS_SCENARIOS}/net-host-intent.xml"/>
+        <dependency name="Host-Intent-Connectivity" requires="~Reactive-Forwarding.Net-Link-Down-Up"/>
 
         <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
-        <dependency name="Net-Teardown" requires="~Net-Link-Up-Down"/>
+        <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity"/>
     </group>
 </scenario>
