@@ -381,6 +381,38 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     @Override
+    public V compute(K key, BiFunction<K, V, V> recomputeFunction) {
+        checkState(!destroyed, destroyedMessage);
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(recomputeFunction, "Recompute function cannot be null");
+
+        AtomicBoolean updated = new AtomicBoolean(false);
+        AtomicReference<MapValue<V>> previousValue = new AtomicReference<>();
+        MapValue<V> computedValue = items.compute(key, (k, mv) -> {
+            previousValue.set(mv);
+            V newRawValue = recomputeFunction.apply(key, mv == null ? null : mv.get());
+            MapValue<V> newValue = new MapValue<>(newRawValue, timestampProvider.apply(key, newRawValue));
+            if (mv == null || newValue.isNewerThan(mv)) {
+                updated.set(true);
+                return newValue;
+            } else {
+                return mv;
+            }
+        });
+        if (updated.get()) {
+            notifyPeers(new UpdateEntry<>(key, computedValue), peerUpdateFunction.apply(key, computedValue.get()));
+            EventuallyConsistentMapEvent.Type updateType = computedValue.isTombstone() ? REMOVE : PUT;
+            V value = computedValue.isTombstone()
+                    ? previousValue.get() == null ? null : previousValue.get().get()
+                    : computedValue.get();
+            if (value != null) {
+                notifyListeners(new EventuallyConsistentMapEvent<>(updateType, key, value));
+            }
+        }
+        return computedValue.get();
+    }
+
+    @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         checkState(!destroyed, destroyedMessage);
         m.forEach(this::put);

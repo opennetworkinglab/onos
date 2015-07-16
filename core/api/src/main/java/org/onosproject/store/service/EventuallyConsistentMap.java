@@ -18,6 +18,7 @@ package org.onosproject.store.service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * A distributed, eventually consistent map.
@@ -128,6 +129,17 @@ public interface EventuallyConsistentMap<K, V> {
      * @param value the value mapped to the key
      */
     void remove(K key, V value);
+
+    /**
+     * Attempts to compute a mapping for the specified key and its current mapped
+     * value (or null if there is no current mapping).
+     * <p>
+     * If the function returns null, the mapping is removed (or remains absent if initially absent).
+     * @param key map key
+     * @param recomputeFunction function to recompute a new value
+     * @return new value
+     */
+    V compute(K key, BiFunction<K, V, V> recomputeFunction);
 
     /**
      * Adds mappings for all key-value pairs in the specified map to this map.
