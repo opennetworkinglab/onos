@@ -208,6 +208,8 @@ public abstract class FlowModBuilder {
                 if (vid.vlanId().equals(VlanId.ANY)) {
                     mBuilder.setMasked(MatchField.VLAN_VID, OFVlanVidMatch.PRESENT,
                                        OFVlanVidMatch.PRESENT);
+                } else if (vid.vlanId().equals(VlanId.NONE)) {
+                    mBuilder.setExact(MatchField.VLAN_VID, OFVlanVidMatch.NONE);
                 } else {
                     mBuilder.setExact(MatchField.VLAN_VID,
                                       OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));

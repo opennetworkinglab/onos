@@ -352,7 +352,6 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
 
         provisionVlanOnPort(OLT_DEVICE_ID, OLT_UPLINK_PORT, onuPort, subscriberVlan.toShort());
-        //provisionDataPlane(tenantToCreate);
 
         String retJson = postRest(json);
 
@@ -389,7 +388,7 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     private void provisionVlanOnPort(DeviceId deviceId, int uplinkPort, PortNumber p, short vlanId) {
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
-                .matchVlanId(VlanId.vlanId(vlanId))
+                .matchVlanId(VlanId.ANY)
                 .matchInPort(p)
                 .build();
 
@@ -399,10 +398,12 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
                 .build();
 
         TrafficTreatment upstreamTreatment = DefaultTrafficTreatment.builder()
+                .setVlanId(VlanId.vlanId(vlanId))
                 .setOutput(PortNumber.portNumber(uplinkPort))
                 .build();
 
         TrafficTreatment downstreamTreatment = DefaultTrafficTreatment.builder()
+                .popVlan()
                 .setOutput(p)
                 .build();
 

@@ -530,7 +530,11 @@ public class FlowEntryBuilder {
                         vlanId = VlanId.ANY;
                     }
                 } else {
-                    vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                    if (!match.get(MatchField.VLAN_VID).isPresentBitSet()) {
+                        vlanId = VlanId.NONE;
+                    } else {
+                        vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                    }
                 }
                 if (vlanId != null) {
                     builder.matchVlanId(vlanId);
