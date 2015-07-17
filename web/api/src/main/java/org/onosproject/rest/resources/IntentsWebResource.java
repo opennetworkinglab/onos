@@ -17,8 +17,6 @@ package org.onosproject.rest.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +28,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -59,6 +60,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @Path("intents")
 public class IntentsWebResource extends AbstractWebResource {
+    @Context
+    UriInfo uriInfo;
+
     private static final Logger log = getLogger(IntentsWebResource.class);
     private static final int WITHDRAW_EVENT_TIMEOUT_SECONDS = 5;
 
@@ -194,20 +198,21 @@ public class IntentsWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createIntent(InputStream stream) {
-        URI location;
         try {
             IntentService service = get(IntentService.class);
             ObjectNode root = (ObjectNode) mapper().readTree(stream);
             Intent intent = codec(Intent.class).decode(root, this);
             service.submit(intent);
-            location = new URI(Short.toString(intent.appId().id()) + "/"
-                    + Long.toString(intent.id().fingerprint()));
-        } catch (IOException | URISyntaxException ex) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("intents")
+                    .path(Short.toString(intent.appId().id()))
+                    .path(Long.toString(intent.id().fingerprint()));
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException ioe) {
+            throw new IllegalArgumentException(ioe);
         }
-        return Response
-                .created(location)
-                .build();
     }
 
 }
