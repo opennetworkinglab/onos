@@ -17,6 +17,7 @@
     <!-- TODO: parametrize this via recipes -->
     <group name="Net-Setup">
         <step name="Push-Topos" exec="onos-push-topos ${OCN}"/>
+        <step name="Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
 
         <step name="Install-Apps"
               exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
@@ -30,11 +31,11 @@
               exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
 
         <step name="Start-Mininet"
-              requires="Install-Apps,Initial-Summary-Check,Push-Topos"
+              requires="Install-Apps,Initial-Summary-Check,Push-Topos,Stop-Mininet-If-Needed"
               exec="onos-mininet start topos/topo att-onos.py ${ONOS_INSTANCES}"/>
 
         <step name="Wait-For-Mininet" requires="Start-Mininet"
-              exec="onos-mininet wait 15"/>
+              exec="onos-mininet wait 20"/>
 
         <step name="Check-Summary" requires="Wait-For-Mininet"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 0"/>

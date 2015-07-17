@@ -32,7 +32,7 @@ import static org.onlab.stc.Coordinator.Status.SUCCEEDED;
  */
 public class StepProcessorTest {
 
-    private static final File DIR = new File("/tmp/stc/foo");
+    static final File DIR = new File("/tmp/stc/foo");
 
     private final Listener delegate = new Listener();
 

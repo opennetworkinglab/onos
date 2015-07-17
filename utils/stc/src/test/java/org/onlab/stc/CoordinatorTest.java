@@ -17,8 +17,8 @@ package org.onlab.stc;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.util.Tools;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static org.onlab.stc.CompilerTest.getStream;
@@ -36,23 +36,26 @@ public class CoordinatorTest {
     @BeforeClass
     public static void setUpClass() throws IOException {
         CompilerTest.setUpClass();
+        Tools.removeDirectory(StepProcessorTest.DIR);
+
         StepProcessor.launcher = "true ";
     }
 
     @Test
-    public void simple() throws FileNotFoundException, InterruptedException {
+    public void simple() throws IOException, InterruptedException {
         executeTest("simple-scenario.xml");
     }
 
     @Test
-    public void complex() throws FileNotFoundException, InterruptedException {
+    public void complex() throws IOException, InterruptedException {
         executeTest("scenario.xml");
     }
 
-    private void executeTest(String name) throws FileNotFoundException, InterruptedException {
+    private void executeTest(String name) throws IOException, InterruptedException {
         Scenario scenario = loadScenario(getStream(name));
         Compiler compiler = new Compiler(scenario);
         compiler.compile();
+        Tools.removeDirectory(compiler.logDir());
         coordinator = new Coordinator(scenario, compiler.processFlow(), compiler.logDir());
         coordinator.addListener(listener);
         coordinator.reset();

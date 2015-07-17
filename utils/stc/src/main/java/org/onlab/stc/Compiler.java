@@ -425,7 +425,7 @@ public class Compiler {
             last = end + 1;
         }
         sb.append(pString.substring(last));
-        return sb.toString();
+        return sb.toString().replace('\n', ' ').replace('\r', ' ');
     }
 
     /**

@@ -109,7 +109,7 @@ class ScenarioStore {
      * @param step test step or group
      */
     synchronized void markStarted(Step step) {
-        add(new StepEvent(step.name(), IN_PROGRESS));
+        add(new StepEvent(step.name(), IN_PROGRESS, step.command()));
         save();
     }
 
@@ -120,7 +120,7 @@ class ScenarioStore {
      * @param status new step status
      */
     synchronized void markComplete(Step step, Status status) {
-        add(new StepEvent(step.name(), status));
+        add(new StepEvent(step.name(), status, null));
         save();
     }
 
