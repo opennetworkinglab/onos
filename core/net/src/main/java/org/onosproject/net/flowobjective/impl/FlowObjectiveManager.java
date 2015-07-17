@@ -282,9 +282,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case MASTER_CHANGED:
                     log.debug("mastership changed on device {}", event.subject());
+                    long start = startWatch();
                     if (deviceService.isAvailable(event.subject())) {
                         setupPipelineHandler(event.subject());
                     }
+                    stopWatch(start);
                     break;
                 case BACKUPS_CHANGED:
                     break;
@@ -303,10 +305,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.debug("Device either added or availability changed {}",
                              event.subject().id());
+                    long start = startWatch();
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.debug("Device is now available {}", event.subject().id());
                         setupPipelineHandler(event.subject().id());
                     }
+                    stopWatch(start);
                     break;
                 case DEVICE_UPDATED:
                     break;
@@ -323,6 +327,24 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 default:
                     break;
             }
+        }
+    }
+
+    // Temporary mechanism to monitor pipeliner setup time-cost; there are
+    // intermittent time where this takes in excess of 2 seconds. Why?
+    private long totals = 0, count = 0;
+    private static final long LIMIT = 1;
+
+    private long startWatch() {
+        return System.currentTimeMillis();
+    }
+
+    private void stopWatch(long start) {
+        long duration = System.currentTimeMillis() - start;
+        totals += duration;
+        count += 1;
+        if (duration > LIMIT) {
+            log.info("Pipeline setup took {} ms; avg {} ms", duration, totals / count);
         }
     }
 
