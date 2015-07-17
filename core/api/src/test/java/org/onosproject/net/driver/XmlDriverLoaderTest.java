@@ -23,6 +23,7 @@ import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.driver.DefaultDriverDataTest.DEVICE_ID;
 
 /**
  * Tests of the XML driver loader implementation.
@@ -73,7 +74,7 @@ public class XmlDriverLoaderTest {
         InputStream stream = getClass().getResourceAsStream("drivers.noconstructor.xml");
         DriverProvider provider = loader.loadDrivers(stream, null);
         Driver driver = provider.getDrivers().iterator().next();
-        driver.createBehaviour(new DefaultDriverData(driver), TestBehaviour.class);
+        driver.createBehaviour(new DefaultDriverData(driver, DEVICE_ID), TestBehaviour.class);
     }
 
 }

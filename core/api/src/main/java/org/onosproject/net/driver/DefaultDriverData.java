@@ -16,6 +16,7 @@
 package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.MutableAnnotations;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class DefaultDriverData implements DriverData {
 
     private final Driver driver;
+    private final DeviceId deviceId;
     private final Map<String, String> properties;
 
     /**
@@ -37,14 +39,20 @@ public class DefaultDriverData implements DriverData {
      *
      * @param driver parent driver type
      */
-    public DefaultDriverData(Driver driver) {
+    public DefaultDriverData(Driver driver, DeviceId deviceId) {
         this.driver = driver;
+        this.deviceId = deviceId;
         this.properties = new HashMap<>();
     }
 
     @Override
     public Driver driver() {
         return driver;
+    }
+
+    @Override
+    public DeviceId deviceId() {
+        return deviceId;
     }
 
     @Override

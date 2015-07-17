@@ -18,10 +18,14 @@ package org.onosproject.net.driver;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.DeviceId;
 
 import static org.junit.Assert.*;
+import static org.onosproject.net.DeviceId.deviceId;
 
 public class DefaultDriverDataTest {
+
+    public static final DeviceId DEVICE_ID = deviceId("of:0011223344556677");
 
     DefaultDriver ddc;
     DefaultDriverData data;
@@ -32,12 +36,13 @@ public class DefaultDriverDataTest {
                                 ImmutableMap.of(TestBehaviour.class,
                                                 TestBehaviourImpl.class),
                                 ImmutableMap.of("foo", "bar"));
-        data = new DefaultDriverData(ddc);
+        data = new DefaultDriverData(ddc, DEVICE_ID);
     }
 
     @Test
     public void basics() {
-        assertSame("incorrect type", ddc, data.driver());
+        assertSame("incorrect driver", ddc, data.driver());
+        assertEquals("incorrect device id", DEVICE_ID, data.deviceId());
         assertTrue("incorrect toString", data.toString().contains("foo.bar"));
     }
 

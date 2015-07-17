@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.driver.DefaultDriverDataTest.DEVICE_ID;
 
 public class DefaultDriverTest {
 
@@ -45,10 +46,10 @@ public class DefaultDriverTest {
         assertEquals("incorrect behaviour count", 0, ddc.behaviours().size());
         assertTrue("incorrect behaviour", ddc.hasBehaviour(TestBehaviour.class));
 
-        Behaviour b1 = ddc.createBehaviour(new DefaultDriverData(ddc), TestBehaviour.class);
+        Behaviour b1 = ddc.createBehaviour(new DefaultDriverData(ddc, DEVICE_ID), TestBehaviour.class);
         assertTrue("incorrect behaviour class", b1 instanceof TestBehaviourImpl);
 
-        Behaviour b2 = ddc.createBehaviour(new DefaultDriverHandler(new DefaultDriverData(ddc)),
+        Behaviour b2 = ddc.createBehaviour(new DefaultDriverHandler(new DefaultDriverData(ddc, DEVICE_ID)),
                                            TestBehaviourTwo.class);
         assertTrue("incorrect behaviour class", b2 instanceof TestBehaviourTwoImpl);
 
