@@ -47,6 +47,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.statistic.Load;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.slf4j.Logger;
@@ -97,6 +98,7 @@ public class CodecManager implements CodecService {
         registerCodec(Group.class, new GroupCodec());
         registerCodec(Driver.class, new DriverCodec());
         registerCodec(GroupBucket.class, new GroupBucketCodec());
+        registerCodec(Load.class, new LoadCodec());
         log.info("Started");
     }
 

@@ -76,7 +76,8 @@
                 org.onosproject.rest.resources.FlowsWebResource,
                 org.onosproject.rest.resources.TopologyWebResource,
                 org.onosproject.rest.resources.ConfigWebResource,
-                org.onosproject.rest.resources.PathsWebResource
+                org.onosproject.rest.resources.PathsWebResource,
+                org.onosproject.rest.resources.StatisticsWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
