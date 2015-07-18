@@ -30,6 +30,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ListenerRegistry<E extends Event, L extends EventListener<E>>
         implements EventSink<E> {
 
+    private static final long LIMIT = 1_800; // ms
+
     private final Logger log = getLogger(getClass());
 
     private long lastStart;
@@ -80,10 +82,13 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
     @Override
     public void onProcessLimit() {
         if (lastStart > 0) {
-            log.error("Listener {} exceeded execution time limit: {} ms; ejected",
-                      lastListener.getClass().getName(),
-                      System.currentTimeMillis() - lastStart);
-            removeListener(lastListener);
+            long duration = System.currentTimeMillis() - lastStart;
+            if (duration > LIMIT) {
+                log.error("Listener {} exceeded execution time limit: {} ms; ejected",
+                          lastListener.getClass().getName(),
+                          duration);
+                removeListener(lastListener);
+            }
             lastStart = 0;
         }
     }
