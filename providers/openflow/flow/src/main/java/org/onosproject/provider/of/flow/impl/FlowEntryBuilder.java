@@ -71,6 +71,7 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
@@ -408,6 +409,26 @@ public class FlowEntryBuilder {
             OFOxm<U64> tunnelId = (OFOxm<U64>) oxm;
             builder.setTunnelId(tunnelId.getValue().getValue());
             break;
+        case TCP_DST:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> tcpdst = (OFOxm<TransportPort>) oxm;
+            builder.setTcpDst((short) tcpdst.getValue().getPort());
+            break;
+        case TCP_SRC:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> tcpsrc = (OFOxm<TransportPort>) oxm;
+            builder.setTcpSrc((short) tcpsrc.getValue().getPort());
+            break;
+        case UDP_DST:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> udpdst = (OFOxm<TransportPort>) oxm;
+            builder.setUdpDst((short) udpdst.getValue().getPort());
+            break;
+        case UDP_SRC:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> udpsrc = (OFOxm<TransportPort>) oxm;
+            builder.setUdpSrc((short) udpsrc.getValue().getPort());
+            break;
         case ARP_OP:
         case ARP_SHA:
         case ARP_SPA:
@@ -455,10 +476,6 @@ public class FlowEntryBuilder {
         case OCH_SIGTYPE_BASIC:
         case SCTP_DST:
         case SCTP_SRC:
-        case TCP_DST:
-        case TCP_SRC:
-        case UDP_DST:
-        case UDP_SRC:
         default:
             log.warn("Set field type {} not yet implemented.", oxm.getMatchField().id);
             break;

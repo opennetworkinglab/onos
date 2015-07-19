@@ -319,6 +319,38 @@ public interface TrafficTreatment {
         Builder setTunnelId(long tunnelId);
 
         /**
+         * Sets the src TCP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setTcpSrc(short port);
+
+        /**
+         * Sets the dst TCP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setTcpDst(short port);
+
+        /**
+         * Sets the src UDP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setUdpSrc(short port);
+
+        /**
+         * Sets the dst UDP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setUdpDst(short port);
+
+        /**
          * Builds an immutable traffic treatment descriptor.
          * <p>
          * If the treatment is empty when build() is called, it will add a default

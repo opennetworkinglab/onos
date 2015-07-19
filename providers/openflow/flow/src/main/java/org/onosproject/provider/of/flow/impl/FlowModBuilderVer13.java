@@ -39,6 +39,8 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnel
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -61,6 +63,7 @@ import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.TableId;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
@@ -214,6 +217,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 case L3MODIFICATION:
                     actions.add(buildL3Modification(i));
                     break;
+                case L4MODIFICATION:
+                    actions.add(buildL4Modification(i));
+                    break;
                 case OUTPUT:
                     OutputInstruction out = (OutputInstruction) i;
                     OFActionOutput.Builder action = factory().actions().buildOutput()
@@ -327,7 +333,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;
                 oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label()
-                                                                  .longValue()));
+                                                                .longValue()));
                 break;
             case DEC_MPLS_TTL:
                 return factory().actions().decMplsTtl();
@@ -393,6 +399,38 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 return factory().actions().copyTtlOut();
             default:
                 log.warn("Unimplemented action type {}.", l3m.subtype());
+                break;
+        }
+
+        if (oxm != null) {
+            return factory().actions().buildSetField().setField(oxm).build();
+        }
+        return null;
+    }
+
+    private OFAction buildL4Modification(Instruction i) {
+        L4ModificationInstruction l4m = (L4ModificationInstruction) i;
+        ModTransportPortInstruction tp;
+        OFOxm<?> oxm = null;
+        switch (l4m.subtype()) {
+            case TCP_SRC:
+                tp = (ModTransportPortInstruction) l4m;
+                oxm = factory().oxms().tcpSrc(TransportPort.of(tp.port()));
+                break;
+            case TCP_DST:
+                tp = (ModTransportPortInstruction) l4m;
+                oxm = factory().oxms().tcpDst(TransportPort.of(tp.port()));
+                break;
+            case UDP_SRC:
+                tp = (ModTransportPortInstruction) l4m;
+                oxm = factory().oxms().udpSrc(TransportPort.of(tp.port()));
+                break;
+            case UDP_DST:
+                tp = (ModTransportPortInstruction) l4m;
+                oxm = factory().oxms().udpDst(TransportPort.of(tp.port()));
+                break;
+            default:
+                log.warn("Unimplemented action type {}.", l4m.subtype());
                 break;
         }
 

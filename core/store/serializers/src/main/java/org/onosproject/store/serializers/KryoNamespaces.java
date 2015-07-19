@@ -127,6 +127,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -354,6 +355,9 @@ public final class KryoNamespaces {
                     L3ModificationInstruction.ModIPInstruction.class,
                     L3ModificationInstruction.ModIPv6FlowLabelInstruction.class,
                     L3ModificationInstruction.ModTtlInstruction.class,
+                    L4ModificationInstruction.class,
+                    L4ModificationInstruction.L4SubType.class,
+                    L4ModificationInstruction.ModTransportPortInstruction.class,
                     RoleInfo.class,
                     FlowRuleBatchEvent.class,
                     FlowRuleBatchEvent.Type.class,

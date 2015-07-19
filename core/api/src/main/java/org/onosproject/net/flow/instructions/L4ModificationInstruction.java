@@ -66,12 +66,12 @@ public abstract class L4ModificationInstruction implements Instruction {
     /**
      * Represents a L4 src/dst modification instruction.
      */
-    public static final class ModL4PortInstruction extends L4ModificationInstruction {
+    public static final class ModTransportPortInstruction extends L4ModificationInstruction {
 
         private final L4SubType subtype;
         private final short port;
 
-        public ModL4PortInstruction(L4SubType subtype, short port) {
+        public ModTransportPortInstruction(L4SubType subtype, short port) {
             this.subtype = subtype;
             this.port = port;
         }
@@ -101,8 +101,8 @@ public abstract class L4ModificationInstruction implements Instruction {
             if (this == obj) {
                 return true;
             }
-            if (obj instanceof ModL4PortInstruction) {
-                ModL4PortInstruction that = (ModL4PortInstruction) obj;
+            if (obj instanceof ModTransportPortInstruction) {
+                ModTransportPortInstruction that = (ModTransportPortInstruction) obj;
                 return  Objects.equals(port, that.port) &&
                         Objects.equals(this.subtype(), that.subtype());
             }
