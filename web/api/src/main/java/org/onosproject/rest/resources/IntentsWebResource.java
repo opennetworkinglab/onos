@@ -91,14 +91,14 @@ public class IntentsWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{appId}/{key}")
-    public Response getIntentById(@PathParam("appId") Short appId,
+    public Response getIntentById(@PathParam("appId") String appId,
                                   @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
 
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
         if (intent == null) {
-            intent = get(IntentService.class)
-                    .getIntent(Key.of(Long.parseLong(key), app));
+            long numericalKey = Long.decode(key);
+            intent = get(IntentService.class).getIntent(Key.of(numericalKey, app));
         }
         nullIsNotFound(intent, INTENT_NOT_FOUND);
 
@@ -140,7 +140,7 @@ public class IntentsWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{appId}/{key}")
-    public void deleteIntentById(@PathParam("appId") Short appId,
+    public void deleteIntentById(@PathParam("appId") String appId,
                                   @PathParam("key") String keyString) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
 

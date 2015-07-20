@@ -110,9 +110,11 @@ public class IntentsResourceTest extends ResourceTest {
             }
 
             // check application id
+
             final String jsonAppId = jsonIntent.get("appId").asString();
-            if (!jsonAppId.equals(intent.appId().toString())) {
-                reason = "appId " + intent.appId().toString();
+            final String appId = intent.appId().name();
+            if (!jsonAppId.equals(appId)) {
+                reason = "appId was " + jsonAppId;
                 return false;
             }
 
@@ -120,13 +122,6 @@ public class IntentsResourceTest extends ResourceTest {
             final String jsonType = jsonIntent.get("type").asString();
             if (!jsonType.equals("MockIntent")) {
                 reason = "type MockIntent";
-                return false;
-            }
-
-            // check details field
-            final String jsonDetails = jsonIntent.get("details").asString();
-            if (!jsonDetails.equals(intent.toString())) {
-                reason = "details " + intent.toString();
                 return false;
             }
 
@@ -196,7 +191,7 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public boolean matchesSafely(JsonArray json) {
             boolean intentFound = false;
-            final int expectedAttributes = 6;
+            final int expectedAttributes = 5;
             for (int jsonIntentIndex = 0; jsonIntentIndex < json.size();
                  jsonIntentIndex++) {
 
@@ -336,11 +331,12 @@ public class IntentsResourceTest extends ResourceTest {
                 .andReturn(intent)
                 .anyTimes();
         replay(mockIntentService);
-        expect(mockCoreService.getAppId(APP_ID.id()))
+        expect(mockCoreService.getAppId(APP_ID.name()))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
         final WebResource rs = resource();
-        final String response = rs.path("intents/1/0").get(String.class);
+        final String response = rs.path("intents/" + APP_ID.name()
+                + "/0").get(String.class);
         final JsonObject result = JsonObject.readFrom(response);
         assertThat(result, matchesIntent(intent));
     }
@@ -371,8 +367,9 @@ public class IntentsResourceTest extends ResourceTest {
      */
     @Test
     public void testPost() {
-        expect(mockCoreService.getAppId((short) 2))
-                .andReturn(new DefaultApplicationId(2, "app"));
+        ApplicationId testId = new DefaultApplicationId(2, "myApp");
+        expect(mockCoreService.getAppId("myApp"))
+                .andReturn(testId);
         replay(mockCoreService);
 
         mockIntentService.submit(anyObject());

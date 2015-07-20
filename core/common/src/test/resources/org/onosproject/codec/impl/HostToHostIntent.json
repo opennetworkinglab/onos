@@ -1,6 +1,6 @@
 {
   "type": "HostToHostIntent",
-  "appId": 2,
+  "appId": "test",
   "selector": {"criteria": []},
   "treatment": {
     "instructions": [],

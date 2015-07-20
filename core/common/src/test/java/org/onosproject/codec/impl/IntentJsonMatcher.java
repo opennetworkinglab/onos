@@ -443,8 +443,10 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         }
 
         // check application id
-        final String jsonAppId = jsonIntent.get("appId").asText();
-        final String appId = intent.appId().toString();
+        final JsonNode jsonAppIdNode = jsonIntent.get("appId");
+
+        final String jsonAppId = jsonAppIdNode.asText();
+        final String appId = intent.appId().name();
         if (!jsonAppId.equals(appId)) {
             description.appendText("appId was " + jsonAppId);
             return false;
@@ -455,14 +457,6 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         final String type = intent.getClass().getSimpleName();
         if (!jsonType.equals(type)) {
             description.appendText("type was " + jsonType);
-            return false;
-        }
-
-        // check details field
-        final String jsonDetails = jsonIntent.get("details").asText();
-        final String details = intent.toString();
-        if (!jsonDetails.equals(details)) {
-            description.appendText("details were " + jsonDetails);
             return false;
         }
 

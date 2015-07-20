@@ -1,6 +1,6 @@
 {
   "type": "PointToPointIntent",
-  "appId": 2,
+  "appId": "test",
   "selector": {
     "criteria": [
       {
