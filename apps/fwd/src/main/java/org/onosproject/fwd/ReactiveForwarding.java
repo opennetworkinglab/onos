@@ -73,7 +73,9 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -692,6 +694,8 @@ public class ReactiveForwarding {
         Set<FlowEntry> rules =  getFlowRulesFrom(egress);
         Set<SrcDstPair> pairs = findSrcDstPairs(rules);
 
+        Map<DeviceId, Set<Path>> srcPaths = new HashMap<>();
+
         for (SrcDstPair sd: pairs) {
             // get the edge deviceID for the src host
             DeviceId srcId = hostService.getHost(HostId.hostId(sd.src)).location().deviceId();
@@ -700,8 +704,11 @@ public class ReactiveForwarding {
 
             cleanFlowRules(sd, egress.deviceId());
 
-            Set<Path> shortestPaths =
-                    topologyService.getPaths(topologyService.currentTopology(), egress.deviceId(), srcId);
+            Set<Path> shortestPaths = srcPaths.get(srcId);
+            if (shortestPaths == null) {
+                shortestPaths = topologyService.getPaths(topologyService.currentTopology(), egress.deviceId(), srcId);
+                srcPaths.put(srcId, shortestPaths);
+            }
             backTrackBadNodes(shortestPaths, dstId, sd);
         }
     }
