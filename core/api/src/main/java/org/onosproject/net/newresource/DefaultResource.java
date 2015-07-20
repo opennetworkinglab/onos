@@ -22,29 +22,26 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Base implementation of a class representing allocation of resource which belongs to a particular subject.
+ * Default implementation of a class representing resource which belongs to a particular subject.
  *
  * @param <S> type of the subject
  * @param <T> type of the resource
  */
 @Beta
-public abstract class AbstractResourceAllocation<S, T> implements ResourceAllocation<S, T> {
+public class DefaultResource<S, T> implements Resource<S, T> {
 
     private final S subject;
     private final T resource;
-    private final ResourceConsumer consumer;
 
     /**
-     * Constructor expected to be called by constructors of the sub-classes.
+     * Creates a resource with the specified subject and resource.
      *
      * @param subject identifier which this resource belongs to
      * @param resource resource of the subject
-     * @param consumer consumer ot this resource
      */
-    protected AbstractResourceAllocation(S subject, T resource, ResourceConsumer consumer) {
+    public DefaultResource(S subject, T resource) {
         this.subject = checkNotNull(subject);
         this.resource = checkNotNull(resource);
-        this.consumer = consumer;
     }
 
     @Override
@@ -58,13 +55,8 @@ public abstract class AbstractResourceAllocation<S, T> implements ResourceAlloca
     }
 
     @Override
-    public ResourceConsumer consumer() {
-        return consumer;
-    }
-
-    @Override
     public int hashCode() {
-        return Objects.hash(subject, resource, consumer);
+        return Objects.hash(subject, resource);
     }
 
     @Override
@@ -72,12 +64,11 @@ public abstract class AbstractResourceAllocation<S, T> implements ResourceAlloca
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof AbstractResourceAllocation)) {
+        if (!(obj instanceof DefaultResource)) {
             return false;
         }
-        final AbstractResourceAllocation that = (AbstractResourceAllocation) obj;
+        final DefaultResource that = (DefaultResource) obj;
         return Objects.equals(this.subject, that.subject)
-                && Objects.equals(this.resource, that.resource)
-                && Objects.equals(this.consumer, that.consumer);
+                && Objects.equals(this.resource, that.resource);
     }
 }
