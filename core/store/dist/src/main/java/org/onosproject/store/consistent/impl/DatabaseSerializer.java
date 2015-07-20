@@ -79,6 +79,7 @@ public class DatabaseSerializer extends SerializerConfig {
             .register(Result.Status.class)
             .register(DefaultTransaction.class)
             .register(Transaction.State.class)
+            .register(Match.class)
             .register(NodeId.class)
             .build();
 

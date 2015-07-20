@@ -18,7 +18,6 @@ package org.onosproject.store.service;
 
 import java.util.Collection;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -168,17 +167,6 @@ public interface ConsistentMap<K, V> {
     Versioned<V> putAndGet(K key, V value);
 
     /**
-     * Associates the specified value with the specified key in this map (optional operation).
-     * If the map previously contained a mapping for the key, the old value is replaced by the
-     * specified value.
-     *
-     * @param key key with which the specified value is to be associated
-     * @param value value to be associated with the specified key
-     * @return optional updated value. Will be empty if update did not happen
-     */
-    Optional<Versioned<V>> putIfAbsentAndGet(K key, V value);
-
-    /**
      * Removes the mapping for a key from this map if it is present (optional operation).
      *
      * @param key key whose value is to be removed from the map
@@ -278,17 +266,6 @@ public interface ConsistentMap<K, V> {
      * @return true if the value was replaced
      */
     boolean replace(K key, long oldVersion, V newValue);
-
-    /**
-     * Replaces the entry for the specified key only if it is currently mapped to the
-     * specified version.
-     *
-     * @param key key key with which the specified value is associated
-     * @param oldVersion version expected to be associated with the specified key
-     * @param newValue value to be associated with the specified key
-     * @return optional new value. Will be empty if replace did not happen
-     */
-    Optional<Versioned<V>> replaceAndGet(K key, long oldVersion, V newValue);
 
     /**
      * Registers the specified listener to be notified whenever the map is updated.

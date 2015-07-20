@@ -391,9 +391,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     private List<MapInfo> getMapInfo(Database database) {
-        return complete(database.tableNames())
+        return complete(database.maps())
             .stream()
-            .map(name -> new MapInfo(name, complete(database.size(name))))
+            .map(name -> new MapInfo(name, complete(database.mapSize(name))))
             .filter(info -> info.size() > 0)
             .collect(Collectors.toList());
     }

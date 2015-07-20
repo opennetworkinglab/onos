@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,7 +33,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.HexString;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
@@ -49,6 +47,7 @@ import org.slf4j.Logger;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 
 /**
  * AsyncConsistentMap implementation that is backed by a Raft consensus
@@ -139,38 +138,39 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
 
     @Override
     public CompletableFuture<Integer> size() {
-        return database.size(name);
+        return database.mapSize(name);
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return database.isEmpty(name);
+        return database.mapIsEmpty(name);
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return database.containsKey(name, keyCache.getUnchecked(key));
+        return database.mapContainsKey(name, keyCache.getUnchecked(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(V value) {
         checkNotNull(value, ERROR_NULL_VALUE);
-        return database.containsValue(name, serializer.encode(value));
+        return database.mapContainsValue(name, serializer.encode(value));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> get(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        return database.get(name, keyCache.getUnchecked(key))
-            .thenApply(v -> v != null
-            ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+        return database.mapGet(name, keyCache.getUnchecked(key))
+            .thenApply(v -> v != null ? v.map(serializer::decode) : null);
     }
 
     @Override
     public CompletableFuture<Versioned<V>> computeIfAbsent(K key,
             Function<? super K, ? extends V> mappingFunction) {
-        return computeIf(key, Objects::isNull, (k, v) -> mappingFunction.apply(k));
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(mappingFunction, "Mapping function cannot be null");
+        return updateAndGet(key, Match.ifNull(), Match.any(), mappingFunction.apply(key)).thenApply(v -> v.newValue());
     }
 
     @Override
@@ -192,7 +192,6 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(condition, "predicate function cannot be null");
         checkNotNull(remappingFunction, "Remapping function cannot be null");
-        AtomicReference<MapEvent<K, V>> mapEvent = new AtomicReference<>();
         return get(key).thenCompose(r1 -> {
             V existingValue = r1 == null ? null : r1.value();
             // if the condition evaluates to false, return existing value.
@@ -207,116 +206,51 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
             } catch (Exception e) {
                 return Tools.exceptionalFuture(e);
             }
-
-            // if the computed value is null, remove current value if one exists.
-            // throw an exception if concurrent modification is detected.
-            if (computedValue.get() == null) {
-                if (r1 != null) {
-                    return remove(key, r1.version()).thenApply(result -> {
-                        if (result) {
-                            mapEvent.set(new MapEvent<>(name, MapEvent.Type.REMOVE, key, r1));
-                            return null;
-                        } else {
-                            throw new ConsistentMapException.ConcurrentModification();
-                        }
-                    });
-                } else {
-                    return CompletableFuture.completedFuture(null);
-                }
-            } else {
-                // replace current value; throw an exception if concurrent modification is detected
-                if (r1 != null) {
-                    return replaceAndGet(key, r1.version(), computedValue.get())
-                            .thenApply(v -> {
-                                if (v.isPresent()) {
-                                    mapEvent.set(new MapEvent<>(name, MapEvent.Type.UPDATE, key, v.get()));
-                                    return v.get();
-                                } else {
-                                    throw new ConsistentMapException.ConcurrentModification();
-                                }
-                            });
-                } else {
-                    return putIfAbsentAndGet(key, computedValue.get()).thenApply(result -> {
-                        if (!result.isPresent()) {
-                            throw new ConsistentMapException.ConcurrentModification();
-                        } else {
-                            mapEvent.set(new MapEvent<>(name, MapEvent.Type.INSERT, key, result.get()));
-                            return result.get();
-                        }
-                    });
-                }
+            if (computedValue.get() == null && r1 == null) {
+                return CompletableFuture.completedFuture(null);
             }
-        }).whenComplete((result, error) -> notifyListeners(mapEvent.get()));
+            Match<V> valueMatcher = r1 == null ? Match.ifNull() : Match.any();
+            Match<Long> versionMatcher = r1 == null ? Match.any() : Match.ifValue(r1.version());
+            return updateAndGet(key, valueMatcher, versionMatcher, computedValue.get())
+                    .thenApply(v -> {
+                        if (v.updated()) {
+                            return v.newValue();
+                        } else {
+                            throw new ConsistentMapException.ConcurrentModification();
+                        }
+                    });
+        });
     }
 
     @Override
     public CompletableFuture<Versioned<V>> put(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        checkIfUnmodifiable();
-        return database.put(name, keyCache.getUnchecked(key), serializer.encode(value))
-                       .thenApply(this::unwrapResult)
-                       .thenApply(v -> v != null
-                       ? new Versioned<>(serializer.decode(v.value()), v.version(), v.creationTime()) : null);
+        return updateAndGet(key, Match.any(), Match.any(), value).thenApply(v -> v.oldValue());
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putAndGet(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        checkIfUnmodifiable();
-        return database.putAndGet(name, keyCache.getUnchecked(key), serializer.encode(value))
-                .thenApply(this::unwrapResult)
-                .thenApply(v -> {
-                    Versioned<byte[]> rawNewValue = v.newValue();
-                    return new Versioned<>(serializer.decode(rawNewValue.value()),
-                            rawNewValue.version(),
-                            rawNewValue.creationTime());
-                });
-    }
-
-    @Override
-    public CompletableFuture<Optional<Versioned<V>>> putIfAbsentAndGet(K key, V value) {
-        checkNotNull(key, ERROR_NULL_KEY);
-        checkNotNull(value, ERROR_NULL_VALUE);
-        checkIfUnmodifiable();
-        return database.putIfAbsentAndGet(name, keyCache.getUnchecked(key), serializer.encode(value))
-                .thenApply(this::unwrapResult)
-                .thenApply(v -> {
-                    if (v.updated()) {
-                        Versioned<byte[]> rawNewValue = v.newValue();
-                        return Optional.of(new Versioned<>(serializer.decode(rawNewValue.value()),
-                                                           rawNewValue.version(),
-                                                           rawNewValue.creationTime()));
-                    } else {
-                        return Optional.empty();
-                    }
-                });
+        return updateAndGet(key, Match.any(), Match.any(), value).thenApply(v -> v.newValue());
     }
 
     @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
-        checkIfUnmodifiable();
-        return database.remove(name, keyCache.getUnchecked(key))
-                .thenApply(this::unwrapResult)
-                .thenApply(v -> v != null ? v.<V>map(serializer::decode) : null)
-                .whenComplete((r, e) -> {
-                    if (r != null) {
-                        notifyListeners(new MapEvent<>(name, MapEvent.Type.REMOVE, key, r));
-                    }
-                });
+        return updateAndGet(key, Match.any(), Match.any(), null).thenApply(v -> v.oldValue());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
         checkIfUnmodifiable();
-        return database.clear(name).thenApply(this::unwrapResult);
+        return database.mapClear(name).thenApply(this::unwrapResult);
     }
 
     @Override
     public CompletableFuture<Set<K>> keySet() {
-        return database.keySet(name)
+        return database.mapKeySet(name)
                 .thenApply(s -> s
                 .stream()
                 .map(this::dK)
@@ -325,17 +259,17 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
 
     @Override
     public CompletableFuture<Collection<Versioned<V>>> values() {
-        return database.values(name).thenApply(c -> c
+        return database.mapValues(name).thenApply(c -> c
             .stream()
-            .map(v -> new Versioned<V>(serializer.decode(v.value()), v.version(), v.creationTime()))
+            .map(v -> v.<V>map(serializer::decode))
             .collect(Collectors.toList()));
     }
 
     @Override
     public CompletableFuture<Set<Entry<K, Versioned<V>>>> entrySet() {
-        return database.entrySet(name).thenApply(s -> s
+        return database.mapEntrySet(name).thenApply(s -> s
                 .stream()
-                .map(this::fromRawEntry)
+                .map(this::mapRawEntry)
                 .collect(Collectors.toSet()));
     }
 
@@ -343,84 +277,52 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        checkIfUnmodifiable();
-        AtomicReference<MapEvent<K, V>> event = new AtomicReference<>();
-        return database.putIfAbsentAndGet(name, keyCache.getUnchecked(key), serializer.encode(value))
-                .thenApply(this::unwrapResult)
-                .whenComplete((r, e) -> {
-                    if (r != null && r.updated()) {
-                        event.set(new MapEvent<K, V>(name,
-                                                 MapEvent.Type.INSERT,
-                                                 key,
-                                                 r.newValue().<V>map(serializer::decode)));
-                    }
-                })
-                .thenApply(v -> v.updated() ? null : v.oldValue().<V>map(serializer::decode))
-                .whenComplete((r, e) -> notifyListeners(event.get()));
+        return computeIfAbsent(key, k -> value);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        checkIfUnmodifiable();
-        return database.remove(name, keyCache.getUnchecked(key), serializer.encode(value))
-                       .thenApply(this::unwrapResult);
+        return updateAndGet(key, Match.ifValue(value), Match.any(), null).thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long version) {
         checkNotNull(key, ERROR_NULL_KEY);
-        checkIfUnmodifiable();
-        return database.remove(name, keyCache.getUnchecked(key), version)
-                       .thenApply(this::unwrapResult);
-
+        return updateAndGet(key, Match.any(), Match.ifValue(version), null).thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(oldValue, ERROR_NULL_VALUE);
         checkNotNull(newValue, ERROR_NULL_VALUE);
-        checkIfUnmodifiable();
-        byte[] existing = oldValue != null ? serializer.encode(oldValue) : null;
-        return database.replace(name, keyCache.getUnchecked(key), existing, serializer.encode(newValue))
-                       .thenApply(this::unwrapResult);
+        return updateAndGet(key, Match.ifValue(oldValue), Match.any(), newValue).thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
-        return replaceAndGet(key, oldVersion, newValue).thenApply(Optional::isPresent);
+        return updateAndGet(key, Match.any(), Match.ifValue(oldVersion), newValue).thenApply(v -> v.updated());
     }
 
-    @Override
-    public CompletableFuture<Optional<Versioned<V>>> replaceAndGet(K key, long oldVersion, V newValue) {
-        checkNotNull(key, ERROR_NULL_KEY);
-        checkNotNull(newValue, ERROR_NULL_VALUE);
+    private Map.Entry<K, Versioned<V>> mapRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
+        return Maps.immutableEntry(dK(e.getKey()), e.getValue().<V>map(serializer::decode));
+    }
+
+    private CompletableFuture<UpdateResult<K, V>> updateAndGet(K key,
+            Match<V> oldValueMatch,
+            Match<Long> oldVersionMatch,
+            V value) {
         checkIfUnmodifiable();
-        return database.replaceAndGet(name,
-                                      keyCache.getUnchecked(key),
-                                      oldVersion,
-                                      serializer.encode(newValue))
-                       .thenApply(this::unwrapResult)
-                       .thenApply(v -> {
-                                   if (v.updated()) {
-                                       Versioned<byte[]> rawNewValue = v.newValue();
-                                       return Optional.of(new Versioned<>(serializer.decode(rawNewValue.value()),
-                                                                            rawNewValue.version(),
-                                                                            rawNewValue.creationTime()));
-                                   } else {
-                                       return Optional.empty();
-                                   }
-                       });
-    }
-
-    private Map.Entry<K, Versioned<V>> fromRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
-        return Pair.of(
-                dK(e.getKey()),
-                new Versioned<>(
-                        serializer.decode(e.getValue().value()),
-                        e.getValue().version(),
-                        e.getValue().creationTime()));
+        return database.mapUpdate(name,
+                    keyCache.getUnchecked(key),
+                    oldValueMatch.map(serializer::encode),
+                    oldVersionMatch,
+                    value == null ? null : serializer.encode(value))
+                .thenApply(this::unwrapResult)
+                .thenApply(r -> r.<K, V>map(this::dK, serializer::decode))
+                .whenComplete((r, e) -> notifyListeners(r != null ? r.toMapEvent() : null));
     }
 
     private <T> T unwrapResult(Result<T> result) {

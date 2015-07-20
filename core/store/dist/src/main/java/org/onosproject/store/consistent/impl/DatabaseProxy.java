@@ -31,11 +31,11 @@ import org.onosproject.store.service.Versioned;
 public interface DatabaseProxy<K, V> {
 
     /**
-     * Returns a set of all tables names.
+     * Returns a set of all map names.
      *
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Set<String>> tableNames();
+    CompletableFuture<Set<String>> maps();
 
     /**
      * Returns a mapping from counter name to next value.
@@ -45,185 +45,93 @@ public interface DatabaseProxy<K, V> {
     CompletableFuture<Map<String, Long>> counters();
 
     /**
-     * Gets the table size.
      *
-     * @param tableName table name
+     * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Integer> size(String tableName);
+    CompletableFuture<Integer> mapSize(String mapName);
 
     /**
-     * Checks whether the table is empty.
+     * Checks whether the map is empty.
      *
-     * @param tableName table name
+     * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Boolean> isEmpty(String tableName);
+    CompletableFuture<Boolean> mapIsEmpty(String mapName);
 
     /**
-     * Checks whether the table contains a key.
+     * Checks whether the map contains a key.
      *
-     * @param tableName table name
-     * @param key       The key to check.
+     * @param mapName map name
+     * @param key key to check.
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Boolean> containsKey(String tableName, K key);
+    CompletableFuture<Boolean> mapContainsKey(String mapName, K key);
 
     /**
-     * Checks whether the table contains a value.
+     * Checks whether the map contains a value.
      *
-     * @param tableName table name
-     * @param value     The value to check.
+     * @param mapName map name
+     * @param value The value to check.
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Boolean> containsValue(String tableName, V value);
+    CompletableFuture<Boolean> mapContainsValue(String mapName, V value);
 
     /**
-     * Gets a value from the table.
+     * Gets a value from the map.
      *
-     * @param tableName table name
-     * @param key       The key to get.
+     * @param mapName map name
+     * @param key The key to get.
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Versioned<V>> get(String tableName, K key);
+    CompletableFuture<Versioned<V>> mapGet(String mapName, K key);
 
     /**
-     * Puts a value in the table.
+     * Updates the map.
      *
-     * @param tableName table name
-     * @param key       The key to set.
-     * @param value     The value to set.
+     * @param mapName map name
+     * @param key           The key to set
+     * @param valueMatch    match for checking existing value
+     * @param versionMatch  match for checking existing version
+     * @param value         new value
+     * @return A completable future to be completed with the result once complete
+     */
+    CompletableFuture<Result<UpdateResult<K, V>>> mapUpdate(
+            String mapName, K key, Match<V> valueMatch, Match<Long> versionMatch, V value);
+
+    /**
+     * Clears the map.
+     *
+     * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Result<Versioned<V>>> put(String tableName, K key, V value);
+    CompletableFuture<Result<Void>> mapClear(String mapName);
 
     /**
-     * Puts a value in the table.
+     * Gets a set of keys in the map.
      *
-     * @param tableName table name
-     * @param key       The key to set.
-     * @param value     The value to set.
+     * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Result<UpdateResult<Versioned<V>>>> putAndGet(String tableName, K key, V value);
+    CompletableFuture<Set<K>> mapKeySet(String mapName);
 
     /**
-     * Puts a value in the table.
+     * Gets a collection of values in the map.
      *
-     * @param tableName table name
-     * @param key       The key to set.
-     * @param value     The value to set.
+     * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Result<UpdateResult<Versioned<V>>>> putIfAbsentAndGet(String tableName, K key, V value);
+    CompletableFuture<Collection<Versioned<V>>> mapValues(String mapName);
 
     /**
-     * Removes a value from the table.
+     * Gets a set of entries in the map.
      *
-     * @param tableName table name
-     * @param key       The key to remove.
+     * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
-    CompletableFuture<Result<Versioned<V>>> remove(String tableName, K key);
+    CompletableFuture<Set<Map.Entry<K, Versioned<V>>>> mapEntrySet(String mapName);
 
-    /**
-     * Clears the table.
-     *
-     * @param tableName table name
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<Void>> clear(String tableName);
-
-    /**
-     * Gets a set of keys in the table.
-     *
-     * @param tableName table name
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Set<K>> keySet(String tableName);
-
-    /**
-     * Gets a collection of values in the table.
-     *
-     * @param tableName table name
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Collection<Versioned<V>>> values(String tableName);
-
-    /**
-     * Gets a set of entries in the table.
-     *
-     * @param tableName table name
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Set<Map.Entry<K, Versioned<V>>>> entrySet(String tableName);
-
-    /**
-     * Puts a value in the table if the given key does not exist.
-     *
-     * @param tableName table name
-     * @param key       The key to set.
-     * @param value     The value to set if the given key does not exist.
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<Versioned<V>>> putIfAbsent(String tableName, K key, V value);
-
-    /**
-     * Removes a key and if the existing value for that key matches the specified value.
-     *
-     * @param tableName table name
-     * @param key       The key to remove.
-     * @param value     The value to remove.
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<Boolean>> remove(String tableName, K key, V value);
-
-    /**
-     * Removes a key and if the existing version for that key matches the specified version.
-     *
-     * @param tableName table name
-     * @param key       The key to remove.
-     * @param version   The expected version.
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<Boolean>> remove(String tableName, K key, long version);
-
-    /**
-     * Replaces the entry for the specified key only if currently mapped to the specified value.
-     *
-     * @param tableName table name
-     * @param key       The key to replace.
-     * @param oldValue  The value to replace.
-     * @param newValue  The value with which to replace the given key and value.
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<Boolean>> replace(String tableName, K key, V oldValue, V newValue);
-
-    /**
-     * Replaces the entry for the specified key only if currently mapped to the specified version.
-     *
-     * @param tableName  table name
-     * @param key        The key to update
-     * @param oldVersion existing version in the map for this replace to succeed.
-     * @param newValue   The value with which to replace the given key and version.
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<Boolean>> replace(String tableName, K key, long oldVersion, V newValue);
-
-    /**
-     * Replaces the entry for the specified key only if currently mapped to the specified version.
-     *
-     * @param tableName  table name
-     * @param key        The key to update
-     * @param oldVersion existing version in the map for this replace to succeed.
-     * @param newValue   The value with which to replace the given key and version.
-     * @return A completable future to be completed with the result once complete.
-     */
-    CompletableFuture<Result<UpdateResult<Versioned<V>>>> replaceAndGet(String tableName,
-            K key, long oldVersion,
-            V newValue);
-
-    /**
+     /**
      * Atomically add the given value to current value of the specified counter.
      *
      * @param counterName counter name

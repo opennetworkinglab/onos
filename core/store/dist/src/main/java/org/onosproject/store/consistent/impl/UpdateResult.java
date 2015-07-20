@@ -15,6 +15,11 @@
  */
 package org.onosproject.store.consistent.impl;
 
+import java.util.function.Function;
+
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.Versioned;
+
 /**
  * Result of a update operation.
  * <p>
@@ -23,14 +28,18 @@ package org.onosproject.store.consistent.impl;
  * point to the same unmodified value.
  * @param <V> result type
  */
-public class UpdateResult<V> {
+public class UpdateResult<K, V> {
 
     private final boolean updated;
-    private final V oldValue;
-    private final V newValue;
+    private final String mapName;
+    private final K key;
+    private final Versioned<V> oldValue;
+    private final Versioned<V> newValue;
 
-    public UpdateResult(boolean updated, V oldValue, V newValue) {
+    public UpdateResult(boolean updated, String mapName, K key, Versioned<V> oldValue, Versioned<V> newValue) {
         this.updated = updated;
+        this.mapName = mapName;
+        this.key = key;
         this.oldValue = oldValue;
         this.newValue = newValue;
     }
@@ -39,11 +48,38 @@ public class UpdateResult<V> {
         return updated;
     }
 
-    public V oldValue() {
+    public String mapName() {
+        return mapName;
+    }
+
+    public K key() {
+        return key;
+    }
+
+    public Versioned<V> oldValue() {
         return oldValue;
     }
 
-    public V newValue() {
+    public Versioned<V> newValue() {
         return newValue;
+    }
+
+    public <K1, V1> UpdateResult<K1, V1> map(Function<K, K1> keyTransform, Function<V, V1> valueMapper) {
+        return new UpdateResult<>(updated,
+                mapName,
+                keyTransform.apply(key),
+                oldValue == null ? null : oldValue.map(valueMapper),
+                newValue == null ? null : newValue.map(valueMapper));
+    }
+
+    public MapEvent<K, V> toMapEvent() {
+        if (!updated) {
+            return null;
+        } else {
+            MapEvent.Type eventType = oldValue == null ?
+                    MapEvent.Type.INSERT : newValue == null ? MapEvent.Type.REMOVE : MapEvent.Type.UPDATE;
+            Versioned<V> eventValue = eventType == MapEvent.Type.REMOVE ? oldValue : newValue;
+            return new MapEvent<>(mapName(), eventType, key(), eventValue);
+        }
     }
 }

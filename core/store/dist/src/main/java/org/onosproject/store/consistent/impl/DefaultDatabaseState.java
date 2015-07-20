@@ -48,7 +48,7 @@ import net.kuujo.copycat.state.StateContext;
 public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     private Long nextVersion;
     private Map<String, AtomicLong> counters;
-    private Map<String, Map<String, Versioned<byte[]>>> tables;
+    private Map<String, Map<String, Versioned<byte[]>>> maps;
     private Map<String, Queue<byte[]>> queues;
     private Map<String, Set<NodeId>> queueUpdateNotificationTargets;
 
@@ -72,10 +72,10 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
             counters = Maps.newConcurrentMap();
             context.put("counters", counters);
         }
-        tables = context.get("tables");
-        if (tables == null) {
-            tables = Maps.newConcurrentMap();
-            context.put("tables", tables);
+        maps = context.get("maps");
+        if (maps == null) {
+            maps = Maps.newConcurrentMap();
+            context.put("maps", maps);
         }
         locks = context.get("locks");
         if (locks == null) {
@@ -100,8 +100,8 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public Set<String> tableNames() {
-        return new HashSet<>(tables.keySet());
+    public Set<String> maps() {
+        return ImmutableSet.copyOf(maps.keySet());
     }
 
     @Override
@@ -112,179 +112,82 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public int size(String tableName) {
-      return getTableMap(tableName).size();
+    public int size(String mapName) {
+      return getMap(mapName).size();
     }
 
     @Override
-    public boolean isEmpty(String tableName) {
-        return getTableMap(tableName).isEmpty();
+    public boolean mapIsEmpty(String mapName) {
+        return getMap(mapName).isEmpty();
     }
 
     @Override
-    public boolean containsKey(String tableName, String key) {
-        return getTableMap(tableName).containsKey(key);
+    public boolean mapContainsKey(String mapName, String key) {
+        return getMap(mapName).containsKey(key);
     }
 
     @Override
-    public boolean containsValue(String tableName, byte[] value) {
-        return getTableMap(tableName).values().stream().anyMatch(v -> Arrays.equals(v.value(), value));
+    public boolean mapContainsValue(String mapName, byte[] value) {
+        return getMap(mapName).values().stream().anyMatch(v -> Arrays.equals(v.value(), value));
     }
 
     @Override
-    public Versioned<byte[]> get(String tableName, String key) {
-        return getTableMap(tableName).get(key);
+    public Versioned<byte[]> mapGet(String mapName, String key) {
+        return getMap(mapName).get(key);
     }
 
-    @Override
-    public Result<Versioned<byte[]>> put(String tableName, String key, byte[] value) {
-        return isLockedForUpdates(tableName, key)
-                ? Result.locked()
-                : Result.ok(getTableMap(tableName).put(key, new Versioned<>(value, ++nextVersion)));
-    }
 
     @Override
-    public Result<UpdateResult<Versioned<byte[]>>> putAndGet(String tableName,
+    public Result<UpdateResult<String, byte[]>> mapUpdate(
+            String mapName,
             String key,
+            Match<byte[]> valueMatch,
+            Match<Long> versionMatch,
             byte[] value) {
-        if (isLockedForUpdates(tableName, key)) {
+        if (isLockedForUpdates(mapName, key)) {
             return Result.locked();
+        }
+        Versioned<byte[]> currentValue = getMap(mapName).get(key);
+        if (!valueMatch.matches(currentValue == null ? null : currentValue.value()) ||
+                !versionMatch.matches(currentValue == null ? null : currentValue.version())) {
+            return Result.ok(new UpdateResult<>(false, mapName, key, currentValue, currentValue));
         } else {
+            if (value == null && currentValue != null) {
+                getMap(mapName).remove(key);
+                return Result.ok(new UpdateResult<>(true, mapName, key, currentValue, null));
+            }
             Versioned<byte[]> newValue = new Versioned<>(value, ++nextVersion);
-            Versioned<byte[]> oldValue = getTableMap(tableName).put(key, newValue);
-            return Result.ok(new UpdateResult<>(true, oldValue, newValue));
+            getMap(mapName).put(key, newValue);
+            return Result.ok(new UpdateResult<>(true, mapName, key, currentValue, newValue));
         }
     }
 
     @Override
-    public Result<UpdateResult<Versioned<byte[]>>> putIfAbsentAndGet(String tableName,
-            String key,
-            byte[] value) {
-        if (isLockedForUpdates(tableName, key)) {
+    public Result<Void> mapClear(String mapName) {
+        if (areTransactionsInProgress(mapName)) {
             return Result.locked();
         }
-        Versioned<byte[]> currentValue = getTableMap(tableName).get(key);
-        if (currentValue != null) {
-            return Result.ok(new UpdateResult<>(false, currentValue, currentValue));
-        } else {
-            Versioned<byte[]> newValue = new Versioned<>(value, ++nextVersion);
-            getTableMap(tableName).put(key, newValue);
-            return Result.ok(new UpdateResult<>(true, null, newValue));
-        }
-    }
-
-    @Override
-    public Result<Versioned<byte[]>> remove(String tableName, String key) {
-        return isLockedForUpdates(tableName, key)
-                ? Result.locked()
-                : Result.ok(getTableMap(tableName).remove(key));
-    }
-
-    @Override
-    public Result<Void> clear(String tableName) {
-        if (areTransactionsInProgress(tableName)) {
-            return Result.locked();
-        }
-        getTableMap(tableName).clear();
+        getMap(mapName).clear();
         return Result.ok(null);
     }
 
     @Override
-    public Set<String> keySet(String tableName) {
-        return ImmutableSet.copyOf(getTableMap(tableName).keySet());
+    public Set<String> mapKeySet(String mapName) {
+        return ImmutableSet.copyOf(getMap(mapName).keySet());
     }
 
     @Override
-    public Collection<Versioned<byte[]>> values(String tableName) {
-        return ImmutableList.copyOf(getTableMap(tableName).values());
+    public Collection<Versioned<byte[]>> mapValues(String mapName) {
+        return ImmutableList.copyOf(getMap(mapName).values());
     }
 
     @Override
-    public Set<Entry<String, Versioned<byte[]>>> entrySet(String tableName) {
-        return ImmutableSet.copyOf(getTableMap(tableName)
+    public Set<Entry<String, Versioned<byte[]>>> mapEntrySet(String mapName) {
+        return ImmutableSet.copyOf(getMap(mapName)
                 .entrySet()
                 .stream()
                 .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toSet()));
-    }
-
-    @Override
-    public Result<Versioned<byte[]>> putIfAbsent(String tableName, String key, byte[] value) {
-        if (isLockedForUpdates(tableName, key)) {
-            return Result.locked();
-        }
-        Versioned<byte[]> existingValue = get(tableName, key);
-        Versioned<byte[]> currentValue = existingValue != null ? existingValue : put(tableName, key, value).value();
-        return Result.ok(currentValue);
-    }
-
-    @Override
-    public Result<Boolean> remove(String tableName, String key, byte[] value) {
-        if (isLockedForUpdates(tableName, key)) {
-            return Result.locked();
-        }
-        Versioned<byte[]> existing = get(tableName, key);
-        if (existing != null && Arrays.equals(existing.value(), value)) {
-            getTableMap(tableName).remove(key);
-            return Result.ok(true);
-        }
-        return Result.ok(false);
-    }
-
-    @Override
-    public Result<Boolean> remove(String tableName, String key, long version) {
-        if (isLockedForUpdates(tableName, key)) {
-            return Result.locked();
-        }
-        Versioned<byte[]> existing = get(tableName, key);
-        if (existing != null && existing.version() == version) {
-            remove(tableName, key);
-            return Result.ok(true);
-        }
-        return Result.ok(false);
-    }
-
-    @Override
-    public Result<Boolean> replace(String tableName, String key, byte[] oldValue, byte[] newValue) {
-        if (isLockedForUpdates(tableName, key)) {
-            return Result.locked();
-        }
-        Versioned<byte[]> existing = get(tableName, key);
-        if (existing != null && Arrays.equals(existing.value(), oldValue)) {
-            put(tableName, key, newValue);
-            return Result.ok(true);
-        }
-        return Result.ok(false);
-    }
-
-    @Override
-    public Result<Boolean> replace(String tableName, String key, long oldVersion, byte[] newValue) {
-        if (isLockedForUpdates(tableName, key)) {
-            return Result.locked();
-        }
-        Versioned<byte[]> existing = get(tableName, key);
-        if (existing != null && existing.version() == oldVersion) {
-            put(tableName, key, newValue);
-            return Result.ok(true);
-        }
-        return Result.ok(false);
-    }
-
-    @Override
-    public Result<UpdateResult<Versioned<byte[]>>> replaceAndGet(
-            String tableName, String key, long oldVersion, byte[] newValue) {
-        if (isLockedForUpdates(tableName, key)) {
-            return Result.locked();
-        }
-        boolean updated = false;
-        Versioned<byte[]> previous = get(tableName, key);
-        Versioned<byte[]> current = previous;
-        if (previous != null && previous.version() == oldVersion) {
-            current = new Versioned<>(newValue, ++nextVersion);
-            getTableMap(tableName).put(key, current);
-            updated = true;
-        }
-        return Result.ok(new UpdateResult<>(updated, previous, current));
     }
 
     @Override
@@ -343,7 +246,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     @Override
     public boolean prepare(Transaction transaction) {
         if (transaction.updates().stream().anyMatch(update ->
-                    isLockedByAnotherTransaction(update.tableName(),
+                    isLockedByAnotherTransaction(update.mapName(),
                                                  update.key(),
                                                  transaction.id()))) {
             return false;
@@ -368,12 +271,12 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         return true;
     }
 
-    private Map<String, Versioned<byte[]>> getTableMap(String tableName) {
-        return tables.computeIfAbsent(tableName, name -> Maps.newConcurrentMap());
+    private Map<String, Versioned<byte[]>> getMap(String mapName) {
+        return maps.computeIfAbsent(mapName, name -> Maps.newConcurrentMap());
     }
 
-    private Map<String, Update> getLockMap(String tableName) {
-        return locks.computeIfAbsent(tableName, name -> Maps.newConcurrentMap());
+    private Map<String, Update> getLockMap(String mapName) {
+        return locks.computeIfAbsent(mapName, name -> Maps.newConcurrentMap());
     }
 
     private AtomicLong getCounter(String counterName) {
@@ -389,7 +292,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     private boolean isUpdatePossible(DatabaseUpdate update) {
-        Versioned<byte[]> existingEntry = get(update.tableName(), update.key());
+        Versioned<byte[]> existingEntry = mapGet(update.mapName(), update.key());
         switch (update.type()) {
         case PUT:
         case REMOVE:
@@ -410,7 +313,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     private void doProvisionalUpdate(DatabaseUpdate update, long transactionId) {
-        Map<String, Update> lockMap = getLockMap(update.tableName());
+        Map<String, Update> lockMap = getLockMap(update.mapName());
         switch (update.type()) {
         case PUT:
         case PUT_IF_ABSENT:
@@ -429,12 +332,12 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     private void commitProvisionalUpdate(DatabaseUpdate update, long transactionId) {
-        String tableName = update.tableName();
+        String mapName = update.mapName();
         String key = update.key();
         Type type = update.type();
-        Update provisionalUpdate = getLockMap(tableName).get(key);
+        Update provisionalUpdate = getLockMap(mapName).get(key);
         if (Objects.equal(transactionId, provisionalUpdate.transactionId()))  {
-            getLockMap(tableName).remove(key);
+            getLockMap(mapName).remove(key);
         } else {
             return;
         }
@@ -444,12 +347,12 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         case PUT_IF_ABSENT:
         case PUT_IF_VERSION_MATCH:
         case PUT_IF_VALUE_MATCH:
-            put(tableName, key, provisionalUpdate.value());
+            mapUpdate(mapName, key, Match.any(), Match.any(), provisionalUpdate.value());
             break;
         case REMOVE:
         case REMOVE_IF_VERSION_MATCH:
         case REMOVE_IF_VALUE_MATCH:
-            remove(tableName, key);
+            mapUpdate(mapName, key, Match.any(), Match.any(), null);
             break;
         default:
             break;
@@ -457,28 +360,28 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     private void undoProvisionalUpdate(DatabaseUpdate update, long transactionId) {
-        String tableName = update.tableName();
+        String mapName = update.mapName();
         String key = update.key();
-        Update provisionalUpdate = getLockMap(tableName).get(key);
+        Update provisionalUpdate = getLockMap(mapName).get(key);
         if (provisionalUpdate == null) {
             return;
         }
         if (Objects.equal(transactionId, provisionalUpdate.transactionId()))  {
-            getLockMap(tableName).remove(key);
+            getLockMap(mapName).remove(key);
         }
     }
 
-    private boolean isLockedByAnotherTransaction(String tableName, String key, long transactionId) {
-        Update update = getLockMap(tableName).get(key);
+    private boolean isLockedByAnotherTransaction(String mapName, String key, long transactionId) {
+        Update update = getLockMap(mapName).get(key);
         return update != null && !Objects.equal(transactionId, update.transactionId());
     }
 
-    private boolean isLockedForUpdates(String tableName, String key) {
-        return getLockMap(tableName).containsKey(key);
+    private boolean isLockedForUpdates(String mapName, String key) {
+        return getLockMap(mapName).containsKey(key);
     }
 
-    private boolean areTransactionsInProgress(String tableName) {
-        return !getLockMap(tableName).isEmpty();
+    private boolean areTransactionsInProgress(String mapName) {
+        return !getLockMap(mapName).isEmpty();
     }
 
     private class Update {

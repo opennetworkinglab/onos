@@ -164,7 +164,7 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
             Versioned<V> original = readCache.get(key);
             if (original != null) {
                 updates.add(DatabaseUpdate.newBuilder()
-                        .withTableName(name)
+                        .withMapName(name)
                         .withType(DatabaseUpdate.Type.REMOVE_IF_VERSION_MATCH)
                         .withKey(keyCache.getUnchecked(key))
                         .withCurrentVersion(original.version())
@@ -175,14 +175,14 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
             Versioned<V> original = readCache.get(key);
             if (original == null) {
                 updates.add(DatabaseUpdate.newBuilder()
-                        .withTableName(name)
+                        .withMapName(name)
                         .withType(DatabaseUpdate.Type.PUT_IF_ABSENT)
                         .withKey(keyCache.getUnchecked(key))
                         .withValue(serializer.encode(value))
                         .build());
             } else {
                 updates.add(DatabaseUpdate.newBuilder()
-                        .withTableName(name)
+                        .withMapName(name)
                         .withType(DatabaseUpdate.Type.PUT_IF_VERSION_MATCH)
                         .withKey(keyCache.getUnchecked(key))
                         .withCurrentVersion(original.version())

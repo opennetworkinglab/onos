@@ -18,7 +18,6 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -115,11 +114,6 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
-    public Optional<Versioned<V>> putIfAbsentAndGet(K key, V value) {
-        return complete(asyncMap.putIfAbsentAndGet(key, value));
-    }
-
-    @Override
     public Versioned<V> remove(K key) {
         return complete(asyncMap.remove(key));
     }
@@ -167,11 +161,6 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     @Override
     public boolean replace(K key, long oldVersion, V newValue) {
         return complete(asyncMap.replace(key, oldVersion, newValue));
-    }
-
-    @Override
-    public Optional<Versioned<V>> replaceAndGet(K key, long oldVersion, V newValue) {
-        return complete(asyncMap.replaceAndGet(key, oldVersion, newValue));
     }
 
     private static <T> T complete(CompletableFuture<T> future) {
