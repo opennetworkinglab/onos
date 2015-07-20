@@ -194,14 +194,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void filter(DeviceId deviceId, FilteringObjective filteringObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         executorService.submit(new ObjectiveInstaller(deviceId, filteringObjective));
     }
 
     @Override
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         if (queueObjective(deviceId, forwardingObjective)) {
             return;
         }
@@ -211,14 +209,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         executorService.submit(new ObjectiveInstaller(deviceId, nextObjective));
     }
 
     @Override
     public int allocateNextId() {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         return flowObjectiveStore.allocateNextId();
     }
 
@@ -238,8 +234,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     // Retrieves the device pipeline behaviour from the cache.
     private Pipeliner getDevicePipeliner(DeviceId deviceId) {
-        Pipeliner pipeliner = pipeliners.get(deviceId);
-        return pipeliner;
+        return pipeliners.get(deviceId);
     }
 
     private void setupPipelineHandler(DeviceId deviceId) {
@@ -254,7 +249,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             try {
                 // Otherwise create it and if it has pipeline behaviour, cache it
                 handler = driverService.createHandler(deviceId);
-                bTime = now();
                 if (!handler.driver().hasBehaviour(Pipeliner.class)) {
                     log.warn("Pipeline behaviour not supported for device {}",
                              deviceId);
@@ -266,16 +260,15 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             driverHandlers.put(deviceId, handler);
-            cTime = now();
+            hTime = now();
         }
 
         // Always (re)initialize the pipeline behaviour
         log.info("Driver {} bound to device {} ... initializing driver",
                  handler.driver().name(), deviceId);
         Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
-        dTime = now();
+        hbTime = now();
         pipeliner.init(deviceId, context);
-        eTime = now();
         pipeliners.putIfAbsent(deviceId, pipeliner);
     }
 
@@ -288,7 +281,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     log.debug("mastership changed on device {}", event.subject());
                     start = now();
                     if (deviceService.isAvailable(event.subject())) {
-                        aTime = now();
                         setupPipelineHandler(event.subject());
                     }
                     stopWatch();
@@ -312,7 +304,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                               event.subject().id());
                     start = now();
                     if (deviceService.isAvailable(event.subject().id())) {
-                        aTime = now();
                         log.debug("Device is now available {}", event.subject().id());
                         setupPipelineHandler(event.subject().id());
                     }
@@ -339,7 +330,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     // Temporary mechanism to monitor pipeliner setup time-cost; there are
     // intermittent time where this takes in excess of 2 seconds. Why?
     private long start = 0, totals = 0, count = 0;
-    private long aTime, bTime, cTime, dTime, eTime;
+    private long hTime, hbTime;
     private static final long LIMIT = 500;
 
     private long now() {
@@ -351,9 +342,8 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         totals += duration;
         count += 1;
         if (duration > LIMIT) {
-            log.info("Pipeline setup took {} ms; avg {} ms; a={}, b={}, c={}, d={}, e={}",
-                     duration, totals / count, diff(aTime), diff(bTime),
-                     diff(cTime), diff(dTime), diff(eTime));
+            log.info("Pipeline setup took {} ms; avg {} ms; hTime={}, hbTime={}",
+                     duration, totals / count, diff(hTime), diff(hbTime));
         }
     }
 
