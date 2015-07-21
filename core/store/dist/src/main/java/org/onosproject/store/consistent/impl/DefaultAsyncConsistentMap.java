@@ -277,7 +277,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(value, ERROR_NULL_VALUE);
-        return computeIfAbsent(key, k -> value);
+        return updateAndGet(key, Match.ifNull(), Match.any(), value).thenApply(v -> v.oldValue());
     }
 
     @Override
