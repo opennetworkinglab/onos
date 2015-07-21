@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
@@ -112,7 +111,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public int size(String mapName) {
+    public int mapSize(String mapName) {
       return getMap(mapName).size();
     }
 
@@ -186,7 +185,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         return ImmutableSet.copyOf(getMap(mapName)
                 .entrySet()
                 .stream()
-                .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
+                .map(entry -> Maps.immutableEntry(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toSet()));
     }
 

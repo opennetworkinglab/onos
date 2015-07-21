@@ -18,8 +18,6 @@ package org.onosproject.store.consistent.impl;
 
 import java.nio.ByteBuffer;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -72,8 +70,6 @@ public class DatabaseSerializer extends SerializerConfig {
             .register(Versioned.class)
             .register(DatabaseUpdate.class)
             .register(DatabaseUpdate.Type.class)
-            .register(Pair.class)
-            .register(ImmutablePair.class)
             .register(Result.class)
             .register(UpdateResult.class)
             .register(Result.Status.class)

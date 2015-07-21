@@ -45,7 +45,7 @@ public interface DatabaseProxy<K, V> {
     CompletableFuture<Map<String, Long>> counters();
 
     /**
-     *
+     * Returns the number of entries in map.
      * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */

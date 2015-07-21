@@ -51,7 +51,7 @@ public interface DatabaseState<K, V> {
   Map<String, Long> counters();
 
   @Query
-  int size(String mapName);
+  int mapSize(String mapName);
 
   @Query
   boolean mapIsEmpty(String mapName);

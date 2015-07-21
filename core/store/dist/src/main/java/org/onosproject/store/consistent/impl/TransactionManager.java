@@ -22,8 +22,6 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncConsistentMap;
@@ -47,8 +45,6 @@ public class TransactionManager {
             .register(DatabaseUpdate.Type.class)
             .register(DefaultTransaction.class)
             .register(Transaction.State.class)
-            .register(Pair.class)
-            .register(ImmutablePair.class)
             .build();
 
     private final Serializer serializer = Serializer.using(Arrays.asList(KRYO_NAMESPACE));

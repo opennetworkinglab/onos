@@ -18,6 +18,7 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
@@ -222,6 +223,7 @@ public final class KryoNamespaces {
                       LinkedList.class,
                       HashSet.class
                       )
+            .register(Maps.immutableEntry("a", "b").getClass())
             .register(new ArraysAsListSerializer(), Arrays.asList().getClass())
             .register(Collections.singletonList(1).getClass())
             .register(Duration.class)
