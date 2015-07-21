@@ -63,6 +63,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.AtomicCounterBuilder;
+import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.DistributedQueueBuilder;
@@ -380,6 +381,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         return new DefaultAtomicCounterBuilder(inMemoryDatabase, partitionedDatabase);
+    }
+
+    @Override
+    public <V> AtomicValueBuilder<V> atomicValueBuilder() {
+        return new DefaultAtomicValueBuilder<>(this);
     }
 
     @Override

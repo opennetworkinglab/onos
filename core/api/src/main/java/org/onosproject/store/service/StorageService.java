@@ -71,6 +71,14 @@ public interface StorageService {
     AtomicCounterBuilder atomicCounterBuilder();
 
     /**
+     * Creates a new AtomicValueBuilder.
+     *
+     * @param <V> atomic value type
+     * @return atomic value builder
+     */
+    <V> AtomicValueBuilder<V> atomicValueBuilder();
+
+    /**
      * Creates a new transaction context builder.
      *
      * @return a builder for a transaction context.
