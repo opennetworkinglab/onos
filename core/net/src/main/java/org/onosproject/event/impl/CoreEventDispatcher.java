@@ -156,7 +156,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
             long delta = System.currentTimeMillis() - lastStart;
             if (lastStart > 0 && delta > maxProcessMillis) {
                 lastStart = 0;
-                log.error("Event sink {} exceeded execution time limit: {} ms",
+                log.warn("Event sink {} exceeded execution time limit: {} ms; spawning new dispatch loop",
                           lastSink.getClass().getName(), delta);
 
                 // Notify the sink that it has exceeded its time limit.

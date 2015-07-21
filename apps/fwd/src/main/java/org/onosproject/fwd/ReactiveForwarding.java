@@ -192,7 +192,7 @@ public class ReactiveForwarding {
         readComponentConfiguration(context);
         requestIntercepts();
 
-        log.info("Started with Application ID {}", appId.id());
+        log.info("Started", appId.id());
     }
 
     @Deactivate
@@ -213,7 +213,7 @@ public class ReactiveForwarding {
     }
 
     /**
-     * Request packet in via PacketService.
+     * Request packet in via packet service.
      */
     private void requestIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -231,7 +231,7 @@ public class ReactiveForwarding {
     }
 
     /**
-     * Cancel request for packet in via PacketService.
+     * Cancel request for packet in via packet service.
      */
     private void withdrawIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -353,7 +353,7 @@ public class ReactiveForwarding {
         if (ignoreIpv4McastPackets != ignoreIpv4McastPacketsEnabled) {
             ignoreIpv4McastPackets = ignoreIpv4McastPacketsEnabled;
             log.info("Configured. Ignore IPv4 multicast packets is {}",
-                    ignoreIpv4McastPackets ? "enabled" : "disabled");
+                     ignoreIpv4McastPackets ? "enabled" : "disabled");
         }
     }
 
@@ -691,12 +691,12 @@ public class ReactiveForwarding {
     }
 
     private void fixBlackhole(ConnectPoint egress) {
-        Set<FlowEntry> rules =  getFlowRulesFrom(egress);
+        Set<FlowEntry> rules = getFlowRulesFrom(egress);
         Set<SrcDstPair> pairs = findSrcDstPairs(rules);
 
         Map<DeviceId, Set<Path>> srcPaths = new HashMap<>();
 
-        for (SrcDstPair sd: pairs) {
+        for (SrcDstPair sd : pairs) {
             // get the edge deviceID for the src host
             DeviceId srcId = hostService.getHost(HostId.hostId(sd.src)).location().deviceId();
             DeviceId dstId = hostService.getHost(HostId.hostId(sd.dst)).location().deviceId();
@@ -715,20 +715,20 @@ public class ReactiveForwarding {
 
     // Backtracks from link down event to remove flows that lead to blackhole
     private void backTrackBadNodes(Set<Path> shortestPaths, DeviceId dstId, SrcDstPair sd) {
-        for (Path p: shortestPaths) {
+        for (Path p : shortestPaths) {
             List<Link> pathLinks = p.links();
             for (int i = 0; i < pathLinks.size(); i = i + 1) {
                 Link curLink = pathLinks.get(i);
                 DeviceId curDevice = curLink.src().deviceId();
-                    log.trace("Currently inspecting device: " + curDevice);
 
                 // skipping the first link because this link's src has already been pruned beforehand
                 if (i != 0) {
                     cleanFlowRules(sd, curDevice);
                 }
 
-                Set<Path> pathsFromCurDevice = topologyService.getPaths(topologyService.currentTopology(),
-                        curDevice, dstId);
+                Set<Path> pathsFromCurDevice =
+                        topologyService.getPaths(topologyService.currentTopology(),
+                                                 curDevice, dstId);
                 if (pickForwardPath(pathsFromCurDevice, curLink.src().port()) != null) {
                     break;
                 } else {
@@ -748,7 +748,7 @@ public class ReactiveForwarding {
             boolean matchesSrc = false, matchesDst = false;
             for (Instruction i : r.treatment().allInstructions()) {
                 if (i.type() == Instruction.Type.OUTPUT) {
-                    //if the flow has matching src and dst
+                    // if the flow has matching src and dst
                     for (Criterion cr : r.selector().criteria()) {
                         if (cr.type() == Criterion.Type.ETH_DST) {
                             if (((EthCriterion) cr).mac().equals(pair.dst)) {
@@ -773,9 +773,9 @@ public class ReactiveForwarding {
     // Returns a set of src/dst MAC pairs extracted from the specified set of flow entries
     private Set<SrcDstPair> findSrcDstPairs(Set<FlowEntry> rules) {
         ImmutableSet.Builder<SrcDstPair> builder = ImmutableSet.builder();
-        for (FlowEntry r: rules) {
+        for (FlowEntry r : rules) {
             MacAddress src = null, dst = null;
-            for (Criterion cr: r.selector().criteria()) {
+            for (Criterion cr : r.selector().criteria()) {
                 if (cr.type() == Criterion.Type.ETH_DST) {
                     dst = ((EthCriterion) cr).mac();
                 } else if (cr.type() == Criterion.Type.ETH_SRC) {
