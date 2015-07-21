@@ -87,7 +87,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = mapper().createObjectNode();
         produceSubjectJson(service, root,
-                           service.getSubjectFactory(subjectKey).createSubject(subject));
+                service.getSubjectFactory(subjectKey).createSubject(subject));
         return ok(root).build();
     }
 
@@ -140,7 +140,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         root.fieldNames()
                 .forEachRemaining(sk -> consumeJson(service, (ObjectNode) root.path(sk),
-                                                    service.getSubjectFactory(sk)));
+                        service.getSubjectFactory(sk)));
         return Response.ok().build();
     }
 
@@ -183,8 +183,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         consumeSubjectJson(service, root,
-                           service.getSubjectFactory(subjectKey).createSubject(subject),
-                           subjectKey);
+                service.getSubjectFactory(subjectKey).createSubject(subject),
+                subjectKey);
         return Response.ok().build();
     }
 
@@ -210,16 +210,16 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         service.applyConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                            service.getConfigClass(subjectKey, configKey), root);
+                service.getConfigClass(subjectKey, configKey), root);
         return Response.ok().build();
     }
 
     private void consumeJson(NetworkConfigService service, ObjectNode classNode,
                              SubjectFactory subjectFactory) {
         classNode.fieldNames().forEachRemaining(s ->
-            consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                               subjectFactory.createSubject(s),
-                               subjectFactory.subjectKey()));
+                consumeSubjectJson(service, (ObjectNode) classNode.path(s),
+                        subjectFactory.createSubject(s),
+                        subjectFactory.subjectKey()));
     }
 
     private void consumeSubjectJson(NetworkConfigService service,
@@ -227,7 +227,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                                     String subjectKey) {
         subjectNode.fieldNames().forEachRemaining(c ->
             service.applyConfig(subject, service.getConfigClass(subjectKey, c),
-                                (ObjectNode) subjectNode.path(c)));
+                    (ObjectNode) subjectNode.path(c)));
     }
 
 
@@ -272,4 +272,46 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         return Response.ok().build();
     }
 
+
+    /**
+     * Clears all network configurations.
+     *
+     * @return empty response
+     */
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("unchecked")
+    public Response upload() {
+        NetworkConfigService service = get(NetworkConfigService.class);
+        service.getSubjectClasses().forEach(subjectClass -> {
+            service.getSubjects(subjectClass).forEach(subject -> {
+                service.getConfigs(subject).forEach(config -> {
+                    service.removeConfig(subject, config.getClass());
+                });
+            });
+        });
+        return Response.ok().build();
+    }
+
+
+    // TODO: this one below doesn't work correctly
+    /**
+     * Clears network configuration for the specified subject class.
+     *
+     * @param subjectKey subject class key
+     * @return empty response
+     */
+    @DELETE
+    @Path("{subjectKey}/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("unchecked")
+    public Response upload(@PathParam("subjectKey") String subjectKey) {
+        NetworkConfigService service = get(NetworkConfigService.class);
+        service.getSubjects(service.getSubjectFactory(subjectKey).getClass()).forEach(subject -> {
+            service.getConfigs(subject).forEach(config -> {
+                service.removeConfig(subject, config.getClass());
+            });
+        });
+        return Response.ok().build();
+    }
 }

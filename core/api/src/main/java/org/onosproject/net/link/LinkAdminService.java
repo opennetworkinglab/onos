@@ -39,4 +39,12 @@ public interface LinkAdminService extends LinkService {
      */
     void removeLinks(DeviceId deviceId);
 
+    /**
+     * Removes all links between between the specified src and
+     * dst connection points.
+     *
+     * @param src link source
+     * @param dst link destination
+     */
+    void removeLink(ConnectPoint src, ConnectPoint dst);
 }

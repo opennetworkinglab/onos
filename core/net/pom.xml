@@ -59,9 +59,22 @@
         </dependency>
 
         <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+            <scope>test</scope>
+            <classifier>tests</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
         </dependency>
 
         <dependency>

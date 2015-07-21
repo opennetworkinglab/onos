@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -86,6 +87,7 @@ public class LinkManagerTest {
     protected DeviceManager devmgr = new TestDeviceManager();
 
 
+
     @Before
     public void setUp() {
         mgr = new LinkManager();
@@ -95,6 +97,7 @@ public class LinkManagerTest {
         mgr.store = new SimpleLinkStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         mgr.deviceService = devmgr;
+        mgr.networkConfigService = new TestNetworkConfigService();
         mgr.activate();
 
         DEVICEIDMAP.put(DID1, DEV1);
@@ -302,5 +305,6 @@ public class LinkManagerTest {
         }
 
     }
-
+    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
+    }
 }

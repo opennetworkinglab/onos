@@ -27,14 +27,22 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.Permission;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.incubator.net.config.NetworkConfigEvent;
+import org.onosproject.incubator.net.config.NetworkConfigListener;
+import org.onosproject.incubator.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.State;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkEvent;
@@ -49,9 +57,12 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static org.onosproject.net.LinkKey.linkKey;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
 
@@ -78,6 +89,8 @@ public class LinkManager
 
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
+    private final NetworkConfigListener networkConfigListener = new InternalNetworkConfigListener();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkStore store;
 
@@ -87,11 +100,15 @@ public class LinkManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
+
     @Activate
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(LinkEvent.class, listenerRegistry);
         deviceService.addListener(deviceListener);
+        networkConfigService.addListener(networkConfigListener);
         log.info("Started");
     }
 
@@ -100,6 +117,7 @@ public class LinkManager
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(LinkEvent.class);
         deviceService.removeListener(deviceListener);
+        networkConfigService.removeListener(networkConfigListener);
         log.info("Stopped");
     }
 
@@ -206,17 +224,19 @@ public class LinkManager
         removeLinks(getDeviceLinks(deviceId), false);
     }
 
+    public void removeLink(ConnectPoint src, ConnectPoint dst) {
+        post(store.removeLink(src, dst));
+    }
+
     @Override
     public void addListener(LinkListener listener) {
         checkPermission(Permission.LINK_EVENT);
-
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(LinkListener listener) {
         checkPermission(Permission.LINK_EVENT);
-
         listenerRegistry.removeListener(listener);
     }
 
@@ -229,7 +249,7 @@ public class LinkManager
                 removeLinks(event.subject().id());
             } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
                 removeLinks(new ConnectPoint(event.subject().id(),
-                                             event.port().number()));
+                        event.port().number()));
             }
         }
     }
@@ -252,13 +272,60 @@ public class LinkManager
         public void linkDetected(LinkDescription linkDescription) {
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
-
+            linkDescription = validateLink(linkDescription);
             LinkEvent event = store.createOrUpdateLink(provider().id(),
-                                                       linkDescription);
+                    linkDescription);
             if (event != null) {
                 log.info("Link {} detected", linkDescription);
                 post(event);
             }
+        }
+
+        // returns a LinkDescription made from the union of the BasicLinkConfig
+        // annotations if it exists
+        private LinkDescription validateLink(LinkDescription linkDescription) {
+            // TODO Investigate whether this can be made more efficient
+            BasicLinkConfig cfg = networkConfigService.getConfig(linkKey(linkDescription.src(),
+                                                                         linkDescription.dst()),
+                                                                 BasicLinkConfig.class);
+            BasicLinkConfig cfgTwo = networkConfigService.getConfig(linkKey(linkDescription.dst(),
+                                                                            linkDescription.src()),
+                                                                    BasicLinkConfig.class);
+
+            checkState(cfg == null || cfg.isAllowed(), "Link " + linkDescription.toString() + " is not allowed");
+            checkState(cfgTwo == null || cfgTwo.isAllowed(), "Link " + linkDescription.toString() + " is not allowed");
+            if (cfg != null) {
+                SparseAnnotations finalSparse = processAnnotations(cfg, linkDescription);
+                // check whether config has a specified type
+                if (cfg.type() != Link.Type.DIRECT) {
+                    linkDescription = new DefaultLinkDescription(linkDescription.src(),
+                                                                 linkDescription.dst(),
+                                                                 cfg.type(), finalSparse);
+                } else {
+                    linkDescription = new DefaultLinkDescription(linkDescription.src(),
+                                                                 linkDescription.dst(),
+                                                                 linkDescription.type(), finalSparse);
+                }
+            }
+            return linkDescription;
+        }
+
+        // supplements or replaces linkDescriptions's annotations with BasicLinkConfig's
+        // annotations
+        private SparseAnnotations processAnnotations(BasicLinkConfig cfg, LinkDescription linkDescription) {
+            SparseAnnotations originalAnnotations = linkDescription.annotations();
+            DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
+            if (cfg.type() != Link.Type.DIRECT) {
+                newBuilder.set(cfg.TYPE, cfg.type().toString());
+            }
+            if (cfg.latency() != Duration.ofNanos(-1)) {
+                newBuilder.set(cfg.LATENCY, cfg.latency().toString());
+            }
+            if (cfg.bandwidth() != -1) {
+                newBuilder.set(cfg.BANDWIDTH, String.valueOf(cfg.bandwidth()));
+            }
+            DefaultAnnotations newAnnotations = newBuilder.build();
+            return DefaultAnnotations.union(originalAnnotations, newAnnotations);
         }
 
         @Override
@@ -297,7 +364,7 @@ public class LinkManager
     }
 
     // Removes all links in the specified set and emits appropriate events.
-    private void  removeLinks(Set<Link> links, boolean isSoftRemove) {
+    private void removeLinks(Set<Link> links, boolean isSoftRemove) {
         for (Link link : links) {
             LinkEvent event = isSoftRemove ?
                     store.removeOrDownLink(link.src(), link.dst()) :
@@ -321,6 +388,26 @@ public class LinkManager
         @Override
         public void notify(LinkEvent event) {
             post(event);
+        }
+    }
+
+    // listens for NetworkConfigEvents of type BasicLinkConfig and removes
+    // links that the config does not allow
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(BasicLinkConfig.class)) {
+                log.info("Detected Link network config event {}", event.type());
+                LinkKey lk = (LinkKey) event.subject();
+                BasicLinkConfig cfg = networkConfigService.getConfig(lk, BasicLinkConfig.class);
+                if (cfg != null && !cfg.isAllowed()) {
+                    log.info("Kicking out links between {} and {}", lk.src(), lk.dst());
+                    removeLink(lk.src(), lk.dst());
+                    removeLink(lk.dst(), lk.src());
+                }
+            }
         }
     }
 }

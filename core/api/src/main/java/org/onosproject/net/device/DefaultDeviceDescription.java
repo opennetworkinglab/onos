@@ -76,6 +76,18 @@ public class DefaultDeviceDescription extends AbstractDescription
              base.chassisId(), annotations);
     }
 
+    /**
+     * Creates a device description using the supplied information.
+     * @param base DeviceDescription to basic information (except for type)
+     * @param type device type
+     * @param annotations Annotations to use.
+     */
+    public DefaultDeviceDescription(DeviceDescription base, Type type, SparseAnnotations... annotations) {
+        this(base.deviceURI(), type, base.manufacturer(),
+                base.hwVersion(), base.swVersion(), base.serialNumber(),
+                base.chassisId(), annotations);
+    }
+
     @Override
     public URI deviceURI() {
         return uri;

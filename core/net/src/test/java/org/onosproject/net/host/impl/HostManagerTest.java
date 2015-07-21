@@ -37,6 +37,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.Event;
 import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -123,6 +124,7 @@ public class HostManagerTest {
         mgr.store = new SimpleHostStore();
         mgr.eventDispatcher = new TestEventDispatcher();
         registry = mgr;
+        mgr.networkConfigService = new TestNetworkConfigService();
         mgr.activate();
 
         mgr.addListener(listener);
@@ -519,5 +521,8 @@ public class HostManagerTest {
 
         assertTrue(storedAddresses.size() == 2);
         assertTrue(storedAddresses.equals(Sets.newHashSet(add1, add2)));
+    }
+
+    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
     }
 }

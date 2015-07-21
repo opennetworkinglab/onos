@@ -229,7 +229,12 @@ public class LinkDiscovery implements TimerTask {
             } else {
                 ld = new DefaultLinkDescription(src, dst, Type.DIRECT);
             }
-            linkProvider.linkDetected(ld);
+
+            try {
+                linkProvider.linkDetected(ld);
+            } catch (IllegalStateException e) {
+                return true;
+            }
             return true;
         }
         return false;

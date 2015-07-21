@@ -32,6 +32,7 @@ import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Event;
 import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
@@ -115,7 +116,9 @@ public class DeviceManagerTest {
         mgr.termService = mastershipManager;
         mgr.clusterService = new TestClusterService();
         mgr.deviceClockProviderService = new TestClockProviderService();
+        mgr.networkConfigService = new TestNetworkConfigService();
         mgr.activate();
+
 
         service.addListener(listener);
 
@@ -348,5 +351,8 @@ public class DeviceManagerTest {
         public boolean isTimestampAvailable(DeviceId deviceId) {
             return registerdBefore.contains(deviceId);
         }
+    }
+
+    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
     }
 }

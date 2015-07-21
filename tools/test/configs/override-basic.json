@@ -8,7 +8,7 @@
     },
     "of:0000000000000008": {
       "basic": {
-        "name": "NameChange",
+        "name": "NameChangeAgain",
         "allowed": true,
         "owner": "Mario"
       }
@@ -18,12 +18,6 @@
         "allowed": true,
         "owner": "Peach",
         "latitude": "25"
-      }
-    },
-    "of:0000000000000003": {
-      "basic": {
-        "allowed": true,
-        "owner": "Wario"
       }
     }
   },
@@ -37,17 +31,7 @@
   "hosts": {
     "00:00:00:00:00:03/-1": {
       "basic": {
-        "allowed": false
-      }
-    },
-    "00:00:00:00:00:02/-1": {
-      "basic": {
-        "allowed": false
-      }
-    },
-    "00:00:00:00:00:01/-1": {
-      "basic": {
-        "allowed": false
+        "allowed": true
       }
     }
   }

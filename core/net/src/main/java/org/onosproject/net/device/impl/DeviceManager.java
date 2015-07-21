@@ -16,6 +16,7 @@
 package org.onosproject.net.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.MastershipRole.MASTER;
@@ -45,17 +46,23 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.Permission;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.incubator.net.config.NetworkConfigEvent;
+import org.onosproject.incubator.net.config.NetworkConfigListener;
+import org.onosproject.incubator.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
@@ -104,6 +111,8 @@ public class DeviceManager
 
     private ScheduledExecutorService backgroundService;
 
+    private final NetworkConfigListener networkConfigListener = new InternalNetworkConfigListener();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceStore store;
 
@@ -122,6 +131,11 @@ public class DeviceManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceClockProviderService deviceClockProviderService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
+
+
+
     @Activate
     public void activate() {
         backgroundService = newSingleThreadScheduledExecutor(groupedThreads("onos/device", "manager-background"));
@@ -130,6 +144,7 @@ public class DeviceManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
         mastershipService.addListener(mastershipListener);
+        networkConfigService.addListener(networkConfigListener);
 
         backgroundService.scheduleWithFixedDelay(new Runnable() {
 
@@ -148,7 +163,7 @@ public class DeviceManager
     @Deactivate
     public void deactivate() {
         backgroundService.shutdown();
-
+        networkConfigService.removeListener(networkConfigListener);
         store.unsetDelegate(delegate);
         mastershipService.removeListener(mastershipListener);
         eventDispatcher.removeSink(DeviceEvent.class);
@@ -286,7 +301,8 @@ public class DeviceManager
                 continue;
             }
 
-            log.info("{} is reachable but did not have a valid role, reasserting", deviceId);
+            log.info("{} is reachable but did not have a valid role, reasserting",
+                     deviceId);
 
             // isReachable but was not MASTER or STANDBY, get a role and apply
             // Note: NONE triggers request to MastershipService
@@ -319,7 +335,8 @@ public class DeviceManager
 
             DeviceProvider provider = provider();
             if (provider == null) {
-                log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
+                log.warn("Provider for {} was not found. Cannot apply role {}",
+                         deviceId, newRole);
                 return false;
             }
             provider.roleChanged(deviceId, newRole);
@@ -335,8 +352,8 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
+            deviceDescription = validateDevice(deviceDescription, deviceId);
 
-            log.info("Device {} connected", deviceId);
             // check my Role
             CompletableFuture<MastershipRole> role = mastershipService.requestRoleFor(deviceId);
             try {
@@ -362,14 +379,31 @@ public class DeviceManager
                 deviceClockProviderService.setMastershipTerm(deviceId, term);
                 applyRole(deviceId, MastershipRole.MASTER);
             }
-
-            DeviceEvent event = store.createOrUpdateDevice(provider().id(),
-                                                           deviceId, deviceDescription);
-
+            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
+                                                           deviceDescription);
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
             }
+        }
+
+        // returns a DeviceDescription made from the union of the BasicDeviceConfig
+        // annotations if it exists
+        private DeviceDescription validateDevice(DeviceDescription deviceDescription, DeviceId deviceId) {
+            BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
+            checkState(cfg == null || cfg.isAllowed(), "Device " + deviceId + " is not allowed");
+            log.info("Device {} connected", deviceId);
+            if (cfg != null) {
+                SparseAnnotations finalSparse = processAnnotations(cfg, deviceDescription, deviceId);
+                if (cfg.type() != Type.SWITCH) {
+                    deviceDescription = new DefaultDeviceDescription(deviceDescription,
+                                                                     cfg.type(), finalSparse);
+                } else {
+                    deviceDescription = new DefaultDeviceDescription(deviceDescription,
+                            deviceDescription.type(), finalSparse);
+                }
+            }
+            return deviceDescription;
         }
 
         @Override
@@ -433,7 +467,7 @@ public class DeviceManager
                                 List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(portDescriptions,
-                         "Port descriptions list cannot be null");
+                    "Port descriptions list cannot be null");
             checkValidity();
             if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
                 // Never been a master for this device
@@ -459,7 +493,8 @@ public class DeviceManager
             if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
                 // Never been a master for this device
                 // any update will be ignored.
-                log.trace("Ignoring {} port update on standby node. {}", deviceId, portDescription);
+                log.trace("Ignoring {} port update on standby node. {}", deviceId,
+                          portDescription);
                 return;
             }
 
@@ -486,7 +521,7 @@ public class DeviceManager
             // FIXME: implement response to this notification
 
             log.debug("got reply to a role request for {}: asked for {}, and got {}",
-                     deviceId, requested, response);
+                    deviceId, requested, response);
 
             if (requested == null && response == null) {
                 // something was off with DeviceProvider, maybe check channel too?
@@ -524,6 +559,37 @@ public class DeviceManager
             DeviceEvent event = store.updatePortStatistics(this.provider().id(),
                                                            deviceId, portStatistics);
             post(event);
+        }
+
+        // supplements or replaces deviceDescription annotations with
+        // BasicDeviceConfig annotations
+        private SparseAnnotations processAnnotations(BasicDeviceConfig cfg, DeviceDescription deviceDescription,
+                                                     DeviceId deviceId) {
+            SparseAnnotations originalAnnotations = deviceDescription.annotations();
+            DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
+            if (cfg.driver() != deviceId.toString()) {
+                newBuilder.set(cfg.DRIVER, cfg.driver());
+            }
+            if (cfg.type() != Type.SWITCH) {
+                newBuilder.set(cfg.TYPE, cfg.type().toString());
+            }
+            if (cfg.name() != null) {
+                newBuilder.set(cfg.NAME, cfg.name());
+            }
+            if (cfg.latitude() != -1) {
+                newBuilder.set(cfg.LATITUDE, Double.toString(cfg.latitude()));
+            }
+            if (cfg.longitude() != -1) {
+                newBuilder.set(cfg.LONGITUDE, Double.toString(cfg.longitude()));
+            }
+            if (cfg.rackAddress() != null) {
+                newBuilder.set(cfg.RACK_ADDRESS, cfg.rackAddress());
+            }
+            if (cfg.owner() != null) {
+                newBuilder.set(cfg.OWNER, cfg.owner());
+            }
+            DefaultAnnotations newAnnotations = newBuilder.build();
+            return DefaultAnnotations.union(originalAnnotations, newAnnotations);
         }
     }
 
@@ -726,5 +792,31 @@ public class DeviceManager
             });
         }
         return results;
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(BasicDeviceConfig.class)) {
+                log.info("Detected Device network config event {}", event.type());
+                kickOutBadDevice(((DeviceId) event.subject()));
+            }
+        }
+    }
+
+    // checks if the specified device is allowed by the BasicDeviceConfig
+    // and if not, removes it
+    private void kickOutBadDevice(DeviceId deviceId) {
+        BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
+        if (!cfg.isAllowed()) {
+            Device badDevice = getDevice(deviceId);
+            if (badDevice != null) {
+                removeDevice(deviceId);
+            } else {
+                log.info("Failed removal: Device {} does not exist", deviceId);
+            }
+        }
     }
 }

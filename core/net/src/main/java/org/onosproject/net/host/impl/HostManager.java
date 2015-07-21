@@ -27,11 +27,18 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.Permission;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.incubator.net.config.NetworkConfigEvent;
+import org.onosproject.incubator.net.config.NetworkConfigListener;
+import org.onosproject.incubator.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
@@ -51,6 +58,7 @@ import org.slf4j.Logger;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
 
@@ -70,6 +78,8 @@ public class HostManager
     private final ListenerRegistry<HostEvent, HostListener>
             listenerRegistry = new ListenerRegistry<>();
 
+    private final NetworkConfigListener networkConfigListener = new InternalNetworkConfigListener();
+
     private HostStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -84,6 +94,9 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
+
     private HostMonitor monitor;
 
     @Activate
@@ -91,7 +104,7 @@ public class HostManager
         log.info("Started");
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
-
+        networkConfigService.addListener(networkConfigListener);
         monitor = new HostMonitor(deviceService,  packetService, this);
         monitor.start();
     }
@@ -100,6 +113,7 @@ public class HostManager
     public void deactivate() {
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(HostEvent.class);
+        networkConfigService.removeListener(networkConfigListener);
         log.info("Stopped");
     }
 
@@ -246,7 +260,6 @@ public class HostManager
     private class InternalHostProviderService
             extends AbstractProviderService<HostProvider>
             implements HostProviderService {
-
         InternalHostProviderService(HostProvider provider) {
             super(provider);
         }
@@ -255,11 +268,27 @@ public class HostManager
         public void hostDetected(HostId hostId, HostDescription hostDescription) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
+            hostDescription = validateHost(hostDescription, hostId);
             HostEvent event = store.createOrUpdateHost(provider().id(), hostId,
                                                        hostDescription);
             if (event != null) {
                 post(event);
             }
+        }
+
+        // returns a HostDescription made from the union of the BasicHostConfig
+        // annotations if it exists
+        private HostDescription validateHost(HostDescription hostDescription, HostId hostId) {
+            BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
+            checkState(cfg == null || cfg.isAllowed(), "Host {} is not allowed", hostId);
+            if (cfg != null) {
+                SparseAnnotations finalSparse = processAnnotations(cfg, hostDescription);
+                hostDescription = new DefaultHostDescription(hostId.mac(),
+                                                             hostDescription.vlan(),
+                                                             hostDescription.location(),
+                                                             finalSparse);
+            }
+            return hostDescription;
         }
 
         @Override
@@ -271,6 +300,30 @@ public class HostManager
                 post(event);
             }
         }
+    }
+
+    // Supplements or replaces hostDescriptions's annotations with BasicHostConfig's
+    // annotations
+    private SparseAnnotations processAnnotations(BasicHostConfig cfg, HostDescription hostDescription) {
+        SparseAnnotations originalAnnotations = hostDescription.annotations();
+        DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
+        if (cfg.name() != null) {
+            newBuilder.set(cfg.NAME, cfg.name());
+        }
+        if (cfg.latitude() != -1) {
+            newBuilder.set(cfg.LATITUDE, Double.toString(cfg.latitude()));
+        }
+        if (cfg.longitude() != -1) {
+            newBuilder.set(cfg.LONGITUDE, Double.toString(cfg.longitude()));
+        }
+        if (cfg.rackAddress() != null) {
+            newBuilder.set(cfg.RACK_ADDRESS, cfg.rackAddress());
+        }
+        if (cfg.owner() != null) {
+            newBuilder.set(cfg.OWNER, cfg.owner());
+        }
+        DefaultAnnotations newAnnotations = newBuilder.build();
+        return DefaultAnnotations.union(originalAnnotations, newAnnotations);
     }
 
     // Posts the specified event to the local event dispatcher.
@@ -285,6 +338,34 @@ public class HostManager
         @Override
         public void notify(HostEvent event) {
             post(event);
+        }
+    }
+
+    // listens for NetworkConfigEvents of type BasicHostConfig and removes
+    // links that the config does not allow
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(BasicHostConfig.class)) {
+                log.info("Detected Host network config event {}", event.type());
+                kickOutBadHost(((HostId) event.subject()));
+            }
+        }
+    }
+
+    // checks if the specified host is allowed by the BasicHostConfig
+    // and if not, removes it
+    private void kickOutBadHost(HostId hostId) {
+        BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
+        if (cfg != null && !cfg.isAllowed()) {
+            Host badHost = getHost(hostId);
+            if (badHost != null) {
+                removeHost(hostId);
+            } else {
+                log.info("Failed removal: Host {} does not exist", hostId);
+            }
         }
     }
 }
