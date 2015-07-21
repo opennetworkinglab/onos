@@ -1,4 +1,3 @@
-/* curl -X POST -H'Content-type:application/json' http://$OCI:8181/onos/v1/network/configuration -d @/users/tom/onos/tools/test/configs/sample-basic.json */
 {
   "devices": {
     "of:001122334455667788" : {

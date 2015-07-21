@@ -103,11 +103,15 @@ public class DistributedNetworkConfigStore
     @Override
     public void addConfigFactory(ConfigFactory configFactory) {
         factoriesByConfig.put(configFactory.configClass().getName(), configFactory);
+        notifyDelegate(new NetworkConfigEvent(CONFIG_REGISTERED, configFactory.configKey(),
+                                              configFactory.configClass()));
     }
 
     @Override
     public void removeConfigFactory(ConfigFactory configFactory) {
         factoriesByConfig.remove(configFactory.configClass().getName());
+        notifyDelegate(new NetworkConfigEvent(CONFIG_UNREGISTERED, configFactory.configKey(),
+                                              configFactory.configClass()));
     }
 
     @Override
