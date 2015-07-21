@@ -69,7 +69,8 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="port in tableData track by $index">
+                <tr ng-repeat="port in tableData track by $index"
+                    onos-flash-changes row="{{port}}" row-id="id">
                     <td>{{port.id}}</td>
                     <td>{{port.pkt_rx}}</td>
                     <td>{{port.pkt_tx}}</td>

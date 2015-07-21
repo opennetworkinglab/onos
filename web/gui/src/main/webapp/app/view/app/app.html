@@ -60,7 +60,8 @@
 
                 <tr ng-repeat="app in tableData track by $index"
                     ng-click="selectCallback($event, app)"
-                    ng-class="{selected: app.id === selId}">
+                    ng-class="{selected: app.id === selId}"
+                    onos-flash-changes row="{{app}}" row-id="id">
                     <td class="table-icon">
                         <div icon icon-id="{{app._iconid_state}}"></div>
                     </td>

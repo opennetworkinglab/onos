@@ -250,6 +250,7 @@
     .directive('deviceDetailsPanel', ['$rootScope', '$window',
     function ($rootScope, $window) {
         return function (scope) {
+            var unbindWatch;
 
             function heightCalc() {
                 pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
@@ -268,7 +269,7 @@
                 }
             });
 
-            $rootScope.$watchCollection(
+            unbindWatch = $rootScope.$watchCollection(
                 function () {
                     return {
                         h: $window.innerHeight,
@@ -283,6 +284,7 @@
             );
 
             scope.$on('$destroy', function () {
+                unbindWatch();
                 ps.destroyPanel(pName);
             });
         };

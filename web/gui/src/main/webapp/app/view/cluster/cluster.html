@@ -48,7 +48,8 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="node in tableData track by $index">
+                <tr ng-repeat="node in tableData track by $index"
+                    onos-flash-changes row="{{node}}" row-id="id">
                     <td class="table-icon">
                         <div icon icon-id="{{node._iconid_state}}"></div>
                     </td>

@@ -47,6 +47,23 @@
     background-color: #333;
 }
 
+.light #ov-intent tr:nth-child(6n + 1).data-change,
+.light #ov-intent tr:nth-child(6n + 2).data-change,
+.light #ov-intent tr:nth-child(6n + 3).data-change,
+.light #ov-intent tr:nth-child(6n + 4).data-change,
+.light #ov-intent tr:nth-child(6n + 5).data-change,
+.light #ov-intent tr:nth-child(6n).data-change {
+    background-color: #FDFFDC;
+}
+.dark #ov-intent tr:nth-child(6n + 1).data-change,
+.dark #ov-intent tr:nth-child(6n + 2).data-change,
+.dark #ov-intent tr:nth-child(6n + 3).data-change,
+.dark #ov-intent tr:nth-child(6n + 4).data-change,
+.dark #ov-intent tr:nth-child(6n + 5).data-change,
+.dark #ov-intent tr:nth-child(6n).data-change {
+    background-color: #5A5600;
+}
+
 #ov-intent td.resources,
 #ov-intent td.details {
     padding-left: 36px;

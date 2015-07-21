@@ -172,6 +172,32 @@
         return true;
     }
 
+    // returns true if the two objects have all the same properties
+    function sameObjProps(obj1, obj2) {
+        var key;
+        for (key in obj1) {
+            if (obj1.hasOwnProperty(key)) {
+                if (!(obj1[key] === obj2[key])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // returns true if the array contains the object
+    // does NOT use strict object reference equality,
+        // instead checks each property individually for equality
+    function containsObj(arr, obj) {
+        var i;
+        for (i = 0; i < arr.length; i++) {
+            if (sameObjProps(arr[i], obj)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // return the given string with the first character capitalized.
     function cap(s) {
         return s.toLowerCase().replace(/^[a-z]/, function (m) {
@@ -227,6 +253,8 @@
                 inArray: inArray,
                 removeFromArray: removeFromArray,
                 isEmptyObject: isEmptyObject,
+                sameObjProps: sameObjProps,
+                containsObj: containsObj,
                 cap: cap,
                 noPx: noPx,
                 noPxStyle: noPxStyle,

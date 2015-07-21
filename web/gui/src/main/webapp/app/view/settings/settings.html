@@ -33,7 +33,8 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="prop in tableData track by $index">
+                <tr ng-repeat="prop in tableData track by $index"
+                    onos-flash-changes row="{{prop}}" row-id="id">
                     <td>{{prop.component}}</td>
                     <td>{{prop.id}}</td>
                     <td>{{prop.type}}</td>

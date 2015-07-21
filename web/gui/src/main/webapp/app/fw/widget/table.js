@@ -26,6 +26,7 @@
     // constants
     var tableIconTdSize = 33,
         pdg = 22,
+        flashTime = 2000,
         colWidth = 'col-width',
         tableIcon = 'table-icon',
         asc = 'asc',
@@ -208,7 +209,46 @@
                 scope.$on('$destroy', function () {
                     resetSort();
                 });
-            }
+            };
+        }])
+
+        .directive('onosFlashChanges', ['$log', '$parse', '$timeout',
+            function ($log, $parse, $timeout) {
+            return function (scope, element, attrs) {
+                var rowData = $parse(attrs.row)(scope),
+                    id = attrs.rowId,
+                    tr = d3.select(element[0]),
+                    multiRows = d3.selectAll('.multi-row'),
+                    promise;
+
+                scope.$watchCollection('changedData', function (newData) {
+                    angular.forEach(newData, function (item) {
+                        function classMultiRows(b) {
+                            if (!multiRows.empty()) {
+                                multiRows.each(function () {
+                                    d3.select(this).classed('data-change', b);
+                                });
+                            }
+                        }
+
+                        if (rowData[id] === item[id]) {
+                            tr.classed('data-change', true);
+                            classMultiRows(true);
+
+                            promise = $timeout(function () {
+                                tr.classed('data-change', false);
+                                classMultiRows(false);
+                            }, flashTime);
+                        }
+
+                    });
+                });
+                scope.$on('$destroy', function () {
+                    if (promise) {
+                        $timeout.cancel(promise);
+                    }
+                });
+            };
         }]);
 
 }());

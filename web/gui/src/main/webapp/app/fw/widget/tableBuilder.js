@@ -30,7 +30,8 @@
     // {
     //    scope: $scope,     <- controller scope
     //    tag: 'device',     <- table identifier
-    //    selCb: selCb       <- row selection callback (optional)
+    //    selCb: selCb,      <- row selection callback (optional)
+    //    respCb: respCb,    <- websocket response callback (optional)
     //    query: params      <- query parameters in URL (optional)
     // }
     //          Note: selCb() is passed the row data model of the selected row,
@@ -45,31 +46,54 @@
             resp = o.tag + 'DataResponse',
             onSel = fs.isF(o.selCb),
             onResp = fs.isF(o.respCb),
+            oldTableData = [],
             promise;
 
         o.scope.tableData = [];
+        o.scope.changedData = [];
         o.scope.sortParams = {};
         o.scope.autoRefresh = true;
         o.scope.autoRefreshTip = 'Toggle auto refresh';
 
+        // === websocket functions --------------------
+        // response
         function respCb(data) {
             o.scope.tableData = data[root];
             onResp && onResp();
             o.scope.$apply();
-        }
 
+            // checks if data changed for row flashing
+            if (!angular.equals(o.scope.tableData, oldTableData)) {
+                o.scope.changedData = [];
+                // only flash the row if the data already exists
+                if (oldTableData.length) {
+                    angular.forEach(o.scope.tableData, function (item) {
+                        if (!fs.containsObj(oldTableData, item)) {
+                            o.scope.changedData.push(item);
+                        }
+                    });
+                }
+                angular.copy(o.scope.tableData, oldTableData);
+            }
+        }
+        handlers[resp] = respCb;
+        wss.bindHandlers(handlers);
+
+        // request
         function sortCb(params) {
             var p = angular.extend({}, params, o.query);
             wss.sendEvent(req, p);
         }
         o.scope.sortCallback = sortCb;
 
+        // === selecting a row functions ----------------
         function selCb($event, selRow) {
             o.scope.selId = (o.scope.selId === selRow.id) ? null : selRow.id;
             onSel && onSel($event, selRow);
         }
         o.scope.selectCallback = selCb;
 
+        // === autoRefresh functions ------------------
         function startRefresh() {
             promise = $interval(function () {
                 if (fs.debugOn('widget')) {
@@ -92,10 +116,7 @@
         }
         o.scope.toggleRefresh = toggleRefresh;
 
-        handlers[resp] = respCb;
-        wss.bindHandlers(handlers);
-
-        // Cleanup on destroyed scope
+        // === Cleanup on destroyed scope -----------------
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             stopRefresh();

@@ -63,6 +63,17 @@ div.summary-list tr.no-data td {
     background-color: #304860;
 }
 
+/* highlighting */
+div.summary-list tr {
+    transition: background-color 500ms;
+}
+.light div.summary-list tr.data-change {
+    background-color: #FDFFDC;
+}
+.dark div.summary-list tr.data-change {
+    background-color: #5A5600;
+}
+
 div.summary-list td {
     padding: 6px;
     text-align: left;

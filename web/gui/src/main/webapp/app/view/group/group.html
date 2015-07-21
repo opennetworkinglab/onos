@@ -67,7 +67,8 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="group in tableData track by $index">
+                <tr ng-repeat-start="group in tableData track by $index"
+                    onos-flash-changes row="{{group}}" row-id="id">
                     <td>{{group.id}}</td>
                     <td>{{group.app_id}}</td>
                     <td>{{group.state}}</td>
@@ -75,7 +76,7 @@
                     <td>{{group.packets}}</td>
                     <td>{{group.bytes}}</td>
                 </tr>
-                <tr ng-repeat-end>
+                <tr class="multi-row" ng-repeat-end>
                     <td class="buckets" colspan="6"
                         ng-bind-html="group.buckets"></td>
                 </tr>
